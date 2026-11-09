@@ -345,7 +345,7 @@ npm `@unikit-bridge/*` 7종(types/cli/node/bun/tauri/react-native/lynx)과 crate
 
 ### Changed
 
-- 저장소 URL을 `loopy-lim/unikit` → `loopy-lim/hostra`로 정리 (2026-08-20 `loopy-lim/unikit`로 환원 — hostra 개명 철회)
+- 저장소 URL을 `loopy-lim/unikit-bridge` → `loopy-lim/hostra`로 정리 (2026-08-20 `loopy-lim/unikit-bridge`로 환원 — hostra 개명 철회)
 
 ## 0.1.0 (2026-05-13)
 

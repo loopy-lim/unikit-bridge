@@ -43,4 +43,4 @@ Linux는 Alpha다. 코어 fixture 결과는 JS/호스트 경계, 실제 앱 p95,
 
 ## PR CI의 Android 환경 수정
 
-첫 PR CI [35055712343](https://github.com/loopy-lim/unikit/actions/runs/35055712343)에서 Android 두 잡은 runtime 빌드 전 SDK 설치 단계에서 `Failed to find package 'tools'`로 실패했다. [setup-android v4의 공식 입력](https://github.com/android-actions/setup-android/blob/v4/action.yml)은 기본 `tools platform-tools`를 `packages`로 덮어쓸 수 있다. 두 잡 모두 `platform-tools`를 명시하고, action이 설치하는 cmdline-tools 및 다음 단계의 NDK/platform/build-tools 설치는 유지한다. 변경은 CI 설정뿐이며 측정한 Rust 소스·manifest·harness는 바뀌지 않는다. 해결 여부는 후속 전체 CI의 SDK 설치와 Android 빌드·기동 검사로 판정한다.
+첫 PR CI [35055712343](https://github.com/loopy-lim/unikit-bridge/actions/runs/35055712343)에서 Android 두 잡은 runtime 빌드 전 SDK 설치 단계에서 `Failed to find package 'tools'`로 실패했다. [setup-android v4의 공식 입력](https://github.com/android-actions/setup-android/blob/v4/action.yml)은 기본 `tools platform-tools`를 `packages`로 덮어쓸 수 있다. 두 잡 모두 `platform-tools`를 명시하고, action이 설치하는 cmdline-tools 및 다음 단계의 NDK/platform/build-tools 설치는 유지한다. 변경은 CI 설정뿐이며 측정한 Rust 소스·manifest·harness는 바뀌지 않는다. 해결 여부는 후속 전체 CI의 SDK 설치와 Android 빌드·기동 검사로 판정한다.

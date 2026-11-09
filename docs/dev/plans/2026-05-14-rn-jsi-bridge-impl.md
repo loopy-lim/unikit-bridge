@@ -452,7 +452,7 @@ Pod::Spec.new do |s|
   s.version        = '1.0.0'
   s.summary        = 'Unikit JSI Bridge for React Native'
   s.author         = ''
-  s.homepage       = 'https://github.com/loopy-lim/unikit'
+  s.homepage       = 'https://github.com/loopy-lim/unikit-bridge'
   s.platforms      = { :ios => '15.1' }
   s.source         = { git: '' }
   s.static_framework = true

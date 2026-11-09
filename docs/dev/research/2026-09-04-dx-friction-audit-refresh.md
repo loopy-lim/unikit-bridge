@@ -3,7 +3,7 @@ date: 2026-09-04
 researcher: claude
 git_commit: 3d5eb404
 branch: feat/tauri-channel-adapter
-repository: loopy-lim/unikit
+repository: loopy-lim/unikit-bridge
 topic: 'DX 감사 리프레시 — 5영역(CLI/문서/TS 표면/Rust 저작면/E2E 실측) 전수 재검증'
 tags: [research, dx, audit-refresh, cli, docs, types, rust-macros, onboarding, e2e]
 status: complete

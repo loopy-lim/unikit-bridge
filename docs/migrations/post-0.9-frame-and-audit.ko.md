@@ -2,7 +2,7 @@
 
 # 0.9 이후 Frame·감사 수정 마이그레이션
 
-동시 업그레이드는 [PR #69](https://github.com/loopy-lim/unikit/pull/69)에서 준비한다.
+동시 업그레이드는 [PR #69](https://github.com/loopy-lim/unikit-bridge/pull/69)에서 준비한다.
 2026-09-10 릴리스에서 Rust와 types/node/bun/cli는 이미 0.9.0을 사용했으므로
 새 버전으로 올린다. [호환 표](../compatibility-matrix.ko.md)는 릴리스 manifest를
 기준으로 하며 레지스트리 발행은 별도로 검증한다.

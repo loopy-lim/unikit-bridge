@@ -48,5 +48,5 @@ const result = await addNumbers({ a: 42, b: 58 });
 
 ## 관련 문서
 
-- [unikit-bridge](https://github.com/loopy-lim/unikit#readme)
+- [unikit-bridge](https://github.com/loopy-lim/unikit-bridge#readme)
 - `docs/architecture.md`, `docs/compatibility-contract.md`

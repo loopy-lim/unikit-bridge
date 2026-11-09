@@ -87,11 +87,11 @@ extglob, 문자 클래스 및 제외 패턴을 직접 축약 구현하지 않기
 ## 공개 배포와 원격 검사
 
 2026-09-22 조회한 원격 main은 `4b736f84dc0124b16284e178403a2712947c90ea`다.
-같은 SHA의 [기본 CI](https://github.com/loopy-lim/unikit/actions/runs/35586476014),
-[Sanitizer](https://github.com/loopy-lim/unikit/actions/runs/35544752191),
-[Miri](https://github.com/loopy-lim/unikit/actions/runs/35542294531),
-[registry consumer](https://github.com/loopy-lim/unikit/actions/runs/35538228207),
-[Release](https://github.com/loopy-lim/unikit/actions/runs/35536921112)는 성공했다.
+같은 SHA의 [기본 CI](https://github.com/loopy-lim/unikit-bridge/actions/runs/35586476014),
+[Sanitizer](https://github.com/loopy-lim/unikit-bridge/actions/runs/35544752191),
+[Miri](https://github.com/loopy-lim/unikit-bridge/actions/runs/35542294531),
+[registry consumer](https://github.com/loopy-lim/unikit-bridge/actions/runs/35538228207),
+[Release](https://github.com/loopy-lim/unikit-bridge/actions/runs/35536921112)는 성공했다.
 이는 이번 미커밋 후보를 원격에서 검사한 결과가 아니다.
 
 [레지스트리 감사 영수증](../../verification/evidence/2026-09-22-registry-dx-audit.json)은
@@ -102,9 +102,9 @@ SHA가 서로 다르다. CLI 0.11.3/RN 0.9.2와 로컬 수정본의 버전 문�
 
 ## 원격 성능 실패와 측정 신뢰성
 
-[Benchmark 35535838697](https://github.com/loopy-lim/unikit/actions/runs/35535838697)은
+[Benchmark 35535838697](https://github.com/loopy-lim/unikit-bridge/actions/runs/35535838697)은
 실패했다. 복원한 마지막 성공 기준선은
-[35516522592](https://github.com/loopy-lim/unikit/actions/runs/35516522592)의
+[35516522592](https://github.com/loopy-lim/unikit-bridge/actions/runs/35516522592)의
 `7d5516f69af0029f1507add0aa06c4fba3ca9522`다.
 현재 53개 경로가 악화됐고, 삭제된 rkyv 경로 13개의 과거 변화율이 그대로
 남아 있었다. 예를 들어 `invoke_rkyv_v2/frozen`의 -45.10%와

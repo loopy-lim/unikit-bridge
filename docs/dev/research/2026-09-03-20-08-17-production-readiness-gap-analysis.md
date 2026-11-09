@@ -3,7 +3,7 @@ date: 2026-09-03 20:08:17 +0900
 researcher: claude
 git_commit: d41d2d277db4f25847d4c7fe686da72cfee35d51
 branch: feat/tauri-channel-adapter
-repository: loopy-lim/unikit
+repository: loopy-lim/unikit-bridge
 topic: 'production readiness gap — 남은 작업·후속 과제·미구현 항목 전수 조사'
 tags:
   [
@@ -27,7 +27,7 @@ last_updated_by: claude
 **연구자**: claude
 **Git Commit**: d41d2d277db4f25847d4c7fe686da72cfee35d51 (feat/tauri-channel-adapter)
 **Branch**: feat/tauri-channel-adapter
-**Repository**: loopy-lim/unikit
+**Repository**: loopy-lim/unikit-bridge
 
 ## 연구 질문
 
@@ -118,7 +118,7 @@ README 증거 수준표(`README.md:620-632`):
 | thiserror 에러 enum → TS 코드 매핑 | 문서/매크로 0건                                                                   | 리서치·로드맵에만 존재                                                               |
 | React Suspense 캐시/무효화         | `packages/react/src` 0건                                                          | DX audit HIGH                                                                        |
 | **필드 수준 계약 게이트**          | `packages/testing/src/contract-gate.ts:10-20` — 여전히 명령 이름 집합만 비교      | **DX audit HIGH, selling point(계약 소유) 핵심 자산과 직결**                         |
-| `__UNikit_doc_` 죽은 상수 정리     | `crates/unikit-bridge-macros/src/macro_command.rs:108-109,182`                           | 목적은 달성됐으나 상수는 여전히 `#[allow(dead_code)]` 생성만 되고 소비처 없음        |
+| `__UNikit_doc_` 죽은 상수 정리     | `crates/unikit-bridge-macros/src/macro_command.rs:108-109,182`                    | 목적은 달성됐으나 상수는 여전히 `#[allow(dead_code)]` 생성만 되고 소비처 없음        |
 
 ### 6. 문서 정직성 잔여 결함
 

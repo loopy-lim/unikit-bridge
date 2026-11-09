@@ -55,5 +55,5 @@ Key exports:
 
 ## Related docs
 
-- [unikit-bridge](https://github.com/loopy-lim/unikit#readme)
+- [unikit-bridge](https://github.com/loopy-lim/unikit-bridge#readme)
 - `docs/architecture.md`, `docs/compatibility-contract.md`

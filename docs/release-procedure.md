@@ -52,7 +52,7 @@ eligible run for the candidate counts; an old success cannot hide a newer failur
 Provide `GH_TOKEN` through the existing authenticated environment without printing it.
 
 ```bash
-node scripts/check-release-gates.mjs --repository loopy-lim/unikit --sha "$(git rev-parse HEAD)" > release-gates.json
+node scripts/check-release-gates.mjs --repository loopy-lim/unikit-bridge --sha "$(git rev-parse HEAD)" > release-gates.json
 ```
 
 Release uses `--ci-only` only because its `needs` dependencies require fresh safety
@@ -165,8 +165,8 @@ as the publication evidence.
   `scripts/ci-gate.sh` — the aggregate is the merge contract now. Verify or
   restore the protection with:
   ```bash
-  gh api repos/loopy-lim/unikit/branches/main/protection --jq '.required_status_checks.contexts'
-  gh api --method PUT repos/loopy-lim/unikit/branches/main/protection --input - <<'EOF'
+  gh api repos/loopy-lim/unikit-bridge/branches/main/protection --jq '.required_status_checks.contexts'
+  gh api --method PUT repos/loopy-lim/unikit-bridge/branches/main/protection --input - <<'EOF'
   {
     "required_status_checks": {
       "strict": false,
@@ -183,7 +183,7 @@ as the publication evidence.
 - **Rollback — restore the pre-2026-09-20 individual contexts** (the state
   documented by the 2026-09-20 morning audit):
   ```bash
-  gh api --method PUT repos/loopy-lim/unikit/branches/main/protection --input - <<'EOF'
+  gh api --method PUT repos/loopy-lim/unikit-bridge/branches/main/protection --input - <<'EOF'
   {
     "required_status_checks": {
       "strict": false,

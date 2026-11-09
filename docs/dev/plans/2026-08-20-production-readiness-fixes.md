@@ -1385,9 +1385,9 @@ edition = "2024"
 license = "MIT"
 version = "0.2.0"
 description = "Rust → TypeScript bridge framework with auto-generated type-safe clients"
-repository = "https://github.com/loopy-lim/unikit"
+repository = "https://github.com/loopy-lim/unikit-bridge"
 # 신규 — crates.io 검색성/발행 경고 제거
-homepage = "https://github.com/loopy-lim/unikit"
+homepage = "https://github.com/loopy-lim/unikit-bridge"
 documentation = "https://docs.rs/unikit-bridge"
 keywords = ["typescript", "bridge", "codegen", "ffi", "react-native"]
 categories = ["api-bindings", "development-tools::ffi"]
@@ -1521,10 +1521,10 @@ git commit -m "chore(meta): crates.io 메타데이터(keywords/categories/MSRV) 
 
 **Step 1: required checks 지정 (사용자 gh 권한으로)**
 
-현재 `gh api repos/loopy-lim/unikit/branches/main/protection` → 404 (보호 없음). 사용자에게 안내하거나 관리자 권한이 있으면:
+현재 `gh api repos/loopy-lim/unikit-bridge/branches/main/protection` → 404 (보호 없음). 사용자에게 안내하거나 관리자 권한이 있으면:
 
 ```bash
-gh api -X PUT repos/loopy-lim/unikit/branches/main/protection \
+gh api -X PUT repos/loopy-lim/unikit-bridge/branches/main/protection \
   --input - <<'EOF'
 {
   "required_status_checks": {
@@ -1615,22 +1615,22 @@ git log --oneline -10
 
 ## 검증 체크리스트 (완료 정의)
 
-| 항목                | 검증 명령                                   | 기대                            |
-| ------------------- | ------------------------------------------- | ------------------------------- |
-| 누수 수정           | grep makeInvoke 4-인수                      | 12 심볼 전부 deleter 매칭       |
+| 항목                | 검증 명령                                          | 기대                            |
+| ------------------- | -------------------------------------------------- | ------------------------------- |
+| 누수 수정           | grep makeInvoke 4-인수                             | 12 심볼 전부 deleter 매칭       |
 | panic guard         | `cargo test -p unikit-bridge --test rkyv_v2_panic` | 1 passed                        |
-| async 완료 보장     | panic_guard 테스트 async 항목               | on_complete 1회 + registry 정리 |
-| JSI 클램프          | grep byteOffset 클램프                      | 존재                            |
-| timeout             | types 테스트 신규 2건                       | transport.timeout + retryable   |
-| 식별자 화이트리스트 | CLI 테스트                                  | hostile 거부                    |
-| 버전                | grep "0.1" 문서/템플릿                      | 0 히트                          |
-| napi 코드           | payload-robustness 신규                     | `"code":` JSON 매치             |
-| 플래키              | transport-bench 10회                        | 0 실패                          |
-| 커버리지            | coverage.yml dispatch                       | Step summary 생성               |
-| fuzz                | cargo fuzz 30s 스모크                       | crash 없음                      |
-| 메타데이터          | cargo publish --dry-run                     | 경고 소멸                       |
-| 브랜치 보호         | gh api protection                           | 200                             |
-| 전체 게이트         | npm run test + cargo test                   | 전부 green                      |
+| async 완료 보장     | panic_guard 테스트 async 항목                      | on_complete 1회 + registry 정리 |
+| JSI 클램프          | grep byteOffset 클램프                             | 존재                            |
+| timeout             | types 테스트 신규 2건                              | transport.timeout + retryable   |
+| 식별자 화이트리스트 | CLI 테스트                                         | hostile 거부                    |
+| 버전                | grep "0.1" 문서/템플릿                             | 0 히트                          |
+| napi 코드           | payload-robustness 신규                            | `"code":` JSON 매치             |
+| 플래키              | transport-bench 10회                               | 0 실패                          |
+| 커버리지            | coverage.yml dispatch                              | Step summary 생성               |
+| fuzz                | cargo fuzz 30s 스모크                              | crash 없음                      |
+| 메타데이터          | cargo publish --dry-run                            | 경고 소멸                       |
+| 브랜치 보호         | gh api protection                                  | 200                             |
+| 전체 게이트         | npm run test + cargo test                          | 전부 green                      |
 
 ## Task 의존 관계
 

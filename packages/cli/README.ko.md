@@ -87,7 +87,7 @@ import { generateTypesTs, generateCommandsTs, diffSchemas } from '@unikit-bridge
 
 ## 관련 문서
 
-- [unikit-bridge](https://github.com/loopy-lim/unikit#readme)
+- [unikit-bridge](https://github.com/loopy-lim/unikit-bridge#readme)
 - `docs/getting-started.md` — 전체 파이프라인 (Rust `generate_typescript` → CLI)
 
 `unikit dev --config unikit.json`은 설정 변경을 다시 읽고 새로 생기거나 삭제·교체된

@@ -47,7 +47,7 @@ Linux 지원 수준은 **Alpha**로 유지한다.
 기존 인증 환경에 제공하고 값을 출력하지 않는다.
 
 ```bash
-node scripts/check-release-gates.mjs --repository loopy-lim/unikit --sha "$(git rev-parse HEAD)" > release-gates.json
+node scripts/check-release-gates.mjs --repository loopy-lim/unikit-bridge --sha "$(git rev-parse HEAD)" > release-gates.json
 ```
 
 Release 내부는 새 안전성 job의 `needs`로 검사 성공을 강제하므로 CI 조회에만
@@ -151,8 +151,8 @@ stable 발행 경로가 아니다. 원본 결과는 Release run과 각 artifact�
 - 새 CI 잡을 추가할 때는 `ci.yml`의 `gate` `needs`와 `scripts/ci-gate.sh`에 함께
   넣는다 — 이제 집계 잡이 곧 머지 계약이다. 보호 설정은 아래 API로 확인/복원한다:
   ```bash
-  gh api repos/loopy-lim/unikit/branches/main/protection --jq '.required_status_checks.contexts'
-  gh api --method PUT repos/loopy-lim/unikit/branches/main/protection --input - <<'EOF'
+  gh api repos/loopy-lim/unikit-bridge/branches/main/protection --jq '.required_status_checks.contexts'
+  gh api --method PUT repos/loopy-lim/unikit-bridge/branches/main/protection --input - <<'EOF'
   {
     "required_status_checks": {
       "strict": false,
@@ -169,7 +169,7 @@ stable 발행 경로가 아니다. 원본 결과는 Release run과 각 artifact�
 - **롤백 — 2026-09-20 이전 개별 컨텍스트 8개로 복원**(같은 날 오전 감사가
   기록한 상태):
   ```bash
-  gh api --method PUT repos/loopy-lim/unikit/branches/main/protection --input - <<'EOF'
+  gh api --method PUT repos/loopy-lim/unikit-bridge/branches/main/protection --input - <<'EOF'
   {
     "required_status_checks": {
       "strict": false,

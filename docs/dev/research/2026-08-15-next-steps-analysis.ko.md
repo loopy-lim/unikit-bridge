@@ -3,7 +3,7 @@ date: 2026-08-15T22:27:32+09:00
 researcher: claude (loopy 세션)
 git_commit: f187c2774ce2f9e286492ba627e27a4b5910bd00
 branch: main
-repository: unikit-bridge (remote: loopy-lim/unikit)
+repository: unikit-bridge (remote: loopy-lim/unikit-bridge)
 topic: '다음 작업 후보 도출 — 갭 클로저 이후 상태, 발행(publish) 준비도, 미완료 항목 전수 조사'
 tags: [research, codebase, publish, npm, crates-io, windows, masterplan, next-steps]
 status: complete
@@ -16,7 +16,7 @@ last_updated_by: claude
 **날짜**: 2026-08-15T22:27:32+09:00
 **Git Commit**: f187c277
 **Branch**: main
-**Repository**: unikit-bridge (remote: loopy-lim/unikit)
+**Repository**: unikit-bridge (remote: loopy-lim/unikit-bridge)
 
 ## 연구 질문
 
@@ -32,7 +32,7 @@ last_updated_by: claude
   기준 9개 체크박스가 미체크**이고 impl/결과 기록 문서가 없다.
 - **발행(publish) 준비가 진행 중**: 미커밋 변경 8개 package.json(버전 0.1.1, repository URL
   수정, publishConfig.access public, directory 필드 수정).
-  (2026-08-20 갱신: hostra 개명은 철회되어 `loopy-lim/unikit` 유지, npm 스코프도 `@unikit-bridge/*` 유지)
+  (2026-08-20 갱신: hostra 개명은 철회되어 `loopy-lim/unikit-bridge` 유지, npm 스코프도 `@unikit-bridge/*` 유지)
   발행 전 필수: cli/types README, dist 빌드(dist는 gitignore), crates.io 이름
   선점 확인, examples 우발 발행 방지.
 - **기술적 하드 블로커는 Windows P1(FML PE 심볼) 하나뿐**이고 이는 Windows 머신 의존.
@@ -56,7 +56,7 @@ Task 1~7 결과물 전부 실재 확인:
 | capability 계층 B                                                            | ✅   | `backend/src/capabilities.rs` — MobileBridge 구조체(107행), MobileRegistry(118행), FFI `unikit_template_register_mobile_registry`(171행), 테스트 6개. iOS/Android 셸이 실제 호출(`UnikitModule.m:94`, `unikit_jni.cpp:169`) |
 | NDK 핀 + Windows 문서                                                        | ✅   | `build-rust-android.sh:25` (`27.1.12297006`), `desktop/WINDOWS.md` (111줄, 3포인트 포팅 가이드)                                                                                                                             |
 | 문서 정리                                                                    | ✅   | rkyv-command-id 헤더 "구현 완료", runner-template §7 갱신, P6 해소 표시, capabilities README "구현됨", 루트 README runner/ 포함                                                                                             |
-| create-runner.sh 절대경로 재작성                                             | ✅   | `create-runner.sh:68-87` — unikit path·@unikit-bridge file: 의존성을 원본 절대경로로 재작성                                                                                                                                        |
+| create-runner.sh 절대경로 재작성                                             | ✅   | `create-runner.sh:68-87` — unikit path·@unikit-bridge file: 의존성을 원본 절대경로로 재작성                                                                                                                                 |
 
 **유일 잔존**: `docs/plans/2026-08-14-gap-closure-production-ready-design.md:235-243` 완료
 기준 9개 체크박스 전부 `- [ ]` + 헤더가 "Design + Impl Plan" + impl/결과 문서 부재
@@ -65,7 +65,7 @@ Task 1~7 결과물 전부 실재 확인:
 ### 2. 발행(publish) 준비 상태
 
 **미커밋 변경** (8개 package.json): 버전 0.1.0→0.1.1, repository URL
-(과거 일시적 hostra 개명은 철회 — 현재 `loopy-lim/unikit`) 및 directory 필드 `"packages/"` → 정확한 하위경로로
+(과거 일시적 hostra 개명은 철회 — 현재 `loopy-lim/unikit-bridge`) 및 directory 필드 `"packages/"` → 정확한 하위경로로
 수정, types에는 신규 추가), `@unikit-bridge/*` 7개에 `publishConfig.access: public`, 내부 의존
 `@unikit-bridge/types ^0.1.1`. 루트는 `private: true` 유지.
 
@@ -92,7 +92,7 @@ Task 1~7 결과물 전부 실재 확인:
 **CI/인프라**: `.github/workflows/`에 ci.yml 단 하나. release.yml·bench.yml 부재
 (masterplan 잔여). CHANGELOG.md 부재. LICENSE MIT.
 
-**저장소 정체**: `loopy-lim/unikit` (과거 일시적 hostra 개명은 철회 —
+**저장소 정체**: `loopy-lim/unikit-bridge` (과거 일시적 hostra 개명은 철회 —
 이름 변경 전환 중으로 보임).
 
 ### 3. 미완료 항목 카탈로그 (08-15 기준 최종)
@@ -101,7 +101,7 @@ Task 1~7 결과물 전부 실재 확인:
 | ----------------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Windows 런타임 (P1 FML PE 심볼 + P8 검증) | **open/deferred**           | Windows 머신 + `lynx_desktop_win.cpp` + `dumpbin /exports` 심볼 확인 → GetProcAddress(최선)→PE 오프셋 fallback. `verify-windows.ps1` 6패턴 준비됨                                         |
 | RN B1 디바이스 검증                       | **open (24/24 미체크)**     | Lynx 트랙 대체 여부 판단 보류. 단 §5 latency 목표는 `docs/benchmarks.md:180-194`에서 이미 달성(0.95µs vs Nitro 1.10µs) — 폐쇄 근거 존재                                                   |
-| P0-3 invokeAsync worker 큐                | **open — 설계만, 코드 0건** | `crates/unikit-bridge`·`packages/node`에 invokeAsync 부재. 현재 rkyv V2는 동기 JSI라 긴 Rust 연산 시 jank 가능                                                                                   |
+| P0-3 invokeAsync worker 큐                | **open — 설계만, 코드 0건** | `crates/unikit-bridge`·`packages/node`에 invokeAsync 부재. 현재 rkyv V2는 동기 JSI라 긴 Rust 연산 시 jank 가능                                                                            |
 | Trust test hardening                      | **closed**                  | F1(catch_unwind `ffi.rs:251`)/F2(debug allocator `ffi.rs:97`)/F8(null 체크) 전부 활성 테스트. Phase 0~3 완료                                                                              |
 | Masterplan (05-14)                        | **open 다수**               | release.yml/bench.yml, crates.io 발행, Set/Recursive/Discriminated unions, Streaming/Auth 예제, `unikit init`, 메모리 프로파일링, retryable 메타데이터(필드는 있으나 전부 false 하드코딩) |
 | P1~P8 문제 카탈로그                       | 7/8 closed                  | P1(HIGH)+P8(종속)만 open                                                                                                                                                                  |

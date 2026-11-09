@@ -3,7 +3,7 @@ date: 2026-08-19T23:40:10+09:00
 researcher: claude (loopy 세션)
 git_commit: 348a4cbf208d6d651de8d4dcf42b951eb1e5f17f
 branch: main
-repository: loopy-lim/unikit
+repository: loopy-lim/unikit-bridge
 topic: 'unikit의 실현 가능성 다각도 평가 (기술/제품/시장/DX)'
 tags: [research, feasibility, competitive-landscape, dx, architecture]
 status: complete
@@ -16,7 +16,7 @@ last_updated_by: claude
 **날짜**: 2026-08-19T23:40:10+09:00
 **Git Commit**: 348a4cbf208d6d651de8d4dcf42b951eb1e5f17f
 **Branch**: main
-**Repository**: loopy-lim/unikit
+**Repository**: loopy-lim/unikit-bridge
 
 ## 연구 질문
 

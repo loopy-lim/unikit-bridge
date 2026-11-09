@@ -99,7 +99,7 @@ Suspense 대기 제한도 실제 엔진 호출의 취소를 의미하지 않는�
 
 1. **대상 식별**: 사용자가 언급한 열린 “0.9.0” 항목의 링크·이름이 필요하다.
    조회한 현재 브랜치에는 PR이 없고, 관련 열린 기능 PR은
-   [#69](https://github.com/loopy-lim/unikit/pull/69)이며 다른 브랜치를 가리킨다.
+   [#69](https://github.com/loopy-lim/unikit-bridge/pull/69)이며 다른 브랜치를 가리킨다.
    이 PR에 현재 변경을 덮어쓰거나 임의로 병합하지 않았다.
 2. **기존 버전 보존**: 2026-09-10에 Rust와 types/node/bun/cli의 0.9.0이 이미 발행됐다.
    현재 manifest를 유지하며 버전을 재사용하지 않는다. changeset은 다음 버전의 제안이다.

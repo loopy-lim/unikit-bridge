@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/loopy-lim/unikit/main/packages/cli/unikit.schema.json",
+  "$id": "https://raw.githubusercontent.com/loopy-lim/unikit-bridge/main/packages/cli/unikit.schema.json",
   "title": "unikit.json",
   "description": "Configuration for the unikit CLI (@unikit-bridge/cli). Editor validation and completion via the $schema keyword.",
   "type": "object",

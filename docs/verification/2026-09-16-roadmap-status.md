@@ -12,24 +12,24 @@
 
 ### 완료된 작업 항목 (0.12/0.13 라인)
 
-| 영역 | 항목 | 근거 |
-| --- | --- | --- |
-| 기능 | 함수 등록 — 매크로 없는 function path로 계약 명령 등록 | [계획](../dev/plans/2026-09-16-function-registration.md) |
-| 기능 | `bindSync` — 검증된 동기 바인딩과 invoke·코덱 최적화(nitro 호출 프로파일에서 도출) | [동기 바인딩 문서](../synchronous-bindings.ko.md) |
-| 성능 | nitro 동일 조건 비교·후속 시도 — 맵 인코더 spill 예약 고정, Bun owned 프레임 수신, Node 파편화 프레임 결합, resident-tree 예제, criterion provenance 게이트·dev-profile 가드 | [성능 평가](../performance-evaluation.ko.md), [SPEC §10](../specs/2026-09-14-unikit-roadmap.md) |
-| 통합·DX | scriptc 네이티브 FFI 코드젠 단계·retained 콜백 ABI, watch 재생성 복구·프로듀서 재빌드 게이트, RN 번들링 실험(rn-experiment) 확장 | [10/13 구현 계획](../dev/plans/2026-10-13-dx-safety-performance-implementation.md) |
-| 안전성 | fuzz `invoke_frame` panic 가드 — 정규화 오류의 libfuzzer 크래시 승격 | 11/1 T1 |
-| 안전성 | 생성 코덱 디코드 오류의 `unikit:` 접두사·`offset N` 고정 형식화 | 11/1 T2 |
-| 안전성 | RN 부트스트랩·네이티브 미설치 오류의 구조화 코드(`bootstrap.failed`·`native.not_installed`) | 11/1 T3 |
-| 안전성 | Rust workspace lints — unwrap·expect·unsafe를 빌드 시간에 차단 | 11/1 T4 |
-| 안전성 | TS 정적 강화 — `noUncheckedIndexedAccess` 등 5종 플래그 전 패키지 적용 + eslint type-checked `--max-warnings 0` | 11/1 T5 |
-| 안전성 | gate 잡 actionlint 배선(v1.7.12 핀) + 의존성 wildcard 정책 `deny` 승격 | 11/1 T6 |
-| 안전성 | TSan 주간 트랙·릴리스 게이트 신설 | 11/1 T7 |
-| 안전성 | 생성 C++ 코덱 3바이너리의 ASan+LSan+UBSan CI 잡(`UnikitJSIBridge.cpp`는 folly/JSI 헤더 의존으로 수동 영역에 분리 기록) | 11/1 T8 |
-| 안전성 | `@ts-expect-error` 생성물 정적 경계 부정 픽스처 | 11/1 T9 |
-| 안전성 | miri·sanitizer·fuzz의 PR 게이트 승격 — ci-gate 집계 15→18잡, docs 전용 PR의 설계된 skip 유지 | 11/1 T10 |
-| 문서 | 작성자 규칙 문서(EN/KO), 위협 모델·게이트맵·릴리스 절차(npm OIDC 전환 절차 문서화 포함)·호환성 매트릭스 정합 | 11/1 T11·T12 |
-| 유지보수 | 보안 의존성 범프(tokio 1.54.1 AsyncFd unsound 해소, shell-quote critical 어드바이저리), 레지스트리 소비 여정 핀을 현재 공개 라인으로 갱신 | 커밋 `3f2340bf`·`0a2f5558`·`68976ec0` |
+| 영역     | 항목                                                                                                                                                                         | 근거                                                                                            |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| 기능     | 함수 등록 — 매크로 없는 function path로 계약 명령 등록                                                                                                                       | [계획](../dev/plans/2026-09-16-function-registration.md)                                        |
+| 기능     | `bindSync` — 검증된 동기 바인딩과 invoke·코덱 최적화(nitro 호출 프로파일에서 도출)                                                                                           | [동기 바인딩 문서](../synchronous-bindings.ko.md)                                               |
+| 성능     | nitro 동일 조건 비교·후속 시도 — 맵 인코더 spill 예약 고정, Bun owned 프레임 수신, Node 파편화 프레임 결합, resident-tree 예제, criterion provenance 게이트·dev-profile 가드 | [성능 평가](../performance-evaluation.ko.md), [SPEC §10](../specs/2026-09-14-unikit-roadmap.md) |
+| 통합·DX  | scriptc 네이티브 FFI 코드젠 단계·retained 콜백 ABI, watch 재생성 복구·프로듀서 재빌드 게이트, RN 번들링 실험(rn-experiment) 확장                                             | [10/13 구현 계획](../dev/plans/2026-10-13-dx-safety-performance-implementation.md)              |
+| 안전성   | fuzz `invoke_frame` panic 가드 — 정규화 오류의 libfuzzer 크래시 승격                                                                                                         | 11/1 T1                                                                                         |
+| 안전성   | 생성 코덱 디코드 오류의 `unikit:` 접두사·`offset N` 고정 형식화                                                                                                              | 11/1 T2                                                                                         |
+| 안전성   | RN 부트스트랩·네이티브 미설치 오류의 구조화 코드(`bootstrap.failed`·`native.not_installed`)                                                                                  | 11/1 T3                                                                                         |
+| 안전성   | Rust workspace lints — unwrap·expect·unsafe를 빌드 시간에 차단                                                                                                               | 11/1 T4                                                                                         |
+| 안전성   | TS 정적 강화 — `noUncheckedIndexedAccess` 등 5종 플래그 전 패키지 적용 + eslint type-checked `--max-warnings 0`                                                              | 11/1 T5                                                                                         |
+| 안전성   | gate 잡 actionlint 배선(v1.7.12 핀) + 의존성 wildcard 정책 `deny` 승격                                                                                                       | 11/1 T6                                                                                         |
+| 안전성   | TSan 주간 트랙·릴리스 게이트 신설                                                                                                                                            | 11/1 T7                                                                                         |
+| 안전성   | 생성 C++ 코덱 3바이너리의 ASan+LSan+UBSan CI 잡(`UnikitJSIBridge.cpp`는 folly/JSI 헤더 의존으로 수동 영역에 분리 기록)                                                       | 11/1 T8                                                                                         |
+| 안전성   | `@ts-expect-error` 생성물 정적 경계 부정 픽스처                                                                                                                              | 11/1 T9                                                                                         |
+| 안전성   | miri·sanitizer·fuzz의 PR 게이트 승격 — ci-gate 집계 15→18잡, docs 전용 PR의 설계된 skip 유지                                                                                 | 11/1 T10                                                                                        |
+| 문서     | 작성자 규칙 문서(EN/KO), 위협 모델·게이트맵·릴리스 절차(npm OIDC 전환 절차 문서화 포함)·호환성 매트릭스 정합                                                                 | 11/1 T11·T12                                                                                    |
+| 유지보수 | 보안 의존성 범프(tokio 1.54.1 AsyncFd unsound 해소, shell-quote critical 어드바이저리), 레지스트리 소비 여정 핀을 현재 공개 라인으로 갱신                                    | 커밋 `3f2340bf`·`0a2f5558`·`68976ec0`                                                           |
 
 ### 잔여 항목 상태 전환 (0절 기준)
 
@@ -77,8 +77,8 @@ Tauri 여정은 실제 WKWebView 안의 JS가 생성된 엄격 계약 클라이�
 
 2026-09-16에 GitHub API와 공개 레지스트리를 다시 조회했다.
 
-- [PR #72](https://github.com/loopy-lim/unikit/pull/72)는 위 main SHA에 병합됐다.
-- 같은 SHA의 [기본 CI](https://github.com/loopy-lim/unikit/actions/runs/34832062630), [Benchmark](https://github.com/loopy-lim/unikit/actions/runs/34832062645), [안전성 포함 Release](https://github.com/loopy-lim/unikit/actions/runs/34833773252), [수동 Rust Release](https://github.com/loopy-lim/unikit/actions/runs/34835140983)가 성공 상태다.
+- [PR #72](https://github.com/loopy-lim/unikit-bridge/pull/72)는 위 main SHA에 병합됐다.
+- 같은 SHA의 [기본 CI](https://github.com/loopy-lim/unikit-bridge/actions/runs/34832062630), [Benchmark](https://github.com/loopy-lim/unikit-bridge/actions/runs/34832062645), [안전성 포함 Release](https://github.com/loopy-lim/unikit-bridge/actions/runs/34833773252), [수동 Rust Release](https://github.com/loopy-lim/unikit-bridge/actions/runs/34835140983)가 성공 상태다.
 - 공개 Rust `unikit`, `unikit-bridge-macros`, `unikit-bridge-naming`은 `0.10.1`, yank=false, archive checksum 일치, VCS SHA는 위 main과 일치한다.
 - npm `cli/types/node/bun=0.10.0`, `tauri/react-native=0.9.0`, `react=0.8.0`, `testing/devtools=0.7.0`. 각 정확한 버전이 latest와 일치한다. npm 소스 SHA는 이전 `30c73bd66159f4c777054527236573559c106c98`이며 독립 버전 정책에 따른 별도 출처다.
 - [이번 레지스트리 스냅샷](evidence/2026-09-16-registry-snapshot.json)은 오류 0개다. npm 출처가 이전 커밋이라는 사실을 현재 main 수정의 npm 발행 완료로 해석하지 않는다.
@@ -137,14 +137,14 @@ G0–G3와 차단 결함 0개를 확인하고 공개 계약/API snapshot을 동�
 
 2026-09-16 조회에서 열린 issue는 없고 Dependabot PR 네 개가 남아 있다.
 
-| PR                                                                    | 조회 결과                                       | 후속 처리                                                                                               |
-| --------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| [#65 quote 1.0.47](https://github.com/loopy-lim/unikit/pull/65)       | 표시된 checks 성공                              | 최신 main 기준 변경 영향·CI 확인 후 별도 병합 판단                                                      |
-| [#66 syn 3.0.5](https://github.com/loopy-lim/unikit/pull/66)          | 표시된 checks 성공                              | 매크로/API 영향 확인 후 별도 병합 판단                                                                  |
-| [#67 serde_json 1.0.151](https://github.com/loopy-lim/unikit/pull/67) | 표시된 checks 성공                              | wire/직렬화 회귀와 최신 CI 확인 후 별도 병합 판단                                                       |
-| [#68 Tauri 2.11.5](https://github.com/loopy-lim/unikit/pull/68)       | TypeScript 실패, consumer-smoke skip, gate 실패 | watch 파일시스템 변경 미수신 테스트를 최신 main 기준으로 다시 확인. Tauri 런타임 결함으로 단정하지 않음 |
+| PR                                                                           | 조회 결과                                       | 후속 처리                                                                                               |
+| ---------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| [#65 quote 1.0.47](https://github.com/loopy-lim/unikit-bridge/pull/65)       | 표시된 checks 성공                              | 최신 main 기준 변경 영향·CI 확인 후 별도 병합 판단                                                      |
+| [#66 syn 3.0.5](https://github.com/loopy-lim/unikit-bridge/pull/66)          | 표시된 checks 성공                              | 매크로/API 영향 확인 후 별도 병합 판단                                                                  |
+| [#67 serde_json 1.0.151](https://github.com/loopy-lim/unikit-bridge/pull/67) | 표시된 checks 성공                              | wire/직렬화 회귀와 최신 CI 확인 후 별도 병합 판단                                                       |
+| [#68 Tauri 2.11.5](https://github.com/loopy-lim/unikit-bridge/pull/68)       | TypeScript 실패, consumer-smoke skip, gate 실패 | watch 파일시스템 변경 미수신 테스트를 최신 main 기준으로 다시 확인. Tauri 런타임 결함으로 단정하지 않음 |
 
-#68의 실패는 [TypeScript job](https://github.com/loopy-lim/unikit/actions/runs/34683289667/job/103527075778)의 `watch.test.js`에서 `expected filesystem change was not delivered`였다. 이 실패만으로 Tauri 의존성 업데이트가 원인이라는 결론을 내릴 수 없다. 현재 main 기준으로 `node --test packages/cli/dist-test/watch.test.js`를 실행해 6개가 통과했다. 기존 PR의 원격 실패 상태를 이 로컬 결과로 바꾸지는 않는다.
+#68의 실패는 [TypeScript job](https://github.com/loopy-lim/unikit-bridge/actions/runs/34683289667/job/103527075778)의 `watch.test.js`에서 `expected filesystem change was not delivered`였다. 이 실패만으로 Tauri 의존성 업데이트가 원인이라는 결론을 내릴 수 없다. 현재 main 기준으로 `node --test packages/cli/dist-test/watch.test.js`를 실행해 6개가 통과했다. 기존 PR의 원격 실패 상태를 이 로컬 결과로 바꾸지는 않는다.
 
 이번 작업은 Unikit 검증/문서/CI 준비 범위다. 소비자 프로젝트 선정·변경, 실제 기기 설치와 장시간 테스트, 외부 연락, 공유 main 병합·발행은 각각 구체적 대상과 권한을 확인한 뒤 실행한다. 기존 미추적 Tauri 생성물과 `.zcode`는 원래 체크아웃에 보존한다.
 

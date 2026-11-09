@@ -17,7 +17,7 @@ last_updated_by: claude
 **연구자**: claude
 **Git Commit**: 47de0777d0e94a82168f4776eb19ab971094c7f9
 **Branch**: main
-**Repository**: unikit (loopy-lim/unikit)
+**Repository**: unikit (loopy-lim/unikit-bridge)
 
 > 이 리뷰는 **작업 트리(미커밋 58파일, +3,558/−1,442) 기준**이다. 미커밋 작업은
 > `docs/plans/2026-08-29-developer-hurdle-reduction.md` 플랜의

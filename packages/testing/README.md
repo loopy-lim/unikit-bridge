@@ -66,5 +66,5 @@ The pure-function form (`assertContractCurrent`) returns a result object
 
 ## Related docs
 
-- [Compatibility matrix](https://github.com/loopy-lim/unikit/blob/main/docs/compatibility-matrix.md)
-- [Main README](https://github.com/loopy-lim/unikit#readme)
+- [Compatibility matrix](https://github.com/loopy-lim/unikit-bridge/blob/main/docs/compatibility-matrix.md)
+- [Main README](https://github.com/loopy-lim/unikit-bridge#readme)

@@ -3,7 +3,7 @@ date: 2026-09-08 01:51 +0900
 researcher: claude
 git_commit: 5a33a206
 branch: changeset-release/main
-repository: loopy-lim/unikit
+repository: loopy-lim/unikit-bridge
 topic: 'zero-config 실측 검증 + 첫 사용 흐름 벤치마킹 + DX 개선 후보 발굴'
 tags: [research, dx, zero-config, onboarding, cli, codegen, benchmark]
 status: complete
@@ -110,7 +110,7 @@ capability 무음 드랍 제거, positional facade 렌더러 수정 모두 현 �
 | 아티팩트 자동 탐색           | binary 후보 release→debug + cwd 조상 탐색 (node-bootstrap.ts:25-46)                      | cdylib 후보 + ABI probe (bun-ffi-library.ts:33-45)                       | `globalThis.__TAURI__.core.invoke` (tauri/src/index.ts:93-99)                                   | autolink된 `globalThis.__unikitNative` (react-native-core.ts:171-181)                                      |
 | `unikit.json` host 섹션      | `{}`로 충분                                                                              | `{}`로 충분                                                              | `{}`로 충분                                                                                     | `{}`로 충분 (모노레포에서만 `rustManifest` 지정 — examples/react-native-bare-calculator/unikit.json 참고)  |
 | Rust 측 필요 작업            | `Package::builder().command_fn()` + main.rs stdio invoke 루프 — **전부 스캐폴드가 심음** | 좌동 + `[lib] crate-type cdylib` **수동 1줄** (init이 Bun 호스트 미지원) | `features=["tauri"]` + `tauri_support::register_with_events(pkg, Builder)` **1줄**              | `[lib] staticlib` (init `--host react-native`이 심음) + 모듈 15파일은 코드젠 생성(react-native.ts:130-146) |
-| 호스트 플랫폼 설정           | 없음                                                                                     | 없음                                                                     | `tauri.conf.json` `app.withGlobalTauri: true` **1개** (또는 `createTauriEngine({invoke})` 명시) | autolink 설정 불요(생성됨). 단 코드젠 전 `bun install`로 `@unikit-bridge/react-native` 먼저 설치 필요             |
+| 호스트 플랫폼 설정           | 없음                                                                                     | 없음                                                                     | `tauri.conf.json` `app.withGlobalTauri: true` **1개** (또는 `createTauriEngine({invoke})` 명시) | autolink 설정 불요(생성됨). 단 코드젠 전 `bun install`로 `@unikit-bridge/react-native` 먼저 설치 필요      |
 | npm 의존성                   | 코드젠이 자동 주입(cli-generate-files.ts:146-152 `ensureHostDependencies`)               | 동일                                                                     | 동일                                                                                            | `ensureReactNativeDependency`가 workspace 연결                                                             |
 | escape hatch                 | `UNIKIT_NODE_BINARY`                                                                     | `UNIKIT_BUN_LIBRARY`                                                     | `createTauriEngine({invoke})`                                                                   | custom native transport                                                                                    |
 | examples 실사용 증거         | calculator/apps/node-app.ts:1                                                            | calculator/apps/bun-ffi-app.ts:1 ("bun FFI zero-config result: 42" 재현) | tauri-calculator/src/app.ts:1                                                                   | react-native-calculator/App.tsx:3, react-native-bare-calculator/App.tsx                                    |

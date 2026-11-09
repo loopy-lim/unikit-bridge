@@ -112,7 +112,7 @@ import { generateTypesTs, generateCommandsTs, diffSchemas } from '@unikit-bridge
 
 ## Related docs
 
-- [unikit-bridge](https://github.com/loopy-lim/unikit#readme)
+- [unikit-bridge](https://github.com/loopy-lim/unikit-bridge#readme)
 - `docs/getting-started.md` — the full pipeline (Rust `generate_typescript` → CLI)
 
 `unikit dev --config unikit.json` reloads configuration changes and follows new,

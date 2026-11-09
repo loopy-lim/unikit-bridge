@@ -3,7 +3,7 @@ date: 2026-08-21T18:50:00+09:00
 researcher: claude (loopy 세션)
 git_commit: f77c2b864f5c83a342fda2ebf05aabfb110bb41b
 branch: main
-repository: unikit-bridge (remote: loopy-lim/unikit)
+repository: unikit-bridge (remote: loopy-lim/unikit-bridge)
 topic: 'v0.2.0 이후 성장 건덕지 전수 조사 — 코어·JS패키지·CI·문서·성능·생태계 6각도'
 tags: [research, codebase, growth, roadmap, performance, ecosystem, onboarding]
 status: complete
@@ -17,7 +17,7 @@ last_updated_by: claude
 **연구자**: claude (loopy 세션)
 **Git Commit**: f77c2b86
 **Branch**: main
-**Repository**: unikit-bridge (remote: loopy-lim/unikit)
+**Repository**: unikit-bridge (remote: loopy-lim/unikit-bridge)
 
 ## 연구 질문
 

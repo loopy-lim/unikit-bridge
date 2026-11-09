@@ -2,7 +2,7 @@ English | [한국어](./post-0.9-frame-and-audit.ko.md)
 
 # After 0.9: Frame and audit migration
 
-The coordinated release is prepared in [PR #69](https://github.com/loopy-lim/unikit/pull/69).
+The coordinated release is prepared in [PR #69](https://github.com/loopy-lim/unikit-bridge/pull/69).
 The 2026-09-10 release already used 0.9.0 for Rust and types/node/bun/cli, so this
 release uses new versions. The [compatibility table](../compatibility-matrix.md)
 is generated from release manifests; registry publication is verified separately.

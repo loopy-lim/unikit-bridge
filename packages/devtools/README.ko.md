@@ -46,5 +46,5 @@ options)`의 options(signal/timeoutMs)를 inner 엔진에 그대로 전달하고
 
 ## 관련 문서
 
-- [호환성 매트릭스](https://github.com/loopy-lim/unikit/blob/main/docs/compatibility-matrix.md)
-- [메인 README](https://github.com/loopy-lim/unikit#readme)
+- [호환성 매트릭스](https://github.com/loopy-lim/unikit-bridge/blob/main/docs/compatibility-matrix.md)
+- [메인 README](https://github.com/loopy-lim/unikit-bridge#readme)

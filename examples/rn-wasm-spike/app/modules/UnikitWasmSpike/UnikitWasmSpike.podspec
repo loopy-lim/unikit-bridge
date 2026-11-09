@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
   s.version      = '0.0.0'
   s.summary      = 'wasm3 + unikit wasm32 spike module'
   s.author       = 'Unikit contributors'
-  s.homepage     = 'https://github.com/loopy-lim/unikit'
+  s.homepage     = 'https://github.com/loopy-lim/unikit-bridge'
   s.license      = 'MIT'
   s.platforms    = { :ios => '15.1' }
   s.source       = { :path => '.' }

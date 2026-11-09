@@ -24,14 +24,14 @@
 
 ### 원격 검사와 배포 출처
 
-| 검사      | 실행 기록                                                                          | 해석                                                                                                      |
-| --------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 전체 CI   | [10월 10일 push](https://github.com/loopy-lim/unikit/actions/runs/38056499939)     | React Doctor 92/100, `deslop/unused-file` 경고 6개로 실패                                                 |
-| 예약 CI   | [10월 12일 schedule](https://github.com/loopy-lim/unikit/actions/runs/38247198205) | `rust-audit`만 성공. 나머지 작업은 생략됐으므로 전체 CI 성공 증거가 아니다                                |
-| Miri      | [검사 성공](https://github.com/loopy-lim/unikit/actions/runs/38185899042)          | lib, frame wire, field order 검사 단계 성공                                                               |
-| Sanitizer | [검사 성공](https://github.com/loopy-lim/unikit/actions/runs/38189058035)          | Linux의 `unikit --lib`, ASan+LSan 범위                                                                    |
-| Fuzz      | [3개 타깃 성공](https://github.com/loopy-lim/unikit/actions/runs/38092426635)      | 시드 재생과 타깃별 600초, 최대 입력 1,024바이트                                                           |
-| Benchmark | [회귀 예산 실패](https://github.com/loopy-lim/unikit/actions/runs/38056499946)     | 59개 항목이 10% 예산 초과. `host` provenance 차이 경고도 발생. 결과는 `criterion-results-rejected`로 보존 |
+| 검사      | 실행 기록                                                                                 | 해석                                                                                                      |
+| --------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 전체 CI   | [10월 10일 push](https://github.com/loopy-lim/unikit-bridge/actions/runs/38056499939)     | React Doctor 92/100, `deslop/unused-file` 경고 6개로 실패                                                 |
+| 예약 CI   | [10월 12일 schedule](https://github.com/loopy-lim/unikit-bridge/actions/runs/38247198205) | `rust-audit`만 성공. 나머지 작업은 생략됐으므로 전체 CI 성공 증거가 아니다                                |
+| Miri      | [검사 성공](https://github.com/loopy-lim/unikit-bridge/actions/runs/38185899042)          | lib, frame wire, field order 검사 단계 성공                                                               |
+| Sanitizer | [검사 성공](https://github.com/loopy-lim/unikit-bridge/actions/runs/38189058035)          | Linux의 `unikit --lib`, ASan+LSan 범위                                                                    |
+| Fuzz      | [3개 타깃 성공](https://github.com/loopy-lim/unikit-bridge/actions/runs/38092426635)      | 시드 재생과 타깃별 600초, 최대 입력 1,024바이트                                                           |
+| Benchmark | [회귀 예산 실패](https://github.com/loopy-lim/unikit-bridge/actions/runs/38056499946)     | 59개 항목이 10% 예산 초과. `host` provenance 차이 경고도 발생. 결과는 `criterion-results-rejected`로 보존 |
 
 표의 모든 실행은 기준 SHA와 일치한다. Benchmark의 `optional_string_64k`는 평균 변화 +1048.94%로 보고됐다. 다른 항목도 광범위하게 느려졌지만, 이 결과만으로 코드 회귀나 환경 문제 중 하나를 확정할 수 없다. 기존 기준선을 유지하고 동일 러너의 두 리비전 비교로 판정해야 한다.
 

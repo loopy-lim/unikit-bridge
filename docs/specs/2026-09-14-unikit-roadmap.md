@@ -50,9 +50,9 @@ Unikit의 다음 목표는 **개발자가 Rust 계약 하나를 기존 앱에 �
 
 확인한 공개 버전은 다음과 같다. npm 패키지는 독립 버전 정책이므로 숫자 차이만으로 결함으로 판단하지 않는다.
 
-| 배포물                                | 레지스트리 버전 |
-| ------------------------------------- | --------------- |
-| Rust `unikit`                         | 0.10.0          |
+| 배포물                                       | 레지스트리 버전 |
+| -------------------------------------------- | --------------- |
+| Rust `unikit`                                | 0.10.0          |
 | `@unikit-bridge/types`, `cli`, `node`, `bun` | 0.10.0          |
 | `@unikit-bridge/tauri`, `react-native`       | 0.9.0           |
 | `@unikit-bridge/react`                       | 0.8.0           |
@@ -60,20 +60,20 @@ Unikit의 다음 목표는 **개발자가 Rust 계약 하나를 기존 앱에 �
 
 npm 9개 패키지의 `gitHead`는 모두 `30c73bd66159f4c777054527236573559c106c98`이다. 현재 main에는 그 이후 watch 변경 유실 수정, UniFFI 렌더러 식별자 검증, 문서 및 예제 산출물 정리가 추가돼 있다. 따라서 **현재 main의 수정이 npm 최신 패키지에 모두 포함됐다고 말할 수 없다.** Rust 0.10.0은 레지스트리 존재를 확인했으며, 이 조회만으로 crate와 현재 main의 소스 일치를 인증하지 않는다.
 
-출처: [npm types 메타데이터](https://registry.npmjs.org/@unikit-bridge%2ftypes/latest), [npm CLI 메타데이터](https://registry.npmjs.org/@unikit-bridge%2fcli/latest), [crates.io unikit](https://crates.io/api/v1/crates/unikit-bridge), [배포 커밋 이후 변경](https://github.com/loopy-lim/unikit/compare/30c73bd66159f4c777054527236573559c106c98...b1ed9aa422fb4e627131f02f67de9f50bdbfedf7). 레지스트리의 `latest`는 가변 주소이며 위 표는 조회일의 스냅샷이다.
+출처: [npm types 메타데이터](https://registry.npmjs.org/@unikit-bridge%2ftypes/latest), [npm CLI 메타데이터](https://registry.npmjs.org/@unikit-bridge%2fcli/latest), [crates.io unikit](https://crates.io/api/v1/crates/unikit-bridge), [배포 커밋 이후 변경](https://github.com/loopy-lim/unikit-bridge/compare/30c73bd66159f4c777054527236573559c106c98...b1ed9aa422fb4e627131f02f67de9f50bdbfedf7). 레지스트리의 `latest`는 가변 주소이며 위 표는 조회일의 스냅샷이다.
 
 ### 2.2 현재 검증 상태
 
 같은 main SHA에 대해 아래 실행 결과를 확인했다.
 
-| 검사                                                                      | 확인 결과                       | 해석                                                                                                            |
-| ------------------------------------------------------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| [기본 CI](https://github.com/loopy-lim/unikit/actions/runs/34689520866)   | 성공                            | 해당 실행의 필수 job 통과                                                                                       |
-| [Benchmark](https://github.com/loopy-lim/unikit/actions/runs/34689520873) | 성공                            | 워크플로 성공. 모든 호스트의 성능 무회귀를 뜻하지 않음                                                          |
-| [Fuzz](https://github.com/loopy-lim/unikit/actions/runs/34720107322)      | 성공                            | 해당 실행 범위의 결과                                                                                           |
-| [Release](https://github.com/loopy-lim/unikit/actions/runs/34690454093)   | npm job 성공, crate job skipped | 이 실행에서 새 버전이나 crate가 발행됐다는 증거로 사용하지 않음                                                 |
-| [Miri](https://github.com/loopy-lim/unikit/actions/runs/34787154794)      | 실패                            | lib 테스트 172개 통과 후 남은 스레드를 기다리지 않은 종료를 보고함. 이후 검사까지 완료됐다고 볼 수 없음         |
-| [Sanitizer](https://github.com/loopy-lim/unikit/actions/runs/34789741873) | 실패                            | lib 테스트 172개 통과 후 프로세스 exit 1. 업로드할 ASan 로그를 찾지 못함. 상세 원인은 이 조사에서 확정하지 않음 |
+| 검사                                                                             | 확인 결과                       | 해석                                                                                                            |
+| -------------------------------------------------------------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| [기본 CI](https://github.com/loopy-lim/unikit-bridge/actions/runs/34689520866)   | 성공                            | 해당 실행의 필수 job 통과                                                                                       |
+| [Benchmark](https://github.com/loopy-lim/unikit-bridge/actions/runs/34689520873) | 성공                            | 워크플로 성공. 모든 호스트의 성능 무회귀를 뜻하지 않음                                                          |
+| [Fuzz](https://github.com/loopy-lim/unikit-bridge/actions/runs/34720107322)      | 성공                            | 해당 실행 범위의 결과                                                                                           |
+| [Release](https://github.com/loopy-lim/unikit-bridge/actions/runs/34690454093)   | npm job 성공, crate job skipped | 이 실행에서 새 버전이나 crate가 발행됐다는 증거로 사용하지 않음                                                 |
+| [Miri](https://github.com/loopy-lim/unikit-bridge/actions/runs/34787154794)      | 실패                            | lib 테스트 172개 통과 후 남은 스레드를 기다리지 않은 종료를 보고함. 이후 검사까지 완료됐다고 볼 수 없음         |
+| [Sanitizer](https://github.com/loopy-lim/unikit-bridge/actions/runs/34789741873) | 실패                            | lib 테스트 172개 통과 후 프로세스 exit 1. 업로드할 ASan 로그를 찾지 못함. 상세 원인은 이 조사에서 확정하지 않음 |
 
 이 상태를 ‘모든 안전성 검사 통과’로 요약하지 않는다. Miri 메시지만으로 제품의 누수나 UB를 확정하지도 않는다. 실패 재현·종료 계약·로그 보존을 검증 가능하게 만드는 것이 첫 단계의 요구사항이다.
 

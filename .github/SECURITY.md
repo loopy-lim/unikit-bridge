@@ -15,7 +15,7 @@ on crates.io) is the supported surface.
 
 **Do not open a public issue for security vulnerabilities.**
 
-Use [GitHub private vulnerability reporting](https://github.com/loopy-lim/unikit/security/advisories/new)
+Use [GitHub private vulnerability reporting](https://github.com/loopy-lim/unikit-bridge/security/advisories/new)
 (Repo → Security → Report a vulnerability). If that is unavailable, email
 the maintainer via the address on the GitHub profile.
 

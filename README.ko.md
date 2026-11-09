@@ -6,7 +6,7 @@
 클라이언트 — compact 바이너리 와이어 위에서, CI에서 breaking 스키마 변경을
 막는 계약 게이트로 지켜진다.
 
-[![CI](https://github.com/loopy-lim/unikit/actions/workflows/ci.yml/badge.svg)](https://github.com/loopy-lim/unikit/actions/workflows/ci.yml)
+[![CI](https://github.com/loopy-lim/unikit-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/loopy-lim/unikit-bridge/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@unikit-bridge/types)](https://www.npmjs.com/package/@unikit-bridge/types)
 [![crates.io](https://img.shields.io/crates/v/unikit.svg)](https://crates.io/crates/unikit-bridge)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -224,18 +224,18 @@ Bun FFI, Tauri WebView, React Native JSI equivalents는
 전체 문서는 [`docs/`](docs/README.ko.md)에 있다 — 허브는 Tauri, React Native,
 Node/Bun 사용자별 읽기 경로를 제공한다.
 
-| 문서                                                                | 내용                                                        |
-| ------------------------------------------------------------------- | ----------------------------------------------------------- |
-| [시작하기](docs/getting-started.ko.md)                              | 설치, 첫 패키지 만들기, 어댑터 선택                         |
-| [이벤트·채널 가이드](docs/events-and-channels.ko.md)                | 호스트별 `subscribeEvent`/`createChannel` 사용법            |
-| [아키텍처 개요](docs/architecture.ko.md)                            | 데이터 흐름, EngineClient 계약, transport 분리              |
-| [Transport 교체 가이드](docs/extending/transport-guide.ko.md)       | Bun FFI, Node napi-rs 교체                                  |
-| [React Native 설정 가이드](docs/extending/react-native-setup.ko.md) | iOS JSI 모듈 설정, 사용법, 트러블슈팅                       |
-| [Tauri 설정 가이드](docs/extending/tauri-setup.ko.md)               | 기존 Tauri 앱에 unikit 얹기, 파일별 워크스루                |
-| [개발 허들 가이드](docs/development-hurdles.ko.md)                  | doctor, 통합 codegen, drift, native 경계, mock 엔진         |
+| 문서                                                                | 내용                                                               |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| [시작하기](docs/getting-started.ko.md)                              | 설치, 첫 패키지 만들기, 어댑터 선택                                |
+| [이벤트·채널 가이드](docs/events-and-channels.ko.md)                | 호스트별 `subscribeEvent`/`createChannel` 사용법                   |
+| [아키텍처 개요](docs/architecture.ko.md)                            | 데이터 흐름, EngineClient 계약, transport 분리                     |
+| [Transport 교체 가이드](docs/extending/transport-guide.ko.md)       | Bun FFI, Node napi-rs 교체                                         |
+| [React Native 설정 가이드](docs/extending/react-native-setup.ko.md) | iOS JSI 모듈 설정, 사용법, 트러블슈팅                              |
+| [Tauri 설정 가이드](docs/extending/tauri-setup.ko.md)               | 기존 Tauri 앱에 unikit 얹기, 파일별 워크스루                       |
+| [개발 허들 가이드](docs/development-hurdles.ko.md)                  | doctor, 통합 codegen, drift, native 경계, mock 엔진                |
 | [API 레퍼런스(생성)](docs/README.ko.md#api-레퍼런스typedoc)         | 모든 `@unikit-bridge/*` 패키지의 TypeDoc HTML — `bun run docs:api` |
-| [새 Host 추가 가이드](docs/extending/adding-host.ko.md)             | Electron, Deno 등 새 어댑터 추가                            |
-| [전체 문서 목록](docs/README.ko.md)                                 | 사용자 / 기여자별 읽기 경로                                 |
+| [새 Host 추가 가이드](docs/extending/adding-host.ko.md)             | Electron, Deno 등 새 어댑터 추가                                   |
+| [전체 문서 목록](docs/README.ko.md)                                 | 사용자 / 기여자별 읽기 경로                                        |
 
 ## 기여
 

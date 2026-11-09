@@ -6,7 +6,7 @@ One Rust core → type-safe clients for Node, Bun, Tauri, and React Native — o
 a compact binary wire, gated by a contract that blocks breaking schema changes
 in CI.
 
-[![CI](https://github.com/loopy-lim/unikit/actions/workflows/ci.yml/badge.svg)](https://github.com/loopy-lim/unikit/actions/workflows/ci.yml)
+[![CI](https://github.com/loopy-lim/unikit-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/loopy-lim/unikit-bridge/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@unikit-bridge/types)](https://www.npmjs.com/package/@unikit-bridge/types)
 [![crates.io](https://img.shields.io/crates/v/unikit.svg)](https://crates.io/crates/unikit-bridge)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -230,18 +230,18 @@ and the [Expo](examples/react-native-calculator/App.tsx) /
 Full documentation lives in [`docs/`](docs/README.md) — the hub lists reading
 paths for Tauri, React Native, and Node/Bun users.
 
-| Doc                                                               | Contents                                                                  |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| [Getting started](docs/getting-started.md)                        | Installation, first package, adapter choice                               |
-| [Events and channels guide](docs/events-and-channels.md)          | `subscribeEvent`/`createChannel` usage per host                           |
-| [Architecture overview](docs/architecture.md)                     | Data flow, EngineClient contract, transport separation                    |
-| [Transport swap guide](docs/extending/transport-guide.md)         | Bun FFI, Node napi-rs replacement                                         |
-| [React Native setup guide](docs/extending/react-native-setup.md)  | iOS JSI module setup, usage, troubleshooting                              |
-| [Tauri setup guide](docs/extending/tauri-setup.md)                | Adding unikit to an existing Tauri app, file by file                      |
-| [Development hurdles guide](docs/development-hurdles.md)          | doctor, integrated codegen, drift, native boundary, mock engine           |
+| Doc                                                               | Contents                                                                         |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| [Getting started](docs/getting-started.md)                        | Installation, first package, adapter choice                                      |
+| [Events and channels guide](docs/events-and-channels.md)          | `subscribeEvent`/`createChannel` usage per host                                  |
+| [Architecture overview](docs/architecture.md)                     | Data flow, EngineClient contract, transport separation                           |
+| [Transport swap guide](docs/extending/transport-guide.md)         | Bun FFI, Node napi-rs replacement                                                |
+| [React Native setup guide](docs/extending/react-native-setup.md)  | iOS JSI module setup, usage, troubleshooting                                     |
+| [Tauri setup guide](docs/extending/tauri-setup.md)                | Adding unikit to an existing Tauri app, file by file                             |
+| [Development hurdles guide](docs/development-hurdles.md)          | doctor, integrated codegen, drift, native boundary, mock engine                  |
 | [API reference (generated)](docs/README.md#api-reference-typedoc) | Browsable TypeDoc HTML for every `@unikit-bridge/*` package — `bun run docs:api` |
-| [Adding a new host guide](docs/extending/adding-host.md)          | Adding new adapters like Electron, Deno                                   |
-| [Full doc index](docs/README.md)                                  | Reading paths for users / contributors                                    |
+| [Adding a new host guide](docs/extending/adding-host.md)          | Adding new adapters like Electron, Deno                                          |
+| [Full doc index](docs/README.md)                                  | Reading paths for users / contributors                                           |
 
 ## Contributing
 

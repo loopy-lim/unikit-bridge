@@ -3,7 +3,7 @@ date: 2026-09-08 11:40 +0900
 researcher: claude
 git_commit: 07c7f745
 branch: changeset-release/main
-repository: loopy-lim/unikit
+repository: loopy-lim/unikit-bridge
 topic: 'A13 rkyv registry eager import — RN 번들 크기 교차 벤치 (개선안 판별 포함)'
 tags: [research, react-native, bundle-size, codegen, metro, registry]
 status: complete

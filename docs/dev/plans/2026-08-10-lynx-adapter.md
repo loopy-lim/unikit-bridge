@@ -62,11 +62,11 @@ export function createRkyvV2Engine(
   "keywords": ["unikit", "bridge", "lynx", "reactlynx", "adapter"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/loopy-lim/unikit.git",
+    "url": "https://github.com/loopy-lim/unikit-bridge.git",
     "directory": "packages/"
   },
-  "bugs": { "url": "https://github.com/loopy-lim/unikit/issues" },
-  "homepage": "https://github.com/loopy-lim/unikit#readme"
+  "bugs": { "url": "https://github.com/loopy-lim/unikit-bridge/issues" },
+  "homepage": "https://github.com/loopy-lim/unikit-bridge#readme"
 }
 ```
 
@@ -113,7 +113,12 @@ import type {
 } from '@unikit-bridge/types';
 import { UnikitCommandError, configure, invoke, createRkyvV2Engine } from '@unikit-bridge/types';
 
-export type { EngineClient, UnikitError, RkyvV2Codec, RkyvV2SchemaNative } from '@unikit-bridge/types';
+export type {
+  EngineClient,
+  UnikitError,
+  RkyvV2Codec,
+  RkyvV2SchemaNative,
+} from '@unikit-bridge/types';
 export { UnikitCommandError, configure, invoke, createRkyvV2Engine } from '@unikit-bridge/types';
 
 export type UnikitLynxNative = RkyvV2SchemaNative;

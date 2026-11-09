@@ -3,7 +3,7 @@ date: 2026-09-03 16:00:00 +0900
 researcher: claude
 git_commit: ebfac5e96cec542f29113ffdeecca188edbbcb0f
 branch: main
-repository: loopy-lim/unikit
+repository: loopy-lim/unikit-bridge
 topic: 'unikit DX 객관 평가 — docs 없이 사용 가능한가, main.rs/lib.rs 보일러플레이트의 macro-first 흡수 가능성'
 tags: [research, dx, macros, codegen, onboarding, competitive-analysis, boilerplate]
 status: complete
@@ -17,7 +17,7 @@ last_updated_by: claude
 **연구자**: claude
 **Git Commit**: ebfac5e96cec542f29113ffdeecca188edbbcb0f (main)
 **Branch**: main
-**Repository**: loopy-lim/unikit
+**Repository**: loopy-lim/unikit-bridge
 
 ## 연구 질문
 
@@ -41,13 +41,13 @@ unikit의 객관적인 DX 경험은 어떤가? docs를 안 보고 거의 사용�
 
 ### 1. 사용자가 실제로 작성하는 표면 (호스트별 최소)
 
-| 호스트            | 사용자 Rust 작성물                                                                  | 근거                                                                                                                                                                                                                                                           |
-| ----------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Node              | lib.rs(커맨드 정의) + main.rs stdio invoke 프로토콜 ~30줄(`__unikit_contract` 포함) | node-core.ts가 사용자 bin을 spawn해 stdin JSON으로 invoke (`packages/node/src/node-core.ts:60-99`), `__unikit_contract`로 contract hash 획득 (`node-core.ts:94`)                                                                                               |
-| Bun               | lib.rs + `native_entry!(package_fn)` 1줄                                            | Bun FFI가 코어 `unikit_ffi_*` 심볼만 바인딩 (`packages/bun/src` — `unikit_ffi_invoke_rkyv_v2`, `unikit_ffi_contract_hash`, `unikit_mobile_init` 등 전부 프레임워크 제공)                                                                                       |
+| 호스트            | 사용자 Rust 작성물                                                                  | 근거                                                                                                                                                                                                                                                                  |
+| ----------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Node              | lib.rs(커맨드 정의) + main.rs stdio invoke 프로토콜 ~30줄(`__unikit_contract` 포함) | node-core.ts가 사용자 bin을 spawn해 stdin JSON으로 invoke (`packages/node/src/node-core.ts:60-99`), `__unikit_contract`로 contract hash 획득 (`node-core.ts:94`)                                                                                                      |
+| Bun               | lib.rs + `native_entry!(package_fn)` 1줄                                            | Bun FFI가 코어 `unikit_ffi_*` 심볼만 바인딩 (`packages/bun/src` — `unikit_ffi_invoke_rkyv_v2`, `unikit_ffi_contract_hash`, `unikit_mobile_init` 등 전부 프레임워크 제공)                                                                                              |
 | React Native      | lib.rs + `native_entry!` 1줄 + `[lib] staticlib`                                    | RN JSI 브리지 헤더의 필수 extern은 코어 심볼뿐 (`packages/react-native/native/cpp/UnikitJSIBridge.hpp:23-66`); `unikit_mobile_init`이 `native_entry!`가 발행 (`crates/unikit-bridge/src/entry.rs:12-26`); 모듈 스캐폴드(podspec/CMake)는 CLI가 앱 크레이트명으로 생성 |
-| Tauri             | main.rs 25줄 — `register_with_events(pkg, Builder)` 1줄 + run                       | `examples/tauri-calculator/src-tauri/src/main.rs:19-24`                                                                                                                                                                                                        |
-| 스키마 프로브 bin | `generate_typescript()?.write_schema_to_dir()` 2줄                                  | README 퀵스타트와 init 템플릿 `src/bin/generate.rs` (`init-template.ts:50`)                                                                                                                                                                                    |
+| Tauri             | main.rs 25줄 — `register_with_events(pkg, Builder)` 1줄 + run                       | `examples/tauri-calculator/src-tauri/src/main.rs:19-24`                                                                                                                                                                                                               |
+| 스키마 프로브 bin | `generate_typescript()?.write_schema_to_dir()` 2줄                                  | README 퀵스타트와 init 템플릿 `src/bin/generate.rs` (`init-template.ts:50`)                                                                                                                                                                                           |
 
 **calculator 예제 3,083줄의 해부**: 커맨드 정의 ~800줄(29 커맨드, 대부분 Input/Output 구조체 쌍 — 로직 2줄에 구조체 ~12줄), legacy 벤치 FFI ~700줄(ifdef 안 — `UnikitJSIBridge.hpp:56`의 `#if defined(UNIKIT_ENABLE_LEGACY_BENCHMARKS)`로 확인), bincode 수동 코덱 ~200줄(벤치 전용), 테스트 ~1,000줄. **일반 사용자가 복사할 것은 0줄.**
 

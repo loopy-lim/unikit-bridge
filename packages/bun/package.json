@@ -47,11 +47,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/loopy-lim/unikit.git",
+    "url": "git+https://github.com/loopy-lim/unikit-bridge.git",
     "directory": "packages/bun"
   },
   "bugs": {
-    "url": "https://github.com/loopy-lim/unikit/issues"
+    "url": "https://github.com/loopy-lim/unikit-bridge/issues"
   },
-  "homepage": "https://github.com/loopy-lim/unikit#readme"
+  "homepage": "https://github.com/loopy-lim/unikit-bridge#readme"
 }

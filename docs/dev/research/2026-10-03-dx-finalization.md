@@ -87,7 +87,7 @@ DX 커밋 `89cf9c44ae8d828cf606fdc3fd641d6304ca2b9e`의 main 푸시와 원격 SH
 일치를 확인했다. 커밋 훅과 pre-push의 `test:fast`도 통과했다.
 
 기존 Benchmark 워크플로는 실행 전 파싱 단계에서 실패했다.
-[해당 실행](https://github.com/loopy-lim/unikit/actions/runs/37035135766)의 실제
+[해당 실행](https://github.com/loopy-lim/unikit-bridge/actions/runs/37035135766)의 실제
 annotation은 artifact `with.name`에서 `failure()` / `cancelled()`를 사용할 수
 없다는 오류였다. 이 워크플로 파일은 첫 DX 커밋에서 변경하지 않았다.
 
