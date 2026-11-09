@@ -26,9 +26,9 @@ function _utf8Encode(s: string): Uint8Array {
 function _utf8Decode(bytes: Uint8Array, start: number, end: number): string {
   // end 가 버퍼를 넘으면 즉시 실패 — 잘린 프레임에서 while (i < end) 가
   // undefined 바이트를 수없이 돌아 런타임이 멈추는 것을 막는다. 오류는
-  // 'rustra: <원인> (offset N)' 계약(postcard-primitive 주석)으로 보고한다 —
+  // 'unikit: <원인> (offset N)' 계약(postcard-primitive 주석)으로 보고한다 —
   // 읽으려다 만 지점(end)이 실패 경계다.
-  if (end > bytes.length) throw new Error('rustra: string out of bounds (offset ' + end + ')');
+  if (end > bytes.length) throw new Error('unikit: string out of bounds (offset ' + end + ')');
   let s = ''; let i = start;
   while (i < end) {
     // 리드 바이트는 i < end <= bytes.length 로 항상 존재한다(함수 머리의

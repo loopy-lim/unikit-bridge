@@ -1,5 +1,5 @@
 [package]
-name = "rustra-calculator-napi"
+name = "unikit-calculator-napi"
 edition.workspace = true
 license.workspace = true
 version.workspace = true
@@ -9,8 +9,8 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-rustra.workspace = true
-rustra-calculator-example = { path = "../calculator" }
+unikit-bridge.workspace = true
+unikit-calculator-example = { path = "../calculator" }
 napi = { version = "3", default-features = false, features = ["napi4"] }
 napi-derive = "3"
 serde_json = { workspace = true }

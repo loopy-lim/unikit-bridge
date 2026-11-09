@@ -1,4 +1,4 @@
-export type Samples = { rustra: number[]; nitro: number[]; checksum: number; batch: number };
+export type Samples = { unikit: number[]; nitro: number[]; checksum: number; batch: number };
 type Options = { batch: number; rounds: number; warmup: number; clock?: () => number };
 export function consume(value: unknown): number {
   if (typeof value === 'number') return value;
@@ -27,18 +27,18 @@ function validate(options: Options) {
 }
 /** Entire measured path is synchronous: never introduce await/Promise wrapping here. */
 export function measureSyncPair(
-  rustra: () => unknown,
+  unikit: () => unknown,
   nitro: () => unknown,
   options: Options,
 ): Samples {
   validate(options);
   const clock = options.clock ?? (() => performance.now());
-  const result: Samples = { rustra: [], nitro: [], checksum: 0, batch: options.batch };
+  const result: Samples = { unikit: [], nitro: [], checksum: 0, batch: options.batch };
   for (let round = -options.warmup; round < options.rounds; round++) {
-    for (const key of (Math.abs(round) % 2 ? ['nitro', 'rustra'] : ['rustra', 'nitro']) as (
-      'rustra' | 'nitro'
+    for (const key of (Math.abs(round) % 2 ? ['nitro', 'unikit'] : ['unikit', 'nitro']) as (
+      'unikit' | 'nitro'
     )[]) {
-      const call = key === 'rustra' ? rustra : nitro;
+      const call = key === 'unikit' ? unikit : nitro;
       const start = clock();
       for (let i = 0; i < options.batch; i++) {
         const value = call();
@@ -52,18 +52,18 @@ export function measureSyncPair(
   return result;
 }
 export async function measureAsyncPair(
-  rustra: () => unknown,
+  unikit: () => unknown,
   nitro: () => unknown,
   options: Options,
 ): Promise<Samples> {
   validate(options);
   const clock = options.clock ?? (() => performance.now());
-  const result: Samples = { rustra: [], nitro: [], checksum: 0, batch: options.batch };
+  const result: Samples = { unikit: [], nitro: [], checksum: 0, batch: options.batch };
   for (let round = -options.warmup; round < options.rounds; round++) {
-    for (const key of (Math.abs(round) % 2 ? ['nitro', 'rustra'] : ['rustra', 'nitro']) as (
-      'rustra' | 'nitro'
+    for (const key of (Math.abs(round) % 2 ? ['nitro', 'unikit'] : ['unikit', 'nitro']) as (
+      'unikit' | 'nitro'
     )[]) {
-      const call = key === 'rustra' ? rustra : nitro;
+      const call = key === 'unikit' ? unikit : nitro;
       const start = clock();
       for (let i = 0; i < options.batch; i++) {
         const promise = call();

@@ -18,7 +18,7 @@ if (result.value !== 42) {
 console.log(`bun runtime result: ${result.value}`);
 
 function invokeCalculatorRuntime(command: string, args: unknown): unknown {
-  const output = spawnSync('target/debug/rustra-calculator-example', ['invoke'], {
+  const output = spawnSync('target/debug/unikit-calculator-example', ['invoke'], {
     input: JSON.stringify({ command, args }),
     encoding: 'utf8',
   });

@@ -71,11 +71,11 @@ const simpleSchema: PackageSchema = {
   ],
 };
 
-test('generateTypesTs re-exports EngineClient and RustraError', () => {
+test('generateTypesTs re-exports EngineClient and UnikitError', () => {
   const types = generateTypesTs(simpleSchema);
   assert.ok(types.includes('EngineClient'));
-  assert.ok(types.includes('RustraError'));
-  assert.ok(types.includes("from '@rustra/types'"));
+  assert.ok(types.includes('UnikitError'));
+  assert.ok(types.includes("from '@unikit/types'"));
 });
 
 test('generateTypesTs maps tuple types', () => {
@@ -190,7 +190,7 @@ test('generateTypesTs exposes all byte-buffer runtime representations', () => {
   assert.ok(cpp.includes('static void encode_pos_echoBytes'));
   assert.ok(cpp.includes('const auto& _v = argv[0]'));
   assert.ok(cpp.includes('w.append_uninitialized(_n)'));
-  assert.ok(cpp.includes('static RustraByteSpan rustra_bytes'));
+  assert.ok(cpp.includes('static UnikitByteSpan unikit_bytes'));
   assert.ok(cpp.includes('BYTES_PER_ELEMENT'));
   assert.ok(cpp.includes('view is outside its ArrayBuffer'));
   assert.ok(cpp.includes('Value decode_buffer_result_by_id'));
@@ -347,7 +347,7 @@ test('generateCommandsTs produces command function', () => {
   assert.ok(commands.includes('createGeneratedFields2'));
   // (M7) InvokeOptions 는 취소 의미론 경고 JSDoc 이 붙은 별칭으로 재노출된다.
   assert.ok(
-    commands.includes("import type { InvokeOptions as CoreInvokeOptions } from '@rustra/types'"),
+    commands.includes("import type { InvokeOptions as CoreInvokeOptions } from '@unikit/types'"),
   );
   assert.ok(commands.includes('export type InvokeOptions = CoreInvokeOptions;'));
   assert.ok(commands.includes('얕은 취소'));
@@ -386,7 +386,7 @@ test('generateCommandsTs emits 1-field commands via createGeneratedFields1 facto
       "export const greet = createGeneratedFields1<GreetInput, GreetOutput>(5, 'greet', \"name\", 'greet');",
     ),
   );
-  assert.ok(commands.includes("createGeneratedFields1, invokeGenerated } from '@rustra/types'"));
+  assert.ok(commands.includes("createGeneratedFields1, invokeGenerated } from '@unikit/types'"));
   // 함수형 emit(invokeGeneratedFields1 직접 호출)은 더 이상 생성되지 않는다.
   assert.ok(!commands.includes('invokeGeneratedFields1<'));
 });
@@ -568,7 +568,7 @@ const cppSchema: PackageSchema = {
 test('generateFrameCodecsHpp declares dispatch API', () => {
   const hpp = generateFrameCodecsHpp(cppSchema);
   assert.ok(hpp.includes('#pragma once'));
-  assert.ok(hpp.includes('namespace rustra::generated'));
+  assert.ok(hpp.includes('namespace unikit_bridge::generated'));
   assert.ok(hpp.includes('bool encode_by_name('));
   assert.ok(hpp.includes('Value decode_by_name('));
   assert.ok(hpp.includes('bool has_static_codec('));
@@ -576,7 +576,7 @@ test('generateFrameCodecsHpp declares dispatch API', () => {
   assert.ok(hpp.includes('bool has_raw_codec('));
   assert.ok(hpp.includes('void encode_raw_slots('));
   assert.ok(hpp.includes('Value decode_raw_result('));
-  assert.ok(hpp.includes('#include "rustra-codec.hpp"'));
+  assert.ok(hpp.includes('#include "unikit-codec.hpp"'));
   // P0-3: by_id 진입(invokeTypedById)용 선언도 방출한다.
   assert.ok(hpp.includes('bool encode_by_id('));
   assert.ok(hpp.includes('Value decode_by_id('));
@@ -681,7 +681,7 @@ test('generateFrameCodecsCpp emits raw capability and public result-shape restor
   assert.ok(cpp.includes('bool has_raw_codec(uint16_t cmd_id)'));
   assert.ok(cpp.includes('case 1: return true;'));
   assert.ok(cpp.includes('void encode_raw_slots(Runtime& rt, uint16_t cmd_id'));
-  assert.ok(cpp.includes('int64_t value = rustra_i64(rt, argv[0], "a")'));
+  assert.ok(cpp.includes('int64_t value = unikit_i64(rt, argv[0], "a")'));
   assert.ok(cpp.includes('Value decode_raw_result(Runtime& rt, uint16_t cmd_id, uint64_t slot)'));
   assert.ok(cpp.includes('int64_t value; std::memcpy(&value, &slot, sizeof(value));'));
   assert.ok(cpp.includes('jsi::PropNameID::forAscii(rt, "value")'));
@@ -692,7 +692,7 @@ test('generateFrameCodecsCpp maps each postcard field kind to the right push/rea
   const cpp = generateFrameCodecsCpp(cppSchema);
 
   // integer → safe-integer 검증 후 push_i64 / read_i64
-  assert.ok(cpp.includes('w.push_i64(rustra_i64(rt,'));
+  assert.ok(cpp.includes('w.push_i64(unikit_i64(rt,'));
   assert.ok(cpp.includes('must be a safe integer'));
   assert.ok(cpp.includes('(double)r.read_i64()'));
   // string → push_string / createFromUtf8
@@ -962,11 +962,11 @@ test('int64/uint64 fields join the postcard fast path with 64-bit helpers', () =
   assert.match(cpp, /readCounter/);
   assert.match(
     cpp,
-    /w\.push_i64\(rustra_i64\(rt, argsObj\.getProperty\(rt, _prop_\d+\), "value"\)\)/,
+    /w\.push_i64\(unikit_i64\(rt, argsObj\.getProperty\(rt, _prop_\d+\), "value"\)\)/,
   );
   assert.match(
     cpp,
-    /w\.push_uvar\(rustra_u64\(rt, argsObj\.getProperty\(rt, _prop_\d+\), "offset"\)\)/,
+    /w\.push_uvar\(unikit_u64\(rt, argsObj\.getProperty\(rt, _prop_\d+\), "offset"\)\)/,
   );
 });
 
@@ -1154,7 +1154,7 @@ test('codec IR accepts explicit oneOf keys for anonymous variants and sorts wire
   const result = buildCodecIr(
     {
       oneOf: [{ type: 'string' }, { type: 'integer' }],
-      'x-rustra-variant-order': ['text', 'count'],
+      'x-unikit-variant-order': ['text', 'count'],
     },
     {},
   );
@@ -1439,7 +1439,7 @@ test('generateFrameCodecsCpp positional f32 uses four-byte postcard wire', () =>
   };
   const cpp = generateFrameCodecsCpp(schema);
   const positional = cpp.split('static void encode_pos_scaleFloat')[1]?.split('static ')[0] ?? '';
-  assert.ok(positional.includes('w.push_f32(rustra_f32(rt, argv[0], "value"))'));
+  assert.ok(positional.includes('w.push_f32(unikit_f32(rt, argv[0], "value"))'));
   assert.ok(!positional.includes('w.push_f64'));
 });
 
@@ -1458,7 +1458,7 @@ test('generateFrameCodecsCpp validates numeric inputs before native casts', () =
 test('generatePositionalFacadeTs emits positional signatures for simple commands', () => {
   const facade = generatePositionalFacadeTs(richSchema);
   // updateItem — Option 필드지만 pass-through 가능(단일 input 객체) 확인
-  assert.ok(facade.includes('installRustraPositional'), 'installer must be exported');
+  assert.ok(facade.includes('installUnikitPositional'), 'installer must be exported');
   assert.ok(facade.includes('PositionalNative'), 'native type must be exported');
   // sortBy (enum, 단일 필드) → positional — Tier 1 부턴 callPos(cmdId, …) 로
   // 이름 문자열 대신 cmd_id 가 전달된다.
@@ -1514,7 +1514,7 @@ test('generatePositionalFacadeTs does not accept or ignore InvokeOptions', () =>
   // 존재하지 않으므로 전달도 불가능 — 시그니처 자체에서 제거해야 한다.
   const facade = generatePositionalFacadeTs(richSchema);
   assert.ok(!facade.includes('InvokeOptions'), 'facade must not reference InvokeOptions');
-  assert.ok(!facade.includes("from '@rustra/types'"), 'stale @rustra/types import must go');
+  assert.ok(!facade.includes("from '@unikit/types'"), 'stale @unikit/types import must go');
   assert.ok(!facade.includes('void options'), 'facade must not void-ignore options');
   // 0-field 경로(b)도 동일 계약 — 별도 fixture 로 재확인.
   const minimal = generatePositionalFacadeTs(simpleSchema);
@@ -1537,7 +1537,7 @@ test('generated facade wrapper returns a rejected Promise when native is not ins
   // rejected Promise 를 돌려 .catch() 가 반드시 에러를 받는다. bun test 는 TS를
   // 직접 변환하므로 생성물을 temp 파일로 쓰고 동적 import 해 실제 모듈로 검증한다.
   const facade = generatePositionalFacadeTs(simpleSchema);
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-facade-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-facade-'));
   const file = join(dir, 'positional-facade.ts');
   writeFileSync(file, facade);
   try {
@@ -1550,7 +1550,7 @@ test('generated facade wrapper returns a rejected Promise when native is not ins
     assert.ok(caught instanceof Error, '.catch() must receive the requireNative throw');
     assert.match(
       (caught as Error).message,
-      /installRustraPositional/,
+      /installUnikitPositional/,
       'error must carry the install hint',
     );
     // 반환값이 진짜 Promise 인지(thenable이 아닌 Promise)도 확인 — 같은 인스턴스를
@@ -1620,7 +1620,7 @@ test('parsePackageSchema diagnoses generic type names with a rebuild hint', () =
       },
     ],
   };
-  // 구버전 rustra의 type_name 파손 이름 — 원인(제네릭)과 해결책(재빌드·모노몰포이즈
+  // 구버전 unikit의 type_name 파손 이름 — 원인(제네릭)과 해결책(재빌드·모노몰포이즈
   // 이름)을 함께 알려줘야 사용자가 다음 동작을 알 수 있다.
   assert.throws(
     () => parsePackageSchema(base),
@@ -1819,35 +1819,35 @@ test('templateVersions permits independent CLI, types, and Cargo versions', () =
 
 test('init scaffold has a real shared package and executable codegen bin', () => {
   const files = renderInitProjectFiles(templateVersions('0.5.0', '^0.4.0', '^0.4.0'));
-  assert.match(files.cargoToml, /rustra = "\^0\.4\.0"/);
-  assert.match(files.packageJson, /"@rustra\/cli": "\^0\.5\.0"/);
-  assert.match(files.packageJson, /"@rustra\/types": "\^0\.4\.0"/);
-  assert.match(files.packageJson, /"@rustra\/node": "\^0\.5\.0"/);
+  assert.match(files.cargoToml, /unikit = "\^0\.4\.0"/);
+  assert.match(files.packageJson, /"@unikit\/cli": "\^0\.5\.0"/);
+  assert.match(files.packageJson, /"@unikit\/types": "\^0\.4\.0"/);
+  assert.match(files.packageJson, /"@unikit\/node": "\^0\.5\.0"/);
   assert.match(files.packageJson, /"packageManager": "bun@1\.4\.0"/);
   assert.match(files.libRs, /pub fn package\(\) -> Package/);
-  assert.match(files.generateRs, /rustra_app::package\(\)\.generate_typescript\(\)/);
-  // 스타 스캔폴드 계약: schema.json 만 기록(TS 표면은 rustra codegen 소관) + 발행된
-  // rustra 에 존재하는 API만 사용(write_schema_to_dir 는 미발행 — 온보딩 게이트 red 사례).
+  assert.match(files.generateRs, /unikit_app::package\(\)\.generate_typescript\(\)/);
+  // 스타 스캔폴드 계약: schema.json 만 기록(TS 표면은 unikit codegen 소관) + 발행된
+  // unikit 에 존재하는 API만 사용(write_schema_to_dir 는 미발행 — 온보딩 게이트 red 사례).
   assert.match(files.generateRs, /schema\.json/);
   assert.doesNotMatch(files.generateRs, /write_schema_to_dir|write_to_dir/);
-  assert.match(files.mainRs, /__rustra_contract/);
+  assert.match(files.mainRs, /__unikit_contract/);
   assert.match(files.appTs, /generated\/node\.js/);
   assert.doesNotMatch(files.generateRs, /see src\/main\.rs/);
   // 최소 템플릿 — $schema 참조 + schema/output + 감지된 호스트 섹션만.
   // codegen/node 바이너리는 CLI 폴백 선택(selectCodegenBinary)이 scaffold 레이아웃에서 정답을 고른다.
-  assert.deepEqual(JSON.parse(files.rustraJson), {
+  assert.deepEqual(JSON.parse(files.unikitJson), {
     $schema: INIT_CONFIG_SCHEMA_PATH,
     schema: './generated/schema.json',
     output: './src/generated',
     node: {},
   });
-  assert.match(files.packageJson, /"doctor": "rustra doctor --config rustra\.json"/);
-  assert.match(files.packageJson, /"codegen": "rustra codegen --config rustra\.json"/);
+  assert.match(files.packageJson, /"doctor": "unikit doctor --config unikit\.json"/);
+  assert.match(files.packageJson, /"codegen": "unikit codegen --config unikit\.json"/);
   assert.match(
     files.packageJson,
-    /"codegen:check": "rustra codegen --config rustra\.json --check"/,
+    /"codegen:check": "unikit codegen --config unikit\.json --check"/,
   );
-  assert.match(files.packageJson, /"dev": "rustra dev --config rustra\.json"/);
+  assert.match(files.packageJson, /"dev": "unikit dev --config unikit\.json"/);
   assert.match(files.gitignore, /target/);
   assert.match(files.tsconfig, /NodeNext/);
 });
@@ -1866,8 +1866,8 @@ test('codegen and generate parsers accept short help and JSON output format', ()
 });
 
 test('config parser rejects unknown keys instead of silently skipping a host', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-config-unknown-'));
-  const path = join(root, 'rustra.json');
+  const root = mkdtempSync(join(tmpdir(), 'unikit-config-unknown-'));
+  const path = join(root, 'unikit.json');
   writeFileSync(
     path,
     JSON.stringify({ schema: './schema.json', output: './generated', reactNativ: {} }),
@@ -1880,8 +1880,8 @@ test('config parser rejects unknown keys instead of silently skipping a host', (
 });
 
 test('config parser suggests the closest known key for a typo', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-config-suggest-'));
-  const path = join(root, 'rustra.json');
+  const root = mkdtempSync(join(tmpdir(), 'unikit-config-suggest-'));
+  const path = join(root, 'unikit.json');
   writeFileSync(
     path,
     JSON.stringify({ schema: './schema.json', output: './generated', reactNativ: {} }),
@@ -1915,7 +1915,7 @@ test('generated manifest records schema and file hashes', () => {
 });
 
 test('Frame migration removes only unchanged legacy codecs recorded by the old manifest', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-retired-codecs-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-retired-codecs-'));
   try {
     const schemaPath = join(root, 'schema.json');
     writeFileSync(schemaPath, JSON.stringify(simpleSchema));
@@ -1926,7 +1926,7 @@ test('Frame migration removes only unchanged legacy codecs recorded by the old m
     for (const file of legacy) writeFileSync(join(root, file.path), file.content);
     writeFileSync(join(root, 'custom.ts'), 'export const keep = true;\n');
     writeFileSync(
-      join(root, '.rustra-generated.json'),
+      join(root, '.unikit-generated.json'),
       JSON.stringify(buildGeneratedManifest('{}', '0.8.0', legacy)),
     );
     await generateFromSchema(schemaPath, root);
@@ -1940,7 +1940,7 @@ test('Frame migration removes only unchanged legacy codecs recorded by the old m
 });
 
 test('Frame migration preserves edited legacy codecs and refuses before rewriting outputs', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-edited-codecs-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-edited-codecs-'));
   try {
     const schemaPath = join(root, 'schema.json');
     writeFileSync(schemaPath, JSON.stringify(simpleSchema));
@@ -1948,10 +1948,10 @@ test('Frame migration preserves edited legacy codecs and refuses before rewritin
     const manifest = JSON.stringify(
       buildGeneratedManifest('{}', '0.8.0', [{ path: 'rkyv-codecs.ts', content: '// old\n' }]),
     );
-    writeFileSync(join(root, '.rustra-generated.json'), manifest);
+    writeFileSync(join(root, '.unikit-generated.json'), manifest);
     await assert.rejects(generateFromSchema(schemaPath, root), /legacy.*rkyv-codecs.*modified/i);
     assert.equal(readFileSync(join(root, 'rkyv-codecs.ts'), 'utf8'), '// user edits\n');
-    assert.equal(readFileSync(join(root, '.rustra-generated.json'), 'utf8'), manifest);
+    assert.equal(readFileSync(join(root, '.unikit-generated.json'), 'utf8'), manifest);
     assert.equal(existsSync(join(root, 'frame-codecs.ts')), false);
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -1959,7 +1959,7 @@ test('Frame migration preserves edited legacy codecs and refuses before rewritin
 });
 
 test('generated check rejects unrecorded legacy leftovers without deleting them', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-unrecorded-codecs-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-unrecorded-codecs-'));
   try {
     const schemaPath = join(root, 'schema.json');
     writeFileSync(schemaPath, JSON.stringify(simpleSchema));
@@ -1977,7 +1977,7 @@ test('generated check rejects unrecorded legacy leftovers without deleting them'
 });
 
 test('Frame migration preserves a legacy path replaced by a symlink', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-symlink-codecs-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-symlink-codecs-'));
   try {
     const schemaPath = join(root, 'schema.json');
     writeFileSync(schemaPath, JSON.stringify(simpleSchema));
@@ -1985,7 +1985,7 @@ test('Frame migration preserves a legacy path replaced by a symlink', async () =
     writeFileSync(join(root, 'custom.ts'), content);
     symlinkSync(join(root, 'custom.ts'), join(root, 'rkyv-codecs.ts'));
     writeFileSync(
-      join(root, '.rustra-generated.json'),
+      join(root, '.unikit-generated.json'),
       JSON.stringify(buildGeneratedManifest('{}', '0.8.0', [{ path: 'rkyv-codecs.ts', content }])),
     );
     await assert.rejects(generateFromSchema(schemaPath, root), /legacy.*symlink/i);
@@ -1997,18 +1997,18 @@ test('Frame migration preserves a legacy path replaced by a symlink', async () =
 });
 
 test('obsolete optional outputs fail check without writes and are removed on regeneration', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-obsolete-facade-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-obsolete-facade-'));
   try {
     const schemaPath = join(root, 'schema.json');
     writeFileSync(schemaPath, JSON.stringify(simpleSchema));
     await generateFromSchema(schemaPath, root, undefined, true);
-    const before = readFileSync(join(root, '.rustra-generated.json'), 'utf8');
+    const before = readFileSync(join(root, '.unikit-generated.json'), 'utf8');
     await assert.rejects(
       generateFromSchema(schemaPath, root, undefined, false, undefined, undefined, true),
       /Generated drift \(obsolete\)/,
     );
     assert.equal(existsSync(join(root, 'positional-facade.ts')), true);
-    assert.equal(readFileSync(join(root, '.rustra-generated.json'), 'utf8'), before);
+    assert.equal(readFileSync(join(root, '.unikit-generated.json'), 'utf8'), before);
     const written = await generateFromSchema(schemaPath, root);
     assert.ok(written.includes('positional-facade.ts (removed)'));
     assert.equal(existsSync(join(root, 'positional-facade.ts')), false);
@@ -2019,7 +2019,7 @@ test('obsolete optional outputs fail check without writes and are removed on reg
 });
 
 test('cleanup rejects an out-of-root manifest entry before removing any generated files', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-escape-cleanup-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-escape-cleanup-'));
   const output = join(root, 'generated');
   try {
     mkdirSync(output);
@@ -2031,7 +2031,7 @@ test('cleanup rejects an out-of-root manifest entry before removing any generate
     ];
     for (const file of files) writeFileSync(join(output, file.path), file.content);
     writeFileSync(
-      join(output, '.rustra-generated.json'),
+      join(output, '.unikit-generated.json'),
       JSON.stringify(buildGeneratedManifest('{}', '0.8.0', files)),
     );
     await assert.rejects(generateFromSchema(schemaPath, output), /outside generated roots/);
@@ -2044,13 +2044,13 @@ test('cleanup rejects an out-of-root manifest entry before removing any generate
 });
 
 test('cleanup rejects a directory symlink alias of a current generated output', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-cleanup-alias-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-cleanup-alias-'));
   try {
     const schemaPath = join(root, 'schema.json');
     writeFileSync(schemaPath, JSON.stringify(simpleSchema));
     await generateFromSchema(schemaPath, root);
     const expected = readFileSync(join(root, 'frame-codecs.ts'), 'utf8');
-    const manifestPath = join(root, '.rustra-generated.json');
+    const manifestPath = join(root, '.unikit-generated.json');
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
     manifest.files.push(
       buildGeneratedManifest('', '', [{ path: 'legacy/frame-codecs.ts', content: expected }])
@@ -2066,9 +2066,9 @@ test('cleanup rejects a directory symlink alias of a current generated output', 
 });
 
 test('generated check reports missing files without writing', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-drift-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-drift-'));
   try {
-    const manifestPath = join(root, '.rustra-generated.json');
+    const manifestPath = join(root, '.unikit-generated.json');
     const missing = join(root, 'types.ts');
     writeFileSync(
       manifestPath,
@@ -2076,7 +2076,7 @@ test('generated check reports missing files without writing', async () => {
     );
     await assert.rejects(
       () => checkGeneratedFiles([{ path: missing, content: 'x' }], manifestPath),
-      /missing.*types\.ts.*Run rustra codegen --config rustra\.json\./i,
+      /missing.*types\.ts.*Run unikit codegen --config unikit\.json\./i,
     );
     assert.equal(readFileSync(manifestPath, 'utf8').includes('types.ts'), true);
   } finally {
@@ -2085,9 +2085,9 @@ test('generated check reports missing files without writing', async () => {
 });
 
 test('generated check rejects changed bytes and leaves them unchanged', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-drift-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-drift-'));
   try {
-    const manifestPath = join(root, '.rustra-generated.json');
+    const manifestPath = join(root, '.unikit-generated.json');
     const target = join(root, 'types.ts');
     writeFileSync(target, 'old\n');
     writeFileSync(
@@ -2096,7 +2096,7 @@ test('generated check rejects changed bytes and leaves them unchanged', async ()
     );
     await assert.rejects(
       () => checkGeneratedFiles([{ path: target, content: 'new\n' }], manifestPath),
-      /changed.*types\.ts.*Run rustra codegen --config rustra\.json\./i,
+      /changed.*types\.ts.*Run unikit codegen --config unikit\.json\./i,
     );
     assert.equal(readFileSync(target, 'utf8'), 'old\n');
   } finally {
@@ -2105,9 +2105,9 @@ test('generated check rejects changed bytes and leaves them unchanged', async ()
 });
 
 test('generated check distinguishes a stale manifest from changed generated bytes', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-drift-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-drift-'));
   try {
-    const manifestPath = join(root, '.rustra-generated.json');
+    const manifestPath = join(root, '.unikit-generated.json');
     const target = join(root, 'types.ts');
     writeFileSync(target, 'new\n');
     writeFileSync(
@@ -2116,7 +2116,7 @@ test('generated check distinguishes a stale manifest from changed generated byte
     );
     await assert.rejects(
       () => checkGeneratedFiles([{ path: target, content: 'new\n' }], manifestPath),
-      /manifest stale.*types\.ts.*Run rustra codegen --config rustra\.json\./i,
+      /manifest stale.*types\.ts.*Run unikit codegen --config unikit\.json\./i,
     );
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -2125,15 +2125,15 @@ test('generated check distinguishes a stale manifest from changed generated byte
 
 test('React Native entry owns lazy native setup and re-exports generated commands', () => {
   const source = generateReactNativeEntryTs();
-  assert.match(source, /createRustraBootstrap/);
-  assert.match(source, /from "@rustra\/generated-react-native"/);
+  assert.match(source, /createUnikitBootstrap/);
+  assert.match(source, /from "@unikit\/generated-react-native"/);
   assert.match(source, /export \* from '\.\/commands\.js'/);
   assert.match(source, /contractHash: GENERATED_CONTRACT_HASH/);
   // (A2) 계약 검증 정책이 생성 엔트리에 명시된다 — strict 가 기본이며 생성
   // 파일에서 이 한 줄을 바꾸는 것이 OTA 상황의 공식 탈출구다.
   assert.match(source, /contractVerification: 'strict'/);
   assert.match(source, /schemaVersion: SCHEMA_VERSION/);
-  assert.match(source, /export \{ subscribeEvent \} from '@rustra\/react-native'/);
+  assert.match(source, /export \{ subscribeEvent \} from '@unikit\/react-native'/);
   // (M9) RN 엔트리도 동일한 계약 검증 기본값 선언을 갖는다.
   assert.match(source, /공통 기본값: contractVerification = 'strict'/);
   assert.match(source, /Changelog\(M9 옵션 정합\)/);
@@ -2153,7 +2153,7 @@ test('desktop host entries own lazy setup and preserve explicit escape hatches',
   assert.match(node, /contractVerification: 'strict'/);
   assert.match(node, /release\/\$\{executable\}/);
   assert.match(node, /args: \["invoke"\]/);
-  assert.match(node, /RUSTRA_NODE_BINARY|commandCandidates/);
+  assert.match(node, /UNIKIT_NODE_BINARY|commandCandidates/);
 
   const bun = generateBunEntryTs({
     targetDirectoryUrl: '../../target/',
@@ -2174,7 +2174,7 @@ test('desktop host entries own lazy setup and preserve explicit escape hatches',
     assert.match(entry, /공통 기본값: contractVerification = 'strict'/);
     assert.match(entry, /Changelog\(M9 옵션 정합\)/);
   }
-  assert.match(tauri, /rustra_contract_hash/);
+  assert.match(tauri, /unikit_contract_hash/);
 });
 
 test('host entries wire subscribeEvent when the schema declares events', () => {
@@ -2195,7 +2195,7 @@ test('host entries wire subscribeEvent when the schema declares events', () => {
   // (A2) events 변형 부트스트랩도 동일하게 계약 검증 정책을 명시한다.
   assert.match(bun, /contractVerification: 'strict'/);
   assert.match(bun, /export const subscribeEvent = events\.subscribeEvent/);
-  assert.match(bun, /rustra\.subscribeEvent\(name, callback\)/);
+  assert.match(bun, /unikit\.subscribeEvent\(name, callback\)/);
 });
 
 test('host entries stay byte-identical when the schema declares no events', () => {
@@ -2268,18 +2268,18 @@ test('React Native Cargo target inference never substitutes a different requeste
 
 /** RN 어댑터 설치 픽스처 — native 소스 5파일 + 버전 매니페스트를 root 에 심는다. */
 function seedReactNativeAdapter(root: string, version: string): void {
-  const packageRoot = join(root, 'node_modules', '@rustra', 'react-native');
+  const packageRoot = join(root, 'node_modules', '@unikit', 'react-native');
   mkdirSync(join(packageRoot, 'native'), { recursive: true });
   writeFileSync(
     join(packageRoot, 'package.json'),
-    JSON.stringify({ name: '@rustra/react-native', version }),
+    JSON.stringify({ name: '@unikit/react-native', version }),
   );
   for (const file of [
-    'android/rustra-jsi-jni.cpp',
-    'cpp/RustraJSIBridge.cpp',
-    'cpp/RustraJSIBridge.hpp',
-    'cpp/rustra-codec.hpp',
-    'ios/RustraJSIModule.mm',
+    'android/unikit-jsi-jni.cpp',
+    'cpp/UnikitJSIBridge.cpp',
+    'cpp/UnikitJSIBridge.hpp',
+    'cpp/unikit-codec.hpp',
+    'ios/UnikitJSIModule.mm',
   ]) {
     const target = join(packageRoot, 'native', file);
     mkdirSync(join(target, '..'), { recursive: true });
@@ -2288,25 +2288,25 @@ function seedReactNativeAdapter(root: string, version: string): void {
 }
 
 test('React Native scaffold is Expo-independent and collision-resistant', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-rn-expo-independent-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-rn-expo-independent-'));
   try {
     seedReactNativeAdapter(root, '0.3.0');
     const files = renderReactNativeModule({
       appRoot: root,
-      moduleDir: join(root, 'modules', 'rustra-bridge'),
-      cppOutputPath: join(root, 'modules', 'rustra-bridge', 'generated'),
+      moduleDir: join(root, 'modules', 'unikit-bridge'),
+      cppOutputPath: join(root, 'modules', 'unikit-bridge', 'generated'),
       rustManifestPath: '/workspace/Cargo.toml',
       rustPackage: 'my-rust-app',
       rustLibrary: 'my_rust_app',
       adapterRange: '^0.3.0',
     });
-    assert.equal(JSON.parse(files['package.json']!).name, '@rustra/generated-react-native');
-    assert.match(files['react-native.config.js']!, /dev\.rustra\.bridge\.RustraBridgePackage/);
-    assert.match(files['src/index.ts']!, /NativeModules\.RustraBridge/);
+    assert.equal(JSON.parse(files['package.json']!).name, '@unikit/generated-react-native');
+    assert.match(files['react-native.config.js']!, /dev\.unikit\.bridge\.UnikitBridgePackage/);
+    assert.match(files['src/index.ts']!, /NativeModules\.UnikitBridge/);
     assert.ok(!Object.keys(files).some((name) => name.includes('expo')));
     assert.ok(!Object.values(files).some((content) => content.includes('expo-modules-core')));
-    assert.match(files['RustraBridge.podspec']!, /RustraBridge/);
-    assert.match(files['android/CMakeLists.txt']!, /rustra_bridge/);
+    assert.match(files['UnikitBridge.podspec']!, /UnikitBridge/);
+    assert.match(files['android/CMakeLists.txt']!, /unikit_bridge/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -2316,14 +2316,14 @@ test('React Native scaffold loud-fails when the adapter is not installed', () =>
   // 감사 A11 — 미설치(경로 자체가 없음)가 조용히 기본 경로 폴백하면 생성된
   // podspec/gradle 이 존재하지 않는 경로를 가리키고 첫 loud 실패는 pod install
   // 시점으로 미뤄진다. codegen 시점에 bun install 안내로 실패해야 한다.
-  const root = mkdtempSync(join(tmpdir(), 'rustra-rn-uninstalled-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-rn-uninstalled-'));
   try {
     assert.throws(
       () =>
         renderReactNativeModule({
           appRoot: root,
-          moduleDir: join(root, 'modules', 'rustra-bridge'),
-          cppOutputPath: join(root, 'modules', 'rustra-bridge', 'generated'),
+          moduleDir: join(root, 'modules', 'unikit-bridge'),
+          cppOutputPath: join(root, 'modules', 'unikit-bridge', 'generated'),
           rustManifestPath: join(root, 'Cargo.toml'),
           rustPackage: 'uninstalled',
           rustLibrary: 'uninstalled',
@@ -2331,9 +2331,9 @@ test('React Native scaffold loud-fails when the adapter is not installed', () =>
         }),
       (error: unknown) => {
         assert.ok(error instanceof Error);
-        assert.match(error.message, /@rustra\/react-native adapter not installed/);
+        assert.match(error.message, /@unikit\/react-native adapter not installed/);
         assert.match(error.message, /bun install/);
-        assert.match(error.message, /node_modules\/@rustra\/react-native\/native/);
+        assert.match(error.message, /node_modules\/@unikit\/react-native\/native/);
         return true;
       },
     );
@@ -2343,29 +2343,29 @@ test('React Native scaffold loud-fails when the adapter is not installed', () =>
 });
 
 test('React Native scaffold embeds the app-local adapter path even when validation resolves a hoisted adapter', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-rn-generate-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-rn-generate-'));
   try {
     const appRoot = join(root, 'apps', 'viewer-expo');
-    const moduleDir = join(appRoot, 'modules', 'rustra-bridge');
+    const moduleDir = join(appRoot, 'modules', 'unikit-bridge');
     // An old app-local install must not hide the valid hoisted package
     // (validation walks up), but the embedded path stays app-local deterministic:
     // the generated bytes must not depend on where the adapter happened to be
     // found (workspace hoisting state).
-    mkdirSync(join(appRoot, 'node_modules', '@rustra', 'react-native'), {
+    mkdirSync(join(appRoot, 'node_modules', '@unikit', 'react-native'), {
       recursive: true,
     });
-    const adapterNative = join(root, 'node_modules', '@rustra', 'react-native', 'native');
+    const adapterNative = join(root, 'node_modules', '@unikit', 'react-native', 'native');
     mkdirSync(adapterNative, { recursive: true });
     writeFileSync(
       join(adapterNative, '..', 'package.json'),
-      JSON.stringify({ name: '@rustra/react-native', version: '0.4.0' }),
+      JSON.stringify({ name: '@unikit/react-native', version: '0.4.0' }),
     );
     const nativeFiles = [
-      'android/rustra-jsi-jni.cpp',
-      'cpp/RustraJSIBridge.cpp',
-      'cpp/RustraJSIBridge.hpp',
-      'cpp/rustra-codec.hpp',
-      'ios/RustraJSIModule.mm',
+      'android/unikit-jsi-jni.cpp',
+      'cpp/UnikitJSIBridge.cpp',
+      'cpp/UnikitJSIBridge.hpp',
+      'cpp/unikit-codec.hpp',
+      'ios/UnikitJSIModule.mm',
     ];
     for (const file of nativeFiles) {
       const target = join(adapterNative, file);
@@ -2384,12 +2384,12 @@ test('React Native scaffold embeds the app-local adapter path even when validati
     });
 
     assert.match(
-      files['RustraBridge.podspec']!,
-      /File\.expand_path\('\.\.\/\.\.\/node_modules\/@rustra\/react-native\/native'/,
+      files['UnikitBridge.podspec']!,
+      /File\.expand_path\('\.\.\/\.\.\/node_modules\/@unikit\/react-native\/native'/,
     );
     assert.match(
       files['android/build.gradle']!,
-      /file\("\.\.\/\.\.\/\.\.\/node_modules\/@rustra\/react-native\/native"\)/,
+      /file\("\.\.\/\.\.\/\.\.\/node_modules\/@unikit\/react-native\/native"\)/,
     );
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -2397,25 +2397,25 @@ test('React Native scaffold embeds the app-local adapter path even when validati
 });
 
 test('React Native scaffold ignores a complete adapter package with the wrong version', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-rn-versioned-generate-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-rn-versioned-generate-'));
   try {
     const appRoot = join(root, 'apps', 'viewer');
-    const moduleDir = join(appRoot, 'modules', 'rustra-bridge');
+    const moduleDir = join(appRoot, 'modules', 'unikit-bridge');
     const nativeFiles = [
-      'android/rustra-jsi-jni.cpp',
-      'cpp/RustraJSIBridge.cpp',
-      'cpp/RustraJSIBridge.hpp',
-      'cpp/rustra-codec.hpp',
-      'ios/RustraJSIModule.mm',
+      'android/unikit-jsi-jni.cpp',
+      'cpp/UnikitJSIBridge.cpp',
+      'cpp/UnikitJSIBridge.hpp',
+      'cpp/unikit-codec.hpp',
+      'ios/UnikitJSIModule.mm',
     ];
     for (const [packageRoot, version] of [
-      [join(appRoot, 'node_modules', '@rustra', 'react-native'), '0.3.0'],
-      [join(root, 'node_modules', '@rustra', 'react-native'), '0.4.0'],
+      [join(appRoot, 'node_modules', '@unikit', 'react-native'), '0.3.0'],
+      [join(root, 'node_modules', '@unikit', 'react-native'), '0.4.0'],
     ] as const) {
       mkdirSync(packageRoot, { recursive: true });
       writeFileSync(
         join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@rustra/react-native', version }),
+        JSON.stringify({ name: '@unikit/react-native', version }),
       );
       for (const file of nativeFiles) {
         const target = join(packageRoot, 'native', file);
@@ -2437,8 +2437,8 @@ test('React Native scaffold ignores a complete adapter package with the wrong ve
     // 검증은 상향 탐색으로 만족하는 어댑터(루트의 0.4.0)를 찾아 통과하지만,
     // 박히는 경로는 환경 무관하게 앱 로컬 결정적 값이다.
     assert.match(
-      files['RustraBridge.podspec']!,
-      /File\.expand_path\('\.\.\/\.\.\/node_modules\/@rustra\/react-native\/native'/,
+      files['UnikitBridge.podspec']!,
+      /File\.expand_path\('\.\.\/\.\.\/node_modules\/@unikit\/react-native\/native'/,
     );
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -2446,21 +2446,21 @@ test('React Native scaffold ignores a complete adapter package with the wrong ve
 });
 
 test('React Native scaffold reports when only a stale complete adapter is installed', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-rn-stale-generate-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-rn-stale-generate-'));
   try {
     const appRoot = join(root, 'app');
-    const packageRoot = join(appRoot, 'node_modules', '@rustra', 'react-native');
+    const packageRoot = join(appRoot, 'node_modules', '@unikit', 'react-native');
     const nativeFiles = [
-      'android/rustra-jsi-jni.cpp',
-      'cpp/RustraJSIBridge.cpp',
-      'cpp/RustraJSIBridge.hpp',
-      'cpp/rustra-codec.hpp',
-      'ios/RustraJSIModule.mm',
+      'android/unikit-jsi-jni.cpp',
+      'cpp/UnikitJSIBridge.cpp',
+      'cpp/UnikitJSIBridge.hpp',
+      'cpp/unikit-codec.hpp',
+      'ios/UnikitJSIModule.mm',
     ];
     mkdirSync(packageRoot, { recursive: true });
     writeFileSync(
       join(packageRoot, 'package.json'),
-      JSON.stringify({ name: '@rustra/react-native', version: '0.3.0' }),
+      JSON.stringify({ name: '@unikit/react-native', version: '0.3.0' }),
     );
     for (const file of nativeFiles) {
       const target = join(packageRoot, 'native', file);
@@ -2472,8 +2472,8 @@ test('React Native scaffold reports when only a stale complete adapter is instal
       () =>
         renderReactNativeModule({
           appRoot,
-          moduleDir: join(appRoot, 'modules/rustra-bridge'),
-          cppOutputPath: join(appRoot, 'modules/rustra-bridge/generated'),
+          moduleDir: join(appRoot, 'modules/unikit-bridge'),
+          cppOutputPath: join(appRoot, 'modules/unikit-bridge/generated'),
           rustManifestPath: join(root, 'Cargo.toml'),
           rustPackage: 'stale',
           rustLibrary: 'stale',
@@ -2487,21 +2487,21 @@ test('React Native scaffold reports when only a stale complete adapter is instal
 });
 
 test('React Native scaffold no longer carries the legacy benchmark flag', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-rn-legacy-flag-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-rn-legacy-flag-'));
   try {
     seedReactNativeAdapter(root, '0.3.0');
     const output = renderReactNativeModule({
       appRoot: root,
-      moduleDir: join(root, 'modules', 'rustra-bridge'),
-      cppOutputPath: join(root, 'modules', 'rustra-bridge', 'generated'),
+      moduleDir: join(root, 'modules', 'unikit-bridge'),
+      cppOutputPath: join(root, 'modules', 'unikit-bridge', 'generated'),
       rustManifestPath: '/workspace/Cargo.toml',
       rustPackage: 'calculator',
       rustLibrary: 'calculator',
       adapterRange: '^0.3.0',
     });
     const joined = Object.values(output).join('\n');
-    assert.doesNotMatch(joined, /RUSTRA_ENABLE_LEGACY_BENCHMARKS/);
-    assert.doesNotMatch(joined, /RUSTRA_LEGACY_BENCHMARKS/);
+    assert.doesNotMatch(joined, /UNIKIT_ENABLE_LEGACY_BENCHMARKS/);
+    assert.doesNotMatch(joined, /UNIKIT_LEGACY_BENCHMARKS/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -2525,10 +2525,10 @@ test('generateEventsTs emits payload types, name union, and subscribe helper', a
   } as Parameters<typeof generateEventsTs>[0];
 
   const out = generateEventsTs(schema);
-  assert.ok(out.includes("export type RustraEventName = 'progress.tick'"));
+  assert.ok(out.includes("export type UnikitEventName = 'progress.tick'"));
   assert.ok(out.includes("  'progress.tick': {"));
   assert.ok(out.includes('value: number | bigint;'));
-  assert.ok(out.includes('export function onRustraEvent'));
+  assert.ok(out.includes('export function onUnikitEvent'));
   assert.ok(out.includes('export type SubscribeFn'));
 });
 
@@ -2575,14 +2575,14 @@ test('generateErrorsTs emits per-command code unions and type guards', async () 
   const { generateErrorsTs } = await import('./generate.js');
   const out = generateErrorsTs(typedErrorSchema);
   // import는 선언 커맨드가 있을 때만.
-  assert.ok(out.startsWith("import { RustraCommandError } from '@rustra/types';"));
+  assert.ok(out.startsWith("import { UnikitCommandError } from '@unikit/types';"));
   // 가드의 원천이 되는 내부 코드 집합.
   assert.ok(
     out.includes(
       "const divideErrorCodes: ReadonlySet<string> = new Set(['math.divide_by_zero', 'math.overflow']);",
     ),
   );
-  // 코드→PascalCase 키 매핑(RustraErrorCode.TransportTimeout 관례).
+  // 코드→PascalCase 키 매핑(UnikitErrorCode.TransportTimeout 관례).
   assert.ok(out.includes('export const DivideErrorCode = {'));
   assert.ok(out.includes("MathDivideByZero: 'math.divide_by_zero',"));
   assert.ok(out.includes("MathOverflow: 'math.overflow',"));
@@ -2590,7 +2590,7 @@ test('generateErrorsTs emits per-command code unions and type guards', async () 
   // variant JSDoc — description + retryable 메타데이터.
   assert.ok(out.includes('/** 0으로 나눌 때 — non-retryable. */'));
   assert.ok(out.includes('/** retryable. */'), 'description 없는 variant는 retryable만');
-  // 타입 표면 — 리터럴 유니언 + RustraCommandError 교차.
+  // 타입 표면 — 리터럴 유니언 + UnikitCommandError 교차.
   assert.ok(
     out.includes(
       'export type DivideErrorCode = (typeof DivideErrorCode)[keyof typeof DivideErrorCode];',
@@ -2598,13 +2598,13 @@ test('generateErrorsTs emits per-command code unions and type guards', async () 
   );
   assert.ok(
     out.includes(
-      'export type DivideError = RustraCommandError & { readonly code: DivideErrorCode };',
+      'export type DivideError = UnikitCommandError & { readonly code: DivideErrorCode };',
     ),
   );
   // 가드 — instanceof + Set.has.
   assert.ok(out.includes('export function isDivideError(error: unknown): error is DivideError {'));
   assert.ok(
-    out.includes('return error instanceof RustraCommandError && divideErrorCodes.has(error.code);'),
+    out.includes('return error instanceof UnikitCommandError && divideErrorCodes.has(error.code);'),
   );
 });
 
@@ -2686,7 +2686,7 @@ test('generateErrorsTs fails loud on invalid error code tokens', async () => {
 });
 
 test('generateFromSchema writes errors.ts only when declared', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-errors-codegen-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-errors-codegen-'));
   try {
     const schemaPath = join(root, 'schema.json');
     writeFileSync(schemaPath, JSON.stringify(typedErrorSchema));
@@ -2787,18 +2787,18 @@ test('generateDevicesTs emits package union and per-command constants', async ()
   const out = generateDevicesTs(deviceSchema);
   // 패키지 유니언 — 선언은 bluetooth 먼저지만 카탈로그 순(camera, wifi, bluetooth).
   assert.ok(
-    out.includes("export type RustraDeviceCapability = 'camera' | 'wifi' | 'bluetooth';"),
+    out.includes("export type UnikitDeviceCapability = 'camera' | 'wifi' | 'bluetooth';"),
     out,
   );
   // 커맨드 상수 — commandFunctionName('scan_tags') → scanTags → SCAN_TAGS_DEVICES.
   assert.ok(
     out.includes(
-      "export const SCAN_TAGS_DEVICES: readonly RustraDeviceCapability[] = ['camera', 'bluetooth'];",
+      "export const SCAN_TAGS_DEVICES: readonly UnikitDeviceCapability[] = ['camera', 'bluetooth'];",
     ),
   );
   assert.ok(
     out.includes(
-      "export const READ_BARCODE_DEVICES: readonly RustraDeviceCapability[] = ['camera', 'wifi'];",
+      "export const READ_BARCODE_DEVICES: readonly UnikitDeviceCapability[] = ['camera', 'wifi'];",
     ),
   );
   // JSDoc 안내 — Rust 선언 기준 + getDeviceStatus 사전 조회.
@@ -2861,13 +2861,13 @@ test('generateDevicesTs renders out-of-catalog tokens with a dev marker', async 
   const out = generateDevicesTs(dev);
   assert.ok(
     out.includes(
-      "export type RustraDeviceCapability = 'bluetooth' | 'alpha-hw' | 'nfc-legacy-reader';",
+      "export type UnikitDeviceCapability = 'bluetooth' | 'alpha-hw' | 'nfc-legacy-reader';",
     ),
     out,
   );
   assert.ok(
     out.includes(
-      "export const SCAN_TAGS_DEVICES: readonly RustraDeviceCapability[] = ['bluetooth', 'alpha-hw', 'nfc-legacy-reader'];",
+      "export const SCAN_TAGS_DEVICES: readonly UnikitDeviceCapability[] = ['bluetooth', 'alpha-hw', 'nfc-legacy-reader'];",
     ),
     out,
   );
@@ -2879,7 +2879,7 @@ test('generateDevicesTs renders out-of-catalog tokens with a dev marker', async 
 
 test('generateDevicesTs throws when declared devices lack the schema catalog', async () => {
   const { generateDevicesTs } = await import('./generate.js');
-  // 구버전 rustra 스키마(카탈로그 필드 없음) + 선언 — fail-closed 재생성 안내.
+  // 구버전 unikit 스키마(카탈로그 필드 없음) + 선언 — fail-closed 재생성 안내.
   const legacy: PackageSchema = { ...deviceSchema, deviceCapabilities: undefined };
   assert.throws(
     () => generateDevicesTs(legacy),
@@ -2902,7 +2902,7 @@ test('generateDevicesTs fails loud on command symbol collision', async () => {
 });
 
 test('generateFromSchema writes devices.ts only when declared', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-devices-codegen-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-devices-codegen-'));
   try {
     const schemaPath = join(root, 'schema.json');
     writeFileSync(schemaPath, JSON.stringify(deviceSchema));
@@ -2958,7 +2958,7 @@ async function loadHelperHooks(): Promise<TestHooks> {
     `export function _pcTestEncodeZigzag64(v: number | bigint): Uint8Array { return _pcEncodeZigzag64(v); }\n` +
     `export function _pcTestDecodeZigzag64(v: number | bigint) { return _pcDecodeZigzag64(v); }\n` +
     `export function _pcTestEncodeVarint(v: number): Uint8Array { return _pcEncodeVarint(v); }\n`;
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-varint64-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-varint64-'));
   const file = join(dir, 'helpers.ts');
   writeFileSync(file, source + bridge);
   try {
@@ -3063,19 +3063,19 @@ test('generated composite 64-bit codecs (vec_u64/map_i64/option_i64) encode and 
   assert.match(codecs, /_pcEncodeZigzag64\(_opt\)/, 'option_zigzag64 encode');
 
   // 생성물을 임시 모듈로 써서 실제 encode/decode 실행.
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-wide-composite-'));
-  mkdirSync(join(dir, 'node_modules', '@rustra'), { recursive: true });
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-wide-composite-'));
+  mkdirSync(join(dir, 'node_modules', '@unikit'), { recursive: true });
   symlinkSync(
     fileURLToPath(new URL('../../types', import.meta.url)),
-    join(dir, 'node_modules', '@rustra', 'types'),
+    join(dir, 'node_modules', '@unikit', 'types'),
     'junction',
   );
   const stub =
-    `type RustraError = { code: string; message: string };\n` +
+    `type UnikitError = { code: string; message: string };\n` +
     `export type FrameCodec<TIn, TOut> = {\n` +
     `  commandId: number;\n` +
     `  encode(args: TIn): ArrayBuffer;\n` +
-    `  decode(buf: ArrayBuffer): { ok: boolean; result?: TOut; error?: RustraError };\n` +
+    `  decode(buf: ArrayBuffer): { ok: boolean; result?: TOut; error?: UnikitError };\n` +
     `};\n`;
   const file = join(dir, 'codecs.ts');
   writeFileSync(file, stub + codecs);
@@ -3192,7 +3192,7 @@ test('postcardHelperSource encoders reject negative and out-of-i64 inputs', asyn
 });
 
 test('generateFromSchema names the schema file when its JSON is broken', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-generate-broken-schema-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-generate-broken-schema-'));
   try {
     const schemaPath = join(root, 'schema.json');
     writeFileSync(schemaPath, '{ oops');
@@ -3321,11 +3321,11 @@ test('ordinary function positional facades preserve generated signatures and rou
     /export \{ ordinaryAdd, resetFn, unitArg, failFn, dynamicFn \} from '.\/commands.js'/,
   );
   assert.doesNotMatch(source, /export function ordinaryAdd\(0:/);
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-function-facade-'));
-  mkdirSync(join(dir, 'node_modules/@rustra'), { recursive: true });
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-function-facade-'));
+  mkdirSync(join(dir, 'node_modules/@unikit'), { recursive: true });
   symlinkSync(
     fileURLToPath(new URL('../../types', import.meta.url)),
-    join(dir, 'node_modules/@rustra/types'),
+    join(dir, 'node_modules/@unikit/types'),
     'junction',
   );
   const file = join(dir, 'positional-facade.ts');
@@ -3345,7 +3345,7 @@ ordinaryAdd(2);
 unitArg({timeoutMs:100});
 void [number,unit];`,
   );
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   const calls: { command: string; args: unknown; options: unknown }[] = [];
   const error = new Error('mapped domain error');
   const registration = configure({

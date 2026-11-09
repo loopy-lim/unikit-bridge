@@ -11,7 +11,7 @@
 ### 축 1 — 플랫폼 특화 명령 (Windows/macOS 등)
 
 핸들러는 평범한 Rust fn이므로 `#[cfg(target_os)]`로 감싸면 Win32/objc2 호출을 하는
-rustra 명령을 **작성할 수는** 있다(`builder_commands.rs`의 `Fn(I) -> Result<O>` 계약).
+unikit 명령을 **작성할 수는** 있다(`builder_commands.rs`의 `Fn(I) -> Result<O>` 계약).
 그러나:
 
 1. **command_id 파괴** — command_id는 등록 순서 부여(`builder_commands.rs`의
@@ -28,8 +28,8 @@ JSI 경계의 입력 표면은 (a) ArrayBuffer/Uint8Array, (b) 스키마 정적 
 fast path), (c) 문자열/핸들뿐이다. 제약:
 
 1. **C++ 공개 진입점 없음** — typed 인코더/디코더(`encode_by_name`/`decode_by_name`)는
-   `__rustraNative` HostFunction 클로저 안에 갇혀 있다. 다른 C++ TurboModule이 자신의
-   `jsi::Value`/HostObject를 rustra에 넘기려면 JS를 경유해야 한다.
+   `__unikitNative` HostFunction 클로저 안에 갇혀 있다. 다른 C++ TurboModule이 자신의
+   `jsi::Value`/HostObject를 unikit에 넘기려면 JS를 경유해야 한다.
 2. **불투명 리소스 표현은 이미 있다** — `ResourceHandle(u32)` + 프로세스 전역
    `ResourceTable`(`channels_handles.rs`, `channels_host.rs`)이 "JS는 정수 id, 실체는
    Rust 테이블" 계약을 제공한다. Win32 `HANDLE`/`NSView*`는 이 테이블의 값으로
@@ -74,22 +74,22 @@ let builder = builder.platform_command_impl("platformNativeInfo", platform_nativ
 - **capability로 플랫폼 게이트 흉내**(`grant_capability`를 OS별 부여): 동작은 하지만
   의미가 틀리다(capability는 "누가"지 "어디서"가 아니다) + 미부여 이유가 불분명.
 
-### B. RN C++ 진입점 — `rustraInvokeTypedValue`
+### B. RN C++ 진입점 — `unikitInvokeTypedValue`
 
-`RustraJSIBridge`의 typed invoke 본체(인코딩 → FFI → 디코딩)를 HostFunction 클로저에서
+`UnikitJSIBridge`의 typed invoke 본체(인코딩 → FFI → 디코딩)를 HostFunction 클로저에서
 **공개 C++ 자유함수**로 추출한다:
 
 ```cpp
 // JS 스레드에서만 호출 (jsi Runtime 스레드 친화성 계약 그대로)
-bool rustra::invokeTypedByNameValue(jsi::Runtime& rt, const std::string& name,
+bool unikit_bridge::invokeTypedByNameValue(jsi::Runtime& rt, const std::string& name,
                                     const jsi::Value& args, jsi::Value* out);
-bool rustra::invokeTypedByIdValue(jsi::Runtime& rt, uint16_t commandId,
+bool unikit_bridge::invokeTypedByIdValue(jsi::Runtime& rt, uint16_t commandId,
                                   const jsi::Value& args, jsi::Value* out);
 ```
 
 - 다른 C++ TurboModule이 자기 `jsi::Value`(HostObject 포함 — 인코더는
   `getProperty` 기반이라 스키마에 부합하면 어떤 출처의 객체든 인코딩한다)를 들고
-  rustra를 직접 호출할 수 있다. JS 왕복·JSON 직렬화 불필요.
+  unikit를 직접 호출할 수 있다. JS 왕복·JSON 직렬화 불필요.
 - 계약: (1) JS 런타임 스레드에서만 호출(기존 EventDispatcher 스레딩 계약과 동일),
   (2) 반환 `bool`은 "정적 코덱 미보유"(JS 엔진이 by-id/JS코덱 폴백하듯 호스트가
   폴백할 수 있는 신호), (3) 에러는 예외가 아니라 기존 error wire 규칙을 따르는
@@ -115,10 +115,10 @@ JS는 u32 id만 주고받는다. 64비트 포인터를 JS에 직접 노출하지
   cfg 배타적으로 생성. register!/build! 체인은 `platform_meta_if` 로 메타를
   자동 연결한다.
 - ✅ 채널 바이너리 페이로드 — `ChannelBytesSender`/`ChannelHandle::send_bytes`/
-  `rustra_ffi_channel_create_bytes`/`rustra_ffi_channel_send_bytes`(Rust) +
+  `unikit_ffi_channel_create_bytes`/`unikit_ffi_channel_send_bytes`(Rust) +
   C++ `createChannelBytes` HostFunction + JS `createBytesChannel`. JSON 경로와
   동일 핸들 공간·수명 계약, 한 핸들은 한 경로로만 동작.
-- ✅ folly::dynamic — `RustraTurboInterop.hpp` 의
+- ✅ folly::dynamic — `UnikitTurboInterop.hpp` 의
   `invokeTypedByNameDynamic/ByIdDynamic`(dynamic→jsi::Value 변환 후 동일 경로).
 - ✅ RN 동기 호출 경로 — `invokeTypedSync`(비교 분석 격차 #3 부분 해소).
 

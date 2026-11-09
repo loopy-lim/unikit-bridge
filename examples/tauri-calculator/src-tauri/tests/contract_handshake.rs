@@ -1,5 +1,5 @@
-use rustra::{Package, hot_core::JsonDispatch, tauri_support};
-use rustra_calculator_example::calculator_package;
+use unikit_bridge::{Package, hot_core::JsonDispatch, tauri_support};
+use unikit_calculator_example::calculator_package;
 use serde_json::{Value, json};
 use std::sync::{
     Arc,
@@ -12,7 +12,7 @@ use tauri::webview::InvokeRequest;
 
 fn contract_request(expected: Option<&str>) -> InvokeRequest {
     InvokeRequest {
-        cmd: "rustra_contract_hash".into(),
+        cmd: "unikit_contract_hash".into(),
         callback: CallbackFn(0),
         error: CallbackFn(1),
         url: if cfg!(any(windows, target_os = "android")) {

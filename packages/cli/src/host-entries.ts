@@ -3,7 +3,7 @@ import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'nod
 import type { ReactNativeScaffoldOptions } from './react-native.js';
 import { cargoPackagesForManifest, findCargoManifest, selectCodegenBinary } from './cargo.js';
 import { toPosixPath } from './paths.js';
-import type { RustraConfig } from './config.js';
+import type { UnikitConfig } from './config.js';
 import {
   readCargoMetadata,
   requireTargetDirectory,
@@ -20,13 +20,13 @@ export type HostEntries = {
 };
 export type { CargoMetadata } from './cargo-metadata.js';
 
-export function resolveCodegenTarget(configPath: string, config: RustraConfig) {
+export function resolveCodegenTarget(configPath: string, config: UnikitConfig) {
   const cwd = dirname(resolve(configPath));
   const manifestPath = config.codegen?.rustManifest
     ? resolve(cwd, config.codegen.rustManifest)
     : findCargoManifest(cwd);
   if (!manifestPath)
-    throw new Error('codegen.rust_manifest_missing: set codegen.rustManifest in rustra.json');
+    throw new Error('codegen.rust_manifest_missing: set codegen.rustManifest in unikit.json');
   const metadata = readCargoMetadata(manifestPath, cwd);
   const candidates = cargoPackagesForManifest(
     metadata.packages,
@@ -88,7 +88,7 @@ export function selectReactNativeCargoTarget(
 }
 
 export function resolveHostEntries(
-  config: RustraConfig,
+  config: UnikitConfig,
   configPath: string,
   outputPath: string,
 ): HostEntries | undefined {
@@ -156,13 +156,13 @@ export function resolveHostEntries(
 }
 
 export function resolveReactNativeScaffold(
-  config: RustraConfig,
+  config: UnikitConfig,
   configPath: string,
   adapterRange: string,
 ): ReactNativeScaffoldOptions {
   const rn = config.reactNative!;
   const appRoot = dirname(resolve(configPath));
-  const moduleDir = resolve(appRoot, rn.moduleDir ?? 'modules/rustra-bridge');
+  const moduleDir = resolve(appRoot, rn.moduleDir ?? 'modules/unikit-bridge');
   const moduleRelative = relative(appRoot, moduleDir);
   if (
     isAbsolute(moduleRelative) ||
@@ -175,7 +175,7 @@ export function resolveReactNativeScaffold(
     : findCargoManifest(appRoot);
   if (!rustManifestPath)
     throw new Error(
-      'React Native setup could not find Cargo.toml. Set reactNative.rustManifest in rustra.json.',
+      'React Native setup could not find Cargo.toml. Set reactNative.rustManifest in unikit.json.',
     );
   const inferred = selectReactNativeCargoTarget(
     readCargoMetadata(rustManifestPath, dirname(rustManifestPath)),

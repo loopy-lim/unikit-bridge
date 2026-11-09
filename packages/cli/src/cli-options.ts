@@ -42,13 +42,13 @@ export function parseCodegenArgs(args: string[]): CodegenOptions {
   if (format) options.format = format;
   if (help) options.help = true;
   // 커맨드 레벨 필수 인자 누락도 usage — 파서 레벨과 같은 exit-2 계약. 단 doctor
-  // 관례와 대칭으로 ./rustra.json 이 있으면 기본 채택한다(감사 A10) — 무인자
-  // `rustra codegen` 이 관례화된 파일명에서 동작해야 첫 사용 흐름이 짧아진다.
+  // 관례와 대칭으로 ./unikit.json 이 있으면 기본 채택한다(감사 A10) — 무인자
+  // `unikit codegen` 이 관례화된 파일명에서 동작해야 첫 사용 흐름이 짧아진다.
   if (!options.help && !options.configPath) {
-    if (existsSync('rustra.json')) options.configPath = 'rustra.json';
+    if (existsSync('unikit.json')) options.configPath = 'unikit.json';
     else
       throw new UsageError(
-        'codegen requires --config <path> — no rustra.json in the working directory. Run "rustra init <dir>" or pass --config <path>.',
+        'codegen requires --config <path> — no unikit.json in the working directory. Run "unikit init <dir>" or pass --config <path>.',
       );
   }
   return options;

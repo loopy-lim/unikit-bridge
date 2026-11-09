@@ -10,9 +10,9 @@ describe('generatedFileHeader', () => {
 
   test('contains source, regen command, do-not-edit, and stage', () => {
     const header = generatedFileHeader('frame-codecs.ts', 'rust-probe schema → ts renderer');
-    expect(header).toContain('// ── rustra generated');
+    expect(header).toContain('// ── unikit generated');
     expect(header).toContain('Source: schema.json');
-    expect(header).toContain('Regen:  rustra codegen --config rustra.json');
+    expect(header).toContain('Regen:  unikit codegen --config unikit.json');
     expect(header).toContain('DO NOT EDIT');
     expect(header).toContain('Stage:  rust-probe schema → ts renderer');
   });
@@ -27,7 +27,7 @@ describe('generatedFileHeader', () => {
 describe('header syntax per file type — CI01 root cause', () => {
   // JSON은 RFC 8259상 주석 문법이 없다. 무조건 // 헤더를 찍으면 react-native
   // config JSON 파싱이 죽는다(typescript 잡 test:autolink 재현). 출처 추적은
-  // .rustra-generated.json 매니페스트가 담당한다 — 헤더를 넣지 않는다.
+  // .unikit-generated.json 매니페스트가 담당한다 — 헤더를 넣지 않는다.
   test('json 파일은 주석 문법이 없어 헤더를 찍지 않는다', () => {
     expect(generatedFileHeader('package.json', 'test', '"name": "x"\n')).toBe('"name": "x"\n');
   });
@@ -36,19 +36,19 @@ describe('header syntax per file type — CI01 root cause', () => {
   test('shell은 shebang 뒤에 # 주석 헤더를 부착한다', () => {
     const out = generatedFileHeader('build-rust-android.sh', 'test', '#!/bin/sh\nset -e\n');
     expect(out.startsWith('#!/bin/sh')).toBe(true);
-    expect(out).toContain('# ── rustra generated');
-    expect(out).toContain('# Regen:  rustra codegen --config rustra.json');
+    expect(out).toContain('# ── unikit generated');
+    expect(out).toContain('# Regen:  unikit codegen --config unikit.json');
   });
 
   test('shebang 없는 shell도 # 헤더로 시작한다', () => {
     const out = generatedFileHeader('run.sh', 'test', 'set -e\n');
-    expect(out.startsWith('# ── rustra generated')).toBe(true);
+    expect(out.startsWith('# ── unikit generated')).toBe(true);
     expect(out).toContain('set -e');
   });
 
   test('ruby podspec은 # 주석 헤더를 부착한다', () => {
-    const out = generatedFileHeader('RustraBridge.podspec', 'test', 'Pod::Spec.new do |s|\n');
-    expect(out.startsWith('# ── rustra generated')).toBe(true);
+    const out = generatedFileHeader('UnikitBridge.podspec', 'test', 'Pod::Spec.new do |s|\n');
+    expect(out.startsWith('# ── unikit generated')).toBe(true);
     expect(out).toContain('# DO NOT EDIT');
   });
 
@@ -57,7 +57,7 @@ describe('header syntax per file type — CI01 root cause', () => {
   test('xml은 <!-- --> 헤더를 부착하고 주석 본문에 -- 를 쓰지 않는다', () => {
     const out = generatedFileHeader('AndroidManifest.xml', 'test', '<manifest>\n');
     expect(out.startsWith('<!--')).toBe(true);
-    expect(out).toContain('rustra generated');
+    expect(out).toContain('unikit generated');
     for (const line of out.split('\n')) {
       const body = line.replace(/^\s*<!--/, '').replace(/-->.*$/, '');
       expect(body.includes('--')).toBe(false);
@@ -72,32 +72,32 @@ describe('header syntax per file type — CI01 root cause', () => {
       'test',
       'cmake_minimum_required(VERSION 3.22)\n',
     );
-    expect(out.startsWith('# ── rustra generated')).toBe(true);
+    expect(out.startsWith('# ── unikit generated')).toBe(true);
   });
 
   test('gradle/kotlin/ts/cpp는 // 헤더를 유지한다', () => {
     expect(
-      generatedFileHeader('build.gradle', 'test', 'plugins {}\n').startsWith('// ── rustra'),
+      generatedFileHeader('build.gradle', 'test', 'plugins {}\n').startsWith('// ── unikit'),
     ).toBe(true);
     expect(
-      generatedFileHeader('RustraBridgeModule.kt', 'test', 'class X\n').startsWith('// ── rustra'),
+      generatedFileHeader('UnikitBridgeModule.kt', 'test', 'class X\n').startsWith('// ── unikit'),
     ).toBe(true);
-    expect(generatedFileHeader('types.ts', 'test', 'export {}\n').startsWith('// ── rustra')).toBe(
+    expect(generatedFileHeader('types.ts', 'test', 'export {}\n').startsWith('// ── unikit')).toBe(
       true,
     );
     expect(
-      generatedFileHeader('RustraBridge.cpp', 'test', '#include "x"\n').startsWith('// ── rustra'),
+      generatedFileHeader('UnikitBridge.cpp', 'test', '#include "x"\n').startsWith('// ── unikit'),
     ).toBe(true);
     expect(
-      generatedFileHeader('RustraBridgeModule.mm', 'test', '#include "x"\n').startsWith(
-        '// ── rustra',
+      generatedFileHeader('UnikitBridgeModule.mm', 'test', '#include "x"\n').startsWith(
+        '// ── unikit',
       ),
     ).toBe(true);
   });
 
   test('확장자 없는/미지 파일은 // 기본값을 유지한다 — 기존 호출부 호환', () => {
-    expect(generatedFileHeader('types.ts', 'x').startsWith('// ── rustra generated')).toBe(true);
-    expect(generatedFileHeader('Dockerfile', 't', 'FROM node\n').startsWith('// ── rustra')).toBe(
+    expect(generatedFileHeader('types.ts', 'x').startsWith('// ── unikit generated')).toBe(true);
+    expect(generatedFileHeader('Dockerfile', 't', 'FROM node\n').startsWith('// ── unikit')).toBe(
       true,
     );
   });
@@ -109,7 +109,7 @@ describe('header syntax per file type — CI01 root cause', () => {
       ),
     ).toBe(true);
     expect(
-      generatedFileHeader('android/keystore.properties', 't', 'key=x\n').startsWith('# ── rustra'),
+      generatedFileHeader('android/keystore.properties', 't', 'key=x\n').startsWith('# ── unikit'),
     ).toBe(true);
   });
 

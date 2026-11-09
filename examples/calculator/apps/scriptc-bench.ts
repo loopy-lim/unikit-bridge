@@ -1,11 +1,11 @@
-import { rustra_mobile_init, rustra_ffi_invoke_json_into_len } from '../scriptc/scriptc-ffi.js';
+import { unikit_mobile_init, unikit_ffi_invoke_json_into_len } from '../scriptc/scriptc-ffi.js';
 
 // scriptc 네이티브 기준 벤치 — bun-ffi-bench.ts (Bun 호스트) 와 동일 워크로드.
-// addNumbers {a:20,b:22} 를 rustra_ffi_invoke_json_into_len caller-buffer 왕복으로
+// addNumbers {a:20,b:22} 를 unikit_ffi_invoke_json_into_len caller-buffer 왕복으로
 // 돌려 ns/op 을 낸다. raw(FFI 경계 + 실패 검사만)와 end-to-end(디코드+파싱+결과
 // 읽기까지)를 나눠 재는 이유는 FFI 비용과 페이로드 처리 비용을 분리하기 위해서다.
 // 반복 수는 시간 예산 방식(팔마다 ~0.8s 이상)으로 자동 조정한다.
-rustra_mobile_init();
+unikit_mobile_init();
 
 const input = JSON.stringify({ command: 'addNumbers', args: { a: 20, b: 22 } });
 const outputBuffer = new Uint8Array(4096);
@@ -23,7 +23,7 @@ const nowMs: () => number =
 function rawRun(iters: number): number {
   const start = nowMs();
   for (let i = 0; i < iters; i++) {
-    const written = rustra_ffi_invoke_json_into_len(input, outputBuffer);
+    const written = unikit_ffi_invoke_json_into_len(input, outputBuffer);
     if (written <= 0n || written > capBig) {
       throw new Error(`implausible response length: ${written}`);
     }
@@ -35,7 +35,7 @@ function e2eRun(iters: number): number {
   const start = nowMs();
   let last = 0;
   for (let i = 0; i < iters; i++) {
-    const written = rustra_ffi_invoke_json_into_len(input, outputBuffer);
+    const written = unikit_ffi_invoke_json_into_len(input, outputBuffer);
     if (written <= 0n || written > capBig) {
       throw new Error(`implausible response length: ${written}`);
     }

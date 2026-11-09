@@ -59,7 +59,7 @@ export function spawnInherit(
       if (!options?.progressLabel) return;
       const elapsed = Math.floor((Date.now() - started) / 1000);
       const frame = SPINNER_FRAMES[tick % SPINNER_FRAMES.length];
-      stream(`[rustra] ${frame} ${options.progressLabel} ${suffix} (${elapsed}s)`);
+      stream(`[unikit] ${frame} ${options.progressLabel} ${suffix} (${elapsed}s)`);
       tick += 1;
     };
     const timer = options?.progressLabel
@@ -71,7 +71,7 @@ export function spawnInherit(
       : undefined;
     timer?.unref?.();
     if (options?.progressLabel) {
-      stream(`[rustra] ⠋ ${options.progressLabel}...`);
+      stream(`[unikit] ⠋ ${options.progressLabel}...`);
     }
     const finish = (): void => {
       if (timer) clearInterval(timer);
@@ -88,9 +88,9 @@ export function spawnInherit(
       if (options?.progressLabel) {
         const total = ((Date.now() - started) / 1000).toFixed(1);
         if (code === 0 && !spawnError) {
-          stream(`[rustra] ✓ ${options.progressLabel} done in ${total}s`);
+          stream(`[unikit] ✓ ${options.progressLabel} done in ${total}s`);
         } else {
-          stream(`[rustra] ✗ ${options.progressLabel} failed in ${total}s`);
+          stream(`[unikit] ✗ ${options.progressLabel} failed in ${total}s`);
         }
       }
       if (spawnError) {

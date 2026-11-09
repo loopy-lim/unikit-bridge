@@ -1,6 +1,6 @@
 # rkyv Command ID 직렬화 설계
 
-> **상태**: 구현 완료 — `invoke_rkyv_v2`(`crates/rustra/src/lib.rs`, `[cmd_id: u16 LE][postcard]` 와이어)로 시행.
+> **상태**: 구현 완료 — `invoke_rkyv_v2`(`crates/unikit-bridge/src/lib.rs`, `[cmd_id: u16 LE][postcard]` 와이어)로 시행.
 > 4플랫폼(macOS/iOS/Android/코드 수준 Windows)에서 동일 바이트 시퀀스로 검증 완료. 성능 실측: `docs/plans/2026-08-13-performance-benchmark.md`.
 > **브랜치**: `feat/rkyv-command-id` (worktree: `.claude/worktrees/rkyv-command-id`)
 > **의존**: `ca1c6ce` (multi-format serialization benchmark)
@@ -186,7 +186,7 @@ command_id 기반 rkyv FFI 함수.
 
 ```rust
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_calculator_invoke_rkyv_v2(
+pub unsafe extern "C" fn unikit_calculator_invoke_rkyv_v2(
     payload: *const u8,
     payload_len: usize,
     out_len: *mut usize,
@@ -200,7 +200,7 @@ pub unsafe extern "C" fn rustra_calculator_invoke_rkyv_v2(
 
 ### Step 3: C++ JSI Bridge 업데이트
 
-**파일**: `modules/rustra-jsi/ios/RustraJSIBridge.hpp`, `.cpp`
+**파일**: `modules/unikit-jsi/ios/UnikitJSIBridge.hpp`, `.cpp`
 
 `invokeRkyvV2` 메서드 추가 (기존 invokeRkyv 유지).
 
@@ -229,7 +229,7 @@ type RkyvCodec<I, O> = {
 
 ### Step 5: 코드젠 업데이트 (선택, 이후 작업)
 
-**파일**: `crates/rustra/src/codegen.rs`, `packages/cli/src/generate.ts`
+**파일**: `crates/unikit-bridge/src/codegen.rs`, `packages/cli/src/generate.ts`
 
 - 각 명령에 자동으로 command_id 할당
 - commands.ts에 `COMMAND_IDS` 상수 생성
@@ -248,11 +248,11 @@ rkyv-v2 (command_id)를 벤치마크에 추가하여 기존 JSON/msgpack/postcar
 | 단계 | 파일                                         | 변경                                   |
 | ---- | -------------------------------------------- | -------------------------------------- |
 | 1    | `examples/calculator/src/lib.rs`             | CmdRequest 구조체 + wire format 테스트 |
-| 2    | `examples/calculator/src/lib.rs`             | `rustra_calculator_invoke_rkyv_v2` FFI |
-| 3    | `modules/rustra-jsi/ios/RustraJSIBridge.hpp` | `invokeRkyvV2` extern 선언             |
-| 3    | `modules/rustra-jsi/ios/RustraJSIBridge.cpp` | `invokeRkyvV2` JSI 메서드              |
+| 2    | `examples/calculator/src/lib.rs`             | `unikit_calculator_invoke_rkyv_v2` FFI |
+| 3    | `modules/unikit-jsi/ios/UnikitJSIBridge.hpp` | `invokeRkyvV2` extern 선언             |
+| 3    | `modules/unikit-jsi/ios/UnikitJSIBridge.cpp` | `invokeRkyvV2` JSI 메서드              |
 | 4    | `src/adapters/rkyv-v2-adapter.ts`            | TS 어댑터 (새 파일)                    |
-| 4    | `modules/rustra-jsi/src/index.ts`            | RustraNative 타입에 invokeRkyvV2 추가  |
+| 4    | `modules/unikit-jsi/src/index.ts`            | UnikitNative 타입에 invokeRkyvV2 추가  |
 | 6    | `BenchmarkApp.tsx`                           | rkyv-v2 벤치마크 추가                  |
 
 ## 검증된 rkyv Wire Format (참고)

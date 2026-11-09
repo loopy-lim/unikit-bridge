@@ -2,7 +2,7 @@ import { stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
 export const DEFAULT_BUNDLE_ID = 'com.alt-shifted.react-native-calculator';
-export const RECEIPT_FILENAME = 'rustra-benchmark-receipt.json';
+export const RECEIPT_FILENAME = 'unikit-benchmark-receipt.json';
 
 function readFlag(argv, name, fallback) {
   const index = argv.indexOf(name);

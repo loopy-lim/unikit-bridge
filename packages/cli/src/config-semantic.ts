@@ -1,7 +1,7 @@
-// rustra.json 검증의 L2 — 교차 필드 의미 검사. L1(config-sections.ts)이 섹션 내부
+// unikit.json 검증의 L2 — 교차 필드 의미 검사. L1(config-sections.ts)이 섹션 내부
 // 유효성을 담당하는 반면, 여기는 필드 조합 위반을 전부 수집해 한 번에 나열한다.
 // doctor 영역 환경 검사(devtools 설치 여부 등)는 여기 넣지 않는다 — 로드는 순수 함수.
-import { WASM_ENGINES, type RustraConfig } from './config-schema.js';
+import { WASM_ENGINES, type UnikitConfig } from './config-schema.js';
 import { unknownValueError } from './config-sections.js';
 
 /**
@@ -10,7 +10,7 @@ import { unknownValueError } from './config-sections.js';
  * 수집 순서는 고정 — reactNative 필요성, 잘못된 wasm/dylib 섹션 위치, parityGate,
  * engine. doctor 영역 환경 검사(devtools 설치 여부 등)는 여기 넣지 않는다 — 로드는 순수 함수.
  */
-export function collectSemanticErrors(config: RustraConfig): string[] {
+export function collectSemanticErrors(config: UnikitConfig): string[] {
   const errors: string[] = [];
   const dev = config.dev;
   const target = dev?.target ?? 'native';

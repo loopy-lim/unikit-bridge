@@ -9,24 +9,24 @@ static size_t allocation_size;
 
 uint32_t fixture_counter(uint32_t index) { return counters[index]; }
 void fixture_reset(void) { memset(counters, 0, sizeof counters); pending = 0; }
-void rustra_mobile_init(void) {}
-uint64_t rustra_ffi_schema_generation(void) { return 1; }
-void rustra_ffi_free(void *pointer, size_t length) { (void)length; free(pointer); }
+void unikit_mobile_init(void) {}
+uint64_t unikit_ffi_schema_generation(void) { return 1; }
+void unikit_ffi_free(void *pointer, size_t length) { (void)length; free(pointer); }
 
-void *rustra_ffi_get_schema(size_t *length) {
+void *unikit_ffi_get_schema(size_t *length) {
   const char *schema = "{\"schemaVersion\":1,\"packageId\":\"fixture\",\"commands\":[]}";
   *length = strlen(schema);
   void *result = malloc(*length);
   memcpy(result, schema, *length);
   return result;
 }
-void *rustra_ffi_contract_hash(size_t *length) {
+void *unikit_ffi_contract_hash(size_t *length) {
   *length = 1;
   char *result = malloc(1);
   *result = 'x';
   return result;
 }
-void *rustra_ffi_invoke_frame(const uint8_t *input, size_t length, size_t *output_length) {
+void *unikit_ffi_invoke_frame(const uint8_t *input, size_t length, size_t *output_length) {
   (void)input; (void)length; *output_length = 0; return NULL;
 }
 static size_t requested(const uint8_t *input) {
@@ -39,7 +39,7 @@ static void fill(uint8_t *output, size_t length) {
   memcpy(output + 4, &body, 4);
   for (size_t i = 8; i < length; ++i) output[i] = (uint8_t)(i % 251);
 }
-size_t rustra_ffi_invoke_frame_into(const uint8_t *input, size_t length,
+size_t unikit_ffi_invoke_frame_into(const uint8_t *input, size_t length,
                                   uint8_t *output, size_t capacity, size_t *output_length) {
   (void)length; ++counters[0];
   if (!pending) { ++counters[2]; pending = requested(input); }
@@ -52,7 +52,7 @@ size_t rustra_ffi_invoke_frame_into(const uint8_t *input, size_t length,
 }
 
 #ifdef WITH_OWNED
-void *rustra_ffi_invoke_frame_owned(const uint8_t *input, size_t length,
+void *unikit_ffi_invoke_frame_owned(const uint8_t *input, size_t length,
                                    uint8_t *output, size_t capacity, size_t *output_length) {
   (void)length; ++counters[1]; ++counters[2];
   size_t size = requested(input);
@@ -65,7 +65,7 @@ void *rustra_ffi_invoke_frame_owned(const uint8_t *input, size_t length,
   return allocation;
 }
 #ifndef MISSING_OWNED_FREE
-void rustra_ffi_free_owned_bytes(void *pointer, size_t length) {
+void unikit_ffi_free_owned_bytes(void *pointer, size_t length) {
   ++counters[3];
   if (pointer != allocation || length != allocation_size) { ++counters[4]; abort(); }
   /* Poison before release: returned JS frames must already own a copy. */

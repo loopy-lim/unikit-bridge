@@ -183,8 +183,8 @@ try {
   receipt.scriptc = version;
   receipt.head = run('git', ['rev-parse', 'HEAD'], 'head', 10_000).trim();
   receipt.rustc = run('rustc', ['-Vv'], 'rustc', 10_000).trim();
-  run('cargo', ['build', '--release', '-p', 'rustra-calculator-example', '--lib'], 'engine-build');
-  const archive = resolve(root, 'target/release/librustra_calculator_example.a');
+  run('cargo', ['build', '--release', '-p', 'unikit-calculator-example', '--lib'], 'engine-build');
+  const archive = resolve(root, 'target/release/libunikit_calculator_example.a');
   receipt.archiveSha256 = hash(archive);
   const inputs = [
     'examples/calculator/scriptc/alloc-stress-app.ts',
@@ -193,9 +193,9 @@ try {
     'examples/calculator/scriptc/scriptc-ffi.ts',
     'examples/calculator/src/parity_bench.rs',
     'examples/calculator/src/lib.rs',
-    'crates/rustra/src/ffi_sync_entries.rs',
-    'crates/rustra/src/ffi_buffer_entries.rs',
-    'crates/rustra/src/ffi_prelude.rs',
+    'crates/unikit-bridge/src/ffi_sync_entries.rs',
+    'crates/unikit-bridge/src/ffi_buffer_entries.rs',
+    'crates/unikit-bridge/src/ffi_prelude.rs',
   ];
   for (const input of inputs) receipt.sourceHashes[input] = hash(resolve(root, input));
   // 커밋된 ffi.json 의 descriptor 전부에 libc 측정 심볼(open/read/close/getpagesize)

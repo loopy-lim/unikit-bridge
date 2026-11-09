@@ -4,9 +4,9 @@
 // 벤치마크나 frame-registry 의존성 없이 JSON 경로(createJsonEngine)만 사용한다.
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
-import { installRustraJSI, getRustraNative } from '@rustra/generated-react-native';
+import { installUnikitJSI, getUnikitNative } from '@unikit/generated-react-native';
 import { createJsonEngine } from './src/adapters/json-adapter';
-import { createFrameEngine, getLiveSchema } from '@rustra/types';
+import { createFrameEngine, getLiveSchema } from '@unikit/types';
 import { subscribeEvent } from '../../packages/react-native/src';
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from '../calculator/generated/contract';
 import { formatError } from './src/format-error';
@@ -35,45 +35,45 @@ async function runDemo(engine: Engine, log: (s: string) => void): Promise<void> 
   log('║   Dynamic Command Registry (runtime mutation) ║');
   log('╚══════════════════════════════════════════════╝');
 
-  const st = await call('rustraRegistryDemo', { op: 'state' });
+  const st = await call('unikitRegistryDemo', { op: 'state' });
   log(`frozen = ${st.ok ? st.result?.frozen : st.error}  (debug rust lib → mutable)`);
 
   const before = await call('ping', {});
   log(`1) ping before register : ok=${before.ok}`);
 
-  const reg = await call('rustraRegistryDemo', { op: 'register' });
+  const reg = await call('unikitRegistryDemo', { op: 'register' });
   const ping1 = await call('ping', {});
   log(
     `2) ${reg.ok ? reg.result?.message : reg.error} → ping() = pong:${ping1.ok ? ping1.result?.pong : '?'}`,
   );
 
-  await call('rustraRegistryDemo', { op: 'replacePing' });
+  await call('unikitRegistryDemo', { op: 'replacePing' });
   const ping2 = await call('ping', {});
   log(
     `3) replace 'ping'        → ping() = pong:${ping2.ok ? ping2.result?.pong : '?'} (changed live)`,
   );
 
-  await call('rustraRegistryDemo', { op: 'replaceAdd' });
+  await call('unikitRegistryDemo', { op: 'replaceAdd' });
   const mul = await call('addNumbers', { a: 2, b: 3 });
   log(
     `4) replace 'addNumbers'  → addNumbers(2,3) = ${mul.ok ? mul.result?.value : mul.error} (× not +)`,
   );
 
-  await call('rustraRegistryDemo', { op: 'restoreAdd' });
+  await call('unikitRegistryDemo', { op: 'restoreAdd' });
   const add = await call('addNumbers', { a: 2, b: 3 });
   log(`5) restore 'addNumbers'  → addNumbers(2,3) = ${add.ok ? add.result?.value : add.error}`);
 
-  await call('rustraRegistryDemo', { op: 'unregister' });
+  await call('unikitRegistryDemo', { op: 'unregister' });
   const after = await call('ping', {});
   log(`6) unregister 'ping'     → ping ok=${after.ok} (gone)`);
 
   // 동적 명령 + Vec<f64> 입력(가변 길이 배열)
-  await call('rustraRegistryDemo', { op: 'registerAvg' });
+  await call('unikitRegistryDemo', { op: 'registerAvg' });
   const avg = await call('average', { numbers: [10, 20, 30, 40] });
   log(
     `7) register 'average' (Vec) → average([10,20,30,40]) = ${avg.ok ? avg.result?.average : avg.error} (count ${avg.ok ? avg.result?.count : '?'})`,
   );
-  await call('rustraRegistryDemo', { op: 'unregisterAvg' });
+  await call('unikitRegistryDemo', { op: 'unregisterAvg' });
   const avgGone = await call('average', { numbers: [] });
   log(`8) unregister 'average'  → average ok=${avgGone.ok} (gone)`);
   log('');
@@ -81,7 +81,7 @@ async function runDemo(engine: Engine, log: (s: string) => void): Promise<void> 
 }
 
 async function runSingleEngineDemo(
-  native: ReturnType<typeof getRustraNative>,
+  native: ReturnType<typeof getUnikitNative>,
   log: (s: string) => void,
 ): Promise<void> {
   // 단일 frame 엔진: codec registry 가 비어있으므로 동적 명령은 Tier 3 fallback.
@@ -95,7 +95,7 @@ async function runSingleEngineDemo(
   log('║  Single frame engine + live schema (Tier 3) ║');
   log('╚══════════════════════════════════════════════╝');
 
-  const control = (op: string) => jsonEngine.invoke('rustraRegistryDemo', { op });
+  const control = (op: string) => jsonEngine.invoke('unikitRegistryDemo', { op });
 
   // 다양한 타입의 동적 명령을 등록하고 단일 frame 엔진으로(Tier 3 fallback) 호출.
   // 각 단계에서 live schema 의 commandId/types 를 확인한다.
@@ -169,7 +169,7 @@ async function runSingleEngineDemo(
 // Rust 가 발행한 이벤트가 CallInvoker 를 거쳐 JS 콜백으로 도달하는지 관찰한다.
 // 콜백은 파싱된 객체를 받는다(TS 래퍼가 JSON.parse 1회).
 async function runEventPushDemo(
-  native: ReturnType<typeof getRustraNative>,
+  native: ReturnType<typeof getUnikitNative>,
   log: (s: string) => void,
 ): Promise<void> {
   const engine = createJsonEngine(native);
@@ -235,12 +235,12 @@ export default function App() {
     };
     (async () => {
       try {
-        await installRustraJSI();
+        await installUnikitJSI();
         log('JSI installed. Creating JSON engine...');
-        const engine = createJsonEngine(getRustraNative());
+        const engine = createJsonEngine(getUnikitNative());
         await runDemo(engine, log);
-        await runSingleEngineDemo(getRustraNative(), log);
-        await runEventPushDemo(getRustraNative(), log);
+        await runSingleEngineDemo(getUnikitNative(), log);
+        await runEventPushDemo(getUnikitNative(), log);
       } catch (e) {
         log('ERROR: ' + formatError(e));
       }

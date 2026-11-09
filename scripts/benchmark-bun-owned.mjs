@@ -30,7 +30,7 @@ const snapshot = () => ({
   nativeSha256: sha256(readFileSync(library)),
   codecs: modules(dirname(codecPath)),
   adapter: modules(dirname(resolve(adapterPath))),
-  types: modules(dirname(fileURLToPath(import.meta.resolve('@rustra/types')))),
+  types: modules(dirname(fileURLToPath(import.meta.resolve('@unikit/types')))),
 });
 const producerBefore = snapshot();
 const { createBunFfiEngine } = await import(pathToFileURL(resolve(adapterPath)).href);

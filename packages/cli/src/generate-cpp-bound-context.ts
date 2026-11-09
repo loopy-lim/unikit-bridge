@@ -5,7 +5,7 @@ import type { CppCommandSets } from './generate-cpp-output-types.js';
 /** Runtime handles belong only to the managed HostFunction and synchronous locals. */
 export function appendCppBoundContext(lines: string[], sets: CppCommandSets): void {
   lines.push(
-    `namespace rustra::generated {`,
+    `namespace unikit_bridge::generated {`,
     `struct BoundCodecContext {`,
     `  const uint16_t commandId;`,
     `  const std::vector<jsi::PropNameID> input;`,
@@ -38,10 +38,10 @@ export function appendCppBoundContext(lines: string[], sets: CppCommandSets): vo
     );
   }
   lines.push(
-    `    default: throw JSError(rt, "rustra: no bound codec for cmd_id " + std::to_string(commandId));`,
+    `    default: throw JSError(rt, "unikit: no bound codec for cmd_id " + std::to_string(commandId));`,
     `  }`,
     `}`,
-    `} // namespace rustra::generated`,
+    `} // namespace unikit_bridge::generated`,
     ``,
   );
 }

@@ -8,7 +8,7 @@
 //   따른다. postcard 와이어 계약과 미러 Record 필드 순서가 같은 원천에서 온다.
 // - 실제 타입 매핑 규칙: 정의 이름 N → `crate::N`(example lib 루트 선언).
 //   예외: serde 표면이 plain u32 로 축소되는 채널/리소스 핸들 정의만
-//   [`SCALAR_NEWTYPE_REAL_PATHS`] 표로 `rustra::channels::*` 를 가리킨다.
+//   [`SCALAR_NEWTYPE_REAL_PATHS`] 표로 `unikit_bridge::channels::*` 를 가리킨다.
 // - 미러 타입은 `pub mod uniffi_api` 안에 원래 이름 그대로 둔다(크레이트 루트
 //   이름과 충돌하지 않아 접미사 불필요). uniffi 0.32 proc-macro 는 인라인
 //   모듈 안의 Record/Enum/`#[uniffi::export]` 를 지원하며 `setup_scaffolding!()`
@@ -41,8 +41,8 @@ impl std::error::Error for RenderError {}
 /// 상위 구조체 변환에서 newtype 으로 래핑/언래핑된다. 이 표에 없는 스칼라 정의가
 /// 등장하면 렌더러는 Err — 임의 newtype 을 추측하지 않는다.
 const SCALAR_NEWTYPE_REAL_PATHS: &[(&str, &str)] = &[
-    ("ChannelHandle", "rustra::channels::ChannelHandle"),
-    ("ResourceHandle", "rustra::channels::ResourceHandle"),
+    ("ChannelHandle", "unikit_bridge::channels::ChannelHandle"),
+    ("ResourceHandle", "unikit_bridge::channels::ResourceHandle"),
 ];
 
 /// Rust 2024 에디션의 예약어(strict + reserved). 스키마에서 온 이름이 여기
@@ -582,7 +582,7 @@ impl Renderer {
         })
     }
 
-    /// oneOf + `x-rustra-variant-order` → 데이터 동반 enum 미러.
+    /// oneOf + `x-unikit-variant-order` → 데이터 동반 enum 미러.
     fn build_enum_def(
         &mut self,
         name: &str,
@@ -590,14 +590,14 @@ impl Renderer {
         defs: &Value,
         path: &str,
     ) -> Result<DefIr, RenderError> {
-        // 변형 순서의 단일 소스는 x-rustra-variant-order(Rust 선언 순서 계약).
+        // 변형 순서의 단일 소스는 x-unikit-variant-order(Rust 선언 순서 계약).
         let order = schema
-            .get("x-rustra-variant-order")
+            .get("x-unikit-variant-order")
             .and_then(Value::as_array)
             .ok_or_else(|| {
                 self.error(
                     path,
-                    format!("enum definition `{name}` lacks x-rustra-variant-order"),
+                    format!("enum definition `{name}` lacks x-unikit-variant-order"),
                 )
             })?;
         let one_of = schema
@@ -972,9 +972,9 @@ impl Renderer {
     /// 최종 소스 렌더링 — `pub mod uniffi_api` + 크레이트 루트 scaffolding.
     fn emit(&self) -> String {
         let mut out = String::with_capacity(16 * 1024);
-        out.push_str("// 이 파일은 rustra 코드젠(uniffi_render)이 생성한 UniFFI 미러 계층이다.\n");
-        out.push_str("// 손으로 수정하지 마세요 — 재생성: RUSTRA_UNIFFI_OUT=src cargo run -p \\\n");
-        out.push_str("//   rustra-calculator-example --bin generate\n");
+        out.push_str("// 이 파일은 unikit 코드젠(uniffi_render)이 생성한 UniFFI 미러 계층이다.\n");
+        out.push_str("// 손으로 수정하지 마세요 — 재생성: UNIKIT_UNIFFI_OUT=src cargo run -p \\\n");
+        out.push_str("//   unikit-calculator-example --bin generate\n");
         out.push_str("// 원천: generate_typescript() 의 schema_json — 커맨드/정의 선언 순서가\n");
         out.push_str("// 곧 미러 필드 순서다(postcard 와이어와 동일 원천).\n\n");
         out.push_str("pub mod uniffi_api {\n");
@@ -992,33 +992,33 @@ impl Renderer {
     }
 
     fn emit_error_mirror(&self, out: &mut String) {
-        out.push_str("    // ── 에러 미러 — rustra RustraError 의 3-필드 실패 모델 ──\n");
+        out.push_str("    // ── 에러 미러 — unikit UnikitError 의 3-필드 실패 모델 ──\n");
         out.push_str("    // 필드명 주의: `message` 는 Kotlin 생성 바인딩에서 Throwable.message\n");
         out.push_str("    // 오버라이드와 충돌한다(주 생성자 프로퍼티 + body get() 이중 선언) —\n");
         out.push_str(
             "    // uniffi 0.32.1 Kotlin 생성기의 알려진 날카로운 모서리. `detail` 로 회피.\n",
         );
         out.push_str("    #[derive(Debug, uniffi::Error)]\n");
-        out.push_str("    pub enum RustraCommandFailure {\n");
+        out.push_str("    pub enum UnikitCommandFailure {\n");
         out.push_str("        Failure {\n");
         out.push_str("            code: String,\n");
         out.push_str("            detail: String,\n");
         out.push_str("            retryable: bool,\n");
         out.push_str("        },\n");
         out.push_str("    }\n\n");
-        out.push_str("    impl std::fmt::Display for RustraCommandFailure {\n");
+        out.push_str("    impl std::fmt::Display for UnikitCommandFailure {\n");
         out.push_str(
             "        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {\n",
         );
         out.push_str("            match self {\n");
-        out.push_str("                RustraCommandFailure::Failure { code, detail, .. } => {\n");
+        out.push_str("                UnikitCommandFailure::Failure { code, detail, .. } => {\n");
         out.push_str("                    write!(f, \"{code}: {detail}\")\n");
         out.push_str("                }\n");
         out.push_str("            }\n");
         out.push_str("        }\n");
         out.push_str("    }\n\n");
-        out.push_str("    impl From<rustra::RustraError> for RustraCommandFailure {\n");
-        out.push_str("        fn from(error: rustra::RustraError) -> Self {\n");
+        out.push_str("    impl From<unikit_bridge::UnikitError> for UnikitCommandFailure {\n");
+        out.push_str("        fn from(error: unikit_bridge::UnikitError) -> Self {\n");
         out.push_str("            Self::Failure {\n");
         out.push_str("                code: error.code().to_string(),\n");
         out.push_str("                detail: error.message().to_string(),\n");
@@ -1183,7 +1183,7 @@ impl Renderer {
 
     fn emit_package_access(&self, out: &mut String) {
         out.push_str("    // ── 패키지 접근 — calculator_package() 가 이미 OnceLock 싱글턴 ──\n");
-        out.push_str("    fn package() -> rustra::Package {\n");
+        out.push_str("    fn package() -> unikit_bridge::Package {\n");
         out.push_str("        crate::calculator_package()\n");
         out.push_str("    }\n\n");
     }
@@ -1203,7 +1203,7 @@ impl Renderer {
                             out.push_str("    #[uniffi::export]\n");
                             out.push_str("    #[allow(non_snake_case)]\n");
                             out.push_str(&format!(
-                                "    pub fn {name}(input: {input}) -> Result<{output}, RustraCommandFailure> {{\n",
+                                "    pub fn {name}(input: {input}) -> Result<{output}, UnikitCommandFailure> {{\n",
                                 name = command.name,
                             ));
                             // I/O 타입 파라미터를 명시한다 — `input.into()` 의 I 는
@@ -1224,7 +1224,7 @@ impl Renderer {
                             out.push_str("    #[uniffi::export]\n");
                             out.push_str("    #[allow(non_snake_case)]\n");
                             out.push_str(&format!(
-                                "    pub fn {name}() -> Result<{output}, RustraCommandFailure> {{\n",
+                                "    pub fn {name}() -> Result<{output}, UnikitCommandFailure> {{\n",
                                 name = command.name,
                             ));
                             out.push_str(&format!(
@@ -1258,18 +1258,18 @@ impl Renderer {
                     out.push_str("    #[uniffi::export]\n");
                     out.push_str("    #[allow(non_snake_case)]\n");
                     out.push_str(&format!(
-                        "    pub fn {name}({params}) -> Result<{output_mirror}, RustraCommandFailure> {{\n",
+                        "    pub fn {name}({params}) -> Result<{output_mirror}, UnikitCommandFailure> {{\n",
                         name = command.name,
                     ));
                     out.push_str(&format!(
-                        "        let args = serde_json::to_value({input_value})\n            .map_err(rustra::RustraError::internal)?;\n",
+                        "        let args = serde_json::to_value({input_value})\n            .map_err(unikit_bridge::UnikitError::internal)?;\n",
                     ));
                     out.push_str(&format!(
                         "        let out = package().invoke_json(\"{name}\", args)?;\n",
                         name = command.name,
                     ));
                     out.push_str(&format!(
-                        "        serde_json::from_value::<{output_mirror}>(out)\n            .map_err(rustra::RustraError::internal)\n            .map_err(RustraCommandFailure::from)\n"
+                        "        serde_json::from_value::<{output_mirror}>(out)\n            .map_err(unikit_bridge::UnikitError::internal)\n            .map_err(UnikitCommandFailure::from)\n"
                     ));
                     out.push_str("    }\n\n");
                 }
@@ -1283,13 +1283,13 @@ impl Renderer {
         out.push_str("    #[uniffi::export]\n");
         out.push_str("    #[allow(non_snake_case)]\n");
         out.push_str(
-            "    pub fn invokeJson(command: String, args_json: String) -> Result<String, RustraCommandFailure> {\n",
+            "    pub fn invokeJson(command: String, args_json: String) -> Result<String, UnikitCommandFailure> {\n",
         );
         out.push_str("        let args: serde_json::Value = if args_json.is_empty() {\n");
         out.push_str("            serde_json::Value::Null\n");
         out.push_str("        } else {\n");
         out.push_str("            serde_json::from_str(&args_json).map_err(|error| {\n");
-        out.push_str("                RustraCommandFailure::Failure {\n");
+        out.push_str("                UnikitCommandFailure::Failure {\n");
         out.push_str("                    code: \"uniffi.invalid_json\".to_string(),\n");
         out.push_str("                    detail: error.to_string(),\n");
         out.push_str("                    retryable: false,\n");
@@ -1299,7 +1299,7 @@ impl Renderer {
         out.push_str("        package()\n");
         out.push_str("            .invoke_json(&command, args)\n");
         out.push_str("            .map(|value| value.to_string())\n");
-        out.push_str("            .map_err(RustraCommandFailure::from)\n");
+        out.push_str("            .map_err(UnikitCommandFailure::from)\n");
         out.push_str("    }\n\n");
         out.push_str("    /// 라이브 스키마 JSON — `Package::live_schema`.\n");
         out.push_str("    #[uniffi::export]\n");
@@ -1307,17 +1307,17 @@ impl Renderer {
         out.push_str("    pub fn getSchema() -> String {\n");
         out.push_str("        package().live_schema().to_string()\n");
         out.push_str("    }\n\n");
-        out.push_str("    /// 계약 해시 — FFI `rustra_ffi_contract_hash` 와 동일 단일 소스.\n");
+        out.push_str("    /// 계약 해시 — FFI `unikit_ffi_contract_hash` 와 동일 단일 소스.\n");
         out.push_str("    /// 같은 dylib 안의 심볼을 직접 호출해 로직 복제를 피한다.\n");
         out.push_str("    #[uniffi::export]\n");
         out.push_str("    #[allow(non_snake_case)]\n");
-        out.push_str("    pub fn contractHash() -> Result<String, RustraCommandFailure> {\n");
+        out.push_str("    pub fn contractHash() -> Result<String, UnikitCommandFailure> {\n");
         out.push_str("        // FFI 전역 등록 보장(생성자 미탑재 호스트 대비, idempotent).\n");
         out.push_str("        let _ = package();\n");
         out.push_str("        let mut len: usize = 0;\n");
-        out.push_str("        let ptr = unsafe { rustra_ffi_contract_hash(&mut len) };\n");
+        out.push_str("        let ptr = unsafe { unikit_ffi_contract_hash(&mut len) };\n");
         out.push_str("        if ptr.is_null() {\n");
-        out.push_str("            return Err(RustraCommandFailure::Failure {\n");
+        out.push_str("            return Err(UnikitCommandFailure::Failure {\n");
         out.push_str("                code: \"uniffi.contract_hash\".to_string(),\n");
         out.push_str("                detail: \"contract hash unavailable\".to_string(),\n");
         out.push_str("                retryable: false,\n");
@@ -1326,20 +1326,20 @@ impl Renderer {
         out.push_str(
             "        let bytes = unsafe { std::slice::from_raw_parts(ptr, len) }.to_vec();\n",
         );
-        out.push_str("        unsafe { rustra_ffi_free(ptr, len) };\n");
+        out.push_str("        unsafe { unikit_ffi_free(ptr, len) };\n");
         out.push_str("        String::from_utf8(bytes).map_err(|error| {\n");
-        out.push_str("            RustraCommandFailure::Failure {\n");
+        out.push_str("            UnikitCommandFailure::Failure {\n");
         out.push_str("                code: \"uniffi.contract_hash\".to_string(),\n");
         out.push_str("                detail: error.to_string(),\n");
         out.push_str("                retryable: false,\n");
         out.push_str("            }\n");
         out.push_str("        })\n");
         out.push_str("    }\n\n");
-        out.push_str("    // `rustra_ffi_*` 는 같은 최종 바이너리(cdylib/rlib)에 링크되는 코어\n");
+        out.push_str("    // `unikit_ffi_*` 는 같은 최종 바이너리(cdylib/rlib)에 링크되는 코어\n");
         out.push_str("    // FFI 심볼이다 — 계약 해시의 단일 소스를 그대로 재사용한다.\n");
         out.push_str("    unsafe extern \"C\" {\n");
-        out.push_str("        fn rustra_ffi_contract_hash(out_len: *mut usize) -> *mut u8;\n");
-        out.push_str("        fn rustra_ffi_free(ptr: *mut u8, len: usize);\n");
+        out.push_str("        fn unikit_ffi_contract_hash(out_len: *mut usize) -> *mut u8;\n");
+        out.push_str("        fn unikit_ffi_free(ptr: *mut u8, len: usize);\n");
         out.push_str("    }\n");
     }
 }
@@ -1675,14 +1675,14 @@ mod tests {
 
         assert!(
             source.contains(
-                "pub fn add(arg0: i32, arg1: i32) -> Result<i32, RustraCommandFailure> {"
+                "pub fn add(arg0: i32, arg1: i32) -> Result<i32, UnikitCommandFailure> {"
             )
         );
         assert!(source.contains("let args = serde_json::to_value((arg0, arg1))"));
         assert!(source.contains("package().invoke_json(\"add\", args)?"));
         assert!(source.contains("serde_json::from_value::<i32>(out)"));
         assert!(source.contains(
-            "pub fn greetPerson(arg0: String) -> Result<String, RustraCommandFailure> {"
+            "pub fn greetPerson(arg0: String) -> Result<String, UnikitCommandFailure> {"
         ));
         assert!(source.contains("let args = serde_json::to_value((arg0,))"));
         assert!(source.contains("package().invoke_json(\"greetPerson\", args)?"));
@@ -1700,7 +1700,7 @@ mod tests {
         )])))
         .unwrap();
 
-        assert!(source.contains("pub fn reset() -> Result<(), RustraCommandFailure> {"));
+        assert!(source.contains("pub fn reset() -> Result<(), UnikitCommandFailure> {"));
         assert!(source.contains("let args = serde_json::to_value(())"));
         assert!(source.contains("package().invoke_json(\"reset\", args)?"));
         assert!(source.contains("serde_json::from_value::<()>(out)"));
@@ -1708,7 +1708,7 @@ mod tests {
 
     #[test]
     fn ordinary_plain_string_schema_uses_json_semantics_for_socket_addr() {
-        let package = rustra::Package::builder("test.socket")
+        let package = unikit_bridge::Package::builder("test.socket")
             .function("socketPort", |addr: std::net::SocketAddr| addr.port())
             .build();
         let schema_json = package.generate_typescript().unwrap().schema_json;
@@ -1716,7 +1716,7 @@ mod tests {
 
         assert!(
             source
-                .contains("pub fn socketPort(arg0: String) -> Result<u16, RustraCommandFailure> {")
+                .contains("pub fn socketPort(arg0: String) -> Result<u16, UnikitCommandFailure> {")
         );
         assert!(source.contains("let args = serde_json::to_value((arg0,))"));
         assert!(source.contains("package().invoke_json(\"socketPort\", args)?"));
@@ -1760,7 +1760,7 @@ mod tests {
     fn current_calculator_legacy_wrappers_still_render_byte_identically() {
         let source = render_uniffi_generated(include_str!("../generated/schema.json")).unwrap();
         let path = std::env::temp_dir().join(format!(
-            "rustra-uniffi-render-legacy-{}.rs",
+            "unikit-uniffi-render-legacy-{}.rs",
             std::process::id()
         ));
         std::fs::write(&path, source).unwrap();
@@ -1973,7 +1973,7 @@ mod tests {
         assert!(window.contains("#[uniffi::export]"), "wrapper: {window}");
         assert!(window.contains("#[allow(non_snake_case)]"));
         assert!(
-            window.contains("Result<AddNumbersOutput, RustraCommandFailure>"),
+            window.contains("Result<AddNumbersOutput, UnikitCommandFailure>"),
             "wrapper: {window}"
         );
         assert!(window.contains("invoke_typed::<crate::AddNumbersInput, crate::AddNumbersOutput>(\"addNumbers\", &input.into())"));
@@ -2019,7 +2019,7 @@ mod tests {
                      "properties": {"Set": {"type": "object", "required": ["value"],
                          "properties": {"value": {"type": "integer", "format": "int64"}}}}}
                 ],
-                "x-rustra-variant-order": ["Clear", "Set"]
+                "x-unikit-variant-order": ["Clear", "Set"]
             }
         });
         let source = render_uniffi_generated(&doc(serde_json::json!([command]))).unwrap();
@@ -2086,7 +2086,7 @@ mod tests {
         assert!(source.contains("pub channel: u32,"));
         assert!(!source.contains("pub struct ChannelHandle {"));
         // 변환은 표의 newtype 경로로 래핑/언래핑.
-        assert!(source.contains("channel: rustra::channels::ChannelHandle(input.channel),"));
+        assert!(source.contains("channel: unikit_bridge::channels::ChannelHandle(input.channel),"));
         assert!(source.contains("channel: input.channel.0,"));
     }
 
@@ -2104,7 +2104,7 @@ mod tests {
         .unwrap();
         assert!(
             source.contains(
-                "pub fn deviceDemo() -> Result<DeviceDemoOutput, RustraCommandFailure> {"
+                "pub fn deviceDemo() -> Result<DeviceDemoOutput, UnikitCommandFailure> {"
             )
         );
         assert!(
@@ -2162,12 +2162,12 @@ mod tests {
         let source = render_uniffi_generated(&doc(serde_json::json!([]))).unwrap();
         assert!(source.contains("pub fn invokeJson(command: String, args_json: String)"));
         assert!(source.contains("pub fn getSchema() -> String"));
-        assert!(source.contains("pub fn contractHash() -> Result<String, RustraCommandFailure>"));
-        assert!(source.contains("fn rustra_ffi_contract_hash(out_len: *mut usize) -> *mut u8;"));
+        assert!(source.contains("pub fn contractHash() -> Result<String, UnikitCommandFailure>"));
+        assert!(source.contains("fn unikit_ffi_contract_hash(out_len: *mut usize) -> *mut u8;"));
         assert!(source.contains("#[derive(Debug, uniffi::Error)]"));
-        assert!(source.contains("impl From<rustra::RustraError> for RustraCommandFailure"));
-        assert!(source.contains("impl std::fmt::Display for RustraCommandFailure"));
-        assert!(source.contains("fn package() -> rustra::Package"));
+        assert!(source.contains("impl From<unikit_bridge::UnikitError> for UnikitCommandFailure"));
+        assert!(source.contains("impl std::fmt::Display for UnikitCommandFailure"));
+        assert!(source.contains("fn package() -> unikit_bridge::Package"));
     }
 
     #[test]
@@ -2294,7 +2294,7 @@ mod tests {
                 "oneOf": [
                     {"type": "string", "enum": ["move"]}
                 ],
-                "x-rustra-variant-order": ["move"]
+                "x-unikit-variant-order": ["move"]
             }
         });
         let error = render_uniffi_generated(&doc(serde_json::json!([command]))).unwrap_err();

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { portablePackagePath, resolveHostEntries } from './host-entries.js';
-import type { RustraConfig } from './config.js';
+import type { UnikitConfig } from './config.js';
 
 // ── resolveHostEntries — 호스트 섹션 매니페스트 해석의 codegen 폴백 ──────────
 //
@@ -13,7 +13,7 @@ import type { RustraConfig } from './config.js';
 // 뒤에야 상위 탐색(findCargoManifest)으로 넘어간다 — wasm/dylib dev 타깃
 // (dev-config)과 같은 우선순위다. 앱 루트에 자체 Cargo.toml 이 없는 레이아웃
 // (tauri-calculator: Rust 코어가 ../calculator)에서 상위 탐색이 워크스페이스
-// 가상 매니페스트에 닿아 "found 0 Cargo packages" 로 죽는 회귀(rustra.hot.json
+// 가상 매니페스트에 닿아 "found 0 Cargo packages" 로 죽는 회귀(unikit.hot.json
 // codegen 단계, 2026-09-09 웜루프 벤치에서 발견)를 고정한다.
 
 /** 최소 크레이트 — lib(rlib+cdylib) + generate bin. cargo metadata 가 실제로 돈다. */
@@ -43,7 +43,7 @@ function seedLibCrate(root: string, name: string): void {
 }
 
 test('host entries use the codegen invocation directory Cargo config and isolate its cache', () => {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), 'rustra-host-cargo-cwd-')));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'unikit-host-cargo-cwd-')));
   const previous = process.env.CARGO_TARGET_DIR;
   try {
     delete process.env.CARGO_TARGET_DIR;
@@ -52,14 +52,14 @@ test('host entries use the codegen invocation directory Cargo config and isolate
       const app = join(root, name);
       mkdirSync(join(app, '.cargo'), { recursive: true });
       writeFileSync(join(app, '.cargo', 'config.toml'), `[build]\ntarget-dir="${name}-target"\n`);
-      const config: RustraConfig = {
+      const config: UnikitConfig = {
         schema: './generated/schema.json',
         output: './generated',
         codegen: { rustManifest: '../lib/Cargo.toml' },
         node: {},
         bun: {},
       };
-      const entries = resolveHostEntries(config, join(app, 'rustra.json'), join(app, 'generated'));
+      const entries = resolveHostEntries(config, join(app, 'unikit.json'), join(app, 'generated'));
       assert.equal(entries?.node?.targetDirectoryUrl, `../${name}-target/`);
       assert.equal(entries?.bun?.targetDirectoryUrl, `../${name}-target/`);
     }
@@ -70,14 +70,14 @@ test('host entries use the codegen invocation directory Cargo config and isolate
   }
 });
 
-function writeConfig(appRoot: string, config: RustraConfig): string {
-  const configPath = join(appRoot, 'rustra.json');
+function writeConfig(appRoot: string, config: UnikitConfig): string {
+  const configPath = join(appRoot, 'unikit.json');
   writeFileSync(configPath, JSON.stringify(config));
   return configPath;
 }
 
 test('runtime target URLs survive symlinked app and Cargo target roots before outputs exist', () => {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), 'rustra-host-runtime-symlinks-')));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'unikit-host-runtime-symlinks-')));
   const previous = process.env.CARGO_TARGET_DIR;
   try {
     seedLibCrate(root, 'symlink_probe');
@@ -91,7 +91,7 @@ test('runtime target URLs survive symlinked app and Cargo target roots before ou
     symlinkSync(realCache, cache, 'dir');
     const target = join(cache, 'not-built', 'target');
     process.env.CARGO_TARGET_DIR = target;
-    const config: RustraConfig = {
+    const config: UnikitConfig = {
       schema: 'schema.json',
       output: 'src/generated',
       codegen: { rustManifest: join(root, 'lib', 'Cargo.toml') },
@@ -119,13 +119,13 @@ test('runtime target URLs survive symlinked app and Cargo target roots before ou
 });
 
 test('runtime target URLs preserve Cargo directory names containing URL delimiters', () => {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), 'rustra-host-runtime-url-')));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'unikit-host-runtime-url-')));
   const previous = process.env.CARGO_TARGET_DIR;
   try {
     seedLibCrate(root, 'url_probe');
     const app = join(root, 'app');
     mkdirSync(app);
-    const config: RustraConfig = {
+    const config: UnikitConfig = {
       schema: 'schema.json',
       output: 'generated',
       codegen: { rustManifest: '../lib/Cargo.toml' },
@@ -157,7 +157,7 @@ test('runtime target URLs preserve Cargo directory names containing URL delimite
 });
 
 test('node/bun sections fall back to codegen.rustManifest before walking up', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-host-entries-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-host-entries-'));
   try {
     // 앱 루트에는 Cargo.toml 이 없다 — Rust 코어는 형제 디렉터리(lib/)에 있다.
     const appRoot = join(root, 'app');
@@ -171,7 +171,7 @@ test('node/bun sections fall back to codegen.rustManifest before walking up', ()
       codegen: { rustManifest: '../lib/Cargo.toml' },
       node: {},
       bun: {},
-    } as RustraConfig);
+    } as UnikitConfig);
 
     const entries = resolveHostEntries(
       {
@@ -194,7 +194,7 @@ test('node/bun sections fall back to codegen.rustManifest before walking up', ()
 });
 
 test('node section still fails loud when neither section nor codegen names a manifest', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-host-entries-missing-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-host-entries-missing-'));
   try {
     // findCargoManifest 가 실제로 실패하는 위치를 만들기 위해 파일시스템 최상단
     // 근처까지 올라가지 않는 임시 루트만 사용한다 — 루트 자체에 Cargo.toml 이
@@ -206,7 +206,7 @@ test('node section still fails loud when neither section nor codegen names a man
       schema: 'schema.json',
       output: 'generated',
       node: {},
-    } as RustraConfig);
+    } as UnikitConfig);
     assert.throws(
       () =>
         resolveHostEntries(

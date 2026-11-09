@@ -4,19 +4,19 @@ import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dlopen, FFIType, suffix } from 'bun:ffi';
-import { RustraCommandError } from '@rustra/types';
+import { UnikitCommandError } from '@unikit/types';
 import { createBunChannelBridge, createBunChannelBytesBridge } from './bun-channels.js';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
-const dylib = resolve(repoRoot, `target/release/librustra_calculator_example.${suffix}`);
+const dylib = resolve(repoRoot, `target/release/libunikit_calculator_example.${suffix}`);
 const dylibReady = existsSync(dylib);
 
 /**
- * 실 dylib 통합 스모크 — rustra_ffi_channel_create/drop 의 첫 JS 소비 계약.
+ * 실 dylib 통합 스모크 — unikit_ffi_channel_create/drop 의 첫 JS 소비 계약.
  *
  * 채널 프레임은 JS 스레드에서 와야 한다(threadsafe:false 스레드 계약). send 는
  * Rust 핸들러 스레드에서 일어나므로, 이 테스트는 JS→Rust 역방향 검증만 한다:
- * (1) 발급된 핸들로 `rustra_ffi_channel_send` 를 JS 스레드에서 직접 호출하면
+ * (1) 발급된 핸들로 `unikit_ffi_channel_send` 를 JS 스레드에서 직접 호출하면
  * 콜백이 도달하고, (2) drop 후 send 는 false 이고 콜백이 도달하지 않는다.
  * (Rust→JS 왕복은 examples/calculator 의 channelDemo 커맨드가 동기 핸들러로
  * send 하는 것으로 node 루프/FFI invoke 체인에서 실증한다.)
@@ -24,7 +24,7 @@ const dylibReady = existsSync(dylib);
 test('bun channel bridge: create delivers frames, close stops delivery (real cdylib)', async () => {
   if (!dylibReady) {
     console.warn(
-      'skipping: build the calculator cdylib first (cargo build --release -p rustra-calculator-example)',
+      'skipping: build the calculator cdylib first (cargo build --release -p unikit-calculator-example)',
     );
     return;
   }
@@ -36,9 +36,9 @@ test('bun channel bridge: create delivers frames, close stops delivery (real cdy
 
   // Rust 가 send 하는 것과 동일한 코어 경로를 FFI 로 직접 흘린다.
   const lib = dlopen(dylib, {
-    rustra_ffi_channel_send: { args: [FFIType.u32, FFIType.ptr], returns: FFIType.i32 },
+    unikit_ffi_channel_send: { args: [FFIType.u32, FFIType.ptr], returns: FFIType.i32 },
   });
-  const channelSend = lib.symbols.rustra_ffi_channel_send;
+  const channelSend = lib.symbols.unikit_ffi_channel_send;
 
   // JSCallback 은 JS 턴으로 마샬링되므로 send 후 마이크로태스크를 양보한다.
   const delivered = channelSend(channel.handle, Buffer.from('{"step":1}\0'));
@@ -59,9 +59,9 @@ test('bun channel bridge: JS callback exceptions are isolated between frames', a
   if (!dylibReady) return;
   const createChannel = await createBunChannelBridge({ library: dylib });
   const lib = dlopen(dylib, {
-    rustra_ffi_channel_send: { args: [FFIType.u32, FFIType.ptr], returns: FFIType.i32 },
+    unikit_ffi_channel_send: { args: [FFIType.u32, FFIType.ptr], returns: FFIType.i32 },
   });
-  const channelSend = lib.symbols.rustra_ffi_channel_send;
+  const channelSend = lib.symbols.unikit_ffi_channel_send;
 
   const received: unknown[] = [];
   let throwOnFirst = true;
@@ -85,9 +85,9 @@ test('bun channel bridge: non-JSON payload falls back to the raw string', async 
   if (!dylibReady) return;
   const createChannel = await createBunChannelBridge({ library: dylib });
   const lib = dlopen(dylib, {
-    rustra_ffi_channel_send: { args: [FFIType.u32, FFIType.ptr], returns: FFIType.i32 },
+    unikit_ffi_channel_send: { args: [FFIType.u32, FFIType.ptr], returns: FFIType.i32 },
   });
-  const channelSend = lib.symbols.rustra_ffi_channel_send;
+  const channelSend = lib.symbols.unikit_ffi_channel_send;
 
   const received: unknown[] = [];
   const channel = createChannel((payload) => received.push(payload));
@@ -100,24 +100,24 @@ test('bun channel bridge: non-JSON payload falls back to the raw string', async 
 test('bun channel bridge: throws TransportUnavailable when no library resolves', async () => {
   // bun:test 의 expect() 반환 타입이 thenable 로 선언되지 않아 await-thenable 이 오탐한다.
   // eslint-disable-next-line @typescript-eslint/await-thenable -- rejects 단정에는 await 가 필요하다
-  await expect(createBunChannelBridge({ library: '/nonexistent/librustra.dylib' })).rejects.toThrow(
+  await expect(createBunChannelBridge({ library: '/nonexistent/libunikit.dylib' })).rejects.toThrow(
     'channel',
   );
 });
 
-// ── 바이너리 채널 브릿지 — rustra_ffi_channel_create_bytes 패리티 ──────────
+// ── 바이너리 채널 브릿지 — unikit_ffi_channel_create_bytes 패리티 ──────────
 //
 // RN createBytesChannel 과 동일한 JS 계약({ handle, close() } + Uint8Array
 // 페이로드)을 검증한다. (1) JS 스레드에서 직접 send_bytes 하는 역방향,
 // (2) 생성된 frame 레지스트리의 channelDemoBytes 로 Rust→JS 왕복 — 동기 핸들러가
 // FFI invoke 체인(JS 스레드) 안에서 send 하는 것이 threadsafe:false 계약의
 // 전제 경로 그 자체다, (3) 경로 배타성(한 핸들은 JSON xor bytes), (4) loud-fail
-// 분류(라이브러리 없음/rustra 아님 → transport, bytes 심볼 없음 → channel).
+// 분류(라이브러리 없음/unikit 아님 → transport, bytes 심볼 없음 → channel).
 
 test('bun bytes channel bridge: create delivers copied frames, close stops delivery (real cdylib)', async () => {
   if (!dylibReady) {
     console.warn(
-      'skipping: build the calculator cdylib first (cargo build --release -p rustra-calculator-example)',
+      'skipping: build the calculator cdylib first (cargo build --release -p unikit-calculator-example)',
     );
     return;
   }
@@ -235,8 +235,8 @@ test('bun bytes channel bridge: one handle serves exactly one path (JSON xor byt
   const createChannel = await createBunChannelBridge({ library: dylib });
   const createBytesChannel = await createBunChannelBytesBridge({ library: dylib });
   const lib = dlopen(dylib, {
-    rustra_ffi_channel_send: { args: [FFIType.u32, FFIType.ptr], returns: FFIType.i32 },
-    rustra_ffi_channel_send_bytes: {
+    unikit_ffi_channel_send: { args: [FFIType.u32, FFIType.ptr], returns: FFIType.i32 },
+    unikit_ffi_channel_send_bytes: {
       args: [FFIType.u32, FFIType.ptr, 'usize' as const],
       returns: FFIType.i32,
     },
@@ -248,21 +248,21 @@ test('bun bytes channel bridge: one handle serves exactly one path (JSON xor byt
 
   // 어긋난 경로의 send 는 조용히 0(ffi_channel.rs — 한 핸들, 한 경로).
   assert.equal(
-    lib.symbols.rustra_ffi_channel_send_bytes(jsonChannel.handle, frame, BigInt(8)),
+    lib.symbols.unikit_ffi_channel_send_bytes(jsonChannel.handle, frame, BigInt(8)),
     0,
     'bytes send on a JSON handle is dropped',
   );
   assert.equal(
-    lib.symbols.rustra_ffi_channel_send(bytesChannel.handle, Buffer.from('{"a":1}\0')),
+    lib.symbols.unikit_ffi_channel_send(bytesChannel.handle, Buffer.from('{"a":1}\0')),
     0,
     'JSON send on a bytes handle is dropped',
   );
   // 각자의 경로로는 도달한다.
   assert.equal(
-    lib.symbols.rustra_ffi_channel_send(jsonChannel.handle, Buffer.from('{"a":1}\0')),
+    lib.symbols.unikit_ffi_channel_send(jsonChannel.handle, Buffer.from('{"a":1}\0')),
     1,
   );
-  assert.equal(lib.symbols.rustra_ffi_channel_send_bytes(bytesChannel.handle, frame, BigInt(8)), 1);
+  assert.equal(lib.symbols.unikit_ffi_channel_send_bytes(bytesChannel.handle, frame, BigInt(8)), 1);
   jsonChannel.close();
   bytesChannel.close();
 });
@@ -270,11 +270,11 @@ test('bun bytes channel bridge: one handle serves exactly one path (JSON xor byt
 test('bun bytes channel bridge: throws TransportUnavailable when no library resolves', async () => {
   // eslint-disable-next-line @typescript-eslint/await-thenable -- bun:test expect() 타입 선언 한계 (위와 동일)
   await expect(
-    createBunChannelBytesBridge({ library: '/nonexistent/librustra.dylib' }),
+    createBunChannelBytesBridge({ library: '/nonexistent/libunikit.dylib' }),
   ).rejects.toThrow('channel');
 });
 
-test('bun bytes channel bridge: a non-Rustra dylib classifies as transport failure, not channel.unavailable', async () => {
+test('bun bytes channel bridge: a non-Unikit dylib classifies as transport failure, not channel.unavailable', async () => {
   const foreign =
     process.platform === 'darwin' ? '/usr/lib/libz.1.dylib' : '/lib/x86_64-linux-gnu/libz.so.1';
   if (!existsSync(foreign)) return; // 플랫폼 기본 라이브러리 경로가 없으면 스킵.
@@ -283,7 +283,7 @@ test('bun bytes channel bridge: a non-Rustra dylib classifies as transport failu
     (thrown: unknown) => thrown,
   );
   assert.ok(
-    error instanceof RustraCommandError,
+    error instanceof UnikitCommandError,
     'bridge loud-fails instead of returning a factory',
   );
   assert.equal(error.code, 'transport.unavailable');
@@ -291,14 +291,14 @@ test('bun bytes channel bridge: a non-Rustra dylib classifies as transport failu
 
 // ── helpers ──────────────────────────────────────────────────
 
-/** rustra_ffi_channel_send_bytes 심볼만 노출한 dlopen — 역방향 검증용. */
+/** unikit_ffi_channel_send_bytes 심볼만 노출한 dlopen — 역방향 검증용. */
 function openBytesSend(library: string) {
   return dlopen(library, {
-    rustra_ffi_channel_send_bytes: {
+    unikit_ffi_channel_send_bytes: {
       args: [FFIType.u32, FFIType.ptr, 'usize' as const],
       returns: FFIType.i32,
     },
-  }).symbols.rustra_ffi_channel_send_bytes;
+  }).symbols.unikit_ffi_channel_send_bytes;
 }
 
 /** Uint8Array 프레임을 LE u64 로 읽는다(channelDemoBytes 스텝 카운터 인코딩). */

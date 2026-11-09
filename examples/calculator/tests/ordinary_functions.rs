@@ -1,4 +1,4 @@
-use rustra_calculator_example::calculator_package;
+use unikit_calculator_example::calculator_package;
 use serde_json::json;
 
 #[test]

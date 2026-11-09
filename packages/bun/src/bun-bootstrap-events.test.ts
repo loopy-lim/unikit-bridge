@@ -5,18 +5,18 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { suffix } from 'bun:ffi';
-import { configure, ensureConfigured, type FrameCodec } from '@rustra/types';
+import { configure, ensureConfigured, type FrameCodec } from '@unikit/types';
 import { createBunBootstrap } from './index.js';
 
 test('bootstrap subscriptions use the selected compatible library and receive the first event', async () => {
   configure({ invoke: async <T>() => null as T });
-  const root = mkdtempSync(join(tmpdir(), 'rustra-bun-pairing-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-bun-pairing-'));
   const broken = join(root, `broken.${suffix}`);
   writeFileSync(broken, 'not a native library');
   const library = resolve(
     dirname(fileURLToPath(import.meta.url)),
     '../../../target/debug',
-    `librustra_calculator_example.${suffix}`,
+    `libunikit_calculator_example.${suffix}`,
   );
   const codec: FrameCodec<unknown, unknown> = {
     commandId: 11,
@@ -51,7 +51,7 @@ test('a subscription after lazy generated initialization receives an immediate n
     library: resolve(
       dirname(fileURLToPath(import.meta.url)),
       '../../../target/debug',
-      `librustra_calculator_example.${suffix}`,
+      `libunikit_calculator_example.${suffix}`,
     ),
     frameCodecs: new Map([
       [

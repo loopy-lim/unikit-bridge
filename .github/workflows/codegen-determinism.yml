@@ -3,7 +3,7 @@ name: Codegen determinism
 # Windows 크로스 OS 코드젠 결정론 검증 (2026-11-07 플랜 T5-3 · AC-9 ·
 # docs/dev/plans/2026-11-07-next-steps-batch.md).
 #
-# 목적: windows-latest 러너에서 rustra.json 보유 예제 전체(auth, calculator,
+# 목적: windows-latest 러너에서 unikit.json 보유 예제 전체(auth, calculator,
 # crud, react-native-bare-calculator, react-native-calculator, rn-experiment,
 # streaming)의 코드젠을 실제로 재실행하고, committed examples/*/generated/ 가
 # 그대로 재현되는지 git diff --exit-code 로 단언한다. Linux CI 의 codegen-fresh 게이트
@@ -71,12 +71,12 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Build workspace packages
         # 예제 codegen 은 bun ../../packages/cli/src/index.ts 를 실행하고 그
-        # 의존(@rustra/* exports)은 dist 를 가리킨다 — 재생성 전에 워크스페이스를
+        # 의존(@unikit/* exports)은 dist 를 가리킨다 — 재생성 전에 워크스페이스를
         # 빌드한다(ts-checks·rn-android 잡과 동일 순서 계약).
         run: bun run build
       - name: Regenerate every example
         # auth 는 package.json codegen 스크립트가 없어 `bun run codegen` 으로는
-        # 도달할 수 없다 — codegen-fresh 게이트와 동일하게 rustra.json 보유
+        # 도달할 수 없다 — codegen-fresh 게이트와 동일하게 unikit.json 보유
         # 디렉터리를 발견해, 예제 스크립트와 동일한 CLI 호출을 직접 실행한다.
         # codegen 실패 시 이 스텝에서 실패한다(실패한 생성으로 diff 를 단언할
         # 수는 없다).
@@ -84,16 +84,16 @@ jobs:
         run: |
           shopt -s nullglob
           found=0
-          for config in examples/*/rustra.json; do
+          for config in examples/*/unikit.json; do
             dir=$(dirname "$config")
             echo "::group::codegen $dir"
-            (cd "$dir" && bun ../../packages/cli/src/index.ts codegen --config rustra.json)
+            (cd "$dir" && bun ../../packages/cli/src/index.ts codegen --config unikit.json)
             echo "::endgroup::"
             found=$((found + 1))
           done
           # 예제 0개는 게이트(check-codegen-fresh.mjs)와 동일하게 loud 실패.
           if [ "$found" -eq 0 ]; then
-            echo 'examples/*/rustra.json 이 0개다 — 발견 로직이 깨졌다' >&2
+            echo 'examples/*/unikit.json 이 0개다 — 발견 로직이 깨졌다' >&2
             exit 1
           fi
           echo "regenerated $found examples"
@@ -135,7 +135,7 @@ jobs:
         shell: bash
         run: |
           git diff --stat || true
-          git diff > "$RUNNER_TEMP/rustra-codegen-diff.patch" || true
+          git diff > "$RUNNER_TEMP/unikit-codegen-diff.patch" || true
           git diff --exit-code
           status=$(git status --porcelain)
           if [ -n "$status" ]; then
@@ -150,6 +150,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: failure-logs-codegen-determinism
-          path: ${{ runner.temp }}/rustra-codegen-diff.patch
+          path: ${{ runner.temp }}/unikit-codegen-diff.patch
           if-no-files-found: ignore
           retention-days: 14

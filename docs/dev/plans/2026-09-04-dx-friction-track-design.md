@@ -28,20 +28,20 @@ on_unimplemented 구현(readiness Task 9a와 문서 문단 경합 — 9a 착지 
 - `scripts/onboarding-gate.mjs`의 5단계(init→doctor→build→codegen→demo) 뒤에
   3단계 추가 — "스키마 변경→재코드젠→재호출" 전 사이클을 CI 게이트화:
   - `mutate` — 스캐폴드의 Rust 계약 프로브에 실제 변경 주입(파라미터 1개 추가)
-  - `regen` — `rustra codegen` 재실행
+  - `regen` — `unikit codegen` 재실행
   - `verify` — 생성물에 변경 반영 확인(생성 commands.ts/types.ts에 신규 필드 존재)
     - 데모가 새 계약으로 동작하는지 확인
 - 단계별 소요 시간 게이트 출력에 기록(로드맵 보조 지표 1 "온보딩 게이트 E2E 시간"의
   측정 기반). **임계값 게이트는 1차 범위 밖** (YAGNI).
 - 적대적 재검증: regen이 반영 못 하는 변형 주입 → red 확인 → 원복.
-- changeset: `@rustra/cli` minor (스캐폴드 수정을 동반하므로).
+- changeset: `@unikit/cli` minor (스캐폴드 수정을 동반하므로).
 
 ## 컴포넌트 B: 감사 확정 마찰 즉시 수정 (HIGH 7건 + MEDIUM 2그룹)
 
 ### B1. 첫 성공 경로의 깨진 계약 (CLI+E2E, 감사 #1/#3/#4)
 
 1. **스캐폴드 `codegen:check` 항상 실패 수정** — init이 심는 generate bin이
-   `RUSTRA_SCHEMA_OUT`을 존중하게 하거나(코어 측 `write_schema_to_dir` 계약 정합),
+   `UNIKIT_SCHEMA_OUT`을 존중하게 하거나(코어 측 `write_schema_to_dir` 계약 정합),
    check가 스캐폴드 구조와 맞게 동작. 스캐폴드에 심는 스크립트와 코어 계약의
    일치를 온보딩 게이트가 강제하는 구조로 종결.
 2. **stale 런타임 바이너리 힌트** — codegen 성공 출력 끝에 "런타임 바이너리가

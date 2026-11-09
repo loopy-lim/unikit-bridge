@@ -24,17 +24,17 @@ JSON 엔진. 이벤트가 있거나 `node.persistent: true`면 같은 persistent
 | 배치 항목별 취소                     | ✅ 각 `invoke`의 얕은 취소                                                                                                                                                            | ✅ 동일                                                                                                                | ✅ 동일                                                                            | ✅ 동일                                                                               | ⚠️ 단일 횡단 배치는 취소 미지원 — signal 항목이 있으면 자동으로 항목별 `invoke` 경로로 라우팅 |
 | `options.timeoutMs`                  | ✅ 직접/글로벌 `invoke` 레이스 — `transport.timeout`(retryable)                                                                                                                       | ✅ 동일                                                                                                                | ✅ 동일                                                                            | ⚠️ 동기 native 호출은 호출 중 선점 불가                                               | ✅ 동일 (글로벌 배치는 항목 최솟값으로 전체 레이스)                                           |
 | 이벤트 (`subscribeEvent`/`onEvent`)  | ✅ `subscribeEvent(transport, name, cb)` — 0xfffd 푸시 프레임 (폴백 폴링; 이벤트 불능 transport 는 loud-fail)                                                                         | ✅ `createBunEventBridge` — FFI 푸시 싱크 (폴백 폴링)                                                                  | ✅ `subscribeEvent`/`subscribeTauriEvent`                                          | ✅ JSI 싱크 푸시; `pollMs` 옵션으로 CallInvoker 없는 호스트용 JS 폴링 drain 루프 추가 † | ✅ `subscribeEvent`/`drainEvents` (CallInvoker 자동 drain) †                                    |
-| 채널 (`createChannel`)               | ✅ `createNodeChannel(transport, cb)` — loop-stdio 채널 예약 프레임 0xfffb/0xfffa/0xfffc (바이너리 모드 전용; NDJSON 은 `channel.unavailable` loud-fail; 백그라운드 스레드 send 안전) | ✅ `createBunChannelBridge(options)(cb)` — FFI `rustra_ffi_channel_*` (JS 스레드 send 만 — `threadsafe:false` 계약)    | ✅ `createChannel(cb)` — Tauri IPC Channel (발급한 물리 WebView 전용)              | ✅ JSI handle + `close()` †                                                             | ✅ JSI native channel handle + `{ pollMs }` 폴링 폴백 (CallInvoker-less) †                      |
-| 바이너리 채널 (`createBytesChannel`) | ✅ `createNodeBytesChannel` — 0xfff9 프레임 (능력 협상 게이트; 구 런타임은 `channel.unavailable` loud-fail)                                                                           | ✅ `createBunChannelBytesBridge` — FFI `rustra_ffi_channel_create_bytes` (JS 스레드 send 만 — `threadsafe:false` 계약) | ✅ `createChannelBytes` — `Channel<InvokeResponseBody>` 바이트 조각 → `Uint8Array` | ✅ JSI `createChannelBytes` — ArrayBuffer 복사본                                      | ✅ 동일 JSI 바이트 경로 + `{ pollMs }` 폴백                                                   |
-| Frame 바이너리 (`createFrameEngine`) | ✅ (napi/FFI 네이티브 필요)                                                                                                                                                           | ✅ (FFI 네이티브 필요)                                                                                                 | ✅ (`rustra_dispatch` 바이너리 경로)                                               | —                                                                                     | ✅ JSI                                                                                        |
+| 채널 (`createChannel`)               | ✅ `createNodeChannel(transport, cb)` — loop-stdio 채널 예약 프레임 0xfffb/0xfffa/0xfffc (바이너리 모드 전용; NDJSON 은 `channel.unavailable` loud-fail; 백그라운드 스레드 send 안전) | ✅ `createBunChannelBridge(options)(cb)` — FFI `unikit_ffi_channel_*` (JS 스레드 send 만 — `threadsafe:false` 계약)    | ✅ `createChannel(cb)` — Tauri IPC Channel (발급한 물리 WebView 전용)              | ✅ JSI handle + `close()` †                                                             | ✅ JSI native channel handle + `{ pollMs }` 폴링 폴백 (CallInvoker-less) †                      |
+| 바이너리 채널 (`createBytesChannel`) | ✅ `createNodeBytesChannel` — 0xfff9 프레임 (능력 협상 게이트; 구 런타임은 `channel.unavailable` loud-fail)                                                                           | ✅ `createBunChannelBytesBridge` — FFI `unikit_ffi_channel_create_bytes` (JS 스레드 send 만 — `threadsafe:false` 계약) | ✅ `createChannelBytes` — `Channel<InvokeResponseBody>` 바이트 조각 → `Uint8Array` | ✅ JSI `createChannelBytes` — ArrayBuffer 복사본                                      | ✅ 동일 JSI 바이트 경로 + `{ pollMs }` 폴백                                                   |
+| Frame 바이너리 (`createFrameEngine`) | ✅ (napi/FFI 네이티브 필요)                                                                                                                                                           | ✅ (FFI 네이티브 필요)                                                                                                 | ✅ (`unikit_dispatch` 바이너리 경로)                                               | —                                                                                     | ✅ JSI                                                                                        |
 
-† **동기 브릿지 호출 안에서 emit 되는 RN 이벤트·채널 푸시 — Android JS 스레드 교착; 수정 완료, 발행 대기.** 동기 bridge invoke 안에서 실행되는 명령이 `Package::emit`(또는 채널 send)을 호출하면 JS 스레드가 재진입되어 그 호출 안에서 디스패처 drain을 `CallInvoker::invokeAsync`로 예약하고, Android에서는 JS 이벤트 루프가 다음 매크로태스크 전에 정지한다. 실기기 TB710FU(RN 0.81.5, adapter 0.9.2, rustra 0.11.0)에서 3/3 재현: [2026-09-21-registry-rn-android-device.json](verification/evidence/2026-09-21-registry-rn-android-device.json). `pollMs` 폴백으로도 우회 불가(JSI 싱크는 install 시점에 설치)이며, 현재 발행된 npm 라인(`@rustra/react-native` 0.11.0)에는 수정이 없다. 수정 — 동기적으로 Rust를 실행하는 host function의 공용 초크포인트에 `thread_local` 재진입 깊이 가드를 건다. 깊이 > 0 동안 이벤트 drain·채널 drain(바이트 큐 포함)·즉시 실패하는 비동기 완료는 에필로그 큐로 가고, 깊이가 0으로 돌아올 때 JS 스레드에서 해당 동기 호출 반환 직전에 인라인 실행된다. 이 수정은 완료됐으나 아직 발행되지 않았다 — **다음** `@rustra/react-native` 발행 라인에 포함되며, 현재까지 발행된 버전 어디에도 없다. 수정 후 전달 의미: 동기 호출 중 emit 된 페이로드는 다음 매크로태스크가 아니라 해당 호출 반환 직전에 emit 순서대로 전달된다. 워커 스레드·호출 사이 스케줄링은 불변. 같은 변경의 더 세분된 두 지점: 즉시 실패하는 비동기 invoke(payload 과대·백프레셔)는 이제 호출자가 반환된 invocation id를 받기 전에 완료된다 — 어댑터의 취소 가드가 id를 -1로 초기화하고 만기 취소를 무시하므로 오취소는 불가능하지만, 이 경로에서 id를 관찰하는 콜백은 -1을 보게 된다. 배치 invoke에서는 항목 i 실행 중 emit 된 이벤트가 배치 전체 반환 뒤가 아니라 항목 i 직후 리스너에 도달한다 — 어느 쪽이든 무손실·순서 보존이다. 발행 뒤 재검증 절차: rn-android 레지스트리 여정의 옵트인 `--assert-events` 단계가 실기기 Android에서 재현 시나리오(동기 호출 1건 안에서 emit 3회)를 재실측해 루프가 계속 도는 것과 전달 순서 보존을 단언한다. iOS는 rn-ios 여정의 이벤트 단계가 이벤트 경로 첫 실측이 된다(두 단계 모두 2026-11-07 배치에 추가됐다). 해당 영수증이 생기기 전까지 이 매트릭스는 emit-during-synchronous-call 시나리오에 대한 기기 런타임 주장을 하지 않는다.
+† **동기 브릿지 호출 안에서 emit 되는 RN 이벤트·채널 푸시 — Android JS 스레드 교착; 수정 완료, 발행 대기.** 동기 bridge invoke 안에서 실행되는 명령이 `Package::emit`(또는 채널 send)을 호출하면 JS 스레드가 재진입되어 그 호출 안에서 디스패처 drain을 `CallInvoker::invokeAsync`로 예약하고, Android에서는 JS 이벤트 루프가 다음 매크로태스크 전에 정지한다. 실기기 TB710FU(RN 0.81.5, adapter 0.9.2, unikit 0.11.0)에서 3/3 재현: [2026-09-21-registry-rn-android-device.json](verification/evidence/2026-09-21-registry-rn-android-device.json). `pollMs` 폴백으로도 우회 불가(JSI 싱크는 install 시점에 설치)이며, 현재 발행된 npm 라인(`@unikit/react-native` 0.11.0)에는 수정이 없다. 수정 — 동기적으로 Rust를 실행하는 host function의 공용 초크포인트에 `thread_local` 재진입 깊이 가드를 건다. 깊이 > 0 동안 이벤트 drain·채널 drain(바이트 큐 포함)·즉시 실패하는 비동기 완료는 에필로그 큐로 가고, 깊이가 0으로 돌아올 때 JS 스레드에서 해당 동기 호출 반환 직전에 인라인 실행된다. 이 수정은 완료됐으나 아직 발행되지 않았다 — **다음** `@unikit/react-native` 발행 라인에 포함되며, 현재까지 발행된 버전 어디에도 없다. 수정 후 전달 의미: 동기 호출 중 emit 된 페이로드는 다음 매크로태스크가 아니라 해당 호출 반환 직전에 emit 순서대로 전달된다. 워커 스레드·호출 사이 스케줄링은 불변. 같은 변경의 더 세분된 두 지점: 즉시 실패하는 비동기 invoke(payload 과대·백프레셔)는 이제 호출자가 반환된 invocation id를 받기 전에 완료된다 — 어댑터의 취소 가드가 id를 -1로 초기화하고 만기 취소를 무시하므로 오취소는 불가능하지만, 이 경로에서 id를 관찰하는 콜백은 -1을 보게 된다. 배치 invoke에서는 항목 i 실행 중 emit 된 이벤트가 배치 전체 반환 뒤가 아니라 항목 i 직후 리스너에 도달한다 — 어느 쪽이든 무손실·순서 보존이다. 발행 뒤 재검증 절차: rn-android 레지스트리 여정의 옵트인 `--assert-events` 단계가 실기기 Android에서 재현 시나리오(동기 호출 1건 안에서 emit 3회)를 재실측해 루프가 계속 도는 것과 전달 순서 보존을 단언한다. iOS는 rn-ios 여정의 이벤트 단계가 이벤트 경로 첫 실측이 된다(두 단계 모두 2026-11-07 배치에 추가됐다). 해당 영수증이 생기기 전까지 이 매트릭스는 emit-during-synchronous-call 시나리오에 대한 기기 런타임 주장을 하지 않는다.
 
 ### 실험적 scriptc 호스트
 
 | 호스트  | 지원 수준                            | 네이티브 연동                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | 컴파일러                                                                                                                                  | 제약                                                                                                                                                                                    |
 | ------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| scriptc | 실험적 calculator 네이티브 실행 파일 | Native FFI (`scriptc/ffi.json` ffi_format 7 매니페스트 + 시그니처-only `scriptc-ffi.d.ts` + 콜백 시그니처용 `scriptc-ffi.ts` 소스 엔트리 + C ABI를 통한 Rust 정적 아카이브 링크). retained 콜백 — 비동기 JSON completion `rustra_ffi_invoke_json_async_channel`, 이벤트 `rustra_ffi_event_sink_register_scriptc`/`rustra_ffi_event_sink_release_scriptc`, bytes 채널 `rustra_ffi_channel_create_bytes`/`rustra_ffi_channel_send_bytes` + identity 기반 `rustra_ffi_channel_release_scriptc` | Node >= 24; `scriptc@0.2.1` 핀 — 로컬은 `fnm exec --using 26`, CI ts-runtime 은 같은 리터럴을 전역 설치(`check-test-list-parity` 가 검증) | napi 애드온과 `dlopen` 미지원; Node/Bun 호스트 경로 재사용 불가. out 포인터와 함수 포인터 심볼은 사유가 기록된 채 매니페스트 표면에서 제외된다. 위 `EngineClient` 열에는 해당하지 않음. |
+| scriptc | 실험적 calculator 네이티브 실행 파일 | Native FFI (`scriptc/ffi.json` ffi_format 7 매니페스트 + 시그니처-only `scriptc-ffi.d.ts` + 콜백 시그니처용 `scriptc-ffi.ts` 소스 엔트리 + C ABI를 통한 Rust 정적 아카이브 링크). retained 콜백 — 비동기 JSON completion `unikit_ffi_invoke_json_async_channel`, 이벤트 `unikit_ffi_event_sink_register_scriptc`/`unikit_ffi_event_sink_release_scriptc`, bytes 채널 `unikit_ffi_channel_create_bytes`/`unikit_ffi_channel_send_bytes` + identity 기반 `unikit_ffi_channel_release_scriptc` | Node >= 24; `scriptc@0.2.1` 핀 — 로컬은 `fnm exec --using 26`, CI ts-runtime 은 같은 리터럴을 전역 설치(`check-test-list-parity` 가 검증) | napi 애드온과 `dlopen` 미지원; Node/Bun 호스트 경로 재사용 불가. out 포인터와 함수 포인터 심볼은 사유가 기록된 채 매니페스트 표면에서 제외된다. 위 `EngineClient` 열에는 해당하지 않음. |
 
 ## 시그널 시맨틱 상세
 
@@ -63,15 +63,15 @@ JSON 엔진. 이벤트가 있거나 `node.persistent: true`면 같은 persistent
   [rust-api-guide.ko.md](rust-api-guide.ko.md)의 "타임아웃·취소·재시도 의미" 절 참고.
 - **이벤트 구독 호출형**: 모든 어댑터가 `(name, callback[, ...])`을 사용한다. RN은
   `subscribeEvent(name, callback[, options])`만 받고 native 모듈은
-  `globalThis.__rustraNative`에서 해결한다(기존 `(native, name, callback)` 오버로드는
+  `globalThis.__unikitNative`에서 해결한다(기존 `(native, name, callback)` 오버로드는
   0.7.0에서 제거됨). Tauri는 `subscribeEvent(name, callback[, listen])`로 선택적 `listen`
   주입 또는 global Tauri 이벤트 API를 사용한다.
 - **이벤트 전달 경로**: Tauri는 Rust `app.emit` **푸시**, RN은 JSI 싱크 **푸시**,
-  Bun은 FFI C 콜백 싱크 **푸시**(`rustra_ffi_event_sink_register` — 백그라운드
+  Bun은 FFI C 콜백 싱크 **푸시**(`unikit_ffi_event_sink_register` — 백그라운드
   스레드 emit 호스트는 `poll` 옵션 폴링 폴백), Node는 2-모드이다: `subscribeEvent`
   은 loop-stdio 런타임이 `events:"push"` 핸드셰이크를 수용한 경우 stdout 0xfffd
   프레임 **푸시**를 우선하고, 아니면(구 런타임, codecs 미제공 transport)
-  `__drainEvents` 특수 명령 **폴링**(`RUSTRA_NODE_EVENT_POLL_MS`, 기본 100ms)으로
+  `__drainEvents` 특수 명령 **폴링**(`UNIKIT_NODE_EVENT_POLL_MS`, 기본 100ms)으로
   폴백하며, 이벤트를 영원히 전달할 수 없는 transport 는 `event.unavailable` 로
   throw 한다. 폴링과 달리 푸시 모드(Node stdout, Bun FFI)는 첫 구독 전의 emit 을
   버린다(싱크가 버스를 우회) — 구독 전 emit 이 중요하면 구독을 먼저 하거나 폴링을
@@ -87,9 +87,9 @@ JSON 엔진. 이벤트가 있거나 `node.persistent: true`면 같은 persistent
 다르다. Node 는 loop-stdio 바이너리 모드 예약 프레임 (0xfffb 발급 / 0xfffa 해제 /
 0xfffc 푸시)으로 발급하며 백그라운드 스레드 `send` 도 안전하다(stdout 프레임이 JS
 턴 데이터 이벤트로 도달); NDJSON transport 는 `channel.unavailable` 로 loud-fail
-한다. Bun 은 `rustra_ffi_channel_*` FFI 심볼로 발급하며 콜백이 `threadsafe:false`
+한다. Bun 은 `unikit_ffi_channel_*` FFI 심볼로 발급하며 콜백이 `threadsafe:false`
 이므로 send 는 JS 스레드(동기 FFI invoke 체인)에 한정된다 — 백그라운드 send
-미지원. Tauri 는 `rustra_channel_create`/`rustra_channel_drop` 커맨드로 발급하고
+미지원. Tauri 는 `unikit_channel_create`/`unikit_channel_drop` 커맨드로 발급하고
 발급한 WebView에만 프레임을 전달하고, 종료 시 호출자의 네이티브 자원 테이블을 확인한다. 페이지 이동·창 파괴·앱 종료 시 채널을 정리한다. 신뢰된 Rust 호스트용 헬퍼는 명시적으로 앱 전체에 전달한다. RN 은 C++ 콜백 디스패처가 받친 JSI `createChannel`/`dropChannel` host
 function 으로 발급한다(진짜 유니캐스트). CallInvoker 가 있으면 디스패처가 JS
 스레드에서 자동 drain 하고, CallInvoker 없는 네이티브에서는 `drainEvents()` 가
@@ -126,15 +126,15 @@ function 으로 발급한다(진짜 유니캐스트). CallInvoker 가 있으면 
 | Package                | Manifest version |
 | ---------------------- | ---------------- |
 | Rust workspace crates  | 0.13.0           |
-| `@rustra/bun`          | 0.11.1           |
-| `@rustra/cli`          | 0.13.0           |
-| `@rustra/devtools`     | 0.7.3            |
-| `@rustra/node`         | 0.11.1           |
-| `@rustra/react`        | 0.8.4            |
-| `@rustra/react-native` | 0.11.0           |
-| `@rustra/tauri`        | 0.10.1           |
-| `@rustra/testing`      | 0.7.3            |
-| `@rustra/types`        | 0.13.0           |
+| `@unikit/bun`          | 0.11.1           |
+| `@unikit/cli`          | 0.13.0           |
+| `@unikit/devtools`     | 0.7.3            |
+| `@unikit/node`         | 0.11.1           |
+| `@unikit/react`        | 0.8.4            |
+| `@unikit/react-native` | 0.11.0           |
+| `@unikit/tauri`        | 0.10.1           |
+| `@unikit/testing`      | 0.7.3            |
+| `@unikit/types`        | 0.13.0           |
 
 <!-- release:versions:end -->
 
@@ -142,7 +142,7 @@ JS가 생성하는 Tauri 채널은 발급한 물리 WebView에 귀속된 네이�
 `Channel<InvokeResponseBody>`를 사용한다. `close()`는 네이티브 lease를 해제하고
 JS 콜백을 정리하며, 페이지 이동·파괴·앱 종료에서도 소유자의 자원을 정리한다.
 `ipc-channel-chunks-v1` handshake는 기존 브로드캐스트 네이티브를 거부하므로
-`@rustra/tauri`와 Rust를 함께 갱신하고 다시 빌드해야 한다. 전역 설정에는
+`@unikit/tauri`와 Rust를 함께 갱신하고 다시 빌드해야 한다. 전역 설정에는
 `core.Channel`과 Tauri 콜백 정리 API가 필요하다. 전역 API를 쓰지 않으면 `invoke`와
 함께 `{ value, dispose() }`를 반환하는 `createIpcChannel(onMessage)` 팩터리를
 명시한다. `listen`만 전달해서는 채널을 생성할 수 없다.
@@ -176,7 +176,7 @@ JS 콜백을 정리하며, 페이지 이동·파괴·앱 종료에서도 소유�
 
 ### 기계 판독 표면: `engine.supports` (A02)
 
-각 어댑터의 엔진 팩토리는 `supports` 객체(`@rustra/types` 의 `EngineSupports`)를
+각 어댑터의 엔진 팩토리는 `supports` 객체(`@unikit/types` 의 `EngineSupports`)를
 노출한다. 값은 이 매트릭스의 셀을 1:1 로 옮긴 것 — 새 주장이 아니다. 앱은
 부작용 이전에 분기할 수 있다(예:
 `engine.supports?.cancellation === 'cooperative'`). 열별 매핑:
@@ -211,14 +211,14 @@ RN Frame 의 `cancellation: 'cooperative'` 는 매트릭스의 "조건부 전파
 엔진의 `cancellation: 'cooperative'`(`invokeCancel` 노출 시 참)를 상속해도
 `batch: 'per-entry'` 를 보고한다. 이벤트 `'push'` 값은 각 엔진의 폴링 폴백을
 포함한다 — 실제 전달 경로는 어댑터별 구독 표면이 판별한다. Tauri 의
-`batch: 'per-entry'` 는 트랙 E2 가 단일 IPC 와이어 배치(`rustra_dispatch_batch`)
+`batch: 'per-entry'` 는 트랙 E2 가 단일 IPC 와이어 배치(`unikit_dispatch_batch`)
 최적화를 추가했어도 셀 계열을 따른다.
 
 ### bootstrap 수명 상태 (A05)
 
 bootstrap 객체(`createNodeBootstrap`/`createBunBootstrap`/
-`createTauriBootstrap`/`createRustraBootstrap`)는 로컬 상태
-`state: 'initializing' | 'ready' | 'disposed'` 를 노출한다(`@rustra/types` 의
+`createTauriBootstrap`/`createUnikitBootstrap`)는 로컬 상태
+`state: 'initializing' | 'ready' | 'disposed'` 를 노출한다(`@unikit/types` 의
 공용 `BootstrapState`; 모든 어댑터는 dispose 뒤 `ready()` 를 같은
 `disposedBootstrapError` 계열로 거부한다). `dispose()` 는 멱등(두 번째 호출은
 no-op)이고, dispose 뒤의 `ready()` 는 조용히 재해상하는 대신 loud-fail 한다.
@@ -258,15 +258,15 @@ UniFFI 표면은 위 매트릭스에 **열로 넣지 않기로 한다**: 매트�
 | 이벤트 (`subscribeEvent`/`onEvent`)   | — Phase 2 (uniffi callback interface / foreign trait)                                                                                                    |
 | 채널 (`createChannel`/바이트)         | — Phase 2                                                                                                                                                |
 | Frame 바이너리 와이어                 | ✅ 단일 dispatch 경로 — 생성 래퍼가 `Package::invoke_typed` 를 호출하고, 이것이 postcard 요청을 `invoke_frame` 로 보낸다(제2 와이어 없음)                |
-| 계약 정합성                           | ✅ 이 표면은 uniffi 자체의 체크섬 + 계약 버전이 담당; rustra 의 `contract_hash`/`contract.mismatch` 게이트는 blob 전송(Node/Bun/Tauri/JSI)에 스코프 유지 |
+| 계약 정합성                           | ✅ 이 표면은 uniffi 자체의 체크섬 + 계약 버전이 담당; unikit 의 `contract_hash`/`contract.mismatch` 게이트는 blob 전송(Node/Bun/Tauri/JSI)에 스코프 유지 |
 | 핫스왑                                | — uniffi 호스트는 로드 시점 심볼 고정 — 정적/릴리스 빌드 전용; dev 루프는 TS/JSI 유지                                                                    |
 
 참고:
 
 - **에러 모델**: 단일 변형 실패 record
-  `RustraCommandFailure.Failure { code, message, retryable }` — TS
-  `RustraCommandError` 와 동일 형태. uniffi enum 매핑은 설계상 기각됐다:
-  rustra 의 에러 코드 공간은 열려 있고(커스텀 문자열 코드), enum 은 그걸
+  `UnikitCommandFailure.Failure { code, message, retryable }` — TS
+  `UnikitCommandError` 와 동일 형태. uniffi enum 매핑은 설계상 기각됐다:
+  unikit 의 에러 코드 공간은 열려 있고(커스텀 문자열 코드), enum 은 그걸
   폐쇄해야 한다. 결정 기록:
   [ADR 0002](adr/0002-uniffi-track-b1-carrier.ko.md).
 - **미러 계층은 생성물** — 손으로 쓰지 않는다: 스키마 프로브가 feature
@@ -282,7 +282,7 @@ UniFFI 표면은 위 매트릭스에 **열로 넣지 않기로 한다**: 매트�
 ## 스파이크: wasm3 안의 wasm32 엔진 (React Native) — 판정: PASS (스파이크)
 
 Task A0 스파이크(`examples/rn-wasm-spike/`, 2026-08-31)는 `wasm32-unknown-unknown`으로
-컴파일한 rustra 엔진이 React Native 앱에 내장된 wasm3 인터프리터 안에서 구동됨을
+컴파일한 unikit 엔진이 React Native 앱에 내장된 wasm3 인터프리터 안에서 구동됨을
 증명했다. JSON 어댑터와 Frame JSI에 이은 세 번째 실행 모드:
 
 | 항목                | 결과                                                                                                                                                                                                                                                            |
@@ -325,10 +325,10 @@ Task A1(dev 루프 reload 오케스트레이션, 2026-08-31)은 A0 판정에 따
   재초기화하고 재빌드된 cdylib 은 다음 프로세스 시작 시 적용된다고 loud warning
   을 낸다. 계획의 "새 바이너리는 다음 프로세스 시작 시 적용" 옵션의 정직한
   구현이다.
-- **Tauri**: 문서만. 어댑터는 Tauri IPC(`rustra_dispatch`) 위의 상태 없는
+- **Tauri**: 문서만. 어댑터는 Tauri IPC(`unikit_dispatch`) 위의 상태 없는
   래퍼라 재초기화할 엔진 상태가 없고, 바이너리 교체는 Tauri 호스트 프로세스의
-  책임이다(앱 재시작, 또는 이번 사이클에 착수한 A2 `rustra_ffi_hot_reload` 주입).
-- **Dev 루프**: `rustra dev` 는 watch 핸들에 `onReload` 훅을 노출하고, Rust 측이
+  책임이다(앱 재시작, 또는 이번 사이클에 착수한 A2 `unikit_ffi_hot_reload` 주입).
+- **Dev 루프**: `unikit dev` 는 watch 핸들에 `onReload` 훅을 노출하고, Rust 측이
   바뀐 재생성 성공 후 방출한다(레거시 레이아웃: `plan.rustBin` 실행 시; config
   모드는 원인 구분이 불가해 성공한 재생성마다 방출 — 보수적 기본값). 훅 에러는
   기록되고(`[dev] reload failed: …`) watch 루프를 죽이지 않는다. 진행 중
@@ -336,7 +336,7 @@ Task A1(dev 루프 reload 오케스트레이션, 2026-08-31)은 A0 판정에 따
 
 ## wasm dev 타깃 (Task A3): 빌드 오케스트레이션 + doctor 고지 + 릴리스 가드
 
-`dev.target = "wasm"` 이면 `rustra dev`(config 모드)가 코드젠마다 엔진의 wasm32
+`dev.target = "wasm"` 이면 `unikit dev`(config 모드)가 코드젠마다 엔진의 wasm32
 빌드를 오케스트레이션한다. A0 스파이크의 실제 명령과 산출물 레이아웃을 그대로
 쓴다(`cargo build --manifest-path <Cargo.toml> --target
 wasm32-unknown-unknown --release` →

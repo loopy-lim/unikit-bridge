@@ -1,5 +1,5 @@
 {
- "contract": "rustra-name-reuse-ab/v1",
+ "contract": "unikit-name-reuse-ab/v1",
  "status": "adopted",
  "date": "2026-09-18",
  "sourceCommit": "38f6e3bd",
@@ -33,15 +33,15 @@
    "bundleSha256": "bb75f19943ae9e9af1b86b7dfa097af4a630df58fc0fe5b3ccb55a7d0d6b16d4",
    "fingerprint": "fcc37e1d9fabdd854f62b882cc4d2047ba551619a0a275bfd3d640051cd68c27",
    "launches": [
-    "com.rustra.nitroparity: 40308",
-    "com.rustra.nitroparity: 42518",
-    "com.rustra.nitroparity: 43124",
-    "com.rustra.nitroparity: 45750",
-    "com.rustra.nitroparity: 45931"
+    "com.unikit.nitroparity: 40308",
+    "com.unikit.nitroparity: 42518",
+    "com.unikit.nitroparity: 43124",
+    "com.unikit.nitroparity: 45750",
+    "com.unikit.nitroparity: 45931"
    ]
   },
   "legacy": {
-   "description": "RUSTRA_GENERATED_BOUND_CODEC_CONTEXT undefined — per-call by-id name ownership",
+   "description": "UNIKIT_GENERATED_BOUND_CODEC_CONTEXT undefined — per-call by-id name ownership",
    "runs": [
     2,
     3,
@@ -53,11 +53,11 @@
    "bundleSha256": "850046964b80f302afbd04d905c7d30917c2e7dbb22ffc2b436ccf11589b06d4",
    "fingerprint": "7f4735d0a05a24f20c3ecc5aaf75f4801b4b263478be3d38b5340c05297742a8",
    "launches": [
-    "com.rustra.nitroparity: 40904",
-    "com.rustra.nitroparity: 41883",
-    "com.rustra.nitroparity: 44449",
-    "com.rustra.nitroparity: 45039",
-    "com.rustra.nitroparity: 45808"
+    "com.unikit.nitroparity: 40904",
+    "com.unikit.nitroparity: 41883",
+    "com.unikit.nitroparity: 44449",
+    "com.unikit.nitroparity: 45039",
+    "com.unikit.nitroparity: 45808"
    ]
   }
  },

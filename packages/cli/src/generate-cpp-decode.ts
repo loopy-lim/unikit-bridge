@@ -47,7 +47,7 @@ export function cppFieldDecodeExpr(
     case 'string':
       return `${indent}{ auto _s = r.read_string_view(); ${objExpr}.setProperty(rt, ${property(field.name)}, jsi::String::createFromUtf8(rt, _s.data, _s.size)); }`;
     case 'bytes':
-      return `${indent}{ auto _n = r.read_uvar(); auto _bytes = r.read_bytes_view((size_t)_n); ${objExpr}.setProperty(rt, ${property(field.name)}, rustra::generated::make_array_buffer(rt, _bytes.data, _bytes.size)); }`;
+      return `${indent}{ auto _n = r.read_uvar(); auto _bytes = r.read_bytes_view((size_t)_n); ${objExpr}.setProperty(rt, ${property(field.name)}, unikit_bridge::generated::make_array_buffer(rt, _bytes.data, _bytes.size)); }`;
     case 'vec_zigzag':
       return `${indent}{ auto _n = r.read_uvar(); auto _arr = jsi::Array(rt, (size_t)_n); for (size_t _i = 0; _i < _n; _i++) { _arr.setValueAtIndex(rt, _i, (double)r.read_i64()); } ${objExpr}.setProperty(rt, ${property(field.name)}, _arr); }`;
     case 'vec_i64':

@@ -33,7 +33,7 @@ export function appendCppDispatchCore(lines: string[], sets: CppCommandSets): vo
   const staticIdCases = staticCommands
     .map(({ command }) => `    case ${command.commandId}: return true;`)
     .join('\n');
-  lines.push(`namespace rustra::generated {`, ``);
+  lines.push(`namespace unikit_bridge::generated {`, ``);
   lines.push(
     `bool encode_bound(Runtime& rt, const BoundCodecContext& context, const Value& args, rc::Writer& w) {`,
     `  switch (context.commandId) {`,
@@ -68,7 +68,7 @@ export function appendCppDispatchCore(lines: string[], sets: CppCommandSets): vo
         `    }`,
       );
   }
-  lines.push(`    default: throw JSError(rt, "rustra: no bound codec");`, `  }`, `}`, ``);
+  lines.push(`    default: throw JSError(rt, "unikit: no bound codec");`, `  }`, `}`, ``);
 
   lines.push(
     `bool encode_by_name(Runtime& rt, const std::string& name, const Value& args, rc::Writer& w) {`,
@@ -80,7 +80,7 @@ export function appendCppDispatchCore(lines: string[], sets: CppCommandSets): vo
   lines.push(
     `Value decode_by_name(Runtime& rt, const std::string& name, rc::Reader& r) {`,
     decodeCases,
-    `  throw JSError(rt, "rustra: no C++ codec for '" + name + "'");`,
+    `  throw JSError(rt, "unikit: no C++ codec for '" + name + "'");`,
     `}`,
     ``,
   );
@@ -97,7 +97,7 @@ export function appendCppDispatchCore(lines: string[], sets: CppCommandSets): vo
     `Value decode_by_id(Runtime& rt, uint16_t cmd_id, rc::Reader& r) {`,
     `  switch (cmd_id) {`,
     decodeIdCases,
-    `    default: throw JSError(rt, "rustra: no C++ codec for cmd_id " + std::to_string(cmd_id));`,
+    `    default: throw JSError(rt, "unikit: no C++ codec for cmd_id " + std::to_string(cmd_id));`,
     `  }`,
     `}`,
     ``,
@@ -136,7 +136,7 @@ export function appendCppDispatchCore(lines: string[], sets: CppCommandSets): vo
           `    case ${cmd.commandId}: encode_pos_${commandFunctionName(cmd.name)}(rt, argv, argc, w); return;`,
       )
       .join('\n'),
-    `    default: throw JSError(rt, "rustra: no positional codec for cmd_id " + std::to_string(cmd_id));`,
+    `    default: throw JSError(rt, "unikit: no positional codec for cmd_id " + std::to_string(cmd_id));`,
     `  }`,
     `}`,
     ``,

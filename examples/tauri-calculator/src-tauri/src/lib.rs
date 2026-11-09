@@ -9,16 +9,16 @@
 // 핫 모드·프로브·벤치 등록 분기는 main.rs 에서 그대로 이동했다 — 동작은
 // 이전과 동일하다(데스크톱 smoke 가 회귀를 지켜준다).
 
-use rustra::hot_core::{self, DylibCore, DylibWatchConfig, HotCoreHandle};
-use rustra::tauri_support;
-use rustra_calculator_example::calculator_package;
+use unikit_bridge::hot_core::{self, DylibCore, DylibWatchConfig, HotCoreHandle};
+use unikit_bridge::tauri_support;
+use unikit_calculator_example::calculator_package;
 use std::{env, fs, path::PathBuf, sync::Arc};
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let benchmark = env::var("RUSTRA_BENCH").as_deref() == Ok("1");
-    if let Ok(path) = env::var("RUSTRA_TAURI_PROBE_FILE") {
+    let benchmark = env::var("UNIKIT_BENCH").as_deref() == Ok("1");
+    if let Ok(path) = env::var("UNIKIT_TAURI_PROBE_FILE") {
         let output = calculator_package()
             .invoke_json("addNumbers", serde_json::json!({"a": 20, "b": 22}))
             .expect("invoke should succeed");
@@ -30,21 +30,21 @@ pub fn run() {
     }
 
     // 등록 선택 — 기본은 프로덕션 등록(register_with_events: register + 이벤트
-    // 푸시 배선). 벤치 호스트(benchmark.mjs)만 RUSTRA_BENCH=1 로 띄우며, 이때는
-    // 측정 전용 rustra_dispatch_profiled 커맨드가 노출되는 register_profiled 로
+    // 푸시 배선). 벤치 호스트(benchmark.mjs)만 UNIKIT_BENCH=1 로 띄우며, 이때는
+    // 측정 전용 unikit_dispatch_profiled 커맨드가 노출되는 register_profiled 로
     // 빌드한다(A07). 프로덕션 앱에는 profiled 커맨드가 도달하지 않는다.
     //
-    // 핫 모드 — RUSTRA_HOT_CORE 가 cdylib 아티팩트 경로를 가리키면 그 dylib 을
+    // 핫 모드 — UNIKIT_HOT_CORE 가 cdylib 아티팩트 경로를 가리키면 그 dylib 을
     // 열어 디스패치하고, 감시 스레드가 아티팩트 재빌드(sha256 변화)를 감시해
     // 무재시작 스왑을 한다. 스왑은 코어 내부 상태(채널·이벤트 싱크)를 버리므로
     // 패키지 이벤트 푸시 배선은 없다(design: 상태 소실 정책). 스왑 결과 자체는
     // register_dispatch_with_swap_events 가 웹뷰 이벤트
-    // (`rustra://hot-core/swapped`)로 보고한다 — 리포터는 코어 바깥(호스트 측)에
+    // (`unikit://hot-core/swapped`)로 보고한다 — 리포터는 코어 바깥(호스트 측)에
     // 살아 스왑을 생존한다. 모바일(iOS 시뮬레이터)은 SIMCTL_CHILD_ 접두사
     // 환경변수로 이 모드에 진입한다.
-    let builder = if let Some(artifact) = env::var_os("RUSTRA_HOT_CORE").map(PathBuf::from) {
+    let builder = if let Some(artifact) = env::var_os("UNIKIT_HOT_CORE").map(PathBuf::from) {
         let core = DylibCore::open(&artifact)
-            .unwrap_or_else(|e| panic!("RUSTRA_HOT_CORE dylib open failed: {e}"));
+            .unwrap_or_else(|e| panic!("UNIKIT_HOT_CORE dylib open failed: {e}"));
         let handle = Arc::new(HotCoreHandle::new(core));
         let swap_report = tauri_support::HotSwapReporter::new();
         let mut config = DylibWatchConfig::new(artifact.clone(), handle.clone());
@@ -52,11 +52,11 @@ pub fn run() {
             let swap_report = swap_report.clone();
             Arc::new(move |outcome| match outcome {
                 Ok((old, new)) => {
-                    eprintln!("rustra hot-core: swapped {old} -> {new}");
+                    eprintln!("unikit hot-core: swapped {old} -> {new}");
                     swap_report.report(Ok((old, new)));
                 }
                 Err(error) => {
-                    eprintln!("rustra hot-core: swap failed: {error}");
+                    eprintln!("unikit hot-core: swap failed: {error}");
                     // 감시 스레드 보고 이후에도 웹뷰가 실패를 알 수 있게 한다.
                     swap_report.report(Err(error.to_string()));
                 }
@@ -65,7 +65,7 @@ pub fn run() {
         let poll = config.poll;
         hot_core::spawn_dylib_watch(config);
         eprintln!(
-            "rustra hot-core: watching {} (poll {poll:?}, stat-precheck) — rebuild the \
+            "unikit hot-core: watching {} (poll {poll:?}, stat-precheck) — rebuild the \
              artifact to swap; in-core state (channels/events) resets on each swap",
             artifact.display()
         );
@@ -91,7 +91,7 @@ pub fn run() {
                 // Focus after application activation, rather than during pre-launch setup.
                 window.set_focus().expect("benchmark focus should succeed");
                 eprintln!(
-                    "RUSTRA_TAURI_BENCH_NATIVE=window-ready visible={} focused={}",
+                    "UNIKIT_TAURI_BENCH_NATIVE=window-ready visible={} focused={}",
                     window
                         .is_visible()
                         .expect("benchmark visibility should be readable"),

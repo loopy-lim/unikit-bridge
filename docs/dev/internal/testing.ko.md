@@ -28,18 +28,18 @@ Compat 테스트 (전체 파이프라인 통합)
 
 ## Rust 테스트
 
-### 파일: `crates/rustra/tests/public_authoring_api_tests.rs`
+### 파일: `crates/unikit-bridge/tests/public_authoring_api_tests.rs`
 
-48개 테스트. rustra의 공개 저작 API(authoring API)를 검증한다.
+48개 테스트. unikit의 공개 저작 API(authoring API)를 검증한다.
 
 | 테스트 함수                                                     | 검증 내용                                                                                                                                                                          |
 | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `user_builds_package_without_touching_raw_engine_types`         | `Package::builder().command().build()` + `invoke()` 기본 흐름. 결과값 42 확인                                                                                                      |
 | `user_can_register_command_without_writing_command_name_string` | `command_fn()`으로 자동 이름 추출. 생성된 `commands.ts`에 함수명과 command 이름 포함 확인                                                                                          |
-| `register_macro_uses_macro_derived_name`                        | `register!` 매크로로 command 등록. `__RUstra_meta_*` 상수에서 이름을 자동 추출하여 올바르게 invoke되는지 확인                                                                      |
+| `register_macro_uses_macro_derived_name`                        | `register!` 매크로로 command 등록. `__UNikit_meta_*` 상수에서 이름을 자동 추출하여 올바르게 invoke되는지 확인                                                                      |
 | `package_generates_host_neutral_typescript_client`              | `generate_typescript()` 결과에 `AddNumbersInput` 타입, `addNumbers` 함수, `invoke<AddNumbersOutput>` 포함 확인. `EngineRequest`, `Attachment`, `node:`, `react-native` 미포함 확인 |
-| `generated_package_can_be_written_to_a_directory`               | 파일 출력 짝 확인 — `write_schema_to_dir()`는 `schema.json`만 씀(`RUSTRA_SCHEMA_OUT` 존중), `write_to_dir()`는 4개 파일 생성                                                       |
-| `unknown_command_uses_package_level_error`                      | 미등록 command 호출 시 `RustraError` 코드가 `"command.not_found"`인지 확인. `error.code()` getter 사용                                                                             |
+| `generated_package_can_be_written_to_a_directory`               | 파일 출력 짝 확인 — `write_schema_to_dir()`는 `schema.json`만 씀(`UNIKIT_SCHEMA_OUT` 존중), `write_to_dir()`는 4개 파일 생성                                                       |
+| `unknown_command_uses_package_level_error`                      | 미등록 command 호출 시 `UnikitError` 코드가 `"command.not_found"`인지 확인. `error.code()` getter 사용                                                                             |
 | `ts_generator_handles_optional_fields`                          | `Option<i64>`, `Option<String>` 필드가 `age?: number \| null`, `label?: string \| null`으로 생성되는지 확인                                                                        |
 | `ts_generator_handles_enums`                                    | enum 타입이 `Status` 참조 타입 + `'Active' \| 'Inactive'` union으로 생성되는지 확인                                                                                                |
 | `ts_generator_handles_vec_and_optional_struct`                  | `Vec<String>` → `string[]`, `Option<Item>` → `Item \| null` 생성 확인                                                                                                              |
@@ -51,9 +51,9 @@ Compat 테스트 (전체 파이프라인 통합)
 
 | 테스트 함수                                    | 검증 내용                                                                                                                                                                                                                |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `calculator_example_runs_and_generates_client` | `rustra-calculator-example` 바이너리 실행 → stdout에 `2 + 3 = 5` 포함 확인. `generated/commands.ts`에 `addNumbers` 함수와 `engine.invoke<AddNumbersOutput>('addNumbers')` 포함, `EngineRequest`/`Attachment` 미포함 확인 |
+| `calculator_example_runs_and_generates_client` | `unikit-calculator-example` 바이너리 실행 → stdout에 `2 + 3 = 5` 포함 확인. `generated/commands.ts`에 `addNumbers` 함수와 `engine.invoke<AddNumbersOutput>('addNumbers')` 포함, `EngineRequest`/`Attachment` 미포함 확인 |
 
-이 테스트는 `cargo test` 실행 시 `CARGO_BIN_EXE_rustra-calculator-example` 환경변수를 통해 빌드된 바이너리를 직접 실행하므로, 코드 생성 파이프라인 전체를 검증한다.
+이 테스트는 `cargo test` 실행 시 `CARGO_BIN_EXE_unikit-calculator-example` 환경변수를 통해 빌드된 바이너리를 직접 실행하므로, 코드 생성 파이프라인 전체를 검증한다.
 
 ### 실행
 
@@ -63,14 +63,14 @@ cargo test
 
 ### Complex binary codec
 
-`crates/rustra/src/complex_codec.rs`와 `crates/rustra/tests/frame_wire.rs`는
+`crates/unikit-bridge/src/complex_codec.rs`와 `crates/unikit-bridge/tests/frame_wire.rs`는
 schema-driven codec의 map key 정렬, Option, Set, data enum variant key와
 malformed/trailing payload 경계를 검증한다. TypeScript 대응 fixture는
 `packages/types/src/complex-codec.test.ts`에 있으며, 두 구현의 golden data-enum
 wire가 동일해야 한다.
 
 ```bash
-cargo test -p rustra --test frame_wire oneof_command_uses_complex_binary_wire
+cargo test -p unikit-bridge --test frame_wire oneof_command_uses_complex_binary_wire
 bun test packages/types/src/complex-codec.test.ts
 bun run bench:complex
 ```
@@ -96,7 +96,7 @@ bun run bench:complex
 | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | `node adapter forwards generated commands to injected Node transport`         | `createNodeEngine`이 transport의 invoke를 올바르게 호출                                                  |
 | `bun adapter forwards generated commands to injected Bun transport`           | `createBunEngine`이 transport의 invoke를 올바르게 호출                                                   |
-| `tauri adapter routes generated commands through rustra_dispatch`             | `createTauriEngine`이 `rustra_dispatch`로 래핑하여 invoke 호출. `RustraCommandError` 에러 변환 동작 확인 |
+| `tauri adapter routes generated commands through unikit_dispatch`             | `createTauriEngine`이 `unikit_dispatch`로 래핑하여 invoke 호출. `UnikitCommandError` 에러 변환 동작 확인 |
 | `react native adapter forwards generated commands through JSI native module`  | `createReactNativeEngine`이 native module의 invoke를 올바르게 호출                                       |
 | `adapter packages keep host-specific imports out of the shared contract path` | 4개 adapter 소스에 `@tauri-apps`, `react-native`, `@expo/`, `expo-modules`가 없는지 확인                 |
 
@@ -109,7 +109,7 @@ bun run bench:complex
 | 테스트                                                                           | 검증 내용                                                                                                                                                                                                                                                                                         |
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `host apps use generated zero-config entrypoints without local transport wiring` | Node, Bun, Tauri, RN 앱이 모두 생성 호스트 엔트리(`node.ts`/`bun.ts`/`tauri.ts`/`react-native.ts`)를 import하고 앱에는 엔진 연결이 없음(`createNodeEngine`, `configure` 부재). 각 엔트리가 `create*Bootstrap` 엔진을 구성. Tauri `main.rs`는 Rust에서 패키지를 등록하며 JS로 덧셈을 수행하지 않음 |
-| `react native runtime fixture exposes a native Rust-backed invoke module`        | Swift 모듈이 `RustraCalculator` 이름으로 등록, `invokeRaw` async function 노출, 코어 `rustra_ffi_invoke_json` / `rustra_ffi_free` FFI 짝으로 직결(레거시 `rustra_calculator_*` 심볼 없음). Rust lib.rs의 패키지 invoke 경로 확인                                                                  |
+| `react native runtime fixture exposes a native Rust-backed invoke module`        | Swift 모듈이 `UnikitCalculator` 이름으로 등록, `invokeRaw` async function 노출, 코어 `unikit_ffi_invoke_json` / `unikit_ffi_free` FFI 짝으로 직결(레거시 `unikit_calculator_*` 심볼 없음). Rust lib.rs의 패키지 invoke 경로 확인                                                                  |
 
 ### 실행
 
@@ -146,11 +146,11 @@ test:compat         → test:adapters + test:runtime
 
 `test:runtime:tauri`는 다음 순서로 동작한다:
 
-1. `cargo build` — Rust 백엔드 빌드 (rustra `tauri` feature 활성화)
+1. `cargo build` — Rust 백엔드 빌드 (unikit `tauri` feature 활성화)
 2. `bun run build` — Tauri 앱 빌드 (바이너리 생성)
-3. `bun run smoke` — 앱 실행 → WebView에서 JS 호출(`rustra_dispatch`) → 결과 확인 → 종료
+3. `bun run smoke` — 앱 실행 → WebView에서 JS 호출(`unikit_dispatch`) → 결과 확인 → 종료
 
-실제 Tauri 런타임에서 `createTauriEngine` → `addNumbers` → `rustra_dispatch` → Rust `invoke_json` 경로를 종단 간 검증한다.
+실제 Tauri 런타임에서 `createTauriEngine` → `addNumbers` → `unikit_dispatch` → Rust `invoke_json` 경로를 종단 간 검증한다.
 
 ---
 
@@ -215,6 +215,6 @@ bun run test:app:react-native
 Rust 코드 변경 시 생성된 TS 클라이언트를 갱신하려면:
 
 ```bash
-cargo run -p rustra-calculator-example --bin generate   # 계약 프로브: schema.json
+cargo run -p unikit-calculator-example --bin generate   # 계약 프로브: schema.json
 bun run --cwd examples/calculator codegen                # schema.json에서 TS 표면 렌더링
 ```

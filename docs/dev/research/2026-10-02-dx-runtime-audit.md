@@ -10,7 +10,7 @@
 | --------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | Node 프로세스         | 실행 파일 누락이 unhandled child error로 앱 종료                  | 준비·호출 실패를 처리 가능한 에러로 반환                                   |
 | Node transport        | 분할 UTF-8, hello/push 동시 수신, restart·ready timeout 수명 오류 | 세션별 decoder/handshake와 종료·재시작 처리 보강                           |
-| Node 응답             | JSON null·배열·잘못된 error envelope에서 host 예외                | 응답 형태 검증 후 Rustra 에러로 정규화                                     |
+| Node 응답             | JSON null·배열·잘못된 error envelope에서 host 예외                | 응답 형태 검증 후 Unikit 에러로 정규화                                     |
 | Node 생성 앱          | CRUD 상태 소실, 명령과 이벤트 producer 불일치                     | persistent 설정과 동일 bootstrap의 invoke/subscribe 사용                   |
 | Bun FFI               | subscribe 직후 첫 이벤트 누락                                     | 최초 구독 시 라이브러리·sink 동기 준비                                     |
 | Bun FFI 수명          | callback 내부 마지막 unsubscribe가 교착                           | callback 반환 뒤 sink 해제·JSCallback 종료                                 |
@@ -48,7 +48,7 @@ bindings 경계를 사용한다. UniFFI bindings 디렉터리는 전용 출력 �
 
 | 검증             | 결과                                                                                    |
 | ---------------- | --------------------------------------------------------------------------------------- |
-| Rust workspace   | cargo test --workspace --exclude rustra-tauri-calculator --locked 통과                  |
+| Rust workspace   | cargo test --workspace --exclude unikit-tauri-calculator --locked 통과                  |
 | 최종 CLI         | Node 427개 + Bun 45개 통과; focused 72개·독립 실제 Cargo 경로 중첩 검증 포함            |
 | Node             | native Node 87개 통과; 실제 generated CRUD/streaming 앱 통과                            |
 | Bun              | 64개 통과; 실제 FFI 첫 이벤트·callback 내부 unsubscribe·다중 owner 회귀 포함            |
@@ -118,6 +118,6 @@ dependency, binary, raw log hash와 1,412 assertion 검증을 함께 기록했�
 - 이번 실행에는 Android/iOS 실기기, Simulator 앱, 장시간 soak, Tauri mobile
   검증이 없다. 플랫폼 compile·packed 자산·host 실행을 기기 검증으로 확대하지 않는다.
 - 현재 비용 비교이며 기존 A2/E1 후보의 과거 개선율을 재인증하지 않는다.
-- raw 로그는 /tmp/rustra-dx-*와 /private/tmp/rustra-rn-audit-native-20261002/에 있다.
+- raw 로그는 /tmp/unikit-dx-*와 /private/tmp/unikit-rn-audit-native-20261002/에 있다.
   [최종 통합 영수증](../../benchmark-receipts/2026-10-02-dx-validation.json)에 명령,
   결과, 현재 소스·로그 SHA와 측정 artifact 일치 검사를 함께 보존했다.

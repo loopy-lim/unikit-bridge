@@ -3,7 +3,7 @@ date: 2026-09-03 20:08:17 +0900
 researcher: claude
 git_commit: d41d2d277db4f25847d4c7fe686da72cfee35d51
 branch: feat/tauri-channel-adapter
-repository: loopy-lim/rustra
+repository: loopy-lim/unikit
 topic: 'production readiness gap — 남은 작업·후속 과제·미구현 항목 전수 조사'
 tags:
   [
@@ -27,7 +27,7 @@ last_updated_by: claude
 **연구자**: claude
 **Git Commit**: d41d2d277db4f25847d4c7fe686da72cfee35d51 (feat/tauri-channel-adapter)
 **Branch**: feat/tauri-channel-adapter
-**Repository**: loopy-lim/rustra
+**Repository**: loopy-lim/unikit
 
 ## 연구 질문
 
@@ -54,7 +54,7 @@ last_updated_by: claude
 ### 1. 트랙 자산 상태 — 미머지·미푸시가 최대 즉시 과제
 
 - 현재 브랜치 `feat/tauri-channel-adapter`는 `origin/main`보다 **+29커밋 전부 미푸시**(역방향 0커밋 — 뒤처짐 없음).
-- Tauri 채널 어댑터 트랙은 **완결돼 있다**: 워크트리 브랜치 `feat/tauri-channel-adapter-work`에 11커밋, `crates/rustra/src/tauri_support.rs`에 `rustra_channel_create`/`rustra_channel_drop` 구현 + `generate_handler!` 등록 완료, `packages/tauri/src/tauri-channels.ts` 존재, `docs/compatibility-matrix.md:17` Channels 행이 전부 ✅로 갱신됨(근사 유니캐스트 명시 포함). 워킹트리 깨끗.
+- Tauri 채널 어댑터 트랙은 **완결돼 있다**: 워크트리 브랜치 `feat/tauri-channel-adapter-work`에 11커밋, `crates/unikit-bridge/src/tauri_support.rs`에 `unikit_channel_create`/`unikit_channel_drop` 구현 + `generate_handler!` 등록 완료, `packages/tauri/src/tauri-channels.ts` 존재, `docs/compatibility-matrix.md:17` Channels 행이 전부 ✅로 갱신됨(근사 유니캐스트 명시 포함). 워킹트리 깨끗.
 - 두 브랜치는 **갈라진 상태**: 워크트리 +11 / 현재 브랜치 +1(merge-base `20051c87`). 계획 문서 `docs/plans/2026-09-03-tauri-channel-adapter.md`는 현재 브랜치에서 untracked — **커밋되지 않음**.
 - PR #51(0.7.0 version PR)은 이 세션 네트워크 격리로 상태 확인 불가(gh DNS 실패). 로컬 `changeset-release/main` 브랜치 tip `bd72610b` 존재.
 
@@ -75,7 +75,7 @@ last_updated_by: claude
 | `version-alignment-testing-react.md` | testing/react minor                                                     |
 
 - **핵심 갭**: 이중 5개가 `feat/tauri-channel-adapter` 브랜치에만 있고 `origin/main`에는 2개만 존재. **PR #51을 지금 머지하면 발행 분량이 2 changeset분이 되고 나머지는 머지 후 Version PR 재생성이 필요하다.**
-- Rust 워크스페이스(`rustra-naming`/`rustra-macros`/`rustra`)는 `version.workspace = true`로 **0.5.0에 머물러** 있음. `dx-single-arrow-codegen.md`가 "The Rust `rustra` crate ships the same minor in its own Cargo workspace release"라고 명시하므로 crates.io 발행 전 수동 bump를 안 하면 버전 스킵 갭 발생.
+- Rust 워크스페이스(`unikit-bridge-naming`/`unikit-bridge-macros`/`unikit`)는 `version.workspace = true`로 **0.5.0에 머물러** 있음. `dx-single-arrow-codegen.md`가 "The Rust `unikit` crate ships the same minor in its own Cargo workspace release"라고 명시하므로 crates.io 발행 전 수동 bump를 안 하면 버전 스킵 갭 발생.
 - crates.io 발행(`release.yml` `cargo-publish` 잡)은 `workflow_dispatch` 전용 + 수동 버전 bump 절차 — 자동화 갭.
 - 발행 파이프라인 자체의 readiness는 **양호**: `workflow_run: CI success on main` 게이트(schedule 오탐 가드 포함, 2026-09-01 오발행 시도 주석 기록), baseline fail 방치 잡 0건, `continue-on-error` 3건은 전부 비게이트 실험 트랙(bench/fuzz/miri). 현재 대기 단계는 `docs/release-procedure.md` 기준 Step 1~2 사이(Changeset 확정 ↔ canary 사전검증 사이, canary 흔적 없음).
 
@@ -83,8 +83,8 @@ last_updated_by: claude
 
 `docs/plans/2026-09-03-legacy-removal-design.md`("사용자 승인 완료")이 선언한 제거 대상이 **현재 브랜치·워크트리 양쪽 모두 그대로 존재**:
 
-- `examples/calculator/src/lib.rs:917` `rustra_calculator_invoke_bytes` + 참조 4곳(:1475, :1835, :1854, :1863) — legacy C 심볼 무조건적 노출 중.
-- 흥미로운 발견: 설계 문서가 가정한 `RUSTRA_ENABLE_LEGACY_BENCHMARKS` ifdef는 양쪽 모두 grep 미히트 — **ifdef 게이트가 아직 도입 전**이라 제거 작업은 설계 문서의 "배경" 재검증부터 시작해야 한다.
+- `examples/calculator/src/lib.rs:917` `unikit_calculator_invoke_bytes` + 참조 4곳(:1475, :1835, :1854, :1863) — legacy C 심볼 무조건적 노출 중.
+- 흥미로운 발견: 설계 문서가 가정한 `UNIKIT_ENABLE_LEGACY_BENCHMARKS` ifdef는 양쪽 모두 grep 미히트 — **ifdef 게이트가 아직 도입 전**이라 제거 작업은 설계 문서의 "배경" 재검증부터 시작해야 한다.
 - 동시 수修正 대상인 결함 A(JSI `invokeRkyvV2` 등록 공백)·결함 B(init 스캔폴드 `write_to_dir` 이중 작성자)도 미수정.
 
 ### 4. 증거 격상 — "지원"과 "증명"의 거리
@@ -106,7 +106,7 @@ README 증거 수준표(`README.md:620-632`):
 
 ### 5. 0.7 "신뢰" 잔여 — 선반영됐지만 끝나지 않은 트랙
 
-0.7 착지 항목 중 **이미 착지**(선반영): cause 체인 보존(`packages/types/src/errors.ts:84-112`), Timeout/Cancelled 서브클래스(:26-42), RUSTRA_DEBUG 와이어 덤프(`packages/types/src/debug.ts`), 코드젠 unknown 폴백 경고(TS+Rust 양측), doc→JSDoc 전달, useCommand bigint inputKey 수정(`packages/react/src/input-key.ts:8-14`).
+0.7 착지 항목 중 **이미 착지**(선반영): cause 체인 보존(`packages/types/src/errors.ts:84-112`), Timeout/Cancelled 서브클래스(:26-42), UNIKIT_DEBUG 와이어 덤프(`packages/types/src/debug.ts`), 코드젠 unknown 폴백 경고(TS+Rust 양측), doc→JSDoc 전달, useCommand bigint inputKey 수정(`packages/react/src/input-key.ts:8-14`).
 
 **미착지 (production ready 관점 남은 기능 갭)**:
 
@@ -114,11 +114,11 @@ README 증거 수준표(`README.md:620-632`):
 | ---------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | withRetry 소비 유틸                | 전역 grep 0건                                                                     | `isRetryableCode`(`errors.ts:121-123`)만 존재                                        |
 | NDJSON 파싱 실패 라인 보존         | `packages/node/src/node-loop.ts:270-275` `catch { continue; }` + :283 stderr 폐기 | DX audit MEDIUM 그대로. 단 push 이벤트 경로는 `node-events.ts:175-181`에서 부분 해소 |
-| 응답 셰이프 검증 경고              | grep 0건                                                                          | RUSTRA_DEBUG 계열 미완성 축                                                          |
+| 응답 셰이프 검증 경고              | grep 0건                                                                          | UNIKIT_DEBUG 계열 미완성 축                                                          |
 | thiserror 에러 enum → TS 코드 매핑 | 문서/매크로 0건                                                                   | 리서치·로드맵에만 존재                                                               |
 | React Suspense 캐시/무효화         | `packages/react/src` 0건                                                          | DX audit HIGH                                                                        |
 | **필드 수준 계약 게이트**          | `packages/testing/src/contract-gate.ts:10-20` — 여전히 명령 이름 집합만 비교      | **DX audit HIGH, selling point(계약 소유) 핵심 자산과 직결**                         |
-| `__RUstra_doc_` 죽은 상수 정리     | `crates/rustra-macros/src/macro_command.rs:108-109,182`                           | 목적은 달성됐으나 상수는 여전히 `#[allow(dead_code)]` 생성만 되고 소비처 없음        |
+| `__UNikit_doc_` 죽은 상수 정리     | `crates/unikit-bridge-macros/src/macro_command.rs:108-109,182`                           | 목적은 달성됐으나 상수는 여전히 `#[allow(dead_code)]` 생성만 되고 소비처 없음        |
 
 ### 6. 문서 정직성 잔여 결함
 
@@ -130,10 +130,10 @@ README 증거 수준표(`README.md:620-632`):
 
 ### 7. 코드 위생 — 제거/정리 후보
 
-- **deprecated 3표면** (0.x 호환 계약, 버전업 시 제거 후보): `crates/rustra/src/renderer_host.rs:126` `RendererHost` trait 전체, `packages/tauri/src/tauri-events.ts:54` 레거시 subscribeEvent 오버로드, `packages/react-native/src/react-native-events.ts:51` 동일.
-- **dead_code 제거 후보**: `crates/rustra/src/rkyv_support.rs:14` `js_postcard_codec_supported`(주석 스스로 레거시 변형 명시), `crates/rustra/src/rkyv_fields.rs:13,32` `WireFieldKind` 전체, `crates/rustra/src/events_state.rs:15` `EventState::new()` 미사용 생성자, `crates/rustra/src/renderer_host.rs:189` `surface_destroyed`.
+- **deprecated 3표면** (0.x 호환 계약, 버전업 시 제거 후보): `crates/unikit-bridge/src/renderer_host.rs:126` `RendererHost` trait 전체, `packages/tauri/src/tauri-events.ts:54` 레거시 subscribeEvent 오버로드, `packages/react-native/src/react-native-events.ts:51` 동일.
+- **dead_code 제거 후보**: `crates/unikit-bridge/src/rkyv_support.rs:14` `js_postcard_codec_supported`(주석 스스로 레거시 변형 명시), `crates/unikit-bridge/src/rkyv_fields.rs:13,32` `WireFieldKind` 전체, `crates/unikit-bridge/src/events_state.rs:15` `EventState::new()` 미사용 생성자, `crates/unikit-bridge/src/renderer_host.rs:189` `surface_destroyed`.
 - **미결 의사결정 1건**: docs-gate fail 전환 여부(`scripts/docs-gate.mjs:64,234` — 현재 warn-only, "fail 전환은 후속 판단 사항" 명시).
-- **"후속" 라벨 문구 정리**(구현 완료인데 라벨이 헷갈림): `crates/rustra/src/ffi_sync_entries.rs:76`(caller-buffer — 구현+테스트 존재), `packages/types/src/rkyv-engine-schema.ts:13` 등 에포크/취소 관련 다수.
+- **"후속" 라벨 문구 정리**(구현 완료인데 라벨이 헷갈림): `crates/unikit-bridge/src/ffi_sync_entries.rs:76`(caller-buffer — 구현+테스트 존재), `packages/types/src/rkyv-engine-schema.ts:13` 등 에포크/취소 관련 다수.
 - 유일한 1급 TODO: `packages/types/src/schema-postcard-node.ts:31` — resolveRef 접두사 판정의 json-wire 공용 export 이동 예약(문서화된 리팩터링 예약).
 - **벤더 청소**: `examples/rn-wasm-spike/native/wasm3/` 벤더 TODO 21건 — 스파이크 예제 통째로 저장소 분리 검토 대상.
 - 스킵 테스트는 전부 조건부+사유 명시(bun 러너 버그 우회 등)로 양성. 단 `transport-bench.test.ts:102,103,174`는 환경 미준비 시 조용히 건너뛰는 구조라 CI 커버리지 공백 여지.
@@ -150,7 +150,7 @@ README 증거 수준표(`README.md:620-632`):
 - `packages/testing/src/contract-gate.ts:10-20` — 이름 집합만 비교하는 계약 게이트
 - `docs/rust-api-guide.md:140` — on_unimplemented over-claim
 - `scripts/docs-gate.mjs:64,234` — fail 전환 미결
-- `crates/rustra/src/renderer_host.rs:126` — deprecated RendererHost
+- `crates/unikit-bridge/src/renderer_host.rs:126` — deprecated RendererHost
 
 ## 아키텍처 인사이트
 

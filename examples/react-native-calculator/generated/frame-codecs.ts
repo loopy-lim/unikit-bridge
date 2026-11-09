@@ -1,7 +1,7 @@
-// ── rustra generated ────────────────────────────────────────
+// ── unikit generated ────────────────────────────────────────
 // File:   frame-codecs.ts
 // Source: schema.json (single source of truth for this file)
-// Regen:  rustra codegen --config rustra.json
+// Regen:  unikit codegen --config unikit.json
 // Stage:  schema → ts codec renderer
 // DO NOT EDIT — changes will be overwritten and fail codegen --check.
 // ────────────────────────────────────────────────────────────
@@ -32,12 +32,12 @@ function _pcDecodeVarint(buf: Uint8Array, offset: number): { value: number; byte
   let bytesRead = 0;
   while (true) {
     const b = buf[offset + bytesRead];
-    if (b === undefined) throw new Error('rustra: varint out of bounds (offset ' + (offset + bytesRead) + ')');
+    if (b === undefined) throw new Error('unikit: varint out of bounds (offset ' + (offset + bytesRead) + ')');
     value += (b & 0x7f) * multiplier;
     bytesRead++;
     if ((b & 0x80) === 0) break;
     multiplier *= 128;
-    if (bytesRead > 10) throw new Error('rustra: varint too long (offset ' + (offset + bytesRead) + ')');
+    if (bytesRead > 10) throw new Error('unikit: varint too long (offset ' + (offset + bytesRead) + ')');
   }
   return { value, bytesRead };
 }
@@ -79,7 +79,7 @@ function _pcDecodeVarint64(buf: Uint8Array, offset: number): { value: number | b
   let bytesRead = 0;
   while (true) {
     const b = buf[offset + bytesRead];
-    if (b === undefined) throw new Error('rustra: varint out of bounds (offset ' + (offset + bytesRead) + ')');
+    if (b === undefined) throw new Error('unikit: varint out of bounds (offset ' + (offset + bytesRead) + ')');
     bytesRead++;
     if (bytesRead <= 7) {
       num += (b & 0x7f) * multiplier;
@@ -89,12 +89,12 @@ function _pcDecodeVarint64(buf: Uint8Array, offset: number): { value: number | b
       if (bytesRead === 8) big = BigInt(num);
       big |= BigInt(b & 0x7f) << BigInt(7 * (bytesRead - 1));
       if ((b & 0x80) === 0) {
-        if (bytesRead === 10 && (b & 0x7f) > 0x01) throw new Error('rustra: varint exceeds 64 bits (offset ' + (offset + bytesRead) + ')');
+        if (bytesRead === 10 && (b & 0x7f) > 0x01) throw new Error('unikit: varint exceeds 64 bits (offset ' + (offset + bytesRead) + ')');
         const asNumber = Number(big);
         return { value: Number.isSafeInteger(asNumber) ? asNumber : big, bytesRead };
       }
     }
-    if (bytesRead >= 10) throw new Error('rustra: varint too long (offset ' + (offset + bytesRead) + ')');
+    if (bytesRead >= 10) throw new Error('unikit: varint too long (offset ' + (offset + bytesRead) + ')');
   }
 }
 
@@ -136,9 +136,9 @@ function _utf8Encode(s: string): Uint8Array {
 function _utf8Decode(bytes: Uint8Array, start: number, end: number): string {
   // end 가 버퍼를 넘으면 즉시 실패 — 잘린 프레임에서 while (i < end) 가
   // undefined 바이트를 수없이 돌아 런타임이 멈추는 것을 막는다. 오류는
-  // 'rustra: <원인> (offset N)' 계약(postcard-primitive 주석)으로 보고한다 —
+  // 'unikit: <원인> (offset N)' 계약(postcard-primitive 주석)으로 보고한다 —
   // 읽으려다 만 지점(end)이 실패 경계다.
-  if (end > bytes.length) throw new Error('rustra: string out of bounds (offset ' + end + ')');
+  if (end > bytes.length) throw new Error('unikit: string out of bounds (offset ' + end + ')');
   let s = ''; let i = start;
   while (i < end) {
     // 리드 바이트는 i < end <= bytes.length 로 항상 존재한다(함수 머리의
@@ -165,8 +165,8 @@ function _pcDecodeF64(buf: Uint8Array, offset: number): { value: number; bytesRe
 function _pcEncodeF32(n: number): Uint8Array { const buf = new ArrayBuffer(4); new DataView(buf).setFloat32(0, n, true); return new Uint8Array(buf); }
 function _pcDecodeF32(buf: Uint8Array, offset: number): { value: number; bytesRead: number } { return { value: new DataView(buf.buffer, buf.byteOffset + offset, 4).getFloat32(0, true), bytesRead: 4 }; }
 
-import { createComplexCodec } from '@rustra/types';
-import type { FrameCodec, RustraError, ComplexSchema } from '@rustra/types';
+import { createComplexCodec } from '@unikit/types';
+import type { FrameCodec, UnikitError, ComplexSchema } from '@unikit/types';
 import type { AddNumbersInput, AddNumbersOutput, BenchAddInput, BenchAddOutput, BenchBytesPayload, BenchPairPayload, BenchStringPayload, ChannelDemoBytesInput, ChannelDemoBytesOutput, ChannelDemoInput, ChannelDemoOutput, ChannelHandle, ClampInput, ClampOutput, CreateItemInput, CreateItemOutput, DeviceDemoOutput, DivideInput, DivideOutput, EchoGroupsInput, EchoGroupsOutput, EmitDemoInput, EmitDemoOutput, GaugeInput, GaugeOutput, GreetInput, GreetOutput, IsEvenInput, IsEvenOutput, Item, KindEchoInput, KindEchoOutput, MultiplyInput, MultiplyOutput, OpKind, ParityFindInput, ParityNode, ParityQuery, ParitySearch, ParityStored, ParityTree, PlatformNativeInfoOutput, ProcessItemInput, ProcessItemOutput, RegistryDemoInput, RegistryDemoOutput, ResourceCloseInput, ResourceCloseOutput, ResourceHandle, ResourceHandleOutput, ResourceOpenInput, ResourceReadInput, ResourceReadOutput, ResourceWriteInput, ResourceWriteOutput, ScoreTotalInput, ScoreTotalOutput, SecureComputeInput, SecureComputeOutput, SizeOfInput, SizeOfOutput, SpanInput, SpanOutput, String, SumListInput, SumListOutput, TagSetInput, TagSetOutput, ToUpperInput, ToUpperOutput, Tuple_of_String, Tuple_of_double_and_double, Tuple_of_int32, Tuple_of_int32_and_int32, WideAggInput, WideAggOutput, double, int32 } from './types.js';
 
 export const addCodec: FrameCodec<Tuple_of_int32_and_int32, int32> = {
@@ -201,7 +201,7 @@ export const addCodec: FrameCodec<Tuple_of_int32_and_int32, int32> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: int32; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: int32; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -214,7 +214,7 @@ export const addCodec: FrameCodec<Tuple_of_int32_and_int32, int32> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -272,7 +272,7 @@ export const addNumbersCodec: FrameCodec<AddNumbersInput, AddNumbersOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: AddNumbersOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: AddNumbersOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -285,7 +285,7 @@ export const addNumbersCodec: FrameCodec<AddNumbersInput, AddNumbersOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -343,7 +343,7 @@ export const benchAddCodec: FrameCodec<BenchAddInput, BenchAddOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: BenchAddOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: BenchAddOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -356,7 +356,7 @@ export const benchAddCodec: FrameCodec<BenchAddInput, BenchAddOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -418,7 +418,7 @@ export const benchEchoBytesCodec: FrameCodec<BenchBytesPayload, BenchBytesPayloa
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: BenchBytesPayload; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: BenchBytesPayload; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -431,7 +431,7 @@ export const benchEchoBytesCodec: FrameCodec<BenchBytesPayload, BenchBytesPayloa
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -490,7 +490,7 @@ export const benchEchoPairCodec: FrameCodec<BenchPairPayload, BenchPairPayload> 
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: BenchPairPayload; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: BenchPairPayload; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -503,7 +503,7 @@ export const benchEchoPairCodec: FrameCodec<BenchPairPayload, BenchPairPayload> 
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -564,7 +564,7 @@ export const benchEchoStringCodec: FrameCodec<BenchStringPayload, BenchStringPay
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: BenchStringPayload; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: BenchStringPayload; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -577,7 +577,7 @@ export const benchEchoStringCodec: FrameCodec<BenchStringPayload, BenchStringPay
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -635,7 +635,7 @@ export const channelDemoCodec: FrameCodec<ChannelDemoInput, ChannelDemoOutput> =
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ChannelDemoOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ChannelDemoOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -648,7 +648,7 @@ export const channelDemoCodec: FrameCodec<ChannelDemoInput, ChannelDemoOutput> =
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -709,7 +709,7 @@ export const channelDemoBytesCodec: FrameCodec<ChannelDemoBytesInput, ChannelDem
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ChannelDemoBytesOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ChannelDemoBytesOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -722,7 +722,7 @@ export const channelDemoBytesCodec: FrameCodec<ChannelDemoBytesInput, ChannelDem
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -787,7 +787,7 @@ export const clampCodec: FrameCodec<ClampInput, ClampOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ClampOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ClampOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -800,7 +800,7 @@ export const clampCodec: FrameCodec<ClampInput, ClampOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -858,7 +858,7 @@ export const createItemCodec: FrameCodec<CreateItemInput, CreateItemOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: CreateItemOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: CreateItemOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -871,7 +871,7 @@ export const createItemCodec: FrameCodec<CreateItemInput, CreateItemOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -936,7 +936,7 @@ export const deviceDemoCodec: FrameCodec<void, DeviceDemoOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: DeviceDemoOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: DeviceDemoOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -949,7 +949,7 @@ export const deviceDemoCodec: FrameCodec<void, DeviceDemoOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -1007,7 +1007,7 @@ export const divideCodec: FrameCodec<DivideInput, DivideOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: DivideOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: DivideOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -1020,7 +1020,7 @@ export const divideCodec: FrameCodec<DivideInput, DivideOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -1051,7 +1051,7 @@ export const echoGroupsComplexCodec: FrameCodec<EchoGroupsInput, EchoGroupsOutpu
   commandId: 27,
   inputSchema: {"title":"EchoGroupsInput","type":"object","required":["groups"],"properties":{"groups":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}}}} as ComplexSchema,
   outputSchema: {"title":"EchoGroupsOutput","type":"object","required":["groups"],"properties":{"groups":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}}}} as ComplexSchema,
-  definitions: {"ChannelHandle":{"description":"커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.\n\n코드젠은 이 타입을 인식하면 TS 를 `RustraChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).","type":"integer","format":"uint32","minimum":0},"Item":{"type":"object","required":["active","name","value"],"properties":{"active":{"type":"boolean"},"name":{"type":"string"},"value":{"type":"integer","format":"int64"}}},"OpKind":{"oneOf":[{"type":"string","enum":["Clear"]},{"type":"object","required":["Set"],"properties":{"Set":{"type":"object","required":["value"],"properties":{"value":{"type":"integer","format":"int64"}}}},"additionalProperties":false}],"x-rustra-variant-order":["Clear","Set"]},"ParityNode":{"type":"object","required":["children","id","metadata","name","tag"],"properties":{"id":{"type":"number","format":"double"},"name":{"type":"string"},"tag":{"type":"string"},"note":{"type":["string","null"]},"metadata":{"type":"object","additionalProperties":{"type":"string"}},"children":{"type":"array","items":{"type":"number","format":"double"}}}},"ParityTree":{"type":"object","required":["nodes"],"properties":{"nodes":{"type":"array","items":{"$ref":"#/definitions/ParityNode"}}}},"ResourceHandle":{"description":"커맨드 반환값/필드로 받은 리소스 핸들 — serde 표면은 plain `u32`.","type":"integer","format":"uint32","minimum":0}} as Record<string, ComplexSchema>,
+  definitions: {"ChannelHandle":{"description":"커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.\n\n코드젠은 이 타입을 인식하면 TS 를 `UnikitChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).","type":"integer","format":"uint32","minimum":0},"Item":{"type":"object","required":["active","name","value"],"properties":{"active":{"type":"boolean"},"name":{"type":"string"},"value":{"type":"integer","format":"int64"}}},"OpKind":{"oneOf":[{"type":"string","enum":["Clear"]},{"type":"object","required":["Set"],"properties":{"Set":{"type":"object","required":["value"],"properties":{"value":{"type":"integer","format":"int64"}}}},"additionalProperties":false}],"x-unikit-variant-order":["Clear","Set"]},"ParityNode":{"type":"object","required":["children","id","metadata","name","tag"],"properties":{"id":{"type":"number","format":"double"},"name":{"type":"string"},"tag":{"type":"string"},"note":{"type":["string","null"]},"metadata":{"type":"object","additionalProperties":{"type":"string"}},"children":{"type":"array","items":{"type":"number","format":"double"}}}},"ParityTree":{"type":"object","required":["nodes"],"properties":{"nodes":{"type":"array","items":{"$ref":"#/definitions/ParityNode"}}}},"ResourceHandle":{"description":"커맨드 반환값/필드로 받은 리소스 핸들 — serde 표면은 plain `u32`.","type":"integer","format":"uint32","minimum":0}} as Record<string, ComplexSchema>,
 });
 
 export const echoGroupsCodec = echoGroupsComplexCodec;
@@ -1088,7 +1088,7 @@ export const emitDemoCodec: FrameCodec<EmitDemoInput, EmitDemoOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: EmitDemoOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: EmitDemoOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -1101,7 +1101,7 @@ export const emitDemoCodec: FrameCodec<EmitDemoInput, EmitDemoOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -1159,7 +1159,7 @@ export const gaugeCodec: FrameCodec<GaugeInput, GaugeOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: GaugeOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: GaugeOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -1172,7 +1172,7 @@ export const gaugeCodec: FrameCodec<GaugeInput, GaugeOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -1228,7 +1228,7 @@ export const greetCodec: FrameCodec<GreetInput, GreetOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: GreetOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: GreetOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -1241,7 +1241,7 @@ export const greetCodec: FrameCodec<GreetInput, GreetOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -1297,7 +1297,7 @@ export const greetPersonCodec: FrameCodec<Tuple_of_String, String> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: String; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: String; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -1310,7 +1310,7 @@ export const greetPersonCodec: FrameCodec<Tuple_of_String, String> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -1366,7 +1366,7 @@ export const isEvenCodec: FrameCodec<IsEvenInput, IsEvenOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: IsEvenOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: IsEvenOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -1379,7 +1379,7 @@ export const isEvenCodec: FrameCodec<IsEvenInput, IsEvenOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -1409,7 +1409,7 @@ export const kindEchoComplexCodec: FrameCodec<KindEchoInput, KindEchoOutput> = c
   commandId: 33,
   inputSchema: {"title":"KindEchoInput","type":"object","required":["kind"],"properties":{"kind":{"$ref":"#/definitions/OpKind"}}} as ComplexSchema,
   outputSchema: {"title":"KindEchoOutput","type":"object","required":["echoed"],"properties":{"echoed":{"$ref":"#/definitions/OpKind"}}} as ComplexSchema,
-  definitions: {"ChannelHandle":{"description":"커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.\n\n코드젠은 이 타입을 인식하면 TS 를 `RustraChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).","type":"integer","format":"uint32","minimum":0},"Item":{"type":"object","required":["active","name","value"],"properties":{"active":{"type":"boolean"},"name":{"type":"string"},"value":{"type":"integer","format":"int64"}}},"OpKind":{"oneOf":[{"type":"string","enum":["Clear"]},{"type":"object","required":["Set"],"properties":{"Set":{"type":"object","required":["value"],"properties":{"value":{"type":"integer","format":"int64"}}}},"additionalProperties":false}],"x-rustra-variant-order":["Clear","Set"]},"ParityNode":{"type":"object","required":["children","id","metadata","name","tag"],"properties":{"id":{"type":"number","format":"double"},"name":{"type":"string"},"tag":{"type":"string"},"note":{"type":["string","null"]},"metadata":{"type":"object","additionalProperties":{"type":"string"}},"children":{"type":"array","items":{"type":"number","format":"double"}}}},"ParityTree":{"type":"object","required":["nodes"],"properties":{"nodes":{"type":"array","items":{"$ref":"#/definitions/ParityNode"}}}},"ResourceHandle":{"description":"커맨드 반환값/필드로 받은 리소스 핸들 — serde 표면은 plain `u32`.","type":"integer","format":"uint32","minimum":0}} as Record<string, ComplexSchema>,
+  definitions: {"ChannelHandle":{"description":"커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.\n\n코드젠은 이 타입을 인식하면 TS 를 `UnikitChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).","type":"integer","format":"uint32","minimum":0},"Item":{"type":"object","required":["active","name","value"],"properties":{"active":{"type":"boolean"},"name":{"type":"string"},"value":{"type":"integer","format":"int64"}}},"OpKind":{"oneOf":[{"type":"string","enum":["Clear"]},{"type":"object","required":["Set"],"properties":{"Set":{"type":"object","required":["value"],"properties":{"value":{"type":"integer","format":"int64"}}}},"additionalProperties":false}],"x-unikit-variant-order":["Clear","Set"]},"ParityNode":{"type":"object","required":["children","id","metadata","name","tag"],"properties":{"id":{"type":"number","format":"double"},"name":{"type":"string"},"tag":{"type":"string"},"note":{"type":["string","null"]},"metadata":{"type":"object","additionalProperties":{"type":"string"}},"children":{"type":"array","items":{"type":"number","format":"double"}}}},"ParityTree":{"type":"object","required":["nodes"],"properties":{"nodes":{"type":"array","items":{"$ref":"#/definitions/ParityNode"}}}},"ResourceHandle":{"description":"커맨드 반환값/필드로 받은 리소스 핸들 — serde 표면은 plain `u32`.","type":"integer","format":"uint32","minimum":0}} as Record<string, ComplexSchema>,
 });
 
 export const kindEchoCodec = kindEchoComplexCodec;
@@ -1446,7 +1446,7 @@ export const multiplyCodec: FrameCodec<MultiplyInput, MultiplyOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: MultiplyOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: MultiplyOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -1459,7 +1459,7 @@ export const multiplyCodec: FrameCodec<MultiplyInput, MultiplyOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -1533,7 +1533,7 @@ export const parityEchoCodec: FrameCodec<ParityTree, ParityTree> = {
     return _pcConcatUint8Arrays(parts).buffer as ArrayBuffer;
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ParityTree; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ParityTree; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -1546,7 +1546,7 @@ export const parityEchoCodec: FrameCodec<ParityTree, ParityTree> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -1678,7 +1678,7 @@ export const parityFindCodec: FrameCodec<ParityFindInput, ParitySearch> = {
     return _pcConcatUint8Arrays(parts).buffer as ArrayBuffer;
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ParitySearch; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ParitySearch; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -1691,7 +1691,7 @@ export const parityFindCodec: FrameCodec<ParityFindInput, ParitySearch> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -1761,7 +1761,7 @@ export const parityIndexedCodec: FrameCodec<ParityQuery, ParitySearch> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ParitySearch; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ParitySearch; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -1774,7 +1774,7 @@ export const parityIndexedCodec: FrameCodec<ParityQuery, ParitySearch> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -1844,7 +1844,7 @@ export const parityResidentCodec: FrameCodec<ParityQuery, ParitySearch> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ParitySearch; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ParitySearch; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -1857,7 +1857,7 @@ export const parityResidentCodec: FrameCodec<ParityQuery, ParitySearch> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -1945,7 +1945,7 @@ export const parityStoreCodec: FrameCodec<ParityTree, ParityStored> = {
     return _pcConcatUint8Arrays(parts).buffer as ArrayBuffer;
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ParityStored; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ParityStored; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -1958,7 +1958,7 @@ export const parityStoreCodec: FrameCodec<ParityTree, ParityStored> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2010,7 +2010,7 @@ export const platformNativeInfoCodec: FrameCodec<void, PlatformNativeInfoOutput>
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: PlatformNativeInfoOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: PlatformNativeInfoOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2023,7 +2023,7 @@ export const platformNativeInfoCodec: FrameCodec<void, PlatformNativeInfoOutput>
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2070,7 +2070,7 @@ export const processItemCodec: FrameCodec<ProcessItemInput, ProcessItemOutput> =
     return _pcConcatUint8Arrays(parts).buffer as ArrayBuffer;
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ProcessItemOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ProcessItemOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2083,7 +2083,7 @@ export const processItemCodec: FrameCodec<ProcessItemInput, ProcessItemOutput> =
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2152,7 +2152,7 @@ export const readRememberedCodec: FrameCodec<void, int32> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: int32; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: int32; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2165,7 +2165,7 @@ export const readRememberedCodec: FrameCodec<void, int32> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2221,7 +2221,7 @@ export const rememberCodec: FrameCodec<Tuple_of_int32, void> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: void; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: void; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2234,7 +2234,7 @@ export const rememberCodec: FrameCodec<Tuple_of_int32, void> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2278,7 +2278,7 @@ export const resetCodec: FrameCodec<void, void> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: void; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: void; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2291,7 +2291,7 @@ export const resetCodec: FrameCodec<void, void> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2339,7 +2339,7 @@ export const resourceCloseCodec: FrameCodec<ResourceCloseInput, ResourceCloseOut
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ResourceCloseOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ResourceCloseOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2352,7 +2352,7 @@ export const resourceCloseCodec: FrameCodec<ResourceCloseInput, ResourceCloseOut
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2400,7 +2400,7 @@ export const resourceOpenCodec: FrameCodec<ResourceOpenInput, ResourceHandleOutp
     return _pcConcatUint8Arrays(parts).buffer as ArrayBuffer;
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ResourceHandleOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ResourceHandleOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2413,7 +2413,7 @@ export const resourceOpenCodec: FrameCodec<ResourceOpenInput, ResourceHandleOutp
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2471,7 +2471,7 @@ export const resourceReadCodec: FrameCodec<ResourceReadInput, ResourceReadOutput
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ResourceReadOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ResourceReadOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2484,7 +2484,7 @@ export const resourceReadCodec: FrameCodec<ResourceReadInput, ResourceReadOutput
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2556,7 +2556,7 @@ export const resourceWriteCodec: FrameCodec<ResourceWriteInput, ResourceWriteOut
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ResourceWriteOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ResourceWriteOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2569,7 +2569,7 @@ export const resourceWriteCodec: FrameCodec<ResourceWriteInput, ResourceWriteOut
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2595,7 +2595,7 @@ export const resourceWriteCodec: FrameCodec<ResourceWriteInput, ResourceWriteOut
   },
 };
 
-export const rustraRegistryDemoCodec: FrameCodec<RegistryDemoInput, RegistryDemoOutput> = {
+export const unikitRegistryDemoCodec: FrameCodec<RegistryDemoInput, RegistryDemoOutput> = {
   commandId: 12,
   execution: "sync",
   syncFields: ["op"],
@@ -2625,7 +2625,7 @@ export const rustraRegistryDemoCodec: FrameCodec<RegistryDemoInput, RegistryDemo
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: RegistryDemoOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: RegistryDemoOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2638,7 +2638,7 @@ export const rustraRegistryDemoCodec: FrameCodec<RegistryDemoInput, RegistryDemo
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2704,7 +2704,7 @@ export const safeDivideCodec: FrameCodec<Tuple_of_double_and_double, double> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: double; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: double; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2717,7 +2717,7 @@ export const safeDivideCodec: FrameCodec<Tuple_of_double_and_double, double> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2766,7 +2766,7 @@ export const scoreTotalCodec: FrameCodec<ScoreTotalInput, ScoreTotalOutput> = {
     return _pcConcatUint8Arrays(parts).buffer as ArrayBuffer;
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ScoreTotalOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ScoreTotalOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2779,7 +2779,7 @@ export const scoreTotalCodec: FrameCodec<ScoreTotalInput, ScoreTotalOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2842,7 +2842,7 @@ export const secureComputeCodec: FrameCodec<SecureComputeInput, SecureComputeOut
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: SecureComputeOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: SecureComputeOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2855,7 +2855,7 @@ export const secureComputeCodec: FrameCodec<SecureComputeInput, SecureComputeOut
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2917,7 +2917,7 @@ export const sizeOfCodec: FrameCodec<SizeOfInput, SizeOfOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: SizeOfOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: SizeOfOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2930,7 +2930,7 @@ export const sizeOfCodec: FrameCodec<SizeOfInput, SizeOfOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -2978,7 +2978,7 @@ export const spanCodec: FrameCodec<SpanInput, SpanOutput> = {
     return _pcConcatUint8Arrays(parts).buffer as ArrayBuffer;
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: SpanOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: SpanOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -2991,7 +2991,7 @@ export const spanCodec: FrameCodec<SpanInput, SpanOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -3042,7 +3042,7 @@ export const sumListCodec: FrameCodec<SumListInput, SumListOutput> = {
     return _pcConcatUint8Arrays(parts).buffer as ArrayBuffer;
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: SumListOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: SumListOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -3055,7 +3055,7 @@ export const sumListCodec: FrameCodec<SumListInput, SumListOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -3091,7 +3091,7 @@ export const tagSetComplexCodec: FrameCodec<TagSetInput, TagSetOutput> = createC
   commandId: 29,
   inputSchema: {"title":"TagSetInput","type":"object","required":["ids"],"properties":{"ids":{"type":"array","items":{"type":"integer","format":"int64"},"uniqueItems":true}}} as ComplexSchema,
   outputSchema: {"title":"TagSetOutput","type":"object","required":["tags"],"properties":{"tags":{"type":"array","items":{"type":"string"},"uniqueItems":true}}} as ComplexSchema,
-  definitions: {"ChannelHandle":{"description":"커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.\n\n코드젠은 이 타입을 인식하면 TS 를 `RustraChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).","type":"integer","format":"uint32","minimum":0},"Item":{"type":"object","required":["active","name","value"],"properties":{"active":{"type":"boolean"},"name":{"type":"string"},"value":{"type":"integer","format":"int64"}}},"OpKind":{"oneOf":[{"type":"string","enum":["Clear"]},{"type":"object","required":["Set"],"properties":{"Set":{"type":"object","required":["value"],"properties":{"value":{"type":"integer","format":"int64"}}}},"additionalProperties":false}],"x-rustra-variant-order":["Clear","Set"]},"ParityNode":{"type":"object","required":["children","id","metadata","name","tag"],"properties":{"id":{"type":"number","format":"double"},"name":{"type":"string"},"tag":{"type":"string"},"note":{"type":["string","null"]},"metadata":{"type":"object","additionalProperties":{"type":"string"}},"children":{"type":"array","items":{"type":"number","format":"double"}}}},"ParityTree":{"type":"object","required":["nodes"],"properties":{"nodes":{"type":"array","items":{"$ref":"#/definitions/ParityNode"}}}},"ResourceHandle":{"description":"커맨드 반환값/필드로 받은 리소스 핸들 — serde 표면은 plain `u32`.","type":"integer","format":"uint32","minimum":0}} as Record<string, ComplexSchema>,
+  definitions: {"ChannelHandle":{"description":"커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.\n\n코드젠은 이 타입을 인식하면 TS 를 `UnikitChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).","type":"integer","format":"uint32","minimum":0},"Item":{"type":"object","required":["active","name","value"],"properties":{"active":{"type":"boolean"},"name":{"type":"string"},"value":{"type":"integer","format":"int64"}}},"OpKind":{"oneOf":[{"type":"string","enum":["Clear"]},{"type":"object","required":["Set"],"properties":{"Set":{"type":"object","required":["value"],"properties":{"value":{"type":"integer","format":"int64"}}}},"additionalProperties":false}],"x-unikit-variant-order":["Clear","Set"]},"ParityNode":{"type":"object","required":["children","id","metadata","name","tag"],"properties":{"id":{"type":"number","format":"double"},"name":{"type":"string"},"tag":{"type":"string"},"note":{"type":["string","null"]},"metadata":{"type":"object","additionalProperties":{"type":"string"}},"children":{"type":"array","items":{"type":"number","format":"double"}}}},"ParityTree":{"type":"object","required":["nodes"],"properties":{"nodes":{"type":"array","items":{"$ref":"#/definitions/ParityNode"}}}},"ResourceHandle":{"description":"커맨드 반환값/필드로 받은 리소스 핸들 — serde 표면은 plain `u32`.","type":"integer","format":"uint32","minimum":0}} as Record<string, ComplexSchema>,
 });
 
 export const tagSetCodec = tagSetComplexCodec;
@@ -3126,7 +3126,7 @@ export const toUpperCodec: FrameCodec<ToUpperInput, ToUpperOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ToUpperOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ToUpperOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -3139,7 +3139,7 @@ export const toUpperCodec: FrameCodec<ToUpperInput, ToUpperOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -3193,7 +3193,7 @@ export const wideAggCodec: FrameCodec<WideAggInput, WideAggOutput> = {
     return _pcConcatUint8Arrays(parts).buffer as ArrayBuffer;
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: WideAggOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: WideAggOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -3206,7 +3206,7 @@ export const wideAggCodec: FrameCodec<WideAggInput, WideAggOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {

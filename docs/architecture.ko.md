@@ -1,10 +1,10 @@
 [English](./architecture.md)
 
-# rustra-bridge 아키텍처
+# unikit-bridge 아키텍처
 
 ## 개요
 
-rustra는 Rust 패키지를 한 번 정의하면 host-neutral TypeScript 클라이언트를 자동 생성하는 브릿지 프레임워크다. Rust 측에서 command 함수를 작성하고 `Package`로 등록하면, Rust 프로브가 `schema.json`을 발행(`write_schema_to_dir`)하고 `rustra codegen`이 그 단일 파일에서 TypeScript 타입 정의와 command helper 함수를 렌더링한다. 생성된 TypeScript 코드는 어떤 런타임(Node.js, Bun, Tauri, React Native)에도 종속되지 않으며, 각 host adapter가 transport를 주입받아 `EngineClient` 인터페이스로 래핑하는 방식으로 동작한다.
+unikit는 Rust 패키지를 한 번 정의하면 host-neutral TypeScript 클라이언트를 자동 생성하는 브릿지 프레임워크다. Rust 측에서 command 함수를 작성하고 `Package`로 등록하면, Rust 프로브가 `schema.json`을 발행(`write_schema_to_dir`)하고 `unikit codegen`이 그 단일 파일에서 TypeScript 타입 정의와 command helper 함수를 렌더링한다. 생성된 TypeScript 코드는 어떤 런타임(Node.js, Bun, Tauri, React Native)에도 종속되지 않으며, 각 host adapter가 transport를 주입받아 `EngineClient` 인터페이스로 래핑하는 방식으로 동작한다.
 
 ---
 
@@ -34,7 +34,7 @@ rustra는 Rust 패키지를 한 번 정의하면 host-neutral TypeScript 클라�
  │                                                                     │
  │  generated.write_schema_to_dir("./generated")                       │
  │                                                                     │
- │  rustra codegen  →  types.ts / commands.ts / contract.ts 렌더링      │
+ │  unikit codegen  →  types.ts / commands.ts / contract.ts 렌더링      │
  │                     (+ Frame 코덱: 자체 프레임, 페이로드는 postcard)│
  └─────────────────────────────────────────────────────────────────────┘
                               │
@@ -96,13 +96,13 @@ Promise 기반 `invokeBatch`도 보장한다. 진행 중 `AbortSignal`은 JSON/�
 ### command helper 사용 예시
 
 `commands.ts`에 생성된 각 command helper는 엔진을 직접 받지 않는다 —
-`@rustra/types`의 생성 경로(`invokeGenerated*`)를 호출한다. 기본 플랫폼 진입점은
+`@unikit/types`의 생성 경로(`invokeGenerated*`)를 호출한다. 기본 플랫폼 진입점은
 `configureLazy()`를 등록하고 첫 호출이 엔진을 한 번만 설치한다. 수동
 `configure(engine)`는 명시적 override다.
 
 ```ts
 // examples/calculator/generated/commands.ts (자동 생성됨, 일부 단순화)
-import { createGeneratedFields2 } from '@rustra/types';
+import { createGeneratedFields2 } from '@unikit/types';
 
 export const addNumbers = createGeneratedFields2<AddNumbersInput, AddNumbersOutput>(
   1,
@@ -119,7 +119,7 @@ export const addNumbers = createGeneratedFields2<AddNumbersInput, AddNumbersOutp
 // examples/tauri-calculator/src/app.ts
 import { addNumbers } from '../../calculator/generated/commands.js';
 import { createTauriEngine } from '../../../packages/tauri/src/index.js';
-import { configure } from '@rustra/types';
+import { configure } from '@unikit/types';
 
 const engine = createTauriEngine({ invoke: window.__TAURI__.core.invoke });
 configure(engine); // 글로벌 invoke 에 엔진 설치
@@ -176,14 +176,14 @@ export type EngineRegistration = (() => void) & { isCurrent(): boolean };
 
 ```
 crates/
-├── rustra/              # core crate
+├── unikit/              # core crate
 │   └── src/lib.rs       # Package, PackageBuilder, GeneratedPackage, codegen, invoke, tauri_support
 │
-└── rustra-macros/       # proc-macro crate
+└── unikit-bridge-macros/       # proc-macro crate
     └── src/lib.rs       # #[command] attribute macro
 ```
 
-#### `crates/rustra` (core)
+#### `crates/unikit-bridge` (core)
 
 핵심 타입과 로직을 제공한다.
 
@@ -191,29 +191,29 @@ crates/
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Package`          | 등록된 command들의 컬렉션. `invoke_json()`으로 런타임 디스패치, `generate_typescript()`로 코드 생성                                                                                                                                                             |
 | `PackageBuilder`   | `Package::builder(id)`로 생성. `.command_fn(handler)` / `.command(name, handler)`로 command 등록 후 `.build()`                                                                                                                                                  |
-| `GeneratedPackage` | `generate_typescript()`의 결과. `schema_json`, `types_ts`, `commands_ts`, `contract_hash` 필드 보유. `write_schema_to_dir()`로 schema.json 발행 (deprecated: `write_to_dir()` — Rust에서 TS 표면까지 재생성하던 구(舊) 듀얼 패스, 이제 `rustra codegen`의 소관) |
-| `RustraError`      | `Serialize` 구현. `command.not_found`, `command.invalid_args`, `internal` 에러 코드 + `custom(code, message)` 생성자 + `code()`, `message()` getter                                                                                                             |
-| `build!`           | `rustra-macros`에서 제공. `rustra::build!("id", fn1, fn2).done()` 형태로 다중 command 일괄 등록                                                                                                                                                                 |
-| `tauri_support`    | `cfg(feature = "tauri")` 활성화 시 제공. `RustraState`, `rustra_dispatch` 단일 Tauri command, `register()` 빌더 주입 함수                                                                                                                                       |
+| `GeneratedPackage` | `generate_typescript()`의 결과. `schema_json`, `types_ts`, `commands_ts`, `contract_hash` 필드 보유. `write_schema_to_dir()`로 schema.json 발행 (deprecated: `write_to_dir()` — Rust에서 TS 표면까지 재생성하던 구(舊) 듀얼 패스, 이제 `unikit codegen`의 소관) |
+| `UnikitError`      | `Serialize` 구현. `command.not_found`, `command.invalid_args`, `internal` 에러 코드 + `custom(code, message)` 생성자 + `code()`, `message()` getter                                                                                                             |
+| `build!`           | `unikit-bridge-macros`에서 제공. `unikit_bridge::build!("id", fn1, fn2).done()` 형태로 다중 command 일괄 등록                                                                                                                                                                 |
+| `tauri_support`    | `cfg(feature = "tauri")` 활성화 시 제공. `UnikitState`, `unikit_dispatch` 단일 Tauri command, `register()` 빌더 주입 함수                                                                                                                                       |
 | `__private` 모듈   | `CommandInput`, `CommandOutput` sealed 트레이트. proc macro가 컴파일 타임에 command 타입 제약을 검증하는 데 사용. public API로 노출되지 않음                                                                                                                    |
 
-#### `crates/rustra-macros` (proc-macro)
+#### `crates/unikit-bridge-macros` (proc-macro)
 
 `#[command]` attribute macro를 제공한다. 적용된 함수에 대해:
 
 1. **데이터 파라미터는 최대 1개**인지 검증한다(0개는 `()` 입력으로 허용). 2개 이상은 컴파일 에러다. 추가 `State<T>` 파라미터는 별도로 주입된다([Rust API 가이드](rust-api-guide.ko.md#5-packagebuilder-메서드) 참고)
-2. `rustra::__private::CommandInput` / `CommandOutput` 트레이트 바운드를 만족하는지 컴파일 타임에 정적 검증
+2. `unikit_bridge::__private::CommandInput` / `CommandOutput` 트레이트 바운드를 만족하는지 컴파일 타임에 정적 검증
 3. 반환 타입은 명시적 `Result<O>`여야 한다 — bare 반환(`-> i64`)과 unit 반환 생략은 컴파일 에러
 4. `#[command(name = "customName")]` 속성으로 명시적 command 이름 지정 가능. 생략 시 함수명을 snake_to_lower_camel 변환해 자동 생성(`_command` 접미사 제거)
 
 같은 규칙을 예제와 함께 설명한 정본은 [Rust API 가이드 — `#[command]` 매크로](rust-api-guide.ko.md#2-command-매크로)다 — 두 문서가 어긋나면 이쪽을 따른다.
 
-함수 본문은 그대로 통과시키며 (identity passthrough), 컴파일 타임 타입 체크만 수행한다. 또한 `const __RUstra_meta_{fn_name}: &str = "commandName"` 상수를 생성하여 `build!` 매크로에서 command 이름을 참조할 수 있게 한다.
+함수 본문은 그대로 통과시키며 (identity passthrough), 컴파일 타임 타입 체크만 수행한다. 또한 `const __UNikit_meta_{fn_name}: &str = "commandName"` 상수를 생성하여 `build!` 매크로에서 command 이름을 참조할 수 있게 한다.
 
 `build!` 매크로는 `#[command]`가 생성한 메타 상수를 이용하여 여러 command를 한 번에 등록한다:
 
 ```rust
-rustra::build!("my.pkg", add_numbers, multiply)
+unikit_bridge::build!("my.pkg", add_numbers, multiply)
     .done()
 ```
 
@@ -224,7 +224,7 @@ packages/
 ├── node/           → generated node.ts + createNodeBootstrap
 ├── bun/            → generated bun.ts + createBunBootstrap
 ├── tauri/          → generated tauri.ts + createTauriBootstrap
-└── react-native/   → generated react-native.ts + createRustraBootstrap
+└── react-native/   → generated react-native.ts + createUnikitBootstrap
                      createReactNativeEngine({ invoke(ArrayBuffer) }): EngineClient (low-level JSON path)
 ```
 
@@ -237,7 +237,7 @@ examples/
 ├── calculator/                 # 기본 Rust 라이브러리 예시
 │   ├── src/lib.rs              # command 정의 + calculator_package() + C FFI 진입점
 │   ├── src/main.rs             # stdio 진입점 + invoke 데모 (프로브는 src/bin/generate.rs)
-│   └── generated/              # rustra codegen 출력 (schema.json 기반)
+│   └── generated/              # unikit codegen 출력 (schema.json 기반)
 │       ├── types.ts            # EngineClient + AddNumbersInput/Output 타입
 │       ├── commands.ts         # addNumbers() helper
 │       ├── contract.ts         # GENERATED_CONTRACT_HASH 상수
@@ -249,7 +249,7 @@ examples/
 │
 └── react-native-calculator/    # Expo React Native 예시
     ├── App.tsx                 # generated/react-native.ts → addNumbers 사용
-    └── modules/rustra-calculator  # 네이티브 모듈 (Expo module)
+    └── modules/unikit-calculator  # 네이티브 모듈 (Expo module)
 ```
 
 ---
@@ -272,7 +272,7 @@ pub fn add_numbers(input: AddNumbersInput) -> Result<AddNumbersOutput> {
 }
 
 pub fn calculator_package() -> Package {
-    rustra::build!("examples.calculator", add_numbers).done()
+    unikit_bridge::build!("examples.calculator", add_numbers).done()
 }
 ```
 
@@ -312,7 +312,7 @@ pub fn calculator_package() -> Package {
 
 ### 생성 결과물의 파일 구조
 
-`generated/` 디렉터리의 파일 — `write_schema_to_dir()`은 `schema.json`만 쓰고, 나머지는 `rustra codegen`이 렌더링:
+`generated/` 디렉터리의 파일 — `write_schema_to_dir()`은 `schema.json`만 쓰고, 나머지는 `unikit codegen`이 렌더링:
 
 | 파일          | 내용                           | 용도                        |
 | ------------- | ------------------------------ | --------------------------- |
@@ -323,24 +323,24 @@ pub fn calculator_package() -> Package {
 
 ### scriptc native FFI 스테이지 (정적 링크, 실험적)
 
-`rustra.json`에 `scriptc` 섹션을 추가하면 별도 코드젠 스테이지가 켜진다 — 섹션의
+`unikit.json`에 `scriptc` 섹션을 추가하면 별도 코드젠 스테이지가 켜진다 — 섹션의
 존재가 기능 스위치이며 `uniffi`와 같은 방식이다. 스테이지는 설정된 `output`
 디렉터리에 정적 링크 FFI 표면을 렌더링한다:
 
 | 파일               | 내용                                                               | 용도                                                             |
 | ------------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------- |
-| `scriptc/ffi.json` | rustra staticlib 아카이브를 library로 싣는 ffi_format 7 매니페스트 | `scriptc build`가 컴파일 시점에 링크 (런타임 symbol lookup 없음) |
+| `scriptc/ffi.json` | unikit staticlib 아카이브를 library로 싣는 ffi_format 7 매니페스트 | `scriptc build`가 컴파일 시점에 링크 (런타임 symbol lookup 없음) |
 | `scriptc-ffi.d.ts` | 시그니처-only 선언                                                 | 동기 소비자용 legacy ambient 선언                                |
 | `scriptc-ffi.ts`   | 콜백 시그니처를 담은 소스 엔트리                                   | `.d.ts` 매핑으로 표현할 수 없는 retained 콜백 시그니처           |
 
 out 포인터에 쓰거나 함수 포인터 콜백을 받는 심볼은 사유가 기록된 채
 (`scriptcExcludedSymbols`) 매니페스트 표면에서 제외되고, 길이를 out 포인터 대신
-반환하는 `rustra_ffi_invoke_json_into_len`이 caller-buffer envelope 진입 역할을
+반환하는 `unikit_ffi_invoke_json_into_len`이 caller-buffer envelope 진입 역할을
 한다. retained 콜백도 표면의 일부다 — 비동기 JSON completion
-(`rustra_ffi_invoke_json_async_channel`), 이벤트
-(`rustra_ffi_event_sink_register_scriptc`/`rustra_ffi_event_sink_release_scriptc`),
-bytes 채널 (`rustra_ffi_channel_create_bytes`/`rustra_ffi_channel_send_bytes` +
-identity 기반 `rustra_ffi_channel_release_scriptc`). `codegen --check`는 커밋된
+(`unikit_ffi_invoke_json_async_channel`), 이벤트
+(`unikit_ffi_event_sink_register_scriptc`/`unikit_ffi_event_sink_release_scriptc`),
+bytes 채널 (`unikit_ffi_channel_create_bytes`/`unikit_ffi_channel_send_bytes` +
+identity 기반 `unikit_ffi_channel_release_scriptc`). `codegen --check`는 커밋된
 아티팩트와 신선한 스키마를 바이트 비교하고, 쓰기 모드는 아카이브가 없으면
 `cargo build --release` 힌트와 함께 fail-closed 한다. 실제 동작 예제는
 [`examples/calculator/scriptc/`](../examples/calculator/scriptc/)에 있다.
@@ -378,15 +378,15 @@ pub fn invoke_json(&self, name: &str, params: Value) -> Result<Value>
  │  host adapter (createXxxEngine)                          │
  │  - Node:      transport.invoke(command, args)            │
  │  - Bun:       transport.invoke(command, args)            │
- │  - Tauri:     invoke('rustra_dispatch', {command, args}) │
+ │  - Tauri:     invoke('unikit_dispatch', {command, args}) │
  │  - RN:        generated bootstrap → native.invokeFrame(buf)  │
  │          │                                               │
  │          ▼                                               │
  │  transport (앱 레벨에서 생성/주입)                        │
  │  - subprocess stdio  (examples/calculator/src/main.rs)   │
  │  - C FFI            (examples/calculator/src/lib.rs)     │
- │  - Tauri IPC        (rustra_support::rustra_dispatch)    │
- │  - RN JSI native    (@rustra/generated-react-native)     │
+ │  - Tauri IPC        (unikit_support::unikit_dispatch)    │
+ │  - RN JSI native    (@unikit/generated-react-native)     │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -398,24 +398,24 @@ pub fn invoke_json(&self, name: &str, params: Value) -> Result<Value>
 
 ### Tauri의 특수 처리
 
-Tauri adapter는 다른 adapter와 달리 command를 직접 전달하지 않고 `rustra_dispatch`라는 단일 진입점으로 래핑한다:
+Tauri adapter는 다른 adapter와 달리 command를 직접 전달하지 않고 `unikit_dispatch`라는 단일 진입점으로 래핑한다:
 
 ```ts
 // packages/tauri/src/index.ts
-return (await options.invoke('rustra_dispatch', { command, args: args ?? {} })) as T;
+return (await options.invoke('unikit_dispatch', { command, args: args ?? {} })) as T;
 ```
 
-이는 Tauri의 IPC가 미리 등록된 command만 호출할 수 있기 때문이다. Rust 측 `tauri_support` 모듈이 `rustra_dispatch` Tauri command를 단일 진입점으로 등록하고, 내부적으로 `Package::invoke_json()`으로 라우팅한다:
+이는 Tauri의 IPC가 미리 등록된 command만 호출할 수 있기 때문이다. Rust 측 `tauri_support` 모듈이 `unikit_dispatch` Tauri command를 단일 진입점으로 등록하고, 내부적으로 `Package::invoke_json()`으로 라우팅한다:
 
 ```rust
-// crates/rustra/src/lib.rs (tauri_support 모듈)
-pub struct RustraState {
+// crates/unikit-bridge/src/lib.rs (tauri_support 모듈)
+pub struct UnikitState {
     pub package: Package,
 }
 
 #[tauri::command]
-pub fn rustra_dispatch(
-    state: State<'_, RustraState>,
+pub fn unikit_dispatch(
+    state: State<'_, UnikitState>,
     command: String,
     args: Value,
 ) -> Result<Value, Value> {
@@ -430,8 +430,8 @@ pub fn register<R: tauri::Runtime>(
     builder: tauri::Builder<R>,
 ) -> tauri::Builder<R> {
     builder
-        .manage(RustraState { package })
-        .invoke_handler(tauri::generate_handler![rustra_dispatch])
+        .manage(UnikitState { package })
+        .invoke_handler(tauri::generate_handler![unikit_dispatch])
 }
 ```
 
@@ -440,7 +440,7 @@ pub fn register<R: tauri::Runtime>(
 ```rust
 // examples/tauri-calculator/src-tauri/src/main.rs
 let package = calculator_package();
-let builder = rustra::tauri_support::register(package, tauri::Builder::default());
+let builder = unikit_bridge::tauri_support::register(package, tauri::Builder::default());
 ```
 
 ---
@@ -507,7 +507,7 @@ struct RegistryState {
   코덱 판정 결과는 live schema entry 객체별로 캐시되고, generation 게이트가
   재조회하면(치환 후 첫 호출) 스키마가 바뀐 명령을 다시 판정한다.
 
-**live schema**: `Package::live_schema()` / `rustra_ffi_get_schema()` / JSI `getSchema()` 가 정적+동적 명령 전체 스키마(`{name, commandId, inputSchema, outputSchema, definitions?}`)를 반환. TS(`getLiveSchema`)가 동적 명령의 id/타입을 조회한다. 읽기 전용 — debug/release 모두.
+**live schema**: `Package::live_schema()` / `unikit_ffi_get_schema()` / JSI `getSchema()` 가 정적+동적 명령 전체 스키마(`{name, commandId, inputSchema, outputSchema, definitions?}`)를 반환. TS(`getLiveSchema`)가 동적 명령의 id/타입을 조회한다. 읽기 전용 — debug/release 모두.
 
 > 설계 의도: 동적 레지스트리는 **dev(DX) 용도**(느려도 OK). release는 frozen라 동적 명령이 없고, 정적 명령은 fast-path 그대로 → prod 성능 영향 없음.
 
@@ -515,10 +515,10 @@ struct RegistryState {
 
 동적 import(Tier 3) + 런타임 레지스트리 경로는 전체 스택에서 별도 검증/측정 인프라로 커버한다.
 
-- **Rust 타입별 와이어 테스트** — `crates/rustra/tests/frame_wire.rs`: 정적(postcard) Tier 1/2 + 동적(Tier 3) 경로를 i64/f64/bool/String/Vec/HashMap/tuple/enum-with-data/Option/중첩 타입으로 round-trip 검증 + edge(빈 컬렉션·유니코드·10K payload) + error(잘린 payload·알 수 없는 id·malformed JSON·frozen·unregister 후 호출).
-- **속성 기반 fuzz** — `crates/rustra/tests/frame_fuzz.rs` (proptest): 무작위 페이로드 round-trip 보존.
-- **동시성 스모크** — `crates/rustra/tests/frame_concurrency.rs`: 다중 스레드 register/invoke/live_schema 혼합 시 패닉/교착 없음.
-- **성능 벤치마크** — `crates/rustra/benches/` (criterion): `tier_compare`(정적/동적 postcard vs Tier 3 JSON — 동일 연산 통제), `dynamic_registry`(register/live_schema/frozen 비용), `type_scaling`(동적 postcard payload 확장성). 동적 명령은 dev-only이므로 `--profile dev`로 측정. 수치는 `docs/benchmarks.md` "동적 명령" 섹션.
+- **Rust 타입별 와이어 테스트** — `crates/unikit-bridge/tests/frame_wire.rs`: 정적(postcard) Tier 1/2 + 동적(Tier 3) 경로를 i64/f64/bool/String/Vec/HashMap/tuple/enum-with-data/Option/중첩 타입으로 round-trip 검증 + edge(빈 컬렉션·유니코드·10K payload) + error(잘린 payload·알 수 없는 id·malformed JSON·frozen·unregister 후 호출).
+- **속성 기반 fuzz** — `crates/unikit-bridge/tests/frame_fuzz.rs` (proptest): 무작위 페이로드 round-trip 보존.
+- **동시성 스모크** — `crates/unikit-bridge/tests/frame_concurrency.rs`: 다중 스레드 register/invoke/live_schema 혼합 시 패닉/교착 없음.
+- **성능 벤치마크** — `crates/unikit-bridge/benches/` (criterion): `tier_compare`(정적/동적 postcard vs Tier 3 JSON — 동일 연산 통제), `dynamic_registry`(register/live_schema/frozen 비용), `type_scaling`(동적 postcard payload 확장성). 동적 명령은 dev-only이므로 `--profile dev`로 측정. 수치는 `docs/benchmarks.md` "동적 명령" 섹션.
 - **TS 단위 테스트** — `packages/types/src/index.test.ts`: `createFrameEngine` Tier 3 fallback + `getLiveSchema` (`bun run test:types`).
 - **RN E2E** — `examples/react-native-calculator/DynamicRegistryApp.tsx` 가 4종 타입(Vec/String/Map/Nested) 동적 명령을 단일 Frame 엔진으로 호출 + live schema commandId 표시. 실행 절차는 `docs/dev/plans/2026-07-05-rn-verification-checklist.md`.
 
@@ -526,7 +526,7 @@ struct RegistryState {
 
 ## 계약 불변식
 
-rustra-bridge는 다음 불변식을 통해 host-neutral 특성을 보장한다:
+unikit-bridge는 다음 불변식을 통해 host-neutral 특성을 보장한다:
 
 1. **생성된 TypeScript는 host-specific import를 금지한다**: `types.ts`, `commands.ts`, `contract.ts`는 `node:`, `bun:`, `@tauri-apps`, `react-native`, `expo-modules` 등 어떤 host-specific 모듈도 import하지 않는다. 유일한 import는 `commands.ts`가 `types.js`를 참조하는 것뿐이다.
 
@@ -540,11 +540,11 @@ rustra-bridge는 다음 불변식을 통해 host-neutral 특성을 보장한다:
 
 ## 에러 모델
 
-Rust 측은 `RustraError` 구조체로 에러를 표현한다. `Serialize`가 구현되어 있어 Tauri IPC 등에서 JSON으로 직렬화 가능하다:
+Rust 측은 `UnikitError` 구조체로 에러를 표현한다. `Serialize`가 구현되어 있어 Tauri IPC 등에서 JSON으로 직렬화 가능하다:
 
 ```rust
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct RustraError {
+pub struct UnikitError {
     code: &'static str,   // "command.not_found" | "command.invalid_args" | "internal" | custom
     message: String,
 }
@@ -554,10 +554,10 @@ pub struct RustraError {
 
 | 메서드                                 | 에러 코드              | 발생 조건                                                                |
 | -------------------------------------- | ---------------------- | ------------------------------------------------------------------------ |
-| `RustraError::command_not_found(name)` | `command.not_found`    | `invoke_json()`에서 명시된 이름의 command가 `Package.commands`에 없을 때 |
-| `RustraError::invalid_args(error)`     | `command.invalid_args` | `serde_json::from_value` 역직렬화 실패 시                                |
-| `RustraError::internal(error)`         | `internal`             | `serde_json::to_value` 직렬화 실패, I/O 에러 등                          |
-| `RustraError::custom(code, message)`   | 지정한 코드            | 사용자 정의 에러                                                         |
+| `UnikitError::command_not_found(name)` | `command.not_found`    | `invoke_json()`에서 명시된 이름의 command가 `Package.commands`에 없을 때 |
+| `UnikitError::invalid_args(error)`     | `command.invalid_args` | `serde_json::from_value` 역직렬화 실패 시                                |
+| `UnikitError::internal(error)`         | `internal`             | `serde_json::to_value` 직렬화 실패, I/O 에러 등                          |
+| `UnikitError::custom(code, message)`   | 지정한 코드            | 사용자 정의 에러                                                         |
 
 **Getter:**
 
@@ -566,9 +566,9 @@ pub struct RustraError {
 | `error.code()`    | `&'static str` | 에러 코드 조회   |
 | `error.message()` | `&str`         | 에러 메시지 조회 |
 
-`std::io::Error`는 `From` 트레이트를 통해 자동으로 `RustraError::internal`로 변환된다.
+`std::io::Error`는 `From` 트레이트를 통해 자동으로 `UnikitError::internal`로 변환된다.
 
-Tauri에서 `rustra_dispatch`는 `RustraError`를 JSON 값(`{ code, message }`)으로 직렬화하여 반환한다. TypeScript 측 `createTauriEngine`은 이 값을 `RustraCommandError`로 변환하여 throw한다.
+Tauri에서 `unikit_dispatch`는 `UnikitError`를 JSON 값(`{ code, message }`)으로 직렬화하여 반환한다. TypeScript 측 `createTauriEngine`은 이 값을 `UnikitCommandError`로 변환하여 throw한다.
 
 ---
 
@@ -590,8 +590,8 @@ Tauri에서 `rustra_dispatch`는 `RustraError`를 JSON 값(`{ code, message }`)�
    let package = my_package();
    package.generate_typescript()?.write_schema_to_dir("./generated")?;
    # 이어서 schema.json 에서 표면 렌더링:
-   #   rustra codegen --config rustra.json
-   # rustra.json 에 `scriptc` 섹션이 있으면 정적 링크 FFI 표면도 함께
+   #   unikit codegen --config unikit.json
+   # unikit.json 에 `scriptc` 섹션이 있으면 정적 링크 FFI 표면도 함께
    # 렌더링한다 (scriptc/ffi.json + scriptc-ffi.d.ts + scriptc-ffi.ts)
 
 4. TypeScript 측에서 생성된 코드 사용
@@ -611,7 +611,7 @@ generated.write_schema_to_dir(concat!(env!("CARGO_MANIFEST_DIR"), "/generated"))
 ### 실험: 네이티브 hot-core dev 루프 (dylib 스왑)
 
 위 재빌드 루프에는 실험적 네이티브 지름길이 있다: `hot-core` cargo feature 가
-있으면 `rustra dev`(dylib 타깃)가 코어를 cdylib 으로 빌드하고 실행 중인 호스트가
+있으면 `unikit dev`(dylib 타깃)가 코어를 cdylib 으로 빌드하고 실행 중인 호스트가
 재시작 없이 스왑한다 — wasm dev 타깃과 상보적인 네이티브(wasm 아님) dev 경로다.
 동작 셋업은 [tauri-calculator 예제](../examples/tauri-calculator/README.md)에,
 설계와 상태는
@@ -630,4 +630,4 @@ generated.write_schema_to_dir(concat!(env!("CARGO_MANIFEST_DIR"), "/generated"))
 3. 입력 타입이 `CommandInput` (`DeserializeOwned + JsonSchema + 'static`)을 만족하는지 정적 검증
 4. 출력 타입이 `CommandOutput` (`Serialize + JsonSchema + 'static`)을 만족하는지 정적 검증
 
-이 검증은 `__private` 모듈의 sealed 트레이트를 통해 이루어지며, public API로 노출되지 않는다. `#[command]`는 검증 외에도 `const __RUstra_meta_{fn_name}: &str` 상수를 생성하여 command 이름을 저장하며, 이 상수는 `build!` 매크로에서 참조된다.
+이 검증은 `__private` 모듈의 sealed 트레이트를 통해 이루어지며, public API로 노출되지 않는다. `#[command]`는 검증 외에도 `const __UNikit_meta_{fn_name}: &str` 상수를 생성하여 command 이름을 저장하며, 이 상수는 `build!` 매크로에서 참조된다.

@@ -1,12 +1,12 @@
 import { Platform } from 'react-native';
 import { NitroModules } from 'react-native-nitro-modules';
 import type { NitroBench } from 'nitro-bench';
-import { configure, bindSync } from '@rustra/types';
-import { installRustraJSI, getRustraNative } from '@rustra/generated-react-native';
-import RustraCalculator from 'rustra-calculator';
+import { configure, bindSync } from '@unikit/types';
+import { installUnikitJSI, getUnikitNative } from '@unikit/generated-react-native';
+import UnikitCalculator from 'unikit-calculator';
 import { createFrameEngine } from '../adapters/frame-adapter';
 import { GENERATED_CONTRACT_HASH } from '../../generated/contract';
-import { RUSTRA_BUILD_FINGERPRINT } from '../build-fingerprint';
+import { UNIKIT_BUILD_FINGERPRINT } from '../build-fingerprint';
 import { createCases } from './cases';
 import { emitAndroidReceiptChunks } from './android-receipt-transport';
 import { CONTRACT, LANES } from './contract';
@@ -22,8 +22,8 @@ export async function runParity(progress: (message: string) => void): Promise<Re
   if (nitroPackage.version !== '0.37.1' || fixturePackage.devDependencies.nitrogen !== '0.37.1')
     throw new Error('parity version mismatch');
   const startedAt = new Date().toISOString();
-  await installRustraJSI();
-  const native = getRustraNative();
+  await installUnikitJSI();
+  const native = getUnikitNative();
   configure(createFrameEngine(native));
   const nitro = NitroModules.createHybridObject<NitroBench>('NitroBench');
   const cases = createCases(native, nitro, (command) => bindSync<unknown, unknown>(command)),
@@ -37,13 +37,13 @@ export async function runParity(progress: (message: string) => void): Promise<Re
       const options = { batch: entry.batch, rounds: 31, warmup: 3 };
       const samples =
         lane === 'async-public'
-          ? await measureAsyncPair(entry.rustraAsync, entry.nitroAsync, options)
+          ? await measureAsyncPair(entry.unikitAsync, entry.nitroAsync, options)
           : measureSyncPair(
-              lane === 'sync-public' ? entry.rustraPublicSync : entry.rustra,
+              lane === 'sync-public' ? entry.unikitPublicSync : entry.unikit,
               entry.nitro,
               options,
             );
-      summary(samples.rustra);
+      summary(samples.unikit);
       summary(samples.nitro);
       results.push({
         id: entry.id,
@@ -67,11 +67,11 @@ export async function runParity(progress: (message: string) => void): Promise<Re
     platform: Platform.OS,
     environment:
       process.env.EXPO_PUBLIC_PARITY_ENVIRONMENT === 'physical' ? 'physical' : 'simulator',
-    fingerprint: RUSTRA_BUILD_FINGERPRINT,
+    fingerprint: UNIKIT_BUILD_FINGERPRINT,
     generatedContract: GENERATED_CONTRACT_HASH,
     nitroVersion: nitroPackage.version,
     nitrogenVersion: fixturePackage.devDependencies.nitrogen,
-    rustraVersion: '0.10.2',
+    unikitVersion: '0.10.2',
     representation: 'flat-arena',
     setupLifecycle: 'warm-full-build-and-replacement',
     baseline: '8db7279cd30cf50ab1ba625f325a11a832697891',
@@ -79,9 +79,9 @@ export async function runParity(progress: (message: string) => void): Promise<Re
   };
   const json = JSON.stringify(receipt);
   if (Platform.OS === 'ios') {
-    if (!RustraCalculator.writeBenchmarkReceipt) throw new Error('receipt writer unavailable');
-    const filename = RustraCalculator.writeBenchmarkReceipt(json);
-    if (filename !== 'rustra-nitro-parity.json') throw new Error('stale native receipt writer');
+    if (!UnikitCalculator.writeBenchmarkReceipt) throw new Error('receipt writer unavailable');
+    const filename = UnikitCalculator.writeBenchmarkReceipt(json);
+    if (filename !== 'unikit-nitro-parity.json') throw new Error('stale native receipt writer');
   } else {
     // Android runner may reconstruct indexed chunks from a fresh, PID-filtered logcat capture.
     await emitAndroidReceiptChunks(

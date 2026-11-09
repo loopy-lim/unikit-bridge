@@ -1,4 +1,4 @@
-import { CancelledError, RustraCommandError } from './errors.js';
+import { CancelledError, UnikitCommandError } from './errors.js';
 import { invokeCallbackWithAbort, raceAbort } from './cancel.js';
 import { encodeTier3Request, decodeTier3Response } from './json-wire.js';
 import { tier2Outcome, payloadTooLargeError } from './frame-engine-contract.js';
@@ -94,7 +94,7 @@ export function createFrameInvokeRaw(
                 const e =
                   outcome.error ??
                   ({ code: 'invoke.failed', message: 'Frame (tier3) invoke failed' } as const);
-                reject(new RustraCommandError(e.code, e.message, e.retryable ?? false));
+                reject(new UnikitCommandError(e.code, e.message, e.retryable ?? false));
               }
             });
           },

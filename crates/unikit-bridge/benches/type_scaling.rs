@@ -1,0 +1,52 @@
+// 벤치 하니스 — 측정 대상 호출은 unwrap/expect 로 간결하게 유지한다(프로덕션 경로 아님).
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
+//! 동적 명령 payload scaling 벤치마크 — dynamic 명령의 데이터 크기별 확장성.
+//!
+//! 동적 `processPayload` 명령(register)을 1/10/100/1000 items 로 호출.
+//! (T2-1 이후) PayloadInput 은 postcard 지원 형태라 동적 등록이라도 postcard
+//! 핸들러를 받는다 — 측정: invoke_frame (postcard 디코드 → 핸들러 → postcard
+//! 인코드) end-to-end. Tier 3 비교선이 필요하면 tier_compare 벤치를 병기한다.
+//!
+//! 실행: `cargo bench -p unikit-bridge --profile dev -- type_scaling`
+
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
+use unikit_bridge::Package;
+
+#[path = "common.rs"]
+mod common;
+
+fn bench_type_scaling(c: &mut Criterion) {
+    let pkg = Package::builder("bench.type_scaling").build();
+    pkg.register("processPayload", common::process_payload)
+        .expect("register must work in debug build");
+    let id = common::command_id_of(&pkg, "processPayload");
+
+    let sizes: &[usize] = &[1, 10, 100, 1000];
+
+    let mut group = c.benchmark_group("type_scaling_dynamic_postcard");
+    group.sample_size(100);
+
+    for &size in sizes {
+        let items = common::make_items(size);
+        let input = common::PayloadInput { items };
+        let req = common::postcard_request(id, &input);
+
+        group.bench_with_input(
+            BenchmarkId::new("invoke_frame_dynamic_postcard", format!("{size}_items")),
+            &req,
+            |b, req| {
+                b.iter(|| {
+                    let resp = pkg.invoke_frame(req).unwrap();
+                    let out: common::PayloadOutput = common::decode_postcard_response(&resp);
+                    out
+                });
+            },
+        );
+    }
+
+    group.finish();
+}
+
+criterion_group!(benches, bench_type_scaling);
+criterion_main!(benches);

@@ -23,7 +23,7 @@ export function manifestPathFor(root: string, target: string): string {
  * 모든 `Generated drift` 변형에 붙는 재생성 힌트 — doctor의 `fix:` 라인과 같은
  * 명령문(동사 원형 + 설정 파일 경로)으로, CI 로그에서 다음 행동을 바로 실행하게 한다.
  */
-const REGENERATE_HINT = 'Run rustra codegen --config rustra.json.';
+const REGENERATE_HINT = 'Run unikit codegen --config unikit.json.';
 
 /** Build the sidecar that lets CI detect stale generated code without writing files. */
 export function buildGeneratedManifest(

@@ -105,8 +105,8 @@ jobs:
         run: bun run audit:prod
 
       # ci.yml 과 동일 — workspace 병렬 빌드 전
-      # @rustra/types 를 먼저 빌드한다 (다른 패키지가 dist 타입을 import 함).
-      - name: Build @rustra/types first
+      # @unikit/types 를 먼저 빌드한다 (다른 패키지가 dist 타입을 import 함).
+      - name: Build @unikit/types first
         run: bun run --cwd packages/types build
 
       - name: Build packages
@@ -147,7 +147,7 @@ jobs:
           # tarball에 첨부한다. 발견된 패키지의 공급망 신뢰성 직결.
           NPM_CONFIG_PROVENANCE: true
 
-  # crates.io 발행은 main 수동 트리거 전용 (rustra-naming → rustra-macros → rustra 순서 필수).
+  # crates.io 발행은 main 수동 트리거 전용 (unikit-bridge-naming → unikit-bridge-macros → unikit 순서 필수).
   # 실행 직전 동일 SHA의 CI 성공을 확인하므로 workflow_dispatch가 게이트를 우회하지 않는다.
   cargo-publish:
     name: Publish crates (manual)
@@ -170,40 +170,40 @@ jobs:
       - name: Validate publishable crates
         run: |
           cargo fmt --all -- --check
-          cargo clippy -p rustra-naming -p rustra -p rustra-macros --all-targets -- -D warnings
-          cargo test -p rustra-naming -p rustra -p rustra-macros --release
-          cargo publish -p rustra-naming --dry-run --locked
+          cargo clippy -p unikit-bridge-naming -p unikit-bridge -p unikit-bridge-macros --all-targets -- -D warnings
+          cargo test -p unikit-bridge-naming -p unikit-bridge -p unikit-bridge-macros --release
+          cargo publish -p unikit-bridge-naming --dry-run --locked
       - name: Recheck current green CI immediately before crates release
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/check-release-gates.mjs --ci-only --sha "${{ needs.candidate.outputs.sha }}"
-      - name: Publish rustra-naming first (path dependency)
-        run: cargo publish -p rustra-naming --locked
-      - name: Wait for rustra-naming index propagation
+      - name: Publish unikit-bridge-naming first (path dependency)
+        run: cargo publish -p unikit-bridge-naming --locked
+      - name: Wait for unikit-bridge-naming index propagation
         run: |
-          VERSION="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "rustra-naming") | .version')"
-          echo "waiting for rustra-naming@${VERSION} on crates.io index"
+          VERSION="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "unikit-bridge-naming") | .version')"
+          echo "waiting for unikit-bridge-naming@${VERSION} on crates.io index"
           for _attempt in {1..12}; do
-            cargo info "rustra-naming@${VERSION}" --registry crates-io >/dev/null 2>&1 && exit 0
+            cargo info "unikit-bridge-naming@${VERSION}" --registry crates-io >/dev/null 2>&1 && exit 0
             sleep 10
           done
           exit 1
-      - name: Validate rustra-macros package
-        run: cargo publish -p rustra-macros --dry-run --locked
-      - name: Publish rustra-macros (path dependency)
-        run: cargo publish -p rustra-macros --locked
+      - name: Validate unikit-bridge-macros package
+        run: cargo publish -p unikit-bridge-macros --dry-run --locked
+      - name: Publish unikit-bridge-macros (path dependency)
+        run: cargo publish -p unikit-bridge-macros --locked
       - name: Wait for crates.io index propagation
         run: |
           # 워크스페이스 버전을 동적으로 읽는다 — 하드코딩하면 버전 범프마다 이
           # 루프가 옛 버전을 확인해 즉시 탈출(대기 no-op)하고 dry-run이 깨진다.
-          VERSION="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "rustra-macros") | .version')"
-          echo "waiting for rustra-macros@${VERSION} on crates.io index"
+          VERSION="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "unikit-bridge-macros") | .version')"
+          echo "waiting for unikit-bridge-macros@${VERSION} on crates.io index"
           for _attempt in {1..12}; do
-            cargo info "rustra-macros@${VERSION}" --registry crates-io >/dev/null 2>&1 && exit 0
+            cargo info "unikit-bridge-macros@${VERSION}" --registry crates-io >/dev/null 2>&1 && exit 0
             sleep 10
           done
           exit 1
-      - name: Verify rustra package
-        run: cargo publish -p rustra --dry-run --locked
-      - name: Publish rustra
-        run: cargo publish -p rustra --locked
+      - name: Verify unikit package
+        run: cargo publish -p unikit-bridge --dry-run --locked
+      - name: Publish unikit
+        run: cargo publish -p unikit-bridge --locked

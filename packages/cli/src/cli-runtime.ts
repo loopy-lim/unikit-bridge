@@ -5,8 +5,8 @@ import { createRequire } from 'node:module';
 
 export interface CliManifest {
   version: string;
-  dependencies: { '@rustra/types': string };
-  rustraTemplate: {
+  dependencies: { '@unikit/types': string };
+  unikitTemplate: {
     cargoRange: string;
     reactNativeRange: string;
     nodeRange: string;
@@ -18,10 +18,10 @@ export interface CliManifest {
 export const cliManifest = createRequire(import.meta.url)('../package.json') as CliManifest;
 export const cliVersion = cliManifest.version;
 export const hostDependencyRanges: Record<string, string> = {
-  '@rustra/types': cliManifest.dependencies['@rustra/types'],
-  '@rustra/node': cliManifest.rustraTemplate.nodeRange,
-  '@rustra/bun': cliManifest.rustraTemplate.bunRange,
-  '@rustra/tauri': cliManifest.rustraTemplate.tauriRange,
+  '@unikit/types': cliManifest.dependencies['@unikit/types'],
+  '@unikit/node': cliManifest.unikitTemplate.nodeRange,
+  '@unikit/bun': cliManifest.unikitTemplate.bunRange,
+  '@unikit/tauri': cliManifest.unikitTemplate.tauriRange,
 };
 export const CLI_COMMANDS = [
   'generate',

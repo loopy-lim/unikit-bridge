@@ -1,13 +1,13 @@
-import { RustraCommandError, normalizeRustraError } from '@rustra/types';
+import { UnikitCommandError, normalizeUnikitError } from '@unikit/types';
 
-export function toMockError(error: unknown): RustraCommandError {
-  if (error instanceof RustraCommandError) return error;
-  if (isRustraErrorShape(error)) {
-    return new RustraCommandError(error.code, error.message, error.retryable);
+export function toMockError(error: unknown): UnikitCommandError {
+  if (error instanceof UnikitCommandError) return error;
+  if (isUnikitErrorShape(error)) {
+    return new UnikitCommandError(error.code, error.message, error.retryable);
   }
-  if (typeof error === 'string') return normalizeRustraError(error);
-  if (error instanceof Error) return new RustraCommandError('unknown', error.message);
-  return new RustraCommandError('unknown', String(error));
+  if (typeof error === 'string') return normalizeUnikitError(error);
+  if (error instanceof Error) return new UnikitCommandError('unknown', error.message);
+  return new UnikitCommandError('unknown', String(error));
 }
 
 export function editDistance(left: string, right: string): number {
@@ -26,7 +26,7 @@ export function editDistance(left: string, right: string): number {
   return previous[right.length]!;
 }
 
-function isRustraErrorShape(
+function isUnikitErrorShape(
   e: unknown,
 ): e is { code: string; message: string; retryable?: boolean } {
   return (

@@ -1,5 +1,5 @@
 /** Opt-in runtime diagnostics for transport and wire debugging. */
-export type RustraDebugEvent = {
+export type UnikitDebugEvent = {
   direction: 'request' | 'response' | 'error';
   transport: 'json' | 'frame' | 'typed';
   command: string;
@@ -9,7 +9,7 @@ export type RustraDebugEvent = {
   error?: string;
   /**
    * 계약 밖 진단 어휘의 식별자 — `response.shape`(json-engine 응답 셰이프 경고),
-   * `ndjson.unparsed`(@rustra/node) 등 이벤트 종류를 식별한다. debugRustra 는
+   * `ndjson.unparsed`(@unikit/node) 등 이벤트 종류를 식별한다. debugUnikit 는
    * 이벤트를 싱크에 그대로 spread 하므로 선택 필드 추가는 기존 이벤트에 영향을
    * 주지 않는다(non-breaking, additive).
    */
@@ -22,24 +22,24 @@ export type RustraDebugEvent = {
   reason?: string;
 };
 
-export type RustraDebugSink = (event: RustraDebugEvent) => void;
+export type UnikitDebugSink = (event: UnikitDebugEvent) => void;
 
-let configuredSink: RustraDebugSink | undefined;
+let configuredSink: UnikitDebugSink | undefined;
 
 /** Install a bounded diagnostic sink; passing undefined disables it. */
-export function configureDebug(sink?: RustraDebugSink): void {
+export function configureDebug(sink?: UnikitDebugSink): void {
   configuredSink = sink;
 }
 
-/** Returns true for `RUSTRA_DEBUG=1|true|verbose` or the RN global switch. */
-export function isRustraDebugEnabled(): boolean {
-  const globalValue = (globalThis as { __RUSTRA_DEBUG__?: unknown }).__RUSTRA_DEBUG__;
+/** Returns true for `UNIKIT_DEBUG=1|true|verbose` or the RN global switch. */
+export function isUnikitDebugEnabled(): boolean {
+  const globalValue = (globalThis as { __UNIKIT_DEBUG__?: unknown }).__UNIKIT_DEBUG__;
   if (globalValue === true) return true;
   return shouldDumpWire();
 }
 
 /**
- * 순수 env 파싱 — `RUSTRA_DEBUG` 만을 검사한다(RN 글로벌 스위치 불포함).
+ * 순수 env 파싱 — `UNIKIT_DEBUG` 만을 검사한다(RN 글로벌 스위치 불포함).
  * 와이어 바이트 덤프(dumpWire)의 게이트로, 모듈 레벨에서 1회 메모이즈한다
  * (호출당 env 객체 접근 제거). `resetDebugEnvForTests` 가 캐시를 무효화한다.
  */
@@ -49,14 +49,14 @@ export function shouldDumpWire(): boolean {
     const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process
       ?.env;
     cachedShouldDump = ['1', 'true', 'verbose'].includes(
-      String(env?.RUSTRA_DEBUG ?? '').toLowerCase(),
+      String(env?.UNIKIT_DEBUG ?? '').toLowerCase(),
     );
   }
   return cachedShouldDump;
 }
 
 /**
- * 방향 + 바이트 hex를 stderr로 덤프한다. `RUSTRA_DEBUG` 가 없으면 완전 무음이므로
+ * 방향 + 바이트 hex를 stderr로 덤프한다. `UNIKIT_DEBUG` 가 없으면 완전 무음이므로
  * 파이프로 연결된 프로세스에서 폐기되어도 안전하다. 요청/응답 바이트 정합을
  * 눈으로 확인할 때 쓰는 저수준 진단이다(구조화 값은 `configureDebug` 싱크 사용).
  */
@@ -74,20 +74,20 @@ export function dumpWire(
     '',
   );
   const truncated = view.byteLength > 256 ? `… (${view.byteLength} bytes total)` : '';
-  process.stderr.write(`[rustra:wire] ${direction} ${hex}${truncated}\n`);
+  process.stderr.write(`[unikit:wire] ${direction} ${hex}${truncated}\n`);
 }
 
-/** @internal — test-only: clears RUSTRA_DEBUG from env and invalidates the dump-gate memo. Not public API. */
+/** @internal — test-only: clears UNIKIT_DEBUG from env and invalidates the dump-gate memo. Not public API. */
 export function resetDebugEnvForTests(): void {
   const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process
     ?.env;
-  delete env?.RUSTRA_DEBUG;
+  delete env?.UNIKIT_DEBUG;
   cachedShouldDump = undefined;
 }
 
 /** Emit diagnostics only when explicitly enabled; secrets are never logged by default. */
-export function debugRustra(event: RustraDebugEvent): void {
-  const enabled = isRustraDebugEnabled();
+export function debugUnikit(event: UnikitDebugEvent): void {
+  const enabled = isUnikitDebugEnabled();
   if (!enabled && !configuredSink) return;
   const safeEvent = {
     ...event,
@@ -96,14 +96,14 @@ export function debugRustra(event: RustraDebugEvent): void {
   configuredSink?.(safeEvent);
   if (enabled) {
     const logger = typeof console.debug === 'function' ? console.debug : console.log;
-    logger('[rustra:debug]', safeEvent);
+    logger('[unikit:debug]', safeEvent);
   }
 }
 
 /** Add a bounded hex preview to an event without retaining the full wire buffer. */
 export function debugWire(
-  direction: RustraDebugEvent['direction'],
-  transport: RustraDebugEvent['transport'],
+  direction: UnikitDebugEvent['direction'],
+  transport: UnikitDebugEvent['transport'],
   command: string,
   bytes: ArrayBuffer | ArrayBufferView,
   error?: string,
@@ -115,7 +115,7 @@ export function debugWire(
   const preview = Array.from(view.subarray(0, 128), (byte) =>
     byte.toString(16).padStart(2, '0'),
   ).join('');
-  debugRustra({
+  debugUnikit({
     direction,
     transport,
     command,
@@ -132,7 +132,7 @@ export function debugWire(
  * dumpWire 누락 경로 제거).
  */
 export function traceWire(
-  direction: RustraDebugEvent['direction'],
+  direction: UnikitDebugEvent['direction'],
   command: string,
   bytes: ArrayBuffer | ArrayBufferView,
 ): void {

@@ -1,5 +1,5 @@
-use rustra::hot_core::JsonDispatch;
-use rustra::{Package, RustraError};
+use unikit_bridge::hot_core::JsonDispatch;
+use unikit_bridge::{Package, UnikitError};
 use serde_json::{Value, json};
 use std::sync::{Arc, Mutex, OnceLock};
 use tauri::ipc::{CallbackFn, InvokeBody};
@@ -8,7 +8,7 @@ use tauri::webview::InvokeRequest;
 use tauri::{Listener, State, WebviewWindowBuilder};
 
 #[path = "fixtures/setup_registration.rs"]
-mod rustra_setup;
+mod unikit_setup;
 
 static TEST_LOCK: Mutex<()> = Mutex::new(());
 
@@ -17,7 +17,7 @@ pub fn package() -> Package {
     PACKAGE
         .get_or_init(|| {
             Package::builder("app.setup")
-                .command("echo", |args: Value| Ok::<_, RustraError>(args))
+                .command("echo", |args: Value| Ok::<_, UnikitError>(args))
                 .build()
         })
         .clone()
@@ -49,7 +49,7 @@ fn request(command: &str, args: Value) -> InvokeRequest {
 #[test]
 fn generated_registration_executes_first_echo_and_verifies_contract() {
     let _guard = TEST_LOCK.lock().unwrap();
-    let app = rustra_setup::register(mock_builder())
+    let app = unikit_setup::register(mock_builder())
         .build(mock_context(noop_assets()))
         .unwrap();
     let webview = WebviewWindowBuilder::new(&app, "setup-echo", Default::default())
@@ -58,7 +58,7 @@ fn generated_registration_executes_first_echo_and_verifies_contract() {
     let echo = get_ipc_response(
         &webview,
         request(
-            "rustra_dispatch",
+            "unikit_dispatch",
             json!({"command":"echo","args":{"message":"hello from setup"}}),
         ),
     )
@@ -67,7 +67,7 @@ fn generated_registration_executes_first_echo_and_verifies_contract() {
         echo.deserialize::<Value>().unwrap(),
         json!({"message":"hello from setup"})
     );
-    let hash = get_ipc_response(&webview, request("rustra_contract_hash", json!({}))).unwrap();
+    let hash = get_ipc_response(&webview, request("unikit_contract_hash", json!({}))).unwrap();
     assert_eq!(
         hash.deserialize::<String>().unwrap(),
         package().contract_hash().unwrap()
@@ -85,7 +85,7 @@ fn generated_app_handler_composition_preserves_state_events_and_plugins() {
             Ok(())
         })
         .build();
-    let app = rustra_setup::with_app_commands(
+    let app = unikit_setup::with_app_commands(
         mock_builder()
             .manage("app command still works".to_string())
             .plugin(plugin),
@@ -105,7 +105,7 @@ fn generated_app_handler_composition_preserves_state_events_and_plugins() {
     let echo = get_ipc_response(
         &webview,
         request(
-            "rustra_dispatch",
+            "unikit_dispatch",
             json!({"command":"echo","args":{"message":"coexists"}}),
         ),
     )
@@ -116,7 +116,7 @@ fn generated_app_handler_composition_preserves_state_events_and_plugins() {
     );
     let received = Arc::new(Mutex::new(Vec::new()));
     let listener = received.clone();
-    app.listen("rustra://setup_progress", move |event| {
+    app.listen("unikit://setup_progress", move |event| {
         listener.lock().unwrap().push(event.payload().to_owned())
     });
     package().emit("setup.progress", json!({"ready":true}));

@@ -1,6 +1,6 @@
-import type { InvokeOptions } from '@rustra/types';
-import { resolveCommandId } from '@rustra/types';
-import { useRustraEngine } from './context.js';
+import type { InvokeOptions } from '@unikit/types';
+import { resolveCommandId } from '@unikit/types';
+import { useUnikitEngine } from './context.js';
 import type { CommandFn, VoidCommandFn } from './useCommand.js';
 import { inputKey } from './input-key.js';
 import { resolveSuspenseEntry } from './suspense-cache.js';
@@ -22,7 +22,7 @@ export function useSuspenseCommand<I, O>(
   input?: I,
   options?: InvokeOptions,
 ): O {
-  const engine = useRustraEngine();
+  const engine = useUnikitEngine();
   const commandName = resolveCommandId(commandFn);
   const entry = resolveSuspenseEntry<O>(
     JSON.stringify([commandName, inputKey(input)]),

@@ -7,7 +7,7 @@
  * 프로세스 의존성 없는 순수 함수·클로저만 갖는다(node-loop.test.ts 가 스폰 없이
  * 단위 검증하는 경로 그대로).
  */
-import type { FrameCodec } from '@rustra/types';
+import type { FrameCodec } from '@unikit/types';
 
 /**
  * 바이너리 모드 코덱 표면 — generated `frameRegistry` 를 그대로 넘긴다.
@@ -37,7 +37,7 @@ const BINARY_CHANNEL_PUSH_CMD = 0xfffc;
 const BINARY_CHANNEL_PUSH_BYTES_CMD = 0xfff9;
 
 /** 채널 **발급** 예약 cmd id — loop-stdio 의 BINARY_CHANNEL_CREATE_CMD 와 짝.
- * 본문 없는 요청, 응답 본문은 JSON `{"handle": u32}`(Tauri rustra_channel_create
+ * 본문 없는 요청, 응답 본문은 JSON `{"handle": u32}`(Tauri unikit_channel_create
  * 와 동일 페이로드). */
 const BINARY_CHANNEL_CREATE_CMD = 0xfffb;
 

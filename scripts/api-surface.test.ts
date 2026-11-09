@@ -23,21 +23,21 @@ function put(root: string, path: string, text: string) {
   writeFileSync(join(root, path), text);
 }
 function fixture() {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-api-surface-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-api-surface-'));
   put(
     root,
-    'crates/rustra/src/lib.rs',
+    'crates/unikit-bridge/src/lib.rs',
     `mod hidden;
 pub mod nested { pub type Count = u32; }
 pub use hidden::{
     Widget, Service,
 };
-pub extern "C" fn rustra_ffi_alpha(x: u8) -> u8 { x }
+pub extern "C" fn unikit_ffi_alpha(x: u8) -> u8 { x }
 `,
   );
   put(
     root,
-    'crates/rustra/src/hidden.rs',
+    'crates/unikit-bridge/src/hidden.rs',
     `pub struct Widget { pub id: u32, secret: u8 }
 pub trait Service { fn run(&self, value: u32) -> bool; }
 impl Widget { pub fn id(&self) -> u32 { self.id } }
@@ -45,7 +45,7 @@ impl Widget { pub fn id(&self) -> u32 { self.id } }
   );
   put(
     root,
-    'crates/rustra-macros/src/lib.rs',
+    'crates/unikit-bridge-macros/src/lib.rs',
     '#[proc_macro_derive(Widget)]\n/// doc\npub fn derive_widget(input: TokenStream) -> TokenStream { input }\n',
   );
   put(
@@ -151,44 +151,44 @@ void test('multiline Rust use, reexported struct fields, trait methods, impl sig
     hasDrift(root, () =>
       put(
         root,
-        'crates/rustra/src/hidden.rs',
+        'crates/unikit-bridge/src/hidden.rs',
         'pub struct Widget { pub id: u64, secret: u8 }\npub trait Service { fn run(&self, value: u32) -> bool; }\nimpl Widget { pub fn id(&self) -> u32 { 1 } }',
       ),
     );
     hasDrift(root, () =>
       put(
         root,
-        'crates/rustra/src/hidden.rs',
+        'crates/unikit-bridge/src/hidden.rs',
         'pub struct Widget { pub id: u64, secret: u8 }\npub trait Service { fn run(&self, value: u64) -> bool; }\nimpl Widget { pub fn id(&self) -> u64 { 1 } }',
       ),
     );
     hasDrift(root, () =>
       put(
         root,
-        'crates/rustra/src/lib.rs',
-        'mod hidden;\npub mod nested { pub type Count = u64; }\npub use hidden::{\n Widget as Renamed, Service,\n};\npub extern "C" fn rustra_ffi_alpha(x: u16) -> u8 { 0 }',
+        'crates/unikit-bridge/src/lib.rs',
+        'mod hidden;\npub mod nested { pub type Count = u64; }\npub use hidden::{\n Widget as Renamed, Service,\n};\npub extern "C" fn unikit_ffi_alpha(x: u16) -> u8 { 0 }',
       ),
     );
   }));
 void test('Rust include files, cfg alternatives and macro declarations are collected', () =>
   withFixture((root) => {
-    put(root, 'crates/rustra/src/hidden.rs', 'include!("fields.rs");');
+    put(root, 'crates/unikit-bridge/src/hidden.rs', 'include!("fields.rs");');
     put(
       root,
-      'crates/rustra/src/fields.rs',
+      'crates/unikit-bridge/src/fields.rs',
       '#[cfg(feature="a")] pub struct Widget { pub id: u32 }\n#[cfg(not(feature="a"))] pub struct Widget { pub id: u64 }',
     );
     hasDrift(root, () =>
       put(
         root,
-        'crates/rustra/src/fields.rs',
+        'crates/unikit-bridge/src/fields.rs',
         '#[cfg(feature="a")] pub struct Widget { pub id: u16 }\n#[cfg(not(feature="a"))] pub struct Widget { pub id: u64 }',
       ),
     );
     hasDrift(root, () =>
       put(
         root,
-        'crates/rustra-macros/src/lib.rs',
+        'crates/unikit-bridge-macros/src/lib.rs',
         '#[proc_macro_derive(Other)]\npub fn derive_widget(input: TokenStream) -> TokenStream { input }',
       ),
     );
@@ -203,7 +203,7 @@ void test('function body-only changes and comments do not drift', () =>
     );
     put(
       root,
-      'crates/rustra/src/hidden.rs',
+      'crates/unikit-bridge/src/hidden.rs',
       '// comment\npub struct Widget { pub id: u32, secret: u8 }\npub trait Service { fn run(&self, value: u32) -> bool; }\nimpl Widget { pub fn id(&self) -> u32 { 42 } }\n',
     );
     assert.deepEqual(compareSurface(collectSurface(root), baseline), {
@@ -221,7 +221,7 @@ void test('missing TS source and malformed Rust fail closed', () =>
       'packages/demo/src/model.ts',
       'export interface Widget { id: string }\nexport function makeWidget(id: string): Widget { return { id }; }',
     );
-    put(root, 'crates/rustra/src/hidden.rs', 'pub struct Widget {');
+    put(root, 'crates/unikit-bridge/src/hidden.rs', 'pub struct Widget {');
     assert.throws(() => collectSurface(root), /Rust|parse|delimiter/);
   }));
 void test('stale built declarations cannot hide current source drift', () =>
@@ -281,13 +281,13 @@ void test('real source collection is byte-stable and matches versioned snapshot'
 
 void test('each Rust declaration contract independently triggers drift', () =>
   withFixture((root) => {
-    const path = 'crates/rustra/src/hidden.rs';
+    const path = 'crates/unikit-bridge/src/hidden.rs';
     const original = `pub struct Widget { pub id: u32, secret: u8 }
 pub trait Service: Send { type Output; fn run(&self, value: u32) -> bool; }
 impl Widget { pub fn id(&self) -> u32 { self.id } }
 pub enum Mode { One, Two(u32) }
 pub type Count = u32;
-pub extern "C" fn rustra_ffi_call(x: u8) -> u8 { x }
+pub extern "C" fn unikit_ffi_call(x: u8) -> u8 { x }
 `;
     put(root, path, original);
     const baseline = collectSurface(root);
@@ -343,7 +343,7 @@ void test('unsupported wildcard exports and missing Rust module sources fail clo
       'packages/demo/package.json',
       JSON.stringify({ name: '@fixture/demo', type: 'module', exports: './dist/index.js' }),
     );
-    rmSync(join(root, 'crates/rustra/src/hidden.rs'));
+    rmSync(join(root, 'crates/unikit-bridge/src/hidden.rs'));
     assert.throws(() => collectSurface(root), /Rust source/);
   }));
 void test('package add and removal are detected, and conditional target ordering is pinned', () =>
@@ -380,20 +380,20 @@ void test('Rust private aliases and constants used by public declarations cannot
   withFixture((root) => {
     put(
       root,
-      'crates/rustra/src/hidden.rs',
+      'crates/unikit-bridge/src/hidden.rs',
       'type Internal = u32;\nconst N: usize = 4;\npub fn values() -> [Internal; N] { [0; N] }',
     );
     hasDrift(root, () =>
       put(
         root,
-        'crates/rustra/src/hidden.rs',
+        'crates/unikit-bridge/src/hidden.rs',
         'type Internal = u64;\nconst N: usize = 4;\npub fn values() -> [Internal; N] { [0; N] }',
       ),
     );
     hasDrift(root, () =>
       put(
         root,
-        'crates/rustra/src/hidden.rs',
+        'crates/unikit-bridge/src/hidden.rs',
         'type Internal = u64;\nconst N: usize = 8;\npub fn values() -> [Internal; N] { [0; N] }',
       ),
     );
@@ -430,11 +430,11 @@ void test('source declaration-only exports include both ESM and CommonJS declara
 
 void test('Rust inline literal path follows its module directory rather than a decoy sibling', () =>
   withFixture((root) => {
-    put(root, 'crates/rustra/src/lib.rs', 'pub mod inline { #[path="api.rs"] pub mod api; }');
-    put(root, 'crates/rustra/src/api.rs', 'pub fn public_api() -> bool { true }');
-    put(root, 'crates/rustra/src/inline/api.rs', 'pub fn public_api() -> u32 { 1 }');
+    put(root, 'crates/unikit-bridge/src/lib.rs', 'pub mod inline { #[path="api.rs"] pub mod api; }');
+    put(root, 'crates/unikit-bridge/src/api.rs', 'pub fn public_api() -> bool { true }');
+    put(root, 'crates/unikit-bridge/src/inline/api.rs', 'pub fn public_api() -> u32 { 1 }');
     hasDrift(root, () =>
-      put(root, 'crates/rustra/src/inline/api.rs', 'pub fn public_api() -> u64 { 1 }'),
+      put(root, 'crates/unikit-bridge/src/inline/api.rs', 'pub fn public_api() -> u64 { 1 }'),
     );
   }));
 
@@ -452,15 +452,15 @@ void test('source declaration files reject unresolved types and package imports'
 
 void test('Rust path-overridden file and inline modules retain rustc child lookup semantics', () =>
   withFixture((root) => {
-    put(root, 'crates/rustra/src/lib.rs', '#[path="custom.rs"] pub mod renamed; pub mod ordinary;');
-    put(root, 'crates/rustra/src/custom.rs', 'pub mod child;');
-    put(root, 'crates/rustra/src/child.rs', 'pub type Value = u32;');
+    put(root, 'crates/unikit-bridge/src/lib.rs', '#[path="custom.rs"] pub mod renamed; pub mod ordinary;');
+    put(root, 'crates/unikit-bridge/src/custom.rs', 'pub mod child;');
+    put(root, 'crates/unikit-bridge/src/child.rs', 'pub type Value = u32;');
     put(
       root,
-      'crates/rustra/src/ordinary.rs',
+      'crates/unikit-bridge/src/ordinary.rs',
       '#[path="override"] pub mod inline { #[path="api.rs"] pub mod api; }',
     );
-    put(root, 'crates/rustra/src/override/api.rs', 'pub type Value = u32;');
-    hasDrift(root, () => put(root, 'crates/rustra/src/child.rs', 'pub type Value = u64;'));
-    hasDrift(root, () => put(root, 'crates/rustra/src/override/api.rs', 'pub type Value = u64;'));
+    put(root, 'crates/unikit-bridge/src/override/api.rs', 'pub type Value = u32;');
+    hasDrift(root, () => put(root, 'crates/unikit-bridge/src/child.rs', 'pub type Value = u64;'));
+    hasDrift(root, () => put(root, 'crates/unikit-bridge/src/override/api.rs', 'pub type Value = u64;'));
   }));

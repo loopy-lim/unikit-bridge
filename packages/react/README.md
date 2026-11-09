@@ -1,11 +1,11 @@
 English | [한국어](./README.ko.md)
 
-# @rustra/react
+# @unikit/react
 
-React hooks and context bindings for Rustra command clients.
+React hooks and context bindings for Unikit command clients.
 
 ```tsx
-import { RustraProvider, useCommand } from '@rustra/react';
+import { UnikitProvider, useCommand } from '@unikit/react';
 import { getItem } from './generated/commands.js';
 
 function Item({ id }: { id: string }) {
@@ -15,15 +15,15 @@ function Item({ id }: { id: string }) {
   return <span>{data?.name}</span>;
 }
 
-<RustraProvider engine={engine}>
+<UnikitProvider engine={engine}>
   <Item id="item-1" />
-</RustraProvider>;
+</UnikitProvider>;
 ```
 
-The package provides `RustraProvider`, `useRustraEngine`, `useCommand`,
+The package provides `UnikitProvider`, `useUnikitEngine`, `useCommand`,
 `useMutation`, `useEvent`, `useSuspenseCommand`, `invalidateCommands`, and
 `configureSuspenseCache`. React is a peer dependency;
-configure the platform-specific Rustra engine before rendering the provider.
+configure the platform-specific Unikit engine before rendering the provider.
 
 `useSuspenseCommand(commandFn, input?, options?)` is the Suspense-compatible read:
 it suspends by throwing the in-flight promise until the command resolves, then
@@ -59,7 +59,7 @@ by itself. Engines are weakly held, and cached results also have finite retentio
 
 ```tsx
 import { Suspense } from 'react';
-import { invalidateCommands, useSuspenseCommand } from '@rustra/react';
+import { invalidateCommands, useSuspenseCommand } from '@unikit/react';
 import { getItem, saveItem } from './generated/commands.js';
 
 function Item({ id }: { id: string }) {
@@ -92,7 +92,7 @@ when it settles after a reset or scope change. Overlapping calls keep `loading`
 true until all current-scope calls settle; only the latest call updates data/error.
 
 **Engine identity.** Engines are keyed by object identity (a `WeakMap`), not by
-value. Pass a stable engine to `RustraProvider` — a module-level constant or a
+value. Pass a stable engine to `UnikitProvider` — a module-level constant or a
 `useMemo` result; an unstable `engine` prop (a new object every render) is
 observed as an engine swap and resets `useMutation` state on every render.
 Intentional swaps resetting state are by design.

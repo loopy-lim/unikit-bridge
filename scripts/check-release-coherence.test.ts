@@ -18,10 +18,10 @@ const published = [
 ];
 
 function makeFixture(): string {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-release-coherence-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-release-coherence-'));
   mkdirSync(join(root, 'packages'), { recursive: true });
-  mkdirSync(join(root, 'crates', 'rustra'), { recursive: true });
-  mkdirSync(join(root, 'crates', 'rustra-macros'), { recursive: true });
+  mkdirSync(join(root, 'crates', 'unikit'), { recursive: true });
+  mkdirSync(join(root, 'crates', 'unikit-bridge-macros'), { recursive: true });
   mkdirSync(join(root, '.changeset'), { recursive: true });
 
   writeFileSync(join(root, 'Cargo.toml'), '[workspace.package]\nversion = "0.4.0"\n');
@@ -32,12 +32,12 @@ function makeFixture(): string {
   for (const name of published) {
     const version = name === 'bun' ? '0.4.1' : '0.4.0';
     const manifest: Record<string, unknown> = {
-      name: `@rustra/${name}`,
+      name: `@unikit/${name}`,
       version,
       files: ['LICENSE'],
     };
     if (name === 'cli') {
-      manifest.rustraTemplate = {
+      manifest.unikitTemplate = {
         cargoRange: '^0.4.0',
         reactNativeRange: '^0.4.0',
         nodeRange: '^0.4.0',
@@ -46,13 +46,13 @@ function makeFixture(): string {
       };
     }
     if (name !== 'types') {
-      manifest.dependencies = { '@rustra/types': '^0.4.0' };
+      manifest.dependencies = { '@unikit/types': '^0.4.0' };
     }
     mkdirSync(join(root, 'packages', name), { recursive: true });
     writeFileSync(join(root, 'packages', name, 'package.json'), JSON.stringify(manifest));
     writeFileSync(join(root, 'packages', name, 'LICENSE'), 'MIT\n');
     workspaceBlocks.push(
-      `    "packages/${name}": {\n      "name": "@rustra/${name}",\n      "version": "${version}",\n${name === 'types' ? '' : '      "dependencies": {\n        "@rustra/types": "^0.4.0",\n      },\n'}    },`,
+      `    "packages/${name}": {\n      "name": "@unikit/${name}",\n      "version": "${version}",\n${name === 'types' ? '' : '      "dependencies": {\n        "@unikit/types": "^0.4.0",\n      },\n'}    },`,
     );
   }
 
@@ -74,11 +74,11 @@ void test('reports an incompatible internal dependency range', () => {
   try {
     const manifestPath = join(root, 'packages', 'bun', 'package.json');
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
-      dependencies: { '@rustra/types': string };
+      dependencies: { '@unikit/types': string };
     };
-    manifest.dependencies['@rustra/types'] = '^0.3.0';
+    manifest.dependencies['@unikit/types'] = '^0.3.0';
     writeFileSync(manifestPath, JSON.stringify(manifest));
-    assert.match(checkReleaseCoherence(root).join('\n'), /@rustra\/bun.*@rustra\/types/);
+    assert.match(checkReleaseCoherence(root).join('\n'), /@unikit\/bun.*@unikit\/types/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -99,7 +99,7 @@ void test('rejects release files that ship the experimental wasm backend', () =>
     const failures = checkReleaseCoherence(root);
     assert.match(
       failures.join('\n'),
-      /@rustra\/react-native.*wasm/,
+      /@unikit\/react-native.*wasm/,
       'shipping wasm3 sources or .wasm engines in a published package must fail',
     );
   } finally {
@@ -139,7 +139,7 @@ void test('reports a reactNativeRange that no longer contains the adapter versio
     const failures = checkReleaseCoherence(root);
     assert.match(
       failures.join('\n'),
-      /reactNativeRange=\^0\.4\.0 does not contain @rustra\/react-native 0\.5\.0/,
+      /reactNativeRange=\^0\.4\.0 does not contain @unikit\/react-native 0\.5\.0/,
     );
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -151,9 +151,9 @@ void test('codegen host ranges must contain independently published host version
   try {
     const path = join(root, 'packages/cli/package.json');
     const cli = JSON.parse(readFileSync(path, 'utf8')) as {
-      rustraTemplate: Record<string, string>;
+      unikitTemplate: Record<string, string>;
     };
-    Object.assign(cli.rustraTemplate, {
+    Object.assign(cli.unikitTemplate, {
       nodeRange: '^0.9.0',
       bunRange: '^0.9.0',
       tauriRange: '^0.9.0',

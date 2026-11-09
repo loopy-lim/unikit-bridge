@@ -32,7 +32,7 @@ export const MINIMUM_BUN_VERSION = '1.4.0';
 export const DEFAULT_BUNDLE_ID = 'com.alt-shifted.react-native-calculator';
 
 const DEFAULT_APP_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const BUILD_FINGERPRINT_PATTERN = /RUSTRA_BUILD_FINGERPRINT\s*=\s*['"]([a-f0-9]{64})['"]/;
+const BUILD_FINGERPRINT_PATTERN = /UNIKIT_BUILD_FINGERPRINT\s*=\s*['"]([a-f0-9]{64})['"]/;
 
 function readFlag(argv, name, fallback) {
   const index = argv.indexOf(name);
@@ -60,13 +60,13 @@ function dependencyCheck({ packageJson, typesVersion, expoInstalled }) {
   const valid =
     expoInstalled && typesVersion === '0.4.0' && packageJson.packageManager === 'bun@1.4.0';
   return valid
-    ? pass('Bun', 'bun.dependencies', 'Bun dependencies and @rustra/types 0.4.0 are installed')
+    ? pass('Bun', 'bun.dependencies', 'Bun dependencies and @unikit/types 0.4.0 are installed')
     : fail(
         'Bun',
         'bun.dependencies',
         'Dependency installation or pinned versions are inconsistent',
-        `expo=${expoInstalled ? 'installed' : 'missing'}, @rustra/types=${typesVersion ?? 'missing'}, packageManager=${packageJson.packageManager ?? 'missing'}`,
-        'Keep `packageManager` at `bun@1.4.0`, keep all `@rustra/*` packages at 0.4.0, and run `bun install`.',
+        `expo=${expoInstalled ? 'installed' : 'missing'}, @unikit/types=${typesVersion ?? 'missing'}, packageManager=${packageJson.packageManager ?? 'missing'}`,
+        'Keep `packageManager` at `bun@1.4.0`, keep all `@unikit/*` packages at 0.4.0, and run `bun install`.',
       );
 }
 
@@ -79,7 +79,7 @@ async function generatedChecks(appRoot, schemaPath, generatedRoot, nativeRoot) {
       readOptional(join(generatedRoot, 'contract.ts')),
       readOptional(join(generatedRoot, 'commands.ts')),
       readOptional(join(generatedRoot, 'react-native.ts')),
-      readOptional(join(nativeRoot, 'rustra-generated-codecs.cpp')),
+      readOptional(join(nativeRoot, 'unikit-generated-codecs.cpp')),
     ]);
   const fingerprint = fingerprintSource?.match(BUILD_FINGERPRINT_PATTERN)?.[1];
   const checks = [
@@ -102,7 +102,7 @@ async function generatedChecks(appRoot, schemaPath, generatedRoot, nativeRoot) {
     schemaSource &&
     contractSource &&
     commandsSource &&
-    rnSource?.includes('createRustraBootstrap') &&
+    rnSource?.includes('createUnikitBootstrap') &&
     cppSource
   ) {
     checks.push(
@@ -114,7 +114,7 @@ async function generatedChecks(appRoot, schemaPath, generatedRoot, nativeRoot) {
         'Generated',
         'generated.files',
         'Required generated TypeScript or native codec files are missing',
-        'Expected schema.json, contract.ts, commands.ts, react-native.ts, and rustra-generated-codecs.cpp.',
+        'Expected schema.json, contract.ts, commands.ts, react-native.ts, and unikit-generated-codecs.cpp.',
         'Run `bun run codegen` from examples/react-native-calculator.',
       ),
     );
@@ -142,10 +142,10 @@ async function rustChecks(repoRoot, archivePath, runner) {
   const newestSource = await newestInput([
     join(repoRoot, 'Cargo.toml'),
     join(repoRoot, 'Cargo.lock'),
-    join(repoRoot, 'crates/rustra/Cargo.toml'),
-    join(repoRoot, 'crates/rustra/src'),
-    join(repoRoot, 'crates/rustra-macros/Cargo.toml'),
-    join(repoRoot, 'crates/rustra-macros/src'),
+    join(repoRoot, 'crates/unikit-bridge/Cargo.toml'),
+    join(repoRoot, 'crates/unikit-bridge/src'),
+    join(repoRoot, 'crates/unikit-bridge-macros/Cargo.toml'),
+    join(repoRoot, 'crates/unikit-bridge-macros/src'),
     join(repoRoot, 'examples/calculator/Cargo.toml'),
     join(repoRoot, 'examples/calculator/src'),
   ]);
@@ -168,17 +168,17 @@ export async function runDoctor(options, runner = defaultRunner) {
   const { appRoot } = options;
   const repoRoot = resolve(appRoot, '../..');
   const packageJson = JSON.parse(await readOptional(join(appRoot, 'package.json')));
-  const rustraConfig = JSON.parse(await readOptional(join(appRoot, 'rustra.json')));
-  const generatedRoot = resolve(appRoot, rustraConfig.output);
-  const schemaPath = resolve(appRoot, rustraConfig.schema);
+  const unikitConfig = JSON.parse(await readOptional(join(appRoot, 'unikit.json')));
+  const generatedRoot = resolve(appRoot, unikitConfig.output);
+  const schemaPath = resolve(appRoot, unikitConfig.schema);
   const moduleRoot = resolve(
     appRoot,
-    rustraConfig.reactNative.moduleDir ?? 'modules/rustra-bridge',
+    unikitConfig.reactNative.moduleDir ?? 'modules/unikit-bridge',
   );
-  const nativeRoot = resolve(appRoot, rustraConfig.cppOutput ?? join(moduleRoot, 'generated'));
+  const nativeRoot = resolve(appRoot, unikitConfig.cppOutput ?? join(moduleRoot, 'generated'));
   const iosBuild = await readOptional(join(moduleRoot, 'ios/build-rust-ios.sh'));
   const rustLibrary =
-    rustraConfig.reactNative.rustLibrary ?? iosBuild?.match(/^LIBRARY='([^']+)'$/m)?.[1];
+    unikitConfig.reactNative.rustLibrary ?? iosBuild?.match(/^LIBRARY='([^']+)'$/m)?.[1];
   if (!rustLibrary) {
     throw new Error('Generated iOS build script does not declare the inferred Rust library');
   }

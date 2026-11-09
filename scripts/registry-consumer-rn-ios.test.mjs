@@ -26,7 +26,7 @@ import {
   selectSimulatorDevice,
 } from './registry-consumer-rn-ios.mjs';
 
-const JOURNEY_MARKER = '__RUSTRA_RN_IOS_JOURNEY__';
+const JOURNEY_MARKER = '__UNIKIT_RN_IOS_JOURNEY__';
 
 function validFinalObservation(overrides = {}) {
   return {
@@ -58,7 +58,7 @@ test('CLI args require an absolute output, accept --sim and --help, reject the u
 
 test('rendered RN/iOS lib.rs reports evidence over stdout and mutates exactly once', () => {
   const baseline = renderRnIosLibRs();
-  assert.match(baseline, /rustra::native_entry!\(package\);/);
+  assert.match(baseline, /unikit_bridge::native_entry!\(package\);/);
   assert.match(baseline, /package\.register_ffi\(\);/);
   // 증거 회신 채널 — println! 이 stdout 캡처로 가는 마커를 찍는다.
   assert.match(
@@ -233,7 +233,7 @@ test('renderers keep deterministic anchors for the RN/iOS journey', () => {
   assert.match(renderMetroConfigJs(), /moduleName\.endsWith\('\.js'\)/);
   assert.match(
     renderAppReactNativeConfigJs(),
-    /root: path\.resolve\(__dirname, 'modules', 'rustra-bridge'\)/,
+    /root: path\.resolve\(__dirname, 'modules', 'unikit-bridge'\)/,
   );
   assert.match(renderJourneyInputTs({ phase: 'mutated', repeat: 3 }), /repeat: 3/);
 });

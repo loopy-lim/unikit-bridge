@@ -1,5 +1,5 @@
 {
-  "name": "rustra-tauri-calculator",
+  "name": "unikit-tauri-calculator",
   "version": "0.1.0",
   "private": true,
   "packageManager": "bun@1.4.0",
@@ -14,14 +14,14 @@
     "smoke": "bun runtime-smoke.mjs"
   },
   "dependencies": {
-    "@rustra/tauri": "file:../../packages/tauri",
-    "@rustra/types": "file:../../packages/types"
+    "@unikit/tauri": "file:../../packages/tauri",
+    "@unikit/types": "file:../../packages/types"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.4",
     "typescript": "^5.9.0"
   },
   "overrides": {
-    "@rustra/types": "file:../../packages/types"
+    "@unikit/types": "file:../../packages/types"
   }
 }

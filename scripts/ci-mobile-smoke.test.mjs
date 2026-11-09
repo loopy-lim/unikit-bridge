@@ -30,7 +30,7 @@ for (const job of ['rn-android', 'uniffi-android']) {
 }
 
 function runSmoke(host, scenario) {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-mobile-smoke-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-mobile-smoke-'));
   const calls = join(dir, 'calls.jsonl');
   writeFileSync(
     join(dir, 'adb'),
@@ -56,13 +56,13 @@ if (args[0] === 'shell' && args[1] === 'pidof' && scenario !== 'dead') console.l
         ...process.env,
         PATH: `${dir}:${process.env.PATH}`,
         RUNNER_TEMP: dir,
-        RUSTRA_SMOKE_ATTEMPTS: '1',
-        RUSTRA_SMOKE_DELAY_SECONDS: '0',
+        UNIKIT_SMOKE_ATTEMPTS: '1',
+        UNIKIT_SMOKE_DELAY_SECONDS: '0',
         SMOKE_CALLS: calls,
         SMOKE_SCENARIO: scenario,
         SMOKE_OK:
-          host === 'rn' ? '__RUSTRA_SMOKE_OK__' : '__RUSTRA_UNIFFI_OK__ addNumbers(20,22)=42',
-        SMOKE_FAIL: host === 'rn' ? '__RUSTRA_SMOKE_FAIL__' : '__RUSTRA_UNIFFI_FAIL__',
+          host === 'rn' ? '__UNIKIT_SMOKE_OK__' : '__UNIKIT_UNIFFI_OK__ addNumbers(20,22)=42',
+        SMOKE_FAIL: host === 'rn' ? '__UNIKIT_SMOKE_FAIL__' : '__UNIKIT_UNIFFI_FAIL__',
       },
     });
     assert.ifError(result.error);
@@ -77,7 +77,7 @@ for (const host of ['rn', 'uniffi']) {
     const result = runSmoke(host, 'success');
     assert.equal(result.status, 0, result.stderr);
     const appId =
-      host === 'rn' ? 'com.altshifted.reactnativecalculator' : 'dev.rustra.uniffi.smoke';
+      host === 'rn' ? 'com.altshifted.reactnativecalculator' : 'dev.unikit.uniffi.smoke';
     assert.ok(result.calls.some((args) => args[0] === 'install'));
     assert.ok(
       result.calls.some((args) => args[0] === 'shell' && args[1] === 'monkey' && args[3] === appId),

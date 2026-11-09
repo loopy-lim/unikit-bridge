@@ -2,9 +2,9 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** 프로덕션 준비성 감사에서 확인된 결함 4건 + 조건부 항목 7건을 수정해 rustra-bridge를 프로덕션 준비 완료 상태로 만든다.
+**Goal:** 프로덕션 준비성 감사에서 확인된 결함 4건 + 조건부 항목 7건을 수정해 unikit-bridge를 프로덕션 준비 완료 상태로 만든다.
 
-**Architecture:** 수정은 4개 레이어에 걸친다 — (1) RN JSI C++ 브릿지(버퍼 해제 짝·입력 클램프), (2) calculator FFI(panic guard), (3) TS 엔진 레이어(`@rustra/types` timeout·코드젠 살균·버전 주입), (4) 저장소 운영(CI 게이트·메타데이터·브랜치 보호). 각 수정은 기존 테스트 컨벤션(Rust 통합테스트 / `node --test` / CLI 유닛테스트)을 따르는 실패-테스트 우선으로 진행한다.
+**Architecture:** 수정은 4개 레이어에 걸친다 — (1) RN JSI C++ 브릿지(버퍼 해제 짝·입력 클램프), (2) calculator FFI(panic guard), (3) TS 엔진 레이어(`@unikit/types` timeout·코드젠 살균·버전 주입), (4) 저장소 운영(CI 게이트·메타데이터·브랜치 보호). 각 수정은 기존 테스트 컨벤션(Rust 통합테스트 / `node --test` / CLI 유닛테스트)을 따르는 실패-테스트 우선으로 진행한다.
 
 **Tech Stack:** Rust (edition 2024, catch_unwind/scope guard), C++17 (JSI, iOS/Android 공유), TypeScript ESM (node --test), npm workspaces + changesets, GitHub Actions.
 
@@ -12,14 +12,14 @@
 
 ## 배경 지식 (zero-context engineer용)
 
-- **저장소 구조**: Rust 워크스페이스(루트 `Cargo.toml`, `crates/rustra` 코어 + `crates/rustra-macros`) + npm 워크스페이스(`packages/*`, @rustra 스코프 9개). 전부 버전 0.2.0 (루트 package.json만 0.1.3, private).
+- **저장소 구조**: Rust 워크스페이스(루트 `Cargo.toml`, `crates/unikit-bridge` 코어 + `crates/unikit-bridge-macros`) + npm 워크스페이스(`packages/*`, @unikit 스코프 9개). 전부 버전 0.2.0 (루트 package.json만 0.1.3, private).
 - **와이어 프로토콜**: JS↔Rust 호출은 3계층 — JSON(디버그), postcard V1(범용), rkyv V2(바이너리 fast-path, RN 전용). rkyv V2 요청은 `[cmd_id: u16 LE][본문]`.
 - **FFI 버퍼 소유권 규칙 (핵심!)**: 응답 버퍼를 **할당한 쪽의 전용 free 함수**로만 해제해야 한다.
-  - `crates/rustra/src/ffi.rs`의 `alloc_response`(ffi.rs:118)는 8바이트 magic 헤더(`"RUST"` + len u32)를 앞에 붙인 `Box<[u8]>`를 반환 → **반드시 `rustra_ffi_free`로 해제** (magic 불일치 시 free 거부 → 누수).
-  - `examples/calculator/src/lib.rs`의 `alloc_response`(lib.rs:722)는 magic 헤더 **없는** `Box<[u8]>`를 반환 → **반드시 `rustra_calculator_free_buffer`로 해제**. `rustra_ffi_free`에 넣으면 `ptr-8` OOB 읽기 후 free 거부 → 호출당 누수.
-- **RN JSI 브릿지**: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp` 하나를 iOS/Android가 공유 (`android/CMakeLists.txt:22`가 `../ios/` 소스를 컴파일). C++ 테스트는 `run-cpp-codec-tests.sh`(jsi shim 헤더 기반, Xcode 불필요)로 로컬 검증.
+  - `crates/unikit-bridge/src/ffi.rs`의 `alloc_response`(ffi.rs:118)는 8바이트 magic 헤더(`"RUST"` + len u32)를 앞에 붙인 `Box<[u8]>`를 반환 → **반드시 `unikit_ffi_free`로 해제** (magic 불일치 시 free 거부 → 누수).
+  - `examples/calculator/src/lib.rs`의 `alloc_response`(lib.rs:722)는 magic 헤더 **없는** `Box<[u8]>`를 반환 → **반드시 `unikit_calculator_free_buffer`로 해제**. `unikit_ffi_free`에 넣으면 `ptr-8` OOB 읽기 후 free 거부 → 호출당 누수.
+- **RN JSI 브릿지**: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp` 하나를 iOS/Android가 공유 (`android/CMakeLists.txt:22`가 `../ios/` 소스를 컴파일). C++ 테스트는 `run-cpp-codec-tests.sh`(jsi shim 헤더 기반, Xcode 불필요)로 로컬 검증.
 - **panic guard 규칙**: Rust panic은 절대 `extern "C"`(nounwind ABI) 경계를 넘으면 안 된다 — 넘으면 프로세스 abort. 코어는 `with_panic_guard`(ffi.rs:282)로 JSON/postcard 경로를 보호하지만 calculator의 rkyv V2 진입점(lib.rs:1099 sync, 1139 async)은 보호 없음.
-- **테스트 컨벤션**: Rust 통합테스트는 `crates/rustra/tests/`(파일당 하나의 주제, `cargo test -p rustra --test <name>`), TS는 `node --test`(컴파일 후 `dist/`에서 실행), CLI는 `packages/cli/src/*.test.ts`(tsx 직접 실행). generated/ 디렉터리는 prettier 제외.
+- **테스트 컨벤션**: Rust 통합테스트는 `crates/unikit-bridge/tests/`(파일당 하나의 주제, `cargo test -p unikit-bridge --test <name>`), TS는 `node --test`(컴파일 후 `dist/`에서 실행), CLI는 `packages/cli/src/*.test.ts`(tsx 직접 실행). generated/ 디렉터리는 prettier 제외.
 - **커밋 컨벤션**: conventional commits (`fix:`, `feat:`, `chore:`, `test:`). pre-commit 훅이 prettier로 포맷하지만 재스테이징 안 하므로 **커밋 후 `git commit --amend --no-edit` 필수** (메모리 lefthook-prettier-amend 참조).
 - **빌드 게이트**: `npm run lint:rust`(clippy -D warnings), `npm run fmt:rust:check`, `cargo test`, `npm run test`(전체 TS).
 
@@ -29,12 +29,12 @@
 
 **Files:**
 
-- Modify: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp:282-321`
-- Test: `examples/react-native-calculator/modules/rustra-jsi/ios/run-cpp-codec-tests.sh`에 컴파일만 확인(브릿지 전체는 shim 부족 — 컴파일 게이트로 검증)
+- Modify: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp:282-321`
+- Test: `examples/react-native-calculator/modules/unikit-jsi/ios/run-cpp-codec-tests.sh`에 컴파일만 확인(브릿지 전체는 shim 부족 — 컴파일 게이트로 검증)
 
 **Step 1: makeInvoke에 deleter 파라미터 추가**
 
-`RustraJSIBridge.cpp:275`의 `using InvokeFn` 아래에 deleter 타입을 추가하고, `makeInvoke`(282행) 시그니처를 변경한다. 핵심: calculator 심볼(9개)은 `rustra_calculator_free_buffer`, rustra_ffi 심볼(3개)은 `rustra_ffi_free`.
+`UnikitJSIBridge.cpp:275`의 `using InvokeFn` 아래에 deleter 타입을 추가하고, `makeInvoke`(282행) 시그니처를 변경한다. 핵심: calculator 심볼(9개)은 `unikit_calculator_free_buffer`, unikit_ffi 심볼(3개)은 `unikit_ffi_free`.
 
 ```cpp
 using InvokeFn = uint8_t*(*)(const uint8_t*, size_t, size_t*);
@@ -42,11 +42,11 @@ using FreeFn = void(*)(uint8_t*, size_t);
 
 // ── free 짝 계약 ──────────────────────────────────────────
 // 응답 버퍼는 "할당한 쪽의 전용 free 함수"로만 해제한다.
-// - rustra_ffi_* 심볼 → alloc_response(crates/rustra/src/ffi.rs)가 8B magic
-//   헤더를 붙임 → rustra_ffi_free (ptr-8 magic 검증 후 해제).
-// - rustra_calculator_* 심볼 → alloc_response(examples/calculator/src/lib.rs)
-//   가 magic 헤더 없는 Box<[u8]> → rustra_calculator_free_buffer.
-//   rustra_ffi_free 는 ptr-8 을 OOB 읽고 magic 불일치로 free 를 거부한다
+// - unikit_ffi_* 심볼 → alloc_response(crates/unikit-bridge/src/ffi.rs)가 8B magic
+//   헤더를 붙임 → unikit_ffi_free (ptr-8 magic 검증 후 해제).
+// - unikit_calculator_* 심볼 → alloc_response(examples/calculator/src/lib.rs)
+//   가 magic 헤더 없는 Box<[u8]> → unikit_calculator_free_buffer.
+//   unikit_ffi_free 는 ptr-8 을 OOB 읽고 magic 불일치로 free 를 거부한다
 //   (호출당 누수 + 할당 앞 8바이트 읽기 — 실제 버그였음, 이번에 수정).
 struct InvokeEntry {
   InvokeFn fn;
@@ -54,10 +54,10 @@ struct InvokeEntry {
   const char* err;
 };
 
-static constexpr InvokeEntry FFI_FREE      = { nullptr, rustra_ffi_free, nullptr }; // fn 은 makeInvoke 인자로 주입
+static constexpr InvokeEntry FFI_FREE      = { nullptr, unikit_ffi_free, nullptr }; // fn 은 makeInvoke 인자로 주입
 ```
 
-`makeInvoke` 람다 본문(286-299행)에서 `rustra_ffi_free(result, out_len);`을 deleter 호출로 교체:
+`makeInvoke` 람다 본문(286-299행)에서 `unikit_ffi_free(result, out_len);`을 deleter 호출로 교체:
 
 ```cpp
   auto makeInvoke = [&](const char* name, InvokeFn fn, FreeFn freeFn, const char* err) {
@@ -66,13 +66,13 @@ static constexpr InvokeEntry FFI_FREE      = { nullptr, rustra_ffi_free, nullptr
       rt, propNameId, 1,
       [fn, freeFn, err](Runtime& rt, const Value&, const Value* args, size_t count) -> Value {
         if (count < 1) {
-          throw JSError(rt, std::string("RustraJSI: requires 1 argument — ") + err);
+          throw JSError(rt, std::string("UnikitJSI: requires 1 argument — ") + err);
         }
         auto [data, size] = extractBytes(rt, args[0]);
         size_t out_len = 0;
         uint8_t* result = fn(data, size, &out_len);
         if (!result) {
-          throw JSError(rt, std::string("RustraJSI: ") + err);
+          throw JSError(rt, std::string("UnikitJSI: ") + err);
         }
         auto returnValue = createArrayBuffer(rt, result, out_len);
         freeFn(result, out_len);
@@ -85,52 +85,52 @@ static constexpr InvokeEntry FFI_FREE      = { nullptr, rustra_ffi_free, nullptr
 
 **Step 2: 12개 심볼 등록부를 올바른 deleter로 교체**
 
-305-321행의 등록부를 다음과 같이 바꾼다 (calculator 심볼엔 `rustra_calculator_free_buffer` — hpp:67에 이미 extern 선언됨):
+305-321행의 등록부를 다음과 같이 바꾼다 (calculator 심볼엔 `unikit_calculator_free_buffer` — hpp:67에 이미 extern 선언됨):
 
 ```cpp
-  // ── Generic FFI paths (default, json, postcard) — rustra_ffi_free 짝 ──
-  makeInvoke("invoke",           rustra_ffi_invoke,              rustra_ffi_free, "Rust returned null");
-  makeInvoke("invokeJson",       rustra_ffi_invoke_json,         rustra_ffi_free, "Rust json returned null");
-  makeInvoke("invokePostcardFFI", rustra_ffi_invoke_postcard,    rustra_ffi_free, "Rust postcard FFI returned null");
+  // ── Generic FFI paths (default, json, postcard) — unikit_ffi_free 짝 ──
+  makeInvoke("invoke",           unikit_ffi_invoke,              unikit_ffi_free, "Rust returned null");
+  makeInvoke("invokeJson",       unikit_ffi_invoke_json,         unikit_ffi_free, "Rust json returned null");
+  makeInvoke("invokePostcardFFI", unikit_ffi_invoke_postcard,    unikit_ffi_free, "Rust postcard FFI returned null");
 
-  // ── Per-example benchmark paths (legacy) — rustra_calculator_free_buffer 짝 ──
+  // ── Per-example benchmark paths (legacy) — unikit_calculator_free_buffer 짝 ──
   // calculator alloc_response 는 magic 헤더 없는 Box<[u8]> (typedInvokeTail
-  // 주석 참조) — rustra_ffi_free 로 해제하면 호출당 누수 + 8B 언더리드다.
-  makeInvoke("invokeBytes",   rustra_calculator_invoke_bytes,   rustra_calculator_free_buffer, "Rust bytes returned null");
-  makeInvoke("invokeMsgpack", rustra_calculator_invoke_msgpack, rustra_calculator_free_buffer, "Rust msgpack returned null");
-  makeInvoke("invokeBincode", rustra_calculator_invoke_bincode, rustra_calculator_free_buffer, "Rust bincode returned null");
-  makeInvoke("invokePostcard", rustra_calculator_invoke_postcard, rustra_calculator_free_buffer, "Rust postcard returned null");
-  makeInvoke("invokeLegacyPostcard", rustra_calculator_invoke_postcard, rustra_calculator_free_buffer, "Rust postcard returned null");
-  makeInvoke("invokeRkyv",    rustra_calculator_invoke_rkyv,    rustra_calculator_free_buffer, "Rust rkyv returned null");
-  makeInvoke("invokeHybrid",  rustra_calculator_invoke_hybrid,  rustra_calculator_free_buffer, "Rust hybrid returned null");
-  makeInvoke("invokeRkyvV2",  rustra_calculator_invoke_rkyv_v2, rustra_calculator_free_buffer, "Rust rkyv v2 returned null");
-  makeInvoke("invokeRaw",     rustra_calculator_invoke_raw,     rustra_calculator_free_buffer, "Rust invoke_raw returned null");
+  // 주석 참조) — unikit_ffi_free 로 해제하면 호출당 누수 + 8B 언더리드다.
+  makeInvoke("invokeBytes",   unikit_calculator_invoke_bytes,   unikit_calculator_free_buffer, "Rust bytes returned null");
+  makeInvoke("invokeMsgpack", unikit_calculator_invoke_msgpack, unikit_calculator_free_buffer, "Rust msgpack returned null");
+  makeInvoke("invokeBincode", unikit_calculator_invoke_bincode, unikit_calculator_free_buffer, "Rust bincode returned null");
+  makeInvoke("invokePostcard", unikit_calculator_invoke_postcard, unikit_calculator_free_buffer, "Rust postcard returned null");
+  makeInvoke("invokeLegacyPostcard", unikit_calculator_invoke_postcard, unikit_calculator_free_buffer, "Rust postcard returned null");
+  makeInvoke("invokeRkyv",    unikit_calculator_invoke_rkyv,    unikit_calculator_free_buffer, "Rust rkyv returned null");
+  makeInvoke("invokeHybrid",  unikit_calculator_invoke_hybrid,  unikit_calculator_free_buffer, "Rust hybrid returned null");
+  makeInvoke("invokeRkyvV2",  unikit_calculator_invoke_rkyv_v2, unikit_calculator_free_buffer, "Rust rkyv v2 returned null");
+  makeInvoke("invokeRaw",     unikit_calculator_invoke_raw,     unikit_calculator_free_buffer, "Rust invoke_raw returned null");
 ```
 
 **Step 3: 컴파일 검증 (C++ 테스트 하네스)**
 
-Run: `cd examples/react-native-calculator/modules/rustra-jsi/ios && clang++ -std=c++17 -fsyntax-only -I. RustraJSIBridge.cpp 2>&1 | head -20`
+Run: `cd examples/react-native-calculator/modules/unikit-jsi/ios && clang++ -std=c++17 -fsyntax-only -I. UnikitJSIBridge.cpp 2>&1 | head -20`
 
 진짜 jsi/jsi.h가 없어 링크는 안 되지만 `-fsyntax-only`도 헤더 경로 문제로 실패할 수 있다. 그 경우 최소 검증으로 `test-jsi-shim.hpp`를 include 강제:
 
 ```bash
-cd examples/react-native-calculator/modules/rustra-jsi/ios
-clang++ -std=c++17 -fsyntax-only -I. -include test-jsi-shim.hpp RustraJSIBridge.cpp 2>&1 | head -20
+cd examples/react-native-calculator/modules/unikit-jsi/ios
+clang++ -std=c++17 -fsyntax-only -I. -include test-jsi-shim.hpp UnikitJSIBridge.cpp 2>&1 | head -20
 ```
 
 shim이 런타임 헤더만 모킹하므로 브릿지 전체 컴파일이 안 될 수 있다 — 그 경우 **수정 정확성은 코드 리뷰 + grep으로 검증**하고 실제 컴파일은 iOS CI 잡(rn-ios가 xcodebuild로 컴파일)에 맡긴다. grep 검증:
 
 ```bash
-grep -n "makeInvoke(" examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp
+grep -n "makeInvoke(" examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp
 # 기대: 12줄 전부 4-인수 시그니처 (fn, freeFn, err)
-grep -c "rustra_calculator_free_buffer" examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp
+grep -c "unikit_calculator_free_buffer" examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp
 # 기대: 기존 9 + 신규 9 = 18 이상
 ```
 
 **Step 4: Commit**
 
 ```bash
-git add examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp
+git add examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp
 git commit -m "fix(rn): makeInvoke 심볼별 free 함수 매칑 — calculator 응답 호출당 누수·8B 언더리드 수정"
 git commit --amend --no-edit  # lefthook prettier 재스테이징 (필요 시)
 ```
@@ -141,7 +141,7 @@ git commit --amend --no-edit  # lefthook prettier 재스테이징 (필요 시)
 
 **Files:**
 
-- Modify: `examples/calculator/src/lib.rs:1099-1119` (`rustra_calculator_invoke_rkyv_v2`)
+- Modify: `examples/calculator/src/lib.rs:1099-1119` (`unikit_calculator_invoke_rkyv_v2`)
 - Test: `examples/calculator/tests/`에 신규 파일
 
 **Step 1: 실패 테스트 작성 — 패닉하는 핸들러가 abort 없이 에러 프레임으로 변환되는지**
@@ -159,7 +159,7 @@ use serde_json::json;
 use serde::{Deserialize, Serialize};
 
 /// 패닉하는 핸들러를 가진 별도 패키지 — calculator 전역 패키지를 오염하지 않는다.
-/// rustra_ffi_set_package 로 일시적으로 스왑했다가 원복한다 (전역 뮤텍스로 직렬화).
+/// unikit_ffi_set_package 로 일시적으로 스왑했다가 원복한다 (전역 뮤텍스로 직렬화).
 #[path = "../benches/common.rs"]
 mod common;
 
@@ -171,23 +171,23 @@ struct BoomInput { n: i64 }
 #[serde(rename_all = "camelCase")]
 struct BoomOutput { value: i64 }
 
-fn panicking_package() -> rustra::Package {
-    use rustra::prelude::*;
+fn panicking_package() -> unikit_bridge::Package {
+    use unikit_bridge::prelude::*;
     #[command]
     fn boom(input: BoomInput) -> Result<BoomOutput> {
         let _ = input;
         panic!("intentional handler panic for panic-guard test");
     }
-    rustra::build!("test.panic", boom).done()
+    unikit_bridge::build!("test.panic", boom).done()
 }
 
 static SWAP_MUTEX: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
 extern "C" {
-    fn rustra_calculator_invoke_rkyv_v2(
+    fn unikit_calculator_invoke_rkyv_v2(
         payload: *const u8, payload_len: usize, out_len: *mut usize,
     ) -> *mut u8;
-    fn rustra_calculator_free_buffer(ptr: *mut u8, len: usize);
+    fn unikit_calculator_free_buffer(ptr: *mut u8, len: usize);
 }
 
 #[test]
@@ -195,14 +195,14 @@ fn handler_panic_becomes_error_frame_not_abort() {
     let _guard = SWAP_MUTEX.lock().unwrap_or_else(|p| p.into_inner());
     // (스왑 API가 코어에 없으면 이 테스트는 calculator 명령으로 대체 불가 —
     //  대신 패닉 핸들러를 가진 패키지를 FFI 전역에 설치하는 public API 사용.
-    //  코어 rustra::ffi 에 set_package_for_test 가 없다면 Task 2 구현에서
+    //  코어 unikit_bridge::ffi 에 set_package_for_test 가 없다면 Task 2 구현에서
     //  #[cfg(feature)] 없이 pub fn install 을 쓰거나, calculator 빌드에
     //  패닉 테스트 전용 hidden 명령을 추가하는 방법을 택한다 — 아래 Step 3 참조.)
     todo!("구현 단계에서 스왑 전략 확정")
 }
 ```
 
-**주의 — Step 1 대안 채택 (단순화):** 코어에 전역 패키지 스왑 API가 없다면 테스트 유도가 복잡해진다. **권장: calculator 예제에 패닉 전용 히든 명령을 추가하지 않고**, `crates/rustra` 단위 테스트로 우회한다 — `with_panic_guard`가 이미 코어에서 테스트되어 있으므로, calculator 측 수정은 "같은 헬퍼를 쓴다"는 정도다. 따라서 **테스트는 컴파일·기존 회귀로 갈음**:
+**주의 — Step 1 대안 채택 (단순화):** 코어에 전역 패키지 스왑 API가 없다면 테스트 유도가 복잡해진다. **권장: calculator 예제에 패닉 전용 히든 명령을 추가하지 않고**, `crates/unikit-bridge` 단위 테스트로 우회한다 — `with_panic_guard`가 이미 코어에서 테스트되어 있으므로, calculator 측 수정은 "같은 헬퍼를 쓴다"는 정도다. 따라서 **테스트는 컴파일·기존 회귀로 갈음**:
 
 Create: `examples/calculator/tests/rkyv_v2_panic_guard.rs` (단순화 버전)
 
@@ -212,32 +212,32 @@ Create: `examples/calculator/tests/rkyv_v2_panic_guard.rs` (단순화 버전)
 //! 핸들러 패닉 직접 유도는 전역 패키지 스왑이 필요해 예제 크레이트에서
 //! 불가능하다. 대신 (1) 정상 왕복이 guard 추가에 영향받지 않는지, (2) 잘린
 //! 페이로드가 여전히 clean 에러 프레임(ok=0, code 추출 가능)인지 검증한다.
-//! 패닉→에러프레임 변환 자체는 rustra::ffi::with_panic_guard 의 코어
-//! 테스트(crates/rustra/src/ffi.rs tests)가 담보한다.
+//! 패닉→에러프레임 변환 자체는 unikit_bridge::ffi::with_panic_guard 의 코어
+//! 테스트(crates/unikit-bridge/src/ffi.rs tests)가 담보한다.
 
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 extern "C" {
-    fn rustra_calculator_invoke_rkyv_v2(
+    fn unikit_calculator_invoke_rkyv_v2(
         payload: *const u8, payload_len: usize, out_len: *mut usize,
     ) -> *mut u8;
-    fn rustra_calculator_free_buffer(ptr: *mut u8, len: usize);
+    fn unikit_calculator_free_buffer(ptr: *mut u8, len: usize);
 }
 
 #[path = "../src/wire_common.rs"]
 mod wire_common; // 없으면 인라인: add 요청 인코딩 헬퍼 (postcard [a i64 LE varint][b])
 
-/// calculator add 명령의 cmd_id (rustra build! 등록순 — 1번).
+/// calculator add 명령의 cmd_id (unikit build! 등록순 — 1번).
 const CMD_ADD: u16 = 1;
 
 fn invoke_rkyv_v2(payload: &[u8]) -> Vec<u8> {
     let mut out_len = 0usize;
     let ptr = unsafe {
-        rustra_calculator_invoke_rkyv_v2(payload.as_ptr(), payload.len(), &mut out_len)
+        unikit_calculator_invoke_rkyv_v2(payload.as_ptr(), payload.len(), &mut out_len)
     };
     assert!(!ptr.is_null(), "FFI returned null");
     let out = unsafe { std::slice::from_raw_parts(ptr, out_len) }.to_vec();
-    unsafe { rustra_calculator_free_buffer(ptr, out_len) };
+    unsafe { unikit_calculator_free_buffer(ptr, out_len) };
     out
 }
 
@@ -258,11 +258,11 @@ fn truncated_payload_is_clean_error_frame() {
 }
 ```
 
-`postcard`는 calculator Cargo.toml에 이미 있다. cmd_id가 1이 아니면 `examples/calculator/src/lib.rs`의 `rustra::build!` 등록 순서를 확인해 상수를 맞춘다 (기존 `tests/wire_fixtures.rs`에 같은 방식의 핀 fixture가 있으니 참조).
+`postcard`는 calculator Cargo.toml에 이미 있다. cmd_id가 1이 아니면 `examples/calculator/src/lib.rs`의 `unikit_bridge::build!` 등록 순서를 확인해 상수를 맞춘다 (기존 `tests/wire_fixtures.rs`에 같은 방식의 핀 fixture가 있으니 참조).
 
 **Step 2: 테스트 실행 — 수정 전에는 통과해야 함(회귀 방지용)**
 
-Run: `cargo test -p rustra-calculator-example --test rkyv_v2_panic_guard 2>&1 | tail -5`
+Run: `cargo test -p unikit-calculator-example --test rkyv_v2_panic_guard 2>&1 | tail -5`
 Expected: PASS (2 tests). panic guard 추가 전에도 이 테스트는 통과한다 — 이 테스트는 **수정 후 회귀 방지**용이며, guard 미설치 자체는 abort 위험이라 컴파일러가 못 잡는다. (패닉 유도 테스트의 공백은 Step 4의 통합 패닉 테스트로 메운다.)
 
 **Step 3: catch_unwind 구현**
@@ -272,15 +272,15 @@ Expected: PASS (2 tests). panic guard 추가 전에도 이 테스트는 통과�
 ```rust
     // panic guard — 코어 with_panic_guard 와 동일 계약: 핸들러 패닉이
     // extern "C" (nounwind) 경계를 넘으면 프로세스 abort 다. 에러 프레임으로
-    // 변환한다 (crates/rustra/src/ffi.rs 참조).
+    // 변환한다 (crates/unikit-bridge/src/ffi.rs 참조).
     let resp_bytes = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        rustra::ffi::get_package()
-            .ok_or_else(|| RustraError::custom("ffi.not_registered", "package not registered"))
+        unikit_bridge::ffi::get_package()
+            .ok_or_else(|| UnikitError::custom("ffi.not_registered", "package not registered"))
             .and_then(|pkg| pkg.invoke_rkyv_v2(bytes))
     })) {
         Ok(Ok(bytes)) => bytes,
-        Ok(Err(error)) => rustra::encode_rkyv_v2_error(&error),
-        Err(panic) => rustra::encode_rkyv_v2_error(&RustraError::custom(
+        Ok(Err(error)) => unikit_bridge::encode_rkyv_v2_error(&error),
+        Err(panic) => unikit_bridge::encode_rkyv_v2_error(&UnikitError::custom(
             "internal",
             &format!("panic in handler: {}", panic_message(&panic)),
         )),
@@ -304,21 +304,21 @@ fn panic_message(panic: &(dyn std::any::Any + Send)) -> String {
 }
 ```
 
-`RustraError::custom`의 두 번째 인자가 `impl Into<String>`인지 `&str`인지 `crates/rustra/src/error.rs`에서 확인 후 맞춘다 (`pub fn custom(code, detail: impl Display)` 패턴이면 `format!` 결과를 그대로).
+`UnikitError::custom`의 두 번째 인자가 `impl Into<String>`인지 `&str`인지 `crates/unikit-bridge/src/error.rs`에서 확인 후 맞춘다 (`pub fn custom(code, detail: impl Display)` 패턴이면 `format!` 결과를 그대로).
 
 **Step 4: 코어 수준 통합 패닉 테스트 (진짜 패닉 유도)**
 
-패닉 유도는 코어에서 가능하다 — `crates/rustra/tests/` 에 `invoke_rkyv_v2` 패닉 핸들러 패키지를 만들고 `Package::invoke_rkyv_v2`를 직접 호출 (FFI 전역 불필요). 코어 `invoke_rkyv_v2`(lib.rs:766)는 handler panic 시 `catch_unwind` 없이 전파하므로 **코어도 수정 대상이다**: `crates/rustra/src/lib.rs:793-807`의 `with_state_context` 클로저를 `catch_unwind`로 감싼다.
+패닉 유도는 코어에서 가능하다 — `crates/unikit-bridge/tests/` 에 `invoke_rkyv_v2` 패닉 핸들러 패키지를 만들고 `Package::invoke_rkyv_v2`를 직접 호출 (FFI 전역 불필요). 코어 `invoke_rkyv_v2`(lib.rs:766)는 handler panic 시 `catch_unwind` 없이 전파하므로 **코어도 수정 대상이다**: `crates/unikit-bridge/src/lib.rs:793-807`의 `with_state_context` 클로저를 `catch_unwind`로 감싼다.
 
-Create: `crates/rustra/tests/rkyv_v2_panic.rs`
+Create: `crates/unikit-bridge/tests/rkyv_v2_panic.rs`
 
 ```rust
-//! Package::invoke_rkyv_v2 의 핸들러 패닉 전파 검증 — 패닉은 Err(RustraError)로
+//! Package::invoke_rkyv_v2 의 핸들러 패닉 전파 검증 — 패닉은 Err(UnikitError)로
 //! 정규화되어야 하고 절대 unwinding 을 호출자에게 새어나가지 않는다
 //! (FFI 진입점에서 abort 로 이어지기 때문).
 #![allow(clippy::bool_assert_comparison)]
 
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, schemars::JsonSchema)]
@@ -337,7 +337,7 @@ fn boom(input: BoomInput) -> Result<BoomOutput> {
 
 #[test]
 fn handler_panic_is_contained_as_internal_error() {
-    let pkg = rustra::build!("test.panic", boom).done();
+    let pkg = unikit_bridge::build!("test.panic", boom).done();
     // cmd_id 1 요청 프레임: [1u16 LE][n varint] — postcard 필드 순서.
     let mut req = Vec::new();
     req.extend_from_slice(&1u16.to_le_bytes());
@@ -353,7 +353,7 @@ fn handler_panic_is_contained_as_internal_error() {
 }
 ```
 
-`RustraError`에 `code()` 접근자가 없으면(`code`가 private) `e.to_string()`이 `"internal: ..."`로 시작하는지로 검증:
+`UnikitError`에 `code()` 접근자가 없으면(`code`가 private) `e.to_string()`이 `"internal: ..."`로 시작하는지로 검증:
 
 ```rust
         Ok(Err(e)) => assert!(e.to_string().starts_with("internal"), "got: {e}"),
@@ -361,7 +361,7 @@ fn handler_panic_is_contained_as_internal_error() {
 
 **Step 5: 코어 invoke_rkyv_v2에 guard 적용**
 
-`crates/rustra/src/lib.rs:793`의 `with_state_context(&self.states, || {...})` 블록 전체를 감싼다:
+`crates/unikit-bridge/src/lib.rs:793`의 `with_state_context(&self.states, || {...})` 블록 전체를 감싼다:
 
 ```rust
         let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -372,21 +372,21 @@ fn handler_panic_is_contained_as_internal_error() {
         }));
         match outcome {
             Ok(result) => result,
-            Err(panic) => Err(RustraError::internal(format!(
+            Err(panic) => Err(UnikitError::internal(format!(
                 "panic in handler: {}",
                 crate::ffi::panic_message(&panic)
             ))),
         }
 ```
 
-`panic_message`가 ffi 비공개면(`fn panic_message` private) `pub(crate)`로 승격하거나 lib.rs에 로컬 헬퍼를 복제한다. `RustraError::internal`의 retryable=false가 에러 프레임으로 인코딩되어 JS에 `internal` 코드로 도달한다.
+`panic_message`가 ffi 비공개면(`fn panic_message` private) `pub(crate)`로 승격하거나 lib.rs에 로컬 헬퍼를 복제한다. `UnikitError::internal`의 retryable=false가 에러 프레임으로 인코딩되어 JS에 `internal` 코드로 도달한다.
 
 **Step 6: 전체 게이트 실행**
 
 ```bash
-cargo test -p rustra -p rustra-calculator-example 2>&1 | grep -E "test result"
+cargo test -p unikit-bridge -p unikit-calculator-example 2>&1 | grep -E "test result"
 # 기대: 전부 ok
-cargo test -p rustra --test rkyv_v2_panic 2>&1 | tail -3
+cargo test -p unikit-bridge --test rkyv_v2_panic 2>&1 | tail -3
 # 기대: 1 passed
 npm run lint:rust && npm run fmt:rust:check
 # 기대: 통과
@@ -395,7 +395,7 @@ npm run lint:rust && npm run fmt:rust:check
 **Step 7: Commit**
 
 ```bash
-git add crates/rustra/src/lib.rs crates/rustra/tests/rkyv_v2_panic.rs examples/calculator/src/lib.rs examples/calculator/tests/rkyv_v2_panic_guard.rs
+git add crates/unikit-bridge/src/lib.rs crates/unikit-bridge/tests/rkyv_v2_panic.rs examples/calculator/src/lib.rs examples/calculator/tests/rkyv_v2_panic_guard.rs
 git commit -m "fix(ffi): rkyv V2 디스패치 패닉 가드 — 핸들러 패닉을 internal 에러 프레임으로 정규화(abort 방지)"
 ```
 
@@ -405,7 +405,7 @@ git commit -m "fix(ffi): rkyv V2 디스패치 패닉 가드 — 핸들러 패닉
 
 **Files:**
 
-- Modify: `examples/calculator/src/lib.rs:1139-1179` (`rustra_calculator_invoke_rkyv_v2_async`)
+- Modify: `examples/calculator/src/lib.rs:1139-1179` (`unikit_calculator_invoke_rkyv_v2_async`)
 - Test: `examples/calculator/tests/rkyv_v2_panic_guard.rs` (Task 2 파일에 추가)
 
 **Step 1: 실패 테스트 — async 패닉 시 on_complete가 에러 프레임으로 발화하는지**
@@ -414,7 +414,7 @@ git commit -m "fix(ffi): rkyv V2 디스패치 패닉 가드 — 핸들러 패닉
 
 ```rust
 extern "C" {
-    fn rustra_calculator_invoke_rkyv_v2_async(
+    fn unikit_calculator_invoke_rkyv_v2_async(
         payload: *const u8, payload_len: usize,
         user_data: *mut std::ffi::c_void,
         on_complete: Option<
@@ -445,7 +445,7 @@ fn async_handler_panic_still_fires_on_complete_with_error() {
     postcard::to_io(&(1i64, 2i64), &mut req).unwrap();
     let mut id: u64 = 0;
     unsafe {
-        rustra_calculator_invoke_rkyv_v2_async(
+        unikit_calculator_invoke_rkyv_v2_async(
             req.as_ptr(), req.len(), std::ptr::null_mut(),
             Some(async_cb), &mut id,
         );
@@ -459,16 +459,16 @@ fn async_handler_panic_still_fires_on_complete_with_error() {
     }
     assert!(!ASYNC_IS_ERROR.load(std::sync::atomic::Ordering::SeqCst), "normal call must succeed");
     // 취소 레지스트리 정리: complete 후 상태 조회는 Unknown.
-    use rustra::ffi::rustra_ffi_cancellation_status;
-    assert_eq!(unsafe { rustra_ffi_cancellation_status(id) }, 0 /* Unknown */);
+    use unikit_bridge::ffi::unikit_ffi_cancellation_status;
+    assert_eq!(unsafe { unikit_ffi_cancellation_status(id) }, 0 /* Unknown */);
 }
 ```
 
-`rustra_ffi_cancellation_status`의 반환 매핑(0=Unknown인지)은 `crates/rustra/src/ffi.rs:715` 부근의 doc comment에서 확인 후 맞춘다. 코어 async(`rustra_ffi_invoke_async`, ffi.rs:515)에도 같은 누수가 있는지 확인하고 있으면 동일하게 수정한다(워커 클로저에 catch_unwind + complete 보장).
+`unikit_ffi_cancellation_status`의 반환 매핑(0=Unknown인지)은 `crates/unikit-bridge/src/ffi.rs:715` 부근의 doc comment에서 확인 후 맞춘다. 코어 async(`unikit_ffi_invoke_async`, ffi.rs:515)에도 같은 누수가 있는지 확인하고 있으면 동일하게 수정한다(워커 클로저에 catch_unwind + complete 보장).
 
 **Step 2: 테스트 실행 — Task 3 수정 전에는 통과해야 함 (회귀 기준선)**
 
-Run: `cargo test -p rustra-calculator-example --test rkyv_v2_panic_guard -- async 2>&1 | tail -3`
+Run: `cargo test -p unikit-calculator-example --test rkyv_v2_panic_guard -- async 2>&1 | tail -3`
 Expected: PASS.
 
 **Step 3: async 워커에 catch_unwind + complete 보장 구현**
@@ -481,27 +481,27 @@ Expected: PASS.
         // 취소 레지스트리가 영구히 남고 (b) on_complete 미발화로 JS 프라미스가
         // 영구 hang 한다. 어떤 경로로든 정확히 1회 on_complete 를 보장한다.
         let resp = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            if rustra::cancel::status(id) == rustra::cancel::Status::Cancelled {
-                rustra::encode_rkyv_v2_error(&RustraError::cancelled(
+            if unikit_bridge::cancel::status(id) == unikit_bridge::cancel::Status::Cancelled {
+                unikit_bridge::encode_rkyv_v2_error(&UnikitError::cancelled(
                     "invocation cancelled before dispatch",
                 ))
             } else {
-                match rustra::ffi::get_package()
-                    .ok_or_else(|| RustraError::custom("ffi.not_registered", "package not registered"))
+                match unikit_bridge::ffi::get_package()
+                    .ok_or_else(|| UnikitError::custom("ffi.not_registered", "package not registered"))
                     .and_then(|pkg| pkg.invoke_rkyv_v2(&bytes))
                 {
                     Ok(bytes) => bytes,
-                    Err(error) => rustra::encode_rkyv_v2_error(&error),
+                    Err(error) => unikit_bridge::encode_rkyv_v2_error(&error),
                 }
             }
         })) {
             Ok(resp) => resp,
-            Err(panic) => rustra::encode_rkyv_v2_error(&RustraError::custom(
+            Err(panic) => unikit_bridge::encode_rkyv_v2_error(&UnikitError::custom(
                 "internal",
                 &format!("panic in async handler: {}", panic_message(&panic)),
             )),
         };
-        rustra::cancel::complete_invocation(id);
+        unikit_bridge::cancel::complete_invocation(id);
         if let Some(cb) = on_complete {
             let mut out_len = 0;
             let ptr = alloc_response(resp, &mut out_len);
@@ -512,23 +512,23 @@ Expected: PASS.
 
 **Step 4: 코어 async 엔트리 동일 검사**
 
-`crates/rustra/src/ffi.rs:612-684` (`rustra_ffi_invoke_async` / `rustra_ffi_invoke_json_async`)의 워커 클로저를 읽어: dispatch에 `catch_unwind`이 있고(515행 확인됨) `complete_invocation`이 패닉 경로에서도 호출되는지 확인. dispatch는 guard 안에 있지만 `complete_invocation`이 guard 밖 조기 return 뒤에만 있다면 scope-guard 패턴으로 이동:
+`crates/unikit-bridge/src/ffi.rs:612-684` (`unikit_ffi_invoke_async` / `unikit_ffi_invoke_json_async`)의 워커 클로저를 읽어: dispatch에 `catch_unwind`이 있고(515행 확인됨) `complete_invocation`이 패닉 경로에서도 호출되는지 확인. dispatch는 guard 안에 있지만 `complete_invocation`이 guard 밖 조기 return 뒤에만 있다면 scope-guard 패턴으로 이동:
 
 ```rust
 // complete 보장 — defer 패턴 (러스트 표준만 사용)
 struct EnsureComplete(u64);
 impl Drop for EnsureComplete {
-    fn drop(&mut self) { rustra::cancel::complete_invocation(self.0); }
+    fn drop(&mut self) { unikit_bridge::cancel::complete_invocation(self.0); }
 }
 let _ensure = EnsureComplete(id);
 ```
 
-`complete_invocation`이 멱등(없는 id 제거 no-op)이므로 정상 경로 이중 호출도 안전하다 — `crates/rustra/src/cancel.rs:64`의 `remove`가 멱등임을 확인한다.
+`complete_invocation`이 멱등(없는 id 제거 no-op)이므로 정상 경로 이중 호출도 안전하다 — `crates/unikit-bridge/src/cancel.rs:64`의 `remove`가 멱등임을 확인한다.
 
 **Step 5: 게이트 실행**
 
 ```bash
-cargo test -p rustra -p rustra-calculator-example 2>&1 | grep -E "test result"
+cargo test -p unikit-bridge -p unikit-calculator-example 2>&1 | grep -E "test result"
 # 기대: 전부 ok (기존 cancel_tests 포함)
 npm run lint:rust
 ```
@@ -536,7 +536,7 @@ npm run lint:rust
 **Step 6: Commit**
 
 ```bash
-git add crates/rustra/src/ffi.rs examples/calculator/src/lib.rs examples/calculator/tests/rkyv_v2_panic_guard.rs
+git add crates/unikit-bridge/src/ffi.rs examples/calculator/src/lib.rs examples/calculator/tests/rkyv_v2_panic_guard.rs
 git commit -m "fix(ffi): async 워커 패닉 가드 + 취소 레지스트리 완료 보장 — on_complete 1회 보장(JS hang 방지)"
 ```
 
@@ -546,7 +546,7 @@ git commit -m "fix(ffi): async 워커 패닉 가드 + 취소 레지스트리 완
 
 **Files:**
 
-- Modify: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp:48-65`
+- Modify: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp:48-65`
 
 **Step 1: 클램프 구현**
 
@@ -561,13 +561,13 @@ git commit -m "fix(ffi): async 워커 패닉 가드 + 취소 레지스트리 완
     // 클램프 — JS 가 건넨 byteOffset/byteLength 는 임의 값일 수 있다(duck-typed
     // 객체 통과). buf 범위 밖이면 OOB 읽기가 된다: 명시적 에러로 거부한다.
     if (!(offsetNum >= 0) || !(lengthNum >= 0)) { // NaN 도 거부
-      throw JSError(rt, "RustraJSI: invalid byteOffset/byteLength (negative or NaN)");
+      throw JSError(rt, "UnikitJSI: invalid byteOffset/byteLength (negative or NaN)");
     }
     size_t bufSize = buf.size(rt);
     auto byteOffset = static_cast<size_t>(offsetNum);
     auto byteLength = static_cast<size_t>(lengthNum);
     if (byteOffset > bufSize || byteLength > bufSize - byteOffset) {
-      throw JSError(rt, "RustraJSI: byteOffset/byteLength out of buffer bounds");
+      throw JSError(rt, "UnikitJSI: byteOffset/byteLength out of buffer bounds");
     }
     return {buf.data(rt) + byteOffset, byteLength};
   }
@@ -578,14 +578,14 @@ git commit -m "fix(ffi): async 워커 패닉 가드 + 취소 레지스트리 완
 **Step 2: 컴파일/리뷰 검증 (Task 1 Step 3과 동일하게 shim 컴파일 시도, 불가 시 grep)**
 
 ```bash
-grep -n "byteOffset > bufSize" examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp
+grep -n "byteOffset > bufSize" examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp
 # 기대: 1 히트
 ```
 
 **Step 3: Commit**
 
 ```bash
-git add examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp
+git add examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp
 git commit -m "fix(rn): extractBytes TypedArray 클램프 — duck-typed byteOffset/byteLength OOB 읽기 거부"
 ```
 
@@ -611,9 +611,9 @@ test('invoke rejects with transport.timeout when engine never settles', async ()
   await assert.rejects(
     invokeWithTimeout(hanging, 'addNumbers', { a: 1, b: 2 }, { timeoutMs: 50 }),
     (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
-      assert.equal((err as RustraCommandError).code, 'transport.timeout');
-      assert.equal((err as RustraCommandError).retryable, true);
+      assert.ok(err instanceof UnikitCommandError);
+      assert.equal((err as UnikitCommandError).code, 'transport.timeout');
+      assert.equal((err as UnikitCommandError).retryable, true);
       return true;
     },
   );
@@ -636,11 +636,11 @@ test('invoke timeout races with late success — late result ignored, no unhandl
 });
 ```
 
-테스트 헬퍼 `invokeWithTimeout`는 이번 Task에서 `packages/types` 공개 API로 추가하는 함수다. `RustraCommandError`/`EngineClient`는 파일 기존 import 재사용.
+테스트 헬퍼 `invokeWithTimeout`는 이번 Task에서 `packages/types` 공개 API로 추가하는 함수다. `UnikitCommandError`/`EngineClient`는 파일 기존 import 재사용.
 
 **Step 2: 테스트 실행 — 실패 확인**
 
-Run: `npm run build -w @rustra/types && node --test packages/types/dist/index.test.js 2>&1 | tail -5`
+Run: `npm run build -w @unikit/types && node --test packages/types/dist/index.test.js 2>&1 | tail -5`
 Expected: FAIL — `invokeWithTimeout is not defined` (함수 미구현).
 
 **Step 3: 구현**
@@ -686,7 +686,7 @@ export async function invokeWithTimeout<T>(
       new Promise<never>((_, reject) => {
         timer = setTimeout(() => {
           reject(
-            new RustraCommandError(
+            new UnikitCommandError(
               'transport.timeout',
               `invoke("${command}") timed out after ${ms}ms`,
               true,
@@ -725,7 +725,7 @@ export async function invokeWithTimeout<T>(
       new Promise<never>((_, reject) => {
         timer = setTimeout(() => {
           reject(
-            new RustraCommandError(
+            new UnikitCommandError(
               'transport.timeout',
               `invoke("${command}") timed out after ${ms}ms`,
               true,
@@ -754,7 +754,7 @@ return invokeWithTimeout(_engine, command, args, options) as Promise<T>;
 
 **Step 4: 테스트 통과 확인**
 
-Run: `npm run build -w @rustra/types && node --test packages/types/dist/index.test.js 2>&1 | tail -3`
+Run: `npm run build -w @unikit/types && node --test packages/types/dist/index.test.js 2>&1 | tail -3`
 Expected: PASS (기존 67 + 신규 2).
 
 **Step 5: 문서 갱신**
@@ -825,7 +825,7 @@ CLI 테스트 러너가 `tsx` 등으로 src를 직접 실행하는지 `packages/
 
 **Step 2: 테스트 실패 확인**
 
-Run: `npm run test -w @rustra/cli 2>&1 | tail -5`
+Run: `npm run test -w @unikit/cli 2>&1 | tail -5`
 Expected: FAIL — 현재는 악의적 식별자를 그대로 통과시킴.
 
 **Step 3: 구현**
@@ -863,7 +863,7 @@ if (cmd.definitions) {
 
 **Step 4: 테스트 통과 + 전체 회귀**
 
-Run: `npm run test -w @rustra/cli 2>&1 | tail -3`
+Run: `npm run test -w @unikit/cli 2>&1 | tail -3`
 Expected: PASS.
 
 Run: `npm run test:ts:node 2>&1 | tail -3` (기존 생성 클라이언트 회귀)
@@ -905,12 +905,12 @@ const cliVersion: string = require_('../../package.json').version as string;
 
 ```ts
 // Cargo.toml 템플릿 내:
-rustra = "^${cliMajorVersion}"
-rustra-macros = "^${cliMajorVersion}"
+unikit-bridge = "^${cliMajorVersion}"
+unikit-bridge-macros = "^${cliMajorVersion}"
 // 여기서 cliMajorVersion = cliVersion.split('.').slice(0, 2).join('.')  // "0.2"
 // package.json 템플릿 devDependencies 내:
-"@rustra/cli": `^${cliVersion}`,
-"@rustra/types": `^${cliVersion}`,
+"@unikit/cli": `^${cliVersion}`,
+"@unikit/types": `^${cliVersion}`,
 ```
 
 crates.io/npm 동시 범프 관례(워크스페이스 0.2.0 = npm 0.2.0)가 이미 성립하므로 CLI 버전에서 파생하면 다음 범프에서 자동 따라온다.
@@ -923,14 +923,14 @@ crates.io/npm 동시 범프 관례(워크스페이스 0.2.0 = npm 0.2.0)가 이�
 test('init template versions derive from CLI package version', async () => {
   // init 을 임시 디렉터리에 실행하고 생성 파일 검사 (기존 init 테스트가
   // 있다면 그 하네스 재사용 — generate.test.ts 의 init 테스트 패턴 확인).
-  const out = await mkdtemp(join(tmpdir(), 'rustra-init-'));
+  const out = await mkdtemp(join(tmpdir(), 'unikit-init-'));
   await runInit(out); // CLI init 함수 (index.ts export 여부 확인, 미export면 main 우회)
   const cargo = await readFile(join(out, 'Cargo.toml'), 'utf8');
   const pkg = JSON.parse(await readFile(join(out, 'package.json'), 'utf8'));
   const cliPkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
   const minor = cliPkg.version.split('.').slice(0, 2).join('.');
-  assert.match(cargo, new RegExp(`rustra = "\\^?${minor}`));
-  assert.equal(pkg.devDependencies['@rustra/types'], `^${cliPkg.version}`);
+  assert.match(cargo, new RegExp(`unikit = "\\^?${minor}`));
+  assert.equal(pkg.devDependencies['@unikit/types'], `^${cliPkg.version}`);
 });
 ```
 
@@ -939,9 +939,9 @@ test('init template versions derive from CLI package version', async () => {
 **Step 3: 문서 버전 핀 수정**
 
 ```bash
-# README.md:21 — rustra = "0.1" → "0.2"
+# README.md:21 — unikit = "0.1" → "0.2"
 # README.md:246 — version = "0.1" → "0.2"
-# docs/getting-started.md:27 — rustra = "0.1" → "0.2"
+# docs/getting-started.md:27 — unikit = "0.1" → "0.2"
 ```
 
 sed보다 Edit 도구로 정확히 3곳만 교체 (getting-started.md:47, 407의 path 의존성은 건드리지 않음).
@@ -950,14 +950,14 @@ sed보다 Edit 도구로 정확히 3곳만 교체 (getting-started.md:47, 407의
 
 - `package.json`(루트) version `0.1.3` → `0.2.0` (private이라 발행 무영향, 혼란 제거)
 - `examples/reference-app/package.json`: version 0.1.3→0.2.0, 의존성 `^0.1.3` → `^0.2.0` (4곳)
-- `examples/reference-app` 이 루트 README examples/ 목록에 미등록이면 한 줄 추가: `reference-app/          @rustra/react 훅 레퍼런스 앱 (useCommand/useMutation/useEvent)`
+- `examples/reference-app` 이 루트 README examples/ 목록에 미등록이면 한 줄 추가: `reference-app/          @unikit/react 훅 레퍼런스 앱 (useCommand/useMutation/useEvent)`
 
 **Step 5: 전체 검증**
 
 ```bash
-npm run test -w @rustra/cli 2>&1 | tail -3
+npm run test -w @unikit/cli 2>&1 | tail -3
 npm run test:ts:node 2>&1 | tail -3   # reference-app typecheck 포함 여부 확인
-grep -rn 'rustra = "0.1"' README.md docs/getting-started.md  # 기대: 0 hits
+grep -rn 'unikit = "0.1"' README.md docs/getting-started.md  # 기대: 0 hits
 grep -n "0\.1\.3" packages/cli/src/index.ts  # 기대: 0 hits
 ```
 
@@ -989,14 +989,14 @@ test('napi: typed error code crosses the wire (capability.denied)', async () => 
   );
   if (!existsSync(napiPath)) return; // 바이너리 없으면 스킵 (CI: build:napi 사전 빌드)
   const native = createRequire(import.meta.url)(napiPath) as {
-    rustraInvoke: (cmd: string, args: string | undefined) => string;
+    unikitInvoke: (cmd: string, args: string | undefined) => string;
   };
   // calculator auth 예제가 아니므로 확정 에러 명령 사용: 없는 명령 → command.not_found
   assert.throws(
-    () => native.rustraInvoke('definitelyNotACommand', JSON.stringify({})),
+    () => native.unikitInvoke('definitelyNotACommand', JSON.stringify({})),
     (e: unknown) => {
       const msg = e instanceof Error ? e.message : String(e);
-      // code 보존 후: "command.not_found: ..." 형식 (parseRustraErrorString 규약)
+      // code 보존 후: "command.not_found: ..." 형식 (parseUnikitErrorString 규약)
       assert.match(msg, /^command\.not_found: /);
       return true;
     },
@@ -1009,14 +1009,14 @@ test('napi: typed error code crosses the wire (capability.denied)', async () => 
 **Step 2: 현재 동작 확인 (실패)**
 
 Run: `npm run build:napi && npx tsc -p examples/calculator/tsconfig.json && node --test dist-ts/examples/calculator/ts/payload-robustness.test.js 2>&1 | tail -5`
-Expected: FAIL — 현재 `e.to_string()`은 `"command.not_found: ..."`(Display)라 **통과할 수도 있다**. Display가 이미 `code: message` 형식이므로(자체 파서 `parseRustraErrorString`이 이 형식을 파싱) **이 수정의 실제 가치는 retryable 보존**이다. 테스트를 retryable로 조준 변경:
+Expected: FAIL — 현재 `e.to_string()`은 `"command.not_found: ..."`(Display)라 **통과할 수도 있다**. Display가 이미 `code: message` 형식이므로(자체 파서 `parseUnikitErrorString`이 이 형식을 파싱) **이 수정의 실제 가치는 retryable 보존**이다. 테스트를 retryable로 조준 변경:
 
 ```ts
 // JSON 와이어 형식이면 code+retryable 모두 보존된다
 assert.match(msg, /\{.*"code"\s*:\s*"command\.not_found"/);
 ```
 
-즉 napi가 `Error::from_reason(serde_json::to_string(&e))`(RustraError는 Serialize 유도됨 — error.rs:34)로 JSON 문자열을 심으면, JS `parseRustraErrorString`(types/index.ts:88)이 code/message/retryable을 복원한다. **현재는 to_string()이라 plain `"command.not_found: ..."`만 가므로 retryable=true(재시도 가능 에러의 경우)가 유실된다.** command.not_found는 retryable=false라 이 테스트는 통과할 수 있으니, retryable=true 케이스를 유도하려면 payload.too_large(대형 args)를 쓴다:
+즉 napi가 `Error::from_reason(serde_json::to_string(&e))`(UnikitError는 Serialize 유도됨 — error.rs:34)로 JSON 문자열을 심으면, JS `parseUnikitErrorString`(types/index.ts:88)이 code/message/retryable을 복원한다. **현재는 to_string()이라 plain `"command.not_found: ..."`만 가므로 retryable=true(재시도 가능 에러의 경우)가 유실된다.** command.not_found는 retryable=false라 이 테스트는 통과할 수 있으니, retryable=true 케이스를 유도하려면 payload.too_large(대형 args)를 쓴다:
 
 ```ts
 // payload.too_large는 retryable=false지만 코드 보존 검증엔 충분.
@@ -1024,7 +1024,7 @@ assert.match(msg, /\{.*"code"\s*:\s*"command\.not_found"/);
 // 핵심은 code 필드가 JSON으로 구조 보존되는지다.
 assert.throws(
   () =>
-    native.rustraInvoke(
+    native.unikitInvoke(
       'addNumbers',
       JSON.stringify({ a: 1, b: 2, pad: 'x'.repeat(2 * 1024 * 1024) }),
     ),
@@ -1038,41 +1038,41 @@ assert.throws(
 
 (`max_payload_bytes` 기본 1MiB — napi 엔트리에서 게이트하는지 확인, 안 하면 JS 측 사전 검사만 있으므로 이 테스트 명령을 invalid_json 경로로 조정. 구현 Step 3에서 napi에 크기 게이트가 없으면 args 파싱 실패 `invalid_args`를 코드로 검증하는 것으로 대체 — 핵심은 JSON 구조 보존.)
 
-**Step 3: 구현 — RustraError를 JSON으로 직렬화해 reason에 심기**
+**Step 3: 구현 — UnikitError를 JSON으로 직렬화해 reason에 심기**
 
 `examples/calculator-napi/src/lib.rs`:
 
 ```rust
-/// RustraError → napi Error: 코드/retryable 이 유실되지 않도록 JSON 문자열로
-/// 직렬화해 reason 에 심는다. JS 측 parseRustraErrorString(@rustra/types)이
+/// UnikitError → napi Error: 코드/retryable 이 유실되지 않도록 JSON 문자열로
+/// 직렬화해 reason 에 심는다. JS 측 parseUnikitErrorString(@unikit/types)이
 /// { code, message, retryable } 을 복원한다 — plain Display(to_string)는
 /// retryable 을 버린다.
-fn napi_error(e: rustra::RustraError) -> Error {
+fn napi_error(e: unikit_bridge::UnikitError) -> Error {
     let wire = serde_json::to_string(&e).unwrap_or_else(|_| e.to_string());
     Error::from_reason(wire)
 }
 ```
 
-`invoke_json` 실패 분기(16행)를 `.map_err(napi_error)`로 교체. `serde_json`은 이미 의존성에 있다. `RustraError`가 `rustra` 재수출인지 확인(`pub use error::RustraError`) — 아니면 `rustra::RustraError` 경로 수정.
+`invoke_json` 실패 분기(16행)를 `.map_err(napi_error)`로 교체. `serde_json`은 이미 의존성에 있다. `UnikitError`가 `unikit` 재수출인지 확인(`pub use error::UnikitError`) — 아니면 `unikit_bridge::UnikitError` 경로 수정.
 
 **Step 4: JS 측 파이프라인 확인**
 
-`packages/node/src/index.ts:63-67`의 catch가 `'code' in e` 객체만 선호하므로, napi Error의 message(JSON 문자열)를 파싱하려면 `createNapiTransport` 계열에서 `parseRustraErrorString(e.message)`를 호출하도록 보강 — `packages/node/src/index.ts`의 catch 블록:
+`packages/node/src/index.ts:63-67`의 catch가 `'code' in e` 객체만 선호하므로, napi Error의 message(JSON 문자열)를 파싱하려면 `createNapiTransport` 계열에서 `parseUnikitErrorString(e.message)`를 호출하도록 보강 — `packages/node/src/index.ts`의 catch 블록:
 
 ```ts
       } catch (e: unknown) {
         if (typeof e === 'object' && e !== null && 'code' in e && 'message' in e) {
           const err = e as { code: string; message: string };
-          throw new RustraCommandError(err.code, err.message);
+          throw new UnikitCommandError(err.code, err.message);
         }
-        // napi/rust Display 또는 JSON 와이어 문자열 — parseRustraErrorString 이
+        // napi/rust Display 또는 JSON 와이어 문자열 — parseUnikitErrorString 이
         // { code, message, retryable } JSON 과 "code: message" 양쪽을 복원한다.
-        if (e instanceof Error) throw parseRustraErrorString(e.message);
-        throw new RustraCommandError('unknown', String(e));
+        if (e instanceof Error) throw parseUnikitErrorString(e.message);
+        throw new UnikitCommandError('unknown', String(e));
       }
 ```
 
-`parseRustraErrorString`을 `@rustra/types`에서 import (이미 재수출 확인 — types index.ts export 목록).
+`parseUnikitErrorString`을 `@unikit/types`에서 import (이미 재수출 확인 — types index.ts export 목록).
 
 **Step 5: 게이트 실행**
 
@@ -1086,7 +1086,7 @@ npm run test:packages 2>&1 | tail -3
 
 ```bash
 git add examples/calculator-napi/src/lib.rs examples/calculator/ts/payload-robustness.test.ts packages/node/src/index.ts
-git commit -m "fix(napi): RustraError JSON 와이어 보존 — code/retryable이 JS까지 구조 전달, parseRustraErrorString 파이프라인 연결"
+git commit -m "fix(napi): UnikitError JSON 와이어 보존 — code/retryable이 JS까지 구조 전달, parseUnikitErrorString 파이프라인 연결"
 ```
 
 ---
@@ -1171,7 +1171,7 @@ git commit -m "test: transport-bench 임계 p50 기반 전환 — CI 러너 부�
 ```bash
 rustup component add llvm-tools-preview
 cargo install cargo-llvm-cov --locked
-cargo llvm-cov -p rustra --lcov --output-path lcov.info 2>&1 | tail -3
+cargo llvm-cov -p unikit-bridge --lcov --output-path lcov.info 2>&1 | tail -3
 ```
 
 `lcov.info`에서 코어 커버리지 요약 확인 (콘솔 보고서로 숫자 기록).
@@ -1200,9 +1200,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo install cargo-llvm-cov --locked
       - name: Generate lcov
-        run: cargo llvm-cov -p rustra -p rustra-macros --lcov --output-path lcov.info
+        run: cargo llvm-cov -p unikit-bridge -p unikit-bridge-macros --lcov --output-path lcov.info
       - name: Summary
-        run: cargo llvm-cov -p rustra --summary-only 2>&1 | tail -5 >> $GITHUB_STEP_SUMMARY
+        run: cargo llvm-cov -p unikit-bridge --summary-only 2>&1 | tail -5 >> $GITHUB_STEP_SUMMARY
       - uses: actions/upload-artifact@v4
         with:
           name: rust-lcov
@@ -1238,7 +1238,7 @@ c8은 `npx`로 즉시 실행( devDependency 추가 불필요 — CI에서만 쓰
 `package.json` scripts에:
 
 ```json
-    "coverage:rust": "cargo llvm-cov -p rustra -p rustra-macros --summary-only",
+    "coverage:rust": "cargo llvm-cov -p unikit-bridge -p unikit-bridge-macros --summary-only",
     "coverage:ts": "c8 --reporter=text node --test packages/node/dist/index.test.js packages/bun/dist/index.test.js packages/tauri/dist/index.test.js packages/react-native/dist/index.test.js packages/testing/dist/index.test.js packages/devtools/dist/index.test.js packages/react/dist/index.test.js"
 ```
 
@@ -1276,7 +1276,7 @@ git commit -m "ci: 커버리지 가시화 — cargo llvm-cov + c8, advisory Step
 
 ```rust
 #![no_main]
-//! rustra_ffi_invoke_postcard 퍼징 — postcard 엔벨로프 디코드 경계 검증.
+//! unikit_ffi_invoke_postcard 퍼징 — postcard 엔벨로프 디코드 경계 검증.
 //! rkyv V2 타깃이 코어 invoke_rkyv_v2 를 직접 때리는 것과 달리, 이 타깃은
 //! FFI 진입(extern "C") 을 포함한 전체 경로를 무작위 입력으로 때린다 —
 //! panic guard/size gate/free 짝이 실제 ABI 경계에서 성립하는지 확인.
@@ -1286,14 +1286,14 @@ use libfuzzer_sys::fuzz_target;
 fuzz_target!(|data: &[u8]| {
     let mut out_len = 0usize;
     // 등록된 패키지가 없으면 not_registered 에러 프레임 — 그 자체로 clean path.
-    let ptr = unsafe { rustra::ffi::rustra_ffi_invoke_postcard(data.as_ptr(), data.len(), &mut out_len) };
+    let ptr = unsafe { unikit_bridge::ffi::unikit_ffi_invoke_postcard(data.as_ptr(), data.len(), &mut out_len) };
     if !ptr.is_null() {
-        unsafe { rustra::ffi::rustra_ffi_free(ptr, out_len) };
+        unsafe { unikit_bridge::ffi::unikit_ffi_free(ptr, out_len) };
     }
 });
 ```
 
-`rustra_ffi_invoke_postcard`가 전역 패키지를 필요로 하므로, calculator처럼 로컬 패키지를 등록하는 헬퍼가 필요하다면 `fuzz/Cargo.toml`의 rustra 의존성으로 `#[command]` 패키지를 만들어 `rustra_ffi_*` 전역에 등록한다 — 기존 `invoke_rkyv_v2.rs`가 이미 이 패턴(파일 하단의 패키지 등록)을 쓰는지 확인하고 그대로 따른다. 등록 API가 퍼블릭하지 않으면 타깃을 `Package::invoke_postcard` 직접 호출로 조정한다.
+`unikit_ffi_invoke_postcard`가 전역 패키지를 필요로 하므로, calculator처럼 로컬 패키지를 등록하는 헬퍼가 필요하다면 `fuzz/Cargo.toml`의 unikit 의존성으로 `#[command]` 패키지를 만들어 `unikit_ffi_*` 전역에 등록한다 — 기존 `invoke_rkyv_v2.rs`가 이미 이 패턴(파일 하단의 패키지 등록)을 쓰는지 확인하고 그대로 따른다. 등록 API가 퍼블릭하지 않으면 타깃을 `Package::invoke_postcard` 직접 호출로 조정한다.
 
 **Step 2: 시드 corpus 생성 + 커밋**
 
@@ -1307,7 +1307,7 @@ printf '\x01\x00\x2a\x3a' > corpus/invoke_rkyv_v2/add_42_58
 printf '\x01\x00' > corpus/invoke_rkyv_v2/truncated
 printf '\xff\xff\xff\xff' > corpus/invoke_rkyv_v2/unknown_cmd
 # payload_robustness.rs 의 hex fixture 들을 추가 시드로 (파일에서 추출)
-grep -rh "hex!" ../crates/rustra/tests/payload_robustness.rs | head -5
+grep -rh "hex!" ../crates/unikit-bridge/tests/payload_robustness.rs | head -5
 ```
 
 `.gitignore:35`의 `fuzz/corpus/` 라인 삭제 → `fuzz/corpus/*/_*` 식으로 유지하려면 cargo-fuzz가 생성하는 배치 서브디렉터리만 무시:
@@ -1371,7 +1371,7 @@ git commit -m "ci(fuzz): postcard FFI 타깃 + 시드 corpus 커밋 + 크래시 
 
 **Files:**
 
-- Modify: `Cargo.toml` (workspace.package), `crates/rustra/Cargo.toml`, `crates/rustra-macros/Cargo.toml`
+- Modify: `Cargo.toml` (workspace.package), `crates/unikit-bridge/Cargo.toml`, `crates/unikit-bridge-macros/Cargo.toml`
 - Modify: `packages/*/package.json` (sideEffects, engines), `packages/types/tsconfig.json`, `packages/react/tsconfig.json`
 - Modify: `packages/types/package.json`, `packages/react/package.json` (test 파일 dist 제외 방식)
 
@@ -1385,16 +1385,16 @@ edition = "2024"
 license = "MIT"
 version = "0.2.0"
 description = "Rust → TypeScript bridge framework with auto-generated type-safe clients"
-repository = "https://github.com/loopy-lim/rustra"
+repository = "https://github.com/loopy-lim/unikit"
 # 신규 — crates.io 검색성/발행 경고 제거
-homepage = "https://github.com/loopy-lim/rustra"
-documentation = "https://docs.rs/rustra"
+homepage = "https://github.com/loopy-lim/unikit"
+documentation = "https://docs.rs/unikit-bridge"
 keywords = ["typescript", "bridge", "codegen", "ffi", "react-native"]
 categories = ["api-bindings", "development-tools::ffi"]
 rust-version = "1.85"  # edition 2024 요구 최소 — 명시해 MSRV 계약화
 ```
 
-`crates/rustra/Cargo.toml`에 상속 추가:
+`crates/unikit-bridge/Cargo.toml`에 상속 추가:
 
 ```toml
 homepage.workspace = true
@@ -1404,7 +1404,7 @@ categories.workspace = true
 rust-version.workspace = true
 ```
 
-`rustra-macros`도 동일 (documentation는 docs.rs 공유 — macros는 `documentation` 생략 가능, proc-macro는 docs.rs 별도 페이지 없음).
+`unikit-bridge-macros`도 동일 (documentation는 docs.rs 공유 — macros는 `documentation` 생략 가능, proc-macro는 docs.rs 별도 페이지 없음).
 
 주의: crates.io keywords는 **소문자+하이픈**만 허용(대문자 불가), 최대 5개. categories는 공식 슬러그여야 함(`api-bindings`, `development-tools::ffi` 존재 확인: <https://crates.io/category_slugs> — `development-tools::ffi` 실재함).
 
@@ -1416,7 +1416,7 @@ rust-version.workspace = true
   "sideEffects": false,
 ```
 
-`@rustra/node`와 `@rustra/cli`에:
+`@unikit/node`와 `@unikit/cli`에:
 
 ```json
   "engines": { "node": ">=18" },
@@ -1437,7 +1437,7 @@ rust-version.workspace = true
   ]
 ```
 
-(`@rustra/types`는 단일 진입점 — index만 있음. `@rustra/react`도 확인: hooks 등 다수 파일이면 `dist/*.js`/`dist/*.d.ts` 글로브 + `!dist/*.test.*` 는 npm files 지원 안 하므로 개별 열거. 파일 수가 많으면 대안: tsconfig `exclude: ["src/**/*.test.ts"]`로 아예 컴파일에서 제외 + 테스트 실행은 `test:types`에서 `tsc -p tsconfig.test.json` 별도 구성. **후자 권장** — 아래 Step 4.)
+(`@unikit/types`는 단일 진입점 — index만 있음. `@unikit/react`도 확인: hooks 등 다수 파일이면 `dist/*.js`/`dist/*.d.ts` 글로브 + `!dist/*.test.*` 는 npm files 지원 안 하므로 개별 열거. 파일 수가 많으면 대안: tsconfig `exclude: ["src/**/*.test.ts"]`로 아예 컴파일에서 제외 + 테스트 실행은 `test:types`에서 `tsc -p tsconfig.test.json` 별도 구성. **후자 권장** — 아래 Step 4.)
 
 **Step 4: (권장) tsconfig 테스트 분리 — types/react**
 
@@ -1466,7 +1466,7 @@ Create: `packages/types/tsconfig.test.json`:
     "test:types": "tsc -p packages/types/tsconfig.test.json && node --test packages/types/dist/index.test.js",
 ```
 
-(기존이 `npm run build -w @rustra/types && node --test ...` — build(발행용, 테스트 제외)와 test-compile(테스트 포함)을 분리. `test:packages`의 다른 패키지(node/bun/tauri/react-native/testing/devtools)도 같은 누수가 있는지 `npm pack --dry-run`으로 점검 후 동일 적용 — react만 3.5kB 누수 확인됨, types도 d.ts/map 포함.)
+(기존이 `npm run build -w @unikit/types && node --test ...` — build(발행용, 테스트 제외)와 test-compile(테스트 포함)을 분리. `test:packages`의 다른 패키지(node/bun/tauri/react-native/testing/devtools)도 같은 누수가 있는지 `npm pack --dry-run`으로 점검 후 동일 적용 — react만 3.5kB 누수 확인됨, types도 d.ts/map 포함.)
 
 `npm run build`(발행)은 테스트 제외로 줄고, `npm pack --dry-run`에서 test 파일이 사라지는지 검증:
 
@@ -1481,15 +1481,15 @@ cd packages/react && npm pack --dry-run 2>&1 | grep -c "test" ; cd ../..
 
 ```md
 ---
-'@rustra/types': patch
-'@rustra/react': patch
-'@rustra/node': patch
-'@rustra/cli': patch
-'@rustra/bun': patch
-'@rustra/tauri': patch
-'@rustra/react-native': patch
-'@rustra/testing': patch
-'@rustra/devtools': patch
+'@unikit/types': patch
+'@unikit/react': patch
+'@unikit/node': patch
+'@unikit/cli': patch
+'@unikit/bun': patch
+'@unikit/tauri': patch
+'@unikit/react-native': patch
+'@unikit/testing': patch
+'@unikit/devtools': patch
 ---
 
 chore: 패키지 메타데이터 위생 — sideEffects/engines 선언, 발행 dist에서 테스트 파일 제외
@@ -1500,7 +1500,7 @@ chore: 패키지 메타데이터 위생 — sideEffects/engines 선언, 발행 d
 **Step 6: 게이트 실행**
 
 ```bash
-cargo publish -p rustra-macros --dry-run --allow-dirty 2>&1 | grep -iE "warning|error" | head -5
+cargo publish -p unikit-bridge-macros --dry-run --allow-dirty 2>&1 | grep -iE "warning|error" | head -5
 # 기대: metadata 경고 소멸 (네트워크 검증은 --dry-run 로컬만)
 npm run build && npm run test:packages 2>&1 | tail -3
 npm run test:types 2>&1 | tail -3
@@ -1509,7 +1509,7 @@ npm run test:types 2>&1 | tail -3
 **Step 7: Commit**
 
 ```bash
-git add Cargo.toml crates/rustra/Cargo.toml crates/rustra-macros/Cargo.toml packages/*/package.json packages/types/tsconfig.json packages/types/tsconfig.test.json packages/react/tsconfig.json .changeset/
+git add Cargo.toml crates/unikit-bridge/Cargo.toml crates/unikit-bridge-macros/Cargo.toml packages/*/package.json packages/types/tsconfig.json packages/types/tsconfig.test.json packages/react/tsconfig.json .changeset/
 git commit -m "chore(meta): crates.io 메타데이터(keywords/categories/MSRV) + npm sideEffects/engines + 발행 dist 정화"
 ```
 
@@ -1521,10 +1521,10 @@ git commit -m "chore(meta): crates.io 메타데이터(keywords/categories/MSRV) 
 
 **Step 1: required checks 지정 (사용자 gh 권한으로)**
 
-현재 `gh api repos/loopy-lim/rustra/branches/main/protection` → 404 (보호 없음). 사용자에게 안내하거나 관리자 권한이 있으면:
+현재 `gh api repos/loopy-lim/unikit/branches/main/protection` → 404 (보호 없음). 사용자에게 안내하거나 관리자 권한이 있으면:
 
 ```bash
-gh api -X PUT repos/loopy-lim/rustra/branches/main/protection \
+gh api -X PUT repos/loopy-lim/unikit/branches/main/protection \
   --input - <<'EOF'
 {
   "required_status_checks": {
@@ -1590,9 +1590,9 @@ npm run audit:prod
 
 ```md
 ---
-'@rustra/types': minor
-'@rustra/node': patch
-'@rustra/cli': patch
+'@unikit/types': minor
+'@unikit/node': patch
+'@unikit/cli': patch
 ---
 
 feat: InvokeOptions.timeoutMs — transport.timeout(retryable) 타임아웃 레이스. hang(네이티브 무응답)의 JS 측 탈출구. 스키마 식별자 화이트리스트로 생성 코드 주입 방어. napi 경로 에러 code/retryable JSON 보존.
@@ -1618,7 +1618,7 @@ git log --oneline -10
 | 항목                | 검증 명령                                   | 기대                            |
 | ------------------- | ------------------------------------------- | ------------------------------- |
 | 누수 수정           | grep makeInvoke 4-인수                      | 12 심볼 전부 deleter 매칭       |
-| panic guard         | `cargo test -p rustra --test rkyv_v2_panic` | 1 passed                        |
+| panic guard         | `cargo test -p unikit-bridge --test rkyv_v2_panic` | 1 passed                        |
 | async 완료 보장     | panic_guard 테스트 async 항목               | on_complete 1회 + registry 정리 |
 | JSI 클램프          | grep byteOffset 클램프                      | 존재                            |
 | timeout             | types 테스트 신규 2건                       | transport.timeout + retryable   |

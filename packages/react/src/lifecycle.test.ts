@@ -1,10 +1,10 @@
-import type { EngineClient } from '@rustra/types';
+import type { EngineClient } from '@unikit/types';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import React, { createElement as h, Suspense, act } from 'react';
 import { create } from 'react-test-renderer';
 import {
-  RustraProvider,
+  UnikitProvider,
   useCommand,
   useSuspenseCommand,
   invalidateCommands,
@@ -30,7 +30,7 @@ const command = Object.assign(
 // Each fixture deliberately implements only its tested command, while the
 // production engine interface is generic over all command results.
 const wrap = (engine: unknown, child: React.ReactNode) =>
-  h(RustraProvider, { engine: engine as EngineClient }, child);
+  h(UnikitProvider, { engine: engine as EngineClient }, child);
 
 void test('mutation invoked from a layout effect uses that render callbacks', async () => {
   const calls: string[] = [];
@@ -330,7 +330,7 @@ void test('value-equal inline records do not restart a mounted command', async (
 
 void test('tagged identities distinguish records, undefined, special numbers, binary views, and Map contents', () => {
   const pairs: [unknown, unknown][] = [
-    [42n, { $rustraBigInt: '42' }],
+    [42n, { $unikitBigInt: '42' }],
     [{ optional: undefined }, {}],
     [NaN, null],
     [Infinity, -Infinity],

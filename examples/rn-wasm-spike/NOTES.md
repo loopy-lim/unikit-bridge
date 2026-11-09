@@ -1,17 +1,17 @@
 # rn-wasm-spike — implementation notes (Task A0)
 
-Spike question: can a rustra engine compiled to `wasm32-unknown-unknown` run
+Spike question: can a unikit engine compiled to `wasm32-unknown-unknown` run
 inside a wasm3 interpreter embedded in a React Native app on iOS/Android, with
 byte-identical postcard responses vs the native staticlib engine, and with the
 engine swappable at runtime without an app restart?
 
 Everything in this directory is self-contained. The repo root workspace, the
-`rustra` crate, and all packages are UNTOUCHED — see "Core patches required"
+`unikit` crate, and all packages are UNTOUCHED — see "Core patches required"
 at the bottom for what production WOULD need (none were needed for the spike).
 
 ## Layout
 
-- `backend/` — standalone-workspace crate (path-dep on `../../crates/rustra`).
+- `backend/` — standalone-workspace crate (path-dep on `../../crates/unikit-bridge`).
   - Same source builds three ways: rlib (host tests), staticlib (native
     baseline), cdylib → `.wasm` (wasm3 path).
   - Commands: `double(n)` and `addNumbers(a, b)`.
@@ -25,7 +25,7 @@ at the bottom for what production WOULD need (none were needed for the spike).
   memory staging. This is the protocol the RN native modules mirror.
 - `scripts/build-backend.sh` / `scripts/build-v2.sh` — artifact builds.
 - `artifacts/` — gitignored build outputs (`engine_v1.wasm`,
-  `engine_v2.wasm`, `librustra_wasm_spike_backend.a`). Regenerate before
+  `engine_v2.wasm`, `libunikit_wasm_spike_backend.a`). Regenerate before
   building the RN apps: `scripts/build-backend.sh && scripts/build-v2.sh`.
 
 ## Wire protocol used by the spike host (wasm3 or staticlib caller)
@@ -39,10 +39,10 @@ Response (postcard, core `FfiPostcardResponse`):
 Example ok `{"value":42}` → `01 01 0c 7b2276616c7565223a34327d 00`
 (`ok=1`, `Some=1`, len `0x0c`, 12 JSON bytes, `None=0`).
 
-NOTE: the returned buffer from `rustra_ffi_invoke_postcard` is a pointer
+NOTE: the returned buffer from `unikit_ffi_invoke_postcard` is a pointer
 PAST core's hidden 8-byte header (`TSUR` magic + u32 LE len sits BEFORE the
 returned pointer; `out_len` is the payload length). Free with
-`rustra_ffi_free`/`spike_free` using the full returned pointer — do NOT
+`unikit_ffi_free`/`spike_free` using the full returned pointer — do NOT
 expect a visible header in the payload bytes.
 
 wasm call protocol (see `scripts/wasm3-smoke-main.c`):
@@ -58,11 +58,11 @@ wasm call protocol (see `scripts/wasm3-smoke-main.c`):
 
 ## Why the async worker pool is not a wasm hazard here
 
-`crates/rustra/src/ffi_pool.rs` spawns 2 `std::thread` workers, but the pool
+`crates/unikit-bridge/src/ffi_pool.rs` spawns 2 `std::thread` workers, but the pool
 is created lazily (OnceLock) ONLY from the async FFI entries
-(`rustra_ffi_invoke_async`, `rustra_ffi_invoke_json_async`,
-`rustra_ffi_invoke_rkyv_v2_async*`). The spike drives ONLY sync entries
-(`rustra_ffi_invoke_postcard`, `rustra_ffi_contract_hash`), so the pool is
+(`unikit_ffi_invoke_async`, `unikit_ffi_invoke_json_async`,
+`unikit_ffi_invoke_rkyv_v2_async*`). The spike drives ONLY sync entries
+(`unikit_ffi_invoke_postcard`, `unikit_ffi_contract_hash`), so the pool is
 never initialized on the wasm path. Runtime corroboration: on
 wasm32-unknown-unknown without atomics, `std::thread::spawn` compiles but
 PANICS at runtime — a successful wasm3 invoke is itself proof that no spawn
@@ -71,9 +71,9 @@ occurred on that path. The spike hosts never call `*_async` on wasm.
 ## Core patches required
 
 NONE for this spike. `cargo build --target wasm32-unknown-unknown --release`
-of a rustra-depending engine succeeds out of the box (rustra 0.5.0 @ 116eae3d,
+of a unikit-depending engine succeeds out of the box (unikit 0.5.0 @ 116eae3d,
 edition 2024, rust 1.88+). 848 KB .wasm (release, opt-level "s", panic=abort)
-exporting `memory` + all core `rustra_ffi_*` sync symbols.
+exporting `memory` + all core `unikit_ffi_*` sync symbols.
 
 For PRODUCTION (design-review items, not done here):
 

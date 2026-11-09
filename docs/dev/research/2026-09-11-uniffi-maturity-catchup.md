@@ -1,11 +1,11 @@
 # UniFFI 성숙도 따라잡기 연구 (2026-09-11)
 
 상태: complete. 조사 방법 — uniffi-rs 저장소(main, 0.32.0 이후)·공식 문서 직접 확인,
-rustra-bridge 는 로컬 저장소 코드/CI/문서 직접 감사. 문서에 없는 사항은 미공개(unknown)로
+unikit-bridge 는 로컬 저장소 코드/CI/문서 직접 감사. 문서에 없는 사항은 미공개(unknown)로
 명시. 선행 연구: `docs/research/2026-09-07-competitive-landscape.md`(기능 비교),
 2026-09-11 uniffi 부착 스파이크(공존 실측 — 이 문서의 Track B 근거).
 
-질문 정의: "rustra 에 uniffi 를 붙이는가"가 아니라 **"uniffi 수준의 성숙도에 도달하려면
+질문 정의: "unikit 에 uniffi 를 붙이는가"가 아니라 **"uniffi 수준의 성숙도에 도달하려면
 무엇을 해야 하는가"**. 결론 — 성숙도의 실체는 언어 개수가 아니라 **계약의 기계화**
 (체크섬·로드시 검증·실패주입·픽스처 규율)와 **산출물 기준 코드젠 게이트**이고,
 이는 언어 커버리지 결정과 독립적으로 벤치마킹 가능하다.
@@ -48,13 +48,13 @@ rustra-bridge 는 로컬 저장소 코드/CI/문서 직접 감사. 문서에 없
     breaking FFI 변경(0.30 객체 핸들 재작업)도 contract bump+changelog+픽스처로 소화.
 11. **문서 3층**: user guide / internals(바인딩 생성기 저자 대상 — lifting/lowering 표,
     시퀀스 다이어그램, 심볼 셰이프) / ADR 0000–0009(거부된 선택지까지 기록).
-12. **정직한 한계(=rustra 가 앞선 축)**: 공개 스키마 인트로스펙션 없음(메타데이터 사적),
+12. **정직한 한계(=unikit 가 앞선 축)**: 공개 스키마 인트로스펙션 없음(메타데이터 사적),
     와이어 포맷 안정성 계약 없음(내부용 명시), 핫리로드 스토리 없음(로드시 검증이
     오히려 재로드 거부), 페이로드 한도·협상 없음, 취소는 async cancel 만.
 
-## 2. rustra 현재 성숙도 인벤토리 (강제 수준 표기: CI-hard/test/script/doc-only/absent)
+## 2. unikit 현재 성숙도 인벤토리 (강제 수준 표기: CI-hard/test/script/doc-only/absent)
 
-| 차원              | rustra 현재                                                                                                                                | 강제              |
+| 차원              | unikit 현재                                                                                                                                | 강제              |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------- |
 | ABI 계약          | api-surface snapshot(32 심볼 **이름만**), 전역 contract_hash(SHA-256 of schema JSON), schema_generation 카운터                             | 이름 세트 CI-hard |
 | 심볼별 체크섬     | `command_wire_signature` 존재(`package_schema.rs:243`)하나 **핫리로드 게이팅 전용** — 발행된 체크섬 표면 없음                              | test              |
@@ -74,9 +74,9 @@ rustra-bridge 는 로컬 저장소 코드/CI/문서 직접 감사. 문서에 없
 신선도 무검증, ③ 런타임 계약 검증 opt-in, ④ 모바일 런타임 E2E absent(수동 체크리스트),
 ⑤ 안전망 트랙 전체 non-gating + 미러/typedoc 수동.
 
-## 3. 갭 분석 — uniffi 관행 ↔ rustra
+## 3. 갭 분석 — uniffi 관행 ↔ unikit
 
-| uniffi 관행                                         | rustra 상태                                           | 갭 크기          | 복사 비용                                    |
+| uniffi 관행                                         | unikit 상태                                           | 갭 크기          | 복사 비용                                    |
 | --------------------------------------------------- | ----------------------------------------------------- | ---------------- | -------------------------------------------- |
 | 1. 심볼별 체크섬+로드시 검증                        | 전역 hash+이름 스냅샷, 검증 opt-in                    | **큼(최우선)**   | 소 — `command_wire_signature` 승격 경로 존재 |
 | 2. mismatch 실패주입 픽스처                         | mismatch 경로 테스트 부분                             | 중               | 소                                           |
@@ -91,7 +91,7 @@ rustra-bridge 는 로컬 저장소 코드/CI/문서 직접 감사. 문서에 없
 | 11. internals/ADR 문서층                            | internal/ 있음, ADR absent                            | 중               | 중                                           |
 | 12. 언어 커버리지(Kotlin/Swift/Python)              | absent                                                | **가장 큼**      | 별도 의사결정(Track B)                       |
 
-## 4. rustra 가 이미 앞선 축 (복사할 필요 없음)
+## 4. unikit 가 이미 앞선 축 (복사할 필요 없음)
 
 공개 스키마 인트로스펙션(schema.json — uniffi 는 사적 메타데이터), 와이어 포맷 안정성
 계약(릴리스 스키마당 freeze + `docs/wire-format.md` — uniffi 는 내부용·불안정), 핫스왑
@@ -101,7 +101,7 @@ rustra-bridge 는 로컬 저장소 코드/CI/문서 직접 감사. 문서에 없
 
 ## 5. 로드맵
 
-### Track A — 성숙도 관행 벤치마킹 (rustra 모델 유지, 언어 결정과 독립)
+### Track A — 성숙도 관행 벤치마킹 (unikit 모델 유지, 언어 결정과 독립)
 
 - **A1. 심볼별 체크섬 표면화** (최우선): `command_wire_signature` 를 발행 표면으로 승격 —
   api-surface snapshot 에 서명/체크섬 포함하거나 FFI 함수별 checksum 심볼 export.
@@ -117,7 +117,7 @@ rustra-bridge 는 로컬 저장소 코드/CI/문서 직접 감사. 문서에 없
   uniffi 관행 7 해소.
 - **A6. 모바일 런타임 E2E**: rn-android/rn-ios 에뮬·시뮬 실행 잡(핫코어 E2E 에서
   이미 실증한 인프라의 CI 화). uniffi 관행 8 중 디바이스는 uniffi 도 下流 위임이라
-  여기서 rustra 가 역전 가능.
+  여기서 unikit 가 역전 가능.
 - **A7. 안전 계약 문서 + ADR**: `docs/safety-contract.md`(panic 불통과, 외래 예외 abort
   계약, 버퍼 소유 규칙, 포이즌 의미론, 페이로드 한도) + FFI 계약 결정에 번호 ADR 관행.
   uniffi 관행 6·11 해소.
@@ -128,8 +128,8 @@ rustra-bridge 는 로컬 저장소 코드/CI/문서 직접 감사. 문서에 없
 
 - **B1. uniffi 캐리어 채택**: 2026-09-11 스파이크로 공존 실측됨(additive, 기존 표면
   무변경). uniffi 의 체크섬·계약 기계가 신규 표면을 무료로 경비해주는 시너지.
-- **B2. rustra 네이티브 멀티언어 바인젠**: 메타데이터 static+산출물 스캔+언어 템플릿 =
-  사실상 uniffi 재구현급 투자. rustra 가 범용 브리지 프레임워크로 uniffi 와 직접
+- **B2. unikit 네이티브 멀티언어 바인젠**: 메타데이터 static+산출물 스캔+언어 템플릿 =
+  사실상 uniffi 재구현급 투자. unikit 가 범용 브리지 프레임워크로 uniffi 와 직접
   경쟁하는 목표일 때만 정당.
 - 어느 쪽이든 Track A 의 관행이 전제 — A 없이 B2 는 성숙도 없는 복제가 된다.
 

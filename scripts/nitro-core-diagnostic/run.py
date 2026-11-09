@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SCRIPTS = Path(__file__).resolve().parent
 DEFAULT_OUTPUT = ROOT / '.superpowers/sdd/2026-09-16-nitro-parity-followup/core-dfs-next'
 ORDER = ['balanced255', 'balanced1023', 'balanced8191', 'wide1025']
-PROTOCOL = 'rustra-nitro-host-core-dfs-diagnostic/v2'
+PROTOCOL = 'unikit-nitro-host-core-dfs-diagnostic/v2'
 LIMITATIONS = [
     'Host macOS arm64 only; neither iOS Simulator nor Android/device ABI or public-call parity evidence.',
     'Rust LLVM 22 and Apple clang 17 are different compiler implementations. O3/release and one host do not establish matched compiler/target/allocator settings; actual versions/options are recorded.',
@@ -76,7 +76,7 @@ def source_paths():
     # Hash repository-owned Rust dependencies, Cargo lockfile/checksums and the
     # complete native/driver inputs. No installed registry source is rewritten.
     selected = {ROOT / 'Cargo.toml', ROOT / 'Cargo.lock', ROOT / 'examples/react-native-calculator/src/nitro-parity/fixtures.ts'}
-    for base in ['crates/rustra', 'crates/rustra-macros', 'crates/rustra-naming', 'examples/calculator']:
+    for base in ['crates/unikit-bridge', 'crates/unikit-bridge-macros', 'crates/unikit-bridge-naming', 'examples/calculator']:
         selected.update(p for p in (ROOT / base).rglob('*.rs') if 'target' not in p.parts)
         selected.add(ROOT / base / 'Cargo.toml')
     selected.update(p for p in SCRIPTS.iterdir() if p.is_file())
@@ -132,16 +132,16 @@ def build(output):
         command(output, name, argv, cwd=output)
     write(output / 'build-options.json', {
         'inheritedAllowlistedOverrides': options, 'diagnosticOverride': {'CARGO_TERM_VERBOSE': 'true'},
-        'rust': {'recipe': ['cargo', 'build', '--release', '--locked', '-p', 'rustra-calculator-example', '--example', 'nitro_core_dfs', '-j2'], 'profile': 'Cargo default release (workspace has no release override)', 'optLevel': 3, 'codegenUnits': 16, 'lto': 'Cargo false default: local thin LTO possible; no explicit cross-crate LTO', 'panic': 'unwind', 'debugAssertions': False, 'overflowChecks': False, 'target': 'rustc host aarch64-apple-darwin', 'cpuFeatures': 'compiler default; see rust-default-cfg and verbose build stderr'},
+        'rust': {'recipe': ['cargo', 'build', '--release', '--locked', '-p', 'unikit-calculator-example', '--example', 'nitro_core_dfs', '-j2'], 'profile': 'Cargo default release (workspace has no release override)', 'optLevel': 3, 'codegenUnits': 16, 'lto': 'Cargo false default: local thin LTO possible; no explicit cross-crate LTO', 'panic': 'unwind', 'debugAssertions': False, 'overflowChecks': False, 'target': 'rustc host aarch64-apple-darwin', 'cpuFeatures': 'compiler default; see rust-default-cfg and verbose build stderr'},
         'cpp': {'flags': ['-std=c++20', '-O3', '-DNDEBUG', '-fno-lto'], 'compileAndLink': 'separate translation units, both commands explicitly disable LTO', 'exceptions': 'enabled compiler default, active require throws on mismatch', 'targetCpuFeatures': 'compiler default; see clang-default-invocation stderr'},
         'comparisonClaim': 'same host, ordinary optimized builds; compiler backend, LTO defaults, barrier and ABI settings are not identical',
     })
     env = dict(os.environ, CARGO_TERM_VERBOSE='true')
-    command(output, 'build-rust', ['cargo', 'build', '--release', '--locked', '-p', 'rustra-calculator-example', '--example', 'nitro_core_dfs', '-j2'], env=env)
-    shutil.copy2(ROOT / 'target/release/examples/nitro_core_dfs', output / 'rustra_core_dfs')
+    command(output, 'build-rust', ['cargo', 'build', '--release', '--locked', '-p', 'unikit-calculator-example', '--example', 'nitro_core_dfs', '-j2'], env=env)
+    shutil.copy2(ROOT / 'target/release/examples/nitro_core_dfs', output / 'unikit_core_dfs')
     command(output, 'compile-cpp', ['clang++', '-std=c++20', '-O3', '-DNDEBUG', '-fno-lto', '-c', 'core.cpp', '-o', 'core.o'], cwd=output)
     command(output, 'link-cpp', ['clang++', '-std=c++20', '-O3', '-DNDEBUG', '-fno-lto', 'driver.cpp', 'core.o', '-o', 'nitro_core_dfs'], cwd=output)
-    write(output / 'binaries.json', {name: {'path': str(output / filename), 'sha256': sha(output / filename)} for name, filename in [('rustra', 'rustra_core_dfs'), ('nitro', 'nitro_core_dfs'), ('cppObject', 'core.o')]})
+    write(output / 'binaries.json', {name: {'path': str(output / filename), 'sha256': sha(output / filename)} for name, filename in [('unikit', 'unikit_core_dfs'), ('nitro', 'nitro_core_dfs'), ('cppObject', 'core.o')]})
     check_freeze(output)
 
 
@@ -213,10 +213,10 @@ def inspect(output):
     check_freeze(output)
     artifacts = binaries(output)
     summary = {}
-    for framework, extension in [('rustra', 'json'), ('nitro', 'txt')]:
+    for framework, extension in [('unikit', 'json'), ('nitro', 'txt')]:
         entry = command(output, f'inspect-{framework}', [artifacts[framework]['path'], '--inspect', *[str(output / f'{name}.{extension}') for name in ORDER]])
         summary[framework] = {'raw': entry, 'rows': rows(output, entry, 'inspect')}
-    for a, b in zip(summary['rustra']['rows'][1:], summary['nitro']['rows'][1:]):
+    for a, b in zip(summary['unikit']['rows'][1:], summary['nitro']['rows'][1:]):
         if a['canonicalFullTreeSha256'] != b['canonicalFullTreeSha256']: raise RuntimeError('cross-framework fixture digest mismatch')
     write(output / 'inspection.json', {'protocol': PROTOCOL, 'kind': 'non-timed-observation', 'fixtureOrder': ORDER, 'fullFixtureCorrespondence': 'all fields of every node matched actual TypeScript exports after absent note to null and integral float to integer normalization', 'frameworks': summary})
     receipt(output)
@@ -228,14 +228,14 @@ def timing(output):
     if not (output / 'inspection.json').exists(): raise RuntimeError('run non-timed inspection first')
     launches = []
     for pair in range(1, 6):
-        for framework in (['rustra', 'nitro'] if pair % 2 else ['nitro', 'rustra']):
-            extension = 'json' if framework == 'rustra' else 'txt'
+        for framework in (['unikit', 'nitro'] if pair % 2 else ['nitro', 'unikit']):
+            extension = 'json' if framework == 'unikit' else 'txt'
             entry = command(output, f'time-{pair}-{framework}', [artifacts[framework]['path'], *[str(output / f'{name}.{extension}') for name in ORDER]])
             launches.append({'pair': pair, 'framework': framework, 'raw': entry, 'rows': rows(output, entry, 'time')})
     summary = []
     for position, name in enumerate(ORDER, start=1):
-        means = {framework: [statistics.mean(item['rows'][position]['samplesNs']) for item in launches if item['framework'] == framework] for framework in ['rustra', 'nitro']}
-        summary.append({'fixture': name, 'launchMeansNs': means, 'ratio': statistics.mean(means['rustra']) / statistics.mean(means['nitro'])})
+        means = {framework: [statistics.mean(item['rows'][position]['samplesNs']) for item in launches if item['framework'] == framework] for framework in ['unikit', 'nitro']}
+        summary.append({'fixture': name, 'launchMeansNs': means, 'ratio': statistics.mean(means['unikit']) / statistics.mean(means['nitro'])})
     write(output / 'timing.json', {'protocol': PROTOCOL, 'launches': launches, 'summary': summary, 'aggregateFormula': 'arithmetic mean of 31 batch-normalized samples per launch, then mean of five launch means per framework; ratio = Rust / C++', 'acceptanceRule': None})
     receipt(output)
 

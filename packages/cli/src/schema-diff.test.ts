@@ -528,7 +528,7 @@ test('runDiff reports the offending file path and a regenerate hint for invalid 
   const { mkdtempSync, rmSync, writeFileSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');
-  const root = mkdtempSync(join(tmpdir(), 'rustra-diff-input-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-diff-input-'));
   try {
     const good = join(root, 'good.json');
     const bad = join(root, 'bad.json');
@@ -553,7 +553,7 @@ test('runDiff wraps a missing schema file instead of leaking raw ENOENT', async 
   const { mkdtempSync, rmSync, writeFileSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');
-  const root = mkdtempSync(join(tmpdir(), 'rustra-diff-missing-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-diff-missing-'));
   try {
     const good = join(root, 'good.json');
     const missing = join(root, 'missing.json');
@@ -693,7 +693,7 @@ test('metadata edits remain nonbreaking', () => {
 });
 
 test('migration gate rejects schema pairs that silently reinterpret actual postcard bytes', async () => {
-  const { createSchemaPostcardCodec } = await import('@rustra/types');
+  const { createSchemaPostcardCodec } = await import('@unikit/types');
   const before = { type: 'object', properties: { value: { type: 'integer', format: 'int64' } } };
   const after = { type: 'object', properties: { value: { type: 'integer', format: 'uint64' } } };
   const encoder = createSchemaPostcardCodec(1, before, before)!;
@@ -736,7 +736,7 @@ test('oneOf fallback titles are discriminator keys rather than inert metadata', 
   const after = structuredClone(before);
   after.commands[0]!.inputSchema.oneOf![0]!.title = 'Z';
   assert.ok(diffSchemas(before, after).breaking.length > 0);
-  before.commands[0]!.inputSchema['x-rustra-variant-order'] = ['first', 'second'];
-  after.commands[0]!.inputSchema['x-rustra-variant-order'] = ['first', 'second'];
+  before.commands[0]!.inputSchema['x-unikit-variant-order'] = ['first', 'second'];
+  after.commands[0]!.inputSchema['x-unikit-variant-order'] = ['first', 'second'];
   assert.equal(diffSchemas(before, after).breaking.length, 0);
 });

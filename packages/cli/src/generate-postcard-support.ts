@@ -1,5 +1,5 @@
-import type { ComplexSchema } from '@rustra/types';
-import { createSchemaPostcardCodec } from '@rustra/types';
+import type { ComplexSchema } from '@unikit/types';
+import { createSchemaPostcardCodec } from '@unikit/types';
 import type { CommandSchema, JsonSchema } from './schema.js';
 import { buildCodecIr } from './codec-ir.js';
 import {

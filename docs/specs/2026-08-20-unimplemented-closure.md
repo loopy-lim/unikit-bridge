@@ -28,7 +28,7 @@ priority: high
 - [ ] `allOf`(intersection → `A & B`)와 integer enum(`1 | 2 | 3`)이 코드젠에서 지원된다 (Rust bin + TS CLI 양쪽, dual-path 일치)
 - [ ] postcard 필드 순서(알파벳) 위반이 빌드 타임에 경고된다
 - [ ] auth/streaming 예제의 `generated/`가 재생성되어 calculator/crud와 동일한 산출물 구조를 가진다
-- [ ] `rustra init` 템플릿이 현재 발행 버전(0.1.3)을 참조한다
+- [ ] `unikit init` 템플릿이 현재 발행 버전(0.1.3)을 참조한다
 - [ ] `docs/dev/internal/codegen.md` 제한사항 표가 갱신된다 (allOf/integer enum 해소, 낡은 oneOf/const 행 정정)
 
 ### WS2 — API 문서 정합성 (HIGH)
@@ -42,9 +42,9 @@ priority: high
 
 ### WS3 — 온보딩/DX 완결
 
-- [ ] `@rustra/node`에 `createNodeProcessTransport`(napi 또는 subprocess)가 제공되고, getting-started의 Node 퀵스타트가 사용자 구현 없이 복붙 가능한 완결 코드가 된다
+- [ ] `@unikit/node`에 `createNodeProcessTransport`(napi 또는 subprocess)가 제공되고, getting-started의 Node 퀵스타트가 사용자 구현 없이 복붙 가능한 완결 코드가 된다
 - [ ] 호환성 매트릭스 문서가 추가된다 — signal/취소/invokeBatch/이벤트 × 어댑터(node/bun/tauri/RN) 표. 조용한 드롭(node/bun의 signal 무시)은 가능하면 loud error로 전환하고, 전환 시 매트릭스에 반영
-- [ ] `@rustra/react` 훅(useCommand/useMutation/useEvent/RustraProvider)을 사용하는 레퍼런스 앱 예제가 추가된다 (CRUD + 이벤트)
+- [ ] `@unikit/react` 훅(useCommand/useMutation/useEvent/UnikitProvider)을 사용하는 레퍼런스 앱 예제가 추가된다 (CRUD + 이벤트)
 
 ### WS4 — 취소/의미론 완성
 
@@ -54,7 +54,7 @@ priority: high
 
 ### WS5 — 고아 추상/잔여물 정리
 
-- [ ] `contractHash` 검증이 RN에서 동작한다 — `RustraJSIBridge.cpp`에 `getContractHash` 배선 + 옵션 전달 (iOS/Android 공유 cpp)
+- [ ] `contractHash` 검증이 RN에서 동작한다 — `UnikitJSIBridge.cpp`에 `getContractHash` 배선 + 옵션 전달 (iOS/Android 공유 cpp)
 - [ ] `RendererHost` trait 존속 결정이 문서화된다 — 공개 API라 제거하지 않되, 사용처(host 통합 지점)와 Lynx 제거 배경을 모듈 독에 기록하고 `#[allow(dead_code)]`/낡은 모듈 독을 정리
 - [ ] `invokeAsync(payload, onDone): number` 옵셔널 메서드가 구현(JSI 배선)되거나 "호스트 구현 계약"으로 문서화된다
 - [ ] Lynx 잔여물 제거 — `packages/lynx/dist/`(비추적), `Example.nitro.ts` 템플릿, `trust_baseline_ffi.rs` 낡은 모듈 독, "(T3 후속)" 낡은 마커 4곳
@@ -68,7 +68,7 @@ priority: high
 ### WS7 — 성능 후속 (의도적 유예였으나 목표상 구현)
 
 - [ ] FFI caller-buffer fastpath: Rust malloc→복사→JS memcpy 3중 복사를 제거하는 caller-buffer FFI 변형이 구현되어 벤치마크에 반영된다 (`docs/benchmarks.md` Task 7 참조)
-- [ ] 코드젠 positional facade(P2): 정적 명령이 `__rustraNative.xxx(a, b)` positional 시그니처로 JSI 직접 호출하도록 생성된다
+- [ ] 코드젠 positional facade(P2): 정적 명령이 `__unikitNative.xxx(a, b)` positional 시그니처로 JSI 직접 호출하도록 생성된다
 
 ### WS8 — rkyv Rust Tier 3 바이너리 확장
 
@@ -88,9 +88,9 @@ priority: high
 - 리서치 문서: `docs/dev/research/2026-08-20-09-55-00-unimplemented-survey.md` (파일:줄 상세)
 - 코드젠 결함 근원: `packages/cli/src/generate.ts:165-206`, 생성물 `examples/crud/generated/rkyv-codecs.ts:287,318,325-332`
 - 폴백 선점 구조: `packages/types/src/index.ts:780-795` (Tier 3 JSON 폴백), `examples/crud/generated/rkyv-registry.ts:7`
-- 매크로 실제 계약: `crates/rustra-macros/src/lib.rs:100-120,151-159,387`
+- 매크로 실제 계약: `crates/unikit-bridge-macros/src/lib.rs:100-120,151-159,387`
 - 코드젠 dual-path 재생성 관례: 메모리 `codegen-dual-path-regen` (Rust bin + TS CLI, generated/ prettier 제외, `test:ts:node`)
 - 커밋 관례: lefthook prettier 재스테이징 없음 → 커밋 후 amend (메모리 `lefthook-prettier-amend`)
 - 성능 후속 설계: `docs/dev/plans/2026-08-18-perf-close-nitro-gap.md` Task 7, `docs/benchmarks.md:90-95`
 - 취소 설계: `docs/dev/plans/2026-08-18-followup3-typed-async-id-batch-cancel.md`
-- Tier 3 설계: `crates/rustra/src/rkyv_codec.rs:22,44`
+- Tier 3 설계: `crates/unikit-bridge/src/rkyv_codec.rs:22,44`

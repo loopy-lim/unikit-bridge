@@ -14,11 +14,11 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-target 'RustraWasmSpike' do
+target 'UnikitWasmSpike' do
   config = use_native_modules!
 
-  # NOTE: RustraWasmSpike pod comes in via autolinking (the file: dependency
-  # `@rustra-wasm-spike/bridge` in package.json carries the podspec).
+  # NOTE: UnikitWasmSpike pod comes in via autolinking (the file: dependency
+  # `@unikit-wasm-spike/bridge` in package.json carries the podspec).
 
   use_react_native!(
     :path => config[:reactNativePath],

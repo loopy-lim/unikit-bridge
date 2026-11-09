@@ -1,8 +1,8 @@
-# Rustra Architecture Decomposition Design
+# Unikit Architecture Decomposition Design
 
 ## 목표
 
-현재 Rustra의 기능 계약을 유지하면서 큰 모듈을 책임별로 분리하고, 분리 상태가
+현재 Unikit의 기능 계약을 유지하면서 큰 모듈을 책임별로 분리하고, 분리 상태가
 다시 합쳐지거나 호스트별 복제가 재발하면 자동으로 발견할 수 있는 architecture
 boundary 검사를 추가한다.
 
@@ -15,7 +15,7 @@ boundary 검사를 추가한다.
   정책으로 표시한다.
 - Node/Bun/Tauri JSON engine은 하나의 공용 구현을 사용한다.
 - RN은 공용 UTF-8 및 cancel helper를 사용하며 자체 사본을 두지 않는다.
-- `rustra dev`와 `rustra generate --watch`는 같은 watcher state machine을
+- `unikit dev`와 `unikit generate --watch`는 같은 watcher state machine을
   사용하고 disposer를 반환한다.
 - `.changeset`에는 다음 릴리스의 버전 스큐를 기록하되 실제 version bump는
   수행하지 않는다.
@@ -24,17 +24,17 @@ boundary 검사를 추가한다.
 
 ### Rust
 
-- `crates/rustra-naming`: proc-macro crate와 core가 공유하는 snake/camel 이름
+- `crates/unikit-bridge-naming`: proc-macro crate와 core가 공유하는 snake/camel 이름
   변환만 소유한다.
-- `crates/rustra/src/codegen/`: schema, TypeScript emit, contract output을
+- `crates/unikit-bridge/src/codegen/`: schema, TypeScript emit, contract output을
   소유한다.
-- `crates/rustra/src/registry.rs`: command registration, id lifecycle, frozen
+- `crates/unikit-bridge/src/registry.rs`: command registration, id lifecycle, frozen
   registry를 소유한다.
-- `crates/rustra/src/command.rs`: command metadata와 handler construction을
+- `crates/unikit-bridge/src/command.rs`: command metadata와 handler construction을
   소유한다.
-- `crates/rustra/src/package.rs`: `Package`, `PackageBuilder`, public facade를
+- `crates/unikit-bridge/src/package.rs`: `Package`, `PackageBuilder`, public facade를
   소유한다.
-- `crates/rustra/src/invoke.rs`: JSON/postcard/rkyv dispatch orchestration을
+- `crates/unikit-bridge/src/invoke.rs`: JSON/postcard/rkyv dispatch orchestration을
   소유한다.
 
 ### TypeScript
@@ -61,7 +61,7 @@ boundary 검사를 추가한다.
 
 `bun run test:architecture` must fail when any of the following occurs:
 
-1. `packages/types/src/index.ts`, `crates/rustra/src/lib.rs`, or
+1. `packages/types/src/index.ts`, `crates/unikit-bridge/src/lib.rs`, or
    `packages/cli/src/index.ts` exceeds its agreed line budget.
 2. JSON adapter packages duplicate transport-engine logic instead of calling
    `createJsonEngine`.

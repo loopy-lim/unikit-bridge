@@ -15,14 +15,14 @@ detection lives in the [contract migration guide](migration-guide.md).
 | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Wire format (Frame / postcard bytes for a released schema) | Stable once a schema is released: bytes produced for a given schema + contract hash keep decoding. | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
 | Contract hash algorithm                                    | Compatibility-critical: the hash-of-schema input definition is frozen per release.                 | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
-| FFI symbol signatures (`rustra_ffi_*` C ABI)               | Additive only. Existing symbols keep name, parameter list, and calling convention.                 | Removals and signature changes go through the deprecation cycle below, then a major. Pre-1.0: the deprecation rule applies — a symbol deprecated in a previous release may be removed in a minor. |
+| FFI symbol signatures (`unikit_ffi_*` C ABI)               | Additive only. Existing symbols keep name, parameter list, and calling convention.                 | Removals and signature changes go through the deprecation cycle below, then a major. Pre-1.0: the deprecation rule applies — a symbol deprecated in a previous release may be removed in a minor. |
 | Generated output (TypeScript / C++ / RN generated files)   | Regenerated output stays drop-in for the same configuration.                                       | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
-| Public Rust API (`crates/rustra`, `rustra-macros` exports) | Standard semver.                                                                                   | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
-| Public TypeScript API (`@rustra/*` package exports)        | Standard semver.                                                                                   | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
+| Public Rust API (`crates/unikit-bridge`, `unikit-bridge-macros` exports) | Standard semver.                                                                                   | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
+| Public TypeScript API (`@unikit/*` package exports)        | Standard semver.                                                                                   | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
 
 Not covered by any guarantee:
 
-- Internal modules, including everything under `crates/rustra/src/__private`.
+- Internal modules, including everything under `crates/unikit-bridge/src/__private`.
 - `#[doc(hidden)]` Rust items and `@internal`-tagged TypeScript items.
 - Anything reachable only through the surfaces above.
 
@@ -47,27 +47,27 @@ Per-version migration notes live in
 Recent removal: `RendererHost` (with `HostMessage`, `MessageKind`,
 `RendererCapabilities`, `Size`, `SurfaceOptions`, `host_supports_eval`) is
 deprecated as of 0.6.0 and removed under the pre-1.0 rule above — in the
-0.7.0 npm packages (changesets) and in the `rustra` crate 0.9.0 release
+0.7.0 npm packages (changesets) and in the `unikit` crate 0.9.0 release
 (crates.io publishing is manual, so crate versions trail the npm line). The
 replacement is a host-specific adapter boundary — each embedding host
 bridges its own renderer/events via the published channel and FFI surfaces.
 
-Removed under the same rule in the 0.7.0 `@rustra/tauri` and
-`@rustra/react-native` packages: the legacy `subscribeEvent(listen, name, callback)`
+Removed under the same rule in the 0.7.0 `@unikit/tauri` and
+`@unikit/react-native` packages: the legacy `subscribeEvent(listen, name, callback)`
 (Tauri) and `subscribeEvent(native, name, callback[, options])` (React Native)
 overloads, deprecated in 0.6.0. Only `subscribeEvent(name, callback[, listen])` and
 `subscribeEvent(name, callback[, options])` remain; React Native resolves the native
-module from `globalThis.__rustraNative`.
+module from `globalThis.__unikitNative`.
 
 Shipped in the 0.9.0 release line (2026-09-10, changeset `1f99eca`):
-`@rustra/cli` 0.9.0 removed the `reactNative.legacyBenchmarks` config key
-together with the `RUSTRA_LEGACY_BENCHMARKS`/`RUSTRA_ENABLE_LEGACY_BENCHMARKS`
-build flags from generated modules, and `@rustra/react-native` 0.8.0 dropped
+`@unikit/cli` 0.9.0 removed the `reactNative.legacyBenchmarks` config key
+together with the `UNIKIT_LEGACY_BENCHMARKS`/`UNIKIT_ENABLE_LEGACY_BENCHMARKS`
+build flags from generated modules, and `@unikit/react-native` 0.8.0 dropped
 the calculator-only legacy wire functions from the JSI host object —
 `invokeBytes`, `invokeMsgpack`, `invokeBincode`, `invokePostcard`,
 `invokeLegacyPostcard`, `invokeHybrid`, `invokeRaw`. The type-level half of
-the same changeset was not carried through: the published `RustraNative`
-(`@rustra/types`) still declares `invokeMsgpack`, `invokeBincode`,
+the same changeset was not carried through: the published `UnikitNative`
+(`@unikit/types`) still declares `invokeMsgpack`, `invokeBincode`,
 `invokePostcard`, `invokeHybrid`, and `invokeRaw` — the TS type keeps the
 members even though the RN host object no longer exposes them. Only
 `invokeRkyv` is gone for good: the 0.10.0 Frame rename removed the dead
@@ -84,17 +84,17 @@ above; any later change then follows the deprecation procedure.
 
 | Item                                                  | Status       | Notes                                                                                                                                                                                                                                                                  |
 | ----------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `rustra_ffi_hot_reload`                               | Experimental | Landed this cycle. Hot-reload injection with replace semantics; the skip report and error ladder may still change between releases.                                                                                                                                    |
+| `unikit_ffi_hot_reload`                               | Experimental | Landed this cycle. Hot-reload injection with replace semantics; the skip report and error ladder may still change between releases.                                                                                                                                    |
 | `hot-core` module (`DylibCore`·`HotCoreHandle`·watch) | Experimental | Dev-time native dylib hot-swap primitive behind the `hot-core` cargo feature. API and swap semantics may change between releases. Release builds are unaffected (the static-linking path is unchanged). Design: `docs/dev/plans/2026-09-09-native-hot-core-design.md`. |
-| `rustra_ffi_capture_snapshot`                         | Experimental | B1 inspector dump. Shape changes are breaking, except additive fields, which are backward-compatible.                                                                                                                                                                  |
-| `@rustra/types` inspector                             | Experimental | `DumpedWire` + `parseSnapshot`/`serializeSnapshot` mirror the blob contract above (additive fields allowed). `rustra inspect` renders this experimental format and inherits its status.                                                                                |
+| `unikit_ffi_capture_snapshot`                         | Experimental | B1 inspector dump. Shape changes are breaking, except additive fields, which are backward-compatible.                                                                                                                                                                  |
+| `@unikit/types` inspector                             | Experimental | `DumpedWire` + `parseSnapshot`/`serializeSnapshot` mirror the blob contract above (additive fields allowed). `unikit inspect` renders this experimental format and inherits its status.                                                                                |
 
 ## MSRV policy
 
 The workspace MSRV is Rust 1.88: the root `Cargo.toml` sets
 `rust-version = "1.88"` and member crates inherit it via
 `rust-version.workspace = true`. The pin reflects edition 2024 (1.85) plus
-let-chains (1.88, used in `rustra-macros`).
+let-chains (1.88, used in `unikit-bridge-macros`).
 
 MSRV bumps happen only in minor releases, never in patch releases. A bump is a
 minor-release change even though it touches no API, because it can break
@@ -102,7 +102,7 @@ consumer toolchains.
 
 ## Release numbering
 
-The project is on 0.x. Versions of the 9 public `@rustra/*` npm packages are
+The project is on 0.x. Versions of the 9 public `@unikit/*` npm packages are
 driven by changesets: when changeset files exist on main, `release.yml` opens
 the version-packages PR (`chore: version packages`), and merging it updates version fields and
 CHANGELOGs in bulk. crates.io publishing is manual — `cargo publish` per

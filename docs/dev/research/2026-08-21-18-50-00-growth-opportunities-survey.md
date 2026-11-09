@@ -3,7 +3,7 @@ date: 2026-08-21T18:50:00+09:00
 researcher: claude (loopy 세션)
 git_commit: f77c2b864f5c83a342fda2ebf05aabfb110bb41b
 branch: main
-repository: rustra-bridge (remote: loopy-lim/rustra)
+repository: unikit-bridge (remote: loopy-lim/unikit)
 topic: 'v0.2.0 이후 성장 건덕지 전수 조사 — 코어·JS패키지·CI·문서·성능·생태계 6각도'
 tags: [research, codebase, growth, roadmap, performance, ecosystem, onboarding]
 status: complete
@@ -17,7 +17,7 @@ last_updated_by: claude
 **연구자**: claude (loopy 세션)
 **Git Commit**: f77c2b86
 **Branch**: main
-**Repository**: rustra-bridge (remote: loopy-lim/rustra)
+**Repository**: unikit-bridge (remote: loopy-lim/unikit)
 
 ## 연구 질문
 
@@ -30,10 +30,10 @@ last_updated_by: claude
 - **결함 성격의 발견 6건** (PR #29 이후 신규 발견분):
   1. release 빌드에서 `grant_capability`가 영원히 불가능 (capability 시스템 prod 무효) — `lib.rs:1414`
   2. 루트 README 퀵스타트 예제가 컴파일 안 됨 (`add_numbers(a, b) -> i64` — 매크로 계약 위반)
-  3. `@rustra/react` useCommand가 `commandFn.name` 의존 — minify 환경에서 파손
+  3. `@unikit/react` useCommand가 `commandFn.name` 의존 — minify 환경에서 파손
   4. useCommand×Node/Bun 엔진 조합이 항상 signal을 전달해 첫 호출부터 `cancel.unsupported` throw
   5. devtools instrumented 엔진이 options(signal/timeoutMs)를 탈락시킴
-  6. release.yml 하드코딩 `rustra-macros@0.1.3` 대기 루프 — 이미 무효화 (0.2.0 발행 시 no-op)
+  6. release.yml 하드코딩 `unikit-bridge-macros@0.1.3` 대기 루프 — 이미 무효화 (0.2.0 발행 시 no-op)
 - **가장 큰 구조적 건덕지 3축**:
   - **이벤트 표면** — RN에만 완결, Node/Bun/Tauri JS는 공백, 페이로드는 비타입 문자열, 코드젠 없음. "한 번 정의하면 어디서든" 약속의 절반이 여기서 깨짐
   - **비동기** — 커맨드 핸들러가 동기 `Fn` 전용, async invoke는 호출당 `thread::spawn`, `block_on`이 단일 스레드 park (런타임 통합 시 교착 위험)
@@ -43,7 +43,7 @@ last_updated_by: claude
 
 ## 상세 분석
 
-### A. 코어 크레이트 (crates/rustra + rustra-macros) — 20건
+### A. 코어 크레이트 (crates/unikit-bridge + unikit-bridge-macros) — 20건
 
 #### A-1. release에서 capability 부여 영원히 불가능 [결함, 상]
 
@@ -51,7 +51,7 @@ last_updated_by: claude
 
 #### A-2. caller-buffer FFI가 임시 Vec 할당 (JSON 변형만 존재, rkyv V2 변형 부재)
 
-`rustra_ffi_invoke_json_into`(`ffi.rs:493-556`)조차 `json_serialize`로 Vec 먼저 만들고 memcpy. 문서와 달리 "Rust는 응답을 할당하지 않고"가 아님. `serde_json::to_writer` + caller 버퍼 io::Write 어댑터로 실제 zero-copy 가능. 더 중요: **핫패스인 rkyv V2 caller-buffer 변형(`invoke_rkyv_v2_into`)은 아예 없음** — JSI typed fast path는 여전히 malloc→memcpy→free 사이클(`RustraJSIBridge.cpp:351`). Nitro 격차 1.3x→1.1x대의 현실적 경로.
+`unikit_ffi_invoke_json_into`(`ffi.rs:493-556`)조차 `json_serialize`로 Vec 먼저 만들고 memcpy. 문서와 달리 "Rust는 응답을 할당하지 않고"가 아님. `serde_json::to_writer` + caller 버퍼 io::Write 어댑터로 실제 zero-copy 가능. 더 중요: **핫패스인 rkyv V2 caller-buffer 변형(`invoke_rkyv_v2_into`)은 아예 없음** — JSI typed fast path는 여전히 malloc→memcpy→free 사이클(`UnikitJSIBridge.cpp:351`). Nitro 격차 1.3x→1.1x대의 현실적 경로.
 
 #### A-3. caller-buffer size-probe가 핸들러를 2회 실행 [정확성, 상]
 
@@ -73,7 +73,7 @@ probe(buf=null) → write(buf) 2단계에서 각 호출이 `dispatch_json`을 �
 
 `ffi.rs:640-656, 684-700` — 주석 스스로 "메모리 2배" 인정. `max_payload_bytes()` 선검사로 해결.
 
-#### A-8. `rustra_ffi_free`가 foreign 포인터 헤더를 무조건 역참조 (release)
+#### A-8. `unikit_ffi_free`가 foreign 포인터 헤더를 무조건 역참조 (release)
 
 release에서 가드 컴파일 아웃 후 곧장 `ptr.sub(8)`(`ffi.rs:801-803`). 잘못된 포인터면 할당 경계 밖 읽기(UB). side-table 또는 문서 명시.
 
@@ -107,7 +107,7 @@ macros lib.rs:386-415. 중복 derive, rename_all 조합, "이 타입은 Tier 3 �
 
 #### A-16. features가 `tauri` 하나뿐 — 의존 전부 무조건 컴파일
 
-`crates/rustra/Cargo.toml:15-26`. sha2/hex(코드젠 전용), serde_json, postcard를 feature로 분리 가능. 바이너리 크기·컴파일 시간. "rkyv"라는 모듈명이 실제로는 postcard+커스텀 와이어(rkyv 크레이트 부재)인 것도 네이밍 정리 필요.
+`crates/unikit-bridge/Cargo.toml:15-26`. sha2/hex(코드젠 전용), serde_json, postcard를 feature로 분리 가능. 바이너리 크기·컴파일 시간. "rkyv"라는 모듈명이 실제로는 postcard+커스텀 와이어(rkyv 크레이트 부재)인 것도 네이밍 정리 필요.
 
 #### A-17. `block_on` 실행기가 단일 스레드 park — 런타임 통합 시 교착
 
@@ -187,13 +187,13 @@ useSyncExternalStore 미사용, `JSON.stringify(input)` 의존성(순환 참조 
 
 `testing/contract-gate.ts:9-20` — 순수 함수만 존재, matcher/CLI 짝 없음.
 
-#### B-16. react-native `RustraJSINative` 타입 3중 수동 미러링
+#### B-16. react-native `UnikitJSINative` 타입 3중 수동 미러링
 
 `react-native/index.ts:31-65` ↔ `types/index.ts:151-197, 431-471`. 신규 옵션마다 3곳 동기화.
 
 #### B-17. 에러 코드 13종 산재 — 중앙 레지스트리 없음
 
-`types/index.ts:124-126` 하드코딩. `RustraErrorCode` enum + 문서화.
+`types/index.ts:124-126` 하드코딩. `UnikitErrorCode` enum + 문서화.
 
 #### B-18. useCommand cleanup 경쟁 — `setLoading(true)` 가드 없음
 
@@ -207,7 +207,7 @@ npm 공개 패키지 2종이 빈 페이지.
 
 #### C-1. release.yml 하드코딩 버전 [결함]
 
-`release.yml:108` — `cargo info rustra-macros@0.1.3` 대기 루프가 이미 무효화(현재 0.2.0). 다음 발행 시 no-op로 dry-run 실패 가능.
+`release.yml:108` — `cargo info unikit-bridge-macros@0.1.3` 대기 루프가 이미 무효화(현재 0.2.0). 다음 발행 시 no-op로 dry-run 실패 가능.
 
 #### C-2. npm provenance 미활성 — 권한은 있는데 안 씀
 
@@ -315,7 +315,7 @@ WS1~WS8 체크박스 전부 `[ ]` — 상당수 이미 구현됨. 플랜-실제 
 
 #### E-1. 이벤트(Rust→JS 푸시) 표면이 RN에만 완결 [최대 구조 갭]
 
-`compatibility-matrix.md:15` — Node/Bun ❌, Tauri는 Rust측 `register_with_events`(`lib.rs:249` → `app.emit("rustra://{name}")`)가 있는데 **JS 구독 API 없음**. `subscribeEvent`는 RN 전용(`react-native/index.ts:345`). "한 번 정의하면 어디서든"의 절반이 깨진 곳.
+`compatibility-matrix.md:15` — Node/Bun ❌, Tauri는 Rust측 `register_with_events`(`lib.rs:249` → `app.emit("unikit://{name}")`)가 있는데 **JS 구독 API 없음**. `subscribeEvent`는 RN 전용(`react-native/index.ts:345`). "한 번 정의하면 어디서든"의 절반이 깨진 곳.
 
 #### E-2. 이벤트 페이로드가 비타입 문자열 — 이벤트 계약 코드젠 부재
 
@@ -377,7 +377,7 @@ crates.io 총 98, npm 주간 410, star 0. 품질(감사·게이트·문서 정�
 
 #### F-4. N-API 어댑터 String 왕복 — 24.3µs 중 97.9%가 브릿지
 
-`calculator-napi/src/lib.rs:16-29`. `rustra_ffi_invoke_json_into` → napi Buffer 배선. Node 계열 최대 지렛대.
+`calculator-napi/src/lib.rs:16-29`. `unikit_ffi_invoke_json_into` → napi Buffer 배선. Node 계열 최대 지렛대.
 
 #### F-5. positional facade 측정 0회 (B-7과 동일 항목의 성능 측면)
 
@@ -385,7 +385,7 @@ crates.io 총 98, npm 주간 410, star 0. 품질(감사·게이트·문서 정�
 
 #### F-7. typed 응답 decode JS 객체 구성 — 잔여 격차 주성분 (추정)
 
-`rustra-generated-codecs.cpp:18-22`. Nitro식 프로토타입 재활용 후보. F-2 측정 후 착수.
+`unikit-generated-codecs.cpp:18-22`. Nitro식 프로토타입 재활용 후보. F-2 측정 후 착수.
 
 #### F-8. 벤치 문서 수치 세션 불일치
 
@@ -438,11 +438,11 @@ crates.io 총 98, npm 주간 410, star 0. 품질(감사·게이트·문서 정�
 
 ## 코드 참조 (핵심 결함만)
 
-- `crates/rustra/src/lib.rs:1414, 879-887` — release frozen → grant 불가
-- `crates/rustra/src/lib.rs:493-512, 744-753` — Command 스키마 deep copy
-- `crates/rustra/src/ffi.rs:493-556` — caller-buffer JSON (rkyv V2 변형 부재)
-- `crates/rustra/src/ffi.rs:627-700` — async spawn 가드 부재/선복사
-- `crates/rustra/src/rkyv_codec.rs:604-612` — $ref 미검증
+- `crates/unikit-bridge/src/lib.rs:1414, 879-887` — release frozen → grant 불가
+- `crates/unikit-bridge/src/lib.rs:493-512, 744-753` — Command 스키마 deep copy
+- `crates/unikit-bridge/src/ffi.rs:493-556` — caller-buffer JSON (rkyv V2 변형 부재)
+- `crates/unikit-bridge/src/ffi.rs:627-700` — async spawn 가드 부재/선복사
+- `crates/unikit-bridge/src/rkyv_codec.rs:604-612` — $ref 미검증
 - `README.md:43, 124` — 컴파일 안 되는 퀵스타트
 - `packages/react/src/useCommand.ts:31, 44` — name 의존 + signal 강제
 - `packages/devtools/src/index.ts:57-60` — options 탈락

@@ -1,5 +1,5 @@
 {
-  "name": "RustraWasmSpike",
+  "name": "UnikitWasmSpike",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -14,7 +14,7 @@
     "react-native": "0.81.5",
     "@react-native/new-app-screen": "0.81.5",
     "react-native-safe-area-context": "^5.5.2",
-    "@rustra-wasm-spike/bridge": "file:./modules/RustraWasmSpike"
+    "@unikit-wasm-spike/bridge": "file:./modules/UnikitWasmSpike"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

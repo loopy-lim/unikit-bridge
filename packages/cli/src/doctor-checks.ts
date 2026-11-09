@@ -40,7 +40,7 @@ export function collectConfigChecks(
       `Cargo manifest: ${manifest ?? ''}`,
       'Could not find Cargo.toml for codegen',
       undefined,
-      ['Set codegen.rustManifest in rustra.json'],
+      ['Set codegen.rustManifest in unikit.json'],
     ),
   );
   if (manifest && existsSync(manifest) && cargo.ok) {
@@ -60,7 +60,7 @@ export function collectConfigChecks(
           `Rust generator: ${selected.packageName ?? 'package'} / ${selected.binaryName ?? ''}`,
           'Could not select a Cargo generator binary',
           selected.error,
-          ['Set codegen.rustPackage and codegen.rustBinary in rustra.json'],
+          ['Set codegen.rustPackage and codegen.rustBinary in unikit.json'],
         ),
       );
     } else
@@ -103,7 +103,7 @@ export function collectConfigChecks(
           false,
           `Schema is not generated yet: ${schemaPath ?? 'invalid schema path'}`,
           undefined,
-          ['Run rustra codegen --config rustra.json'],
+          ['Run unikit codegen --config unikit.json'],
         ),
   );
   if (outputPath && existsSync(outputPath))
@@ -178,10 +178,10 @@ export function collectConfigChecks(
   // required 가 아니지만(warn), wasm32 빌드 타깃 부재는 필수 fail 이다(wasm32
   // 없이는 엔진 빌드 자체가 성공하지 않는다). 네이티브 타깃은 어느 쪽도 수집하지
   // 않는다(절대 음성).
-  // 코드젠 산출물 신선도 — .rustra-generated.json 매니페스트 기반 저비용 검사.
+  // 코드젠 산출물 신선도 — .unikit-generated.json 매니페스트 기반 저비용 검사.
   // 바이트 전수 검증은 codegen --check 의 소관이다 (doctor 는 읽기 전용 저비용 유지).
   // 스키마 자체가 없으면 codegen.schema_output 이 이미 warn 이므로 이중 보고하지 않는다.
-  const manifestPath = outputPath ? resolve(outputPath, '.rustra-generated.json') : undefined;
+  const manifestPath = outputPath ? resolve(outputPath, '.unikit-generated.json') : undefined;
   if (manifestPath && existsSync(manifestPath) && schemaPath && existsSync(schemaPath)) {
     let stale: string | undefined;
     let detail: string | undefined;
@@ -211,7 +211,7 @@ export function collectConfigChecks(
     checks.push(
       stale
         ? check('codegen.generated_freshness', 'warn', false, stale, detail, [
-            'Run rustra codegen --config rustra.json',
+            'Run unikit codegen --config unikit.json',
           ])
         : check(
             'codegen.generated_freshness',
@@ -235,7 +235,7 @@ export function collectConfigChecks(
         false,
         'Generated manifest is missing — generated output may be stale or absent',
         undefined,
-        ['Run rustra codegen --config rustra.json'],
+        ['Run unikit codegen --config unikit.json'],
       ),
     );
   else

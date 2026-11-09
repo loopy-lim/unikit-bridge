@@ -12,7 +12,7 @@ config.resolver.nodeModulesPaths = [
   path.resolve(repoRoot, 'node_modules'),
 ];
 
-// The Rustra generator emits `.js` specifiers so the generated clients are
+// The Unikit generator emits `.js` specifiers so the generated clients are
 // valid ESM after TypeScript compilation. Metro resolves source files by
 // extension, however, and the generated source still lives as `.ts` in this
 // example. Prefer the extensionless source during Metro resolution, then fall

@@ -13,12 +13,12 @@
 
 | 항목                                                          | 결과                                                                   |
 | ------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `test-rustra-codec.cpp` (순수 postcard Reader/Writer)         | ✅ Rust `postcard` 와 바이트-동일 known-value + round-trip             |
-| `test-rustra-generated-codecs.cpp` (생성 코덱, 최소 JSI shim) | ✅ encode 바이트 동일 + decode 값 보존 + `rustraRegistryDemo` 필드순서 |
+| `test-unikit-codec.cpp` (순수 postcard Reader/Writer)         | ✅ Rust `postcard` 와 바이트-동일 known-value + round-trip             |
+| `test-unikit-generated-codecs.cpp` (생성 코덱, 최소 JSI shim) | ✅ encode 바이트 동일 + decode 값 보존 + `unikitRegistryDemo` 필드순서 |
 | `cargo test --workspace`                                      | ✅ 전 pass (clippy/fmt clean)                                          |
-| `@rustra/types` 단위 테스트 (B1 + invokeBatch 라우팅)         | ✅ 14/14                                                               |
-| `@rustra/cli` 코드젠 테스트                                   | ✅ 16/16                                                               |
-| `@rustra/react-native` + 패키지 테스트                        | ✅ 3/3, 21/21                                                          |
+| `@unikit/types` 단위 테스트 (B1 + invokeBatch 라우팅)         | ✅ 14/14                                                               |
+| `@unikit/cli` 코드젠 테스트                                   | ✅ 16/16                                                               |
+| `@unikit/react-native` + 패키지 테스트                        | ✅ 3/3, 21/21                                                          |
 | RN 예제 `tsc --noEmit`                                        | ✅ clean                                                               |
 
 ---
@@ -33,8 +33,8 @@
 
 - [x] `examples/react-native-calculator` 에서 iOS 대상 Rust 빌드 스크립트 실행
       (`build-rust-ios.sh` / `cargo build --target x86_64-apple-ios-sim` 등 사전 구성).
-- [x] `expo run:ios` (또는 `npx react-native run-ios`) — **C++ 코덱이 정상 링크**되는지. - `rustra-codec.hpp/.cpp`, `rustra-generated-codecs.{hpp,cpp}` 가 Xcode 타겟에 포함되는지. - `RustraJSIBridge.cpp` 의 신규 심볼(`hasStaticCodec`, `invokeTyped`, `invokeTypedBatch`)이
-      호스트 객체에 노출되는지(`globalThis.__rustraNative` 에 존재).
+- [x] `expo run:ios` (또는 `npx react-native run-ios`) — **C++ 코덱이 정상 링크**되는지. - `unikit-codec.hpp/.cpp`, `unikit-generated-codecs.{hpp,cpp}` 가 Xcode 타겟에 포함되는지. - `UnikitJSIBridge.cpp` 의 신규 심볼(`hasStaticCodec`, `invokeTyped`, `invokeTypedBatch`)이
+      호스트 객체에 노출되는지(`globalThis.__unikitNative` 에 존재).
 - [x] 앱 실행 시 JSI install 성공 로그.
 
 ## 2. 단건 호출 정확성 (C++ fast path)
@@ -48,7 +48,7 @@
 - [x] `createItem({name, value})` → 중첩 `item` 객체 일치 (struct 경로).
 - [x] `processItem({item})` → 중첩 입력 + 중첩 출력 일치.
 - [x] `greet({name})` / `toUpper({s})` → string UTF-8(멀티바이트/이모지 포함) 일치.
-- [x] `rustraRegistryDemo({op})` → **`ok`/`frozen`/`message` 가 올바른 값**에 매핑되는지
+- [x] `unikitRegistryDemo({op})` → **`ok`/`frozen`/`message` 가 올바른 값**에 매핑되는지
       (필드순서 수정 검증 — postcard 본문이 구조체 순서 `ok,frozen,message` 로 직렬화되고
       C++ 디코더도 같은 순서로 읽는지).
 
@@ -71,11 +71,11 @@
 
 - [x] `BenchmarkApp` 또는 마이크로벤치로 `addNumbers` 단건 latency 측정. - 기준(변경 전): **~5.8µs avg**. 목표: **Nitro(~2.1µs)급으로 감소**. - JS encode(2.4µs) + decode(1.0µs) 제거 효과가 수치로 나타나는지.
   > **달성 (2026-08-13, 온디바이스 실측)** — `docs/benchmarks.md` §"온디바이스" 참고:
-  > Rustra Direct C++ Fast-Path iOS **0.95µs** (Nitro 1.10µs 대비 1.16× 우위), Android 1.50µs.
+  > Unikit Direct C++ Fast-Path iOS **0.95µs** (Nitro 1.10µs 대비 1.16× 우위), Android 1.50µs.
   > 목표(Nitro급)를 상회 달성 — 본 항목은 수치 근거로 폐쇄.
   >
   > **정정 (2026-08-22)** — 위 0.95µs/1.50µs는 2026-08-11 Lynx 측정 표가
-  > "Rustra Direct C++ Fast-Path"로 개명된 것으로, 이 경로의 측정 코드가 레포에
+  > "Unikit Direct C++ Fast-Path"로 개명된 것으로, 이 경로의 측정 코드가 레포에
   > 없어 근거가 확보되지 않는다(계보: d888fc86). 해당 표는 benchmarks.md에서
   > 삭제됐고, 근거 있는 RN 실측은 BenchmarkApp 기록(JSI 최적화 후 sync ~5.2µs,
   > Nitro async 대비 ~1.3x)로 대체했다.
@@ -91,7 +91,7 @@
 ## 7. 회귀 / 호환성
 
 - [x] 기존 raw `invokeRkyvV2(ArrayBuffer)` 경로(레거시/벤치마크)가 여전히 동작.
-- [x] Node/Bun/Tauri 어댑터(`@rustra/node`, `@rustra/bun`, `@rustra/tauri`) —
+- [x] Node/Bun/Tauri 어댑터(`@unikit/node`, `@unikit/bun`, `@unikit/tauri`) —
       `invokeTyped` 미지원 → JS codec/Tier3 경로 유지, 기존 동작 무영향 확인.
 
 ---

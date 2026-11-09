@@ -19,7 +19,7 @@
 
 - 엔진 Tier 3 JSON 폴백(`packages/types/src/index.ts:780-795`)은 "코덱 미등록" 시에만 동작 — 깨진 코덱이 등록되면 선점당함. 따라서 수정 원칙은 **"부분 코덱은 등록 금지" 불변식**이다.
 - crud 테스트가 mockEngine(JSON)만 써서 와이어 미경유 → 결함이 CI에 안 걸림. round-trip 스모크 테스트가 구조적 해법.
-- 매크로(`crates/rustra-macros/src/lib.rs:100-120,151-159`)는 단일 Input/`Result<O>`만 허용하도록 의도 설계됨 — 문서가 틀렸지 매크로를 확장할 게 아니다.
+- 매크로(`crates/unikit-bridge-macros/src/lib.rs:100-120,151-159`)는 단일 Input/`Result<O>`만 허용하도록 의도 설계됨 — 문서가 틀렸지 매크로를 확장할 게 아니다.
 - WS7 caller-buffer fastpath는 `docs/plans/2026-08-35-perf-close-nitro-gap.md` Task 7 설계, WS4 취소는 followup3 계획의 "별도 결정" 항목 — 설계 맥락 존재.
 
 ## 목표 상태
@@ -66,7 +66,7 @@ Phase 순서는 의존성 기반: 결함 수정(문서·코드젠) → 온보딩
 
 #### 4. allOf / integer enum 지원
 
-**파일**: `crates/rustra/src/codegen.rs`, `packages/cli/src/generate.ts`(및 `codegen.ts`), 양쪽 테스트
+**파일**: `crates/unikit-bridge/src/codegen.rs`, `packages/cli/src/generate.ts`(및 `codegen.ts`), 양쪽 테스트
 **변경사항**: `allOf` → TS `A & B` intersection 생성. integer enum → `1 | 2 | 3` 리터럴 union (TS `codegen.ts:51`의 전역 따옴표 처리를 enum 원시 타입별 분기). Rust bin과 TS CLI가 동일 산출물 생성(dual-path 일치 테스트 갱신).
 
 #### 5. postcard 필드 순서 경고
@@ -93,15 +93,15 @@ Phase 순서는 의존성 기반: 결함 수정(문서·코드젠) → 온보딩
 
 #### 자동 검증:
 
-- [x] `npm run test -w @rustra/cli` 통과 (신규 코드젠 테스트 포함)
+- [x] `npm run test -w @unikit/cli` 통과 (신규 코드젠 테스트 포함)
 - [x] `npm run test:ts:node` 통과 (crud wire round-trip 테스트 포함)
-- [x] `cargo test -p rustra` 통과 (codegen.rs 변경분)
+- [x] `cargo test -p unikit-bridge` 통과 (codegen.rs 변경분)
 - [x] `npm run lint && npm run format:check` 통과
 - [x] crud 재생성물에서 `updateItem`이 더 이상 필드를 소실하지 않음 (폴백 경유 or 완전 코덱)
 
 #### 수동 검증:
 
-- [x] `rustra generate` 실행 시 crud 스키마에서 WARN 로그 확인 (미지원 명령 폴백 안내)
+- [x] `unikit generate` 실행 시 crud 스키마에서 WARN 로그 확인 (미지원 명령 폴백 안내)
 - [x] auth/streaming generated/ 구조가 calculator/crud와 동일
 
 ---
@@ -148,7 +148,7 @@ rust-api-guide를 실제 API로 재작성하고, 스테일 문서 5종을 현행
 
 #### 자동 검증:
 
-- [x] 가이드 내 Rust 예제가 실제 컴파일된다 — 예제 코드를 `crates/` 독스트/테스트로 추출해 `cargo test -p rustra --doc` 또는 별도 doctest 크레이트로 검증
+- [x] 가이드 내 Rust 예제가 실제 컴파일된다 — 예제 코드를 `crates/` 독스트/테스트로 추출해 `cargo test -p unikit-bridge --doc` 또는 별도 doctest 크레이트로 검증
 - [x] `npm run format:check` (문서는 prettier 대상 밖이지만 CI 통과 유지)
 
 #### 수동 검증:
@@ -190,7 +190,7 @@ rust-api-guide를 실제 API로 재작성하고, 스테일 문서 5종을 현행
 
 #### 수동 검증:
 
-- [x] abort 시 핸들러가 실제 중단되는지 RustraJSIBridge.cpp 경유 확인 (iOS 시뮬레이터 또는 코드 리뷰 수준)
+- [x] abort 시 핸들러가 실제 중단되는지 UnikitJSIBridge.cpp 경유 확인 (iOS 시뮬레이터 또는 코드 리뷰 수준)
 
 ---
 
@@ -198,7 +198,7 @@ rust-api-guide를 실제 API로 재작성하고, 스테일 문서 5종을 현행
 
 ### 개요
 
-"5분 온보딩"을 끊김 없게 만든다: Node transport 제공, 호환성 매트릭스 문서, @rustra/react 레퍼런스 앱.
+"5분 온보딩"을 끊김 없게 만든다: Node transport 제공, 호환성 매트릭스 문서, @unikit/react 레퍼런스 앱.
 
 ### 필요한 변경사항:
 
@@ -212,11 +212,11 @@ rust-api-guide를 실제 API로 재작성하고, 스테일 문서 5종을 현행
 **파일**: 신규 `docs/compatibility-matrix.md`, `docs/README.md` 목록 추가
 **변경사항**: signal/취소/invokeBatch/이벤트 × node/bun/tauri/RN 표. node/bun의 signal 조용 드롭은 loud error로 전환하고 매트릭스에 반영 (node/bun `invoke` 시그니처에 options 파라미터 추가, 미지원 시 throw).
 
-#### 3. @rustra/react 레퍼런스 앱
+#### 3. @unikit/react 레퍼런스 앱
 
-**파일**: 신규 `examples/reference-app/` (React + @rustra/react 훅)
+**파일**: 신규 `examples/reference-app/` (React + @unikit/react 훅)
 **package.json**: `test:app:reference` 스크립트 추가
-**변경사항**: CRUD + 이벤트를 useCommand/useMutation/useEvent/RustraProvider로 구현. Node transport(Phase 3-1) 사용. 타입체크+스모크 실행 포함.
+**변경사항**: CRUD + 이벤트를 useCommand/useMutation/useEvent/UnikitProvider로 구현. Node transport(Phase 3-1) 사용. 타입체크+스모크 실행 포함.
 
 ### 성공 기준:
 
@@ -243,12 +243,12 @@ rust-api-guide를 실제 API로 재작성하고, 스테일 문서 5종을 현행
 
 #### 1. contractHash JSI 배선
 
-**파일**: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp` (iOS/Android 공유)
-**변경사항**: `getContractHash` JSI 메서드 노출 + `RkyvV2EngineOptions.contractHash` 옵션 전달 경로 확보. Rust FFI `rustra_ffi_contract_hash`(ffi.rs:768) 활용.
+**파일**: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp` (iOS/Android 공유)
+**변경사항**: `getContractHash` JSI 메서드 노출 + `RkyvV2EngineOptions.contractHash` 옵션 전달 경로 확보. Rust FFI `unikit_ffi_contract_hash`(ffi.rs:768) 활용.
 
 #### 2. RendererHost 존속 문서화
 
-**파일**: `crates/rustra/src/renderer_host.rs` 모듈 독
+**파일**: `crates/unikit-bridge/src/renderer_host.rs` 모듈 독
 **변경사항**: 공개 API 유지하되 모듈 독에 "Lynx 제거 후 고아, 호스트 통합 지점 인터페이스" 배경과 사용처 안내 기록. `#[allow(dead_code)]` 정리 가능한 것 정리.
 
 #### 3. invokeAsync(payload,onDone) 계약 문서화
@@ -258,7 +258,7 @@ rust-api-guide를 실제 API로 재작성하고, 스테일 문서 5종을 현행
 
 #### 4. Lynx 잔여물 제거
 
-**파일**: `packages/lynx/dist/`(rm), `examples/react-native-calculator/modules/nitro-bench/nitro-bench/src/specs/Example.nitro.ts`(rm), `crates/rustra/tests/trust_baseline_ffi.rs:9-12` 모듈 독 갱신, "(T3 후속)" 낡은 마커 4곳(`crates/rustra/tests/payload_robustness.rs:210,336`, `examples/calculator/src/lib.rs:615` 등) 정리
+**파일**: `packages/lynx/dist/`(rm), `examples/react-native-calculator/modules/nitro-bench/nitro-bench/src/specs/Example.nitro.ts`(rm), `crates/unikit-bridge/tests/trust_baseline_ffi.rs:9-12` 모듈 독 갱신, "(T3 후속)" 낡은 마커 4곳(`crates/unikit-bridge/tests/payload_robustness.rs:210,336`, `examples/calculator/src/lib.rs:615` 등) 정리
 **변경사항**: 디스크 잔여물 삭제 + 낡은 주석 갱신. `scripts/clean-local.sh` 대상 목록에 packages/lynx 추가(있다면).
 
 #### 5. RN B1 체크리스트 폐쇄
@@ -270,7 +270,7 @@ rust-api-guide를 실제 API로 재작성하고, 스테일 문서 5종을 현행
 
 #### 자동 검증:
 
-- [x] `cargo test -p rustra` 통과 (주석 정리 후에도)
+- [x] `cargo test -p unikit-bridge` 통과 (주석 정리 후에도)
 - [x] `npm run test:app:react-native` (typecheck) 통과 — JSI 배선 변경 포함
 - [x] `cargo clippy --all-targets -- -D warnings` 통과
 
@@ -291,20 +291,20 @@ rust-api-guide를 실제 API로 재작성하고, 스테일 문서 5종을 현행
 
 #### 1. FFI caller-buffer fastpath
 
-**파일**: `crates/rustra/src/ffi.rs` (신규 caller-buffer 변형), `packages/types`/`packages/react-native` (호출측), `docs/benchmarks.md`
+**파일**: `crates/unikit-bridge/src/ffi.rs` (신규 caller-buffer 변형), `packages/types`/`packages/react-native` (호출측), `docs/benchmarks.md`
 **변경사항**: Rust malloc→복사→JS memcpy 3중 복사 제거. 설계 참조: `docs/plans/2026-08-18-perf-close-nitro-gap.md` Task 7. 벤치마크 항목 추가·갱신.
 
 #### 2. positional facade 코드젠
 
-**파일**: `packages/cli/src/generate.ts`, `crates/rustra/src/codegen.rs` (dual-path)
-**변경사항**: 정적 명령용 `__rustraNative.xxx(a, b)` positional 시그니처 생성. 기존 코덱 경로와 공존(옵션). rkyv V2 게이트 경로 수정 포함.
+**파일**: `packages/cli/src/generate.ts`, `crates/unikit-bridge/src/codegen.rs` (dual-path)
+**변경사항**: 정적 명령용 `__unikitNative.xxx(a, b)` positional 시그니처 생성. 기존 코덱 경로와 공존(옵션). rkyv V2 게이트 경로 수정 포함.
 
 ### 성공 기준:
 
 #### 자동 검증:
 
-- [x] `cargo test -p rustra` 통과 (caller-buffer FFI 테스트)
-- [x] `npm run test -w @rustra/cli` + `test:ts:node` 통과 (positional facade 생성 테스트)
+- [x] `cargo test -p unikit-bridge` 통과 (caller-buffer FFI 테스트)
+- [x] `npm run test -w @unikit/cli` + `test:ts:node` 통과 (positional facade 생성 테스트)
 - [x] `npm run bench` 실행 성공 (수치 기록은 문서 반영)
 
 #### 수동 검증:
@@ -324,7 +324,7 @@ Rust 디코더 Tier 3의 바이너리(postcard) 와이어 지원을 중첩 구�
 
 #### 1. Tier 3 postcard 확장
 
-**파일**: `crates/rustra/src/rkyv_codec.rs:44` 부근
+**파일**: `crates/unikit-bridge/src/rkyv_codec.rs:44` 부근
 **변경사항**: `build_tier3_json_decoder` 확장 — 중첩 구조체/enum(anyOf)/`Option<T>` 필드의 postcard 디코딩. 기존 JSON 폴백 유지: 확장 후에도 미지원 조합은 JSON 폴백.
 
 #### 2. crud 예제가 바이너리 경로 이용하도록 (가능 시)
@@ -336,7 +336,7 @@ Rust 디코더 Tier 3의 바이너리(postcard) 와이어 지원을 중첩 구�
 
 #### 자동 검증:
 
-- [x] `cargo test -p rustra` 통과 (Tier 3 신규 디코더 테스트: 중첩/enum/Option round-trip)
+- [x] `cargo test -p unikit-bridge` 통과 (Tier 3 신규 디코더 테스트: 중첩/enum/Option round-trip)
 - [x] `npm run test:ts:node` 통과 (crud 회귀 없음)
 
 #### 수동 검증:
@@ -364,7 +364,7 @@ Rust 디코더 Tier 3의 바이너리(postcard) 와이어 지원을 중첩 구�
 
 1. getting-started 복붙 → 실행
 2. RN 앱 contractHash 켜기
-3. `rustra generate` WARN 확인
+3. `unikit generate` WARN 확인
 4. bench 실행 후 benchmarks.md 갱신
 
 ## 성능 고려사항

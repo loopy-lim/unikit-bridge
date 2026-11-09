@@ -4,7 +4,7 @@
  * 호출측(transport 인스턴스 클로저)이 소유한다 — 라이프사이클은 transport
  * 생성/재스폰을 따르고, 스폰 없이 단위 검증한다(node-loop.test.ts).
  */
-import { debugRustra, isRustraDebugEnabled, type RustraDebugEvent } from '@rustra/types';
+import { debugUnikit, isUnikitDebugEnabled, type UnikitDebugEvent } from '@unikit/types';
 
 /** 비 NDJSON 라인 링 버퍼 크기 — exit 시 대기 요청 에러에 첨부할 최근 줄 수. */
 export const UNPARSED_LINES_CAPACITY = 32;
@@ -28,7 +28,7 @@ export type UnparsedLineState = { buffer: string[]; warned: boolean };
  * 상태는 호출측(transport 인스턴스 클로저)이 소유하고 이 함수가 in-place 로
  * 갱신한다 — 라이프사이클은 transport 생성/재스폰을 따른다.
  *
- * - debug 모드(`RUSTRA_DEBUG`)면 `kind: 'ndjson.unparsed'` debug 이벤트를 싱크로
+ * - debug 모드(`UNIKIT_DEBUG`)면 `kind: 'ndjson.unparsed'` debug 이벤트를 싱크로
  *   내고 stderr 에 **최초 1회만** warn 한다(로그 스팸 방지 — 워닝 규약은
  *   node-events 의 `parsePushPayload` 와 동일 톤).
  * - 비 debug 모드면 최근 `UNPARSED_LINES_CAPACITY` 줄을 ring 으로 보존한다(각
@@ -37,14 +37,14 @@ export type UnparsedLineState = { buffer: string[]; warned: boolean };
  *   실제로 출력한 것을 보게 한다. 보존량은 줄 수와 줄 길이 이중으로 경계된다.
  */
 export function recordUnparsedLine(line: string, state: UnparsedLineState): void {
-  if (isRustraDebugEnabled()) {
-    // debugRustra 는 이벤트 백을 pass-through(spread) 하므로 계약 밖 필드도 싱크에
+  if (isUnikitDebugEnabled()) {
+    // debugUnikit 는 이벤트 백을 pass-through(spread) 하므로 계약 밖 필드도 싱크에
     // 도달한다 — kind/line 을 읽기 편한 진단 어휘로 그대로 실어 보낸다.
-    debugRustra({ kind: 'ndjson.unparsed', line } as unknown as RustraDebugEvent);
+    debugUnikit({ kind: 'ndjson.unparsed', line } as unknown as UnikitDebugEvent);
     if (!state.warned) {
       state.warned = true;
       console.warn(
-        'Rustra: runtime stdout line was not valid NDJSON; continuing (first occurrence only).',
+        'Unikit: runtime stdout line was not valid NDJSON; continuing (first occurrence only).',
       );
     }
     return;

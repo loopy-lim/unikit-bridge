@@ -1,10 +1,10 @@
 #!/bin/sh
-# Builds the Android staticlibs (native rustra baseline per ABI) and stages
+# Builds the Android staticlibs (native unikit baseline per ABI) and stages
 # them into the RN bridge module:
 #
 #   scripts/build-android.sh
-#     -> backend/target/<abi>/release/librustra_wasm_spike_backend.a
-#     -> app/modules/RustraWasmSpike/android/src/main/cpp/libs/<abi>/
+#     -> backend/target/<abi>/release/libunikit_wasm_spike_backend.a
+#     -> app/modules/UnikitWasmSpike/android/src/main/cpp/libs/<abi>/
 #
 # Requires: NDK 27.1 at ~/Library/Android/sdk/ndk/27.1.12297006 (the
 # backend/.cargo/config.toml linkers reference it) and the wasm artifacts
@@ -12,7 +12,7 @@
 set -eu
 DIR=$(cd "$(dirname "$0")/.." && pwd)
 BACKEND="$DIR/backend"
-MODULE="$DIR/app/modules/RustraWasmSpike"
+MODULE="$DIR/app/modules/UnikitWasmSpike"
 
 cd "$BACKEND"
 for abi in aarch64-linux-android x86_64-linux-android; do
@@ -28,7 +28,7 @@ for abi in arm64-v8a x86_64; do
     arm64-v8a) tgt=aarch64-linux-android ;;
     x86_64) tgt=x86_64-linux-android ;;
   esac
-  cp "$BACKEND/target/$tgt/release/librustra_wasm_spike_backend.a" \
+  cp "$BACKEND/target/$tgt/release/libunikit_wasm_spike_backend.a" \
     "$MODULE/android/src/main/cpp/libs/$abi/"
 done
 echo "staged staticlibs:"

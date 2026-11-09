@@ -4,7 +4,7 @@
  * dev 루프가 reload 전후의 계약 상태를 대조해 불일치 시 리로드를 거부한다.
  *
  * 비교 대상은 두 가지다:
- * - `contractHash` — `rustra_ffi_contract_hash` 가 반환하는 SHA-256 hex.
+ * - `contractHash` — `unikit_ffi_contract_hash` 가 반환하는 SHA-256 hex.
  * - `golden` — 호스트가 정한 golden wire 호출의 응답 바이트 표현(hex 등).
  *
  * capture/verify 방법은 호스트가 주입한다 — 이 모듈은 순수 비교+거부
@@ -14,7 +14,7 @@
 
 /** reload 전후로 대조하는 계약 상태 스냅샷. */
 export interface ParitySnapshot {
-  /** `rustra_ffi_contract_hash` 값(SHA-256 hex) — 빌드타임 계약과 갈라질 수 없다. */
+  /** `unikit_ffi_contract_hash` 값(SHA-256 hex) — 빌드타임 계약과 갈라질 수 없다. */
   contractHash: string;
   /**
    * golden wire 호출의 응답 바이트 표현(호스트가 인코딩 — 보통 hex). 라이브

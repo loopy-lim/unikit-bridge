@@ -1,0 +1,8 @@
+[onboarding:codegen-check] /Users/loopy/.local/share/fnm/node-versions/v22.21.1/installation/bin/node /Users/loopy/dev/ll3/unikit-bridge/packages/cli/dist/index.js codegen --config unikit.json --check (cwd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-onboarding-4uTEuT/onboarding-probe)
+[unikit] Rust schema: cargo run --manifest-path /private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-onboarding-4uTEuT/onboarding-probe/Cargo.toml --package unikit-app --bin generate
+[unikit] ⠋ Rust schema generation (unikit-app/generate)...
+/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-codegen-check-jfHsst/schema.json written
+[unikit] ✓ Rust schema generation (unikit-app/generate) done in 0.1s
+[unikit] TypeScript/C++: generate --config /private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-onboarding-4uTEuT/onboarding-probe/unikit.json --check
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running `/Users/loopy/dev/ll3/unikit-bridge/target/onboarding-shared/debug/generate`

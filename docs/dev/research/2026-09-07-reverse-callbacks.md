@@ -10,7 +10,7 @@
 `docs/research/2026-09-07-competitive-landscape.md` 의 격차 정의:
 
 > **4. 역방향 콜백 인터페이스(반환값 있는 JS 함수)** — UniFFI
-> callback_interface/Nitro 반환값 있는 콜백 대비, rustra 채널은 유니캐스트
+> callback_interface/Nitro 반환값 있는 콜백 대비, unikit 채널은 유니캐스트
 > 응답뿐. (`:43`)
 
 같은 문서의 권장(`:67-69`): "다음 안정화 트랙 후보로 **타입화 에러**(성비
@@ -20,7 +20,7 @@
 있다.
 
 선행 인프라(직전 트랙 착지분, 같은 문서 `:117-120`): 4호스트 채널(Tauri
-createChannel, Node 예약 프레임 0xfffb 계열, Bun FFI `rustra_ffi_channel_*`,
+createChannel, Node 예약 프레임 0xfffb 계열, Bun FFI `unikit_ffi_channel_*`,
 RN JSI)과 바이너리 채널(`ChannelBytesSender`/`send_bytes`).
 
 ## 1. 용어 정리 — 이 트랙의 "역방향 콜백"은 무엇인가
@@ -104,11 +104,11 @@ uint32, minimum: 0}` (examples/calculator/generated/schema.json, 명령
 handle, payload_cstr)`(:13-14), 바이너리 변형 `FfiChannelBytesCallback`
   (:20-25). 핸들이 콜백 인자로 **되돌아온다** — 호스트는 핸들→JS 콜백
   룩업만 하면 된다(:197-199).
-- 발급: `rustra_ffi_channel_create` — reserve → 핸들을 캡처한 sink 등록
-  2단계(:207-228). `rustra_ffi_channel_create_bytes`(:236-255).
-- 송신: `rustra_ffi_channel_send`(:284-295), `rustra_ffi_channel_send_bytes`
+- 발급: `unikit_ffi_channel_create` — reserve → 핸들을 캡처한 sink 등록
+  2단계(:207-228). `unikit_ffi_channel_create_bytes`(:236-255).
+- 송신: `unikit_ffi_channel_send`(:284-295), `unikit_ffi_channel_send_bytes`
   (:264-277).
-- 해제: `rustra_ffi_channel_drop` — 호스트 테이블 제거 + sink
+- 해제: `unikit_ffi_channel_drop` — 호스트 테이블 제거 + sink
   **quiescence 대기**(`deactivate_and_wait` 는 in-flight 콜백이 모두 반환할
   때까지 Condvar 블록, :100-115, :303-321). **콜백 안에서 자기 핸들을 동기
   drop 하면 교착 — 금지**(Safety 문서, :206).
@@ -125,9 +125,9 @@ handle, payload_cstr)`(:13-14), 바이너리 변형 `FfiChannelBytesCallback`
 
 | 축                     | Tauri                                                                  | Node (loop-stdio)                                                      | Bun (FFI)                                                     | RN (JSI)                                                                       |
 | ---------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| 발급                   | `invoke('rustra_channel_create')` → `{handle}` (tauri-channels.ts:134) | 예약 프레임 0xfffb → `{handle}` (node-channels.ts:135)                 | `rustra_ffi_channel_create` 직접 (bun-channels.ts:118)        | `createChannel(cb)` HostFunction → handle (react-native-events.ts:28, cpp:518) |
-| 수신 경로              | `listen('rustra://channel/{h}')` emit (tauri-channels.ts:148)          | stdout 0xfffc 프레임 → `onChannelFrame` (node-channels.ts:143)         | FFI 콜백(트램폴린 1개 + 핸들 Map, bun-channels.ts:94-114)     | FFI→큐 적재→CallInvoker drain→JS (cpp:552-565, 584-631)                        |
-| 해제                   | `invoke('rustra_channel_drop')` + unlisten (:166-173)                  | 0xfffa + 구독 해지 (:163-169)                                          | `rustra_ffi_channel_drop` (동기, :129-135)                    | `dropChannel(handle)` (cpp:540-550)                                            |
+| 발급                   | `invoke('unikit_channel_create')` → `{handle}` (tauri-channels.ts:134) | 예약 프레임 0xfffb → `{handle}` (node-channels.ts:135)                 | `unikit_ffi_channel_create` 직접 (bun-channels.ts:118)        | `createChannel(cb)` HostFunction → handle (react-native-events.ts:28, cpp:518) |
+| 수신 경로              | `listen('unikit://channel/{h}')` emit (tauri-channels.ts:148)          | stdout 0xfffc 프레임 → `onChannelFrame` (node-channels.ts:143)         | FFI 콜백(트램폴린 1개 + 핸들 Map, bun-channels.ts:94-114)     | FFI→큐 적재→CallInvoker drain→JS (cpp:552-565, 584-631)                        |
+| 해제                   | `invoke('unikit_channel_drop')` + unlisten (:166-173)                  | 0xfffa + 구독 해지 (:163-169)                                          | `unikit_ffi_channel_drop` (동기, :129-135)                    | `dropChannel(handle)` (cpp:540-550)                                            |
 | 백그라운드 스레드 send | 안전(emit 스레드 안전, tauri_support.rs:324-333)                       | **안전**(STDOUT_LOCK 임계구역, node-channels.ts:15-19)                 | **불가** — JS 스레드(동기 FFI 체인)만 (bun-channels.ts:12-20) | 안전(큐 적재만, cpp:554-565)                                                   |
 | 백프레셔               | emit 내부 큐(계약 문서 없음 — 미확인)                                  | stdout 쓰기 블록(파이프), 유실은 write 에러 시 (loop_stdio.rs:179-187) | 없음(동기 호출 체인)                                          | **drop-oldest, capacity 1024** (cpp:558-560, 574-576; hpp:161)                 |
 | 콜백 예외              | try/catch 없음 — Tauri 리스너로 전파 (tauri-channels.ts:148-157, §7.1) | `console.error` 격리 (node-channels.ts:153-158)                        | `console.error` 격리 (bun-channels.ts:107-110)                | C++ 에서 무시 (cpp:600-613)                                                    |
@@ -135,8 +135,8 @@ handle, payload_cstr)`(:13-14), 바이너리 변형 `FfiChannelBytesCallback`
 
 ### 3.2 Tauri
 
-- Rust 측: `rustra_channel_create`/`rustra_channel_create_bytes`/
-  `rustra_channel_drop` 커맨드(tauri_support.rs:71-95)가 핸들만 발급하고
+- Rust 측: `unikit_channel_create`/`unikit_channel_create_bytes`/
+  `unikit_channel_drop` 커맨드(tauri_support.rs:71-95)가 핸들만 발급하고
   sender 는 `AppHandle`+핸들 캡처 emit 으로 고정 배선(:351-367, :401-419).
   `register` 의 invoke_handler 에 포함(:208-214).
 - **근사 유니캐스트** — Tauri emit 은 브로드캐스트라 같은 채널명을 listen
@@ -172,7 +172,7 @@ handle, payload_cstr)`(:13-14), 바이너리 변형 `FfiChannelBytesCallback`
   않고 발급자 클로저를 직접 호출한다(bun-channels.ts:17-20,
   channels_host.rs:73-83). 백그라운드 send 가 필요한 호스트는 Node 루프
   푸시 프레임 설계를 기다려야 한다(같은 문서).
-- close 는 `rustra_ffi_channel_drop` 동기 호출 — quiescence 블록 계약,
+- close 는 `unikit_ffi_channel_drop` 동기 호출 — quiescence 블록 계약,
   콜백 안에서 close 금지(bun-channels.ts:24-27, 129-135).
 
 ### 3.5 RN (JSI)
@@ -255,7 +255,7 @@ false(tauri/src/index.ts:118, node-core.ts:20, bun-ffi.ts:28, 45) — 채널이
    tauri_support.rs:324-333)하면 웹뷰의 listen 콜백이 JS 이벤트 루프에서
    실행. 커맨드는 별도 Tauri IPC 이므로 **JS 는 응답 대기 중에도 콜백을 실행할
    수 있다** — request/response가 구조적으로 가능한 유일한 범용 경로. 응답은
-   JS 가 `rustra_callback_reply`류 커맨드(신규)를 invoke 하는 방식.
+   JS 가 `unikit_callback_reply`류 커맨드(신규)를 invoke 하는 방식.
 3. **Bun** — 동기 FFI 체인 안에서만 콜백 실행 가능(§3.4). JS 스레드가
    invoke 안에 있으므로 **콜백 실행 자체가 invoke 반환 후으로 지연되는 게
    아니라**, invoke 체인 안에서 Rust→JS 직접 호출(JSCallback)이 일어난다 —
@@ -322,9 +322,9 @@ false(tauri/src/index.ts:118, node-core.ts:20, bun-ffi.ts:28, 45) — 채널이
 - UniFFI callback_interface, Nitro 반환값 있는 콜백: 격차 #4 정의에서 언급된
   대상(competitive-landscape.md:43). 반환값 있는 JS/Rust 경계 함수를 계약의
   일급 시민으로 코드젠한다 — 이 트랙의 목표 상태.
-- Tauri v2 `ipc::Channel`: rustra 채널의 원형(channels.rs:1). 커맨드 인자로
+- Tauri v2 `ipc::Channel`: unikit 채널의 원형(channels.rs:1). 커맨드 인자로
   채널을 넘기면 완료 시 자동 정리된다는 사용 패턴 문서가 있으리라 추정되나
-  미확인 — 본 설계는 rustra 코드 사실에만 근거한다.
+  미확인 — 본 설계는 unikit 코드 사실에만 근거한다.
 
 ## 9. YAGNI 경계 (조사 확정분)
 

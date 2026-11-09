@@ -30,7 +30,7 @@ export function primitive(value: unknown): value is string | number | boolean | 
 }
 
 export function explicitVariantKeys(schema: JsonSchema, count: number): string[] | null {
-  const value = schema['x-rustra-variant-order'];
+  const value = schema['x-unikit-variant-order'];
   if (
     !Array.isArray(value) ||
     value.length !== count ||

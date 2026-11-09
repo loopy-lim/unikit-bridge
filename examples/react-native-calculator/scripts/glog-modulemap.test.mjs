@@ -9,14 +9,14 @@ import plugin from '../plugins/with-glog-textual-headers.cjs';
 test('Expo Podfile hook is repeatable and rejects an unknown template', () => {
   const original = 'target "app" do\n  post_install do |installer|\n    react_native_post_install(installer)\n  end\nend\n';
   const patched = plugin.configurePodfile(original);
-  expect(patched).toContain('    rustra_fix_glog_modulemap(installer)');
+  expect(patched).toContain('    unikit_fix_glog_modulemap(installer)');
   expect(patched).toContain('    react_native_post_install(installer)');
   expect(plugin.configurePodfile(patched)).toBe(patched);
   expect(() => plugin.configurePodfile('target "app" do\nend')).toThrow('post_install');
 });
 
 test('pod hook preserves module exports, skips other versions, and requires both real headers', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra glog '));
+  const root = mkdtempSync(join(tmpdir(), 'unikit glog '));
   const mapPath = join(root, 'Target Support Files/glog/glog.modulemap');
   const headers = join(root, 'Headers/Public/glog/glog');
   const original = 'module glog {\n  umbrella header "glog-umbrella.h"\n  export *\n  module * { export * }\n}\n';
@@ -27,7 +27,7 @@ test('pod hook preserves module exports, skips other versions, and requires both
 require ARGV[0]
 pod = Struct.new(:name, :root_spec).new('glog', Struct.new(:version).new(ARGV[2]))
 installer = Struct.new(:pod_targets, :sandbox).new([pod], Struct.new(:root).new(Pathname.new(ARGV[1])))
-2.times { rustra_fix_glog_modulemap(installer) }
+2.times { unikit_fix_glog_modulemap(installer) }
 `;
   const run = (version) => spawnSync('ruby', ['-e', ruby,
     fileURLToPath(new URL('./fix-glog-modulemap.rb', import.meta.url)), root, version], { encoding: 'utf8' });

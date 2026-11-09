@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configure } from '@rustra/types';
+import { configure } from '@unikit/types';
 import { createBunEngine } from '../../../packages/bun/src/index.js';
 import { createNodeEngine } from '../../../packages/node/src/index.js';
 import { createReactNativeEngine } from '../../../packages/react-native/src/index.js';
@@ -50,7 +50,7 @@ void test('bun adapter forwards generated commands to injected Bun transport', a
   await assertGeneratedCommandWorks('bun', createBunEngine(transport), transport.calls);
 });
 
-void test('tauri adapter routes generated commands through rustra_dispatch', async () => {
+void test('tauri adapter routes generated commands through unikit_dispatch', async () => {
   const transport = createRecordingTransport();
   // 화살표 위임으로 this 분리를 차단한다(unbound-method 계약).
   const engine = createTauriEngine({ invoke: (...args) => transport.invoke(...args) });
@@ -61,7 +61,7 @@ void test('tauri adapter routes generated commands through rustra_dispatch', asy
 
   assert.deepEqual(transport.calls, [
     {
-      command: 'rustra_dispatch',
+      command: 'unikit_dispatch',
       args: { command: 'addNumbers', args: { a: 20, b: 22 } },
     },
   ]);

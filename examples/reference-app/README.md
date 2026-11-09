@@ -1,8 +1,8 @@
 English | [한국어](./README.ko.md)
 
-# @rustra/example-reference-app
+# @unikit/example-reference-app
 
-The reference app for the `@rustra/react` hooks (useCommand/useMutation/useEvent/RustraProvider) —
+The reference app for the `@unikit/react` hooks (useCommand/useMutation/useEvent/UnikitProvider) —
 shows how to compose CRUD and event flows.
 
 ## Structure
@@ -22,13 +22,13 @@ example must be built first (see Run below).
 # From the repo root
 bun run test:app:reference
 # Or directly:
-cargo build -p rustra-crud-example && \
+cargo build -p unikit-crud-example && \
   tsc -p examples/reference-app/tsconfig.json && \
   node examples/reference-app/dist/examples/reference-app/src/main.js
 ```
 
 The smoke test runs the real hook tree and verifies CRUD round-trips against the real
-`rustra-crud-example` runtime over the Node process transport.
+`unikit-crud-example` runtime over the Node process transport.
 
 ## Porting to Web/RN
 
@@ -36,16 +36,16 @@ The UI tree is identical anywhere — only the engine injection changes:
 
 ```tsx
 // RN
-const engine = createReactNativeEngine(NativeModules.RustraJSI);
-<RustraProvider engine={engine}>
+const engine = createReactNativeEngine(NativeModules.UnikitJSI);
+<UnikitProvider engine={engine}>
   <App />
-</RustraProvider>;
+</UnikitProvider>;
 
 // Web (Tauri)
 const engine = createTauriEngine({ invoke: window.__TAURI__.core.invoke });
-<RustraProvider engine={engine}>
+<UnikitProvider engine={engine}>
   <App />
-</RustraProvider>;
+</UnikitProvider>;
 ```
 
 ### Channels are isomorphic across all 4 hosts
@@ -72,4 +72,4 @@ support levels and differences.
   identification based on `commandId`
 - `useMutation` — composes success/failure callbacks without optimistic updates
 - `useEvent` — cleans up (unsubscribes) event subscriptions
-- `RustraProvider` — injects the engine scope
+- `UnikitProvider` — injects the engine scope

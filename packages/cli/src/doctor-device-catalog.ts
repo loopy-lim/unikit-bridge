@@ -1,15 +1,15 @@
 /**
- * @rustra/cli — doctor 디바이스 토큰 릴리스 벽 검사 (Dev Tier C절).
+ * @unikit/cli — doctor 디바이스 토큰 릴리스 벽 검사 (Dev Tier C절).
  *
- * debug 빌드(rustra)가 수용한 카탈로그 밖 디바이스 토큰을 릴리스 전에
+ * debug 빌드(unikit)가 수용한 카탈로그 밖 디바이스 토큰을 릴리스 전에
  * 보고한다 — release 빌드는 등록 시점 패닉이므로 doctor 가 JS 쪽 벽으로
  * 이중화한다. 판정:
  *
  * - 선언 자체가 없으면 `skip`(검사 부재와 의도된 스킵 구별 — 기존 관례)
  * - 선언은 있는데 스키마에 `deviceCapabilities` 카탈로그가 없으면 `warn`
- *   (구버전 rustra 재생성 안내)
+ *   (구버전 unikit 재생성 안내)
  * - 카탈로그 밖 토큰이 있으면 `fail`(required) — 카탈로그 토큰 교체 또는
- *   rustra 카탈로그 확장 안내
+ *   unikit 카탈로그 확장 안내
  *
  * schema.json 이 없으면 `undefined` — codegen.schema_output warn 이 이미
  * 담당하므로 이중 보고하지 않는다(호출부가 undefined 를 스킵).
@@ -44,7 +44,7 @@ export function deviceCatalogCheck(schemaPath: string | undefined): DoctorCheck 
         false,
         'schema.json lacks the deviceCapabilities catalog while commands declare devices',
         undefined,
-        ['Run rustra codegen --config rustra.json with a current rustra'],
+        ['Run unikit codegen --config unikit.json with a current unikit'],
       );
     }
     const known = new Set(catalog.filter((token): token is string => typeof token === 'string'));
@@ -62,18 +62,18 @@ export function deviceCatalogCheck(schemaPath: string | undefined): DoctorCheck 
           'codegen.device_catalog',
           'pass',
           false,
-          `All declared device tokens are in the rustra catalog (${known.size} tokens)`,
+          `All declared device tokens are in the unikit catalog (${known.size} tokens)`,
         )
       : check(
           'codegen.device_catalog',
           'fail',
           true,
-          `Device tokens outside the rustra catalog: ${unknown
+          `Device tokens outside the unikit catalog: ${unknown
             .map((token) => `'${token}'`)
             .join(', ')}`,
           'Debug builds accept catalog-outside tokens; release builds panic at registration',
           [
-            'Rename to a catalog token or extend the rustra catalog (crates/rustra/src/device_capabilities.rs)',
+            'Rename to a catalog token or extend the unikit catalog (crates/unikit-bridge/src/device_capabilities.rs)',
           ],
         );
   } catch (error) {

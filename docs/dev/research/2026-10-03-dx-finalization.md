@@ -68,18 +68,18 @@ changeset 설명 보강으로 바뀐 문서·연결 영수증 해시만 현재 �
 
 | 로그                                         | SHA-256                                                            |
 | -------------------------------------------- | ------------------------------------------------------------------ |
-| `/tmp/rustra-final-local.log`                | `c42d9c0adc1443a925ae028f82fb82ff0e1dc93c2370750e235bff2119e906c6` |
-| `/tmp/rustra-final-local-remainder.log`      | `ed2f34dbbb481b961876f8363a155ebed009c35b08f6e47ff0e2e723e3ae6a52` |
-| `/tmp/rustra-final-local-remainder-docs.log` | `9959addb1b8f5e0ef79cdd16554e5062779dcc78d32c9ff838ed9738f359ecc5` |
-| `/tmp/rustra-final-clippy.log`               | `026edc6faa6ddd6911c3bb089a5dd9aa2ce77ee6cf748d7babc08054e417bdce` |
-| `/tmp/rustra-final-rust.log`                 | `8a541427244479ee4960afeb532af76d88cbb7ca0ca9856f849685e25d3db52e` |
-| `/tmp/rustra-final-tauri-doc.log`            | `ee7a21d55186d779c6ca85445effea66b6500b7636441132ba5b45937a99610b` |
-| `/tmp/rustra-final-hot-core.log`             | `5fff753c088679cf91b15b6e2edad1f1fc50cdaeb70d297fc120dbb655e91632` |
-| `/tmp/rustra-final-scoped-tests.log`         | `bb1591a7f7f331479ca470b6a9a55cf1afd082999c09bbe6f033f8939bd9726f` |
-| `/tmp/rustra-final-candidate-local.log`      | `0afee1445615b5eea27b213cd90f1d3db6833512d772291364a85ffdd5244143` |
-| `/tmp/rustra-final-candidate-remainder.log`  | `649cdc20334e922e277dc04193cdb545861b8bd3a355dfa646ed326e16cf66a8` |
-| `/tmp/rustra-final-candidate-rn-package.log` | `416480ca1d444e4b71f1cad98129a2724d8f938b86d618d2a1b076f6024ce321` |
-| `/tmp/rustra-final-candidate-style.log`      | `b49de4f40fb262b4d0344f430a344cf75eb86d708934c5d53d185e0d8f07ebbe` |
+| `/tmp/unikit-final-local.log`                | `c42d9c0adc1443a925ae028f82fb82ff0e1dc93c2370750e235bff2119e906c6` |
+| `/tmp/unikit-final-local-remainder.log`      | `ed2f34dbbb481b961876f8363a155ebed009c35b08f6e47ff0e2e723e3ae6a52` |
+| `/tmp/unikit-final-local-remainder-docs.log` | `9959addb1b8f5e0ef79cdd16554e5062779dcc78d32c9ff838ed9738f359ecc5` |
+| `/tmp/unikit-final-clippy.log`               | `026edc6faa6ddd6911c3bb089a5dd9aa2ce77ee6cf748d7babc08054e417bdce` |
+| `/tmp/unikit-final-rust.log`                 | `8a541427244479ee4960afeb532af76d88cbb7ca0ca9856f849685e25d3db52e` |
+| `/tmp/unikit-final-tauri-doc.log`            | `ee7a21d55186d779c6ca85445effea66b6500b7636441132ba5b45937a99610b` |
+| `/tmp/unikit-final-hot-core.log`             | `5fff753c088679cf91b15b6e2edad1f1fc50cdaeb70d297fc120dbb655e91632` |
+| `/tmp/unikit-final-scoped-tests.log`         | `bb1591a7f7f331479ca470b6a9a55cf1afd082999c09bbe6f033f8939bd9726f` |
+| `/tmp/unikit-final-candidate-local.log`      | `0afee1445615b5eea27b213cd90f1d3db6833512d772291364a85ffdd5244143` |
+| `/tmp/unikit-final-candidate-remainder.log`  | `649cdc20334e922e277dc04193cdb545861b8bd3a355dfa646ed326e16cf66a8` |
+| `/tmp/unikit-final-candidate-rn-package.log` | `416480ca1d444e4b71f1cad98129a2724d8f938b86d618d2a1b076f6024ce321` |
+| `/tmp/unikit-final-candidate-style.log`      | `b49de4f40fb262b4d0344f430a344cf75eb86d708934c5d53d185e0d8f07ebbe` |
 
 ## 푸시 후 발견한 워크플로 오류
 
@@ -87,7 +87,7 @@ DX 커밋 `89cf9c44ae8d828cf606fdc3fd641d6304ca2b9e`의 main 푸시와 원격 SH
 일치를 확인했다. 커밋 훅과 pre-push의 `test:fast`도 통과했다.
 
 기존 Benchmark 워크플로는 실행 전 파싱 단계에서 실패했다.
-[해당 실행](https://github.com/loopy-lim/rustra/actions/runs/37035135766)의 실제
+[해당 실행](https://github.com/loopy-lim/unikit/actions/runs/37035135766)의 실제
 annotation은 artifact `with.name`에서 `failure()` / `cancelled()`를 사용할 수
 없다는 오류였다. 이 워크플로 파일은 첫 DX 커밋에서 변경하지 않았다.
 
@@ -103,5 +103,5 @@ annotation은 artifact `with.name`에서 `failure()` / `cancelled()`를 사용�
 이 후속 CI 패치는 위의 첫 DX 후보 소스 해시와 별도다. 원격 CI 전체 완료 또는
 Criterion 성능 회귀 통과를 의미하지 않는다.
 
-- `/tmp/rustra-final-all-workflows-actionlint.log`: `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`
-- `/tmp/rustra-final-benchmark-workflow-scoped.log`: `d5db3ab62b95a784dfe067104f5982fdf68960ad10b5a52a7245857150b0c417`
+- `/tmp/unikit-final-all-workflows-actionlint.log`: `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`
+- `/tmp/unikit-final-benchmark-workflow-scoped.log`: `d5db3ab62b95a784dfe067104f5982fdf68960ad10b5a52a7245857150b0c417`

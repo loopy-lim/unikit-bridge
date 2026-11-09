@@ -9,10 +9,10 @@
 
 ## Global Constraints
 
-- Worktree `/Users/loopy/dev/ll3/rustra-bridge/.worktrees/nitro-parity`, base `ae30d764`; preserve existing uncommitted analysis.
+- Worktree `/Users/loopy/dev/ll3/unikit-bridge/.worktrees/nitro-parity`, base `ae30d764`; preserve existing uncommitted analysis.
 - Same inputs, fresh outputs, ownership, algorithm, setup/index replacement policy; preserve payload limits, generation/reload/dispose, getters/reentry, same-core invoke/free, Promise cancellation/timeout.
 - Keep Nitro/nitrogen 0.37.1, RN 0.81.5 and Hermes fixed. Diagnostic protocols have separate IDs and never overwrite v2 receipts or acceptance rules.
-- Parent owns all native builds, installs and timing. No concurrent performance measurement or CPU-heavy work during timing; dedicated app `com.rustra.nitroparity` only.
+- Parent owns all native builds, installs and timing. No concurrent performance measurement or CPU-heavy work during timing; dedicated app `com.unikit.nitroparity` only.
 - No new fuzz/randomized/stress tests; use ordinary deterministic correctness tests and bounded performance comparisons.
 - No publication, push or version changes. Source identity and native/JS artifact hashes accompany results. No full parity claim unless measured.
 - Existing 300 archived aggregates remain immutable. Format before freezing measured sources.
@@ -20,7 +20,7 @@
 ## Task 1: Buffer cause separation
 
 **Files:** new RN `src/nitro-parity/diagnostic*.ts` and tests, dedicated diagnostic runner/collector as necessary; `NitroParityScreen` entry only for explicit diagnostic mode.
-**Interface:** Separate `rustra-nitro-diagnostic/v1` receipt with case ID, framework, schedule, fingerprint, runId and raw samples. Frozen schedules: rustra-only, nitro-only, alternating AB/BA with 31 measured rounds and 3 warmups. No forced GC or reduced memory reporting.
+**Interface:** Separate `unikit-nitro-diagnostic/v1` receipt with case ID, framework, schedule, fingerprint, runId and raw samples. Frozen schedules: unikit-only, nitro-only, alternating AB/BA with 31 measured rounds and 3 warmups. No forced GC or reduced memory reporting.
 
 - [x] Test schedule coverage/order, output consumption/freshness and receipt identity rejection before implementation.
 - [x] Add diagnostic protocol using the real public sync binding and real Nitro methods for 65536 and1048571 byte buffers. Keep original v2 runner unchanged.

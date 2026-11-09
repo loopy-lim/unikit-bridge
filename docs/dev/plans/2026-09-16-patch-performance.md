@@ -12,7 +12,7 @@
 ## Task 1: 재현 및 벤치 확대
 
 - [x] main 0.10.1에서 complex_route 기준 실행: 깊이 1 약 0.83 µs, 깊이 8 약 4.56 µs.
-- [x] `crates/rustra/benches/complex_route.rs`에 깊은 재귀, optional payload, 넓은 struct 대표 경로와 사전 바이트 검증 추가.
+- [x] `crates/unikit-bridge/benches/complex_route.rs`에 깊은 재귀, optional payload, 넓은 struct 대표 경로와 사전 바이트 검증 추가.
 - [x] 별도 할당 계측 실행 경로를 추가하고 시간 측정과 분리.
 - [x] 기준판·후보판에 같은 벤치 소스를 사용한다.
 
@@ -26,7 +26,7 @@
 - [x] 작은 map의 중복 키 검사를 할당 없이 처리하고 큰 map 예약을 64개로 제한한다.
 - [x] sequence 용량 힌트는 남은 입력으로 제한하고 큰 선언 길이의 잘린 입력을 검사한다.
 - [x] 기존 `invoke_complex_serde` fuzz에 재귀 입력 및 caller-buffer 경로를 추가한다.
-- [x] `cargo test -p rustra --lib --locked`, 관련 통합 테스트, fmt/clippy 및 아키텍처 한계를 검증한다.
+- [x] `cargo test -p unikit-bridge --lib --locked`, 관련 통합 테스트, fmt/clippy 및 아키텍처 한계를 검증한다.
 
 ## Task 3: 동일 환경 전후 비교 및 문서
 

@@ -18,7 +18,7 @@ import {
   makeEnvelope,
   reloadSwappedEngine,
   spikeAvailable,
-} from './modules/RustraWasmSpike/src';
+} from './modules/UnikitWasmSpike/src';
 
 type LogLine = { t: string; text: string; kind: 'info' | 'ok' | 'fail' | 'hex' };
 
@@ -149,7 +149,7 @@ export default function App() {
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.h1}>rustra x wasm3 swap spike</Text>
+      <Text style={styles.h1}>unikit x wasm3 swap spike</Text>
       <View style={styles.row}>
         <Pressable style={styles.btn} onPress={onInit}>
           <Text style={styles.btnText}>1. init + compare</Text>

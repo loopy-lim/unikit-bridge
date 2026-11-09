@@ -1,6 +1,6 @@
 // Android 핫 코어 스왑 유닛 전달 스크립트.
 //
-// 호스트에서 빌드한 cdylib(<stem>.so)를 앱의 핫 디렉터(<filesDir>/rustra/hot)로
+// 호스트에서 빌드한 cdylib(<stem>.so)를 앱의 핫 디렉터(<filesDir>/unikit/hot)로
 // 전달한다. 코어 감시 계약은 "디렉터 안의 *-hot-live.so"다 — 이 스크립트는
 // 항상 tmp 파일로 기록한 뒤 run-as mv(동일 디렉터 rename(2))로 원자 교체한다.
 //
@@ -23,7 +23,7 @@
 // 옵션:
 //   --serial <serial>  adb 직렬 (env ADB_SERIAL, 기본 emulator-5554)
 //   --package <pkg>    앱 package (자동 감지: app.json → android/app/build.gradle,
-//                      실패 시 env RUSTRA_ANDROID_PACKAGE, 최후 기본값)
+//                      실패 시 env UNIKIT_ANDROID_PACKAGE, 최후 기본값)
 //   --name <name>      기기 측 live 파일명 (기본 <입력 stem>-hot-live.so)
 //   --adb <path>       adb 바이너리 (env ADB, 기본 adb)
 
@@ -40,7 +40,7 @@ export const DEFAULT_ANDROID_PACKAGE = 'com.altshifted.reactnativecalculator';
 
 /** 기기 측 핫 디렉터 절대 경로 — primary user(0) 기준 filesDir 계약 경로. */
 export function hotDirAbsolute(pkg) {
-  return `/data/user/0/${pkg}/files/rustra/hot`;
+  return `/data/user/0/${pkg}/files/unikit/hot`;
 }
 
 export function readFlag(argv, name, fallback) {
@@ -110,19 +110,19 @@ export async function main(argv = Bun.argv.slice(2)) {
   const cdylibPath = resolve(process.cwd(), cdylibArg);
   const adb = readFlag(argv, '--adb', process.env.ADB || 'adb');
   const serial = readFlag(argv, '--serial', process.env.ADB_SERIAL || DEFAULT_SERIAL);
-  const explicitPackage = readFlag(argv, '--package', process.env.RUSTRA_ANDROID_PACKAGE);
+  const explicitPackage = readFlag(argv, '--package', process.env.UNIKIT_ANDROID_PACKAGE);
 
   if (!/\.so$/i.test(cdylibPath)) {
     failWith(
       `swap unit must be an ELF shared object (.so): ${cdylibPath}`,
-      'hint: cargo ndk -t arm64-v8a build --release -p rustra-hot-core-variant --features behavior',
+      'hint: cargo ndk -t arm64-v8a build --release -p unikit-hot-core-variant --features behavior',
     );
   }
   const cdylibStat = await stat(cdylibPath).catch(() => undefined);
   if (!cdylibStat?.isFile()) {
     failWith(
       `cdylib not found: ${cdylibPath}`,
-      'hint: cargo ndk -t arm64-v8a build --release -p rustra-hot-core-variant --features behavior',
+      'hint: cargo ndk -t arm64-v8a build --release -p unikit-hot-core-variant --features behavior',
     );
   }
   const localBytes = await readFile(cdylibPath);
@@ -250,7 +250,7 @@ export async function main(argv = Bun.argv.slice(2)) {
     `hot-core pushed: ${basename(cdylibPath)} (${localBytes.length} bytes) -> ${pkg}:${finalPath} on ${serial}`,
   );
   console.log(
-    `watch for the swap in logcat: adb -s ${serial} logcat -v time | grep '[RustraHotCore]'`,
+    `watch for the swap in logcat: adb -s ${serial} logcat -v time | grep '[UnikitHotCore]'`,
   );
 }
 

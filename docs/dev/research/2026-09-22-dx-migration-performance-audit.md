@@ -3,7 +3,7 @@ date: 2026-09-22
 researcher: Codex
 git_commit: c717117f
 branch: dx/m1-registry-journeys-20260921
-repository: rustra-bridge
+repository: unikit-bridge
 topic: DX, 마이그레이션, 성능 종합 점검 및 개선
 tags: [research, dx, migration, performance]
 status: local_and_simulator_validation_complete
@@ -42,7 +42,7 @@ Node/Bun/Tauri/RN 어댑터, Rust 런타임, CI 및 성능 회귀 검사를 점�
 | P2       | function_dispatch가 CI 성능 회귀 대상에서 빠졌다                                  | release 벤치 및 요약에 연결                                                                             |
 | P3       | README 버전 및 마이그레이션/NDK 문서가 현재 계약과 다르다                         | EN/KO 교정 및 검증                                                                                      |
 
-`rustra diff` 수정은 API/wire 자체를 바꾸지 않고 잘못된 호환 판정을
+`unikit diff` 수정은 API/wire 자체를 바꾸지 않고 잘못된 호환 판정을
 보수적으로 고친다. Frame은 위치 기반 인코딩이므로 JSON의 기본값 처리와
 동일하게 취급할 수 없다. 일반 설명용 title/description/default 변화는
 파괴 변경으로 분류하지 않는다. 단, oneOf의 실제 discriminator fallback으로
@@ -62,7 +62,7 @@ Node/Bun/Tauri/RN 어댑터, Rust 런타임, CI 및 성능 회귀 검사를 점�
 | `bun run test:local`              | 첫 개선 묶음 exit 0. 9개 패키지 build, lint 경고 0, format, 의존성 audit, 타입·회귀·실행·문서 포함. 이후 소비자에서 찾은 CLI 추가 수정은 아래 별도 재검증            |
 | CLI 전체 회귀                     | 추가 수정 후 Node 380/380, Bun 36/36. 계약 diff 43개 및 init 20개 포함                                                                                               |
 | 소비자 발견 후 추가 수정          | CLI build, lint, format, 의존성 audit 162개·취약점 0, API, architecture, codegen freshness, 문서 통과. 마지막 경로 경계 보정 후 cleanup 7/7·build·lint·format 재확인 |
-| RN init 실제 생성물               | 생성 Rust 라이브러리 빌드 후 `rustra_mobile_init()` 두 번과 FFI 명령 호출 통과. 모바일 링크/실기기 증거는 아님                                                       |
+| RN init 실제 생성물               | 생성 Rust 라이브러리 빌드 후 `unikit_mobile_init()` 두 번과 FFI 명령 호출 통과. 모바일 링크/실기기 증거는 아님                                                       |
 | RN 전달과 CLI 인자 직접 회귀      | 수정 전 4개 실패 → 수정 후 79/79 성공. RN 별도 테스트 타입 컴파일도 통과                                                                                             |
 | 성능 검사 도구 회귀               | 최초 17/17, 후속 추가 수정 뒤 23/23. gate exit 0/1/2/3 보존, 벤치 누락, 오래된 측정 제거, 새 경로 baseline 부재 포함                                                 |
 | API/codegen/architecture          | API snapshot, codegen 예제 6개, bindings 1개, architecture 4/4 통과                                                                                                  |
@@ -73,9 +73,9 @@ Node/Bun/Tauri/RN 어댑터, Rust 런타임, CI 및 성능 회귀 검사를 점�
 | 문서                              | 도구 37/37, synced region 6개, EN/KO 문서 78개, 버전 문서 6개 통과                                                                                                   |
 
 전체 검사 첫 재실행에서 새 테스트의 TypeScript narrowing 오류가 발생했다.
-이를 수정한 두 번째 실행 `/tmp/rustra-audit-final-local-v2.log`가 전체 묶음 성공 근거다.
+이를 수정한 두 번째 실행 `/tmp/unikit-audit-final-local-v2.log`가 전체 묶음 성공 근거다.
 이후 소비자에서 발견한 cleanup/workspace 수정의 전체 CLI 결과는
-`/tmp/rustra-audit-cli-final-v4.log`에 남겼다. packed CLI 설치의 파일 전수 비교와
+`/tmp/unikit-audit-cli-final-v4.log`에 남겼다. packed CLI 설치의 파일 전수 비교와
 실제 소비자 재생성도 통과했다. 새 의존성 picomatch는 workspace의 brace,
 extglob, 문자 클래스 및 제외 패턴을 직접 축약 구현하지 않기 위해 사용했다.
 회귀·검토에서 드러난 oneOf title key와 command-level ref 제거의 누락도
@@ -87,11 +87,11 @@ extglob, 문자 클래스 및 제외 패턴을 직접 축약 구현하지 않기
 ## 공개 배포와 원격 검사
 
 2026-09-22 조회한 원격 main은 `4b736f84dc0124b16284e178403a2712947c90ea`다.
-같은 SHA의 [기본 CI](https://github.com/loopy-lim/rustra/actions/runs/35586476014),
-[Sanitizer](https://github.com/loopy-lim/rustra/actions/runs/35544752191),
-[Miri](https://github.com/loopy-lim/rustra/actions/runs/35542294531),
-[registry consumer](https://github.com/loopy-lim/rustra/actions/runs/35538228207),
-[Release](https://github.com/loopy-lim/rustra/actions/runs/35536921112)는 성공했다.
+같은 SHA의 [기본 CI](https://github.com/loopy-lim/unikit/actions/runs/35586476014),
+[Sanitizer](https://github.com/loopy-lim/unikit/actions/runs/35544752191),
+[Miri](https://github.com/loopy-lim/unikit/actions/runs/35542294531),
+[registry consumer](https://github.com/loopy-lim/unikit/actions/runs/35538228207),
+[Release](https://github.com/loopy-lim/unikit/actions/runs/35536921112)는 성공했다.
 이는 이번 미커밋 후보를 원격에서 검사한 결과가 아니다.
 
 [레지스트리 감사 영수증](../../verification/evidence/2026-09-22-registry-dx-audit.json)은
@@ -102,9 +102,9 @@ SHA가 서로 다르다. CLI 0.11.3/RN 0.9.2와 로컬 수정본의 버전 문�
 
 ## 원격 성능 실패와 측정 신뢰성
 
-[Benchmark 35535838697](https://github.com/loopy-lim/rustra/actions/runs/35535838697)은
+[Benchmark 35535838697](https://github.com/loopy-lim/unikit/actions/runs/35535838697)은
 실패했다. 복원한 마지막 성공 기준선은
-[35516522592](https://github.com/loopy-lim/rustra/actions/runs/35516522592)의
+[35516522592](https://github.com/loopy-lim/unikit/actions/runs/35516522592)의
 `7d5516f69af0029f1507add0aa06c4fba3ca9522`다.
 현재 53개 경로가 악화됐고, 삭제된 rkyv 경로 13개의 과거 변화율이 그대로
 남아 있었다. 예를 들어 `invoke_rkyv_v2/frozen`의 -45.10%와
@@ -185,7 +185,7 @@ macOS Catalyst 프로세스로 실행하는 선택지를 마련했다.
 소비자 Rust FFI, RN scheduler, Android 이벤트 교착의 해결 근거로 확대하지 않는다.
 
 사용자는 후속 실행을 **시뮬레이터로만** 진행하도록 지정했다. 원본 앱과 다른
-작업이 사용하는 Android 기기를 보존하며, 별도 ID `dev.rustra.audit20260922`의
+작업이 사용하는 Android 기기를 보존하며, 별도 ID `dev.unikit.audit20260922`의
 RN Release 앱을 다섯 개의 새 프로세스로 실행했다. 매 실행에서 이벤트 3개,
 구독 해제 후 추가 전달 0개, 콜백 내부 재구독 1회, 구독/해지 100회,
 JSON·바이너리 채널 각 3개, 중복 close, 정리 후 Rust 호출을 모두 통과했다.
@@ -268,7 +268,7 @@ READY 로그는 한 번이며 JavaScript 재로드나 앱 재시작은 관측되
 
 ## 실제 소비자 업그레이드·복원 결과
 
-작업 디렉터리는 `/tmp/rustra-consumers-20260922`이며 앱별 `seed`, `baseline`,
+작업 디렉터리는 `/tmp/unikit-consumers-20260922`이며 앱별 `seed`, `baseline`,
 `candidate`, `rollback` 사본을 사용했다. 기존 dirty 작업과 비무시 untracked
 파일을 포함한 소스 hash를 기록했다. Rust는 로컬 후보 소스, JS는 실제 packed
 tarball을 연결했고, Yeoyu는 원래 사용하던 vendor 구조를 유지했다.
@@ -282,7 +282,7 @@ Kotlin XML 결과·호스트 dylib hash를 기록했다. 원본 저장소와 설
 | --------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | KeyBridge | Rust 0.10→0.11; Android Rust 81개, Kotlin 46개, desktop Rust 29개 각 단계 통과. UniFFI bindings, desktop 타입·번들 검사 통과 | Kotlin은 macOS host dylib를 실제 호출. Android APK/기기와 desktop GUI 실행은 하지 않음                                      |
 | Yeoyu     | Rust/CLI 0.8→0.11 계열; Rust 66개, JS 516개, 타입·생성물 검사 각 단계 통과. 구형 rkyv 파일 2개 안전 제거                     | 원래 vendor의 ignored dist를 빌드해야 baseline 타입 검사가 가능했음. RN C++/JNI 링크·앱 호출은 미검증                       |
-| Leftcar   | Rust Git 0.10.2→0.11; Rust 36개, TS contract 4개, 타입·생성물 검사 통과. React Doctor baseline 100→첫 후보 87→최종 100       | 아래 fixture 보정 후 결과이며 전체 원본 앱의 green 판정은 아님. Rustra addNumbers 경로만 포함; 영상 스트리밍 성능 증거 아님 |
+| Leftcar   | Rust Git 0.10.2→0.11; Rust 36개, TS contract 4개, 타입·생성물 검사 통과. React Doctor baseline 100→첫 후보 87→최종 100       | 아래 fixture 보정 후 결과이며 전체 원본 앱의 green 판정은 아님. Unikit addNumbers 경로만 포함; 영상 스트리밍 성능 증거 아님 |
 
 세 앱의 schema diff는 breaking 0개다. Frame codec 전환은 이 API 비교만으로
 완료되지 않으므로 Rust/native/generated/JS를 같은 후보 묶음으로 검사했다.
@@ -315,7 +315,7 @@ KeyBridge·Yeoyu 복원 사본은 시작 소스 hash와 전부 같고 Leftcar는
 
 ## 관련 문서
 
-- [로드맵 SPEC](../../specs/2026-09-14-rustra-roadmap.md)
+- [로드맵 SPEC](../../specs/2026-09-14-unikit-roadmap.md)
 - [도입 검증 현황](../../verification/2026-09-16-roadmap-status.md)
 - [마이그레이션 안내](../../migration-guide.ko.md)
 
@@ -352,7 +352,7 @@ KeyBridge·Yeoyu 복원 사본은 시작 소스 hash와 전부 같고 Leftcar는
 ### `fix(ios): 예제 빌드와 Hermes 검사 환경 복구` (5 files)
 
 - `examples/react-native-calculator/app.json`
-- `examples/react-native-calculator/modules/rustra-jsi/ios/run-hermes-sync-tests.sh`
+- `examples/react-native-calculator/modules/unikit-jsi/ios/run-hermes-sync-tests.sh`
 - `examples/react-native-calculator/plugins/with-glog-textual-headers.cjs`
 - `examples/react-native-calculator/scripts/fix-glog-modulemap.rb`
 - `examples/react-native-calculator/scripts/glog-modulemap.test.mjs`

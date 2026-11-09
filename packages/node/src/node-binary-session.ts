@@ -7,7 +7,7 @@
  * — 프로세스 라이프사이클과 NDJSON 경로는 transport 가 계속 소유한다.
  */
 import type { ChildProcessWithoutNullStreams } from 'node:child_process';
-import { RustraCommandError, parseRustraErrorString, RustraErrorCode } from '@rustra/types';
+import { UnikitCommandError, parseUnikitErrorString, UnikitErrorCode } from '@unikit/types';
 import {
   createBinaryFrameAccumulator,
   demultiplexBinaryFrame,
@@ -33,7 +33,7 @@ export type BinaryLoopSession = {
   /** A new process cannot inherit an incomplete frame from its predecessor. */
   resetReader(): void;
   /** 프로세스 exit 시 대기 중 binQueue 전체를 같은 에러로 해소(기존 계약). */
-  rejectAll(error: RustraCommandError): void;
+  rejectAll(error: UnikitCommandError): void;
   /** 진행 중 바이너리 invocation 수 — drain(timeout) 정착 판정 근거. */
   readonly inFlight: number;
   /** 0xfffd 푸시 프레임 구독자 — onPushEvent 로 등록, 반환 함수로 탈퇴. */
@@ -53,7 +53,7 @@ export function createBinaryLoopSession(options: {
 }): BinaryLoopSession {
   let binQueue: Array<{
     resolve: (frame: Uint8Array) => void;
-    reject: (error: RustraCommandError) => void;
+    reject: (error: UnikitCommandError) => void;
   }> = [];
   /** 0xfffd 푸시 프레임 구독자 — onPushEvent 로 등록, 반환 해지 함수로 탈퇴. */
   const pushListeners = new Set<(event: NodePushEventFrame) => void>();
@@ -76,7 +76,7 @@ export function createBinaryLoopSession(options: {
             listener(event);
           } catch (error) {
             // 리스너 예외가 stdout 리더를 죽이지 않는다(폴링 루프와 동일 정책).
-            console.error(`Rustra: push listener for "${event.name}" threw:`, error);
+            console.error(`Unikit: push listener for "${event.name}" threw:`, error);
           }
         }
       },
@@ -86,7 +86,7 @@ export function createBinaryLoopSession(options: {
             listener(frame);
           } catch (error) {
             // 채널 콜백 예외도 stdout 리더를 죽이지 않는다(폴링과 동일 정책).
-            console.error(`Rustra: channel listener for handle ${frame.handle} threw:`, error);
+            console.error(`Unikit: channel listener for handle ${frame.handle} threw:`, error);
           }
         }
       },
@@ -97,7 +97,7 @@ export function createBinaryLoopSession(options: {
           } catch (error) {
             // 바이너리 채널 콜백 예외도 동일 격리(푸시/JSON 채널과 동일 정책).
             console.error(
-              `Rustra: bytes channel listener for handle ${frame.handle} threw:`,
+              `Unikit: bytes channel listener for handle ${frame.handle} threw:`,
               error,
             );
           }
@@ -127,7 +127,7 @@ export function createBinaryLoopSession(options: {
         if (error) {
           const index = binQueue.findIndex((entry) => entry.resolve === resolve);
           if (index >= 0) binQueue.splice(index, 1);
-          reject(new RustraCommandError('transport.error', `write failed: ${String(error)}`, true));
+          reject(new UnikitCommandError('transport.error', `write failed: ${String(error)}`, true));
         }
       });
     });
@@ -137,7 +137,7 @@ export function createBinaryLoopSession(options: {
       const frame = await binaryWrite(encodeDrainEventsRequest());
       // 응답 본문: [ok u8][pad 3][len u32 @4][json @8]
       if (!readBinaryResponseOk(frame)) {
-        throw new RustraCommandError('invoke.failed', 'event drain failed');
+        throw new UnikitCommandError('invoke.failed', 'event drain failed');
       }
       return parseBinaryResponseJson(frame);
     }
@@ -145,8 +145,8 @@ export function createBinaryLoopSession(options: {
       const wantsBytes = command === '__createChannelBytes';
       const frame = await binaryWrite(encodeChannelCreateRequest(wantsBytes));
       if (!readBinaryResponseOk(frame)) {
-        throw new RustraCommandError(
-          RustraErrorCode.ChannelUnavailable,
+        throw new UnikitCommandError(
+          UnikitErrorCode.ChannelUnavailable,
           wantsBytes
             ? 'binary channel creation failed; the runtime rejected the mode byte or the handle space is exhausted'
             : 'channel creation failed; handle space may be exhausted',
@@ -154,8 +154,8 @@ export function createBinaryLoopSession(options: {
       }
       const parsed = parseBinaryResponseJson(frame) as { handle?: unknown };
       if (!Number.isSafeInteger(parsed.handle) || (parsed.handle as number) < 1) {
-        throw new RustraCommandError(
-          RustraErrorCode.ChannelUnavailable,
+        throw new UnikitCommandError(
+          UnikitErrorCode.ChannelUnavailable,
           `loop-stdio returned an invalid ${command} handle; expected a positive safe integer`,
         );
       }
@@ -165,8 +165,8 @@ export function createBinaryLoopSession(options: {
       // 채널 해제 — 본문은 postcard varint u32 핸들(LEB128, 채널은 1 이상).
       const handle = (args as { handle?: unknown })?.handle;
       if (!Number.isSafeInteger(handle) || (handle as number) < 1) {
-        throw new RustraCommandError(
-          RustraErrorCode.ChannelUnavailable,
+        throw new UnikitCommandError(
+          UnikitErrorCode.ChannelUnavailable,
           '__dropChannel requires a positive integer handle',
         );
       }
@@ -175,7 +175,7 @@ export function createBinaryLoopSession(options: {
     }
     const codec = options.codecs?.get(command);
     if (!codec) {
-      throw new RustraCommandError(
+      throw new UnikitCommandError(
         'command.not_found',
         `binary loop transport has no codec for "${command}"`,
       );
@@ -186,7 +186,7 @@ export function createBinaryLoopSession(options: {
     const outcome = codec.decode(frame);
     if (!outcome.ok) {
       const e = outcome.error ?? { code: 'invoke.failed', message: 'invoke failed' };
-      throw parseRustraErrorString(`${e.code}: ${e.message}`);
+      throw parseUnikitErrorString(`${e.code}: ${e.message}`);
     }
     return outcome.result;
   };

@@ -1,12 +1,12 @@
-# iOS simulator evidence — rustra wasm3 spike (Task A0)
+# iOS simulator evidence — unikit wasm3 spike (Task A0)
 
 Environment: iPhone 17 simulator (iOS 26.x), UDID 99B087B5-DEF6-4CF1-9177-81A5DE564CFC,
-app `org.reactjs.native.example.RustraWasmSpike` (Debug, Metro on :8082),
+app `org.reactjs.native.example.UnikitWasmSpike` (Debug, Metro on :8082),
 React Native 0.81.5 / Hermes. Captured via `xcrun simctl spawn <SIM> log stream`
 (`/tmp/spike-oslog.log`, 2026-08-31 17:04:43–17:04:46).
 
 Boot: app booted, JS bundle from Metro, native module loaded (373 m3__/spike__
-symbols confirmed in RustraWasmSpike.debug.dylib; engine_v1.wasm in the app
+symbols confirmed in UnikitWasmSpike.debug.dylib; engine_v1.wasm in the app
 bundle, md5 827e6d11f37e8a3032ec0d41e9126475 = artifacts/engine_v1.wasm).
 
 ## Phase 1 — v1 engine (factor=2), wasm vs native staticlib

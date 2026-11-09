@@ -15,7 +15,7 @@ Accepted — 2026-09-11. 구현은 Track A 작업 항목(A1–A8)으로 분할�
 
 Mozilla UniFFI 벤치마크 조사(`docs/dev/research/2026-09-11-uniffi-maturity-catchup.md`)가
 밝힌 성숙도의 실체는 언어 개수가 아니라 **계약의 기계화**다: 체크섬·로드시 검증·
-실패주입 픽스처·픽스처 규율, 그리고 산출물 기준 코드젠 게이트. rustra 는 일부 축에서는
+실패주입 픽스처·픽스처 규율, 그리고 산출물 기준 코드젠 게이트. unikit 는 일부 축에서는
 이미 앞서 있지만(공개 스키마, 와이어 freeze, 핫스왑, en/ko 문서), 강제 수준이 약한
 지점 5곳이 성숙도 주장의 하중을 받는다:
 
@@ -28,11 +28,11 @@ Mozilla UniFFI 벤치마크 조사(`docs/dev/research/2026-09-11-uniffi-maturity
 
 ## 결정 (Decision)
 
-UniFFI 의 성숙도 관행을 **rustra 모델을 유지한 채** 채택한다(Track A — 언어 커버리지
+UniFFI 의 성숙도 관행을 **unikit 모델을 유지한 채** 채택한다(Track A — 언어 커버리지
 결정(Track B)과 독립). 여섯 가지:
 
 1. **심볼별 서명 피닝**: api-surface 스냅샷 v2 로 승격해 심볼 이름을 넘어 서명(인자·반환·
-   비동기 여부)을 비교한다 — UniFFI 의 심볼별 u16 체크섬에 상응하는 rustra 형태.
+   비동기 여부)을 비교한다 — UniFFI 의 심볼별 u16 체크섬에 상응하는 unikit 형태.
 2. **contractVerification 정책 옵션**: `contract.mismatch` 런타임 검증을 escape hatch 를
    남긴 채 기본 활성으로 전환하는 정책 옵션을 도입한다.
 3. **코드젠 신선도 게이트**: 재생성 → `git diff --exit-code` 로 committed 생성물 드리프트를

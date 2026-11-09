@@ -5,12 +5,12 @@
 // 바뀌면 wire 가 **조용히** 바뀌며 타입 에러도 나지 않는다 (Rust↔TS desync).
 //
 // `RegistryDemoOutput { ok, frozen, message }` (선언순 ≠ 알파벳순) 의 응답 프레임을
-// 바이트 단위로 고정해 `rustraRegistryDemoCodec.decode` 가 같은 순서로 읽는지 증명.
+// 바이트 단위로 고정해 `unikitRegistryDemoCodec.decode` 가 같은 순서로 읽는지 증명.
 // 아래 hex 는 Rust 측 PINNED_BODY 와 동일 계약이다.
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { rustraRegistryDemoCodec } from '../generated/frame-codecs.js';
+import { unikitRegistryDemoCodec } from '../generated/frame-codecs.js';
 
 function hexToBytes(hex: string): ArrayBuffer {
   const u = new Uint8Array(hex.length / 2);
@@ -29,7 +29,7 @@ const PINNED_FRAME_ALL_TRUE = '01000000000000000101056472696674';
 const PINNED_FRAME_DISTINCT = '010000000000000001000178';
 
 void test('field-order: decode pinned non-alphabetical frame → {ok,frozen,message} (Rust 선언순)', () => {
-  const r = rustraRegistryDemoCodec.decode(hexToBytes(PINNED_FRAME_ALL_TRUE));
+  const r = unikitRegistryDemoCodec.decode(hexToBytes(PINNED_FRAME_ALL_TRUE));
   assert.equal(r.ok, true);
   assert.equal(r.result?.ok, true);
   assert.equal(r.result?.frozen, true);
@@ -38,7 +38,7 @@ void test('field-order: decode pinned non-alphabetical frame → {ok,frozen,mess
 
 void test('field-order: ok/frozen distinct values are not swapped', () => {
   // 코드젠이 ok 와 frozen 을 뒤바꿔 읽으면 {ok:false, frozen:true} 가 된다 — 잡아야 한다.
-  const r = rustraRegistryDemoCodec.decode(hexToBytes(PINNED_FRAME_DISTINCT));
+  const r = unikitRegistryDemoCodec.decode(hexToBytes(PINNED_FRAME_DISTINCT));
   assert.equal(r.ok, true);
   assert.equal(r.result?.ok, true, 'ok must decode as true');
   assert.equal(r.result?.frozen, false, 'frozen must decode as false (not swapped with ok)');
@@ -50,7 +50,7 @@ void test('field-order: alphabetical-order codec would mis-decode (드리프트 
   // frozen=01, message len=01 → message="\x05", ok='d'(≠0/1 → decode failure/wrong).
   // 현재 코드젠이 선언순으로 읽으므로 ok=true 가 나와야 한다. 이 단언이
   // 코드젠이 알파벳순으로 드리프트하면 즉시 실패한다.
-  const r = rustraRegistryDemoCodec.decode(hexToBytes(PINNED_FRAME_ALL_TRUE));
+  const r = unikitRegistryDemoCodec.decode(hexToBytes(PINNED_FRAME_ALL_TRUE));
   assert.equal(
     r.result?.ok,
     true,

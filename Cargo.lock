@@ -3064,7 +3064,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustra"
+name = "unikit-bridge"
 version = "0.13.0"
 dependencies = [
  "criterion",
@@ -3072,8 +3072,8 @@ dependencies = [
  "libloading 0.9.0",
  "postcard",
  "proptest",
- "rustra-macros",
- "rustra-naming",
+ "unikit-bridge-macros",
+ "unikit-bridge-naming",
  "schemars 0.8.22",
  "serde",
  "serde_json",
@@ -3083,11 +3083,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustra-auth-example"
+name = "unikit-auth-example"
 version = "0.13.0"
 dependencies = [
  "hex",
- "rustra",
+ "unikit",
  "schemars 0.8.22",
  "serde",
  "serde_json",
@@ -3095,23 +3095,23 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustra-benchmark"
+name = "unikit-benchmark"
 version = "0.13.0"
 dependencies = [
  "postcard",
- "rustra",
- "rustra-macros",
+ "unikit",
+ "unikit-bridge-macros",
  "schemars 0.8.22",
  "serde",
  "serde_json",
 ]
 
 [[package]]
-name = "rustra-calculator-example"
+name = "unikit-calculator-example"
 version = "0.13.0"
 dependencies = [
  "postcard",
- "rustra",
+ "unikit",
  "schemars 0.8.22",
  "serde",
  "serde_json",
@@ -3119,67 +3119,67 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustra-calculator-napi"
+name = "unikit-calculator-napi"
 version = "0.13.0"
 dependencies = [
  "napi",
  "napi-build",
  "napi-derive",
- "rustra",
- "rustra-calculator-example",
+ "unikit",
+ "unikit-calculator-example",
  "serde_json",
 ]
 
 [[package]]
-name = "rustra-crud-example"
+name = "unikit-crud-example"
 version = "0.13.0"
 dependencies = [
- "rustra",
+ "unikit",
  "schemars 0.8.22",
  "serde",
  "serde_json",
 ]
 
 [[package]]
-name = "rustra-hot-core-probe"
+name = "unikit-hot-core-probe"
 version = "0.13.0"
 dependencies = [
- "rustra",
+ "unikit",
  "serde_json",
 ]
 
 [[package]]
-name = "rustra-hot-core-variant"
+name = "unikit-hot-core-variant"
 version = "0.13.0"
 dependencies = [
- "rustra",
+ "unikit",
  "schemars 0.8.22",
  "serde",
 ]
 
 [[package]]
-name = "rustra-macros"
+name = "unikit-bridge-macros"
 version = "0.13.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "rustra",
- "rustra-naming",
+ "unikit",
+ "unikit-bridge-naming",
  "schemars 0.8.22",
  "serde",
  "syn 3.0.5",
 ]
 
 [[package]]
-name = "rustra-naming"
+name = "unikit-bridge-naming"
 version = "0.13.0"
 
 [[package]]
-name = "rustra-rn-experiment"
+name = "unikit-rn-experiment"
 version = "0.13.0"
 dependencies = [
  "flate2",
- "rustra",
+ "unikit",
  "schemars 0.8.22",
  "serde",
  "serde_json",
@@ -3187,21 +3187,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustra-streaming-example"
+name = "unikit-streaming-example"
 version = "0.13.0"
 dependencies = [
- "rustra",
+ "unikit",
  "schemars 0.8.22",
  "serde",
  "serde_json",
 ]
 
 [[package]]
-name = "rustra-tauri-calculator"
+name = "unikit-tauri-calculator"
 version = "0.1.0"
 dependencies = [
- "rustra",
- "rustra-calculator-example",
+ "unikit",
+ "unikit-calculator-example",
  "schemars 0.8.22",
  "serde",
  "serde_json",

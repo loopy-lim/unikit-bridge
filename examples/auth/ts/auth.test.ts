@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configure } from '@rustra/types';
+import { configure } from '@unikit/types';
 import { signIn, signOut, grant, adminStats } from '../generated/commands.js';
 import type { EngineClient } from '../generated/types.js';
 
@@ -40,12 +40,12 @@ void test('grant carries capability name on wire', async () => {
   assert.deepEqual(seen, { token: 'tok-1', capability: 'admin.stats' });
 });
 
-void test('capability.denied error code is preserved through RustraCommandError', async () => {
+void test('capability.denied error code is preserved through UnikitCommandError', async () => {
   configure(
     mockEngine(() => {
       // JSON fallback 경로 에러 — Rust Display 포맷 "code: message"
       const err = new Error('capability.denied: admin.stats required');
-      throw Object.assign(err, { rustraFlattened: true });
+      throw Object.assign(err, { unikitFlattened: true });
     }),
   );
   try {

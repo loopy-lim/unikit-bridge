@@ -1,7 +1,7 @@
 {
-  "name": "@rustra/react",
+  "name": "@unikit/react",
   "version": "0.8.4",
-  "description": "Type-safe React hooks for rustra clients — one Rust core generates bindings for Node, Bun, Tauri, and React Native over a compact binary wire.",
+  "description": "Type-safe React hooks for unikit clients — one Rust core generates bindings for Node, Bun, Tauri, and React Native over a compact binary wire.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -30,7 +30,7 @@
     "react": ">=18.0.0"
   },
   "dependencies": {
-    "@rustra/types": "^0.13.0"
+    "@unikit/types": "^0.13.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
@@ -42,7 +42,7 @@
     "@types/react-test-renderer": "^19.0.0"
   },
   "keywords": [
-    "rustra",
+    "unikit",
     "react",
     "react-native",
     "hooks",
@@ -55,11 +55,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/loopy-lim/rustra.git",
+    "url": "git+https://github.com/loopy-lim/unikit.git",
     "directory": "packages/react"
   },
   "bugs": {
-    "url": "https://github.com/loopy-lim/rustra/issues"
+    "url": "https://github.com/loopy-lim/unikit/issues"
   },
-  "homepage": "https://github.com/loopy-lim/rustra#readme"
+  "homepage": "https://github.com/loopy-lim/unikit#readme"
 }

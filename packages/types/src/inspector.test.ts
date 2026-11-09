@@ -2,8 +2,8 @@
 // 저장소 표준(node:test + node:assert/strict, ESM) 사용 — 새 의존성 없음.
 //
 // golden hex 의 정준 소스는 **실제 Rust 캡처**다:
-// crates/rustra/tests/fixtures/inspector-golden.hex.txt (committed 단일
-// 아티팩트) — 갱신은 RUSTRA_UPDATE_GOLDEN=1 cargo test -p rustra
+// crates/unikit-bridge/tests/fixtures/inspector-golden.hex.txt (committed 단일
+// 아티팩트) — 갱신은 UNIKIT_UPDATE_GOLDEN=1 cargo test -p unikit-bridge
 // --test inspector_golden. Rust 측 테스트(inspector_golden.rs)가 같은
 // 파일로 자기 캡처를 대조하므로, 한쪽 blob 필드가 드리프트하면 양쪽
 // 언어에서 동시에 실패한다.
@@ -16,7 +16,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { parseSnapshot, RustraCommandError, serializeSnapshot } from './index.js';
+import { parseSnapshot, UnikitCommandError, serializeSnapshot } from './index.js';
 import type { DumpedWire } from './index.js';
 
 function hexToBytes(hex: string): Uint8Array {
@@ -30,13 +30,13 @@ function bytesToHex(bytes: Uint8Array): string {
 }
 
 /**
- * Rust↔TS 단일 아티팩트 — crates/rustra/tests/fixtures/inspector-golden.hex.txt.
+ * Rust↔TS 단일 아티팩트 — crates/unikit-bridge/tests/fixtures/inspector-golden.hex.txt.
  * 이 파일이 사라지면(드문 리포 구조 변경) 테스트가 실패한다 — 조용히 건너뛰지
  * 않는다(loud).
  *
  * 이 테스트는 소스 트리(packages/types/src) 와 tsc 산출물(dist-ts/packages/types/src,
  * bun test 경로 필터가 substring 매칭으로 수집) 양쪽에서 실행될 수 있으므로,
- * 고정 상대경로 대신 crates/rustra 를 기준 삼아 상향 탐색으로 리포 루트를 찾는다.
+ * 고정 상대경로 대신 crates/unikit-bridge 를 기준 삼아 상향 탐색으로 리포 루트를 찾는다.
  */
 function locateRepoFile(relative: string): string {
   let dir = import.meta.dir;
@@ -52,7 +52,7 @@ function locateRepoFile(relative: string): string {
 }
 
 function loadGoldenHex(): string {
-  const path = locateRepoFile('crates/rustra/tests/fixtures/inspector-golden.hex.txt');
+  const path = locateRepoFile('crates/unikit-bridge/tests/fixtures/inspector-golden.hex.txt');
   const text = readFileSync(path, 'utf8');
   const hex = text
     .split('\n')
@@ -160,7 +160,7 @@ void test('truncated JSON fails loudly with position or engine message context',
   assert.throws(
     () => parseSnapshot(truncated),
     (error: unknown) => {
-      assert.ok(error instanceof RustraCommandError);
+      assert.ok(error instanceof UnikitCommandError);
       assert.equal(error.code, 'inspector.invalid_snapshot');
       // V8은 "… at byte N"을, JSC(Bun)는 엔진 문구를 위치 대신 실어준다 —
       // 어느 쪽이든 loud 컨텍스트가 반드시 붙는다.
@@ -174,7 +174,7 @@ void test('malformed JSON from a string fails loudly', () => {
   assert.throws(
     () => parseSnapshot('{"packageId": "x", '),
     (error: unknown) => {
-      assert.ok(error instanceof RustraCommandError);
+      assert.ok(error instanceof UnikitCommandError);
       assert.equal(error.code, 'inspector.invalid_snapshot');
       return true;
     },
@@ -185,7 +185,7 @@ void test('wrong top-level shape (array) fails with unexpected_shape', () => {
   assert.throws(
     () => parseSnapshot('[1,2,3]'),
     (error: unknown) => {
-      assert.ok(error instanceof RustraCommandError);
+      assert.ok(error instanceof UnikitCommandError);
       assert.equal(error.code, 'inspector.unexpected_shape');
       assert.equal(error.message, "snapshot 'package' must be an object, got array");
       return true;
@@ -197,7 +197,7 @@ void test('missing commands field fails loudly', () => {
   assert.throws(
     () => parseSnapshot('{"packageId": "x"}'),
     (error: unknown) => {
-      assert.ok(error instanceof RustraCommandError);
+      assert.ok(error instanceof UnikitCommandError);
       assert.equal(error.code, 'inspector.unexpected_shape');
       assert.equal(error.message, "snapshot 'commands' must be an array, got undefined");
       return true;
@@ -212,7 +212,7 @@ void test('command entry with wrong types fails with a JSON-pointer path', () =>
         '{"packageId":null,"contractHash":null,"schemaGeneration":null,"commands":[{"id":"one","name":"x","capability":null}],"limits":{"maxPayloadBytes":1},"stats":{"registeredCommands":1,"grantedCapabilities":[],"pendingEvents":0,"droppedEvents":0}}',
       ),
     (error: unknown) => {
-      assert.ok(error instanceof RustraCommandError);
+      assert.ok(error instanceof UnikitCommandError);
       assert.equal(error.code, 'inspector.unexpected_shape');
       assert.equal(error.message, "snapshot 'commands[0].id' must be a finite number, got string");
       return true;
@@ -227,7 +227,7 @@ void test('command id out of u16 range fails', () => {
         '{"packageId":null,"contractHash":null,"schemaGeneration":null,"commands":[{"id":65536,"name":"x","capability":null}],"limits":{"maxPayloadBytes":1},"stats":{"registeredCommands":1,"grantedCapabilities":[],"pendingEvents":0,"droppedEvents":0}}',
       ),
     (error: unknown) => {
-      assert.ok(error instanceof RustraCommandError);
+      assert.ok(error instanceof UnikitCommandError);
       assert.equal(error.code, 'inspector.unexpected_shape');
       assert.match(error.message, /must be a u16 integer, got 65536/);
       return true;
@@ -239,7 +239,7 @@ void test('command id out of u16 range fails', () => {
 
 function expectCounterError(fn: () => unknown, expectedMessage: string): void {
   assert.throws(fn, (error: unknown) => {
-    assert.ok(error instanceof RustraCommandError);
+    assert.ok(error instanceof UnikitCommandError);
     assert.equal(error.code, 'inspector.unexpected_shape');
     assert.equal(error.message, expectedMessage);
     return true;
@@ -285,7 +285,7 @@ void test('registeredCommands/commands.length divergence is rejected', () => {
         '{"packageId":"x","contractHash":null,"schemaGeneration":0,"commands":[],"limits":{"maxPayloadBytes":1},"stats":{"registeredCommands":2,"grantedCapabilities":[],"pendingEvents":0,"droppedEvents":0}}',
       ),
     (error: unknown) => {
-      assert.ok(error instanceof RustraCommandError);
+      assert.ok(error instanceof UnikitCommandError);
       assert.equal(error.code, 'inspector.unexpected_shape');
       assert.equal(
         error.message,

@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make Rustra's environment diagnosis, Rust-to-TS/C++ code generation, development watch loop, and generated-file validation reproducible from one project configuration while documenting the native-build boundaries truthfully.
+**Goal:** Make Unikit's environment diagnosis, Rust-to-TS/C++ code generation, development watch loop, and generated-file validation reproducible from one project configuration while documenting the native-build boundaries truthfully.
 
-**Architecture:** Keep `rustra generate` as the schema-only renderer and add a config-driven `rustra codegen` orchestrator around the existing Rust generator plus renderer. Add a pure, injectable doctor module for host-conditional tool checks, make `rustra dev` invoke the same orchestrator, and make generation checks compare rendered bytes and a manifest without writing generated files. Update `init`, RN guidance, and user-facing limitation documentation to use these commands.
+**Architecture:** Keep `unikit generate` as the schema-only renderer and add a config-driven `unikit codegen` orchestrator around the existing Rust generator plus renderer. Add a pure, injectable doctor module for host-conditional tool checks, make `unikit dev` invoke the same orchestrator, and make generation checks compare rendered bytes and a manifest without writing generated files. Update `init`, RN guidance, and user-facing limitation documentation to use these commands.
 
 **Tech Stack:** TypeScript, Node `fs`/`child_process`/`crypto`, Bun test, Rust/Cargo metadata, Markdown documentation, existing React Native generated module and shell build scripts.
 
@@ -12,13 +12,13 @@
 
 ## Global Constraints
 
-- Rustra application native artifacts remain app-specific; do not claim that a generic prebuilt package can replace the user's Rust command staticlib.
+- Unikit application native artifacts remain app-specific; do not claim that a generic prebuilt package can replace the user's Rust command staticlib.
 - Expo Go remains unsupported for custom JSI; RN instructions must use a development build or `expo run:*`.
 - Workspace MSRV is Rust 1.88; Android NDK is pinned to `27.1.12297006`; CLI Node engine is `>=18`.
-- `rustra generate` direct `--schema/--output` and `--config` usage remains backward compatible.
+- `unikit generate` direct `--schema/--output` and `--config` usage remains backward compatible.
 - `generate --check`, doctor JSON, and new config parsing must be fail-closed and must not install, delete, or rewrite user files; `codegen --check` may run the user's Rust generator, then its TS/C++/RN verification stage is read-only.
 - Complex binary route, Tier 3 JSON fallback, owned FFI, retired `u16` command IDs, and release-frozen registry semantics remain unchanged.
-- Do not add `file:../../vendor/rustra-react-native` or manual generated native registration; use the official generated module and autolinking.
+- Do not add `file:../../vendor/unikit-react-native` or manual generated native registration; use the official generated module and autolinking.
 - No push, pull request, npm publish, or crates.io publish is part of this plan.
 
 ## File Map
@@ -30,7 +30,7 @@
 - Modify `packages/cli/src/dev.test.ts`: config-mode pipeline and retry tests.
 - Modify `packages/cli/src/generate.test.ts`: config validation, init scripts, generated manifest, and `--check` behavior tests.
 - Modify `packages/cli/package.json`: publish `doctor.d.ts/.js` and source maps if the new module is exported from the package.
-- Modify `examples/calculator/rustra.json`, `examples/react-native-calculator/rustra.json`, and `examples/react-native-bare-calculator/rustra.json`: explicit codegen settings where inference would otherwise be ambiguous.
+- Modify `examples/calculator/unikit.json`, `examples/react-native-calculator/unikit.json`, and `examples/react-native-bare-calculator/unikit.json`: explicit codegen settings where inference would otherwise be ambiguous.
 - Modify `examples/*/package.json` only where their codegen script currently duplicates the two-stage shell pipeline.
 - Modify `README.md`, `packages/cli/README.md`, `docs/README.md`, `docs/getting-started.md`, `docs/extending/react-native-setup.md`, `docs/migrations/0.3-to-0.4.md`, and `docs/complex-codecs.md`: corrected commands, version lines, limits, and development-hurdle guidance.
 - Create `docs/development-hurdles.md`: the reader-facing problem/current mitigation/remaining boundary table requested by the review.
@@ -141,7 +141,7 @@ FAIL rn.android.ndk Android NDK 27.1.12297006 is missing
   fix: sdkmanager "ndk;27.1.12297006"
 ```
 
-Add `doctor [--config <path>] [--format text|json] [--strict]` to `main()` and `printHelp()`. Default config is `rustra.json` in the current working directory. Exit 1 on required failures, and on warnings only with `--strict`.
+Add `doctor [--config <path>] [--format text|json] [--strict]` to `main()` and `printHelp()`. Default config is `unikit.json` in the current working directory. Exit 1 on required failures, and on warnings only with `--strict`.
 
 - [x] **Step 5: Run the focused tests and package build.**
 
@@ -167,8 +167,8 @@ git commit -m "feat(cli): 개발 환경 doctor 추가"
 
 **Interfaces:**
 
-- Extend `RustraConfig` with `codegen?: { rustManifest?: string; rustPackage?: string; rustBinary?: string }`.
-- Add `export function resolveCodegenTarget(configPath: string, config: RustraConfig): { manifestPath: string; packageName?: string; binaryName: string; cwd: string }`.
+- Extend `UnikitConfig` with `codegen?: { rustManifest?: string; rustPackage?: string; rustBinary?: string }`.
+- Add `export function resolveCodegenTarget(configPath: string, config: UnikitConfig): { manifestPath: string; packageName?: string; binaryName: string; cwd: string }`.
 - Add `export async function runCodegen(args: string[]): Promise<void>`.
 - `runCodegen` runs the resolved Cargo binary first and then invokes the existing schema renderer with the same config.
 
@@ -177,8 +177,8 @@ git commit -m "feat(cli): 개발 환경 doctor 추가"
 Add tests that assert the init config contains:
 
 ```ts
-assert.match(files.rustraJson, /"codegen"/);
-assert.match(files.packageJson, /"codegen": "rustra codegen --config rustra\.json"/);
+assert.match(files.unikitJson, /"codegen"/);
+assert.match(files.packageJson, /"codegen": "unikit codegen --config unikit\.json"/);
 ```
 
 Add target-selection tests for a `generate` binary, a single non-generate binary, and two ambiguous binaries. Add a pipeline test that records `cargo` then `generate` in order.
@@ -216,7 +216,7 @@ Parse `--config` and `--check`; reject `--schema`/`--output` for `codegen` with 
 
 - [x] **Step 4: Wire the command and preserve existing commands.**
 
-Dispatch `codegen` before `dev`, update help text, and retain `generate --watch`, direct schema generation, `init`, and `diff`. Add a package script in the generated template that calls only `rustra codegen --config rustra.json`.
+Dispatch `codegen` before `dev`, update help text, and retain `generate --watch`, direct schema generation, `init`, and `diff`. Add a package script in the generated template that calls only `unikit codegen --config unikit.json`.
 
 - [x] **Step 5: Verify the focused CLI tests.**
 
@@ -228,7 +228,7 @@ Expected: PASS.
 
 ```bash
 git add packages/cli/src/index.ts packages/cli/src/generate.test.ts packages/cli/src/dev.ts packages/cli/src/dev.test.ts
-git commit -m "feat(cli): Rustra codegen 파이프라인 통합"
+git commit -m "feat(cli): Unikit codegen 파이프라인 통합"
 ```
 
 ### Task 3: Add fail-closed generated drift checking
@@ -285,7 +285,7 @@ Keep existing renderer functions unchanged. In `generateFromSchema`, build one l
 
 - [x] **Step 3: Implement hashing and manifest writing.**
 
-Use `createHash('sha256')` over UTF-8 content. Write `.rustra-generated.json` in the configured output directory after successful normal generation. Include the CLI version and sorted file entries. Write the manifest only after all generated and RN module files have been written successfully.
+Use `createHash('sha256')` over UTF-8 content. Write `.unikit-generated.json` in the configured output directory after successful normal generation. Include the CLI version and sorted file entries. Write the manifest only after all generated and RN module files have been written successfully.
 
 - [x] **Step 4: Implement read-only `generate --check`.**
 
@@ -301,10 +301,10 @@ Run:
 bun test packages/cli/src/generate.test.ts
 bun run --cwd packages/cli build
 bun run --cwd examples/calculator codegen
-node packages/cli/dist/index.js generate --config examples/calculator/rustra.json --check
+node packages/cli/dist/index.js generate --config examples/calculator/unikit.json --check
 ```
 
-Expected: all tests pass, normal generation creates `.rustra-generated.json`, and the second command exits 0 without changing generated file mtimes or contents.
+Expected: all tests pass, normal generation creates `.unikit-generated.json`, and the second command exits 0 without changing generated file mtimes or contents.
 
 - [x] **Step 6: Commit the drift gate.**
 
@@ -313,7 +313,7 @@ git add packages/cli/src/index.ts packages/cli/src/generate.test.ts packages/cli
 git commit -m "feat(cli): generated drift 검사 추가"
 ```
 
-### Task 4: Make `rustra dev` config-driven and retry-safe
+### Task 4: Make `unikit dev` config-driven and retry-safe
 
 **Files:**
 
@@ -355,7 +355,7 @@ Expected: FAIL for the new config/retry cases.
 
 - [x] **Step 2: Resolve config source roots and generated paths.**
 
-For `--config`, read `rustra.json`, resolve the codegen Cargo manifest, watch the manifest directory's `src` tree plus `Cargo.toml` and `Cargo.lock`, and use config `schema`/`output` plus RN `moduleDir`/`cppOutput` for stale checks. Keep `--backend`/`--app` as the legacy mode with current defaults.
+For `--config`, read `unikit.json`, resolve the codegen Cargo manifest, watch the manifest directory's `src` tree plus `Cargo.toml` and `Cargo.lock`, and use config `schema`/`output` plus RN `moduleDir`/`cppOutput` for stale checks. Keep `--backend`/`--app` as the legacy mode with current defaults.
 
 - [x] **Step 3: Invoke the shared `codegen` command and preserve pipeline order.**
 
@@ -369,7 +369,7 @@ Debounce source changes by 300 ms. While a run is active, set `pending = true` r
 
 - [x] **Step 5: Add CLI help and inspect output for config mode.**
 
-Document `rustra dev --config rustra.json [--inspect]`. Keep the existing `--backend`/`--app` help lines and state that config mode is preferred. `--inspect` remains informational and points users to `@rustra/devtools` without claiming in-process instrumentation.
+Document `unikit dev --config unikit.json [--inspect]`. Keep the existing `--backend`/`--app` help lines and state that config mode is preferred. `--inspect` remains informational and points users to `@unikit/devtools` without claiming in-process instrumentation.
 
 - [x] **Step 6: Run focused dev tests and commit.**
 
@@ -388,17 +388,17 @@ git commit -m "feat(cli): 설정 기반 dev 감시와 재시도"
 
 - Modify: `packages/cli/src/index.ts`
 - Modify: `packages/cli/src/generate.test.ts`
-- Modify: `examples/calculator/rustra.json`
+- Modify: `examples/calculator/unikit.json`
 - Modify: `examples/calculator/package.json`
-- Modify: `examples/react-native-calculator/rustra.json`
+- Modify: `examples/react-native-calculator/unikit.json`
 - Modify: `examples/react-native-calculator/package.json`
-- Modify: `examples/react-native-bare-calculator/rustra.json`
+- Modify: `examples/react-native-bare-calculator/unikit.json`
 - Modify: `examples/react-native-bare-calculator/package.json`
 
 **Interfaces:**
 
-- `rustra init` emits `doctor`, `codegen`, `codegen:check`, and `dev` scripts.
-- All example codegen scripts call the same `rustra codegen --config` entrypoint instead of duplicating Cargo and CLI commands.
+- `unikit init` emits `doctor`, `codegen`, `codegen:check`, and `dev` scripts.
+- All example codegen scripts call the same `unikit codegen --config` entrypoint instead of duplicating Cargo and CLI commands.
 - RN generated module ownership and standard autolinking remain unchanged.
 
 - [x] **Step 1: Add failing init/template assertions.**
@@ -409,10 +409,10 @@ Assert the generated package scripts equal:
 
 ```json
 {
-  "doctor": "rustra doctor --config rustra.json",
-  "codegen": "rustra codegen --config rustra.json",
-  "codegen:check": "rustra codegen --config rustra.json --check",
-  "dev": "rustra dev --config rustra.json"
+  "doctor": "unikit doctor --config unikit.json",
+  "codegen": "unikit codegen --config unikit.json",
+  "codegen:check": "unikit codegen --config unikit.json --check",
+  "dev": "unikit dev --config unikit.json"
 }
 ```
 
@@ -437,7 +437,7 @@ For RN templates, print `bun run doctor`, `bun run codegen`, then the platform d
 
 - [x] **Step 3: Convert repository examples to the unified command.**
 
-Add explicit `codegen` objects to configs whose Rust package is outside the example directory. Replace duplicate scripts with `bunx --bun @rustra/cli codegen --config rustra.json` or the repository-local CLI equivalent. Keep path and workspace dependency behavior unchanged.
+Add explicit `codegen` objects to configs whose Rust package is outside the example directory. Replace duplicate scripts with `bunx --bun @unikit/cli codegen --config unikit.json` or the repository-local CLI equivalent. Keep path and workspace dependency behavior unchanged.
 
 - [x] **Step 4: Run init and example smoke checks.**
 
@@ -457,7 +457,7 @@ Expected: the temporary scaffold reports structured doctor output, creates schem
 - [x] **Step 5: Commit template/example updates.**
 
 ```bash
-git add packages/cli/src/index.ts packages/cli/src/generate.test.ts examples/calculator/rustra.json examples/calculator/package.json examples/react-native-calculator/rustra.json examples/react-native-calculator/package.json examples/react-native-bare-calculator/rustra.json examples/react-native-bare-calculator/package.json
+git add packages/cli/src/index.ts packages/cli/src/generate.test.ts examples/calculator/unikit.json examples/calculator/package.json examples/react-native-calculator/unikit.json examples/react-native-calculator/package.json examples/react-native-bare-calculator/unikit.json examples/react-native-bare-calculator/package.json
 git commit -m "feat(template): 첫 실행 codegen 경로 단순화"
 ```
 
@@ -476,8 +476,8 @@ git commit -m "feat(template): 첫 실행 codegen 경로 단순화"
 
 **Interfaces:**
 
-- Documentation must use the current independent release lines: Cargo `rustra` 0.4.x and npm CLI/types/RN packages at the repository's current compatible line.
-- Documentation must link users to `docs/development-hurdles.md` and the commands `rustra doctor`, `rustra codegen`, `rustra dev`, `rustra generate --check`.
+- Documentation must use the current independent release lines: Cargo `unikit` 0.4.x and npm CLI/types/RN packages at the repository's current compatible line.
+- Documentation must link users to `docs/development-hurdles.md` and the commands `unikit doctor`, `unikit codegen`, `unikit dev`, `unikit generate --check`.
 
 - [x] **Step 1: Write the corrected development-hurdles document.**
 
@@ -498,7 +498,7 @@ Include the exact first-run commands for Node/Bun and RN, and state that doctor 
 
 - [x] **Step 2: Remove stale or misleading command/version text.**
 
-Change stale `@rustra/cli@0.4.0` examples to the current CLI line, keep Cargo `rustra = "0.4"` separate, replace duplicated `cargo run && rustra generate` instructions with `rustra codegen`, and fix `rustra init --name` to `rustra init <dir>`. Do not edit historical documents whose date and past release context are intentionally preserved unless the command is presented as current guidance.
+Change stale `@unikit/cli@0.4.0` examples to the current CLI line, keep Cargo `unikit = "0.4"` separate, replace duplicated `cargo run && unikit generate` instructions with `unikit codegen`, and fix `unikit init --name` to `unikit init <dir>`. Do not edit historical documents whose date and past release context are intentionally preserved unless the command is presented as current guidance.
 
 - [x] **Step 3: Clarify native and prebuilt boundaries.**
 
@@ -514,7 +514,7 @@ Run:
 
 ```bash
 git diff --check
-rg -n "rustra init --name|@rustra/cli@0\.4\.0|cargo run --bin generate && rustra generate" README.md packages/cli/README.md docs examples --glob '*.md' --glob '*.json' --glob 'package.json'
+rg -n "unikit init --name|@unikit/cli@0\.4\.0|cargo run --bin generate && unikit generate" README.md packages/cli/README.md docs examples --glob '*.md' --glob '*.json' --glob 'package.json'
 ```
 
 Expected: no stale current-guidance matches; historical release notes may remain only when clearly labeled as historical. Then commit:
@@ -561,10 +561,10 @@ Expected: PASS. A failure caused by an existing platform-specific runtime must b
 Run:
 
 ```bash
-node packages/cli/dist/index.js doctor --config examples/calculator/rustra.json --format json
-node packages/cli/dist/index.js codegen --config examples/calculator/rustra.json
-node packages/cli/dist/index.js generate --config examples/calculator/rustra.json --check
-node packages/cli/dist/index.js doctor --config examples/react-native-calculator/rustra.json --format json
+node packages/cli/dist/index.js doctor --config examples/calculator/unikit.json --format json
+node packages/cli/dist/index.js codegen --config examples/calculator/unikit.json
+node packages/cli/dist/index.js generate --config examples/calculator/unikit.json --check
+node packages/cli/dist/index.js doctor --config examples/react-native-calculator/unikit.json --format json
 ```
 
 Expected: calculator common checks pass or report only environment-specific warnings, generated check exits 0, and RN doctor identifies missing platform tools instead of emitting unrelated failures.

@@ -5,20 +5,20 @@
 # dev-dependencies 는 발행물에 포함되지 않으므로 라이선스 검사에서 제외.
 all-features = true
 # 발행 대상이 아닌 예제/프라이빗 crate 는 라이선스 검사에서 제외
-# (rustra-tauri-calculator 등 private 예제에 license 필드가 없다).
+# (unikit-tauri-calculator 등 private 예제에 license 필드가 없다).
 exclude = [
-  "rustra-calculator-example",
-  "rustra-calculator-napi",
-  "rustra-crud-example",
-  "rustra-streaming-example",
-  "rustra-auth-example",
-  "rustra-benchmark",
-  "rustra-tauri-calculator",
-  "rustra-fuzz",
+  "unikit-calculator-example",
+  "unikit-calculator-napi",
+  "unikit-crud-example",
+  "unikit-streaming-example",
+  "unikit-auth-example",
+  "unikit-benchmark",
+  "unikit-tauri-calculator",
+  "unikit-fuzz",
 ]
 
 # ── 라이선스 허용 목록 ────────────────────────────────────────
-# rustra 는 MIT 발행물이다 — 호환되는 허용 라이선스만 의존할 수 있다.
+# unikit 는 MIT 발행물이다 — 호환되는 허용 라이선스만 의존할 수 있다.
 [licenses]
 version = 2
 allow = [

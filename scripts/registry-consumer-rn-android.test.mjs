@@ -30,7 +30,7 @@ import {
 } from './registry-consumer-rn-android.mjs';
 import { assertNoConsumerContamination } from './registry-consumer/provenance.mjs';
 
-const JOURNEY_MARKER = '__RUSTRA_RN_JOURNEY__';
+const JOURNEY_MARKER = '__UNIKIT_RN_JOURNEY__';
 
 function validObservation(overrides = {}) {
   return {
@@ -46,7 +46,7 @@ function validObservation(overrides = {}) {
 
 test('rendered RN lib.rs mutates exactly once and ends with native_entry', () => {
   const baseline = renderRnLibRs();
-  assert.match(baseline, /rustra::native_entry!\(package\);/);
+  assert.match(baseline, /unikit_bridge::native_entry!\(package\);/);
   const mutated = mutateRnLibRs(baseline);
   assert.match(mutated, /pub repeat: u32/);
   assert.throws(() => mutateRnLibRs(mutated), /anchor not found/);
@@ -117,36 +117,36 @@ test('contamination scan allows only the declared generated workspace package', 
       JSON.stringify({
         private: true,
         dependencies: {
-          '@rustra/generated-react-native': 'workspace:*',
-          '@rustra/react-native': '0.9.2',
+          '@unikit/generated-react-native': 'workspace:*',
+          '@unikit/react-native': '0.9.2',
         },
-        workspaces: ['modules/rustra-bridge'],
+        workspaces: ['modules/unikit-bridge'],
       }),
     );
     writeFileSync(join(root, 'Cargo.toml'), '[package]\nname="x"\n');
     assert.doesNotThrow(() =>
       assertNoConsumerContamination(root, {
-        expectedNpm: { '@rustra/react-native': '0.9.2' },
-        allowedWorkspacePackages: ['@rustra/generated-react-native'],
+        expectedNpm: { '@unikit/react-native': '0.9.2' },
+        allowedWorkspacePackages: ['@unikit/generated-react-native'],
       }),
     );
     assert.throws(
       () =>
         assertNoConsumerContamination(root, {
-          expectedNpm: { '@rustra/react-native': '0.9.2' },
+          expectedNpm: { '@unikit/react-native': '0.9.2' },
           allowedWorkspacePackages: [],
         }),
       /forbidden dependency source workspace:\*/,
     );
     // 다른 패키지의 workspace:* 는 허용 목록에 있어도 통과하지 않는다.
     const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-    manifest.dependencies['@rustra/types'] = 'workspace:*';
+    manifest.dependencies['@unikit/types'] = 'workspace:*';
     writeFileSync(join(root, 'package.json'), JSON.stringify(manifest));
     assert.throws(
       () =>
         assertNoConsumerContamination(root, {
-          expectedNpm: { '@rustra/react-native': '0.9.2' },
-          allowedWorkspacePackages: ['@rustra/generated-react-native'],
+          expectedNpm: { '@unikit/react-native': '0.9.2' },
+          allowedWorkspacePackages: ['@unikit/generated-react-native'],
         }),
       /forbidden dependency source workspace:\*/,
     );

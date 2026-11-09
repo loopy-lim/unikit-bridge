@@ -6,16 +6,16 @@
 
 ## 1. 문제 정의
 
-현재 rustra는 Rust 애플리케이션 코드에서 `schema.json`을 만들고, CLI가 그
+현재 unikit는 Rust 애플리케이션 코드에서 `schema.json`을 만들고, CLI가 그
 스키마에서 TypeScript/C++ 산출물을 만드는 구조다. 저장소에는 이미
-`rustra generate`, `rustra dev`, `rustra init`, 복합 binary codec, Tier 3 JSON
+`unikit generate`, `unikit dev`, `unikit init`, 복합 binary codec, Tier 3 JSON
 fallback, RN generated autolinking, `clean:*` 명령이 있다. 하지만 다음 허들이
 사용자에게 한 번에 보이지 않거나 수동 순서에 남아 있다.
 
 1. 프로젝트가 실제로 사용하는 host에 따라 필요한 툴체인을 선별해 진단하는
    명령이 없다.
-2. `rustra dev`가 관례적인 `backend/app` 디렉터리와 `generate` Cargo binary를
-   전제로 하며, 기존 `rustra.json`과 파이프라인 설정을 공유하지 않는다.
+2. `unikit dev`가 관례적인 `backend/app` 디렉터리와 `generate` Cargo binary를
+   전제로 하며, 기존 `unikit.json`과 파이프라인 설정을 공유하지 않는다.
 3. Rust schema 단계와 TS/C++ codegen 단계를 별도 명령으로 기억해야 한다.
 4. generated 산출물이 현재 schema와 다른지 CI에서 읽기 전용으로 검사하는
    표준 명령이 없다.
@@ -27,12 +27,12 @@ fallback, RN generated autolinking, `clean:*` 명령이 있다. 하지만 다음
 ### 목표
 
 - 첫 실행 전에 현재 host 구성에 맞는 누락 도구와 해결 방법을 알려준다.
-- `rustra.json` 하나로 Rust schema 생성부터 모든 generated 산출물 생성을
+- `unikit.json` 하나로 Rust schema 생성부터 모든 generated 산출물 생성을
   재현한다.
 - 개발 중 Rust 변경을 자동으로 감지하고, 실패한 단계가 다음 변경에서
   다시 실행되도록 한다.
 - CI에서 generated 파일과 계약 drift를 fail-closed 방식으로 검출한다.
-- `rustra init`의 첫 실행 경로가 설치, 진단, codegen, 개발 감시 순서를
+- `unikit init`의 첫 실행 경로가 설치, 진단, codegen, 개발 감시 순서를
   직접 안내한다.
 - 문서가 현재 구현된 완화책과 아직 제거할 수 없는 경계를 구분한다.
 
@@ -57,12 +57,12 @@ fallback, RN generated autolinking, `clean:*` 명령이 있다. 하지만 다음
 기존 명령은 유지하고 다음 두 명령을 추가한다.
 
 ```text
-rustra doctor [--config rustra.json] [--format text|json] [--strict]
-rustra codegen --config rustra.json [--check]
-rustra dev --config rustra.json [--inspect]
+unikit doctor [--config unikit.json] [--format text|json] [--strict]
+unikit codegen --config unikit.json [--check]
+unikit dev --config unikit.json [--inspect]
 ```
 
-`rustra codegen`은 다음 순서를 단일 진입점으로 소유한다.
+`unikit codegen`은 다음 순서를 단일 진입점으로 소유한다.
 
 ```text
 config 읽기
@@ -72,7 +72,7 @@ config 읽기
   -> generated manifest 기록 또는 --check 비교
 ```
 
-기존 `rustra generate --config`는 schema를 입력으로 하는 하위 단계로
+기존 `unikit generate --config`는 schema를 입력으로 하는 하위 단계로
 유지한다. 기존 직접 사용자는 변경 없이 동작해야 한다.
 
 ### 3.2 설정 확장
@@ -86,7 +86,7 @@ config 읽기
   "output": "./generated",
   "codegen": {
     "rustManifest": "./Cargo.toml",
-    "rustPackage": "rustra-app",
+    "rustPackage": "unikit-app",
     "rustBinary": "generate"
   },
   "reactNative": {}
@@ -113,7 +113,7 @@ codegen.rust_binary_ambiguous
   set: codegen.rustBinary
 ```
 
-### 3.3 `rustra doctor`
+### 3.3 `unikit doctor`
 
 doctor는 config의 host를 읽어 필요한 검사만 실행한다. `node`, `bun`만
 사용하는 프로젝트가 Xcode나 Android NDK 경고를 받지 않도록 host별 조건부
@@ -157,16 +157,16 @@ text 출력은 사람이 읽기 쉽게, `--format json`은 IDE/CI가 소비하�
 
 ### 3.4 통합 codegen과 dev 감시
 
-`rustra codegen`은 child process를 직접 shell 문자열로 조합하지 않고
+`unikit codegen`은 child process를 직접 shell 문자열로 조합하지 않고
 `spawn` 인자 배열로 실행한다. 단계별 로그에는 다음을 표시한다.
 
 ```text
-[rustra] Rust schema: cargo run --manifest-path ... --bin generate
-[rustra] TypeScript/C++: @rustra/cli generate --config ...
-[rustra] generated: 8 files, contract hash <short hash>
+[unikit] Rust schema: cargo run --manifest-path ... --bin generate
+[unikit] TypeScript/C++: @unikit/cli generate --config ...
+[unikit] generated: 8 files, contract hash <short hash>
 ```
 
-`rustra dev --config`는 config의 Rust source/package/output을 사용한다.
+`unikit dev --config`는 config의 Rust source/package/output을 사용한다.
 Rust source와 generator 관련 manifest가 바뀌면 Rust 단계부터 실행하고,
 schema만 최신이면 TS/C++ 단계만 실행한다. 실행 중인 pipeline은 debounce와
 single-flight를 사용한다.
@@ -182,7 +182,7 @@ single-flight를 사용한다.
 
 ### 3.5 drift 검사
 
-`rustra generate --check --config`는 현재 schema를 읽어 모든 예상 generated
+`unikit generate --check --config`는 현재 schema를 읽어 모든 예상 generated
 파일을 메모리에서 렌더링하고 디스크 내용과 byte 단위로 비교한다. 파일이
 없거나 추가/변경되면 다음 정보를 출력한다.
 
@@ -191,15 +191,15 @@ single-flight를 사용한다.
 - 변경된 파일
 - 현재 schema contract hash와 generated contract hash
 
-`rustra codegen --check`는 사용자 Rust generator를 먼저 실행한 뒤, 그 결과
+`unikit codegen --check`는 사용자 Rust generator를 먼저 실행한 뒤, 그 결과
 schema를 기준으로 TS/C++/RN 산출물을 같은 방식으로 검사한다. Rust generator는
 사용자 코드이므로 schema 파일을 갱신할 수 있고, 이 단계까지 포함한 완전한
 CI drift 검사는 git diff로 확인한다. TS/C++/RN 검사 자체는 읽기 전용이다.
 CI는 다음처럼 호출한다.
 
 ```bash
-bun run doctor -- --config rustra.json --strict
-bun run codegen -- --config rustra.json --check
+bun run doctor -- --config unikit.json --strict
+bun run codegen -- --config unikit.json --check
 git diff --exit-code -- generated modules
 ```
 
@@ -208,17 +208,17 @@ CLI는 삭제나 git index 조작을 하지 않는다. generated manifest에는 
 hash, generator version, file list를 기록해 stale CLI 사용을 진단할 수 있게
 한다.
 
-### 3.6 `rustra init` 및 RN 템플릿
+### 3.6 `unikit init` 및 RN 템플릿
 
 init이 만드는 `package.json`은 다음의 동일한 진입점을 갖는다.
 
 ```json
 {
   "scripts": {
-    "doctor": "rustra doctor --config rustra.json",
-    "codegen": "rustra codegen --config rustra.json",
-    "codegen:check": "rustra codegen --config rustra.json --check",
-    "dev": "rustra dev --config rustra.json"
+    "doctor": "unikit doctor --config unikit.json",
+    "codegen": "unikit codegen --config unikit.json",
+    "codegen:check": "unikit codegen --config unikit.json --check",
+    "dev": "unikit dev --config unikit.json"
   }
 }
 ```
@@ -235,7 +235,7 @@ development build 명령과 Expo Go 비지원 이유를 표시한다. iOS/Androi
 | 대상                                 | 범위      | 처리                                        |
 | ------------------------------------ | --------- | ------------------------------------------- |
 | CLI JavaScript                       | 공통      | npm에서 설치 가능                           |
-| Rustra RN 공통 adapter/native bridge | 공통 소스 | package에 포함, 앱 빌드 시 플랫폼 컴파일    |
+| Unikit RN 공통 adapter/native bridge | 공통 소스 | package에 포함, 앱 빌드 시 플랫폼 컴파일    |
 | 사용자 Rust command staticlib        | 앱별      | 로컬 또는 CI에서 빌드                       |
 | 사용자별 플랫폼 artifact             | 앱별      | 추후 CI artifact/package 흐름으로 확장 가능 |
 
@@ -328,10 +328,10 @@ runtime을 별도 receipt로 남긴다. doctor pass는 native runtime 성공을
 ## 7. 구현 순서
 
 1. CLI config 타입/공통 process runner와 doctor 결과 모델
-2. `rustra doctor`와 테스트
-3. config 기반 Rust target 해석 및 `rustra codegen`
+2. `unikit doctor`와 테스트
+3. config 기반 Rust target 해석 및 `unikit codegen`
 4. `generate --check`와 generated manifest/drift 테스트
-5. `rustra dev --config` single-flight/retry/signal 처리
+5. `unikit dev --config` single-flight/retry/signal 처리
 6. init/RN template 갱신
 7. README, getting-started, migration, RN setup, complex codec, docs index
    정정

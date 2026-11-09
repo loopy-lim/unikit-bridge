@@ -18,7 +18,7 @@ function runSmoke(
     nativePrepFailure,
   } = {},
 ) {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-ios-smoke-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-ios-smoke-'));
   const calls = join(dir, 'calls.jsonl');
   const simulatorRoot = join(dir, 'simulator-data');
   mkdirSync(simulatorRoot);
@@ -49,7 +49,7 @@ fs.writeFileSync(args[args.indexOf('--output') + 1], JSON.stringify({ status: 'n
     );
   }
   mkdirSync(
-    join(dir, 'rustra-ios-dd/Build/Products/Release-iphonesimulator/reactnativecalculator.app'),
+    join(dir, 'unikit-ios-dd/Build/Products/Release-iphonesimulator/reactnativecalculator.app'),
     { recursive: true },
   );
   writeFileSync(
@@ -89,13 +89,13 @@ if (a[1] === 'spawn' && a.includes('log') && a.includes('show')) {
   if (scenario === 'log-failure') process.exit(9);
   const predicate = a[a.indexOf('--predicate') + 1];
   const ownPidOnly = !a.includes('--process') && predicate.includes('processIdentifier == 4242');
-  if (['success', 'both', 'dead', 'permission-denied', 'helper-failure'].includes(scenario)) console.log('__RUSTRA_SMOKE_OK__ addNumbers(42,58)=100');
-  if (['failure', 'both'].includes(scenario)) console.log('__RUSTRA_SMOKE_FAIL__');
+  if (['success', 'both', 'dead', 'permission-denied', 'helper-failure'].includes(scenario)) console.log('__UNIKIT_SMOKE_OK__ addNumbers(42,58)=100');
+  if (['failure', 'both'].includes(scenario)) console.log('__UNIKIT_SMOKE_FAIL__');
   // Apple's log selectors are OR-combined unless the PID is in the same predicate.
-  if (scenario === 'foreign-ok' && !ownPidOnly) console.log('__RUSTRA_SMOKE_OK__ another process');
+  if (scenario === 'foreign-ok' && !ownPidOnly) console.log('__UNIKIT_SMOKE_OK__ another process');
   if (scenario === 'foreign-fail') {
-    console.log('__RUSTRA_SMOKE_OK__ addNumbers(42,58)=100');
-    if (!ownPidOnly) console.log('__RUSTRA_SMOKE_FAIL__ another process');
+    console.log('__UNIKIT_SMOKE_OK__ addNumbers(42,58)=100');
+    if (!ownPidOnly) console.log('__UNIKIT_SMOKE_FAIL__ another process');
   }
 }
 `,
@@ -155,8 +155,8 @@ console.log('4242 501 S reactnativecalculator');
         ...process.env,
         PATH: `${dir}:${process.env.PATH}`,
         RUNNER_TEMP: dir,
-        RUSTRA_SMOKE_ATTEMPTS: '1',
-        RUSTRA_SMOKE_DELAY_SECONDS: '0',
+        UNIKIT_SMOKE_ATTEMPTS: '1',
+        UNIKIT_SMOKE_DELAY_SECONDS: '0',
         BASH_ENV: join(dir, 'bash-env'),
         SMOKE_CALLS: calls,
         SMOKE_SCENARIO: scenario,
@@ -175,11 +175,11 @@ console.log('4242 501 S reactnativecalculator');
     return {
       ...result,
       calls: recordedCalls,
-      killError: diagnostic('rustra-ios-kill.stderr.log'),
-      processDiagnostic: diagnostic('rustra-ios-process.log'),
-      crashSummary: diagnostic('rustra-ios-crash-summary.json'),
-      nativeStdout: diagnostic('rustra-ios-native.stdout.log'),
-      nativeStderr: diagnostic('rustra-ios-native.stderr.log'),
+      killError: diagnostic('unikit-ios-kill.stderr.log'),
+      processDiagnostic: diagnostic('unikit-ios-process.log'),
+      crashSummary: diagnostic('unikit-ios-crash-summary.json'),
+      nativeStdout: diagnostic('unikit-ios-native.stdout.log'),
+      nativeStderr: diagnostic('unikit-ios-native.stderr.log'),
       simulatorRoot,
       runnerTemp: dir,
     };
@@ -196,7 +196,7 @@ test('iOS reads the launched app success marker from unified logging', () => {
   assert.ok(!query.includes('--process'));
   assert.equal(
     query[query.indexOf('--predicate') + 1],
-    '(processIdentifier == 4242) AND subsystem == "com.facebook.react.log" AND category == "javascript" AND eventMessage CONTAINS "__RUSTRA_SMOKE_"',
+    '(processIdentifier == 4242) AND subsystem == "com.facebook.react.log" AND category == "javascript" AND eventMessage CONTAINS "__UNIKIT_SMOKE_"',
   );
   assert.match(query[query.indexOf('--start') + 1], /^@\d+$/);
   assert.ok(result.calls.some((a) => a[1] === 'terminate'));
@@ -206,7 +206,7 @@ test('iOS reads the launched app success marker from unified logging', () => {
 test('iOS rejects a foreign process OK marker when the launched app emits none', () => {
   const result = runSmoke('foreign-ok');
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /__RUSTRA_SMOKE_OK__ was not observed/);
+  assert.match(result.stderr, /__UNIKIT_SMOKE_OK__ was not observed/);
   assert.doesNotMatch(result.stdout, /smoke OK:/);
 });
 
@@ -214,7 +214,7 @@ test('iOS accepts the launched app OK without a foreign process FAIL marker', ()
   const result = runSmoke('foreign-fail');
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.match(result.stdout, /smoke OK: pid=4242/);
-  assert.doesNotMatch(result.stderr, /__RUSTRA_SMOKE_FAIL__ observed/);
+  assert.doesNotMatch(result.stderr, /__UNIKIT_SMOKE_FAIL__ observed/);
 });
 for (const scenario of [
   'failure',
@@ -279,7 +279,7 @@ for (const scenario of ['failure', 'both', 'missing', 'dead']) {
       'test-sim-id',
     ]);
     assert.equal(summary[7], '--output');
-    assert.match(summary[8], /\/rustra-ios-crash-summary\.json$/);
+    assert.match(summary[8], /\/unikit-ios-crash-summary\.json$/);
     assert.deepEqual(JSON.parse(result.crashSummary), { status: 'no-report', reports: [] });
     assert.match(result.stderr, /"status":"no-report"/);
   });
@@ -308,7 +308,7 @@ test('iOS captures native streams from the same launch without printing them on 
   assert.equal(launches.length, 1);
   const stdout = launches[0].find((a) => a.startsWith('--stdout='));
   const stderr = launches[0].find((a) => a.startsWith('--stderr='));
-  assert.match(stdout, /^--stdout=\/tmp\/rustra-ios-native-\d+-\d+\/rustra-ios-native.stdout.log$/);
+  assert.match(stdout, /^--stdout=\/tmp\/unikit-ios-native-\d+-\d+\/unikit-ios-native.stdout.log$/);
   assert.equal(stderr, stdout.replace('--stdout=', '--stderr=').replace('.stdout.', '.stderr.'));
   const prep = result.calls.find((a) => a[1] === 'getenv');
   assert.deepEqual(prep, [
@@ -345,7 +345,7 @@ test('iOS native stderr failure diagnostics retain the full file but print at mo
       ),
       join(
         result.runnerTemp,
-        flag === '--stdout' ? 'rustra-ios-native.stdout.log' : 'rustra-ios-native.stderr.log',
+        flag === '--stdout' ? 'unikit-ios-native.stdout.log' : 'unikit-ios-native.stderr.log',
       ),
     ]),
   );

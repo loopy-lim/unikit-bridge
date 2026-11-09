@@ -48,8 +48,8 @@ config 모드 dylib 루프의 한 사이클(`packages/cli/src/dev.ts` `runConfig
    전환은 감지 지연 상수 안에 흡수되므로 bench 수치는 유효하다.
 2. **코드젠 cargo 단계(≈2.1 s)** — 이벤트는 곧 dirty(`dev.ts:358-360`, config 모드는
    `detectDirty` 를 쓰지 않는다) → `runCodegen`(`dev.ts:312-313`) →
-   `cargo run --manifest-path <예제 매니페스트> --package rustra-calculator-example
---bin generate`(`cli-codegen.ts:130-141`, `RUSTRA_SCHEMA_OUT` 고정
+   `cargo run --manifest-path <예제 매니페스트> --package unikit-calculator-example
+--bin generate`(`cli-codegen.ts:130-141`, `UNIKIT_SCHEMA_OUT` 고정
    `cli-codegen.ts:128,144`). 이 `generate` bin 은 **사용자(예제) 크레이트의 lib 을
    링크한다**(`examples/calculator/src/bin/generate.rs:1`) — lib.rs 편집은 lib
    단위(rlib+cdylib+staticlib, `examples/calculator/Cargo.toml:8-9`)와 bin 단위를
@@ -63,7 +63,7 @@ config 모드 dylib 루프의 한 사이클(`packages/cli/src/dev.ts` `runConfig
 4. **게이트 + 발행** — schema 해시 사전 arm(`dev.ts:297-311`, `dev.ts:94-97`) →
    사후 verify, 실패 시 fail-closed 로 라이브 미발행(`dev.ts:326-344`) → 게이트
    통과분만 tmp+rename 발행(`dev.ts:345-348`, `dev-dylib.ts:227-252`).
-5. **스왑** — 호스트 측 sha256 폴링 300 ms(`crates/rustra/src/hot_core_watch.rs:23-24,36,112`)
+5. **스왑** — 호스트 측 sha256 폴링 300 ms(`crates/unikit-bridge/src/hot_core_watch.rs:23-24,36,112`)
    → 버전 카피(~10 ms) + ad-hoc 재서명(~20-30 ms) + sha256(~10 ms) +
    `DylibCore::open` ≈0.7 s(11 MB debug cdylib dlopen + 코어 초기화 — **내부
    계측 없이 산술 잔여로 추정한 값**, bench `L224-231`).
@@ -126,7 +126,7 @@ dylib 빌드와 fingerprint 를 공유 못 하게 되어 "두 번째 cargo 0.1 s
 
 핵심 난점: 스키마는 **컴파일된 Rust 코드를 실행해야만** 나온다(`generate.rs:5-15`).
 소스 텍스트 해시는 모든 편집에 변하고(무용), 시그니처만 보는 토큰 수준 지문은
-struct 필드명·derive·attribute 변화까지 스키마를 바꾼다는 사실(rustra 매크로의
+struct 필드명·derive·attribute 변화까지 스키마를 바꾼다는 사실(unikit 매크로의
 스키마 원천)을 반영하지 못해 **false-negative(스키마 변했는데 스킵)를 낸다.**
 더 큰 문제: 스킵이 일어나면 parity 게이트는 무력화된다 — 게이트는 codegen 전후의
 schema.json 해시 비교일 뿐(`dev.ts:94-97`, `dev.ts:326-344`) 빌드된 dylib 의
@@ -138,7 +138,7 @@ schema.json 해시 비교일 뿐(`dev.ts:94-97`, `dev.ts:326-344`) 빌드된 dyl
   점유분. **추정: 200~400 ms**(3.5 → ~3.1 s). (a)와 결합 시 논리 전용 루프의
   상한을 만드는 보조 레버.
 - **fail-safe 방안(과제 항목)** — 스킵을 "사후 검증형"으로 뒤집는다: 스킵 시에도
-  dylib 빌드는 하고, 그 산출물이 export 하는 C ABI 심볼 `rustra_ffi_contract_hash`
+  dylib 빌드는 하고, 그 산출물이 export 하는 C ABI 심볼 `unikit_ffi_contract_hash`
   (design `L32-35` — blob C ABI 일부)를 읽어 마지막 codegen 시점 해시와 비교해
   어긋나면 전체 codegen+게이트를 강제 재실행한다. false-negative 가 "조용한
   불일치"가 아니라 "1 사이클 낭비 + 자가 치유"로 바뀐다. 시나리오 실측(design
@@ -236,7 +236,7 @@ sha256 ~10 ms + `DylibCore::open` ≈0.7 s(**미계측 잔여 추정치**, `L229
   호스트 프리미티브라 게이트 유지 전제에 위배 없음. **수득 추정 ~100-150 ms.**
 - **open/init 계측과 절감** — ≈0.7 s 잔여는 dlopen 과 코어 초기화(패키지 등록,
   계약 해시 바인딩)가 묶여 있다. `DylibCore::open` 내부에 env 게이트 타이밍
-  계측(`RUSTRA_HOT_CORE_TIMING=1`)을 넣는 후속 작업이 선행 필요(본 문서 화이트
+  계측(`UNIKIT_HOT_CORE_TIMING=1`)을 넣는 후속 작업이 선행 필요(본 문서 화이트
   리스트 밖 — crates/ 수정 불가, 제안으로만 기록). dlopen 이 지배하면 산출물
   크기가 레버(debug 수준 — (d)와 결합), 초기화가 지배하면 등록 지연화가
   레버. **천장 추정: 0.93 s → 0.5~0.6 s.** (f)만으로는 publish 2.5 s+ 가 남아
@@ -285,7 +285,7 @@ crate-type 절감 판단 재료.
 
 벤치 프로토콜 전체(publish/swap 포함, debug 1/2 매트릭스)가 아니라 그 첫 축인
 **코드젠 cargo 단계만**을 소비자 레이아웃에서 측정했다. 환경: 저장소 밖
-독립 크레이트(/tmp, rustra path dep, 소비자 기본 프로필 — 증분 on, debug 2),
+독립 크레이트(/tmp, unikit path dep, 소비자 기본 프로필 — 증분 on, debug 2),
 의존성 캐시 후 `touch src/bin/generate.rs → cargo run --bin generate` wall
 time, A(증분 on)/B(`CARGO_INCREMENTAL=0`) 교차 반복(순서 드리프트 통제).
 user/sys 어카운팅은 실행 환경 특이로 신뢰 불가 — 판정은 wall time 교차
@@ -308,7 +308,7 @@ user/sys 어카운팅은 실행 환경 특이로 신뢰 불가 — 판정은 wal
   측정한 뒤 별도 판단(본 실측은 미측정).
 
 **Stage 1 — (b) 프로토타입(판정 1 경로일 때)**
-스킵 + `rustra_ffi_contract_hash` 사후 비교 fail-safe. 40사이클 정상 루프 +
+스킵 + `unikit_ffi_contract_hash` 사후 비교 fail-safe. 40사이클 정상 루프 +
 **오염 시나리오 5종**(필드 추가/필드명 변경/타입 변경/attribute 제거/derive
 변경)에서 게이트·사후 검증의 포착률 100% 요구.
 
@@ -349,7 +349,7 @@ sha256**으로 전환했다. `DylibWatchConfig::poll` 기본 300 ms → 100 ms(�
 3. 증분 여부는 cargo 핑거프린트에 없다 — env 유무를 바꿔도 재컴파일 0건,
    이미 만든 증분 캐시는 유지된다.
 
-이에 `rustra dev` 루프가 도는 cargo 스폰(스키마 generate bin, dylib 빌드)에만
+이에 `unikit dev` 루프가 도는 cargo 스폰(스키마 generate bin, dylib 빌드)에만
 `CARGO_INCREMENTAL=1`을 주입한다(dev.ts 진입점, 사용자 env가 이미 정의되면
 존중). 프로필 플립 대비 이점: 일반 빌드·테스트의 디스크 방어 정책(`Cargo.toml`
 주석)은 그대로이고, rust-cache CI(자동 `CARGO_INCREMENTAL=0`)는 무변화이며,

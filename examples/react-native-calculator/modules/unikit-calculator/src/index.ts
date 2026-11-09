@@ -1,0 +1,52 @@
+import { requireOptionalNativeModule } from 'expo-modules-core';
+import { Platform } from 'react-native';
+
+const LINKING_ERROR =
+  `The package 'unikit-calculator' is not linked. Expo Go cannot load it.\n\n` +
+  Platform.select({
+    ios:
+      '- Run `bun run doctor` to check Expo autolinking, Podfile.lock, the Rust archive, and FFI symbols.\n' +
+      '- Repair Pods with `bunx pod-install ios` when doctor reports a Pod failure.\n' +
+      '- Rebuild with `bun run ios -- --configuration Release`; Metro reload cannot relink Rust.\n',
+    default:
+      '- Run `bun run doctor`, rebuild Rust with `bun run rust:android`, and rebuild the native app.\n',
+  }) +
+  '- If the archive is stale or symbols are missing, fix the Rust export/build error before changing TypeScript.\n';
+
+const linkedModule = requireOptionalNativeModule<UnikitCalculatorType>('UnikitCalculator');
+
+const UnikitCalculator: UnikitCalculatorType = linkedModule
+  ? linkedModule
+  : new Proxy({} as UnikitCalculatorType, {
+      get() {
+        throw new Error(LINKING_ERROR);
+      },
+    });
+
+export type UnikitCalculatorType = {
+  invokeRaw(payload: string): Promise<string>;
+  invokeSync(command: string, argsJson?: string): string;
+  addSync(a: number, b: number): number;
+  writeBenchmarkReceipt?(receipt: string): string;
+  writeFunctionReceipt?(receipt: string): string;
+};
+
+export default UnikitCalculator as UnikitCalculatorType;
+
+type InvokeResult = {
+  ok: boolean;
+  result?: unknown;
+  error?: string;
+};
+
+// 앱 측(BenchmarkApp)이 import하는 편의 래퍼다 — 모듈 프로젝트 스캔은 앱 쪽 참조를 못 본다.
+// react-doctor-disable-next-line deslop/unused-export
+export async function invokeCommand(command: string, args?: unknown): Promise<unknown> {
+  const payload = JSON.stringify({ command, args });
+  const raw = await UnikitCalculator.invokeRaw(payload);
+  const response: InvokeResult = JSON.parse(raw);
+  if (!response.ok) {
+    throw new Error(response.error ?? 'invoke failed');
+  }
+  return response.result;
+}

@@ -1,4 +1,4 @@
-// Host smoke test for the rustra wasm spike engine — runs the REAL wasm3
+// Host smoke test for the unikit wasm spike engine — runs the REAL wasm3
 // interpreter against the REAL .wasm artifact with a full postcard round-trip
 // through linear memory staging. Desktop mirror of what the RN native modules
 // do on iOS/Android.

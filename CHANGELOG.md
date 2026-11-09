@@ -9,7 +9,7 @@
 
 ### Added
 
-- Tauri의 Rustra IPC와 앱 명령을 함께 등록하는 `tauri_support::with_app_commands`를
+- Tauri의 Unikit IPC와 앱 명령을 함께 등록하는 `tauri_support::with_app_commands`를
   추가한다. 계약 해시 조회와 bounded 채널 전송을 제공하고, 기존 핸들러 교체로 인한
   누락을 진단한다.
 - RN owned-response FFI 경로를 추가하고 응답 메모리 소유권을 코어와 네이티브 셸이
@@ -91,22 +91,22 @@
 - 바이너리 프로토콜 명칭을 "rkyv V2"에서 "Frame"으로 전면 교체한다. rkyv 크레이트는
   한 번도 의존성으로 존재한 적이 없고(페이로드 코덱은 postcard), 와이어 바이트에
   이름이 없어 저장·통신 호환은 무영향이다. 다만 공개 심볼과 산출물 이름이 바뀐다:
-  - Rust FFI: `rustra_ffi_invoke_rkyv_v2{,_into,_async,_async_into}` →
-    `rustra_ffi_invoke_frame{,_into,_async,_async_into}`, `decode_rkyv_v2_response` →
+  - Rust FFI: `unikit_ffi_invoke_rkyv_v2{,_into,_async,_async_into}` →
+    `unikit_ffi_invoke_frame{,_into,_async,_async_into}`, `decode_rkyv_v2_response` →
     `decode_frame_response`, `encode_rkyv_v2_error` → `encode_frame_error`,
     `decode_rkyv_v2_error_parts` → `decode_frame_error_parts`
   - TS: `createRkyvV2Engine` → `createFrameEngine`, `RkyvV2Engine`/`RkyvV2Codec`/
     `RkyvV2Native`/`RkyvV2SchemaNative` → `Frame*` 계열, 모듈 경로 `rkyv-engine` →
     `frame-engine`, `BUN_RKYV_V2_ENGINE_SUPPORTS`/`REACT_NATIVE_RKYV_V2_ENGINE_SUPPORTS` →
     `BUN_FRAME_ENGINE_SUPPORTS`/`REACT_NATIVE_FRAME_ENGINE_SUPPORTS`, debug transport
-    리터럴 `'rkyv'` → `'frame'`. `RustraNative` 의 legacy `invokeRkyv` 타입 멤버는
+    리터럴 `'rkyv'` → `'frame'`. `UnikitNative` 의 legacy `invokeRkyv` 타입 멤버는
     이미 구현이 없던 죽은 멤버라서 부활 없이 제거한다(그 자리의 `invokeRkyvV2` →
     `invokeFrame` 만 남음).
   - 코드젠 산출물: `rkyv-codecs.ts`/`rkyv-registry.ts` → `frame-codecs.ts`/
-    `frame-registry.ts` — `rustra codegen` 재실행 후 임포트 경로 갱신 필요
+    `frame-registry.ts` — `unikit codegen` 재실행 후 임포트 경로 갱신 필요
   - React Native JSI: `invokeRkyvV2` → `invokeFrame`(네이티브 모듈 동반 교체)
   - 에러 메시지 접두사 `"rkyv v2: ..."` → `"frame: ..."`(에러 코드는 불변)
-  - 내부 파일명 `crates/rustra/src/rkyv_*.rs` → `frame_*.rs`, 테스트(`rkyv_v2_*` →
+  - 내부 파일명 `crates/unikit-bridge/src/rkyv_*.rs` → `frame_*.rs`, 테스트(`rkyv_v2_*` →
     `frame_*`)·fuzz 타깃(`invoke_rkyv_v2` → `invoke_frame`)·CI 경로 동반 갱신.
     마이그레이션 표는 docs/migration-guide.md 참고.
 
@@ -121,7 +121,7 @@
   단일 dispatch 경로)와 응답 프레임 헬퍼 `decode_frame_response`·
   `encode_frame_error`·`decode_frame_error_parts`(비게이트 pub, Rust 임베딩
   호스트용).
-- UniFFI 전송(Track B1): 스키마→Kotlin/Swift 바인딩 코드젠(`rustra.json` 의
+- UniFFI 전송(Track B1): 스키마→Kotlin/Swift 바인딩 코드젠(`unikit.json` 의
   `uniffi` 섹션, `--check-bindings` 신선도 검증)과 모바일 런타임 스모크 하네스
   (`examples/uniffi-android-smoke`·`uniffi-ios-smoke` + CI `uniffi-android`/
   `uniffi-ios` 잡). 문서: `docs/extending/uniffi-bindings.md`, ADR-0002.
@@ -143,19 +143,19 @@
 ## 0.9.0 (2026-09-10)
 
 0.9.0 라인 요약이다 — npm 패키지 0.7.0~0.9.0(패키지별 상이)과 Rust crate
-0.9.0(`rustra`·`rustra-macros`) 발행을 한데 묶는다. 세부 내역은
+0.9.0(`unikit`·`unikit-bridge-macros`) 발행을 한데 묶는다. 세부 내역은
 packages/*/CHANGELOG.md.
 
 ### Added
 
-- 실험적 `hot-core` 피처(네이티브 dylib 핫스왑 dev 코어): `crates/rustra`에
+- 실험적 `hot-core` 피처(네이티브 dylib 핫스왑 dev 코어): `crates/unikit-bridge`에
   `DylibCore`·`HotCoreHandle`·sha256 폴링 감시를 신설하고(feature `hot-core`,
   libloading 의존 — 릴리스 빌드 정적 링크 경로 불변),
   `tauri_support::register_dispatch_with_swap_events`가 스왑 결과를
-  `rustra://hot-core/swapped` 웹뷰 이벤트로 보고한다(구·신 컨트랙트 해시 포함).
-  `@rustra/cli`의 `rustra dev` `dev.target: "dylib"`가 코드젠→cdylib 빌드를
+  `unikit://hot-core/swapped` 웹뷰 이벤트로 보고한다(구·신 컨트랙트 해시 포함).
+  `@unikit/cli`의 `unikit dev` `dev.target: "dylib"`가 코드젠→cdylib 빌드를
   오케스트레이션하고 패리티 게이트 통과분만 `<stem>-hot-live<ext>`로 원자
-  발행한다(fail-closed). `@rustra/react-native` 어댑터 C++ 셸의 `CoreTable`
+  발행한다(fail-closed). `@unikit/react-native` 어댑터 C++ 셸의 `CoreTable`
   재지향으로 JS 재바인딩 없이 스왑된다(Android debuggable 빌드 한정 filesDir
   경로, iOS 시뮬레이터 env 경로). macOS·iOS 시뮬·Android 에뮬/실기기 앱
   도메인에서 스왑 실측 통과(문서: `docs/dev/plans/2026-09-09-native-hot-core-design.md`).
@@ -166,24 +166,24 @@ packages/*/CHANGELOG.md.
 ### Removed
 
 - deprecated `RendererHost` 표면을 제거한다(0.6.0에서 폐기, pre-1.0 규칙에 따른
-  마이너 제거): `crates/rustra`의 `renderer_host` 모듈과 prelude 재노출
+  마이너 제거): `crates/unikit-bridge`의 `renderer_host` 모듈과 prelude 재노출
   (`RendererHost`, `HostMessage`, `MessageKind`, `RendererCapabilities`, `Size`,
   `SurfaceOptions`, `host_supports_eval`). 대체재는 호스트별 어댑터 경계 —
   채널·FFI 공개 표면으로 임베딩 호스트가 자체 렌더러/이벤트를 연결한다. npm
-  0.7.0 라인과 `rustra` crate 0.9.0 발행에 반영됐다.
+  0.7.0 라인과 `unikit` crate 0.9.0 발행에 반영됐다.
 
 ### Changed
 
 - CLI codegen/dev 경로를 책임별 모듈로 분리하고, 잘못된 설정·레이아웃·기존 파일
   덮어쓰기를 조기에 진단한다.
 - 생성물 drift 게이트, schema diff, Rust command 문서의 TypeScript JSDoc 전달,
-  opt-in `RUSTRA_DEBUG` wire 진단을 보강했다.
+  opt-in `UNIKIT_DEBUG` wire 진단을 보강했다.
 
 ## 0.6.0 (2026-08)
 
-0.6은 Rust crate 라인(`rustra`/`rustra-macros` 0.5 → 0.6)의 안정화 트랙이다.
-`rustra.json`에 `$schema`·`dev`·`inspector` 선택 섹션이 추가되고, `@rustra/cli`가
-배포하는 JSON Schema로 에디터 자동완성·검증을 받는다. `rustra doctor`는 멀티
+0.6은 Rust crate 라인(`unikit`/`unikit-bridge-macros` 0.5 → 0.6)의 안정화 트랙이다.
+`unikit.json`에 `$schema`·`dev`·`inspector` 선택 섹션이 추가되고, `@unikit/cli`가
+배포하는 JSON Schema로 에디터 자동완성·검증을 받는다. `unikit doctor`는 멀티
 타깃 상태 매트릭스와 빌드 검증(`section.*.build`)을 갖춘다 — 깨진 Rust 설정이
 이제 exit 1이 된다(계획이 필요한 유일한 동작 변경). 와이어 포맷·contract
 hash·FFI 표면은 그대로며, API 스냅샷 게이트와 골든 fixture로 하위호환이 관례
@@ -193,7 +193,7 @@ docs/migrations/0.5-to-0.6.md 참고.
 ## 0.3 → 0.5 요약
 
 루트 버전 태그는 0.2.0 이후 패키지별 독립 릴리스로 운영된다. 세부 내역은
-각 `packages/*/CHANGELOG.md`와 `git tag`(`@rustra/*@0.3.0` ~ `0.5.0`) 참조.
+각 `packages/*/CHANGELOG.md`와 `git tag`(`@unikit/*@0.3.0` ~ `0.5.0`) 참조.
 여기서는 0.2.0 이후 소비자가 알아야 할 최소한의 궤적만 요약한다.
 
 ### 0.3.0 — 타입 패리티 1단계 + 채널/리소스
@@ -202,7 +202,7 @@ docs/migrations/0.5-to-0.6.md 참고.
   (f36cf983).
 - 타입 패리티 2단계 — Tauri v2 `ipc::Channel`·Resource 모델 채널/리소스 지원
   (fa6bd00b). u32 핸들은 기존 uvar 와이어를 그대로 재사용한다.
-- `@rustra/testing` 계약 게이트, `@rustra/react` 훅 개선 등 성장 후속.
+- `@unikit/testing` 계약 게이트, `@unikit/react` 훅 개선 등 성장 후속.
 
 ### 0.4.0 — 멀티호스트 zero config (#42)
 
@@ -230,8 +230,8 @@ docs/migrations/0.5-to-0.6.md 참고.
 
 ### Removed
 
-- **Lynx 지원 제거** (PR #16, breaking) — `@rustra/lynx` npm 디프리케이트,
-  Lynx 예제/runner 템플릿 삭제. rustra는 Node/Bun/Tauri/React Native 4표면에
+- **Lynx 지원 제거** (PR #16, breaking) — `@unikit/lynx` npm 디프리케이트,
+  Lynx 예제/runner 템플릿 삭제. unikit는 Node/Bun/Tauri/React Native 4표면에
   집중한다. rkyv V2 바이너리 fast-path는 RN JSI 어댑터와 공유라 영향 없음.
 
 ### Added
@@ -271,7 +271,7 @@ docs/migrations/0.5-to-0.6.md 참고.
 
 ### Added
 
-- `Package::set_event_sink` / `rustra::events::EventSink` — Rust → JS 이벤트
+- `Package::set_event_sink` / `unikit_bridge::events::EventSink` — Rust → JS 이벤트
   **푸시** 전달. 싱크를 설치하면 `Package::emit` 이 버스 적재 대신 콜백을
   즉시 호출한다(폴링 불필요, LLM 토큰 스트리밍 등 저지연 용도). 싱크와
   버스는 상호 배타적 — 설치 중에는 `take_pending_events` 큐가 비어 있다
@@ -279,32 +279,32 @@ docs/migrations/0.5-to-0.6.md 참고.
   `catch_unwind` 로 격리되어 emit 호출자로 전파되지 않는다.
 - `tauri_support::register_with_events(package, builder)` — Tauri 푸시 배선.
   플러그인 setup 훅에서 `tauri_event_sink` 를 설치해 `Package::emit` 이
-  `app.emit_str("rustra://{sanitized}", payload_json)` 로 전달된다. 기존
+  `app.emit_str("unikit://{sanitized}", payload_json)` 로 전달된다. 기존
   `register` 는 폴링 경로 유지(하위호환). 채널명 규칙: 이벤트명의
   영숫자/`-`/`/`/`:`/`_` 외 문자는 `_` 치환(예: `progress.tick` →
-  `rustra://progress_tick`).
+  `unikit://progress_tick`).
 - `tauri_support::tauri_event_sink(app)` / `tauri_support::event_channel(name)` —
   자체 호스트 setup 흐름에서 싱크를 직접 설치할 때 쓰는 공개 헬퍼(플러그인
   없이 `app.handle().clone()` 만 있으면 된다).
-- FFI 이벤트 싱크 — `rustra_ffi_event_sink_register(callback, user_data)` /
-  `rustra_event_sink_unregister()`. C 콜백 ABI 는 `extern "C-unwind"`
+- FFI 이벤트 싱크 — `unikit_ffi_event_sink_register(callback, user_data)` /
+  `unikit_event_sink_unregister()`. C 콜백 ABI 는 `extern "C-unwind"`
   (콜백 패닉이 Rust 쪽 catch_unwind 에서 가두어진다). 패키지 등록 전 싱크
   등록도 지원(지연 설치).
-- `@rustra/react-native` `subscribeEvent(native, name, cb)` → unsubscribe.
+- `@unikit/react-native` `subscribeEvent(native, name, cb)` → unsubscribe.
   RN JSI `onEvent`/`offEvent` 위의 TS 래퍼 — 페이로드는 JSON 문자열로 JSI 를
-  건너고 TS 에서 `JSON.parse` 1회 복원. `RustraNative` 타입에
+  건너고 TS 에서 `JSON.parse` 1회 복원. `UnikitNative` 타입에
   `onEvent`/`offEvent`/`drainEvents` 추가.
 - RN JSI 이벤트 콜백 — iOS `.mm`(RCTCxxBridge jsCallInvoker) / Android
   JNI(CallInvokerHolderImpl). emitting 스레드는 고정 용량 1024 drop-oldest
   큐에 적재 + `CallInvoker::invokeAsync(drain)` 예약, drain 이 JS 런타임
   스레드에서 per-name JS 함수 호출. CallInvoker 없는 호스트는 `drainEvents()`
   JS 폴링 폴백. RN 리로드 시 stale 리스너 정리.
-- `rustra dev` CLI — Rust 소스 감시 + dual-path codegen 자동 재실행
+- `unikit dev` CLI — Rust 소스 감시 + dual-path codegen 자동 재실행
   (hot codegen). mtime 기반 stale 판정으로 Rust bin/TS CLI 스테이지 선택적 실행,
   `--inspect` 플래그로 devtools 안내
-- `@rustra/testing` 패키지 — `createMockEngine` (계약 동일 mock 엔진,
+- `@unikit/testing` 패키지 — `createMockEngine` (계약 동일 mock 엔진,
   `.on()` 체이닝 + 호출 기록) + `assertContractCurrent` 계약 게이트
-- `@rustra/devtools` 패키지 — `createInstrumentedEngine` 호출 관측성 래퍼
+- `@unikit/devtools` 패키지 — `createInstrumentedEngine` 호출 관측성 래퍼
   (명령별 count/errors/avgMs + 슬로우 콜 타임라인)
 - `windows-experiment.yml` — lynx.dll export 덤프 + MSVC 빌드 시도 CI (P1 실험)
 - `fuzz.yml` + `fuzz/` — cargo-fuzz `invoke_rkyv_v2` 디코드 경로 무작위 입력
@@ -312,11 +312,11 @@ docs/migrations/0.5-to-0.6.md 참고.
 - codegen `Set<T>` 타입 지원 — Rust `BTreeSet`/`HashSet` (`uniqueItems`)이
   `Set<T>`로 매핑. postcard 코덱 `set_zigzag`/`set_f64`/`set_bool` kind
   (와이어는 vec와 호환), JSON 경로 Set replacer
-- `RustraCommandError.retryable` — Rust `transport.error`/`transport.timeout`
+- `UnikitCommandError.retryable` — Rust `transport.error`/`transport.timeout`
   생성 에러의 재시도 가능 여부를 TypeScript에서 조회 가능
-- `createAsyncEngine` (`@rustra/react-native`) — P0-3 async offload 엔진.
+- `createAsyncEngine` (`@unikit/react-native`) — P0-3 async offload 엔진.
   네이티브 `invokeTypedAsync` 있으면 콜백 큐 경로, 없으면 동기 폴백
-- `rustra init <dir>` CLI — 프로젝트 스캐폴딩 (Cargo + echo 예제 + codegen 스크립트)
+- `unikit init <dir>` CLI — 프로젝트 스캐폴딩 (Cargo + echo 예제 + codegen 스크립트)
 - Windows desktop 스캐폴드 — `lynx_desktop_win.cpp` + `build.rs` 플랫폼 분기
   (FML 심볼 export/오프셋 확정은 Windows 머신 전제)
 - `bench.yml` — criterion 벤치마크 회귀 감지 CI
@@ -325,14 +325,14 @@ docs/migrations/0.5-to-0.6.md 참고.
 
 ## 0.1.1 (2026-08-14)
 
-npm `@rustra/*` 7종(types/cli/node/bun/tauri/react-native/lynx)과 crates.io
-`rustra`/`rustra-macros` 첫 공개 발행.
+npm `@unikit/*` 7종(types/cli/node/bun/tauri/react-native/lynx)과 crates.io
+`unikit`/`unikit-bridge-macros` 첫 공개 발행.
 
 ### Added
 
 - rkyv V2 무직렬화 경로 (`invoke_rkyv_v2`) — JSON 대비 15~83× 작은 와이어포맷
 - RN JSI fast path + C++ 코덱 (`--cpp-output`) 생성
-- Lynx 어댑터 (`@rustra/lynx`) — QuickJS 런타임 지원
+- Lynx 어댑터 (`@unikit/lynx`) — QuickJS 런타임 지원
 - codegen Map/Tuple 타입 지원
 - runtime command registry / 동적 rkyv 경로
 - invokeBatch (P0-2) 배치 호출
@@ -345,7 +345,7 @@ npm `@rustra/*` 7종(types/cli/node/bun/tauri/react-native/lynx)과 crates.io
 
 ### Changed
 
-- 저장소 URL을 `loopy-lim/rustra` → `loopy-lim/hostra`로 정리 (2026-08-20 `loopy-lim/rustra`로 환원 — hostra 개명 철회)
+- 저장소 URL을 `loopy-lim/unikit` → `loopy-lim/hostra`로 정리 (2026-08-20 `loopy-lim/unikit`로 환원 — hostra 개명 철회)
 
 ## 0.1.0 (2026-05-13)
 

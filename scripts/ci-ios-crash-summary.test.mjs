@@ -21,7 +21,7 @@ const report = (extra = {}) => ({
 });
 
 function fixture(run) {
-  const home = mkdtempSync(join(tmpdir(), 'rustra-ios-crash-'));
+  const home = mkdtempSync(join(tmpdir(), 'unikit-ios-crash-'));
   const hostReports = join(home, 'Library/Logs/DiagnosticReports');
   const simReports = join(
     home,

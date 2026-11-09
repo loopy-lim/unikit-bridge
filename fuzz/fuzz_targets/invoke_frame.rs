@@ -2,15 +2,15 @@
 //! invoke_frame 퍼징 — 2바이트 command_id(LE) + postcard 본문의 무작위 바이트에
 //! 대해 패닉/UB 없이 Err 로 거부되는지(또는 정상 응답하는지) 검증한다.
 //!
-//! 타깃 근거: `Package::invoke_frame` (crates/rustra/src/lib.rs) 가 Frame
-//! fast-path 의 신뢰 경계 디스패치이며, FFI 진입점(`rustra_ffi_invoke_*`,
-//! `rustra_template_invoke_frame`)이 같은 디스패치를 공유한다 — 이 함수를
+//! 타깃 근거: `Package::invoke_frame` (crates/unikit-bridge/src/lib.rs) 가 Frame
+//! fast-path 의 신뢰 경계 디스패치이며, FFI 진입점(`unikit_ffi_invoke_*`,
+//! `unikit_template_invoke_frame`)이 같은 디스패치를 공유한다 — 이 함수를
 //! 직접 타깃하면 디코드 경로 전체를 덮는다.
 //!
 //! 페이로드는 원본과 1KiB 상한 컷 두 경로로 주입해 디코더 경로를 집중 공격한다.
 
 use libfuzzer_sys::fuzz_target;
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -25,7 +25,7 @@ fn fuzz_add(input: AddInput) -> Result<i64> {
     input
         .a
         .checked_add(input.b)
-        .ok_or_else(|| RustraError::custom("math.overflow", "i64 overflow"))
+        .ok_or_else(|| UnikitError::custom("math.overflow", "i64 overflow"))
 }
 
 fn fuzz_package() -> Package {
@@ -42,7 +42,7 @@ fn fuzz_package() -> Package {
 /// ·frame_fields)는 신뢰 경계이므로 무작위 바이트가 패닉을 유발하면 그 자체가
 /// 디코더 버그다. Err 로 조용히 삼켜지지 않게 libfuzzer 크래시로 승격한다.
 /// (invoke_complex_value/invoke_complex_serde 타깃의 동명 가드와 동일한 계약.)
-fn deny_panic_guard<T>(result: rustra::Result<T>) {
+fn deny_panic_guard<T>(result: unikit_bridge::Result<T>) {
     if let Err(error) = result {
         assert!(
             !error.message().starts_with("panic in handler"),

@@ -5,11 +5,11 @@ English | [한국어](./synchronous-bindings.ko.md)
 `bindSync<I, O>(command)` returns an ordinary synchronous function. Configure the engine and finish bootstrap before binding:
 
 ```ts
-import { bindSync } from '@rustra/types';
-import { rustra } from './generated/react-native.js';
+import { bindSync } from '@unikit/types';
+import { unikit } from './generated/react-native.js';
 import type { AddNumbersInput, AddNumbersOutput } from './generated/types.js';
 
-await rustra.ready();
+await unikit.ready();
 const add = bindSync<AddNumbersInput, AddNumbersOutput>('addNumbers');
 const result = add({ a: 20, b: 22 });
 ```

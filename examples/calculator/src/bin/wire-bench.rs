@@ -1,10 +1,10 @@
-#!/usr/bin/env cargo run -p rustra-calculator-example --bin wire-bench --release --
+#!/usr/bin/env cargo run -p unikit-calculator-example --bin wire-bench --release --
 //! 와이어포맷(직렬화) 계층 벤치마크 — JSON vs postcard vs Frame.
 //!
 //! 목적: 같은 addNumbers(42, 58) 호출을 각 와이어포맷 경로로 N 회 직접 호출해
 //! 순수 직렬화+디스패치+역직렬화 비용을 측정한다. JS↔FFI 경계 노이즈가
 //! 제외된 코어 수치다. 과거에는 예제 전용 legacy C 심볼
-//! (`rustra_calculator_invoke*`) 을 통해 측정했지만, legacy 프로토콜 제거
+//! (`unikit_calculator_invoke*`) 을 통해 측정했지만, legacy 프로토콜 제거
 //! 이후에는 `Package` 공개 메서드를 직접 호출한다 — 측정 의미(동일 페이로드,
 //! 동일 디스패치)는 동일하다.
 //!
@@ -17,10 +17,10 @@
 //! "응답을 새 Vec 으로 복사해 돌려주느냐(zero-copy access + caller buffer)"
 //! 이고, 이 차이가 곧 비교 대상이다.
 //!
-//! 실행: cargo run -p rustra-calculator-example --bin wire-bench --release
+//! 실행: cargo run -p unikit-calculator-example --bin wire-bench --release
 
-use rustra::DirectResponse;
-use rustra_calculator_example::{AddNumbersInput, calculator_package};
+use unikit_bridge::DirectResponse;
+use unikit_calculator_example::{AddNumbersInput, calculator_package};
 
 fn percentile(sorted: &[f64], pct: f64) -> f64 {
     let idx = ((pct / 100.0) * sorted.len() as f64).floor() as usize;

@@ -10,11 +10,11 @@ const packageJsonPath = join(packageRoot, 'package.json');
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 
 const requiredNativeFiles = [
-  'native/android/rustra-jsi-jni.cpp',
-  'native/cpp/RustraJSIBridge.cpp',
-  'native/cpp/RustraJSIBridge.hpp',
-  'native/cpp/rustra-codec.hpp',
-  'native/ios/RustraJSIModule.mm',
+  'native/android/unikit-jsi-jni.cpp',
+  'native/cpp/UnikitJSIBridge.cpp',
+  'native/cpp/UnikitJSIBridge.hpp',
+  'native/cpp/unikit-codec.hpp',
+  'native/ios/UnikitJSIModule.mm',
 ];
 
 const missingFromSource = requiredNativeFiles.filter(
@@ -29,7 +29,7 @@ if (!packPatterns.has('native/**/*') && !packPatterns.has('native')) {
   throw new Error('packages/react-native/package.json must publish the native adapter directory');
 }
 
-const temporaryDirectory = mkdtempSync(join(tmpdir(), 'rustra-react-native-pack-'));
+const temporaryDirectory = mkdtempSync(join(tmpdir(), 'unikit-react-native-pack-'));
 try {
   execFileSync(
     'bun',

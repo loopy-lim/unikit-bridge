@@ -10,7 +10,7 @@
 `--output`을 지원한다. 실제 `init` 산출물에 현재 소스 패키지를 주입하고 선택한
 패키지 매니저로 설치한다. 첫 Rust 호출, 설치된 CLI를 이용한 두 번째 start,
 JS 문구 변경, Rust 구현 변경, 계약 필드 변경 후의 결과를 확인한다. 기본 사용자
-scripts와 `rustra.json`은 보존한다. `--cold`는 상속된 `CARGO_TARGET_DIR`보다
+scripts와 `unikit.json`은 보존한다. `--cold`는 상속된 `CARGO_TARGET_DIR`보다
 우선하는 새 Cargo target을 만들지만 전역 의존성 캐시는 비우지 않는다.
 
 `scripts/onboarding-gate.mjs`도 단계별 단조 시계 시각, 첫 호출과 계약 변경 시간,
@@ -45,7 +45,7 @@ native copy 양은 계측하지 않아 null이다. 이 작업에서는 실제 RN
 만들지 않았으며 Bun mock 검사는 native 성능 증거가 아니다.
 
 Node 생성 엔트리는 schema generator `generate` 대신 실제 invoke 실행 파일
-`rustra-rn-experiment`를 사용하도록 생성기로 갱신했다. 신규 `src/main.rs`와
+`unikit-rn-experiment`를 사용하도록 생성기로 갱신했다. 신규 `src/main.rs`와
 `apps/node-app.ts`가 gzip·UUID·구조화된 실패를 실제 Rust 소비 경로에서 확인한다.
 RN adapter 예제의 package import도 public package로 맞춰 source/dist error class가
 중복되는 문제를 없앴다. gzip 해제는 출력 한도+1까지만 읽고 초과를 구조화된 오류로
@@ -63,12 +63,12 @@ CARGO_NET_OFFLINE=true node scripts/quick-start.mjs --host node \
   --package-manager pnpm --measure --cold --output /tmp/pnpm-receipt.json
 CARGO_NET_OFFLINE=true node scripts/quick-start.mjs --host node \
   --package-manager yarn --measure --cold --output /tmp/yarn-receipt.json
-CARGO_NET_OFFLINE=true RUSTRA_ONBOARDING_CARGO_TARGET_DIR=target/onboarding-shared \
+CARGO_NET_OFFLINE=true UNIKIT_ONBOARDING_CARGO_TARGET_DIR=target/onboarding-shared \
   node scripts/onboarding-gate.mjs --output /tmp/gate-receipt.json
 node --experimental-strip-types --test scripts/onboarding-gate.test.ts
 bun run test:app:rn-experiment
 bun run --cwd examples/rn-experiment typecheck:native
-cargo test -p rustra-rn-experiment
+cargo test -p unikit-rn-experiment
 bun run --cwd examples/rn-experiment codegen:check
 ```
 

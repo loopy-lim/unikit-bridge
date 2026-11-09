@@ -19,7 +19,7 @@ import ts from 'typescript';
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 function project() {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-host-entry-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-host-entry-'));
   mkdirSync(join(root, 'generated'));
   mkdirSync(join(root, 'target/debug'), { recursive: true });
   symlinkSync(join(repoRoot, 'node_modules'), join(root, 'node_modules'));
@@ -42,8 +42,8 @@ test('the generated Node event entry invokes and subscribes on one persistent ru
     const respond = (request) => {
       const { id, command } = request;
       let body;
-      if (command === '__rustra_contract') body = { result: 'valid-contract' };
-      else if (command === '__rustra_capabilities') body = { result: { events: 'polling' } };
+      if (command === '__unikit_contract') body = { result: 'valid-contract' };
+      else if (command === '__unikit_capabilities') body = { result: { events: 'polling' } };
       else if (command === '__drainEvents') body = { events: events.splice(0) };
       else { events.push({ name: 'tick', payload: ++count }); body = { result: count }; }
       return JSON.stringify({ id, ok: true, ...body });
@@ -72,22 +72,22 @@ test('the generated Node event entry invokes and subscribes on one persistent ru
     const sets = [];
     const OriginalSet = globalThis.Set;
     globalThis.Set = class extends OriginalSet { constructor(...args) { super(...args); sets.push(this); } };
-    const { rustra, events, subscribeEvent } = await import('./generated/node.js');
+    const { unikit, events, subscribeEvent } = await import('./generated/node.js');
     globalThis.Set = OriginalSet;
     const seen = [];
     try {
       const unsubscribe = subscribeEvent('tick', payload => seen.push(payload));
       const facadeSubscriptions = sets.find(set => set.has(unsubscribe));
       assert.equal(facadeSubscriptions.size, 1);
-      const engine = await rustra.ready();
+      const engine = await unikit.ready();
       assert.equal(await engine.invoke('emit'), 1);
       assert.equal(await engine.invoke('emit'), 2);
       const deadline = Date.now() + 1000;
       while (seen.length < 2 && Date.now() < deadline) await new Promise(r => setTimeout(r, 1));
       assert.deepEqual(seen, [1, 2]);
-      rustra.dispose();
+      unikit.dispose();
       assert.equal(facadeSubscriptions.size, 0, 'bootstrap disposal releases facade callback closures');
-    } finally { events.dispose(); rustra.dispose(); }
+    } finally { events.dispose(); unikit.dispose(); }
   `;
   try {
     const result = spawnSync(process.execPath, ['--input-type=module', '-e', consumer], {
@@ -104,7 +104,7 @@ test('the generated Node event entry invokes and subscribes on one persistent ru
 test('an opted-in generated Node CRUD client preserves records across create, read, update and delete', () => {
   const build = spawnSync(
     'cargo',
-    ['build', '-p', 'rustra-crud-example', '--bin', 'rustra-crud-example'],
+    ['build', '-p', 'unikit-crud-example', '--bin', 'unikit-crud-example'],
     {
       cwd: repoRoot,
       encoding: 'utf8',
@@ -113,15 +113,15 @@ test('an opted-in generated Node CRUD client preserves records across create, re
   );
   assert.equal(build.status, 0, build.stderr || String(build.error));
   const root = project();
-  const config = JSON.parse(readFileSync(join(repoRoot, 'examples/crud/rustra.json'), 'utf8'));
+  const config = JSON.parse(readFileSync(join(repoRoot, 'examples/crud/unikit.json'), 'utf8'));
   const entry = generateNodeEntryTs({
     targetDirectoryUrl: '../target/',
-    targetName: 'rustra-crud-example',
+    targetName: 'unikit-crud-example',
     ...config.node,
   });
   symlinkSync(
-    join(repoRoot, 'target/debug/rustra-crud-example'),
-    join(root, 'target/debug/rustra-crud-example'),
+    join(repoRoot, 'target/debug/unikit-crud-example'),
+    join(root, 'target/debug/unikit-crud-example'),
   );
   for (const file of ['commands', 'contract']) {
     writeFileSync(
@@ -132,7 +132,7 @@ test('an opted-in generated Node CRUD client preserves records across create, re
   writeFileSync(join(root, 'generated/node.js'), compileEntry(entry));
   const consumer = String.raw`
     import assert from 'node:assert/strict';
-    import { createItem, getItem, updateItem, deleteItem, listItems, rustra } from './generated/node.js';
+    import { createItem, getItem, updateItem, deleteItem, listItems, unikit } from './generated/node.js';
     try {
       const created = await createItem({name:'retained',value:7});
       const id = created.item.id;
@@ -143,7 +143,7 @@ test('an opted-in generated Node CRUD client preserves records across create, re
       assert.equal((await deleteItem({id})).deleted, true);
       assert.equal((await getItem({id})).item, null);
       assert.equal((await deleteItem({id:other.item.id})).deleted, true);
-    } finally { rustra.dispose(); }
+    } finally { unikit.dispose(); }
   `;
   try {
     const result = spawnSync(process.execPath, ['--input-type=module', '-e', consumer], {
@@ -163,7 +163,7 @@ test('the generated Bun event entry binds subscribers to the compatible selected
     const target = join(root, 'native-target');
     const build = spawnSync(
       'cargo',
-      ['build', '--locked', '-p', 'rustra-calculator-example', '--lib'],
+      ['build', '--locked', '-p', 'unikit-calculator-example', '--lib'],
       {
         cwd: repoRoot,
         env: { ...process.env, CARGO_TARGET_DIR: target },
@@ -174,7 +174,7 @@ test('the generated Bun event entry binds subscribers to the compatible selected
     assert.equal(build.status, 0, build.stderr || String(build.error));
     const extension =
       process.platform === 'darwin' ? 'dylib' : process.platform === 'win32' ? 'dll' : 'so';
-    const library = `${process.platform === 'win32' ? '' : 'lib'}rustra_calculator_example.${extension}`;
+    const library = `${process.platform === 'win32' ? '' : 'lib'}unikit_calculator_example.${extension}`;
     symlinkSync(join(target, 'debug', library), join(root, 'target/debug', library));
     mkdirSync(join(root, 'target/release'));
     writeFileSync(join(root, 'target/release', library), 'incompatible native library');
@@ -183,7 +183,7 @@ test('the generated Bun event entry binds subscribers to the compatible selected
       "export const GENERATED_CONTRACT_HASH=''; export const SCHEMA_VERSION=1;",
     );
     const entry = generateBunEntryTs(
-      { targetDirectoryUrl: '../target/', targetName: 'rustra_calculator_example' },
+      { targetDirectoryUrl: '../target/', targetName: 'unikit_calculator_example' },
       { events: true },
     ).replaceAll("contractVerification: 'strict'", "contractVerification: 'off'");
     writeFileSync(join(root, 'generated/bun.js'), compileEntry(entry));
@@ -193,13 +193,13 @@ test('the generated Bun event entry binds subscribers to the compatible selected
     );
     const consumer = String.raw`
     import assert from 'node:assert/strict';
-    import { rustra, events, subscribeEvent } from './generated/bun.js';
+    import { unikit, events, subscribeEvent } from './generated/bun.js';
     const seen = [];
     try {
       subscribeEvent('demo.done', payload => seen.push(payload));
-      await (await rustra.ready()).invoke('emitDemo');
+      await (await unikit.ready()).invoke('emitDemo');
       assert.deepEqual(seen, [{ emitted: 1 }]);
-    } finally { events.dispose(); rustra.dispose(); }
+    } finally { events.dispose(); unikit.dispose(); }
   `;
     const result = spawnSync('bun', ['-e', consumer], {
       cwd: root,
@@ -215,7 +215,7 @@ test('the generated Bun event entry binds subscribers to the compatible selected
 test('the generated Node streaming entry receives background events from its invoked runtime', () => {
   const build = spawnSync(
     'cargo',
-    ['build', '-p', 'rustra-streaming-example', '--bin', 'rustra-streaming-invoke'],
+    ['build', '-p', 'unikit-streaming-example', '--bin', 'unikit-streaming-invoke'],
     {
       cwd: repoRoot,
       encoding: 'utf8',
@@ -227,14 +227,14 @@ test('the generated Node streaming entry receives background events from its inv
   const entry = generateNodeEntryTs(
     {
       targetDirectoryUrl: '../target/',
-      targetName: 'rustra-streaming-invoke',
+      targetName: 'unikit-streaming-invoke',
       args: ['--serve'],
     },
     { events: true },
   );
   symlinkSync(
-    join(repoRoot, 'target/debug/rustra-streaming-invoke'),
-    join(root, 'target/debug/rustra-streaming-invoke'),
+    join(repoRoot, 'target/debug/unikit-streaming-invoke'),
+    join(root, 'target/debug/unikit-streaming-invoke'),
   );
   for (const file of ['commands', 'contract', 'events']) {
     writeFileSync(
@@ -247,19 +247,19 @@ test('the generated Node streaming entry receives background events from its inv
   writeFileSync(join(root, 'generated/node.js'), compileEntry(entry));
   const consumer = String.raw`
     import assert from 'node:assert/strict';
-    import {startJob, subscribeEvent, rustra} from './generated/node.js';
-    import {onRustraEvent} from './generated/events.js';
+    import {startJob, subscribeEvent, unikit} from './generated/node.js';
+    import {onUnikitEvent} from './generated/events.js';
     const ticks = [];
     const done = [];
     try {
-      onRustraEvent(subscribeEvent, 'progress.tick', payload => ticks.push(payload.step));
-      onRustraEvent(subscribeEvent, 'job.done', payload => done.push(payload));
+      onUnikitEvent(subscribeEvent, 'progress.tick', payload => ticks.push(payload.step));
+      onUnikitEvent(subscribeEvent, 'job.done', payload => done.push(payload));
       assert.equal((await startJob({jobId:'generated',totalSteps:3,stepDelayMs:0})).accepted, true);
       const deadline = Date.now() + 2000;
       while (!done.length && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 1));
       assert.deepEqual(ticks, [1,2,3]);
       assert.deepEqual(done, [{jobId:'generated',steps:3}]);
-    } finally { rustra.dispose(); }
+    } finally { unikit.dispose(); }
   `;
   try {
     const result = spawnSync(process.execPath, ['--input-type=module', '-e', consumer], {

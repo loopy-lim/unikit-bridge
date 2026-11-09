@@ -66,7 +66,7 @@ export async function generateFromSchema(
     schemaContent = await readFile(schemaPath, 'utf-8');
   } catch (error) {
     // ENOENT 를 날로 노출하지 않는다 — schema.json 은 Rust 프로브의 산출물이므로
-    // "먼저 프로브를 돌려라" 힌트를 붙인다. config.ts 의 rustra.json ENOENT 랩과
+    // "먼저 프로브를 돌려라" 힌트를 붙인다. config.ts 의 unikit.json ENOENT 랩과
     // 같은 모양이며, 아래의 JSON 파싱 랩과 쌍을 이룬다. 이 호출부엔 config 경로나
     // 바이너리 이름이 없으므로 힌트는 스키마 경로와 공용 플래그만으로 쾅 꾸민다.
     // 파일 부재는 프로젝트 상태 오류 → exit 1 (UsageError 아님 — exit-2 계약 밖).
@@ -75,7 +75,7 @@ export async function generateFromSchema(
       throw new Error(
         `Schema file not found: ${resolve(schemaPath)}. Run the Rust contract probe first ` +
           `(e.g. "cargo run" with the package's generate bin) or point --schema/--config at the ` +
-          `right file in rustra.json, then re-run "rustra generate".`,
+          `right file in unikit.json, then re-run "unikit generate".`,
         { cause: error },
       );
     }
@@ -107,7 +107,7 @@ export async function generateFromSchema(
   const addFile = (targetDir: string, name: string, content: string) =>
     files.push({
       path: resolve(targetDir, name),
-      content: content.startsWith('// ── rustra generated')
+      content: content.startsWith('// ── unikit generated')
         ? content
         : generatedFileHeader(name, stageFor(name), content),
     });
@@ -133,10 +133,10 @@ export async function generateFromSchema(
     addFile(outputPath, 'bun.ts', generateBunEntryTs(hostEntries.bun, { events: hasEvents }));
   if (hostEntries?.tauri) addFile(outputPath, 'tauri.ts', generateTauriEntryTs());
   if (cppOutputPath) {
-    addFile(cppOutputPath, 'rustra-generated-codecs.hpp', generateFrameCodecsHpp(schema));
+    addFile(cppOutputPath, 'unikit-generated-codecs.hpp', generateFrameCodecsHpp(schema));
     addFile(
       cppOutputPath,
-      'rustra-generated-codecs.cpp',
+      'unikit-generated-codecs.cpp',
       generateFrameCodecsCpp(schema, schemaContent),
     );
   }
@@ -148,14 +148,14 @@ export async function generateFromSchema(
   // 코드젠 경고는 생성 파일 바이트와 무관한 별도 진행 채널 — stderr 로 출력해
   // 머신이 읽는 stdout(JSON 리포트)을 오염시키지 않는다.
   for (const warning of takeCodegenWarnings()) console.error(formatCodegenWarning(warning));
-  const manifestPath = resolve(outputPath, '.rustra-generated.json');
+  const manifestPath = resolve(outputPath, '.unikit-generated.json');
   const roots = [outputPath];
   if (cppOutputPath) roots.push(cppOutputPath);
   if (reactNativeScaffold) roots.push(reactNativeScaffold.moduleDir);
   const obsolete = await planGeneratedCleanup(files, manifestPath, roots);
   if (check) {
     if (obsolete.length > 0)
-      throw new Error(`Generated drift (obsolete): ${obsolete.join(', ')}. Run rustra codegen.`);
+      throw new Error(`Generated drift (obsolete): ${obsolete.join(', ')}. Run unikit codegen.`);
     written.push(...files.map((file) => `${manifestPathFor(outputPath, file.path)} (verified)`));
     await checkGeneratedFiles(files, manifestPath, {
       schemaContent,
@@ -219,6 +219,6 @@ function warnIfFieldOrderIsUnspecified(schema: PackageSchema): void {
     }
   if (suspects >= 3)
     console.warn(
-      `[rustra] WARN: ${suspects} field sets appear alphabetically sorted and the schema has no fieldOrder=declaration guarantee; regenerate with current rustra or verify field order manually.`,
+      `[unikit] WARN: ${suspects} field sets appear alphabetically sorted and the schema has no fieldOrder=declaration guarantee; regenerate with current unikit or verify field order manually.`,
     );
 }

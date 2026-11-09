@@ -14,7 +14,7 @@
 //! 주입한다.
 
 use libfuzzer_sys::fuzz_target;
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 use std::collections::BTreeMap;
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
@@ -52,7 +52,7 @@ fn fuzz_package() -> Package {
 /// catch_unwind 가드가 핸들러 패닉을 internal("panic in handler: …") 로
 /// 정규화한다 — 무작위 바이트가 이 코드를 유발하면 디코더 버그이므로
 /// libfuzzer 크래시로 승격한다.
-fn deny_panic_guard<T>(result: rustra::Result<T>) {
+fn deny_panic_guard<T>(result: unikit_bridge::Result<T>) {
     if let Err(error) = result {
         assert!(
             !error.message().starts_with("panic in handler"),

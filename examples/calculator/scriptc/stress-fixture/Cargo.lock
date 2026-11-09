@@ -183,13 +183,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustra"
+name = "unikit-bridge"
 version = "0.13.0"
 dependencies = [
  "hex",
  "postcard",
- "rustra-macros",
- "rustra-naming",
+ "unikit-bridge-macros",
+ "unikit-bridge-naming",
  "schemars",
  "serde",
  "serde_json",
@@ -197,24 +197,24 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustra-macros"
+name = "unikit-bridge-macros"
 version = "0.13.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "rustra-naming",
+ "unikit-bridge-naming",
  "syn 3.0.5",
 ]
 
 [[package]]
-name = "rustra-naming"
+name = "unikit-bridge-naming"
 version = "0.13.0"
 
 [[package]]
-name = "rustra-scriptc-stress-fixture"
+name = "unikit-scriptc-stress-fixture"
 version = "0.0.0"
 dependencies = [
- "rustra",
+ "unikit",
 ]
 
 [[package]]

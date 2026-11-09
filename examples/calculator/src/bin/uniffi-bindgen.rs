@@ -2,8 +2,8 @@
 //! Kotlin/Swift 바인딩을 뽑는다(--features uniffi 전용 bin).
 //!
 //! 사용 예:
-//! cargo run -p rustra-calculator-example --bin uniffi-bindgen --features uniffi -- \
-//!   generate --library target/debug/librustra_calculator_example.dylib \
+//! cargo run -p unikit-calculator-example --bin uniffi-bindgen --features uniffi -- \
+//!   generate --library target/debug/libunikit_calculator_example.dylib \
 //!   --language kotlin --language swift --out-dir uniffi
 
 fn main() {

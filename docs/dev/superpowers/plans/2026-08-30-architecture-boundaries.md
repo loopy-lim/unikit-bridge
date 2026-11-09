@@ -15,7 +15,7 @@
 - Preserve public Rust/TypeScript exports and all wire bytes.
 - Do not change package versions, changesets, publishing metadata, or unrelated documentation.
 - Keep each production source file at or below the existing 400-line hard ceiling.
-- Keep `crates/rustra/src/lib.rs` at or below its 200-line facade budget.
+- Keep `crates/unikit-bridge/src/lib.rs` at or below its 200-line facade budget.
 - Preserve the current docs worktree files and do not stage them.
 
 ---
@@ -24,8 +24,8 @@
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs`
-- Modify: `crates/rustra/src/invoke_buffer.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs`
+- Modify: `crates/unikit-bridge/src/invoke_buffer.rs`
 
 **Interfaces:**
 
@@ -34,7 +34,7 @@
 
 - [ ] **Step 1: Confirm the red guard**
 
-Run `bun run test:architecture` and confirm the `rustra-lib-size` violation is present.
+Run `bun run test:architecture` and confirm the `unikit-lib-size` violation is present.
 
 - [ ] **Step 2: Move only the helper**
 
@@ -42,14 +42,14 @@ Move the existing `postcard_uvar_len` function from `lib.rs` to the top-level sc
 
 - [ ] **Step 3: Verify the focused result**
 
-Run `cargo test -p rustra` and `bun run test:architecture`. The Rust crate must pass and the `rustra-lib-size` error must be absent.
+Run `cargo test -p unikit-bridge` and `bun run test:architecture`. The Rust crate must pass and the `unikit-lib-size` error must be absent.
 
 ### Task 2: Split schema IR compilation
 
 **Files:**
 
-- Modify: `crates/rustra/src/complex_schema_ir.rs`
-- Create: `crates/rustra/src/complex_schema_ir_compile.rs`
+- Modify: `crates/unikit-bridge/src/complex_schema_ir.rs`
+- Create: `crates/unikit-bridge/src/complex_schema_ir_compile.rs`
 
 **Interfaces:**
 
@@ -62,7 +62,7 @@ Move `Context`, `MAX_DEPTH`, `compile`, and all `Context` compilation methods in
 
 - [ ] **Step 2: Verify IR behavior**
 
-Run `cargo test -p rustra` and confirm all complex codec tests pass with unchanged wire fixtures.
+Run `cargo test -p unikit-bridge` and confirm all complex codec tests pass with unchanged wire fixtures.
 
 - [ ] **Step 3: Verify file boundary**
 
@@ -101,15 +101,15 @@ Run `bun run --cwd packages/types build`, `bun run --cwd packages/types test`, a
 
 **Files:**
 
-- Modify: `crates/rustra/src/complex_serde.rs`
-- Create: `crates/rustra/src/complex_serde_support.rs`
-- Create: `crates/rustra/src/complex_serde_de_core.rs`
-- Create: `crates/rustra/src/complex_serde_de_access.rs`
-- Create: `crates/rustra/src/complex_serde_ser_core.rs`
-- Create: `crates/rustra/src/complex_serde_ser_access.rs`
-- Create: `crates/rustra/src/complex_serde_ser_map_key.rs`
-- Create: `crates/rustra/src/complex_serde_ser_struct.rs`
-- Create: `crates/rustra/src/complex_serde_tests.rs`
+- Modify: `crates/unikit-bridge/src/complex_serde.rs`
+- Create: `crates/unikit-bridge/src/complex_serde_support.rs`
+- Create: `crates/unikit-bridge/src/complex_serde_de_core.rs`
+- Create: `crates/unikit-bridge/src/complex_serde_de_access.rs`
+- Create: `crates/unikit-bridge/src/complex_serde_ser_core.rs`
+- Create: `crates/unikit-bridge/src/complex_serde_ser_access.rs`
+- Create: `crates/unikit-bridge/src/complex_serde_ser_map_key.rs`
+- Create: `crates/unikit-bridge/src/complex_serde_ser_struct.rs`
+- Create: `crates/unikit-bridge/src/complex_serde_tests.rs`
 
 **Interfaces:**
 
@@ -134,7 +134,7 @@ Use `include!` from `complex_serde.rs` in dependency order, retaining the curren
 
 - [ ] **Step 5: Verify serde parity**
 
-Run `cargo test -p rustra`, the complex codec wire fixture tests, and the full workspace test. Confirm all direct serde round trips and Value-path byte comparisons pass.
+Run `cargo test -p unikit-bridge`, the complex codec wire fixture tests, and the full workspace test. Confirm all direct serde round trips and Value-path byte comparisons pass.
 
 ### Task 5: Final gate and host verification
 

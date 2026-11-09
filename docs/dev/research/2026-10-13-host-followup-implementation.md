@@ -103,7 +103,7 @@ Node 프레이머는 다른 작업자의 독립 리뷰를 거쳤고 Bun 어댑�
 소스·실행 기록·최종 영수증은 보존했다. 이 환경 실패를 sanitizer 통과로 세지 않는다.
 
 Docker socket이 사라져 daemon에 접근할 수 없으므로 이번에 만든 검사 컨테이너
-`rustra-scriptc-asan-oct13` 하나는 정리 대기다. Docker를 재시작하거나 기존 컨테이너를
+`unikit-scriptc-asan-oct13` 하나는 정리 대기다. Docker를 재시작하거나 기존 컨테이너를
 변경하지 않았다. daemon이 돌아오면 아래 정확한 ID만 제거한다.
 
 ```bash

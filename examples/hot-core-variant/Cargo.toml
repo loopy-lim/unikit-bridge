@@ -1,5 +1,5 @@
 [package]
-name = "rustra-hot-core-variant"
+name = "unikit-hot-core-variant"
 edition.workspace = true
 license.workspace = true
 version.workspace = true
@@ -7,9 +7,9 @@ publish = false
 
 # hot-core 감시 스왑의 교체 단위(스왑 유닛) 전용 cdylib 다. rlib/staticlib 가
 # 필요 없는 이유는 이 크레이트를 링크하는 호스트가 없기 때문이다 — 항상
-# DylibCore(libloading dlopen)로만 열린다. FFI 심볼(rustra_ffi_invoke_json 등)은
-# rustra rlib 의 `#[no_mangle]` 표면이 cdylib 로 그대로 재노출되는 메커니즘을
-# 쓴다(calculator 예제와 동일 — crates/rustra/src/ffi_sync_entries.rs 참고).
+# DylibCore(libloading dlopen)로만 열린다. FFI 심볼(unikit_ffi_invoke_json 등)은
+# unikit rlib 의 `#[no_mangle]` 표면이 cdylib 로 그대로 재노출되는 메커니즘을
+# 쓴다(calculator 예제와 동일 — crates/unikit-bridge/src/ffi_sync_entries.rs 참고).
 [lib]
 crate-type = ["cdylib"]
 
@@ -33,6 +33,6 @@ sig-change = []
 # prelude 가 Serialize/Deserialize/JsonSchema/register!/command 를 모두
 # 재노출하지만, derive 매크로 전개가 `serde::`/`schemars::` 경로를 직접
 # 참조하므로 calculator 예제와 같이 크레이트 의존이 필요하다.
-rustra.workspace = true
+unikit-bridge.workspace = true
 serde.workspace = true
 schemars.workspace = true

@@ -1,5 +1,5 @@
 /**
- * @rustra/node 이벤트 구독 — 2-모드 dispatch (push 우선, 폴링 폴백).
+ * @unikit/node 이벤트 구독 — 2-모드 dispatch (push 우선, 폴링 폴백).
  *
  * Rust `Package::emit` 은 이벤트 버스(`event_bus`)에 적재하고, Node 런타임
  * (예: loop-stdio 바이너리)은 `{"command":"__drainEvents"}` 특수 요청으로
@@ -44,7 +44,7 @@
  * 구독이 완전히 해지된다(마지막 unsubscribe 가 정지). 다음 subscribe 가 재시동
  * 한다. 능력 재판정은 transport 당 1회 — 확정 후엔 경로를 다시 바꾸지 않는다.
  */
-import { RustraCommandError } from '@rustra/types';
+import { UnikitCommandError } from '@unikit/types';
 import type { NodeInvokeTransport } from './node-core.js';
 
 /**
@@ -92,13 +92,13 @@ const loops = new WeakMap<NodeEventTransport, EventLoopState>();
 const DEFAULT_POLL_MS = 100;
 
 function pollIntervalMs(): number {
-  const raw = process.env.RUSTRA_NODE_EVENT_POLL_MS;
+  const raw = process.env.UNIKIT_NODE_EVENT_POLL_MS;
   if (raw === undefined || raw === '') return DEFAULT_POLL_MS;
   const parsed = Number(raw);
   if (!Number.isFinite(parsed) || parsed < 0) {
-    throw new RustraCommandError(
+    throw new UnikitCommandError(
       'event.unavailable',
-      `RUSTRA_NODE_EVENT_POLL_MS must be a non-negative number, got: ${raw}`,
+      `UNIKIT_NODE_EVENT_POLL_MS must be a non-negative number, got: ${raw}`,
     );
   }
   return parsed;
@@ -118,7 +118,7 @@ function dispatch(
       // never 콜백 계약은 타입 레벨 최소 상위집합일 뿐 — 런타임 실값 전달.
       (listener as (payload: unknown) => void)(payload);
     } catch (error) {
-      console.error(`Rustra: event listener for "${name}" threw:`, error);
+      console.error(`Unikit: event listener for "${name}" threw:`, error);
     }
   }
 }
@@ -141,7 +141,7 @@ function ensurePolling(transport: NodeEventTransport, loop: EventLoopState): voi
     try {
       draining = Promise.resolve(transport.drainEvents!());
     } catch (error) {
-      console.error('Rustra: drainEvents failed:', error);
+      console.error('Unikit: drainEvents failed:', error);
       current.timer = setTimeout(tick, pollIntervalMs());
       return;
     }
@@ -153,7 +153,7 @@ function ensurePolling(transport: NodeEventTransport, loop: EventLoopState): voi
       })
       .catch((error) => {
         // drain 실패(프로세스 종료 등)는 조용히 재시도한다 — 다음 틱에 다시.
-        console.error('Rustra: drainEvents failed:', error);
+        console.error('Unikit: drainEvents failed:', error);
       })
       .finally(() => {
         if (!loops.get(transport)) return;
@@ -177,7 +177,7 @@ function parsePushPayload(raw: string): unknown {
   try {
     return raw === '' ? null : JSON.parse(raw);
   } catch {
-    console.warn('Rustra: event payload was not valid JSON; delivering raw string');
+    console.warn('Unikit: event payload was not valid JSON; delivering raw string');
     return raw;
   }
 }
@@ -222,7 +222,7 @@ function scheduleCapabilityVerdict(transport: NodeEventTransport, loop: EventLoo
 }
 
 /**
- * rustra 이벤트를 구독한다 — Tauri/RN `subscribeEvent` 와 동일한
+ * unikit 이벤트를 구독한다 — Tauri/RN `subscribeEvent` 와 동일한
  * `(name, callback) => unsubscribe` 시그니처. 첫 번째 인자로 이벤트 transport
  * 를 받는다. 푸시 경로가 있으면 폴링 없이 푸시로 시작하고(능력 미수용 확정 시
  * 폴링으로 이동), 없으면 폴링(`drainEvents`)으로 폴백한다(2-모드 dispatch —
@@ -244,7 +244,7 @@ export function subscribeEvent(
   // (예: one-shot invoke 바이너리)는 이벤트가 영원히 오지 않는다. 조용한 빈
   // 스트림 대신 첫 구독에서 명확히 실패한다.
   if (!transport.onPushEvent && !transport.drainEvents) {
-    throw new RustraCommandError(
+    throw new UnikitCommandError(
       'event.unavailable',
       'This transport cannot deliver events: it exposes neither drainEvents (polling) nor onPushEvent (push, 0xfffd frames). Attach the subscription to a createNodeLoopTransport runtime (loop-stdio) instead of a one-shot invoke binary.',
     );
@@ -296,7 +296,7 @@ export function subscribeEvent(
 
 // ── 코드젠 SubscribeFn 정합 (컴파일 타임 고정) ─────────────────
 // 코드젠(generateEventsTs)이 생성하는 `SubscribeFn` 계약:
-//   <N extends RustraEventName>(name: N, cb: (payload: RustraEventPayloads[N]) => void)
+//   <N extends UnikitEventName>(name: N, cb: (payload: UnikitEventPayloads[N]) => void)
 //     => (() => void) | Promise<() => void>
 // 이벤트 1개('x': number)를 가진 동형 계약에 이 모듈의 구독 시그니처가
 // 들어맞는지 tsc 로 고정한다 — 계약이 바뀌면 컴파일이 깨진다.

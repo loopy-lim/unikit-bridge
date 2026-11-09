@@ -29,7 +29,7 @@
   },
   "cache": {
     "cargoTarget": "fresh-project-target",
-    "cargoTargetDir": "/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-bun-bun-GfKVBR/cargo-target",
+    "cargoTargetDir": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-GfKVBR/cargo-target",
     "dependencyDownloads": "shared-cache-not-cleared"
   },
   "measurements": {
@@ -43,7 +43,7 @@
     "sdkDownloadMs": null
   },
   "iterationMethod": "explicit-command",
-  "rawLogDirectory": "/tmp/rustra-20261013-watch-bun-verified.json.setup.json.logs",
+  "rawLogDirectory": "/tmp/unikit-20261013-watch-bun-verified.json.setup.json.logs",
   "steps": [
     {
       "name": "init",
@@ -104,28 +104,28 @@
         }
       ],
       "native": {
-        "path": "debug/librustra_app.dylib",
+        "path": "debug/libunikit_app.dylib",
         "sha256": "03da347af5e82c18e6e8b5ce8cb7a4efdbe10fd4c2da07902d048f9fde728a65"
       },
       "installedPackages": [
         {
-          "name": "@rustra/cli",
+          "name": "@unikit/cli",
           "version": "0.12.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-bun-bun-GfKVBR/app/node_modules/@rustra/cli",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-GfKVBR/app/node_modules/@unikit/cli",
           "files": 151,
           "sha256": "a9a2e6fe1880fc1fd8dc49716defbc4529585b9bafda4f226ea3539e20060a8b"
         },
         {
-          "name": "@rustra/types",
+          "name": "@unikit/types",
           "version": "0.12.1",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-bun-bun-GfKVBR/app/node_modules/@rustra/types",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-GfKVBR/app/node_modules/@unikit/types",
           "files": 53,
           "sha256": "7732498ce3e6466aac158bbf0487d184f49d004531707140b6893ef7d0d86bc1"
         },
         {
-          "name": "@rustra/bun",
+          "name": "@unikit/bun",
           "version": "0.11.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-bun-bun-GfKVBR/app/node_modules/@rustra/bun",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-GfKVBR/app/node_modules/@unikit/bun",
           "files": 19,
           "sha256": "b58b08d1a617c8849a06857803020e3bfb54fe9b40038f7b9bf68ad6914bfde2"
         }
@@ -160,28 +160,28 @@
         }
       ],
       "native": {
-        "path": "debug/librustra_app.dylib",
+        "path": "debug/libunikit_app.dylib",
         "sha256": "03da347af5e82c18e6e8b5ce8cb7a4efdbe10fd4c2da07902d048f9fde728a65"
       },
       "installedPackages": [
         {
-          "name": "@rustra/cli",
+          "name": "@unikit/cli",
           "version": "0.12.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-bun-bun-GfKVBR/app/node_modules/@rustra/cli",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-GfKVBR/app/node_modules/@unikit/cli",
           "files": 151,
           "sha256": "a9a2e6fe1880fc1fd8dc49716defbc4529585b9bafda4f226ea3539e20060a8b"
         },
         {
-          "name": "@rustra/types",
+          "name": "@unikit/types",
           "version": "0.12.1",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-bun-bun-GfKVBR/app/node_modules/@rustra/types",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-GfKVBR/app/node_modules/@unikit/types",
           "files": 53,
           "sha256": "7732498ce3e6466aac158bbf0487d184f49d004531707140b6893ef7d0d86bc1"
         },
         {
-          "name": "@rustra/bun",
+          "name": "@unikit/bun",
           "version": "0.11.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-bun-bun-GfKVBR/app/node_modules/@rustra/bun",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-GfKVBR/app/node_modules/@unikit/bun",
           "files": 19,
           "sha256": "b58b08d1a617c8849a06857803020e3bfb54fe9b40038f7b9bf68ad6914bfde2"
         }
@@ -189,19 +189,19 @@
     }
   ],
   "producerBefore": {
-    "name": "@rustra/cli",
+    "name": "@unikit/cli",
     "version": "0.12.0",
-    "resolvedDirectory": "/Users/loopy/dev/ll3/rustra-bridge/packages/cli",
+    "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/packages/cli",
     "files": 151,
     "sha256": "a9a2e6fe1880fc1fd8dc49716defbc4529585b9bafda4f226ea3539e20060a8b"
   },
   "producerAfter": {
-    "name": "@rustra/cli",
+    "name": "@unikit/cli",
     "version": "0.12.0",
-    "resolvedDirectory": "/Users/loopy/dev/ll3/rustra-bridge/packages/cli",
+    "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/packages/cli",
     "files": 151,
     "sha256": "a9a2e6fe1880fc1fd8dc49716defbc4529585b9bafda4f226ea3539e20060a8b"
   },
   "producerStable": true,
-  "projectDir": "/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-bun-bun-GfKVBR/app"
+  "projectDir": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-GfKVBR/app"
 }

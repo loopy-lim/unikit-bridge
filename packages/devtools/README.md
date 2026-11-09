@@ -1,22 +1,22 @@
 English | [한국어](./README.ko.md)
 
-# @rustra/devtools
+# @unikit/devtools
 
-An observability engine wrapper for rustra invocations. Wraps any `EngineClient` and
+An observability engine wrapper for unikit invocations. Wraps any `EngineClient` and
 records call counts, error counts, and cumulative latency.
 
 ## Install
 
 ```bash
-bun add @rustra/devtools
+bun add @unikit/devtools
 ```
 
 ## createInstrumentedEngine
 
 ```ts
-import { createInstrumentedEngine } from '@rustra/devtools';
-import { configure } from '@rustra/types';
-import { createNodeEngine } from '@rustra/node';
+import { createInstrumentedEngine } from '@unikit/devtools';
+import { configure } from '@unikit/types';
+import { createNodeEngine } from '@unikit/node';
 
 const engine = createInstrumentedEngine(createNodeEngine({ invoke: myTransport }));
 configure(engine);
@@ -50,5 +50,5 @@ console.table(engine.report().commandStats);
 
 ## Related docs
 
-- [Compatibility matrix](https://github.com/loopy-lim/rustra/blob/main/docs/compatibility-matrix.md)
-- [Main README](https://github.com/loopy-lim/rustra#readme)
+- [Compatibility matrix](https://github.com/loopy-lim/unikit/blob/main/docs/compatibility-matrix.md)
+- [Main README](https://github.com/loopy-lim/unikit#readme)

@@ -1,6 +1,6 @@
 /**
  * Codegen import contract — generated clients import these helpers by name
- * (see rustra codegen). They are public in name only; signatures follow the
+ * (see unikit codegen). They are public in name only; signatures follow the
  * generated calling convention and may change with codegen versions.
  */
 import {
@@ -11,7 +11,7 @@ import {
   type GeneratedFieldsRoute,
 } from './global-state.js';
 import { ensureConfigured, isLazyConfigured, invokeGenerated } from './global-config.js';
-import { RustraCommandError, RustraErrorCode } from './errors.js';
+import { UnikitCommandError, UnikitErrorCode } from './errors.js';
 import type { InvokeOptions } from './public.js';
 
 function invokeRoute<T>(route: GeneratedFieldsRoute, args: unknown, fields: unknown[]): Promise<T> {
@@ -38,9 +38,9 @@ function invokeFields<T>(
         invokeFields<T>(commandId, command, args, fields, count, options),
       );
     return Promise.reject(
-      new RustraCommandError(
-        RustraErrorCode.TransportUnavailable,
-        'Rustra not configured. Call configure(engine) first.',
+      new UnikitCommandError(
+        UnikitErrorCode.TransportUnavailable,
+        'Unikit not configured. Call configure(engine) first.',
       ),
     );
   }

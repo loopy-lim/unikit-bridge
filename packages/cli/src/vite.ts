@@ -1,7 +1,7 @@
 /**
- * vite-plugin-rustra — Vite plugin for seamless rustra codegen & HMR.
+ * vite-plugin-unikit — Vite plugin for seamless unikit codegen & HMR.
  *
- * Automatically checks and regenerates Rustra TypeScript clients when
+ * Automatically checks and regenerates Unikit TypeScript clients when
  * Vite starts up or when Rust backend source files change.
  */
 
@@ -10,14 +10,14 @@ import { detectDirty, planPipeline, runOnce, type StageRunners } from './dev.js'
 import { runGenerate } from './index.js';
 import { spawnInherit } from './process.js';
 
-export interface RustraVitePluginOptions {
+export interface UnikitVitePluginOptions {
   /** Path to the Rust backend directory. Default: "backend" */
   backendDir?: string;
   /** Path to generated directory. Default: "src/generated" */
   generatedDir?: string;
 }
 
-export function rustraPlugin(options: RustraVitePluginOptions = {}) {
+export function unikitPlugin(options: UnikitVitePluginOptions = {}) {
   const backendDir = options.backendDir ?? 'backend';
   const generatedDir = options.generatedDir ?? 'src/generated';
 
@@ -32,7 +32,7 @@ export function rustraPlugin(options: RustraVitePluginOptions = {}) {
   };
 
   return {
-    name: 'vite-plugin-rustra',
+    name: 'vite-plugin-unikit',
     async buildStart(): Promise<void> {
       try {
         const dirty = detectDirty(resolve(backendDir), resolve(generatedDir));

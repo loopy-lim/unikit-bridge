@@ -5,25 +5,25 @@
   "main": "index.ts",
   "workspaces": [
     "modules/nitro-bench/nitro-bench",
-    "modules/rustra-calculator",
-    "modules/rustra-jsi"
+    "modules/unikit-calculator",
+    "modules/unikit-jsi"
   ],
   "scripts": {
     "start": "expo start",
     "android": "bun run build:fingerprint && bun run rust:android && expo run:android",
     "ios": "bun run build:fingerprint && bun run rust:ios && expo run:ios",
     "build:fingerprint": "bun scripts/generate-build-fingerprint.mjs",
-    "codegen": "bun ../../packages/cli/src/index.ts codegen --config rustra.json && bun run build:fingerprint",
-    "codegen:check": "bun ../../packages/cli/src/index.ts codegen --config rustra.json --check",
+    "codegen": "bun ../../packages/cli/src/index.ts codegen --config unikit.json && bun run build:fingerprint",
+    "codegen:check": "bun ../../packages/cli/src/index.ts codegen --config unikit.json --check",
     "postinstall": "node scripts/link-live-packages.mjs",
     "doctor": "bun scripts/doctor.mjs",
     "check": "bun run doctor && bun run typecheck && bun run test && bun run test:cpp-codec",
     "web": "expo start --web",
-    "demo:dynamic": "EXPO_PUBLIC_RUSTRA_DEMO=dynamic expo start",
-    "demo:functions": "EXPO_PUBLIC_RUSTRA_DEMO=functions expo start --dev-client",
-    "ios:functions": "bun run build:fingerprint && bun run rust:ios && EXPO_PUBLIC_RUSTRA_DEMO=functions expo run:ios --configuration Release",
-    "demo:reload": "EXPO_PUBLIC_RUSTRA_DEMO=reload expo start --dev-client",
-    "demo:hot-core": "EXPO_PUBLIC_RUSTRA_DEMO=hot-core expo start --dev-client",
+    "demo:dynamic": "EXPO_PUBLIC_UNIKIT_DEMO=dynamic expo start",
+    "demo:functions": "EXPO_PUBLIC_UNIKIT_DEMO=functions expo start --dev-client",
+    "ios:functions": "bun run build:fingerprint && bun run rust:ios && EXPO_PUBLIC_UNIKIT_DEMO=functions expo run:ios --configuration Release",
+    "demo:reload": "EXPO_PUBLIC_UNIKIT_DEMO=reload expo start --dev-client",
+    "demo:hot-core": "EXPO_PUBLIC_UNIKIT_DEMO=hot-core expo start --dev-client",
     "test:reload:ios": "bun scripts/reload-stress.mjs",
     "push:hot-core:android": "bun scripts/hot-core-push-android.mjs",
     "test:hot-core:android": "bun scripts/hot-core-smoke-android.mjs",
@@ -31,28 +31,28 @@
     "test:hot-core:ios": "bun scripts/hot-core-smoke-ios.mjs",
     "bench:serialization": "bun serialization-bench.mjs",
     "bench:ios:receipt": "bun scripts/extract-benchmark-receipt.mjs",
-    "rust:android": "sh modules/rustra-jsi/android/build-rust-android.sh",
-    "rust:ios": "sh modules/rustra-jsi/ios/build-rust-ios.sh",
+    "rust:android": "sh modules/unikit-jsi/android/build-rust-android.sh",
+    "rust:ios": "sh modules/unikit-jsi/ios/build-rust-ios.sh",
     "test": "bun test",
-    "test:cpp-codec": "bash modules/rustra-jsi/ios/run-cpp-codec-tests.sh",
+    "test:cpp-codec": "bash modules/unikit-jsi/ios/run-cpp-codec-tests.sh",
     "verify:native:android": "cd android && NODE_ENV=test ./gradlew :app:assembleDebug --no-daemon",
-    "verify:native:ios": "xcodebuild -workspace ios/reactnativecalculator.xcworkspace -scheme reactnativecalculator -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath ios/build/rustra-derived-data CODE_SIGNING_ALLOWED=NO build",
-    "verify:native:ios:release": "xcodebuild -workspace ios/reactnativecalculator.xcworkspace -scheme reactnativecalculator -configuration Release -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath ios/build/rustra-release-derived-data CODE_SIGNING_ALLOWED=NO build",
-    "install:ios:release": "xcrun simctl install booted ios/build/rustra-release-derived-data/Build/Products/Release-iphonesimulator/reactnativecalculator.app",
-    "install:ios:debug": "xcrun simctl install booted ios/build/rustra-derived-data/Build/Products/Debug-iphonesimulator/reactnativecalculator.app",
+    "verify:native:ios": "xcodebuild -workspace ios/reactnativecalculator.xcworkspace -scheme reactnativecalculator -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath ios/build/unikit-derived-data CODE_SIGNING_ALLOWED=NO build",
+    "verify:native:ios:release": "xcodebuild -workspace ios/reactnativecalculator.xcworkspace -scheme reactnativecalculator -configuration Release -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath ios/build/unikit-release-derived-data CODE_SIGNING_ALLOWED=NO build",
+    "install:ios:release": "xcrun simctl install booted ios/build/unikit-release-derived-data/Build/Products/Release-iphonesimulator/reactnativecalculator.app",
+    "install:ios:debug": "xcrun simctl install booted ios/build/unikit-derived-data/Build/Products/Debug-iphonesimulator/reactnativecalculator.app",
     "typecheck": "tsc --noEmit",
     "bench:parity:ios": "bun scripts/run-nitro-parity.ts",
-    "demo:nitro-parity": "EXPO_PUBLIC_RUSTRA_DEMO=nitro-parity expo start --dev-client",
+    "demo:nitro-parity": "EXPO_PUBLIC_UNIKIT_DEMO=nitro-parity expo start --dev-client",
     "test:parity": "bun test src/nitro-parity",
     "verify:functions:ios": "bun scripts/verify-function-simulator.mjs",
-    "rustra:ios": "node -e \"require('@rustra/generated-react-native/scripts/prepare-native.cjs').prepare('ios')\"",
-    "rustra:android": "node -e \"require('@rustra/generated-react-native/scripts/prepare-native.cjs').prepare('android')\""
+    "unikit:ios": "node -e \"require('@unikit/generated-react-native/scripts/prepare-native.cjs').prepare('ios')\"",
+    "unikit:android": "node -e \"require('@unikit/generated-react-native/scripts/prepare-native.cjs').prepare('android')\""
   },
   "dependencies": {
     "@msgpack/msgpack": "^3.1.3",
-    "@rustra/generated-react-native": "workspace:*",
-    "@rustra/react-native": "file:../../packages/react-native",
-    "@rustra/types": "file:../../packages/types",
+    "@unikit/generated-react-native": "workspace:*",
+    "@unikit/react-native": "file:../../packages/react-native",
+    "@unikit/types": "file:../../packages/types",
     "expo": "~54.0.33",
     "expo-status-bar": "~3.0.9",
     "msgpackr": "^2.0.1",
@@ -60,7 +60,7 @@
     "react": "19.1.0",
     "react-native": "0.81.5",
     "react-native-nitro-modules": "0.37.1",
-    "rustra-calculator": "workspace:*"
+    "unikit-calculator": "workspace:*"
   },
   "devDependencies": {
     "@react-native-community/cli": "20.2.0",
@@ -70,8 +70,8 @@
     "typescript": "~5.9.2"
   },
   "overrides": {
-    "@rustra/react-native": "file:../../packages/react-native",
-    "@rustra/types": "file:../../packages/types"
+    "@unikit/react-native": "file:../../packages/react-native",
+    "@unikit/types": "file:../../packages/types"
   },
   "private": true
 }

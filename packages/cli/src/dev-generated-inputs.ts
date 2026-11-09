@@ -45,7 +45,7 @@ export function withDevGeneratedInputExclusions(
   inputs: RustInputPaths,
   outputs: GeneratedOutputs,
 ): RustInputPaths {
-  const manifestPath = join(outputs.outputPath, '.rustra-generated.json');
+  const manifestPath = join(outputs.outputPath, '.unikit-generated.json');
   const excluded = [
     ...new Set([
       ...(inputs.excluded ?? []),

@@ -2,15 +2,15 @@
 set -euo pipefail
 
 bundle_id="com.alt-shifted.react-native-calculator"
-app="${RUNNER_TEMP:?RUNNER_TEMP must be set}/rustra-ios-dd/Build/Products/Release-iphonesimulator/reactnativecalculator.app"
-log_path="$RUNNER_TEMP/rustra-ios-console.log"
-native_stdout_path="$RUNNER_TEMP/rustra-ios-native.stdout.log"
-native_stderr_path="$RUNNER_TEMP/rustra-ios-native.stderr.log"
-kill_error_path="$RUNNER_TEMP/rustra-ios-kill.stderr.log"
-process_path="$RUNNER_TEMP/rustra-ios-process.log"
-crash_summary_path="$RUNNER_TEMP/rustra-ios-crash-summary.json"
-attempts="${RUSTRA_SMOKE_ATTEMPTS:-60}"
-delay="${RUSTRA_SMOKE_DELAY_SECONDS:-5}"
+app="${RUNNER_TEMP:?RUNNER_TEMP must be set}/unikit-ios-dd/Build/Products/Release-iphonesimulator/reactnativecalculator.app"
+log_path="$RUNNER_TEMP/unikit-ios-console.log"
+native_stdout_path="$RUNNER_TEMP/unikit-ios-native.stdout.log"
+native_stderr_path="$RUNNER_TEMP/unikit-ios-native.stderr.log"
+kill_error_path="$RUNNER_TEMP/unikit-ios-kill.stderr.log"
+process_path="$RUNNER_TEMP/unikit-ios-process.log"
+crash_summary_path="$RUNNER_TEMP/unikit-ios-crash-summary.json"
+attempts="${UNIKIT_SMOKE_ATTEMPTS:-60}"
+delay="${UNIKIT_SMOKE_DELAY_SECONDS:-5}"
 if [[ ! "$attempts" =~ ^[1-9][0-9]*$ || ! "$delay" =~ ^[0-9]+$ ]]; then
   echo "::error::smoke attempts must be positive and delay must be non-negative" >&2
   exit 2
@@ -34,9 +34,9 @@ xcrun simctl bootstatus "$sim_id" -b
 echo "smoke: installing $bundle_id"
 xcrun simctl install "$sim_id" "$app"
 started_at="@$(date +%s)"
-native_sim_dir="/tmp/rustra-ios-native-${started_at#@}-$$"
-native_sim_stdout_path="$native_sim_dir/rustra-ios-native.stdout.log"
-native_sim_stderr_path="$native_sim_dir/rustra-ios-native.stderr.log"
+native_sim_dir="/tmp/unikit-ios-native-${started_at#@}-$$"
+native_sim_stdout_path="$native_sim_dir/unikit-ios-native.stdout.log"
+native_sim_stderr_path="$native_sim_dir/unikit-ios-native.stderr.log"
 native_host_dir=""
 native_launch_args=(--terminate-running-process)
 if native_sim_data_dir="$(xcrun simctl getenv "$sim_id" SIMULATOR_SHARED_RESOURCES_DIRECTORY 2>/dev/null)" \
@@ -73,8 +73,8 @@ copy_native_log() {
 failure_diagnostics() {
   # simctl launch resolves output paths inside this simulator, not on the host.
   if [[ -n "$native_host_dir" ]]; then
-    copy_native_log "$native_host_dir/rustra-ios-native.stdout.log" "$native_stdout_path"
-    copy_native_log "$native_host_dir/rustra-ios-native.stderr.log" "$native_stderr_path"
+    copy_native_log "$native_host_dir/unikit-ios-native.stdout.log" "$native_stdout_path"
+    copy_native_log "$native_host_dir/unikit-ios-native.stderr.log" "$native_stderr_path"
   fi
   if [[ -n "$native_host_dir" && -s "$native_stderr_path" ]]; then
     echo "smoke: native stderr for pid=$app_pid (last 80 lines, at most 16384 bytes)" >&2
@@ -110,10 +110,10 @@ failure_diagnostics() {
 for ((i = 0; i < attempts; i++)); do
   xcrun simctl spawn "$sim_id" log show --style compact --info --debug \
     --start "$started_at" \
-    --predicate "(processIdentifier == $app_pid) AND subsystem == \"com.facebook.react.log\" AND category == \"javascript\" AND eventMessage CONTAINS \"__RUSTRA_SMOKE_\"" \
+    --predicate "(processIdentifier == $app_pid) AND subsystem == \"com.facebook.react.log\" AND category == \"javascript\" AND eventMessage CONTAINS \"__UNIKIT_SMOKE_\"" \
     > "$log_path"
-  if grep -Fq '__RUSTRA_SMOKE_FAIL__' "$log_path"; then
-    echo "::error::__RUSTRA_SMOKE_FAIL__ observed" >&2
+  if grep -Fq '__UNIKIT_SMOKE_FAIL__' "$log_path"; then
+    echo "::error::__UNIKIT_SMOKE_FAIL__ observed" >&2
     cat "$log_path" >&2
     failure_diagnostics
     exit 1
@@ -124,13 +124,13 @@ for ((i = 0; i < attempts; i++)); do
     failure_diagnostics
     exit 1
   fi
-  if grep -Fq '__RUSTRA_SMOKE_OK__' "$log_path"; then
-    echo "smoke OK: pid=$app_pid, __RUSTRA_SMOKE_OK__ observed ($sim_id)"
+  if grep -Fq '__UNIKIT_SMOKE_OK__' "$log_path"; then
+    echo "smoke OK: pid=$app_pid, __UNIKIT_SMOKE_OK__ observed ($sim_id)"
     exit 0
   fi
   sleep "$delay"
 done
-echo "::error::__RUSTRA_SMOKE_OK__ was not observed in unified logging" >&2
+echo "::error::__UNIKIT_SMOKE_OK__ was not observed in unified logging" >&2
 cat "$log_path" >&2
 failure_diagnostics
 exit 1

@@ -44,14 +44,14 @@ unknown direct handlers fail closed.
 ## Ownership and lifetime
 
 The synchronous host function borrows the JS input pointer only until
-`rustra_ffi_invoke_buffer` returns. `Package::invoke_buffer` copies that span
+`unikit_ffi_invoke_buffer` returns. `Package::invoke_buffer` copies that span
 into the owned Rust input before calling user code; no JS pointer crosses the
 handler boundary.
 
 On success, the Rust output `Vec<u8>` becomes an exact boxed slice and its
 `(ptr, len)` is transferred to `RustOwnedMutableBuffer`. Hermes retains the
 shared `MutableBuffer` for the JS `ArrayBuffer` lifetime. Its destructor calls
-`rustra_ffi_free_owned_bytes` exactly once. The finalizer owns no JSI `Runtime`,
+`unikit_ffi_free_owned_bytes` exactly once. The finalizer owns no JSI `Runtime`,
 `Value`, or `PropNameID`, so it may run after an RN reload without touching a
 superseded runtime.
 
@@ -62,7 +62,7 @@ Hermes `TransitionMap` during reload. A process-global `ArrayBuffer` constructor
 handle was also removed because JSI handles may not cross Runtime lifetimes.
 
 The direct allocation has no legacy FFI header and must never be passed to
-`rustra_ffi_free`. Debug builds track allocation kind as well as pointer and
+`unikit_ffi_free`. Debug builds track allocation kind as well as pointer and
 length, aborting on double free, wrong length, or cross-allocator free. Error
 buffers use the same owned allocator but are converted and freed immediately
 instead of becoming a JS `ArrayBuffer`.
@@ -75,19 +75,19 @@ allocation through RAII.
 
 For the benchmark echo command:
 
-| Stage                      | Nitro | Rustra direct |
+| Stage                      | Nitro | Unikit direct |
 | -------------------------- | ----: | ------------: |
 | Borrow/read JS input       |     0 |             0 |
 | Create fresh native output |     1 |             1 |
 | Native output to JS buffer |     0 |             0 |
 | Bulk copies per invocation | **1** |         **1** |
 
-Nitro copies the input into a fresh `ArrayBuffer`. Rustra copies the borrowed
+Nitro copies the input into a fresh `ArrayBuffer`. Unikit copies the borrowed
 input into the owned Rust vector, lets the echo handler move that vector into
 its output, then exposes the same allocation to JSI. General transforming
 handlers may allocate differently, but the bridge adds no response copy.
 
-`#[serde(with = "rustra::byte_buffer")]` separately selects Serde's contiguous
+`#[serde(with = "unikit_bridge::byte_buffer")]` separately selects Serde's contiguous
 byte API for the normal postcard path while preserving the existing postcard
 wire and JSON `number[]` representation.
 
@@ -105,19 +105,19 @@ buffer is intentionally rejected because its wire frame is five bytes larger.
 ## Simulator performance receipt
 
 Environment: iPhone 17 Simulator, iOS 26.2, Hermes, React Native 0.81.5,
-Expo 54, Release build, rotating Nitro/Rustra order, and pre-timing byte equality
+Expo 54, Release build, rotating Nitro/Unikit order, and pre-timing byte equality
 checks. The table reports the median of three run-level average times.
 
-| Payload    | Warmup / timed | Nitro median | Rustra median | Paired ratio median |
+| Payload    | Warmup / timed | Nitro median | Unikit median | Paired ratio median |
 | ---------- | -------------: | -----------: | ------------: | ------------------: |
 | 64 KiB     |       50 / 500 |     9.256 us |      8.644 us |              0.934x |
 | 1 MiB wire |       20 / 200 |    87.979 us |     89.836 us |              1.013x |
 
-Before the external-output ownership transfer, Rustra measured 24.174 us and
+Before the external-output ownership transfer, Unikit measured 24.174 us and
 169.315 us respectively, or 2.344x and 3.644x Nitro. The final rerun after the
 JS-thread installation fix still shows parity for these payloads; it is not an
 iOS-device or Android claim. One 64 KiB run had a transient Nitro-only slowdown,
-while Rustra remained within 8.456–8.792 us across all three runs.
+while Unikit remained within 8.456–8.792 us across all three runs.
 
 ## Release gates
 

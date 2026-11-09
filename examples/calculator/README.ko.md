@@ -1,6 +1,6 @@
 # Calculator 예시
 
-별도의 Rust crate가 `rustra`를 사용하는 완전한 예시입니다. 애플리케이션 작성자가 실제로 사용하는 방식을 보여줍니다.
+별도의 Rust crate가 `unikit`를 사용하는 완전한 예시입니다. 애플리케이션 작성자가 실제로 사용하는 방식을 보여줍니다.
 
 ## 생성과 실행
 
@@ -15,11 +15,11 @@ stable ABI를 lazy 연결한다. 둘 다 애플리케이션 코드에 `configure
 `dlopen` 또는 pointer 수명 관리가 없다.
 
 ```ts
-import { addNumbers, rustra } from '../generated/node.js'; // Bun은 bun.js
+import { addNumbers, unikit } from '../generated/node.js'; // Bun은 bun.js
 
 const { value } = await addNumbers({ a: 20, b: 22 });
 console.log(value);
-rustra.dispose();
+unikit.dispose();
 ```
 
 실행 파일은 [`apps/node-app.ts`](apps/node-app.ts)와
@@ -30,7 +30,7 @@ rustra.dispose();
 1. **타입 정의** — `AddNumbersInput`, `AddNumbersOutput`을 `Serialize + Deserialize + JsonSchema`로 정의
 2. **커맨드 등록** — `#[command]`로 핸들러 함수를 표시하고 `Package::builder(...).command_fn(...)`로 등록
 3. **로컬 invoke** — `package.invoke("addNumbers", ...)`로 타입 안전한 호출
-4. **TypeScript 생성** — 계약 프로브(`src/bin/generate.rs`)가 `schema.json`만 발행하면 `rustra codegen`이 TS/C++ 표면을 렌더링
+4. **TypeScript 생성** — 계약 프로브(`src/bin/generate.rs`)가 `schema.json`만 발행하면 `unikit codegen`이 TS/C++ 표면을 렌더링
 5. **Host 생성 진입점** — `node.ts`, `bun.ts`, `tauri.ts`, `react-native.ts`
 6. **네이티브 진입점** — `native_entry!` 한 줄로 stable C ABI와 RN staticlib 공유
 7. **고성능 선택지** — Node persistent loop/N-API와 Bun FFI Frame 실측
@@ -48,7 +48,7 @@ rustra.dispose();
 - `node.ts`, `bun.ts`, `tauri.ts`, `react-native.ts` — host별 zero-config bootstrap
 
 `positional` 옵션을 켜면(React Native 예시가 그렇다) 추가로 `positional-facade.ts`가
-생성된다. `.rustra-generated.json`은 스키마 해시와 파일별 해시를 기록해 CI의
+생성된다. `.unikit-generated.json`은 스키마 해시와 파일별 해시를 기록해 CI의
 `codegen:check`이 1바이트 드리프트도 감지한다.
 
 ## 생성된 커맨드 헬퍼
@@ -67,7 +67,7 @@ console.log(result.value); // 42
 
 ## scriptc 네이티브 FFI(정적 링크)
 
-[`rustra.json`](rustra.json)의 `scriptc` 섹션은 `rustra codegen`의 scriptc 스테이지를
+[`unikit.json`](unikit.json)의 `scriptc` 섹션은 `unikit codegen`의 scriptc 스테이지를
 켠다 — `scriptc/ffi.json`(`ffi_format` 7 매니페스트)와 `scriptc/scriptc-ffi.d.ts`
 (시그니처-only 선언)를 쓴다. `scriptc build`는 Rust staticlib를 네이티브 바이너리에
 정적 링크한다 — JS 엔진도, `dlopen`도, 런타임 symbol lookup도 없다:
@@ -83,9 +83,9 @@ bash examples/calculator/scriptc/run.sh
 `ts-runtime` 잡에서 같은 핀 리터럴로 이 스모크를 돈다
 (`check-test-list-parity`가 양쪽 드리프트를 검증).
 
-[`apps/scriptc-app.ts`](apps/scriptc-app.ts)는 `rustra_mobile_init()`(`native_entry!`
+[`apps/scriptc-app.ts`](apps/scriptc-app.ts)는 `unikit_mobile_init()`(`native_entry!`
 진입)을 1회 호출한 뒤 caller-buffer envelope
-`rustra_ffi_invoke_json_into_len(payload, buf)`로 addNumbers를 호출한다. 응답 JSON은
+`unikit_ffi_invoke_json_into_len(payload, buf)`로 addNumbers를 호출한다. 응답 JSON은
 caller 소유 `Uint8Array`에 기록되고 기록 바이트 수가 `bigint`로 반환된다
 (`0xffff_ffff_ffff_ffffn` = 실패). 매니페스트에는 scriptc 직접 호출 세계가 공급
 가능한 인자만 실린다 — out 포인터 기록과 콜백 함수 포인터(async, 이벤트, 채널) 심볼은

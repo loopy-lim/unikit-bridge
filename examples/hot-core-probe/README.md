@@ -12,7 +12,7 @@ launching a full host app is inconvenient.
 
 ## What it verifies
 
-1. `DylibCore::open` — dlopen → `rustra_mobile_init` → symbol binding
+1. `DylibCore::open` — dlopen → `unikit_mobile_init` → symbol binding
 2. JSON dispatch round trip (`addNumbers`) + unknown-command error splitting
 3. Contract hash retrieval (SHA-256 hex, 64 chars)
 4. Versioned swap copy (`prepare_swap_copy`) → open the copy → same hash
@@ -27,28 +27,28 @@ launching a full host app is inconvenient.
 
 ```bash
 # Build the probe and the swap-unit cdylib for the target
-cargo build --release -p rustra-hot-core-probe -p rustra-calculator-example
+cargo build --release -p unikit-hot-core-probe -p unikit-calculator-example
 # iOS simulator
 cargo build --release --target aarch64-apple-ios-sim \
-  -p rustra-hot-core-probe -p rustra-calculator-example
+  -p unikit-hot-core-probe -p unikit-calculator-example
 # Android (arm64 emulator), via cargo-ndk
 cargo ndk -t arm64-v8a build --release \
-  -p rustra-hot-core-probe -p rustra-calculator-example
+  -p unikit-hot-core-probe -p unikit-calculator-example
 
 # macOS host
-./target/release/rustra-hot-core-probe \
-  ./target/release/librustra_calculator_example.dylib
+./target/release/unikit-hot-core-probe \
+  ./target/release/libunikit_calculator_example.dylib
 
 # iOS simulator (booted device UUID, absolute paths)
 xcrun simctl spawn <UDID> \
-  target/aarch64-apple-ios-sim/release/rustra-hot-core-probe \
-  target/aarch64-apple-ios-sim/release/librustra_calculator_example.dylib
+  target/aarch64-apple-ios-sim/release/unikit-hot-core-probe \
+  target/aarch64-apple-ios-sim/release/libunikit_calculator_example.dylib
 
 # Android emulator (shell domain)
-adb push target/aarch64-linux-android/release/rustra-hot-core-probe /data/local/tmp/
-adb push target/aarch64-linux-android/release/librustra_calculator_example.so /data/local/tmp/
-adb shell chmod 755 /data/local/tmp/rustra-hot-core-probe
-adb shell /data/local/tmp/rustra-hot-core-probe /data/local/tmp/librustra_calculator_example.so
+adb push target/aarch64-linux-android/release/unikit-hot-core-probe /data/local/tmp/
+adb push target/aarch64-linux-android/release/libunikit_calculator_example.so /data/local/tmp/
+adb shell chmod 755 /data/local/tmp/unikit-hot-core-probe
+adb shell /data/local/tmp/unikit-hot-core-probe /data/local/tmp/libunikit_calculator_example.so
 ```
 
 Exit code `0` + `PROBE PASS` means every step held. Any failing step prints
@@ -57,14 +57,14 @@ Exit code `0` + `PROBE PASS` means every step held. Any failing step prints
 ### Watch mode
 
 ```bash
-rustra-hot-core-probe <artifact> --watch 10
+unikit-hot-core-probe <artifact> --watch 10
 ```
 
 The probe opens the artifact, spawns the watch thread, and polls for 10
 seconds while an external publisher replaces the artifact bytes. Publisher
 contract: **replace by atomic rename, never write in place** — overwriting a
 dylib file that a process has mapped is corruption (`SIGKILL` on
-macOS/iOS, `SIGSEGV` on Android). This mirrors the CLI contract: `rustra dev`
+macOS/iOS, `SIGSEGV` on Android). This mirrors the CLI contract: `unikit dev`
 publishes the gated `-hot-live` artifact through temp-file + rename, which
 preserves the old inode for live mappings.
 
@@ -95,9 +95,9 @@ outcome can be the correct one (after a rename swap, `addNumbers` returning
 
 ```bash
 # Build each scenario's swap unit, stage it, then publish with rename:
-cargo build --release -p rustra-hot-core-variant                    # base
-cargo build --release -p rustra-hot-core-variant --features behavior
-cp target/release/librustra_hot_core_variant.dylib publish.tmp.dylib
+cargo build --release -p unikit-hot-core-variant                    # base
+cargo build --release -p unikit-hot-core-variant --features behavior
+cp target/release/libunikit_hot_core_variant.dylib publish.tmp.dylib
 mv -f publish.tmp.dylib /path/to/live.dylib
 ```
 

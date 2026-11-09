@@ -4,7 +4,7 @@ English | [한국어](./transport-guide.ko.md)
 
 ## 1. What Is a Transport?
 
-In rustra, a **transport** is the concrete means by which adapter internals actually call Rust code.
+In unikit, a **transport** is the concrete means by which adapter internals actually call Rust code.
 
 An adapter (`createNodeEngine`, `createBunEngine`, etc.) merely receives a transport and wraps it into an `EngineClient`; it does not implement the transport itself. Replacing only the transport therefore changes how you communicate with Rust while reusing the same adapter code.
 
@@ -43,22 +43,22 @@ assembly** — custom hosts, custom transports, or replacing the default.
 
 | Host                       | Default (generated entry)                                                                                                                                                                       | Rust entry point                                                                                                                                                                                   | Manual-assembly alternatives                                                                 |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| **Node**                   | one-shot Cargo binary + stdio, contract check via `__rustra_contract`                                                                                                                           | `main.rs` → `run_invoke_stdio()`                                                                                                                                                                   | your own `spawnSync` stdio, `createNodeLoopTransport` (servers), napi-rs native module, WASM |
-| **Bun**                    | cdylib + stable C ABI + Frame (`rustra_ffi_invoke_frame`)                                                                                                                                       | `lib.rs` → `rustra::native_entry!` + `register_ffi(...)`                                                                                                                                           | `bun:ffi` direct C FFI call (§4, JSON path)                                                  |
-| **Tauri**                  | `rustra_dispatch` multiplexing (framework built-in)                                                                                                                                             | `tauri_support::register[_with_events]()` (feature: `tauri`)                                                                                                                                       | `createTauriEngine({ invoke })` with a custom invoke function                                |
-| **React Native**           | autolinked JSI + Frame (`invokeFrame`) via `@rustra/generated-react-native`                                                                                                                     | `rustra::native_entry!` (exports `rustra_mobile_init`)                                                                                                                                             | custom JSON transport (`createReactNativeEngine`), TurboModule, Nitro Modules                |
-| **scriptc** (experimental) | statically linked native executable — `scriptc/ffi.json` (ffi_format 7 manifest) + `scriptc-ffi.d.ts`/`scriptc-ffi.ts`, rendered by `rustra codegen` when `rustra.json` has a `scriptc` section | `rustra_ffi_invoke_json_into_len` caller-buffer envelope; retained callbacks (`rustra_ffi_invoke_json_async_channel`, `rustra_ffi_event_sink_register_scriptc`, `rustra_ffi_channel_create_bytes`) | no napi add-ons or `dlopen`; working gate: `examples/calculator/scriptc/run.sh`              |
+| **Node**                   | one-shot Cargo binary + stdio, contract check via `__unikit_contract`                                                                                                                           | `main.rs` → `run_invoke_stdio()`                                                                                                                                                                   | your own `spawnSync` stdio, `createNodeLoopTransport` (servers), napi-rs native module, WASM |
+| **Bun**                    | cdylib + stable C ABI + Frame (`unikit_ffi_invoke_frame`)                                                                                                                                       | `lib.rs` → `unikit_bridge::native_entry!` + `register_ffi(...)`                                                                                                                                           | `bun:ffi` direct C FFI call (§4, JSON path)                                                  |
+| **Tauri**                  | `unikit_dispatch` multiplexing (framework built-in)                                                                                                                                             | `tauri_support::register[_with_events]()` (feature: `tauri`)                                                                                                                                       | `createTauriEngine({ invoke })` with a custom invoke function                                |
+| **React Native**           | autolinked JSI + Frame (`invokeFrame`) via `@unikit/generated-react-native`                                                                                                                     | `unikit_bridge::native_entry!` (exports `unikit_mobile_init`)                                                                                                                                             | custom JSON transport (`createReactNativeEngine`), TurboModule, Nitro Modules                |
+| **scriptc** (experimental) | statically linked native executable — `scriptc/ffi.json` (ffi_format 7 manifest) + `scriptc-ffi.d.ts`/`scriptc-ffi.ts`, rendered by `unikit codegen` when `unikit.json` has a `scriptc` section | `unikit_ffi_invoke_json_into_len` caller-buffer envelope; retained callbacks (`unikit_ffi_invoke_json_async_channel`, `unikit_ffi_event_sink_register_scriptc`, `unikit_ffi_channel_create_bytes`) | no napi add-ons or `dlopen`; working gate: `examples/calculator/scriptc/run.sh`              |
 
 ### Node — manual subprocess stdio
 
 The default Node entry spawns a Cargo binary that speaks the one-shot stdio
-protocol (`{command, args}` → `{ok, result}` + the reserved `__rustra_contract`
+protocol (`{command, args}` → `{ok, result}` + the reserved `__unikit_contract`
 probe). If you assemble the process transport yourself, the shape is:
 
 ```ts
 // manual assembly — illustrative; the generated node.ts does this for you
 import { spawnSync } from 'node:child_process';
-import { createNodeEngine } from '@rustra/node';
+import { createNodeEngine } from '@unikit/node';
 
 const engine = createNodeEngine({
   invoke(command, args) {
@@ -67,7 +67,7 @@ const engine = createNodeEngine({
 });
 
 function invokeCalculatorRuntime(command: string, args: unknown): unknown {
-  const output = spawnSync('target/debug/rustra-calculator-example', ['invoke'], {
+  const output = spawnSync('target/debug/unikit-calculator-example', ['invoke'], {
     input: JSON.stringify({ command, args }),
     encoding: 'utf8',
   });
@@ -85,14 +85,14 @@ Rust stdio entry point:
 
 ```rust
 // examples/calculator/src/main.rs
-fn run_invoke_stdio() -> rustra::Result<()> {
+fn run_invoke_stdio() -> unikit_bridge::Result<()> {
     let mut input = String::new();
     std::io::stdin().read_to_string(&mut input)?;
     let request: Value = serde_json::from_str(&input)?;
     let command = request
         .get("command")
         .and_then(Value::as_str)
-        .ok_or_else(|| rustra::RustraError::invalid_args("missing command"))?;
+        .ok_or_else(|| unikit_bridge::UnikitError::invalid_args("missing command"))?;
     let args = request.get("args").cloned().unwrap_or_else(|| json!({}));
     let result = calculator_package().invoke_json(command, args)?;
     let response = serde_json::to_vec(&json!({ "ok": true, "result": result }))?;
@@ -103,77 +103,77 @@ fn run_invoke_stdio() -> rustra::Result<()> {
 
 ### React Native — C FFI (manual JSON path)
 
-> The example-local symbols `rustra_calculator_invoke`/`rustra_calculator_free_string`
+> The example-local symbols `unikit_calculator_invoke`/`unikit_calculator_free_string`
 > shown here in older revisions were removed (2026-09-03 legacy cleanup). The current
-> surface is the **core public C ABI** (`rustra_ffi_*`), which serves any package.
+> surface is the **core public C ABI** (`unikit_ffi_*`), which serves any package.
 
 On the Rust side, register the package for the core FFI and export the zero-config
 init — no hand-written per-app symbols:
 
 ```rust
 // examples/calculator/src/lib.rs
-use rustra::ffi::FfiFormat;
-use rustra::prelude::*;
+use unikit_bridge::ffi::FfiFormat;
+use unikit_bridge::prelude::*;
 
 pub fn calculator_package() -> Package {
-    let pkg = rustra::build!("examples.calculator", add_numbers /*, … */).done();
-    // rustra_ffi_invoke_json / rustra_ffi_invoke_postcard now serve this package
+    let pkg = unikit_bridge::build!("examples.calculator", add_numbers /*, … */).done();
+    // unikit_ffi_invoke_json / unikit_ffi_invoke_postcard now serve this package
     pkg.register_ffi_with_default(FfiFormat::Json);
     pkg
 }
 
-// exports rustra_mobile_init() — hosts call it during lazy bootstrap
-rustra::native_entry!(calculator_package);
+// exports unikit_mobile_init() — hosts call it during lazy bootstrap
+unikit_bridge::native_entry!(calculator_package);
 ```
 
 The JSON-over-bytes contract of the core entry point:
 
 ```text
-rustra_ffi_invoke_json(payload: *const u8, payload_len: usize, out_len: *mut usize) -> *mut u8
+unikit_ffi_invoke_json(payload: *const u8, payload_len: usize, out_len: *mut usize) -> *mut u8
   request:  JSON {"command":"...","args":{...}} as raw bytes
   response: JSON {"ok":bool,"result":...,"error":"..."} as raw bytes
-  the returned buffer must be freed with rustra_ffi_free(ptr, len) — the exact pair
+  the returned buffer must be freed with unikit_ffi_free(ptr, len) — the exact pair
 ```
 
 Swift binds the same symbols directly:
 
 ```swift
 // a hand-rolled JSI/module bridging layer (custom hosts only — the default RN
-// path is the generated @rustra/generated-react-native package)
-@_silgen_name("rustra_mobile_init")
-func rustra_mobile_init()
+// path is the generated @unikit/generated-react-native package)
+@_silgen_name("unikit_mobile_init")
+func unikit_mobile_init()
 
-@_silgen_name("rustra_ffi_invoke_json")
-func rustra_ffi_invoke_json(
+@_silgen_name("unikit_ffi_invoke_json")
+func unikit_ffi_invoke_json(
     _ payload: UnsafePointer<UInt8>, _ payloadLen: Int,
     _ outLen: UnsafeMutablePointer<Int>
 ) -> UnsafeMutablePointer<UInt8>?
 
-@_silgen_name("rustra_ffi_free")
-func rustra_ffi_free(_ ptr: UnsafeMutablePointer<UInt8>, _ len: Int)
+@_silgen_name("unikit_ffi_free")
+func unikit_ffi_free(_ ptr: UnsafeMutablePointer<UInt8>, _ len: Int)
 
 func invokeRawJSON(_ payload: String) throws -> String {
-    rustra_mobile_init() // idempotent — registers the package on first call
+    unikit_mobile_init() // idempotent — registers the package on first call
     let bytes = Array(payload.utf8)
     let outLen = UnsafeMutablePointer<Int>.allocate(capacity: 1)
     defer { outLen.deallocate() }
-    guard let raw = rustra_ffi_invoke_json(bytes, bytes.count, outLen) else {
-        throw NSError(domain: "rustra", code: 1, userInfo: [NSLocalizedDescriptionKey: "FFI invoke returned null"])
+    guard let raw = unikit_ffi_invoke_json(bytes, bytes.count, outLen) else {
+        throw NSError(domain: "unikit", code: 1, userInfo: [NSLocalizedDescriptionKey: "FFI invoke returned null"])
     }
-    defer { rustra_ffi_free(raw, outLen.pointee) } // free with the exact ptr/len pair
+    defer { unikit_ffi_free(raw, outLen.pointee) } // free with the exact ptr/len pair
     return String(decoding: UnsafeBufferPointer(start: raw, count: outLen.pointee), as: UTF8.self)
 }
 ```
 
-Other core FFI symbols on the same cdylib/staticlib: `rustra_ffi_invoke` (default
-format dispatch), `rustra_ffi_invoke_postcard`, `rustra_ffi_invoke_frame`,
-`rustra_ffi_get_schema`, `rustra_ffi_contract_hash` — the full list with stability
+Other core FFI symbols on the same cdylib/staticlib: `unikit_ffi_invoke` (default
+format dispatch), `unikit_ffi_invoke_postcard`, `unikit_ffi_invoke_frame`,
+`unikit_ffi_get_schema`, `unikit_ffi_contract_hash` — the full list with stability
 tiers is in the [Rust API guide — FFI appendix](../rust-api-guide.md) and the
 [versioning policy](../versioning-policy.md).
 
-### Tauri — the `rustra_dispatch` multiplexing pattern
+### Tauri — the `unikit_dispatch` multiplexing pattern
 
-The Tauri transport does not pass through individual commands; instead it **multiplexes every command through the single `rustra_dispatch` endpoint**.
+The Tauri transport does not pass through individual commands; instead it **multiplexes every command through the single `unikit_dispatch` endpoint**.
 
 ```ts
 // packages/tauri/src/index.ts
@@ -182,18 +182,18 @@ export type TauriInvoke = (command: string, args?: unknown) => Promise<unknown> 
 export function createTauriEngine(options: { invoke: TauriInvoke }): TauriEngineClient {
   return {
     async invoke<T>(command: string, args?: unknown): Promise<T> {
-      // routes all commands through a single rustra_dispatch
-      return (await options.invoke('rustra_dispatch', { command, args: args ?? {} })) as T;
+      // routes all commands through a single unikit_dispatch
+      return (await options.invoke('unikit_dispatch', { command, args: args ?? {} })) as T;
     },
   };
 }
 ```
 
-On the Rust side, the package is registered with the Tauri builder via `rustra::tauri_support::register`. This function sets up the `rustra_dispatch` command handler and state management automatically.
+On the Rust side, the package is registered with the Tauri builder via `unikit_bridge::tauri_support::register`. This function sets up the `unikit_dispatch` command handler and state management automatically.
 
 ```rust
 // examples/tauri-calculator/src-tauri/src/main.rs
-use rustra::tauri_support;
+use unikit_bridge::tauri_support;
 
 fn main() {
     let builder = tauri_support::register(calculator_package(), tauri::Builder::default());
@@ -204,7 +204,7 @@ fn main() {
 Using `tauri_support` requires enabling the `tauri` feature in `Cargo.toml`:
 
 ```toml
-rustra = { path = "...", features = ["tauri"] }
+unikit-bridge = { path = "...", features = ["tauri"] }
 ```
 
 ---
@@ -213,9 +213,9 @@ rustra = { path = "...", features = ["tauri"] }
 
 ### Step 1: Add a new Rust entry point (only if needed)
 
-A crate that registers its package for the core FFI (`rustra::native_entry!` +
+A crate that registers its package for the core FFI (`unikit_bridge::native_entry!` +
 `register_ffi(...)`, see §2) already exports the core C ABI
-(`rustra_ffi_invoke_json`, `rustra_ffi_free`, …) — switching to an FFI-based
+(`unikit_ffi_invoke_json`, `unikit_ffi_free`, …) — switching to an FFI-based
 transport then needs no new entry point.
 
 If you need a new communication mechanism (napi-rs, WASM, etc.), add the corresponding entry point to `lib.rs`.
@@ -268,10 +268,10 @@ The tests call `configure(engine)` and then check that `addNumbers({ a: 20, b: 2
 Bun can load `.dylib` / `.so` files directly via `bun:ffi`. The **default generated
 `bun.ts` entry** already does this over the Frame symbols; the JSON path below is
 the manual-assembly variant for custom hosts, using the same core C ABI
-(`rustra_ffi_invoke_json`).
+(`unikit_ffi_invoke_json`).
 
 For large Frame responses the generated entry also probes the optional
-owned-response pair `rustra_ffi_invoke_frame_owned`/`rustra_ffi_free_owned_bytes`
+owned-response pair `unikit_ffi_invoke_frame_owned`/`unikit_ffi_free_owned_bytes`
 — the host copies the owned bytes before freeing them so decoded values retain
 their lifetime, small responses keep the reusable caller buffer, and missing
 symbols fall back to the legacy path.
@@ -286,51 +286,51 @@ crate-type = ["rlib", "cdylib", "staticlib"]
 ```
 
 Register the package for the core FFI in `lib.rs` (see §2 React Native for the full
-snippet) — `rustra::native_entry!(my_package)` plus
+snippet) — `unikit_bridge::native_entry!(my_package)` plus
 `pkg.register_ffi_with_default(FfiFormat::Json)`. Build:
 
 ```bash
-cargo build -p rustra-calculator-example
+cargo build -p unikit-calculator-example
 ```
 
-This produces `target/debug/librustra_calculator_example.dylib` (macOS) or `.so` (Linux).
+This produces `target/debug/libunikit_calculator_example.dylib` (macOS) or `.so` (Linux).
 
 ### Bun FFI transport implementation
 
 The request/response are raw bytes (`Buffer`/`ArrayBuffer`), not C strings — Bun's
 `FFIType.cstring` must not be used for the return value. Receive the pointer as
-`FFIType.ptr`, copy it, and free it with `rustra_ffi_free(ptr, len)` using the exact
+`FFIType.ptr`, copy it, and free it with `unikit_ffi_free(ptr, len)` using the exact
 pair:
 
 ```ts
 import { dlopen, FFIType, suffix, toArrayBuffer } from 'bun:ffi';
-import { createBunEngine } from '@rustra/bun';
-import { configure } from '@rustra/types';
+import { createBunEngine } from '@unikit/bun';
+import { configure } from '@unikit/types';
 import { addNumbers } from '../generated/commands.js';
 
 const outLength = new BigUint64Array(1); // usize out-param
-const lib = dlopen(`target/debug/librustra_calculator_example.${suffix}`, {
-  rustra_mobile_init: { args: [], returns: FFIType.void },
-  rustra_ffi_invoke_json: {
+const lib = dlopen(`target/debug/libunikit_calculator_example.${suffix}`, {
+  unikit_mobile_init: { args: [], returns: FFIType.void },
+  unikit_ffi_invoke_json: {
     args: [FFIType.ptr, FFIType.u64, FFIType.ptr], // payload, payload_len, out_len
     returns: FFIType.ptr, // not FFIType.cstring — manual memory management required
   },
-  rustra_ffi_free: { args: [FFIType.ptr, FFIType.u64], returns: FFIType.void },
+  unikit_ffi_free: { args: [FFIType.ptr, FFIType.u64], returns: FFIType.void },
 });
-lib.symbols.rustra_mobile_init(); // idempotent package registration
+lib.symbols.unikit_mobile_init(); // idempotent package registration
 
 const engine = createBunEngine({
   invoke(command: string, args?: unknown): unknown {
     const payload = Buffer.from(JSON.stringify({ command, args }), 'utf8');
     outLength[0] = 0n;
-    const rawPtr = lib.symbols.rustra_ffi_invoke_json(payload, BigInt(payload.length), outLength);
+    const rawPtr = lib.symbols.unikit_ffi_invoke_json(payload, BigInt(payload.length), outLength);
     const len = Number(outLength[0]);
     let responseText: string;
     try {
       // copy into JS-owned memory before freeing the Rust allocation
       responseText = new TextDecoder().decode(toArrayBuffer(rawPtr, 0, len));
     } finally {
-      lib.symbols.rustra_ffi_free(rawPtr, BigInt(len));
+      lib.symbols.unikit_ffi_free(rawPtr, BigInt(len));
     }
 
     const response = JSON.parse(responseText) as {
@@ -360,13 +360,13 @@ no manual dlopen at all) is the generated `bun.ts` entry — see
 
 ```ts
 // subprocess stdio (process spawn overhead per call)
-const output = spawnSync('target/debug/rustra-calculator-example', ['invoke'], {
+const output = spawnSync('target/debug/unikit-calculator-example', ['invoke'], {
   input: JSON.stringify({ command, args }),
   encoding: 'utf8',
 });
 
 // direct FFI call (no process boundary, faster)
-const rawPtr = lib.symbols.rustra_ffi_invoke_json(payload, BigInt(payload.length), outLength);
+const rawPtr = lib.symbols.unikit_ffi_invoke_json(payload, BigInt(payload.length), outLength);
 ```
 
 Advantages:
@@ -388,11 +388,11 @@ Advantages:
 // (the shipped example now binds the Frame buffer path instead; see its README)
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use rustra_calculator_example::calculator_package;
+use unikit_calculator_example::calculator_package;
 use serde_json::json;
 
 #[napi]
-pub fn rustra_invoke(command: String, args: Option<String>) -> Result<String> {
+pub fn unikit_invoke(command: String, args: Option<String>) -> Result<String> {
     let args_value = match args {
         Some(ref a) => serde_json::from_str(a).map_err(|e| {
             Error::from_reason(format!("invalid args JSON: {e}"))
@@ -420,7 +420,7 @@ napi build --platform --release
 ### Node transport implementation
 
 ```ts
-import { createNodeEngine } from '@rustra/node';
+import { createNodeEngine } from '@unikit/node';
 
 // load the native module built with napi-rs (examples/calculator-napi)
 const native = require('./calculator-napi.node');
@@ -428,7 +428,7 @@ const native = require('./calculator-napi.node');
 const engine = createNodeEngine({
   async invoke(command: string, args?: unknown): Promise<unknown> {
     const argsJson = args !== undefined ? JSON.stringify(args) : undefined;
-    const rawResponse = native.rustra_invoke(command, argsJson);
+    const rawResponse = native.unikit_invoke(command, argsJson);
 
     const response = JSON.parse(rawResponse) as {
       ok: boolean;
@@ -455,14 +455,14 @@ console.log(`napi-rs result: ${result.value}`); // 42
 
 ```ts
 // before: subprocess stdio
-const output = spawnSync('target/debug/rustra-calculator-example', ['invoke'], {
+const output = spawnSync('target/debug/unikit-calculator-example', ['invoke'], {
   input: JSON.stringify({ command, args }),
   encoding: 'utf8',
 });
 const response = JSON.parse(output.stdout);
 
 // after: direct native module call
-const rawResponse = native.rustra_invoke(command, argsJson);
+const rawResponse = native.unikit_invoke(command, argsJson);
 ```
 
 Advantages:
@@ -488,5 +488,5 @@ Advantages:
 - **Rapid prototyping**: start with the generated entries (one-shot stdio on Node, cdylib FFI on Bun)
 - **Production (Node)**: the generated entry; napi-rs or C FFI for hot paths
 - **Production (Bun)**: the generated `bun.ts` FFI entry
-- **Production (React Native)**: the autolinked JSI entry (default); core `rustra_ffi_*` C ABI only for custom native hosts
-- **Production (Tauri)**: the `rustra_dispatch` multiplexing pattern (`tauri_support::register`)
+- **Production (React Native)**: the autolinked JSI entry (default); core `unikit_ffi_*` C ABI only for custom native hosts
+- **Production (Tauri)**: the `unikit_dispatch` multiplexing pattern (`tauri_support::register`)

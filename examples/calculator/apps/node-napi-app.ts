@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 // barrel(index) 대신 개별 모듈 import — react-doctor no-barrel-import.
-// configure/createFrameEngine 은 @rustra/types 전역 설정/엔진 팩토리다.
+// configure/createFrameEngine 은 @unikit/types 전역 설정/엔진 팩토리다.
 import { createNodeEngine } from '../../../packages/node/src/node-core.js';
 import { configure } from '../../../packages/types/src/global-config.js';
 import { createFrameEngine } from '../../../packages/types/src/frame-engine.js';
@@ -24,9 +24,9 @@ if (!napiFile) {
   throw new Error(`napi addon not found in ${napiDir}: tried ${napiCandidates.join(', ')}`);
 }
 const native = createRequire(__dirname)(resolve(napiDir, napiFile)) as {
-  rustraInvoke: (cmd: string, args: string | undefined) => string;
-  rustraInvokeBuffer: (cmd: string, args: string | undefined) => Buffer;
-  rustraInvokeFrame: (payload: Buffer) => Buffer;
+  unikitInvoke: (cmd: string, args: string | undefined) => string;
+  unikitInvokeBuffer: (cmd: string, args: string | undefined) => Buffer;
+  unikitInvokeFrame: (payload: Buffer) => Buffer;
 };
 
 const engine = createNodeEngine({
@@ -34,7 +34,7 @@ const engine = createNodeEngine({
   // eslint-disable-next-line @typescript-eslint/require-await
   async invoke(command: string, args?: unknown): Promise<unknown> {
     const argsJson = args !== undefined ? JSON.stringify(args) : undefined;
-    const rawResponse = native.rustraInvoke(command, argsJson);
+    const rawResponse = native.unikitInvoke(command, argsJson);
 
     const response = JSON.parse(rawResponse) as {
       ok: boolean;
@@ -52,10 +52,10 @@ const engine = createNodeEngine({
 configure(engine);
 
 // Buffer 변형 스모크 — String 왕복 없이 동일 프레임.
-const raw = native.rustraInvokeBuffer('addNumbers', JSON.stringify({ a: 2, b: 3 }));
+const raw = native.unikitInvokeBuffer('addNumbers', JSON.stringify({ a: 2, b: 3 }));
 const buffered = JSON.parse(raw.toString('utf8')) as { ok: boolean; result: { value: number } };
 if (!buffered.ok || buffered.result.value !== 5) {
-  throw new Error('rustraInvokeBuffer round-trip failed');
+  throw new Error('unikitInvokeBuffer round-trip failed');
 }
 
 // Frame 스모크 — napi Buffer 직결(postcard 왕복, JSON/UTF-16 없음).
@@ -63,7 +63,7 @@ if (!buffered.ok || buffered.result.value !== 5) {
 // 코어 실측 JSON 1.11µs → Frame 61.5ns(18x), napi 고정비 제외 순수 격차.
 const frameNative = {
   invokeFrame(payload: ArrayBuffer): ArrayBuffer {
-    const resp = native.rustraInvokeFrame(Buffer.from(payload));
+    const resp = native.unikitInvokeFrame(Buffer.from(payload));
     // Buffer.buffer는 슬라이스 오프셋/SharedArrayBuffer를 가질 수 있다 —
     // 정확한 크기의 ArrayBuffer 사본으로 정규화한다.
     const out = new ArrayBuffer(resp.byteLength);

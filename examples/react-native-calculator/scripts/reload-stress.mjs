@@ -1,4 +1,4 @@
-const LOG_PREFIX = '[RustraReloadStress]';
+const LOG_PREFIX = '[UnikitReloadStress]';
 const DEFAULT_BUNDLE_ID = 'com.alt-shifted.react-native-calculator';
 
 function readFlag(argv, name, fallback) {

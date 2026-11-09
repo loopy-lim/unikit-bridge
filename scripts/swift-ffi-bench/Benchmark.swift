@@ -1,25 +1,25 @@
 import Foundation
 
 // All rows execute addNumbers(42, 58) = 100. The primitive ABI row is a lower
-// bound only; the remaining rows compare rustra transport/allocation layers.
-@_silgen_name("rustra_calculator_add_direct")
-func rustra_calculator_add_direct(_ a: Int64, _ b: Int64) -> Int64
+// bound only; the remaining rows compare unikit transport/allocation layers.
+@_silgen_name("unikit_calculator_add_direct")
+func unikit_calculator_add_direct(_ a: Int64, _ b: Int64) -> Int64
 
-@_silgen_name("rustra_calculator_invoke")
-func rustra_calculator_invoke(_ payload: UnsafePointer<CChar>?) -> UnsafeMutablePointer<CChar>?
+@_silgen_name("unikit_calculator_invoke")
+func unikit_calculator_invoke(_ payload: UnsafePointer<CChar>?) -> UnsafeMutablePointer<CChar>?
 
-@_silgen_name("rustra_calculator_free_string")
-func rustra_calculator_free_string(_ ptr: UnsafeMutablePointer<CChar>?)
+@_silgen_name("unikit_calculator_free_string")
+func unikit_calculator_free_string(_ ptr: UnsafeMutablePointer<CChar>?)
 
-@_silgen_name("rustra_ffi_invoke_frame")
-func rustra_ffi_invoke_frame(
+@_silgen_name("unikit_ffi_invoke_frame")
+func unikit_ffi_invoke_frame(
     _ payload: UnsafePointer<UInt8>?,
     _ payloadLen: UInt,
     _ outLen: UnsafeMutablePointer<UInt>?
 ) -> UnsafeMutablePointer<UInt8>?
 
-@_silgen_name("rustra_ffi_invoke_frame_into")
-func rustra_ffi_invoke_frame_into(
+@_silgen_name("unikit_ffi_invoke_frame_into")
+func unikit_ffi_invoke_frame_into(
     _ payload: UnsafePointer<UInt8>?,
     _ payloadLen: UInt,
     _ buffer: UnsafeMutablePointer<UInt8>?,
@@ -27,8 +27,8 @@ func rustra_ffi_invoke_frame_into(
     _ outLen: UnsafeMutablePointer<UInt>?
 ) -> UInt
 
-@_silgen_name("rustra_ffi_free")
-func rustra_ffi_free(_ ptr: UnsafeMutablePointer<UInt8>?, _ len: UInt)
+@_silgen_name("unikit_ffi_free")
+func unikit_ffi_free(_ ptr: UnsafeMutablePointer<UInt8>?, _ len: UInt)
 
 struct BenchResult {
     let label: String
@@ -39,8 +39,8 @@ struct BenchResult {
     var opsPerSecond: Double { 1_000_000_000 / avg }
 }
 
-let iterations = Int(ProcessInfo.processInfo.environment["RUSTRA_BENCH_ITERATIONS"] ?? "100000")!
-let warmup = Int(ProcessInfo.processInfo.environment["RUSTRA_BENCH_WARMUP"] ?? "1000")!
+let iterations = Int(ProcessInfo.processInfo.environment["UNIKIT_BENCH_ITERATIONS"] ?? "100000")!
+let warmup = Int(ProcessInfo.processInfo.environment["UNIKIT_BENCH_WARMUP"] ?? "1000")!
 let jsonOnly = CommandLine.arguments.contains("--json")
 
 func measure(_ label: String, _ block: () -> Void) -> BenchResult {
@@ -84,22 +84,22 @@ let frameRequest: [UInt8] = [0x01, 0x00, 0x54, 0x74]
 
 func legacyJSONCall() {
     jsonRequest.withCString { request in
-        let response = rustra_calculator_invoke(request)
+        let response = unikit_calculator_invoke(request)
         precondition(response != nil)
-        rustra_calculator_free_string(response)
+        unikit_calculator_free_string(response)
     }
 }
 
 func frameAllocCall() {
     frameRequest.withUnsafeBytes { raw in
         var outLen: UInt = 0
-        let response = rustra_ffi_invoke_frame(
+        let response = unikit_ffi_invoke_frame(
             raw.bindMemory(to: UInt8.self).baseAddress,
             UInt(raw.count),
             &outLen
         )
         precondition(response != nil && outLen >= 9)
-        rustra_ffi_free(response, outLen)
+        unikit_ffi_free(response, outLen)
     }
 }
 
@@ -111,7 +111,7 @@ func frameIntoCall(probe: Bool) {
             let output = outputRaw.bindMemory(to: UInt8.self)
             var outLen: UInt = 0
             if probe {
-                let result = rustra_ffi_invoke_frame_into(
+                let result = unikit_ffi_invoke_frame_into(
                     request.baseAddress,
                     UInt(request.count),
                     nil,
@@ -120,7 +120,7 @@ func frameIntoCall(probe: Bool) {
                 )
                 precondition(result == 0 && outLen <= UInt(output.count))
             }
-            let written = rustra_ffi_invoke_frame_into(
+            let written = unikit_ffi_invoke_frame_into(
                 request.baseAddress,
                 UInt(request.count),
                 output.baseAddress,
@@ -132,7 +132,7 @@ func frameIntoCall(probe: Bool) {
     }
 }
 
-// Matches RustraJSIBridge.cpp: try the common small response in one call,
+// Matches UnikitJSIBridge.cpp: try the common small response in one call,
 // then retry with the exact required capacity only when the stack-sized buffer
 // is too small. The Rust FFI caches that oversized response, so the handler is
 // still executed exactly once.
@@ -143,7 +143,7 @@ func frameStackFirstCall() {
         var outLen: UInt = 0
         let written = stackFirstBuffer.withUnsafeMutableBytes { outputRaw in
             let output = outputRaw.bindMemory(to: UInt8.self)
-            return rustra_ffi_invoke_frame_into(
+            return unikit_ffi_invoke_frame_into(
                 request.baseAddress,
                 UInt(request.count),
                 output.baseAddress,
@@ -160,7 +160,7 @@ func frameStackFirstCall() {
         var exactBuffer = [UInt8](repeating: 0, count: Int(outLen))
         let retried = exactBuffer.withUnsafeMutableBytes { outputRaw in
             let output = outputRaw.bindMemory(to: UInt8.self)
-            return rustra_ffi_invoke_frame_into(
+            return unikit_ffi_invoke_frame_into(
                 request.baseAddress,
                 UInt(request.count),
                 output.baseAddress,
@@ -173,10 +173,10 @@ func frameStackFirstCall() {
 }
 
 // Correctness gate before timing.
-precondition(rustra_calculator_add_direct(42, 58) == 100)
+precondition(unikit_calculator_add_direct(42, 58) == 100)
 let legacyResponse = jsonRequest.withCString { request -> String in
-    let response = rustra_calculator_invoke(request)!
-    defer { rustra_calculator_free_string(response) }
+    let response = unikit_calculator_invoke(request)!
+    defer { unikit_calculator_free_string(response) }
     return String(cString: response)
 }
 precondition(legacyResponse.contains("\"value\":100"))
@@ -186,7 +186,7 @@ frameStackFirstCall()
 precondition(stackFirstBuffer[0] == 1 && decodeZigzag(stackFirstBuffer[8...]) == 100)
 
 let direct = measure("primitive C ABI lower bound") {
-    precondition(rustra_calculator_add_direct(42, 58) == 100)
+    precondition(unikit_calculator_add_direct(42, 58) == 100)
 }
 let legacy = measure("legacy JSON CString alloc/free") { legacyJSONCall() }
 let frameAlloc = measure("Frame alloc/free") { frameAllocCall() }
@@ -200,8 +200,8 @@ let fullJSON = measure("Swift JSON encode + FFI + decode") {
     let data = try! JSONSerialization.data(withJSONObject: payload)
     let request = String(data: data, encoding: .utf8)!
     let response = request.withCString { pointer -> String in
-        let result = rustra_calculator_invoke(pointer)!
-        defer { rustra_calculator_free_string(result) }
+        let result = unikit_calculator_invoke(pointer)!
+        defer { unikit_calculator_free_string(result) }
         return String(cString: result)
     }
     let parsed = try! JSONSerialization.jsonObject(with: Data(response.utf8)) as! [String: Any]
@@ -232,7 +232,7 @@ let reportJSON = String(data: reportData, encoding: .utf8)!
 if jsonOnly {
     print(reportJSON)
 } else {
-    print("rustra Swift ↔ Rust FFI ladder")
+    print("unikit Swift ↔ Rust FFI ladder")
     print("same command: addNumbers(42, 58) = 100; \(iterations) iterations, \(warmup) warmup")
     print(String(repeating: "-", count: 92))
     for result in results {
@@ -241,5 +241,5 @@ if jsonOnly {
     }
     print(String(repeating: "-", count: 92))
     print("The primitive row is a lower bound, not a framework-to-framework comparison.")
-    print("RUSTRA_BENCH_JSON=\(reportJSON)")
+    print("UNIKIT_BENCH_JSON=\(reportJSON)")
 }

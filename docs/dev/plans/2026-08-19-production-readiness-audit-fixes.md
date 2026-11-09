@@ -11,15 +11,15 @@ experimental 명시, Android 실기기 테스트는 이번엔 제외(빌드까�
 
 ### 주요 발견사항:
 
-- **RN Android Rust 미연결**: `examples/react-native-calculator/modules/rustra-jsi/android/build.gradle`
+- **RN Android Rust 미연결**: `examples/react-native-calculator/modules/unikit-jsi/android/build.gradle`
   에 Rust 빌드를 트리거하는 Gradle 훅이 전혀 없음. `.a` 파일이 `src/main/cpp/libs/<ABI>/`에
   사전 존재해야 CMake 구성이 통과함. iOS는 podspec `prepare_command`가 자동 실행 — 비대칭.
 - **DEX 중복(NativeAccessibilityInfoSpec)의 범인은 nitro-bench**: `modules/nitro-bench/nitro-bench/package.json`
   에 `codegenConfig`가 없어 코어 RN 스펙 ~70개가 `com.facebook.fbreact.specs`로 재생성되어
   `react-android` AAR과 충돌. `react-native-nitro-modules`는 `codegenConfig` +
   `android.javaPackageName: "com.margelo.nitro"`로 회피하는 선례 (`node_modules/react-native-nitro-modules/package.json:85-91`).
-  rustra-jsi는 codegen을 만들지 않으므로 무관.
-- **cargo audit 6건의 실범위**: `crates/rustra` 핵심은 rkyv crate에 의존하지 않음
+  unikit-jsi는 codegen을 만들지 않으므로 무관.
+- **cargo audit 6건의 실범위**: `crates/unikit-bridge` 핵심은 rkyv crate에 의존하지 않음
   (serde_json 기반 수동 rkyv V2 구현). rkyv 0.8.16 직접 의존은 `examples/calculator/Cargo.toml:19`
   (RN 네이티브 경로)과 `runner/template/backend/Cargo.toml:26`뿐. runner template은 이미
   0.8.18로 풀림 → 루트 lock도 `cargo update -p rkyv`로 상승 가능. quick-xml 0.39.4는
@@ -31,7 +31,7 @@ experimental 명시, Android 실기기 테스트는 이번엔 제외(빌드까�
   input/encoding 반환 차이(:49-54), (b) 10ms 지연 임계 초과(:24, :108), (c) `createRequire`
   `.node` 로드(:62-67).
 - **버전**: 배포 패키지 10개 전부 0.1.2(이미 발행됨), `.changeset/` 존재하나 대기 changeset
-  없음. `@rustra/react` 0.1.2는 미발행 신규. main이 origin/main보다 21 커밋 앞섬.
+  없음. `@unikit/react` 0.1.2는 미발행 신규. main이 origin/main보다 21 커밋 앞섬.
 - **CI**: ci.yml은 debug 테스트+release 빌드(+typescript 잡)만. release.yml의
   `cargo-publish` 잡이 `workflow_dispatch`에서만 돌지만 `release`(npm) 잡도
   `workflow_dispatch` 조건이 있어 수동 우회 가능.
@@ -72,12 +72,12 @@ Release APK가 클린 체크아웃에서 빌드되게 한다.
 
 ### 필요한 변경사항:
 
-#### 1. rustra-jsi Gradle Rust 빌드 훅
+#### 1. unikit-jsi Gradle Rust 빌드 훅
 
-**파일**: `examples/react-native-calculator/modules/rustra-jsi/android/build.gradle`
+**파일**: `examples/react-native-calculator/modules/unikit-jsi/android/build.gradle`
 **변경사항**: `preBuild` 태스크가 `build-rust-android.sh`를 실행하도록 추가. 캐시:
-`src/main/cpp/libs/<ABI>/librustra_calculator_example.a`가 최신이면 스킵(Gradle 입력/출력
-또는 타임스탬프 체크). `RUSTRA_PROFILE`은 buildType에 따라 debug/release 매핑.
+`src/main/cpp/libs/<ABI>/libunikit_calculator_example.a`가 최신이면 스킵(Gradle 입력/출력
+또는 타임스탬프 체크). `UNIKIT_PROFILE`은 buildType에 따라 debug/release 매핑.
 
 #### 2. nitro-bench codegenConfig 추가
 
@@ -99,7 +99,7 @@ Release APK가 클린 체크아웃에서 빌드되게 한다.
 #### 3. 검증
 
 ```bash
-cd examples/react-native-calculator/android && ./gradlew :rustra-jsi:externalNativeBuildRelease
+cd examples/react-native-calculator/android && ./gradlew :unikit-jsi:externalNativeBuildRelease
 ./gradlew assembleRelease
 ```
 
@@ -152,7 +152,7 @@ cargo audit 6건 취약점을 해소(또는 범위 밖임을 문서화)하고 au
 #### 자동 검증:
 
 - [ ] `cargo audit` (루트) 취약점 0
-- [ ] `cargo test --workspace --exclude rustra-lynx-tauri-spike` 회귀 없음
+- [ ] `cargo test --workspace --exclude unikit-lynx-tauri-spike` 회귀 없음
 - [ ] `cargo clippy --all-targets -- -D warnings` 통과
 - [ ] runner template lockfile 2개 audit 결과 기록 (0 취약점 확인)
 
@@ -173,7 +173,7 @@ Bun 전용 subprocess 테스트 3개의 실패 원인을 규명해 `npm run test
 #### 1. 실패 재현·규명 (systematic-debugging)
 
 ```bash
-cargo build -p rustra-calculator-example -q && bun test examples/calculator/ts/transport-bench.test.ts
+cargo build -p unikit-calculator-example -q && bun test examples/calculator/ts/transport-bench.test.ts
 ```
 
 실패 메시지로 원인 판별: (a) spawnSync 반환 차이 → 인코딩 정규화, (b) 지연 임계 초과 →
@@ -210,10 +210,10 @@ cargo build -p rustra-calculator-example -q && bun test examples/calculator/ts/t
 
 `.changeset/`에 파일 추가. minor 버전(0.1.x → 0.1.3, semver pre-1.0 minor)로:
 
-- `@rustra/types`, `@rustra/node`, `@rustra/bun`, `@rustra/tauri`,
-  `@rustra/react-native`, `@rustra/lynx` — minor: JSI fast path 최적화 4종
-- `@rustra/react` — 신규 공개 (첫 발행)
-- `@rustra/cli`, `@rustra/testing`, `@rustra/devtools` — minor: dev/testing 트랙 내용
+- `@unikit/types`, `@unikit/node`, `@unikit/bun`, `@unikit/tauri`,
+  `@unikit/react-native`, `@unikit/lynx` — minor: JSI fast path 최적화 4종
+- `@unikit/react` — 신규 공개 (첫 발행)
+- `@unikit/cli`, `@unikit/testing`, `@unikit/devtools` — minor: dev/testing 트랙 내용
 - CHANGELOG.md "Unreleased" 섹션과 내용 정합
 
 #### 2. 버전 상태 확인
@@ -231,7 +231,7 @@ cargo build -p rustra-calculator-example -q && bun test examples/calculator/ts/t
 #### 수동 검증:
 
 - [ ] changeset 내용이 CHANGELOG.md Unreleased 및 21 커밋 log와 정합
-- [ ] @rustra/react가 첫 발행 대상에 포함됨
+- [ ] @unikit/react가 첫 발행 대상에 포함됨
 
 ---
 
@@ -355,5 +355,5 @@ canary/rollback 절차를 docs에 문서화 (실행은 별도 승인).
 
 - 감사 문서: 이 대화의 사용자 메시지 (No-Go 판정 6사유 + 권장 8단계)
 - nitro codegenConfig 선례: `node_modules/react-native-nitro-modules/package.json:85-91`
-- iOS podspec 자동 빌드 선례: `modules/rustra-jsi/ios/RustraJSI.podspec:11`
-- Rust 정적 라이브러리 소비: `modules/rustra-jsi/android/CMakeLists.txt:14-17`
+- iOS podspec 자동 빌드 선례: `modules/unikit-jsi/ios/UnikitJSI.podspec:11`
+- Rust 정적 라이브러리 소비: `modules/unikit-jsi/android/CMakeLists.txt:14-17`

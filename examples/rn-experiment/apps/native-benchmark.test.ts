@@ -6,22 +6,22 @@ import { GENERATED_CONTRACT_HASH } from '../generated/contract.js';
 import schema from '../generated/schema.json';
 
 // Host integration only. These injected native methods are never performance receipts.
-const modules: { RustraBridge?: { install(): boolean } } = {};
+const modules: { UnikitBridge?: { install(): boolean } } = {};
 mock.module('react-native', () => ({ NativeModules: modules }));
-const bridge = await import('../modules/rustra-bridge/src/index.js');
-mock.module('@rustra/generated-react-native', () => bridge);
+const bridge = await import('../modules/unikit-bridge/src/index.js');
+mock.module('@unikit/generated-react-native', () => bridge);
 
 test('generated native installer fails clearly when autolinking or installation is missing', async () => {
-  delete modules.RustraBridge;
-  await assert.rejects(bridge.installRustraJSI(), /not linked/);
-  modules.RustraBridge = { install: () => false };
-  await assert.rejects(bridge.installRustraJSI(), /reported failure/);
+  delete modules.UnikitBridge;
+  await assert.rejects(bridge.installUnikitJSI(), /not linked/);
+  modules.UnikitBridge = { install: () => false };
+  await assert.rejects(bridge.installUnikitJSI(), /reported failure/);
 });
 
 test('native collector uses both native routes and allows only one receipt per runtime', async () => {
   const globals = globalThis as unknown as Record<string, unknown>;
   const previous = {
-    native: globals.__rustraNative,
+    native: globals.__unikitNative,
     hermes: globals.HermesInternal,
     dev: globals.__DEV__,
   };
@@ -32,7 +32,7 @@ test('native collector uses both native routes and allows only one receipt per r
   let bytesCalls = 0;
   const transform = (command: string, bytes: Uint8Array) =>
     Array.from(command === 'gzipCompress' ? gzipSync(bytes) : gunzipSync(bytes));
-  globals.__rustraNative = {
+  globals.__unikitNative = {
     invokeFrame: () => {
       throw new Error('buffer benchmark must not fall back to Frame');
     },
@@ -51,7 +51,7 @@ test('native collector uses both native routes and allows only one receipt per r
       return { data: Uint8Array.from(transform(command, bytes)) };
     },
   };
-  modules.RustraBridge = { install: () => true };
+  modules.UnikitBridge = { install: () => true };
   globals.HermesInternal = {};
   globals.__DEV__ = false;
   const { runNativeBenchmark } = await import('./native-benchmark.js');
@@ -85,7 +85,7 @@ test('native collector uses both native routes and allows only one receipt per r
     assert.equal(bytesCalls, 42);
     await assert.rejects(runNativeBenchmark(options), /Restart the native app/);
   } finally {
-    globals.__rustraNative = previous.native;
+    globals.__unikitNative = previous.native;
     globals.HermesInternal = previous.hermes;
     globals.__DEV__ = previous.dev;
     mock.restore();

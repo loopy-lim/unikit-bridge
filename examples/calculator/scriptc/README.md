@@ -19,7 +19,7 @@ sanitizer 모드는 먼저 scriptc hello가 main까지 도달하는지 확인하
 링크하며 정상 consumer나 배포 라이브러리에 포함되지 않는다.
 
 `stress-fixture`는 테스트 전용 package와 worker 대기·해제 진입을 제공한다. 공개 ABI를
-추가하지 않는다. 실제 callback·async·취소·response free는 production rustra의 FFI다.
+추가하지 않는다. 실제 callback·async·취소·response free는 production unikit의 FFI다.
 스트레스 매니페스트는 코드젠된 `ffi.json`의 descriptor를 그대로 사용하며, 링크할
 fixture와 스케줄 제어 함수 3개만 추가한다. 기본 calculator consumer 스모크도 별도로
 유지하므로 fixture 실행만으로 실제 calculator package 검증을 대신하지 않는다.

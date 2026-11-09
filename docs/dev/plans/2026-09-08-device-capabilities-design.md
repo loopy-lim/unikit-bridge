@@ -13,9 +13,9 @@ wifi, bluetooth, camera, battery 등. 인터넷 조사를 포함해 호환 지�
 어떤 역량을 전제하는가"를 코드로 읽지 못하고, JS 측에서 가용성/권한을 물을
 표준화된 경로도 없어 각자 ad-hoc 이중화된다.
 
-해결 원칙(리서치 §5): **선언과 조회는 rustra 몫, OS 권한 요청은 호스트 몫.**
+해결 원칙(리서치 §5): **선언과 조회는 unikit 몫, OS 권한 요청은 호스트 몫.**
 W3C Permissions API조차 `request()`를 표준에서 제거했다 — 요청은
-point-of-use에서 호스트가 한다. rustra는 "역량 의미론"만 계약에 담아 특정
+point-of-use에서 호스트가 한다. unikit는 "역량 의미론"만 계약에 담아 특정
 Tauri 플러그인/RN 라이브러리 생태계 변동(리서치 §2의 실제 사례들)에 흔들리지
 않는다.
 
@@ -23,18 +23,18 @@ Tauri 플러그인/RN 라이브러리 생태계 변동(리서치 §2의 실제 �
 
 ### A. 카탈로그 — `DeviceCapability` (검증된 닫힌 토큰 집합)
 
-`crates/rustra/src/device_capabilities.rs`에 카탈로그 상수와 검증을 둔다:
+`crates/unikit-bridge/src/device_capabilities.rs`에 카탈로그 상수와 검증을 둔다:
 
 - 토큰은 `&'static str`, 표기는 kebab-case. W3C PermissionName 가 있는 것은
   그 표기를 따르고(`camera`, `microphone`, `geolocation`, `notifications`,
-  `clipboard-read`, `clipboard-write`), 없는 것은 rustra 명명(`wifi`,
+  `clipboard-read`, `clipboard-write`), 없는 것은 unikit 명명(`wifi`,
   `bluetooth`, `battery`, `nfc`, `biometric`, `haptics`, `flashlight`,
   `contacts`, `calendar`, `photo-library`, `motion`, `usb`, `serial`,
   `network-state`, `screen-brightness`).
 - **카탈로그는 버전닝된 닫힌 집합** — `DeviceCapability::ALL`(pub const)과
   `DeviceCapability::is_valid(token)` 검증. 등록 시점 미지원 토큰은 패닉
   (loud-fail — 오타 방지는 타입화 에러 트랙과 같은 동기). 새 토큰 추가는
-  rustra 릴리스를 수반하는 계약 진화.
+  unikit 릴리스를 수반하는 계약 진화.
 - OS 세부 권한 문자열(Android `NEARBY_DEVICES` 재편, iOS plist 키,
   macOS entitlement)은 토큰 뒤에 숨긴다 — 교차표는 문서로만
   유지(platform-permissions.md, 리서치 §2 표). 스키마·코드젠·와이어는
@@ -66,20 +66,20 @@ fn scan_tags(input: ScanInput) -> Result<ScanOutput> { … }
 선언 커맨드가 1건이라도 있으면 `devices.ts` 생성, 없으면 파일 미생성:
 
 ```ts
-import type { DeviceStatusProvider } from '@rustra/types';
+import type { DeviceStatusProvider } from '@unikit/types';
 
 /** 이 패키지가 선언에 사용한 디바이스 역량 토큰 (Rust 카탈로그 기준). */
-export type RustraDeviceCapability = 'camera' | 'bluetooth';
+export type UnikitDeviceCapability = 'camera' | 'bluetooth';
 
 /** scanTags 가 전제하는 디바이스 역량 (Rust 선언 기준). */
-export const SCAN_TAGS_DEVICES: readonly RustraDeviceCapability[] = ['camera', 'bluetooth'];
+export const SCAN_TAGS_DEVICES: readonly UnikitDeviceCapability[] = ['camera', 'bluetooth'];
 ```
 
 - 커맨드당 `{FN}_DEVICES` 상수 + 패키지 레벨 토큰 유니언. 토큰→심볼 매핑
   충돌은 코드젠 loud-fail(errors 트랙의 PascalCase 충돌 판정과 동일).
 - commands.ts/types.ts/errors.ts 출력은 바이트 불변(선언 없는 패키지).
 
-### D. 호스트 조회 표면 — `@rustra/types` provider 등록 (W3C query 모델)
+### D. 호스트 조회 표면 — `@unikit/types` provider 등록 (W3C query 모델)
 
 ```ts
 export type DeviceAvailability = 'available' | 'unavailable' | 'unknown';
@@ -105,7 +105,7 @@ export function getDeviceStatus(capability: string): Promise<DeviceStatus>;
   플랫폼용 구현 자체가 없음)·`capability.denied`(호출 자격 미부여)와는 원인·
   복구 경로가 다른 독립 축(리서치 §5-3).
 - `device.permission_denied` — 사용자·정책 거부. retryable 아님.
-- 발급 주체는 **호스트 앱/파생 provider** — rustra 코어는 게이팅을 하지
+- 발급 주체는 **호스트 앱/파생 provider** — unikit 코어는 게이팅을 하지
   않으므로 코어가 이 코드를 반환하는 경로는 없다. 코드 체계에만 등록.
 
 ### F. 하지 않을 것 (YAGNI)
@@ -120,7 +120,7 @@ export function getDeviceStatus(capability: string): Promise<DeviceStatus>;
 ## 슬라이스 1 (오늘 밤 착지 범위)
 
 1. Rust 카탈로그 + 빌더/매크로/스키마(A/B절) + 테스트 — crates/**.
-2. `@rustra/types` provider 표면 + 에러 코드 2종(D/E절) + 테스트.
+2. `@unikit/types` provider 표면 + 에러 코드 2종(D/E절) + 테스트.
 3. CLI `devices.ts` 렌더러(C절) + 테스트 — packages/cli(진행 중인 DX 작업과
    파일 충돌 방지를 위해 DX 완료 후 착수).
 4. 계산기 예제: `device_demo` 커맨드(선언만 — 하드웨어 미사용, 모의 provider로

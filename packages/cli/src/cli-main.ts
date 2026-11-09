@@ -71,7 +71,7 @@ export async function main(): Promise<void> {
   // UsageError 타입으로 판별한다(감사 A9). did-you-mean 과 --help 안내 유지.
   throw new UsageError(
     `Unknown command: ${command}. Available commands: ${CLI_COMMANDS.join(', ')}.` +
-      (suggestion ? ` Did you mean "rustra ${suggestion}"?` : '') +
-      ` Run "rustra --help" for usage information.`,
+      (suggestion ? ` Did you mean "unikit ${suggestion}"?` : '') +
+      ` Run "unikit --help" for usage information.`,
   );
 }

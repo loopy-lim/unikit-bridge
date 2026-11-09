@@ -1,5 +1,5 @@
 {
-  "path": "/tmp/rustra-watch-source-7n55a8_y",
+  "path": "/tmp/unikit-watch-source-7n55a8_y",
   "sourceFiles": 740,
   "bytes": 5972655,
   "omittedUntracked": [
@@ -40,7 +40,7 @@
       "sha256": "dc4ff3f3b5250659d79f9110ab0bae549fb8412b964d5e171aaa4d83d988a256"
     },
     {
-      "path": "examples/auth/generated/.rustra-generated.json",
+      "path": "examples/auth/generated/.unikit-generated.json",
       "sha256": "f528f0cdb64603328ab9f90618c899e1e542ae379644dc3d13e4082e3ef56cf9"
     },
     {
@@ -68,7 +68,7 @@
       "sha256": "2b5d8f8be4876ffedcb0fd6ed095270fc1a77de18ec677e50609819b4812695a"
     },
     {
-      "path": "examples/auth/rustra.json",
+      "path": "examples/auth/unikit.json",
       "sha256": "69f0c6526e0ad60183d00750c870f7bcf295b4b5ea53185ce87cabcb17cc4f4a"
     },
     {
@@ -140,7 +140,7 @@
       "sha256": "7c2d831cd8c39027729fd20b95da140bddd85ac0a24129edd02528077f28209f"
     },
     {
-      "path": "examples/calculator/generated/.rustra-generated.json",
+      "path": "examples/calculator/generated/.unikit-generated.json",
       "sha256": "d7901f1383884aeb78489ddbe9df32578250e123d389fab8eaf04a43b30e5198"
     },
     {
@@ -196,7 +196,7 @@
       "sha256": "af1130f1f57eca80a4916b0d262f235a5a952ea065dbe0a30ecf328b0e175bc0"
     },
     {
-      "path": "examples/calculator/rustra.json",
+      "path": "examples/calculator/unikit.json",
       "sha256": "72eb036b27a03e7cbea1f59d8592b1b1dbcaddcfc215f8437b1107b6ca9fa3a8"
     },
     {
@@ -280,7 +280,7 @@
       "sha256": "83ad86dadaf6be68db5ba850aa02d02e91d8988ead9fb69ffc84ddfbbe9d0666"
     },
     {
-      "path": "examples/crud/generated/.rustra-generated.json",
+      "path": "examples/crud/generated/.unikit-generated.json",
       "sha256": "6a7e70856128f81990a8e9d1a7d0dd44e45a780679fd2de756a1427344026756"
     },
     {
@@ -316,7 +316,7 @@
       "sha256": "ed920e576cc0a325efab482e35ba7f498850c64526b7c0448237b6c8530dc524"
     },
     {
-      "path": "examples/crud/rustra.json",
+      "path": "examples/crud/unikit.json",
       "sha256": "1a18a4856915f289c7cd9cf20558ae8b69e756331d727089a760cbf1f6471b39"
     },
     {
@@ -344,7 +344,7 @@
       "sha256": "663a07e4e66af8d1e21ffe4840e89d2ca3e69050f9f48748c053e0765384d2ae"
     },
     {
-      "path": "examples/react-native-bare-calculator/generated/.rustra-generated.json",
+      "path": "examples/react-native-bare-calculator/generated/.unikit-generated.json",
       "sha256": "823c558322316f48dd62df8033bdcf399c0f7678ec6d9abc5e0bcc7820ab1003"
     },
     {
@@ -392,19 +392,19 @@
       "sha256": "bb2f899c7e2e5a2b6659710b344ee4ecb47745864b10ca12d3e1620892b273b9"
     },
     {
-      "path": "examples/react-native-bare-calculator/modules/rustra-bridge/package.json",
+      "path": "examples/react-native-bare-calculator/modules/unikit-bridge/package.json",
       "sha256": "bf5ac0d89beb353d9ecf0e89af0747966f8cdfc0f203ece00209f10066dfe8c4"
     },
     {
-      "path": "examples/react-native-bare-calculator/modules/rustra-bridge/react-native.config.js",
+      "path": "examples/react-native-bare-calculator/modules/unikit-bridge/react-native.config.js",
       "sha256": "d86b7c9c1a00caea8b0b06d07e719d790c83212a285303a730d9b6805cec8d3b"
     },
     {
-      "path": "examples/react-native-bare-calculator/modules/rustra-bridge/scripts/prepare-native.cjs",
+      "path": "examples/react-native-bare-calculator/modules/unikit-bridge/scripts/prepare-native.cjs",
       "sha256": "28705d1d555796b41fe31f7172e1468477332ba03008fa56fe45a88574bcd700"
     },
     {
-      "path": "examples/react-native-bare-calculator/modules/rustra-bridge/src/index.ts",
+      "path": "examples/react-native-bare-calculator/modules/unikit-bridge/src/index.ts",
       "sha256": "6159334c0710e6ab19715b520cac967e393ff9ef9142926217838db6be213a88"
     },
     {
@@ -412,7 +412,7 @@
       "sha256": "e97c80cbb12c70bf801e9140cb252330840ccdcb2a9737539aa6da31c1afb0a4"
     },
     {
-      "path": "examples/react-native-bare-calculator/rustra.json",
+      "path": "examples/react-native-bare-calculator/unikit.json",
       "sha256": "bb043662083790e026e800291c6794ae7f88a5dabdc1e2a3e259eebe0157920c"
     },
     {
@@ -468,7 +468,7 @@
       "sha256": "76cd471a91c263c78c30e7a666859de8e8a0bd1eb4094e554c91d2e2979c9f41"
     },
     {
-      "path": "examples/react-native-calculator/generated/.rustra-generated.json",
+      "path": "examples/react-native-calculator/generated/.unikit-generated.json",
       "sha256": "7c098c9bde882aa412e10a15d83224ad6450957132f4ef435e6dba6336638083"
     },
     {
@@ -564,59 +564,59 @@
       "sha256": "3610f3b5b13238bb7b4dfeea71fa1de9622326961b2a6bf9cf42512f0ee05743"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-calculator/expo-module.config.json",
+      "path": "examples/react-native-calculator/modules/unikit-calculator/expo-module.config.json",
       "sha256": "7fc3688a29bc0e5ff74b05e9bfd698e9b2b487b63713483d5886caf5b4a1c417"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-calculator/package.json",
+      "path": "examples/react-native-calculator/modules/unikit-calculator/package.json",
       "sha256": "fe9f8ebc69ce0ff979327921efab727221e2cc8ac276ec9e273effe760397804"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-calculator/src/index.ts",
+      "path": "examples/react-native-calculator/modules/unikit-calculator/src/index.ts",
       "sha256": "2bb2ac4d24e46d05d5fd0e23c03df01aa23bad6b4ff5201b46d0d02b52b02d23"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-jsi/ios/.gitignore",
+      "path": "examples/react-native-calculator/modules/unikit-jsi/ios/.gitignore",
       "sha256": "f8042134be9ad24176d8d630255be93f8a0223925ae88c34b603c8989baa8345"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-jsi/ios/Podfile.properties.json",
+      "path": "examples/react-native-calculator/modules/unikit-jsi/ios/Podfile.properties.json",
       "sha256": "4222d802ab80961762b71603a713160c16c0fa3ce5d6c74a111c67785872331a"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-jsi/ios/run-native-test.mjs",
+      "path": "examples/react-native-calculator/modules/unikit-jsi/ios/run-native-test.mjs",
       "sha256": "f9e3d0ba5ce297efe90556c2250dc36a0b6fe76ebe0b3640d5425bf1575f67fc"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-jsi/ios/rustrajsi/Images.xcassets/AppIcon.appiconset/Contents.json",
+      "path": "examples/react-native-calculator/modules/unikit-jsi/ios/unikitjsi/Images.xcassets/AppIcon.appiconset/Contents.json",
       "sha256": "2f1b8a0c5efd596703501e97c9c5ca878463dca6e43ad08c5a9c108cb2ae3711"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-jsi/ios/rustrajsi/Images.xcassets/Contents.json",
+      "path": "examples/react-native-calculator/modules/unikit-jsi/ios/unikitjsi/Images.xcassets/Contents.json",
       "sha256": "940968520a462215ccf98317a12e4c3b90875bf9c51a5f473a8ffb97e8cd1464"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-jsi/ios/rustrajsi/Images.xcassets/SplashScreenLegacy.imageset/Contents.json",
+      "path": "examples/react-native-calculator/modules/unikit-jsi/ios/unikitjsi/Images.xcassets/SplashScreenLegacy.imageset/Contents.json",
       "sha256": "a0cffb85cf663b7bd564b178e08b5aa147dc36b208ee148f289afc814869d8be"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-jsi/package.json",
+      "path": "examples/react-native-calculator/modules/unikit-jsi/package.json",
       "sha256": "bf5ac0d89beb353d9ecf0e89af0747966f8cdfc0f203ece00209f10066dfe8c4"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-jsi/react-native.config.js",
+      "path": "examples/react-native-calculator/modules/unikit-jsi/react-native.config.js",
       "sha256": "d86b7c9c1a00caea8b0b06d07e719d790c83212a285303a730d9b6805cec8d3b"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-jsi/scripts/prepare-native.cjs",
+      "path": "examples/react-native-calculator/modules/unikit-jsi/scripts/prepare-native.cjs",
       "sha256": "28705d1d555796b41fe31f7172e1468477332ba03008fa56fe45a88574bcd700"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-jsi/src/index.ts",
+      "path": "examples/react-native-calculator/modules/unikit-jsi/src/index.ts",
       "sha256": "6159334c0710e6ab19715b520cac967e393ff9ef9142926217838db6be213a88"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-jsi/tsconfig.json",
+      "path": "examples/react-native-calculator/modules/unikit-jsi/tsconfig.json",
       "sha256": "4af4fb55af99d2b243dd8dfd86c66d0dc5ad63998ee20496e150116dd8da77a0"
     },
     {
@@ -628,7 +628,7 @@
       "sha256": "89f4e741e82165f8e61c30152bdfb647d9223b45b5cf7b2648b45786fa168fd8"
     },
     {
-      "path": "examples/react-native-calculator/rustra.json",
+      "path": "examples/react-native-calculator/unikit.json",
       "sha256": "e6340432860ed7c5fe8aef232526f0219e26dfa41281497dd7e323ef810c53fc"
     },
     {
@@ -940,7 +940,7 @@
       "sha256": "325df5c6f4a7be2cdb9269a53a891e0eda81e91859f12c3e1a7830ec40329144"
     },
     {
-      "path": "examples/rn-experiment/generated/.rustra-generated.json",
+      "path": "examples/rn-experiment/generated/.unikit-generated.json",
       "sha256": "917f985f155e539855cdb8814895cd97d7f3f8a7d1d1980471b98cae49bbe017"
     },
     {
@@ -976,19 +976,19 @@
       "sha256": "69d76194d9b74f342af875431a497dee7fa16bc988aa74ea2aa3193557ced22d"
     },
     {
-      "path": "examples/rn-experiment/modules/rustra-bridge/package.json",
+      "path": "examples/rn-experiment/modules/unikit-bridge/package.json",
       "sha256": "bf5ac0d89beb353d9ecf0e89af0747966f8cdfc0f203ece00209f10066dfe8c4"
     },
     {
-      "path": "examples/rn-experiment/modules/rustra-bridge/react-native.config.js",
+      "path": "examples/rn-experiment/modules/unikit-bridge/react-native.config.js",
       "sha256": "d86b7c9c1a00caea8b0b06d07e719d790c83212a285303a730d9b6805cec8d3b"
     },
     {
-      "path": "examples/rn-experiment/modules/rustra-bridge/scripts/prepare-native.cjs",
+      "path": "examples/rn-experiment/modules/unikit-bridge/scripts/prepare-native.cjs",
       "sha256": "28705d1d555796b41fe31f7172e1468477332ba03008fa56fe45a88574bcd700"
     },
     {
-      "path": "examples/rn-experiment/modules/rustra-bridge/src/index.ts",
+      "path": "examples/rn-experiment/modules/unikit-bridge/src/index.ts",
       "sha256": "6159334c0710e6ab19715b520cac967e393ff9ef9142926217838db6be213a88"
     },
     {
@@ -996,7 +996,7 @@
       "sha256": "5e01dfab0f0d8bb6a3f339f5b2125cca77ad9a528c5e68b0c5977cde1956e4ac"
     },
     {
-      "path": "examples/rn-experiment/rustra.json",
+      "path": "examples/rn-experiment/unikit.json",
       "sha256": "62ce009b9e8c45d2161bd1dc515bc2ad0a1455c74b5f8764d518329694570bbf"
     },
     {
@@ -1060,11 +1060,11 @@
       "sha256": "d7bfe7b785c8b6e0071a7a3db365d7cac9f4f63dc7887dd9b5acd6f5bceb0cf4"
     },
     {
-      "path": "examples/rn-wasm-spike/app/ios/RustraWasmSpike/Images.xcassets/AppIcon.appiconset/Contents.json",
+      "path": "examples/rn-wasm-spike/app/ios/UnikitWasmSpike/Images.xcassets/AppIcon.appiconset/Contents.json",
       "sha256": "99ed0c85eb0503ec41893a3c56daa12559c8dbc25f134ecf84b7c588d3227404"
     },
     {
-      "path": "examples/rn-wasm-spike/app/ios/RustraWasmSpike/Images.xcassets/Contents.json",
+      "path": "examples/rn-wasm-spike/app/ios/UnikitWasmSpike/Images.xcassets/Contents.json",
       "sha256": "7b225591af0371e8fea9f152cab6dd13013bf49ed2b277380503c4501698cbb7"
     },
     {
@@ -1076,15 +1076,15 @@
       "sha256": "aaf6a75e73476ef1513fee03ff44c91c30da0c5296e21f7e58484cdbb54e93fc"
     },
     {
-      "path": "examples/rn-wasm-spike/app/modules/RustraWasmSpike/package.json",
+      "path": "examples/rn-wasm-spike/app/modules/UnikitWasmSpike/package.json",
       "sha256": "ac0d593e019b65fa099b85cb9f29f5c0fb9cb1ac0123188357a878e173d384f9"
     },
     {
-      "path": "examples/rn-wasm-spike/app/modules/RustraWasmSpike/react-native.config.js",
+      "path": "examples/rn-wasm-spike/app/modules/UnikitWasmSpike/react-native.config.js",
       "sha256": "13f910498174268874906ac90d9c2d94baf7562cdaabba060e3f034755d69ec7"
     },
     {
-      "path": "examples/rn-wasm-spike/app/modules/RustraWasmSpike/src/index.ts",
+      "path": "examples/rn-wasm-spike/app/modules/UnikitWasmSpike/src/index.ts",
       "sha256": "b85d19b0f57b634075d563efa0a0dc29828c2bd21ce5ff112720c68d3b43f685"
     },
     {
@@ -1104,7 +1104,7 @@
       "sha256": "b33331231c4ec77a531a2cf9b0674bb1f07208dd3f5e25644377e237fd06a71f"
     },
     {
-      "path": "examples/streaming/generated/.rustra-generated.json",
+      "path": "examples/streaming/generated/.unikit-generated.json",
       "sha256": "c60a112b206dc90c2a10dce79213e5941dd72b38b964673922a01dc5d4bdfa25"
     },
     {
@@ -1144,7 +1144,7 @@
       "sha256": "61dc8b7b7eb337aea6ef9f6b86fe31a6cefb6549a96372e5fa6386373645d889"
     },
     {
-      "path": "examples/streaming/rustra.json",
+      "path": "examples/streaming/unikit.json",
       "sha256": "cdbaba72aefdad698dc606a960f7403487b860e08673cbe3399356c2c5ead0fa"
     },
     {
@@ -1176,7 +1176,7 @@
       "sha256": "e3452f5a45023485fe87dc30ecbe636eeaf935bee009a73ec4d3412a28096c5d"
     },
     {
-      "path": "examples/tauri-calculator/rustra.hot.json",
+      "path": "examples/tauri-calculator/unikit.hot.json",
       "sha256": "774fb0997f8b3182008cc5ba59d5f654254b72567203fe629fc0b153f4862f51"
     },
     {
@@ -1328,7 +1328,7 @@
       "sha256": "d2f4448b0bdf158c876290aa201f04dbe8b653ae982fa6a12e239f7b9cdc01be"
     },
     {
-      "path": "packages/cli/rustra.schema.json",
+      "path": "packages/cli/unikit.schema.json",
       "sha256": "7ab6e0b5f16f6e3e0c5c7eeb15614c5521e43bf44bdd36289865ec5ff9decca6"
     },
     {

@@ -9,10 +9,10 @@
     "bun": "1.4.1 (repo packageManager pin: bun@1.4.0)",
     "criterion": "0.8.2",
     "criterionMode": "Baseline::Save (default): fresh run -> new/, copied to base/; change/ only when base/ pre-existed",
-    "envSanitization": "all bun/cargo invocations ran under env -u RUSTRA_BUN_LIBRARY (loop-daemon dylib contamination)"
+    "envSanitization": "all bun/cargo invocations ran under env -u UNIKIT_BUN_LIBRARY (loop-daemon dylib contamination)"
   },
   "complexCodecBench": {
-    "command": "env -u RUSTRA_BUN_LIBRARY bun scripts/complex-codec-bench.mjs",
+    "command": "env -u UNIKIT_BUN_LIBRARY bun scripts/complex-codec-bench.mjs",
     "schema": "nested-map-option-set-data-enum",
     "route": "complex-binary-js",
     "iterations": 20000,
@@ -30,7 +30,7 @@
     ]
   },
   "trackBBench": {
-    "command": "env -u RUSTRA_BUN_LIBRARY bun scripts/track-b-bench.mjs",
+    "command": "env -u UNIKIT_BUN_LIBRARY bun scripts/track-b-bench.mjs",
     "route": "complex-binary-js",
     "iterations": 20000,
     "runs": "median of 3 executions",
@@ -76,7 +76,7 @@
     ]
   },
   "functionDispatch": {
-    "command": "env -u RUSTRA_BUN_LIBRARY cargo bench -p rustra --bench function_dispatch",
+    "command": "env -u UNIKIT_BUN_LIBRARY cargo bench -p unikit-bridge --bench function_dispatch",
     "binarySha256": "366093ac246d6308268700fbef5f16086bcd757cf16b052304a03422290f07bd",
     "sampleSize": 100,
     "warmUpTime": "1s",

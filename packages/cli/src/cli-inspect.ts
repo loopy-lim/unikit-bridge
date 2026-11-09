@@ -1,7 +1,7 @@
 /**
- * Inspector (B2) — `rustra inspect <file>` 커맨드.
+ * Inspector (B2) — `unikit inspect <file>` 커맨드.
  *
- * B1 스냅샷(`rustra_ffi_capture_snapshot` blob — UTF-8 JSON) 덤프 파일을 읽어
+ * B1 스냅샷(`unikit_ffi_capture_snapshot` blob — UTF-8 JSON) 덤프 파일을 읽어
  * 사람이 읽는 필드 트리로 렌더한다. 입력은 (a) hex 텍스트(0x 접두·공백 허용)나
  * (b) raw 바이트 — 정확한 짝수 길이 16진수 텍스트면 hex, 아니면 raw 로 취급하는
  * 자동 판별. 모호한 입력은 raw 쪽으로 넘기고 raw 해석의 JSON 파싱이 실패하면
@@ -21,7 +21,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parseCliArgs } from './cli-arg-parser.js';
 import { UsageError } from './cli-usage-error.js';
-import { parseSnapshot, type DumpedWire } from '@rustra/types';
+import { parseSnapshot, type DumpedWire } from '@unikit/types';
 
 /**
  * 정규화된 문자열이 정확한 hex 텍스트인지 — 비어 있거나 홀수 길이면 hex 가
@@ -40,8 +40,8 @@ function hexToBytes(compact: string): Uint8Array {
 /**
  * 0x 접두·주석·공백을 제거하는 공통 정규화 — 판정과 디코드가 같은 형태를 본다.
  * `#` 로 시작하는 주석 줄은 저장소의 표준 덤프 아티팩트 형식
- * (crates/rustra/tests/fixtures/inspector-golden.hex.txt 헤더 관례)이므로
- * 벗겨낸다 — rustra inspect 가 그 아티팩트를 그대로 소비할 수 있어야 한다.
+ * (crates/unikit-bridge/tests/fixtures/inspector-golden.hex.txt 헤더 관례)이므로
+ * 벗겨낸다 — unikit inspect 가 그 아티팩트를 그대로 소비할 수 있어야 한다.
  */
 function normalizeHexText(text: string): string {
   const withoutComments = text
@@ -102,7 +102,7 @@ export function formatInspectText(dumped: DumpedWire): string {
 }
 
 /**
- * `rustra inspect <file>` 진입점 — 덤프 파일 하나를 받아 필드 트리를
+ * `unikit inspect <file>` 진입점 — 덤프 파일 하나를 받아 필드 트리를
  * stdout 으로 렌더한다. 실패는 `inspect: <path>: <underlying>` 형태로 크게
  * 던진다(기존 커맨드 관례대로 main 이 stderr + exit code 로 마무리).
  */
@@ -118,7 +118,7 @@ export async function runInspect(args: string[]): Promise<void> {
   if (parsed.flags.has('help')) return;
   const files = parsed.positionals;
   if (files.length !== 1)
-    throw new UsageError('Provide one snapshot dump file. Usage: rustra inspect dump.hex');
+    throw new UsageError('Provide one snapshot dump file. Usage: unikit inspect dump.hex');
   // cli-diff 관례 — 사용자 경로를 resolve 해서 읽고, 에러 메시지도 절대 경로로 보인다.
   const path = resolve(files[0]!);
   // parseSnapshot 의 위치·필드 경로 메시지를 접지 않고 경로 접두만 얹는다(loud 계약).

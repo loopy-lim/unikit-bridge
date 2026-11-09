@@ -73,8 +73,8 @@ records a rejected earlier implementation and is not final acceptance evidence.
 To reproduce, check out 0.10.1 and this patch separately, copy this patch's
 `complex_route.rs`, `benches/support/complex_cases.rs`, `benches/common.rs`, and
 `examples/codec_allocations.rs` into the baseline, then build each with
-`cargo bench -p rustra --bench complex_route --no-run --locked` and
-`cargo build -p rustra --example codec_allocations --release --locked`. Run
+`cargo bench -p unikit-bridge --bench complex_route --no-run --locked` and
+`cargo build -p unikit-bridge --example codec_allocations --release --locked`. Run
 `python3 scripts/benchmark-complex-ab.py --help` and supply the two checkout roots,
 Criterion executables and allocation executables, a new artifact directory, and
 an output JSON path. Do not rebuild or edit the measured sources during the run.
@@ -106,7 +106,7 @@ every node was visited before timing:
 - `echo`: decode the entire incoming tree and return the whole tree.
 - `search`: decode the entire incoming tree, search it, and return only the result.
 - `resident`: keep the tree in Rust and send its index and target ID per query.
-- `dfs`: search an already allocated tree directly, without Rustra invocation.
+- `dfs`: search an already allocated tree directly, without Unikit invocation.
 
 Five independent processes per version, alternating AB/BA, used the same host and
 optimized profiles as the complex suite. Each case used 100 Criterion samples,
@@ -212,10 +212,10 @@ After completing the three remaining caller-buffer roadmap items (the Bun adapte
 `_into`, async response caller-buffer, and the complex-route core into-handler),
 before/after was measured on the same machine. Method: against the same integrated
 release dylib (`examples/calculator`), (a) the malloc path = base adapter behavior
-(`rustra_ffi_invoke_frame` + copy then free) and (b) the into path =
-`rustra_ffi_invoke_frame_into` + a reused 512B caller buffer were alternated within
+(`unikit_ffi_invoke_frame` + copy then free) and (b) the into path =
+`unikit_ffi_invoke_frame_into` + a reused 512B caller buffer were alternated within
 the same process (best-of-5 rounds). The full round trip of the base adapter
-(98cdb689 `@rustra/bun`) and the integrated adapter was also cross-run against the
+(98cdb689 `@unikit/bun`) and the integrated adapter was also cross-run against the
 same dylib to produce 4-pair medians. Environment: macOS arm64 (Apple M-series,
 10 core), Bun 1.4.0, Rust release. The load average at measurement time was 8–13, so
 this is not a reproducible measurement — read it as a relative comparison.
@@ -278,7 +278,7 @@ pre-F1 Buffered fallback, so wire compatibility is OTA-safe.
 ### Async response caller-buffer (F3)
 
 F3 removes the `std::vector frame` copy in the RN C++ async response and makes the core
-`rustra_ffi_invoke_frame_async_into` write directly into the caller buffer. RN
+`unikit_ffi_invoke_frame_async_into` write directly into the caller buffer. RN
 simulator benches are not covered in this section (the C++ gate is not in CI, so
 device smoke is the actual measuring party). Facts verified at the core level:
 
@@ -291,14 +291,14 @@ device smoke is the actual measuring party). Facts verified at the core level:
   property of the older std::vector path).
 - Thread-local probe reuse was judged cross-thread unsafe and replaced with a
   single-dispatch owned-flag design — retries are exactly-once even without a probe
-  cache. (Evidence: 320 added lines in `crates/rustra/tests/trust_baseline_ffi.rs`)
+  cache. (Evidence: 320 added lines in `crates/unikit-bridge/tests/trust_baseline_ffi.rs`)
 
 ## Track B measurements — scope of the wide-int C++ direct path completed (2026-08-29)
 
 The completed scope of Track B (C++ bigint/Set direct path) this round is **Set with
 int64/uint64 primitive elements and the C++ int64/uint64 native decode path** (a
 3-surface wire gate: `wire_fixtures.rs` ↔ `cross-wire.test.ts` ↔ C++
-`test-rustra-generated-codecs.cpp` share the `wideAgg`/`tagSet` PINNED hex
+`test-unikit-generated-codecs.cpp` share the `wideAgg`/`tagSet` PINNED hex
 byte-exactly).
 
 ### JS codec path measurements (bun, this machine)
@@ -342,7 +342,7 @@ production escape hatches in real runtimes. Every path validates the `42` result
 and after timing and repeats 3 times after warm-up.
 
 ```bash
-bun run bench:hosts -- --output /tmp/rustra-host-matrix.json
+bun run bench:hosts -- --output /tmp/unikit-host-matrix.json
 ```
 
 Environment: macOS arm64, Bun 1.4.0, Node v22.21.1, Rust release. The original figures
@@ -360,7 +360,7 @@ are preserved in
 
 All means and throughput figures use a trimmed mean excluding the outermost 5% on each
 end to reduce OS scheduling tails. Tauri computes percentiles as per-call latency of a
-20-call batch to avoid WKWebView's ~1ms timer granularity. The RN row is the Rustra add
+20-call batch to avoid WKWebView's ~1ms timer granularity. The RN row is the Unikit add
 p50 of that day's final fingerprint Release receipt; since its execution environment
 differs from Node/Bun/Tauri, no direct ranking is claimed.
 
@@ -390,7 +390,7 @@ The 2026-08-18 session's wire/napi/core tables are replaced by these values.
 
 ### Rust release wire benchmark
 
-`cargo run -p rustra-calculator-example --bin wire-bench --release`
+`cargo run -p unikit-calculator-example --bin wire-bench --release`
 
 The command is unchanged, but since the legacy protocol removal (2026-09-03) the
 benchmark calls `Package` methods directly (`invoke_json` / `invoke_frame` /
@@ -426,11 +426,11 @@ xychart-beta
 | Node N-API (Buffer) |      2.0 µs |   ~500,000 ops/s |
 | Node.js subprocess  |     3.40 ms |       ~294 ops/s |
 
-→ In the same run, N-API is ~2,270x faster than subprocess. `rustraInvokeBuffer`
+→ In the same run, N-API is ~2,270x faster than subprocess. `unikitInvokeBuffer`
 (the Buffer-returning variant) removes the UTF-16 double copy of the String round trip,
 but at this size (47B request) the Buffer wrapping cost grows instead, measuring 2.0 µs —
 it benefits large responses (without the variant, String is the faster range).
-`rustraInvokeFrame` (added 2026-08-23) round-trips the postcard frame over a direct
+`unikitInvokeFrame` (added 2026-08-23) round-trips the postcard frame over a direct
 Buffer — 596ns on a quiet machine (it swells to 2.8µs at a system load average of 8+,
 so record session conditions). The napi ABI's entry+Buffer fixed cost (~530ns) sets the
 floor.
@@ -446,7 +446,7 @@ floor.
 | Bun subprocess          |     5.73 ms |       ~175 ops/s |
 
 > The Frame direct path (added 2026-08-23) calls the core
-> `rustra_ffi_invoke_frame` over a direct buffer — only postcard frames cross, with no
+> `unikit_ffi_invoke_frame` over a direct buffer — only postcard frames cross, with no
 > JSON/UTF-16 round trip. The response's toArrayBuffer view references Rust memory, so
 > materialize it as a value copy before freeing (a second copy is mandatory).
 
@@ -465,7 +465,7 @@ floor.
 | Full bridge (serialize → FFI → parse) |     6.6 µs | ~151,000 ops/s |
 
 ¹ Measured 2026-08-22 via the calculator-specific CString symbol, which the legacy
-removal replaced with the core `rustra_ffi_invoke_json` bytes path (2026-09-03).
+removal replaced with the core `unikit_ffi_invoke_json` bytes path (2026-09-03).
 Same wire envelope; the Swift module now allocates bytes, not C strings.
 
 This Swift table is a breakdown of the C ABI layer using a macOS dylib and Foundation
@@ -482,7 +482,7 @@ xychart-beta
 
 ## 2026-08-21 cold-start and allocation count additions (`0.3.0` preparation checkout)
 
-`rustra-benchmark` gained global_allocator counting (atomic alloc/dealloc counters) and
+`unikit-benchmark` gained global_allocator counting (atomic alloc/dealloc counters) and
 cold-start separation. Per the 2026-08-22 re-measurement:
 
 | Metric                                   | Value                           |
@@ -496,7 +496,7 @@ Allocation counts are a more stable comparison metric than nanoseconds — copy-
 optimizations such as caller-buffer/Arc are validated as "reduced allocations" (the Frame
 path halves the allocation count versus JSON).
 
-## Rust Core Performance (`cargo run --release -p rustra-benchmark`)
+## Rust Core Performance (`cargo run --release -p unikit-benchmark`)
 
 ### Package creation
 
@@ -632,7 +632,7 @@ bun run test:runtime:node-napi
 ### React Native iOS Release equivalent-operation comparison (2026-08-24)
 
 Measured on an iPhone 17 Simulator (iOS 26.2), Hermes, React Native 0.81.5 + Expo 54
-Release app. Each operation is warm-up 500 + 10,000 runs, and Nitro and Rustra use the
+Release app. Each operation is warm-up 500 + 10,000 runs, and Nitro and Unikit use the
 same JS input shapes, the same operation, and the same output shape. bytes normalization
 is included inside both measurement windows too. The raw `nitroBench.add(a, b)` call is
 recorded only as a lower bound and is not used in ratios.
@@ -653,14 +653,14 @@ pair 1.0511x, 64 KiB 0.9687x, 1 MiB-wire 0.9727x. A single run does not replace 
 evidence that the deployment candidate and the measuring app share fingerprint, answers,
 and CI gate.
 
-Answers are validated before timing, and Nitro/Rustra/Swift FFI are measured in
+Answers are validated before timing, and Nitro/Unikit/Swift FFI are measured in
 per-call `ABC → BCA → CAB` rotation. Each receipt includes the log-ratio t 95% CI of 100
 paired batches and automated diagnostics of the generated helper/native routes. The
 receipt of the installed Release app is extracted without screen capture as follows:
 
 ```bash
 bun run --cwd examples/react-native-calculator bench:ios:receipt -- \
-  --output /tmp/rustra-rn-receipt.json
+  --output /tmp/unikit-rn-receipt.json
 ```
 
 The extractor verifies build mode, correctness, FFI availability, CI fields, generation
@@ -687,18 +687,18 @@ improvement is the combination of:
   no options creates the public Promise exactly once. The cancellation/timeout option
   paths keep the existing contract as-is.
 
-> Android shares the same `RustraJSIBridge.cpp`, but these figures are iOS Simulator
+> Android shares the same `UnikitJSIBridge.cpp`, but these figures are iOS Simulator
 > based. Android emulator/physical device figures require separate verification.
 
 ### React Native direct byte-buffer comparison (2026-08-24)
 
 `Uint8Array`/`ArrayBuffer` inputs are borrowed through a dedicated JSI entry point, and
 the Rust output allocation is transferred to a JSI `MutableBuffer`, removing the response
-`memcpy`. Both Nitro and Rustra honor the fresh-output contract, and there is one bulk
+`memcpy`. Both Nitro and Unikit honor the fresh-output contract, and there is one bulk
 copy per echo. Each run validated result-byte equivalence before timing and alternated
-the Nitro/Rustra order per call.
+the Nitro/Unikit order per call.
 
-| Release run | 64 KiB Nitro | 64 KiB Rustra |      ratio | 1 MiB-wire Nitro | 1 MiB-wire Rustra |      ratio |
+| Release run | 64 KiB Nitro | 64 KiB Unikit |      ratio | 1 MiB-wire Nitro | 1 MiB-wire Unikit |      ratio |
 | ----------- | -----------: | ------------: | ---------: | ---------------: | ----------------: | ---------: |
 | 1           |     8.540 us |      8.456 us |     0.990x |        87.979 us |         89.923 us |     1.022x |
 | 2           |    12.815 us |      8.792 us |     0.686x |        84.797 us |         85.894 us |     1.013x |
@@ -707,7 +707,7 @@ the Nitro/Rustra order per call.
 
 The median of ratios is the 3-run median of per-call paired ratios, so it may differ from
 a simple division of independent time medians. The second 64 KiB run was an outlier where
-only the Nitro lane slowed transiently, but Rustra held 8.456–8.792 us in all three runs.
+only the Nitro lane slowed transiently, but Unikit held 8.456–8.792 us in all three runs.
 The representative figure is therefore the median of the three runs' paired ratios, not a
 single run. 64 KiB is measured with warm-up 50 + 500 runs, and 1 MiB-wire with warm-up 20
 
@@ -782,7 +782,7 @@ overhead (40.2µs).
 
 **Tables removed** from this document, and why:
 
-- **iOS/Android "Rustra Direct C++ Fast-Path" comparison table** (iOS 0.95 µs /
+- **iOS/Android "Unikit Direct C++ Fast-Path" comparison table** (iOS 0.95 µs /
   Android 1.50 µs, including a superiority claim versus Nitro)
 - **Payload complexity scaling table** (1.5/2.1/3.4 µs at Tier 1/2/3, a "12.3x faster
   than Nitro" claim)
@@ -790,7 +790,7 @@ overhead (40.2µs).
 
 Tracing the provenance of these figures showed that the `Lynx (Direct C++ Fast-Path)
 0.95 µs` table, written from 2026-08-11 Lynx-era measurements, had been **renamed only**
-to "Rustra Direct C++ Fast-Path" in the same commit (d888fc86). The table survived even
+to "Unikit Direct C++ Fast-Path" in the same commit (d888fc86). The table survived even
 the Lynx removal (ecbe69c5). Since no measurement code for this path (a pure C++
 fast-path bench) exists in the repo, it could not remain as a performance claim without
 evidence to re-measure, so it was removed. RN measurements are replaced by the
@@ -817,7 +817,7 @@ and records avg/stddev/min/max/p50/p95/p99 as a structured receipt:
 There is exactly one question this comparison answers reliably:
 
 > **"Is the end-to-end latency of the same public object API Nitro-grade?"** — Answer:
-> by 3-run median, Rustra/Nitro add 1.0418x, string 1.0281x, bytes 0.9543x,
+> by 3-run median, Unikit/Nitro add 1.0418x, string 1.0281x, bytes 0.9543x,
 > pair 1.0535x (2026-08-24 Release measurement).
 
 What this comparison does **not** cover (i.e., the above alone does not establish a
@@ -835,16 +835,16 @@ What this comparison does **not** cover (i.e., the above alone does not establis
 - Feature parity — see the matrix below. Latency comparison is no substitute for
   feature support.
 
-### Feature parity matrix: rustra vs Nitro Modules
+### Feature parity matrix: unikit vs Nitro Modules
 
-Nitro is designed as a "JS ↔ native object bridge", rustra as a "single Rust core ×
+Nitro is designed as a "JS ↔ native object bridge", unikit as a "single Rust core ×
 multi-host RPC contract" — different design goals. They overlap on only one problem
 (calling Rust/C++ logic from RN). The following is based on the actual type surface of
-the installed Nitro 0.35.10 (`cpp/jsi/JSIConverter*`) and the rustra codegen/codec surface.
+the installed Nitro 0.35.10 (`cpp/jsi/JSIConverter*`) and the unikit codegen/codec surface.
 
 #### Type System
 
-| Type                     | Nitro 0.35.10                                  | rustra (postcard/Frame fast path)                                                                                                                                             | rustra fallback (Tier 3 JSON) |
+| Type                     | Nitro 0.35.10                                  | unikit (postcard/Frame fast path)                                                                                                                                             | unikit fallback (Tier 3 JSON) |
 | ------------------------ | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
 | Integer/float primitives | ✅ int/float/double + **bigint(Int64/UInt64)** | ✅ f64/f32/zigzag integers + **uvar(u8–u64) plain varint** + `number                                                                                                          | bigint` wide-int restore      | ✅ (serde JSON) |
 | string                   | ✅                                             | ✅                                                                                                                                                                            | ✅                            |
@@ -864,12 +864,12 @@ the installed Nitro 0.35.10 (`cpp/jsi/JSIConverter*`) and the rustra codegen/cod
 
 #### Runtime/Platform
 
-| Item                             | Nitro Modules                          | rustra                                                           |
+| Item                             | Nitro Modules                          | unikit                                                           |
 | -------------------------------- | -------------------------------------- | ---------------------------------------------------------------- |
 | Target hosts                     | React Native only                      | Node / Bun / Tauri / RN (iOS+Android) on a single core           |
 | Implementation language          | C++/Swift/Kotlin (per platform)        | Single Rust + thin adapters per host                             |
 | Codegen                          | nitrogen (interface → native bindings) | Schema → **bidirectional** (commands + events + TS client)       |
-| Contract gates                   | ❌                                     | ✅ `rustra diff` + contract hash + wire round-trip gates         |
+| Contract gates                   | ❌                                     | ✅ `unikit diff` + contract hash + wire round-trip gates         |
 | Runtime command registration     | ❌                                     | ⚠️ dev only (register → frozen)                                  |
 | Cancellation (AbortSignal)       | roll your own                          | ✅ RN Frame propagates to native checkpoints                     |
 | Timeout                          | roll your own                          | ✅ timeoutMs (all adapters)                                      |
@@ -883,18 +883,18 @@ the installed Nitro 0.35.10 (`cpp/jsi/JSIConverter*`) and the rustra codegen/cod
 - **Where Nitro wins**: raw primitive call latency (specialized converters), rich native
   types (bigint/Date/ArrayBuffer/callbacks), object lifetime management, and UI views —
   specialized to the problem "build a native module".
-- **Where rustra wins**: multi-host reuse of a single Rust core, bidirectional codegen
+- **Where unikit wins**: multi-host reuse of a single Rust core, bidirectional codegen
   with contract gates, documented cancellation/timeout/batch/event semantics, payload
   scaling on a binary wire, dynamic schema — specialized to the problem "own an RPC
   contract".
 - In practice: for an RN-only app where primitive calls are the bottleneck, choose Nitro;
   to embed the same Rust logic in multiple hosts or to need contract management, choose
-  rustra. The two can coexist (using a Nitro module as the transport inside a rustra
+  unikit. The two can coexist (using a Nitro module as the transport inside a unikit
   adapter is also technically possible).
 
 #### Meaning of the Gaps and Roadmap
 
-In the matrix, a ❌ for rustra is not "unsupported" but falls into **3 classes**:
+In the matrix, a ❌ for unikit is not "unsupported" but falls into **3 classes**:
 
 1. **Fast-path extension** (stage 1 completed 2026-08-22) — dynamic maps (primitive
    values), tuples, Vec<u8>/ArrayBuffer, u8–u64 plain varints, and chrono Date (ISO
@@ -918,15 +918,15 @@ In the matrix, a ❌ for rustra is not "unsupported" but falls into **3 classes*
    object references. Rather than building a JS-first object bridge like Nitro, the
    Tauri v2 models — `ipc::Channel<T>` (callbacks as serializable channel handles) and
    `Resource` (objects exposed as Rust-owned handle ids, methods via codegen) — were
-   brought into the rustra contract. Implementation: core `channels.rs` (a global
+   brought into the unikit contract. Implementation: core `channels.rs` (a global
    `ChannelHost` table — u32 monotonic handles, no reuse, stale sends quietly false),
-   FFI `rustra_ffi_channel_{create,send,drop}` (callbacks reply with their own handle),
+   FFI `unikit_ffi_channel_{create,send,drop}` (callbacks reply with their own handle),
    RN JSI `createChannel(cb)`/`dropChannel(h)` + `ChannelDispatcher` (the same
    queue+CallInvoker marshalling as EventDispatcher), and the calculator example
    `channelDemo`/`resourceOpen/Read/Write/Close` (KvResource, Mutex state). Only integer
    handles travel on the wire, so contract gates, bidirectional codegen, and multi-host
    consistency are preserved as-is — the difference that codegen direction is reversed
-   (Nitro TS→native, rustra Rust→TS) also survives in this direction. Simulator E2E:
+   (Nitro TS→native, unikit Rust→TS) also survives in this direction. Simulator E2E:
    channel ordering preservation of 3 payloads + drop, and resource
    open→read→write→close followed by `resource.not_found`.
 4. **Confirmed out of scope** — HybridView (UI native views). It conflicts with the
@@ -936,7 +936,7 @@ In the matrix, a ❌ for rustra is not "unsupported" but falls into **3 classes*
 
 Performance of dynamic commands (registered at runtime via `register`, with the Frame
 **Tier 3 JSON-in-binary** fallback). Measured with criterion benchmarks
-(`crates/rustra/benches/`).
+(`crates/unikit-bridge/benches/`).
 
 > **Measurement environment warning**: dynamic commands are **dev-only by design**
 > (release builds are frozen → `register` blocked). These figures were therefore
@@ -947,7 +947,7 @@ Performance of dynamic commands (registered at runtime via `register`, with the 
 
 ### Tier comparison — operation-controlled (same echo `{"v":7}` operation, only wire swapped) (debug, 2026-08-30)
 
-`cargo bench -p rustra --bench tier_compare --profile dev`
+`cargo bench -p unikit-bridge --bench tier_compare --profile dev`
 
 > **Misreading warning (strengthened)**: the earlier table (2026-08-22) re-ran
 > add/greet/echo — **different operations** — over different wires and presented "6.55x"
@@ -977,7 +977,7 @@ care when citing.
 
 ### Runtime registry costs (debug, 2026-08-22)
 
-`cargo bench -p rustra --bench dynamic_registry --profile dev`
+`cargo bench -p unikit-bridge --bench dynamic_registry --profile dev`
 
 | Operation                                   | mean     | notes                                  |
 | ------------------------------------------- | -------- | -------------------------------------- |
@@ -988,7 +988,7 @@ care when citing.
 
 ### Dynamic command payload scaling (debug, 2026-08-30)
 
-`cargo bench -p rustra --bench type_scaling --profile dev`
+`cargo bench -p unikit-bridge --bench type_scaling --profile dev`
 
 (After T2-1) `processPayload` (PayloadInput: Vec<Item>) is a postcard-supported shape, so
 dynamic registration gives it a postcard handler — the bench was updated to measure a
@@ -1009,9 +1009,9 @@ postcard round trip (the old `type_scaling_tier3` group retired).
 
 ```bash
 # Dynamic/Tier 3 paths are reachable only via register → a debug build is required.
-cargo bench -p rustra --bench tier_compare    --profile dev
-cargo bench -p rustra --bench dynamic_registry --profile dev
-cargo bench -p rustra --bench type_scaling    --profile dev
+cargo bench -p unikit-bridge --bench tier_compare    --profile dev
+cargo bench -p unikit-bridge --bench dynamic_registry --profile dev
+cargo bench -p unikit-bridge --bench type_scaling    --profile dev
 ```
 
 The original figures are preserved in
@@ -1032,7 +1032,7 @@ The original figures are preserved in
 
 ```bash
 # Full Rust benchmark (the Summary chart is based on measured figures)
-cargo run --release -p rustra-benchmark
+cargo run --release -p unikit-benchmark
 
 # Node.js adapter benchmark
 node scripts/adapter-bench.mjs

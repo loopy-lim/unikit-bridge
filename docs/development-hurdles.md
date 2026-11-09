@@ -2,7 +2,7 @@ English | [한국어](./development-hurdles.ko.md)
 
 # Reducing development hurdles
 
-Rustra connects Rust commands to native code, so it cannot remove every environment dependency. Instead, it can check the required tools before installation, bundle Rust schema generation and TypeScript/C++ generation into one command, and automatically verify generated output sync in CI.
+Unikit connects Rust commands to native code, so it cannot remove every environment dependency. Instead, it can check the required tools before installation, bundle Rust schema generation and TypeScript/C++ generation into one command, and automatically verify generated output sync in CI.
 
 This guide describes the Rust 0.13.0 and CLI 0.13.0 workflow. JS packages have independent version ranges; check the [compatibility table](compatibility-matrix.md), project lockfile and generated manifest together. Setup success, registry publication, and physical-device acceptance are separate checks.
 
@@ -10,20 +10,20 @@ This guide describes the Rust 0.13.0 and CLI 0.13.0 workflow. JS packages have i
 
 | Form                                                        | When                                                 |
 | ----------------------------------------------------------- | ---------------------------------------------------- |
-| `bunx --bun @rustra/cli@0.12.0 <cmd>`                       | one-off execution with an explicit CLI version       |
-| `bun add -d @rustra/cli@0.12.0` + `bunx --bun rustra <cmd>` | projects running CLI commands as package scripts     |
-| `bun i -g @rustra/cli@0.12.0` + `rustra <cmd>`              | rarely — only for machines that need a global binary |
+| `bunx --bun @unikit/cli@0.12.0 <cmd>`                       | one-off execution with an explicit CLI version       |
+| `bun add -d @unikit/cli@0.12.0` + `bunx --bun unikit <cmd>` | projects running CLI commands as package scripts     |
+| `bun i -g @unikit/cli@0.12.0` + `unikit <cmd>`              | rarely — only for machines that need a global binary |
 
-`rustra init` scaffolds package scripts (`bun run doctor`, `bun run codegen`, …)
+`unikit init` scaffolds package scripts (`bun run doctor`, `bun run codegen`, …)
 that use the dependency form; CI and docs examples use the `bunx` form. All
-commands accept `--config rustra.json` explicitly.
+commands accept `--config unikit.json` explicitly.
 
 Exit codes are uniform across commands: `2` means the CLI was invoked wrong (a usage
 error — unknown command, unknown flag, or a missing required argument such as
 `codegen` without `--config` or `diff` without `--old`/`--new`); `1` means the command
 ran and failed (a codegen error, a `doctor` failure, a breaking `diff`); `0` is
 success. `--help` is handled once in the entry point for every command, so
-`rustra dev --help` prints usage without entering watch mode. `doctor`, `codegen`,
+`unikit dev --help` prints usage without entering watch mode. `doctor`, `codegen`,
 `codegen --explain`, and `diff` accept `--format json` and share one envelope,
 `{ "schemaVersion": 1, ... }`: `codegen` reports `{ written, drift, durationMs }`,
 `--explain` reports `{ explain }`, and `diff` reports `{ breaking, clean }` with the
@@ -31,18 +31,18 @@ exit code unchanged (`1` when breaking). `dev` is text-only.
 
 ## Starting without Rust: the mock engine
 
-The UI does not have to wait for a native build. `@rustra/testing`'s
+The UI does not have to wait for a native build. `@unikit/testing`'s
 `createMockEngine` is a real `EngineClient` — install it once with `configure()`
 and the generated command helpers run unchanged, no Rust toolchain involved:
 
 ```bash
-bun add @rustra/testing @rustra/types
+bun add @unikit/testing @unikit/types
 ```
 
 ```ts
 // src/mock.ts — import early while the UI is still under construction
-import { createMockEngine } from '@rustra/testing';
-import { configure } from '@rustra/types';
+import { createMockEngine } from '@unikit/testing';
+import { configure } from '@unikit/types';
 import { addNumbers } from './generated/commands.js';
 
 const engine = createMockEngine()
@@ -50,7 +50,7 @@ const engine = createMockEngine()
   .on('addNumbers', ({ a, b }) => ({ value: a + b }))
   // typed form — resolves the name from the generated function, typos fail fast
   .mock(addNumbers, ({ a, b }) => ({ value: a + b }))
-  // simulate failures: {code,message} becomes a structured RustraCommandError
+  // simulate failures: {code,message} becomes a structured UnikitCommandError
   .fail('secureCompute', { code: 'capability.denied', message: 'not granted in mock' });
 
 configure(engine); // installs into the global invoke
@@ -80,38 +80,38 @@ nothing else in app code changes.
 Start a Node project and make its first Rust call in one command:
 
 ```bash
-bunx --bun @rustra/cli@0.12.0 init my-project --setup
-# Bun FFI: bunx --bun @rustra/cli@0.12.0 init my-bun-project --host bun --setup
+bunx --bun @unikit/cli@0.12.0 init my-project --setup
+# Bun FFI: bunx --bun @unikit/cli@0.12.0 init my-bun-project --host bun --setup
 ```
 
 After editing, use `cd my-project` and `bun run start` to repeat generation,
 installation, build and demo. `bun run setup` prepares without running the demo.
 If setup fails, fix the reported error and rerun the printed setup command;
 recreating the project with `init --force` is unnecessary.
-Existing Node/Bun projects need a `demo` script in `package.json` for `rustra setup --run`.
+Existing Node/Bun projects need a `demo` script in `package.json` for `unikit setup --run`.
 For RN/Tauri apps, use setup without `--run` and finish the printed native app steps.
 
-`rustra init` creates `rustra.json` along with the following scripts.
+`unikit init` creates `unikit.json` along with the following scripts.
 
 ```json
 {
-  "setup": "rustra setup --config rustra.json",
-  "start": "rustra setup --config rustra.json --run",
-  "doctor": "rustra doctor --config rustra.json",
-  "codegen": "rustra codegen --config rustra.json",
-  "codegen:check": "rustra codegen --config rustra.json --check",
-  "dev": "rustra dev --config rustra.json"
+  "setup": "unikit setup --config unikit.json",
+  "start": "unikit setup --config unikit.json --run",
+  "doctor": "unikit doctor --config unikit.json",
+  "codegen": "unikit codegen --config unikit.json",
+  "codegen:check": "unikit codegen --config unikit.json --check",
+  "dev": "unikit dev --config unikit.json"
 }
 ```
 
-## `rustra doctor`
+## `unikit doctor`
 
 `doctor` diagnoses the current host without installing anything or changing files.
 
 ```bash
-bunx --bun @rustra/cli@0.12.0 doctor --config rustra.json
-bunx --bun @rustra/cli@0.12.0 doctor --config rustra.json --format json
-bunx --bun @rustra/cli@0.12.0 doctor --config rustra.json --strict
+bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json
+bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json --format json
+bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json --strict
 ```
 
 It checks Rust MSRV 1.88+, Cargo, the configured Cargo manifest and Rust target.
@@ -123,7 +123,7 @@ Only RN configurations add Xcode/CocoaPods on macOS and, on Android, Java 17,
 Tauri configuration adds per-host native build tools. Rust builds still need the
 platform's native linker.
 
-Two checks look past the local toolchain. `registry.reachability` fetches `https://index.crates.io/config.json` with a 3-second timeout and reports `warn` — never `fail`, so an offline CI stays green — when crates.io is unreachable, with proxy (`HTTPS_PROXY`/`HTTP_PROXY`) and offline (`CARGO_NET_OFFLINE=true`) hints; it is skipped when Cargo itself is missing. `codegen.device_catalog` reads the generated `schema.json`: `skip` when no command declares devices, `warn` when commands declare devices but the schema has no `deviceCapabilities` catalog (regenerate with a current rustra), `pass` when every declared token is in the catalog, and `fail` for tokens outside it — debug builds accept such tokens with a warning while release builds panic at registration (see [dev-tier.md](dev-tier.md)).
+Two checks look past the local toolchain. `registry.reachability` fetches `https://index.crates.io/config.json` with a 3-second timeout and reports `warn` — never `fail`, so an offline CI stays green — when crates.io is unreachable, with proxy (`HTTPS_PROXY`/`HTTP_PROXY`) and offline (`CARGO_NET_OFFLINE=true`) hints; it is skipped when Cargo itself is missing. `codegen.device_catalog` reads the generated `schema.json`: `skip` when no command declares devices, `warn` when commands declare devices but the schema has no `deviceCapabilities` catalog (regenerate with a current unikit), `pass` when every declared token is in the catalog, and `fail` for tokens outside it — debug builds accept such tokens with a warning while release builds panic at registration (see [dev-tier.md](dev-tier.md)).
 
 Each failure prints the checked value together with a copyable next action. `--format json` can be used for CI annotations or IDE integration, and `--strict` treats warnings as failures too. `doctor` performs no automatic installation.
 
@@ -136,10 +136,10 @@ Select a target via Cargo metadata
   -> cargo run --bin <configured generator>
   -> schema.json
   -> TypeScript/C++/React Native generation
-  -> .rustra-generated.json record
+  -> .unikit-generated.json record
 ```
 
-`rustra.json` can name the Rust manifest, package, and binary explicitly so the choice is unambiguous within the workspace.
+`unikit.json` can name the Rust manifest, package, and binary explicitly so the choice is unambiguous within the workspace.
 
 ```json
 {
@@ -155,7 +155,7 @@ Select a target via Cargo metadata
 
 If the binary is omitted, a binary named `generate`, or the single binary, is used. With two or more candidates it does not guess automatically; it prints `codegen.rust_binary_ambiguous` together with the candidates.
 
-Without `--config`, `codegen` falls back to `./rustra.json` when that file exists (the same default as `doctor`). In text mode it prints the same file list as `generate`, each line suffixed `(unchanged)` or `(updated)`. Any `(updated)` line means a committed artifact changed, and because codegen never rebuilds the runtime binary that serves `invoke`, the CLI appends a hint to run `cargo build` — until then invokes can fail with `contract.mismatch`. If `cargo` itself is not on `PATH`, the codegen error names that directly and points to <https://rustup.rs> instead of surfacing a bare `ENOENT`.
+Without `--config`, `codegen` falls back to `./unikit.json` when that file exists (the same default as `doctor`). In text mode it prints the same file list as `generate`, each line suffixed `(unchanged)` or `(updated)`. Any `(updated)` line means a committed artifact changed, and because codegen never rebuilds the runtime binary that serves `invoke`, the CLI appends a hint to run `cargo build` — until then invokes can fail with `contract.mismatch`. If `cargo` itself is not on `PATH`, the codegen error names that directly and points to <https://rustup.rs> instead of surfacing a bare `ENOENT`.
 
 To keep generating while editing Rust, use the following.
 
@@ -167,42 +167,42 @@ In config mode `dev` calls the `codegen` orchestrator in the same process instea
 
 ## Generated output drift gate
 
-Regular generation updates the output and `.rustra-generated.json`. Projects that commit the generated TS/C++/RN files can add the following command to CI.
+Regular generation updates the output and `.unikit-generated.json`. Projects that commit the generated TS/C++/RN files can add the following command to CI.
 
 ```bash
 bun run codegen:check
 ```
 
-`generate --check` compares the bytes, schema hash, and generator version of every file expected from the current schema against the manifest and writes no files. It reports on-disk content changes and a stale manifest as distinct errors, and treats missing, changed, or unexpected files as failures. `codegen --check` passes an `RUSTRA_SCHEMA_OUT` temporary directory to the Rust generator so the Cargo stage does not write to the working tree either, then verifies TS/C++/RN. Generated Rust files are not rewritten when the content is identical.
+`generate --check` compares the bytes, schema hash, and generator version of every file expected from the current schema against the manifest and writes no files. It reports on-disk content changes and a stale manifest as distinct errors, and treats missing, changed, or unexpected files as failures. `codegen --check` passes an `UNIKIT_SCHEMA_OUT` temporary directory to the Rust generator so the Cargo stage does not write to the working tree either, then verifies TS/C++/RN. Generated Rust files are not rewritten when the content is identical.
 
-Every generated file carries a self-describing header (file name, source, regen command, stage) in the comment syntax of its file type: `//` for TypeScript, C++, Swift, Kotlin, Gradle, and every other slash-comment file; `#` for `CMakeLists.txt`/`.cmake`, `.podspec`, `.rb`, `.py`, `.sh`, `.yml`/`.yaml`, `.toml`, `.properties`, `.gitignore`, and `.env`; `<!-- -->` for `.xml`/`.html`, where the `--config rustra.json` flag is written as `[config: rustra.json]` because an XML comment cannot contain `--`. A shebang line stays first and the header follows it. JSON files carry no header at all — JSON has no comment syntax — so `.rustra-generated.json` is the only provenance record for them. The header is part of the bytes that `--check` and the manifest hashes compare, so editing it is drift like any other edit.
+Every generated file carries a self-describing header (file name, source, regen command, stage) in the comment syntax of its file type: `//` for TypeScript, C++, Swift, Kotlin, Gradle, and every other slash-comment file; `#` for `CMakeLists.txt`/`.cmake`, `.podspec`, `.rb`, `.py`, `.sh`, `.yml`/`.yaml`, `.toml`, `.properties`, `.gitignore`, and `.env`; `<!-- -->` for `.xml`/`.html`, where the `--config unikit.json` flag is written as `[config: unikit.json]` because an XML comment cannot contain `--`. A shebang line stays first and the header follows it. JSON files carry no header at all — JSON has no comment syntax — so `.unikit-generated.json` is the only provenance record for them. The header is part of the bytes that `--check` and the manifest hashes compare, so editing it is drift like any other edit.
 
-## Runtime diagnostics: `RUSTRA_DEBUG`
+## Runtime diagnostics: `UNIKIT_DEBUG`
 
-Set `RUSTRA_DEBUG=1` (also `true` or `verbose`) in the process environment to turn on the opt-in diagnostics every adapter shares through `@rustra/types`. The value is read once per process at first use.
+Set `UNIKIT_DEBUG=1` (also `true` or `verbose`) in the process environment to turn on the opt-in diagnostics every adapter shares through `@unikit/types`. The value is read once per process at first use.
 
-- Every wire round trip is logged through `console.debug` as a `[rustra:debug]` event carrying `direction` (`request`/`response`/`error`), `transport` (`json`/`frame`/`typed`), `command`, a bounded hex `bytes` preview with `byteLength`, and a truncated `value` snapshot (depth 3, 32 entries, 2 KB budget). Nothing is logged unless debug is on, so secrets stay out of logs by default.
-- The raw wire bytes are additionally hex-dumped to stderr as `[rustra:wire] <direction> <hex>` (first 256 bytes).
+- Every wire round trip is logged through `console.debug` as a `[unikit:debug]` event carrying `direction` (`request`/`response`/`error`), `transport` (`json`/`frame`/`typed`), `command`, a bounded hex `bytes` preview with `byteLength`, and a truncated `value` snapshot (depth 3, 32 entries, 2 KB budget). Nothing is logged unless debug is on, so secrets stay out of logs by default.
+- The raw wire bytes are additionally hex-dumped to stderr as `[unikit:wire] <direction> <hex>` (first 256 bytes).
 - The JSON engine emits a `kind: 'response.shape'` warning event when a resolved response looks like a wire-envelope anomaly — `reason` is one of `double_envelope`, `failed_without_error`, `envelope_missing_payload`, `resolved_error_envelope` — the usual symptom of a JS/native version skew. The warning never throws and never changes the result.
-- `@rustra/node` emits `kind: 'ndjson.unparsed'` for every stdout line the NDJSON loop could not parse and warns on stderr once. Without debug mode it instead keeps the last 32 unparsed lines (each cut at 4 096 characters) and attaches them to the error of requests still pending when the child process exits; in debug mode an 8 KB stderr tail is attached as well.
+- `@unikit/node` emits `kind: 'ndjson.unparsed'` for every stdout line the NDJSON loop could not parse and warns on stderr once. Without debug mode it instead keeps the last 32 unparsed lines (each cut at 4 096 characters) and attaches them to the error of requests still pending when the child process exits; in debug mode an 8 KB stderr tail is attached as well.
 
-React Native has no `process.env` — set `globalThis.__RUSTRA_DEBUG__ = true` instead (this enables the event log; the stderr hex dump is env-only). For a structured consumer, install a sink with `configureDebug(sink)` from `@rustra/types`: the sink receives every `RustraDebugEvent` even when `RUSTRA_DEBUG` is unset, and `configureDebug(undefined)` removes it.
+React Native has no `process.env` — set `globalThis.__UNIKIT_DEBUG__ = true` instead (this enables the event log; the stderr hex dump is env-only). For a structured consumer, install a sink with `configureDebug(sink)` from `@unikit/types`: the sink receives every `UnikitDebugEvent` even when `UNIKIT_DEBUG` is unset, and `configureDebug(undefined)` removes it.
 
 ## Realistic per-platform boundaries
 
 ### Rust and the native toolchain
 
-The Rustra CLI itself installs as an npm/Bun package. The application's native output, however — the user's `#[command]`, schema, and staticlib — depends on the app and target, so no single universal prebuilt binary can replace it.
+The Unikit CLI itself installs as an npm/Bun package. The application's native output, however — the user's `#[command]`, schema, and staticlib — depends on the app and target, so no single universal prebuilt binary can replace it.
 
 - Node/Bun alone needs Rust, the platform's native linker, and a compatible JS runtime. A separate C++ compiler is checked for C++ or RN output; CMake is checked for RN.
 - Tauri needs the Rust and C/C++ tools of the given host.
 - React Native needs Xcode/CocoaPods on iOS and SDK/NDK 27+ plus Java 17 on Android, and uses a development build rather than Expo Go.
 
-Teams should avoid making every developer rebuild the native archive every time; instead, CI should build the archive per platform and architecture and provide it as a cache or internal artifact. That artifact is an app-specific result valid only for the same Rust commit, schema hash, and target — it is not the universal runtime prebuilt that Rustra ships.
+Teams should avoid making every developer rebuild the native archive every time; instead, CI should build the archive per platform and architecture and provide it as a cache or internal artifact. That artifact is an app-specific result valid only for the same Rust commit, schema hash, and target — it is not the universal runtime prebuilt that Unikit ships.
 
 ### Expo Go
 
-Rustra's RN adapter embeds C++ JSI and Rust FFI, so it cannot be loaded into Expo Go after the fact. An Expo app creates a development build once and then runs it. Calling rustra inside Expo Go fails as the classified `native.not_installed` error — a JavaScript reload cannot repair it — rather than an opaque missing-bridge failure.
+Unikit's RN adapter embeds C++ JSI and Rust FFI, so it cannot be loaded into Expo Go after the fact. An Expo app creates a development build once and then runs it. Calling unikit inside Expo Go fails as the classified `native.not_installed` error — a JavaScript reload cannot repair it — rather than an opaque missing-bridge failure.
 
 ```bash
 bunx --bun expo prebuild
@@ -252,27 +252,27 @@ On Apple Silicon with the calculator example's matching iOS Pods available, run 
 production C++ binder/codec on Hermes in a local Catalyst process:
 
 ```bash
-RUSTRA_NATIVE_TEST_PLATFORM=mac-catalyst \
-  bash examples/react-native-calculator/modules/rustra-jsi/ios/run-hermes-sync-tests.sh
+UNIKIT_NATIVE_TEST_PLATFORM=mac-catalyst \
+  bash examples/react-native-calculator/modules/unikit-jsi/ios/run-hermes-sync-tests.sh
 ```
 
-If the dependencies framework lives elsewhere, set `RUSTRA_NATIVE_DEPS_ROOT` to its
+If the dependencies framework lives elsewhere, set `UNIKIT_NATIVE_DEPS_ROOT` to its
 `ReactNativeDependencies.xcframework` directory, including `Headers` and the target
 slice. Use the framework version matching the example's React Native dependencies.
 The script reports missing inputs before compilation and writes source/binary hashes
-to `identities.txt` in `RUSTRA_NATIVE_TEST_DIR` (default `/private/tmp/rustra-native-sync-hermes`).
-The default platform remains `ios-simulator`; `RUSTRA_NATIVE_TEST_BUILD_ONLY=1`
-compiles without running, and execution requires an already booted `RUSTRA_SIMULATOR_UDID`.
+to `identities.txt` in `UNIKIT_NATIVE_TEST_DIR` (default `/private/tmp/unikit-native-sync-hermes`).
+The default platform remains `ios-simulator`; `UNIKIT_NATIVE_TEST_BUILD_ONLY=1`
+compiles without running, and execution requires an already booted `UNIKIT_SIMULATOR_UDID`.
 The script never boots a simulator or installs an app.
 
 These tests use real Hermes and production binder/codec code with controlled C ABI
 peers. They do not prove Android/iOS app startup, native event scheduling, or a real
 consumer's Rust FFI lifecycle.
 
-The 0.x API can still change, so run `doctor`, `codegen:check`, and `rustra diff` together in CI and lock the CLI/Rust/adapter versions separately. When reproducing an issue, leaving the following information behind makes diagnosis possible without descending into the source code.
+The 0.x API can still change, so run `doctor`, `codegen:check`, and `unikit diff` together in CI and lock the CLI/Rust/adapter versions separately. When reproducing an issue, leaving the following information behind makes diagnosis possible without descending into the source code.
 
 ```bash
-bunx --bun @rustra/cli@0.12.0 doctor --config rustra.json --format json > rustra-doctor.json
+bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json --format json > unikit-doctor.json
 bun run codegen:check
-bunx --bun @rustra/cli diff --old generated/schema.v1.json --new generated/schema.json
+bunx --bun @unikit/cli diff --old generated/schema.v1.json --new generated/schema.json
 ```

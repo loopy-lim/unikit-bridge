@@ -1,5 +1,5 @@
 //! Core-only diagnostic: calls the real calculator resident command, without JSI/FFI.
-use rustra_calculator_example::parity_bench::*;
+use unikit_calculator_example::parity_bench::*;
 use std::{
     hint::black_box,
     mem::{align_of, offset_of, size_of},

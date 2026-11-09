@@ -39,7 +39,7 @@ test('describeCargoMetadataError keeps other failures hint-free', () => {
 });
 
 test('readCargoMetadata surfaces the rustup hint when cargo is missing from PATH', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-cargo-metadata-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-cargo-metadata-'));
   mkdirSync(join(root, 'src'), { recursive: true });
   writeFileSync(join(root, 'Cargo.toml'), '[package]\nname = "app"\n');
   try {
@@ -61,7 +61,7 @@ test('readCargoMetadata surfaces the rustup hint when cargo is missing from PATH
 });
 
 test('cargo metadata cache invalidates workspace inheritance and same-size manifest edits', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-metadata-cache-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-metadata-cache-'));
   const manifest = join(root, 'app', 'Cargo.toml');
   const workspaceManifest = join(root, 'Cargo.toml');
   mkdirSync(join(root, 'app', 'src'), { recursive: true });
@@ -99,7 +99,7 @@ test('cargo metadata cache invalidates workspace inheritance and same-size manif
 
 for (const location of ['invocation cwd', 'Cargo home'] as const) {
   test(`cargo metadata cache invalidates ${location} configuration edits`, () => {
-    const root = mkdtempSync(join(tmpdir(), 'rustra-metadata-config-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-metadata-config-'));
     const originalCwd = process.cwd();
     const originalHome = process.env.CARGO_HOME;
     const originalTarget = process.env.CARGO_TARGET_DIR;

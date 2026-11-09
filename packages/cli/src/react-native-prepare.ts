@@ -7,7 +7,7 @@ const { spawnSync } = require('node:child_process');
 const appRoot = resolve(__dirname, ${JSON.stringify(appFromScript)});
 
 function run(command, args, cwd) {
-  console.log('[rustra:native] ' + [command, ...args].join(' '));
+  console.log('[unikit:native] ' + [command, ...args].join(' '));
   const result = spawnSync(command, args, {
     cwd, stdio: 'inherit',
     shell: process.platform === 'win32' && command.endsWith('.bat'),
@@ -50,14 +50,14 @@ function prepareNative(platform) {
     run(process.platform === 'win32' ? wrapper : './' + wrapper,
       [':app:assembleDebug', '--no-daemon', '-Pandroid.builder.sdkDownload=false'], project);
   }
-  console.log('[rustra:native] Prepared ' + platform + '. Next: rebuild/launch your native app (' +
+  console.log('[unikit:native] Prepared ' + platform + '. Next: rebuild/launch your native app (' +
     (expo ? 'expo run:' + platform : 'react-native run-' + platform) +
-    '). Import typed commands from your generated/react-native entry. Expo Go cannot load Rustra JSI.');
+    '). Import typed commands from your generated/react-native entry. Expo Go cannot load Unikit JSI.');
 }
 
 function prepare(platform) {
   try { prepareNative(platform); }
-  catch (error) { console.error('[rustra:native] ' + error.message); process.exitCode = 1; }
+  catch (error) { console.error('[unikit:native] ' + error.message); process.exitCode = 1; }
 }
 module.exports = { prepare };
 if (require.main === module) prepare(process.argv[2]);

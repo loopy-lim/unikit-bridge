@@ -4,21 +4,21 @@ import { verifyDiagnosticPreflight } from './diagnostic-verify';
 
 describe('separate diagnostic schedules', () => {
   test('fixed schedules retain every measured round and invert the first framework', () => {
-    expect(diagnosticOrder('rustra-only', 0)).toEqual(['rustra']);
+    expect(diagnosticOrder('unikit-only', 0)).toEqual(['unikit']);
     expect(diagnosticOrder('nitro-only', 1)).toEqual(['nitro']);
-    expect(diagnosticOrder('alternating-rustra-first', 0)).toEqual(['rustra', 'nitro']);
-    expect(diagnosticOrder('alternating-nitro-first', 0)).toEqual(['nitro', 'rustra']);
-    expect(diagnosticOrder('alternating-rustra-first', 1)).toEqual(['nitro', 'rustra']);
+    expect(diagnosticOrder('alternating-unikit-first', 0)).toEqual(['unikit', 'nitro']);
+    expect(diagnosticOrder('alternating-nitro-first', 0)).toEqual(['nitro', 'unikit']);
+    expect(diagnosticOrder('alternating-unikit-first', 1)).toEqual(['nitro', 'unikit']);
   });
   test('rejects missing or unrecognized plans instead of choosing a favorable default', () => {
     expect(
-      parseDiagnosticURL('rustra://diagnostic?case=buffer65536&schedule=nitro-only&run=a'),
+      parseDiagnosticURL('unikit://diagnostic?case=buffer65536&schedule=nitro-only&run=a'),
     ).toEqual({ caseId: 'buffer65536', schedule: 'nitro-only', runId: 'a' });
     for (const url of [
       null,
       'https://example.com',
-      'rustra://diagnostic?case=buffer65536&schedule=invalid&run=a',
-      'rustra://diagnostic?case=buffer1&schedule=nitro-only&run=a',
+      'unikit://diagnostic?case=buffer65536&schedule=invalid&run=a',
+      'unikit://diagnostic?case=buffer1&schedule=nitro-only&run=a',
     ])
       expect(() => parseDiagnosticURL(url)).toThrow();
   });
@@ -27,7 +27,7 @@ describe('separate diagnostic schedules', () => {
       tick = 0;
     const samples = sampleDiagnostic(
       {
-        rustra: () => {
+        unikit: () => {
           throw Error('wrong framework');
         },
         nitro: () => {
@@ -54,15 +54,15 @@ describe('separate diagnostic schedules', () => {
   test('paired schedules preserve raw order and reject asynchronous work', () => {
     let tick = 0;
     const samples = sampleDiagnostic(
-      { rustra: () => 1, nitro: () => 2 },
+      { unikit: () => 1, nitro: () => 2 },
       'alternating-nitro-first',
       1,
       () => ++tick,
     );
-    expect(samples.slice(0, 2).map((x) => x.framework)).toEqual(['nitro', 'rustra']);
+    expect(samples.slice(0, 2).map((x) => x.framework)).toEqual(['nitro', 'unikit']);
     expect(samples).toHaveLength(62);
     expect(() =>
-      sampleDiagnostic({ rustra: () => Promise.resolve(1), nitro: () => 1 }, 'rustra-only', 1),
+      sampleDiagnostic({ unikit: () => Promise.resolve(1), nitro: () => 1 }, 'unikit-only', 1),
     ).toThrow('synchronous');
   });
 });
@@ -102,12 +102,12 @@ test('diagnostic validation rejects stale identities, changed protocols and miss
   };
   expect(validateDiagnostic(receipt, expected).samples.length).toBe(31);
   for (const changed of [
-    { ...receipt, contract: 'rustra-nitro-parity/v2' },
+    { ...receipt, contract: 'unikit-nitro-parity/v2' },
     { ...receipt, fingerprint: 'b'.repeat(64) },
     { ...receipt, startedAt: new Date(0).toISOString() },
     { ...receipt, protocol: { ...receipt.protocol, forcedGC: true } },
     { ...receipt, samples: receipt.samples.slice(1) },
-    { ...receipt, samples: receipt.samples.map((s, i) => (i ? s : { ...s, framework: 'rustra' })) },
+    { ...receipt, samples: receipt.samples.map((s, i) => (i ? s : { ...s, framework: 'unikit' })) },
   ])
     expect(() => validateDiagnostic(changed, expected)).toThrow();
 });
@@ -185,9 +185,9 @@ test('preflight accepts two fresh equivalent buffers and primitive outputs', () 
   expect(() =>
     verifyDiagnosticPreflight(
       'string',
-      { value: 'Rustra ↔ Nitro: 문자열' },
-      { value: 'Rustra ↔ Nitro: 문자열' },
-      { value: 'Rustra ↔ Nitro: 문자열' },
+      { value: 'Unikit ↔ Nitro: 문자열' },
+      { value: 'Unikit ↔ Nitro: 문자열' },
+      { value: 'Unikit ↔ Nitro: 문자열' },
     ),
   ).not.toThrow();
   expect(() =>
@@ -237,9 +237,9 @@ test('preflight rejects wrong buffer bytes and lengths and wrong primitive field
   expect(() =>
     verifyDiagnosticPreflight(
       'string',
-      { value: 'Rustra ↔ Nitro: 문자열' },
+      { value: 'Unikit ↔ Nitro: 문자열' },
       { value: 'bad' },
-      { value: 'Rustra ↔ Nitro: 문자열' },
+      { value: 'Unikit ↔ Nitro: 문자열' },
     ),
   ).toThrow();
   expect(() =>

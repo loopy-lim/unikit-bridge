@@ -27,22 +27,22 @@ function packPackage(packageName, destination) {
 export function createConsumerManifest({ typesArchive, cliArchive, reactNativeArchive }) {
   const typesSpecifier = `file:${typesArchive}`;
   return {
-    name: 'rustra-packed-rn-consumer',
+    name: 'unikit-packed-rn-consumer',
     private: true,
     type: 'module',
     dependencies: {
-      '@rustra/types': typesSpecifier,
-      '@rustra/cli': `file:${cliArchive}`,
-      '@rustra/react-native': `file:${reactNativeArchive}`,
+      '@unikit/types': typesSpecifier,
+      '@unikit/cli': `file:${cliArchive}`,
+      '@unikit/react-native': `file:${reactNativeArchive}`,
     },
     overrides: {
-      '@rustra/types': typesSpecifier,
+      '@unikit/types': typesSpecifier,
     },
   };
 }
 
 async function main() {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-packed-rn-consumer-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-packed-rn-consumer-'));
   const archivesRoot = join(root, 'archives');
   try {
     const typesArchive = packPackage('types', join(archivesRoot, 'types'));
@@ -64,17 +64,17 @@ async function main() {
     );
 
     const types = await import(
-      pathToFileURL(join(root, 'node_modules/@rustra/types/dist/index.js')).href,
+      pathToFileURL(join(root, 'node_modules/@unikit/types/dist/index.js')).href,
     );
     if (typeof types.createComplexCodec !== 'function') {
-      throw new Error('packed @rustra/types does not expose createComplexCodec');
+      throw new Error('packed @unikit/types does not expose createComplexCodec');
     }
 
     const { renderReactNativeModule } = await import(
-      pathToFileURL(join(root, 'node_modules/@rustra/cli/dist/index.js')).href,
+      pathToFileURL(join(root, 'node_modules/@unikit/cli/dist/index.js')).href,
     );
     const appRoot = join(root, 'app');
-    const moduleDir = join(appRoot, 'modules/rustra-bridge');
+    const moduleDir = join(appRoot, 'modules/unikit-bridge');
     const files = renderReactNativeModule({
       appRoot,
       moduleDir,
@@ -84,12 +84,12 @@ async function main() {
       rustLibrary: 'packed_consumer',
       adapterRange,
     });
-    const podspec = files['RustraBridge.podspec'];
+    const podspec = files['UnikitBridge.podspec'];
     const gradle = files['android/build.gradle'];
-    if (!podspec?.includes('node_modules/@rustra/react-native/native')) {
+    if (!podspec?.includes('node_modules/@unikit/react-native/native')) {
       throw new Error('packed consumer podspec did not resolve installed React Native native sources');
     }
-    if (!gradle?.includes('node_modules/@rustra/react-native/native')) {
+    if (!gradle?.includes('node_modules/@unikit/react-native/native')) {
       throw new Error('packed consumer Gradle file did not resolve installed React Native native sources');
     }
     if (podspec.includes(`${repositoryRoot}/packages/react-native`)) {

@@ -7,7 +7,7 @@
  * An injected polling fallback initializes asynchronously and queues subscriptions
  * until ready. Disposal prevents either path from reviving the event bridge.
  */
-import { RustraCommandError, RustraErrorCode } from '@rustra/types';
+import { UnikitCommandError, UnikitErrorCode } from '@unikit/types';
 import { bunLibraryCandidates, type BunFfiEngineOptions } from './bun-ffi-library.js';
 import {
   createBunEventBridge,
@@ -24,7 +24,7 @@ export type BunEventSubscriptionOptions = Pick<
 
 export type BunEventSubscription = {
   /**
-   * rustra 이벤트를 구독한다 — `(name, callback) => unsubscribe`(동기).
+   * unikit 이벤트를 구독한다 — `(name, callback) => unsubscribe`(동기).
    * FFI 싱크는 호출 중 준비된다. 폴링 초기화 전 구독은 큐잉된다. dispose 후 호출은
    * fail-fast 로 throw 한다(초기화 부활 후보가 남지 않게).
    */
@@ -35,10 +35,10 @@ export type BunEventSubscription = {
 
 type EventCallback = (payload: never) => void;
 
-function noLibraryError(): RustraCommandError {
-  return new RustraCommandError(
-    RustraErrorCode.TransportUnavailable,
-    'No compatible Rustra Bun cdylib was found for event subscription. Build the inferred Cargo library, or set RUSTRA_BUN_LIBRARY to its absolute path.',
+function noLibraryError(): UnikitCommandError {
+  return new UnikitCommandError(
+    UnikitErrorCode.TransportUnavailable,
+    'No compatible Unikit Bun cdylib was found for event subscription. Build the inferred Cargo library, or set UNIKIT_BUN_LIBRARY to its absolute path.',
   );
 }
 
@@ -82,7 +82,7 @@ export function createBunEventSubscription(
           failure = { error };
           return;
         }
-        console.warn('Rustra: FFI event sink registration failed; falling back to polling:', error);
+        console.warn('Unikit: FFI event sink registration failed; falling back to polling:', error);
       }
     }
     bridgeReady = createBunEventBridge({
@@ -151,7 +151,7 @@ export function createBunEventSubscription(
 
 // ── 코드젠 SubscribeFn 정합 (컴파일 타임 고정) ─────────────────
 // bun-events.ts 의 고정과 동일 계약 — 구독 팩토리의 subscribeEvent 가 생성
-// SubscribeFn 자리(onRustraEvent 의 subscribe 매개변수 등)에 들어맞는지 tsc 로
+// SubscribeFn 자리(onUnikitEvent 의 subscribe 매개변수 등)에 들어맞는지 tsc 로
 // 고정한다. 이 방향의 할당 가능성만 계약이다.
 
 /** 생성 계약의 동형 타입 — 이벤트 'x' 하나가 선언된 스키마에 상당. */

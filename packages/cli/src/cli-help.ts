@@ -1,65 +1,65 @@
 export function printHelp(command?: string): void {
   if (command === 'generate') {
     console.log(
-      'Usage: rustra generate --schema <path> --output <dir> [options]\n\nOptions:\n  --config <path>     Read schema/output and host settings from rustra.json\n  --schema <path>     Path to schema.json\n  --output <dir>      Generated TypeScript output directory\n  --cpp-output <dir>  Optional C++ codec output directory\n  --positional        Also emit positional-facade.ts\n  --watch             Watch schema file for changes and regenerate\n  --check             Verify generated files without writing\n  --format <fmt>      text (default) or json\n  --help, -h          Show this help message',
+      'Usage: unikit generate --schema <path> --output <dir> [options]\n\nOptions:\n  --config <path>     Read schema/output and host settings from unikit.json\n  --schema <path>     Path to schema.json\n  --output <dir>      Generated TypeScript output directory\n  --cpp-output <dir>  Optional C++ codec output directory\n  --positional        Also emit positional-facade.ts\n  --watch             Watch schema file for changes and regenerate\n  --check             Verify generated files without writing\n  --format <fmt>      text (default) or json\n  --help, -h          Show this help message',
     );
     return;
   }
   if (command === 'codegen') {
     console.log(
-      'Usage: rustra codegen [--config <path>] [--check] [--check-bindings] [--explain] [--format text|json]\n\nOptions:\n  --config <path>  Path to rustra.json (defaults to ./rustra.json when present)\n  --check          Verify schema/TS/C++ and Rust mirror without writing\n  --check-bindings Also rebuild and compare actual UniFFI Swift/Kotlin bindings\n  --explain        Show where each generated surface comes from (no generation)\n  --format <fmt>   text (default) or json\n  --help, -h       Show this help message',
+      'Usage: unikit codegen [--config <path>] [--check] [--check-bindings] [--explain] [--format text|json]\n\nOptions:\n  --config <path>  Path to unikit.json (defaults to ./unikit.json when present)\n  --check          Verify schema/TS/C++ and Rust mirror without writing\n  --check-bindings Also rebuild and compare actual UniFFI Swift/Kotlin bindings\n  --explain        Show where each generated surface comes from (no generation)\n  --format <fmt>   text (default) or json\n  --help, -h       Show this help message',
     );
     return;
   }
   if (command === 'init') {
     console.log(
-      'Usage: rustra init <dir> [--host <name>] [--setup] [--force]\n\nOptions:\n  --host <name>    node (default), bun, or react-native\n  --setup          Generate, install and build; run the Node/Bun first-call demo\n  --force          Overwrite existing scaffold files\n  --help, -h       Show this help message\n\nQuick start:\n  rustra init my-project --setup\n  rustra init my-project --host bun --setup',
+      'Usage: unikit init <dir> [--host <name>] [--setup] [--force]\n\nOptions:\n  --host <name>    node (default), bun, or react-native\n  --setup          Generate, install and build; run the Node/Bun first-call demo\n  --force          Overwrite existing scaffold files\n  --help, -h       Show this help message\n\nQuick start:\n  unikit init my-project --setup\n  unikit init my-project --host bun --setup',
     );
     return;
   }
   if (command === 'setup') {
     console.log(
-      'Usage: rustra setup [--config <path>] [--run] [--skip-install]\n\nGenerate the contract, install JavaScript dependencies and build Rust in order.\nRun the same command after edits or a failed attempt.\n\nOptions:\n  --config <path>  rustra.json path (default: ./rustra.json)\n  --run            Run the package.json demo script after building (Node/Bun)\n  --skip-install   Use already installed dependencies\n  --help, -h       Show this help message\n\nNative apps receive host preparation commands; setup does not launch an app.',
+      'Usage: unikit setup [--config <path>] [--run] [--skip-install]\n\nGenerate the contract, install JavaScript dependencies and build Rust in order.\nRun the same command after edits or a failed attempt.\n\nOptions:\n  --config <path>  unikit.json path (default: ./unikit.json)\n  --run            Run the package.json demo script after building (Node/Bun)\n  --skip-install   Use already installed dependencies\n  --help, -h       Show this help message\n\nNative apps receive host preparation commands; setup does not launch an app.',
     );
     return;
   }
   if (command === 'diff') {
     console.log(
-      'Usage: rustra diff --old <path> --new <path> [--format text|json]\n\nOptions:\n  --old <path>     Old schema\n  --new <path>     New schema\n  --format <fmt>   text (default) or json\n  --help, -h       Show this help message',
+      'Usage: unikit diff --old <path> --new <path> [--format text|json]\n\nOptions:\n  --old <path>     Old schema\n  --new <path>     New schema\n  --format <fmt>   text (default) or json\n  --help, -h       Show this help message',
     );
     return;
   }
   if (command === 'doctor') {
     console.log(
-      'Usage: rustra doctor [--config <path>] [--format text|json] [--strict]\n\nOptions:\n  --config <path>  Doctor config\n  --format <fmt>   text (default) or json\n  --strict         Treat warnings as failures\n  --help, -h       Show this help message',
+      'Usage: unikit doctor [--config <path>] [--format text|json] [--strict]\n\nOptions:\n  --config <path>  Doctor config\n  --format <fmt>   text (default) or json\n  --strict         Treat warnings as failures\n  --help, -h       Show this help message',
     );
     return;
   }
   if (command === 'inspect') {
     console.log(
-      'Usage: rustra inspect <file>\n\nDecode a captured inspector snapshot dump (hex or raw bytes)\nand print its field tree.\n\nOptions:\n  --help, -h       Show this help message',
+      'Usage: unikit inspect <file>\n\nDecode a captured inspector snapshot dump (hex or raw bytes)\nand print its field tree.\n\nOptions:\n  --help, -h       Show this help message',
     );
     return;
   }
   if (command === 'dev') {
     console.log(
-      'Usage: rustra dev [--config <path>] [--backend <dir>] [--app <dir>] [--inspect]\n\nOptions:\n  --config <path>  rustra.json path\n  --backend <dir>  Rust backend directory\n  --app <dir>      App directory containing generated/\n  --inspect        Print devtools instrumentation guidance\n  --help, -h       Show this help message',
+      'Usage: unikit dev [--config <path>] [--backend <dir>] [--app <dir>] [--inspect]\n\nOptions:\n  --config <path>  unikit.json path\n  --backend <dir>  Rust backend directory\n  --app <dir>      App directory containing generated/\n  --inspect        Print devtools instrumentation guidance\n  --help, -h       Show this help message',
     );
     return;
   }
-  console.log(`rustra - TypeScript code generation for rustra-bridge
+  console.log(`unikit - TypeScript code generation for unikit-bridge
 
 Usage:
-  rustra generate --schema <path> --output <dir>
-  rustra generate --config <path>
-  rustra generate --watch --schema <path> --output <dir>
-  rustra codegen --config <path> [--check] [--format text|json]
-  rustra init <dir> [--host <name>] [--setup] [--force]
-  rustra setup [--config <path>] [--run] [--skip-install]
-  rustra diff --old <schema.v1.json> --new <schema.json> [--format json]
-  rustra doctor [--config <path>] [--format text|json] [--strict]
-  rustra inspect <file>
-  rustra dev [--config <path>] [--backend <dir>] [--app <dir>] [--inspect]
+  unikit generate --schema <path> --output <dir>
+  unikit generate --config <path>
+  unikit generate --watch --schema <path> --output <dir>
+  unikit codegen --config <path> [--check] [--format text|json]
+  unikit init <dir> [--host <name>] [--setup] [--force]
+  unikit setup [--config <path>] [--run] [--skip-install]
+  unikit diff --old <schema.v1.json> --new <schema.json> [--format json]
+  unikit doctor [--config <path>] [--format text|json] [--strict]
+  unikit inspect <file>
+  unikit dev [--config <path>] [--backend <dir>] [--app <dir>] [--inspect]
 
 Options:
   --version, -v       Show the installed CLI version
@@ -67,7 +67,7 @@ Options:
   --output <dir>      Output directory for generated TypeScript files
   --cpp-output <dir>  Optional C++ codec output directory
   --positional        Also emit positional-facade.ts
-  --config <path>     Path to rustra.json config file
+  --config <path>     Path to unikit.json config file
   --watch             Watch schema file for changes and regenerate
   --check             Verify generated bytes without writing
   --format <fmt>      text (default) or json

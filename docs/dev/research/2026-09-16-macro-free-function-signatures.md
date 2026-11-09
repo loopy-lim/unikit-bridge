@@ -2,7 +2,7 @@
 date: 2026-09-16
 researcher: codex
 git_commit: 6694a9420812bd2cb7e9f1151876030c581072e5
-topic: 'Rustra 매크로 없이 일반 Rust 함수의 다중 인자와 반환값을 등록하는 방법'
+topic: 'Unikit 매크로 없이 일반 Rust 함수의 다중 인자와 반환값을 등록하는 방법'
 status: research-complete
 ---
 
@@ -10,19 +10,19 @@ status: research-complete
 
 ## 결론
 
-**가능하다.** `fn add(a: i32, b: i32) -> i32`를 그대로 두고, 등록 API 내부에서 인자를 해체하고 반환값을 감싸면 된다. 함수의 인자 수마다 tuple marker를 가진 trait 구현을 제공하는 방식은 axum과 Bevy의 공식 구현에 이미 있다. 사용자에게 `#[rustra::command]`나 `register!`를 요구할 언어적 이유는 없다. 다만 **Rust 함수 호출 가능성, 와이어 타입 변환, 이름 메타데이터는 각각 해결해야 한다.** 아래 API는 제안이며 현재 Rustra에 구현되어 있지 않다. [axum Handler](https://docs.rs/axum/latest/axum/handler/trait.Handler.html#about-type-parameter-t), [Bevy SystemParamFunction](https://docs.rs/bevy_ecs/latest/bevy_ecs/system/trait.SystemParamFunction.html)
+**가능하다.** `fn add(a: i32, b: i32) -> i32`를 그대로 두고, 등록 API 내부에서 인자를 해체하고 반환값을 감싸면 된다. 함수의 인자 수마다 tuple marker를 가진 trait 구현을 제공하는 방식은 axum과 Bevy의 공식 구현에 이미 있다. 사용자에게 `#[unikit_bridge::command]`나 `register!`를 요구할 언어적 이유는 없다. 다만 **Rust 함수 호출 가능성, 와이어 타입 변환, 이름 메타데이터는 각각 해결해야 한다.** 아래 API는 제안이며 현재 Unikit에 구현되어 있지 않다. [axum Handler](https://docs.rs/axum/latest/axum/handler/trait.Handler.html#about-type-parameter-t), [Bevy SystemParamFunction](https://docs.rs/bevy_ecs/latest/bevy_ecs/system/trait.SystemParamFunction.html)
 
 권고는 **일반 반환값을 받는 generic 등록 + 오류를 처리하는 명시적 등록 모드**다. 다중 인자와 `Result` 강제를 함께 없앨 수 있다. 함수 파라미터 이름까지 자동 수집하려는 요구는 선택적 소스 코드 생성으로 확장한다. `1.0`이나 대규모 소스 분석기를 선행 조건으로 둘 필요는 없다. 이 우선순위는 조사 결과에 따른 설계 판단이다.
 
-## 1. 현재 제약은 Rustra가 정한 표면이다
+## 1. 현재 제약은 Unikit가 정한 표면이다
 
-현재 `#[command]`는 반환형이 `Result<O>`인지를 검사하고, 데이터 인자가 둘 이상이면 오류를 낸다. 반면 내부 handler의 요구는 `Fn(I) -> rustra::Result<O>`이다. 일반 함수 바깥의 어댑터가 `I`를 여러 값으로 나누고 `O`를 `Ok(O)`로 감싸면 도메인 함수는 이 제약을 몰라도 된다. 현재 builder는 입력에 `DeserializeOwned + JsonSchema`, 출력에 `Serialize + JsonSchema`를 요구한다. [매크로 분석](../../../crates/rustra-macros/src/macro_command.rs), [handler trait](../../../crates/rustra/src/private.rs), [등록 builder](../../../crates/rustra/src/builder_commands.rs)
+현재 `#[command]`는 반환형이 `Result<O>`인지를 검사하고, 데이터 인자가 둘 이상이면 오류를 낸다. 반면 내부 handler의 요구는 `Fn(I) -> unikit_bridge::Result<O>`이다. 일반 함수 바깥의 어댑터가 `I`를 여러 값으로 나누고 `O`를 `Ok(O)`로 감싸면 도메인 함수는 이 제약을 몰라도 된다. 현재 builder는 입력에 `DeserializeOwned + JsonSchema`, 출력에 `Serialize + JsonSchema`를 요구한다. [매크로 분석](../../../crates/unikit-bridge-macros/src/macro_command.rs), [handler trait](../../../crates/unikit-bridge/src/private.rs), [등록 builder](../../../crates/unikit-bridge/src/builder_commands.rs)
 
-따라서 “반환값에 제약이 없다”는 목표는 **`rustra::Result`와 전용 Output 구조체를 강제하지 않는다**로 정의하는 편이 정확하다. 직렬화·스키마·소유권 또는 별도 handle/DTO 변환 규칙까지 없어지는 것은 아니다. 사용자 타입은 기존 Serde/Schemars 구현을 쓰거나 경계에서 지원 타입으로 변환해야 한다. Rustra 매크로를 쓰지 않는 것과 모든 derive 매크로를 쓰지 않는 것도 별개다. [현재 타입 경계](../../../crates/rustra/src/builder_commands.rs)
+따라서 “반환값에 제약이 없다”는 목표는 **`unikit_bridge::Result`와 전용 Output 구조체를 강제하지 않는다**로 정의하는 편이 정확하다. 직렬화·스키마·소유권 또는 별도 handle/DTO 변환 규칙까지 없어지는 것은 아니다. 사용자 타입은 기존 Serde/Schemars 구현을 쓰거나 경계에서 지원 타입으로 변환해야 한다. Unikit 매크로를 쓰지 않는 것과 모든 derive 매크로를 쓰지 않는 것도 별개다. [현재 타입 경계](../../../crates/unikit-bridge/src/builder_commands.rs)
 
 ## 2. 다중 인자: tuple marker로 함수 타입을 등록한다
 
-핵심 형태는 다음과 같다. 개념 설명용이며 Rustra 제품 코드가 아니다.
+핵심 형태는 다음과 같다. 개념 설명용이며 Unikit 제품 코드가 아니다.
 
 ```rust
 trait Call<Args> {
@@ -45,7 +45,7 @@ where
 
 내부의 반복 구현은 라이브러리 자체 매크로나 코드 생성으로 작성할 수 있다. Bevy는 실제로 0–16개 인자 구현을 생성한다. 사용자에게 매크로 문법이 노출되는 것은 아니다. stable Rust에서 일반 함수 호출 문법을 쓰고 arity별 구현을 준비하는 접근이며, 임의 tuple을 `Fn::call`로 호출하는 nightly API에 의존할 필요가 없다. [Bevy 구현](https://docs.rs/bevy_ecs/0.19.1/src/bevy_ecs/system/function_system.rs.html#950), [std Fn](https://doc.rust-lang.org/std/ops/trait.Fn.html)
 
-**주의:** 내부 marker tuple이 곧 공개 와이어 배열이어야 한다는 뜻은 아니다. 등록 시 `a`, `b` 이름을 받으면 `{a, b}` 객체를 디코딩한 뒤 내부 tuple로 호출할 수 있다. 단순 tuple을 기존 builder에 연결하는 실험과 모든 Rustra 코덱·스키마·생성 클라이언트에서 다중 인자를 지원하는 제품 변경은 증거 범위가 다르다. 이는 현재 `I` 중심 경계를 유지하는 설계 제안이다. [현재 command 생성 경계](../../../crates/rustra/src/command_build.rs)
+**주의:** 내부 marker tuple이 곧 공개 와이어 배열이어야 한다는 뜻은 아니다. 등록 시 `a`, `b` 이름을 받으면 `{a, b}` 객체를 디코딩한 뒤 내부 tuple로 호출할 수 있다. 단순 tuple을 기존 builder에 연결하는 실험과 모든 Unikit 코덱·스키마·생성 클라이언트에서 다중 인자를 지원하는 제품 변경은 증거 범위가 다르다. 이는 현재 `I` 중심 경계를 유지하는 설계 제안이다. [현재 command 생성 경계](../../../crates/unikit-bridge/src/command_build.rs)
 
 ## 3. 반환값: 자동 변환의 두 문제를 구분해야 한다
 
@@ -70,14 +70,14 @@ axum은 모든 직렬화 타입에 대한 blanket `IntoResponse`를 제공하는
 ## 4. 권고 사용자 표면 — 미구현 예시
 
 ```rust
-// 도메인 함수에는 Rustra 속성이나 Result 강제가 없다.
+// 도메인 함수에는 Unikit 속성이나 Result 강제가 없다.
 fn add(a: i32, b: i32) -> i32 { a + b }
 fn reset() {}
 fn read(path: String) -> std::io::Result<String> {
     std::fs::read_to_string(path)
 }
 
-// 아래는 제안 API다. 현재 Rustra API가 아니다.
+// 아래는 제안 API다. 현재 Unikit API가 아니다.
 builder
     .function("add", add)
     .function("reset", reset)
@@ -89,7 +89,7 @@ builder
 1. `function`은 반환값을 payload로 취급한다. `try_function`은 오류 처리 의미와 mapper를 명시한다. 원래 도메인 함수는 그대로 유지한다.
 2. async도 먼저 `async_function` / `async_fallible_function` 또는 명시적 adapter로 제공한다. 다중 arity, 반환 의미, 실행기 선택을 한 번에 추론시키는 API를 초기 성공 조건으로 두지 않는다.
 3. 기본 경로는 인자를 위치로 받아 이름을 반복 작성하지 않는다. 생성 TS의 표시 이름은 `arg0`, `arg1`로 둘 수 있다. 원래 `a`, `b` 이름이나 명명된 객체 입력이 필요할 때만 선택적으로 이름을 제공하거나 CLI 소스 분석을 쓴다. 기본 arity 범위를 문서화하고, 선택적 이름의 개수·중복·빈 이름을 검사한다. `State<T>` 주입을 추가한다면 wire 데이터 인자와 구분하는 marker와 규칙을 정의한다.
-4. 등록과 함께 doc/capability/platform/error metadata를 연결할 수 있게 한다. 기존 매크로가 보존하는 접근 제어를 일반 함수 경로에서 누락시키면 안 된다. [기존 메타데이터 생성](../../../crates/rustra-macros/src/macro_command.rs)
+4. 등록과 함께 doc/capability/platform/error metadata를 연결할 수 있게 한다. 기존 매크로가 보존하는 접근 제어를 일반 함수 경로에서 누락시키면 안 된다. [기존 메타데이터 생성](../../../crates/unikit-bridge-macros/src/macro_command.rs)
 
 ## 5. 인자 이름 자동 수집은 소스 코드 생성 영역이다
 
@@ -105,19 +105,19 @@ CLI나 `build.rs`가 Rust 소스를 읽으면 함수의 이름·입력 패턴·�
 | 입력 destructuring / generic 함수             | `(x,y): Pair`에 붙일 공개 인자 이름, generic 함수의 구체 타입을 정해야 한다. 초기 지원 범위를 명시하고 모호하면 위치를 포함한 오류를 내는 편이 낫다. [함수 파라미터와 generics](https://doc.rust-lang.org/reference/items/functions.html#function-parameters)                                                               |
 | 생성물 반영·재생성                            | build script는 `OUT_DIR`에 출력하고 `rerun-if-changed`를 연결한다. CLI 생성은 정상 소스 모듈로 연결하고 stale 검사를 둔다. 완전한 사용자 무매크로 요구라면 `include!`까지 사용자가 작성하게 하는 대신 CLI가 모듈 연결을 생성할 수 있다. [Cargo build scripts](https://doc.rust-lang.org/cargo/reference/build-scripts.html) |
 
-**권고:** 먼저 컴파일러 추론을 이용하는 generic 등록을 기반으로 만든다. 인자 이름 반복이 실제로 불편하면 소스 생성기가 위 명시적 등록 코드를 대신 출력하도록 한다. 처음부터 별도의 Rust 의미 분석기를 만들거나, 함수의 원래 서명을 Rustra 규격으로 바꾸게 할 이유는 없다.
+**권고:** 먼저 컴파일러 추론을 이용하는 generic 등록을 기반으로 만든다. 인자 이름 반복이 실제로 불편하면 소스 생성기가 위 명시적 등록 코드를 대신 출력하도록 한다. 처음부터 별도의 Rust 의미 분석기를 만들거나, 함수의 원래 서명을 Unikit 규격으로 바꾸게 할 이유는 없다.
 
-## 6. 현재 Rustra에 연결한 임시 실험
+## 6. 현재 Unikit에 연결한 임시 실험
 
-부모 작업에서 Rust 1.98과 현재 저장소의 `rustra` path dependency로 임시 소비자 `/tmp/rustra-function-api-spike`를 실행했다. 이 연구 작업에서는 그 소스와 실행 로그를 직접 읽어 아래 범위를 확인했다. 임시 파일은 저장소 산출물이 아니므로 이후 삭제될 수 있다.
+부모 작업에서 Rust 1.98과 현재 저장소의 `unikit` path dependency로 임시 소비자 `/tmp/unikit-function-api-spike`를 실행했다. 이 연구 작업에서는 그 소스와 실행 로그를 직접 읽어 아래 범위를 확인했다. 임시 파일은 저장소 산출물이 아니므로 이후 삭제될 수 있다.
 
-- **구현:** `Call<Args>`의 0/1/2/3개 인자 구현을 직접 작성하고, `.function(name, f)` / `.try_function(name, f, map_error)` 확장 trait을 기존 `.command`에 연결했다. 도메인 함수와 arity adapter 모두 Rustra 함수 매크로를 사용하지 않았다. custom `User`만 `Serialize + JsonSchema`를 derive했다.
+- **구현:** `Call<Args>`의 0/1/2/3개 인자 구현을 직접 작성하고, `.function(name, f)` / `.try_function(name, f, map_error)` 확장 trait을 기존 `.command`에 연결했다. 도메인 함수와 arity adapter 모두 Unikit 함수 매크로를 사용하지 않았다. custom `User`만 `Serialize + JsonSchema`를 derive했다.
 - **통과:** 일반 `i32`, `String`, `()`, tuple, `Vec`, `Option`, custom `User` 반환, `Result<i32,DivideError>` 성공·오류 매핑, 부족한 인자 거부를 포함한 JSON 호출 검증 12개. Rust 측 스키마와 TypeScript types/commands 생성도 warning 없이 완료했다.
-- **생성 클라이언트의 현재 형태:** 생성된 메서드는 `add(input: Tuple_of_int32_and_int32, options?)`이다. `add(a,b)`가 생성된 것은 아니다. 원래 Rust 다중 인자의 arity·이름과 “사용자가 단일 tuple 인자를 받는 함수”를 구분하는 메타데이터를 두고, 클라이언트 facade가 값을 wire 입력으로 묶는 별도 변경이 필요하다. [생성 commands](/tmp/rustra-function-api-spike/generated-commands.ts)
+- **생성 클라이언트의 현재 형태:** 생성된 메서드는 `add(input: Tuple_of_int32_and_int32, options?)`이다. `add(a,b)`가 생성된 것은 아니다. 원래 Rust 다중 인자의 arity·이름과 “사용자가 단일 tuple 인자를 받는 함수”를 구분하는 메타데이터를 두고, 클라이언트 facade가 값을 wire 입력으로 묶는 별도 변경이 필요하다. [생성 commands](/tmp/unikit-function-api-spike/generated-commands.ts)
 - **실패 재현:** 별도 `ambiguous.rs`에서 `IntoReturn<T> for T`와 `IntoReturn<T> for Result<T,E>` 구현 자체는 성립했지만, `register(fallible)`의 `Result<i32,String>` 반환에서 목표 `O`를 추론하지 못해 `E0283: multiple impls ... IntoReturn<_>`가 발생했다.
-- **범위:** 입력은 JSON 배열(무인자는 null)이었다. 명명된 객체 인자, JS의 `api.add(a,b)` facade, async, Rustra MSRV, 나머지 wire codec, native host, 모바일 기기는 이 실험의 검증 대상이 아니었다. 0–16개 지원은 공식 선례에 근거한 확장 방향이며 실제 임시 구현은 0–3개다.
+- **범위:** 입력은 JSON 배열(무인자는 null)이었다. 명명된 객체 인자, JS의 `api.add(a,b)` facade, async, Unikit MSRV, 나머지 wire codec, native host, 모바일 기기는 이 실험의 검증 대상이 아니었다. 0–16개 지원은 공식 선례에 근거한 확장 방향이며 실제 임시 구현은 0–3개다.
 
-실험 원본: [main.rs](/tmp/rustra-function-api-spike/src/main.rs), [성공 로그](/tmp/rustra-function-api-spike/run.log), [추론 모호성 소스](/tmp/rustra-function-api-spike/src/bin/ambiguous.rs), [E0283 로그](/tmp/rustra-function-api-spike/ambiguous.log).
+실험 원본: [main.rs](/tmp/unikit-function-api-spike/src/main.rs), [성공 로그](/tmp/unikit-function-api-spike/run.log), [추론 모호성 소스](/tmp/unikit-function-api-spike/src/bin/ambiguous.rs), [E0283 로그](/tmp/unikit-function-api-spike/ambiguous.log).
 
 ## 검증 범위와 선행 조사
 

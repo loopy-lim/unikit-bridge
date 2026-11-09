@@ -2,7 +2,7 @@ use std::process::Command;
 
 #[test]
 fn calculator_example_runs_and_generates_client() {
-    let output = Command::new(env!("CARGO_BIN_EXE_rustra-calculator-example"))
+    let output = Command::new(env!("CARGO_BIN_EXE_unikit-calculator-example"))
         .output()
         .expect("calculator example runs");
 

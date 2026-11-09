@@ -1,15 +1,15 @@
-import { debugRustra, type RustraDebugEvent } from '@rustra/types';
+import { debugUnikit, type UnikitDebugEvent } from '@unikit/types';
 import type { TauriListen } from './index.js';
 import { requireTauriListen } from './tauri-globals.js';
 
 // ── 이벤트 구독 (Rust → JS push) ──────────────────────────
 // Rust 측 `tauri_support::register_with_events` 가 `Package::emit` 을
-// `app.emit("rustra://{sanitized}", payload_json)` 로 전달한다 — 이 섹션은 그
+// `app.emit("unikit://{sanitized}", payload_json)` 로 전달한다 — 이 섹션은 그
 // 채널을 JS 에서 구독하는 래퍼다. 과거엔 Rust 푸시만 있고 JS 구독 API 가 없어
 // 사용자가 채널 규약을 문서에서 해석해 직접 listen 배선해야 했다.
 
 /**
- * rustra 이벤트명 → Tauri 채널명 (`rustra://{sanitized}`).
+ * unikit 이벤트명 → Tauri 채널명 (`unikit://{sanitized}`).
  *
  * Rust `tauri_support::sanitize_event_name` 과 **문자 단위까지 동일한** 규칙이다
  * (R02 — 양쪽이 다른 규칙을 쓰면 비 ASCII 이벤트가 조용히 유실됐다):
@@ -27,33 +27,33 @@ import { requireTauriListen } from './tauri-globals.js';
  * 코드포인트 1개당 결과도 최대 1개라 비 BMP 문자(이모지 등)가 surrogate 2개로
  * 갈라져 `_` 2개가 되는 구 규칙의 결함도 함께 사라진다.
  */
-export function rustraEventChannel(name: string): string {
+export function unikitEventChannel(name: string): string {
   const allowed = /[A-Za-z0-9/_:-]/;
   const unicodeAlnum = /\p{Alphabetic}|\p{N}/u;
   let sanitized = '';
   for (const c of name) {
     sanitized += allowed.test(c) || unicodeAlnum.test(c) ? c : '_';
   }
-  return `rustra://${sanitized}`;
+  return `unikit://${sanitized}`;
 }
 
 /**
  * 리스너 콜백 예외의 관측 지점(R01) — 예외는 재던지지 않고 삼킨다. Tauri 이벤트
  * 기계로 예외가 탈출하면 콜백 재호출/형제 리스너 중단이 관찰됐으므로, 브라우저
  * EventTarget 표준과 같은 정책(각 리스너 독립, 예외는 보고 후 계속)을 적용한다.
- * 진단은 `@rustra/types` 의 debug 스위치로 관측한다 — `configureDebug` 싱크에는
- * 항상 도달하고, `RUSTRA_DEBUG` 가 없으면 콘솔 출력은 없다.
+ * 진단은 `@unikit/types` 의 debug 스위치로 관측한다 — `configureDebug` 싱크에는
+ * 항상 도달하고, `UNIKIT_DEBUG` 가 없으면 콘솔 출력은 없다.
  */
 function reportListenerError(name: string, error: unknown): void {
-  // debugRustra 는 이벤트 백을 pass-through(spread) 하므로 계약 밖 필드도 싱크에
+  // debugUnikit 는 이벤트 백을 pass-through(spread) 하므로 계약 밖 필드도 싱크에
   // 도달한다 — kind/command/error 를 읽기 편한 진단 어휘로 그대로 실어 보낸다.
   try {
-    debugRustra({
+    debugUnikit({
       kind: 'tauri.listener_error',
       command: name,
       // 스택 보존 — Error 면 stack 이 우선, 그 외 throwable 은 String 이 안전하다.
       error: error instanceof Error ? (error.stack ?? String(error)) : String(error),
-    } as unknown as RustraDebugEvent);
+    } as unknown as UnikitDebugEvent);
   } catch {
     // 진단 자체의 실패는 전달 경로로 탈출하지 않는다(json-engine 의 "감지 자체는
     // 절대 invoke 를 실패로 만들지 않는다"와 동일 계약).
@@ -77,7 +77,7 @@ export type TauriEventOptions = {
 };
 
 /**
- * Subscribe to a rustra event. Real Tauri payloads pass through unchanged; JSON
+ * Subscribe to a unikit event. Real Tauri payloads pass through unchanged; JSON
  * text inside a string is domain data. An injected transport that delivers raw
  * serialized JSON can opt into `{ payloadEncoding: 'serialized-json' }` as the
  * fourth argument. That mode parses once, including primitive values; malformed
@@ -91,7 +91,7 @@ export async function subscribeEvent<T = unknown>(
   options: TauriEventOptions = {},
 ): Promise<() => void> {
   const resolvedListen = listen ?? requireTauriListen();
-  const unlisten = await resolvedListen(rustraEventChannel(name), (event) => {
+  const unlisten = await resolvedListen(unikitEventChannel(name), (event) => {
     let payload: T = event.payload as T;
     if (options.payloadEncoding === 'serialized-json' && typeof payload === 'string') {
       try {
@@ -121,9 +121,9 @@ export function subscribeTauriEvent<T = unknown>(
 // Rust 측 `tauri_support::register_dispatch_with_swap_events` 가 dylib 핫스왑
 // 결과를 `HotSwapReporter` 로 웹뷰에 푸시한다(design:
 // docs/plans/2026-09-09-native-hot-core-design.md 의 "웹뷰 스왑 보고"). 채널은
-// 패키지 이벤트 이름공간이 아닌 **예약 경로 세그먼트**(`rustra://channel/{h}` 와
+// 패키지 이벤트 이름공간이 아닌 **예약 경로 세그먼트**(`unikit://channel/{h}` 와
 // 같은 계열)다 — `hot-core/swapped` 에는 Tauri 가 거부하는 문자가 없어 치환 없이
-// `rustraEventChannel('hot-core/swapped')` 와 정확히 같은 채널로 수렴하므로, 아래
+// `unikitEventChannel('hot-core/swapped')` 와 정확히 같은 채널로 수렴하므로, 아래
 // 구독은 `subscribeEvent` 의 채널 유도와 R01/R03 경계를 그대로 재사용한다.
 
 /**
@@ -132,7 +132,7 @@ export function subscribeTauriEvent<T = unknown>(
  * - 스왑 성공: `{ oldContractHash, newContractHash }` — 구·신 컨트랙트 해시(16진
  *   문자열). 두 해시를 모두 실으므로 이 이벤트가 **JS 캐시 재동기화 신호를
  *   대행한다**: 수신 측은 해시 비교로 스키마 의존 캐시의 재호출 여부를 판단할 수
- *   있다(design 문서의 `rustra_ffi_schema_generation` 카운터는 도입하지 않기로
+ *   있다(design 문서의 `unikit_ffi_schema_generation` 카운터는 도입하지 않기로
  *   한 판단의 근거).
  * - 스왑 실패: `{ error }` — 실패도 조용히 유실되지 않고 보고된다.
  */
@@ -140,7 +140,7 @@ export type HotSwapEvent = { oldContractHash: string; newContractHash: string } 
 
 /**
  * dylib 핫스왑 결과를 구독한다 — Rust 측 `register_dispatch_with_swap_events`
- * (hot-core 모드)가 설치한 싱크가 emit 하는 `rustra://hot-core/swapped` 채널의
+ * (hot-core 모드)가 설치한 싱크가 emit 하는 `unikit://hot-core/swapped` 채널의
  * 래퍼다. 실제 WebView payload는 그대로 전달되고, 직렬화된 문자열을 주는
  * 주입 transport는 `payloadEncoding: 'serialized-json'`으로 명시한다.
  * 콜백 예외는 패키지 이벤트와 동일하게 관측 후 격리한다.
@@ -167,10 +167,10 @@ export function subscribeHotSwap(
 
 // ── 코드젠 SubscribeFn 정합 (컴파일 타임 고정) ─────────────────
 // 코드젠(generateEventsTs)이 생성하는 `SubscribeFn` 계약:
-//   <N extends RustraEventName>(name: N, cb: (payload: RustraEventPayloads[N]) => void)
+//   <N extends UnikitEventName>(name: N, cb: (payload: UnikitEventPayloads[N]) => void)
 //     => (() => void) | Promise<() => void>
 // 4호스트 subscribeEvent 가 이 계약을 만족하는지 타입 레벨에서 고정한다.
-// RustraEventName 은 스키마별 이름만 다르므로 이벤트 1개('x': number)를 가진
+// UnikitEventName 은 스키마별 이름만 다르므로 이벤트 1개('x': number)를 가진
 // 동형 계약으로 정합을 검증한다 — 계약 구조가 바뀌면 tsc 가 깨진다.
 
 /** 생성 계약의 동형 타입 — 이벤트 'x' 하나가 선언된 스키마에 상당. */

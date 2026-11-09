@@ -1,12 +1,12 @@
 /**
- * @rustra/cli — rustra CLI 코드 생성 스키마 타입
+ * @unikit/cli — unikit CLI 코드 생성 스키마 타입
  *
  * Rust에서 생성된 JSON 스키마를 TypeScript에서 파싱하고
  * 코드 생성에 사용하는 타입 정의입니다.
  */
 
 /**
- * 단일 rustra 명령의 스키마 정의입니다.
+ * 단일 unikit 명령의 스키마 정의입니다.
  *
  * Rust의 `Package::schema()` 출력에서 각 명령 항목에 해당합니다.
  */
@@ -80,7 +80,7 @@ export type PackageSchema = {
    */
   schemaVersion?: number;
   /**
-   * Binary object fields follow the Rust declaration order. Current rustra
+   * Binary object fields follow the Rust declaration order. Current unikit
    * schema emitters always include this marker; it is optional for legacy
    * and third-party schema files.
    */
@@ -116,7 +116,7 @@ export type EventSchema = {
 /**
  * JSON Schema의 TypeScript 표현입니다.
  *
- * rustra가 지원하는 JSON Schema 서브셋을 나타내며,
+ * unikit가 지원하는 JSON Schema 서브셋을 나타내며,
  * TypeScript 타입 생성에 사용됩니다.
  */
 export type JsonSchema = {
@@ -144,7 +144,7 @@ export type JsonSchema = {
   /** 프로퍼티의 상수 값 (판별 유니온의 태그 필드 등) */
   const?: unknown;
   /** oneOf variant key를 명시하는 wire metadata (선언 순서와 무관하게 정렬) */
-  'x-rustra-variant-order'?: string[];
+  'x-unikit-variant-order'?: string[];
   /** enum 값 목록 — string 또는 integer 리터럴 */
   enum?: (string | number | boolean | null)[];
   /** 스키마 제목 */

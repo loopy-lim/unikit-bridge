@@ -8,7 +8,7 @@ and the generated output.
 
 Single-arrow codegen: the Rust bin is a contract probe that publishes
 `schema.json` only (`write_schema_to_dir`), and the TS CLI
-(`rustra codegen`) renders every surface — TS, C++, positional facade,
+(`unikit codegen`) renders every surface — TS, C++, positional facade,
 host entries — from that one file. `write_to_dir` (Rust writing TS itself)
 is deprecated as the dual-pass trap it was.
 
@@ -28,11 +28,11 @@ Package::generate_typescript()
        │
        ├─ write_schema_to_dir() → schema.json                    (Rust probe stops here)
        │
-       └─ rustra codegen (TS CLI) reads schema.json and renders:
+       └─ unikit codegen (TS CLI) reads schema.json and renders:
             types.ts, commands.ts, contract.ts, frame-codecs.ts,
             frame-registry.ts, events.ts/errors.ts/devices.ts (only when
             declared), positional-facade.ts, host entries, C++ codecs
-            + .rustra-generated.json (freshness sidecar)
+            + .unikit-generated.json (freshness sidecar)
 ```
 
 ---
@@ -229,7 +229,7 @@ without declarations keep byte-identical schemas and an unchanged contract hash:
 - per-command `devices` (`["camera", ...]`) from `#[command(device(...))]` / the
   `command_devices` builder → rendered as `devices.ts`;
 - per-command `platforms` (`["windows", "macos"]`) from `.platform_command`;
-- top-level `deviceCapabilities`, the rustra device-token catalog, present whenever at
+- top-level `deviceCapabilities`, the unikit device-token catalog, present whenever at
   least one command declares devices. It is the CLI's single source for token ordering,
   the `devices.ts` union, and the `codegen.device_catalog` doctor check — there is no
   hand-maintained mirror.
@@ -241,7 +241,7 @@ export type EngineClient = {
   invoke<T>(command: string, args?: unknown): Promise<T>;
 };
 
-export type RustraError = {
+export type UnikitError = {
   readonly code: string;
   readonly message: string;
 };
@@ -262,14 +262,14 @@ export type AddNumbersOutput = {
 `generate_types_ts()` emits in the following order:
 
 1. The `EngineClient` type definition
-2. The `RustraError` type definition (`readonly code: string; readonly message: string`)
+2. The `UnikitError` type definition (`readonly code: string; readonly message: string`)
 3. Shared types defined in `$defs` (enums, reusable structs, etc), emitted after merging definitions from all commands
 4. Each command's input/output types; already-emitted types are not emitted again (tracked with a `BTreeSet`)
 
 ### commands.ts
 
 ```typescript
-import type { AddNumbersInput, AddNumbersOutput, EngineClient, RustraError } from './types.js';
+import type { AddNumbersInput, AddNumbersOutput, EngineClient, UnikitError } from './types.js';
 
 export function addNumbers(
   engine: EngineClient,
@@ -279,7 +279,7 @@ export function addNumbers(
 }
 ```
 
-- `EngineClient` and `RustraError` are always included in imports
+- `EngineClient` and `UnikitError` are always included in imports
 - All types are imported alphabetically
 - One function per command
 
@@ -292,13 +292,13 @@ export const GENERATED_CONTRACT_HASH = '<sha256-hex>';
 ### Emission paths (fail-closed)
 
 The Rust schema bin's default output location (`generated/schema.json`) is
-relative to the spawn CWD. In normal `rustra codegen` (non-check mode) the CLI
-pins `RUSTRA_SCHEMA_OUT` to the directory declared by `config.schema`, so the
+relative to the spawn CWD. In normal `unikit codegen` (non-check mode) the CLI
+pins `UNIKIT_SCHEMA_OUT` to the directory declared by `config.schema`, so the
 schema binary's emission can never land outside the config-declared path.
 Without the pin, spawning from the config directory would publish a second copy
 elsewhere while `config.schemaPath` — the file the dev parity gate reads — goes
 stale, silently weakening the gate to a stale comparison (measured on the
-tauri-calculator `rustra.hot.json` layout, 2026-09-10). `rustra codegen --check`
+tauri-calculator `unikit.hot.json` layout, 2026-09-10). `unikit codegen --check`
 instead redirects emission to a throwaway temp directory — check compares
 without touching the declared tree.
 
@@ -315,7 +315,7 @@ metadata resolves to zero candidate packages.
 
 The JSON Schema → TypeScript conversion supports the object/array/union/
 intersection, literal enum, and map/set/tuple/$ref recursive surfaces that
-rustra emits. Arbitrary schemas that a Rust type contract never generates,
+unikit emits. Arbitrary schemas that a Rust type contract never generates,
 such as JSON Schema conditional keywords (`if`/`then`/`else`) or
 `patternProperties`, fall back safely to `unknown`.
 

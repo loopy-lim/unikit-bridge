@@ -14,8 +14,8 @@
 ## 로컬 검증
 
 - 최종 runtime의 debug lib 테스트 211개 통과.
-- `cargo test -p rustra -p rustra-macros -p rustra-naming --release --locked` 통과. 24개 suite 총335개 성공·0개 실패이며 release lib 175개, 통합·naming·문서 테스트를 포함한다. 기존 문서 예제 2개 ignored. release에서 제외되는 debug 전용 테스트 helper의 기존 dead-code 경고가 있으나 실패는 없다.
-- `cargo clippy -p rustra -p rustra-macros -p rustra-naming --all-targets --locked -- -D warnings`, `cargo fmt --all -- --check` 통과.
+- `cargo test -p unikit-bridge -p unikit-bridge-macros -p unikit-bridge-naming --release --locked` 통과. 24개 suite 총335개 성공·0개 실패이며 release lib 175개, 통합·naming·문서 테스트를 포함한다. 기존 문서 예제 2개 ignored. release에서 제외되는 debug 전용 테스트 helper의 기존 dead-code 경고가 있으나 실패는 없다.
+- `cargo clippy -p unikit-bridge -p unikit-bridge-macros -p unikit-bridge-naming --all-targets --locked -- -D warnings`, `cargo fmt --all -- --check` 통과.
 - API snapshot 일치, 400줄 모듈 한도 및 benchmark workflow 검사 통과.
 - 재귀 fixture가 추가된 `invoke_complex_serde` fuzz target 빌드 및 로컬 1,000회 smoke 통과. 로컬 smoke는 coverage 계측이 없어 정식 fuzz 증거로 세지 않는다.
 
@@ -37,10 +37,10 @@
 
 ## 발행 및 남은 증거
 
-이 기록 작성 시점은 PR 통합 전이다. 최종 main SHA의 CI와 정식 Release가 새로 실행하는 Miri, ASan/LSan, 3개 fuzz target을 통과해야 Rust `rustra`, `rustra-macros`, `rustra-naming` 0.10.2를 발행한다. 발행 후 `scripts/audit-release-registry.mjs`로 버전·latest·VCS SHA·checksum·yanked를 확인한다. npm 변경은 없고 독립 버전을 유지한다. 배포 완료 여부는 해당 Actions와 레지스트리 감사 결과로 판단한다.
+이 기록 작성 시점은 PR 통합 전이다. 최종 main SHA의 CI와 정식 Release가 새로 실행하는 Miri, ASan/LSan, 3개 fuzz target을 통과해야 Rust `unikit`, `unikit-bridge-macros`, `unikit-bridge-naming` 0.10.2를 발행한다. 발행 후 `scripts/audit-release-registry.mjs`로 버전·latest·VCS SHA·checksum·yanked를 확인한다. npm 변경은 없고 독립 버전을 유지한다. 배포 완료 여부는 해당 Actions와 레지스트리 감사 결과로 판단한다.
 
 Linux는 Alpha다. 코어 fixture 결과는 JS/호스트 경계, 실제 앱 p95, 실기기, CPU/RSS·에너지, 장시간 운용을 검증하지 않는다. 로드맵 G3나 전체 로드맵 완료를 뜻하지 않는다.
 
 ## PR CI의 Android 환경 수정
 
-첫 PR CI [35055712343](https://github.com/loopy-lim/rustra/actions/runs/35055712343)에서 Android 두 잡은 runtime 빌드 전 SDK 설치 단계에서 `Failed to find package 'tools'`로 실패했다. [setup-android v4의 공식 입력](https://github.com/android-actions/setup-android/blob/v4/action.yml)은 기본 `tools platform-tools`를 `packages`로 덮어쓸 수 있다. 두 잡 모두 `platform-tools`를 명시하고, action이 설치하는 cmdline-tools 및 다음 단계의 NDK/platform/build-tools 설치는 유지한다. 변경은 CI 설정뿐이며 측정한 Rust 소스·manifest·harness는 바뀌지 않는다. 해결 여부는 후속 전체 CI의 SDK 설치와 Android 빌드·기동 검사로 판정한다.
+첫 PR CI [35055712343](https://github.com/loopy-lim/unikit/actions/runs/35055712343)에서 Android 두 잡은 runtime 빌드 전 SDK 설치 단계에서 `Failed to find package 'tools'`로 실패했다. [setup-android v4의 공식 입력](https://github.com/android-actions/setup-android/blob/v4/action.yml)은 기본 `tools platform-tools`를 `packages`로 덮어쓸 수 있다. 두 잡 모두 `platform-tools`를 명시하고, action이 설치하는 cmdline-tools 및 다음 단계의 NDK/platform/build-tools 설치는 유지한다. 변경은 CI 설정뿐이며 측정한 Rust 소스·manifest·harness는 바뀌지 않는다. 해결 여부는 후속 전체 CI의 SDK 설치와 Android 빌드·기동 검사로 판정한다.

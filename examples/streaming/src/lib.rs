@@ -15,8 +15,8 @@
 //! 이벤트는 schema.json 의 `events` 섹션과 TS 코드젠(`events.ts`)으로 흘러
 //! 커맨드와 동일한 타입 안전 계약을 이룬다.
 
-use rustra::Package;
-use rustra::prelude::*;
+use unikit_bridge::Package;
+use unikit_bridge::prelude::*;
 use std::sync::Arc;
 
 #[bridge_type]
@@ -53,7 +53,7 @@ static PACKAGE: std::sync::LazyLock<Arc<Package>> =
     std::sync::LazyLock::new(|| Arc::new(streaming_package()));
 
 /// JS 어댑터가 접근할 이벤트 버스 — `take_pending_events()` 로 폴링한다.
-pub fn event_bus() -> rustra::events::EventBus {
+pub fn event_bus() -> unikit_bridge::events::EventBus {
     PACKAGE.event_bus().clone()
 }
 
@@ -112,7 +112,7 @@ pub fn job_status(_input: JobStatusInput) -> Result<JobStatusOutput> {
 }
 
 pub fn streaming_package() -> Package {
-    rustra::build!("examples.streaming", start_job, job_status)
+    unikit_bridge::build!("examples.streaming", start_job, job_status)
         .event::<JobProgress>("progress.tick")
         .event::<JobDone>("job.done")
         .done()

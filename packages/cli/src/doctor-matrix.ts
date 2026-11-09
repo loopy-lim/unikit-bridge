@@ -59,7 +59,7 @@ function sectionBuildCheck(
       true,
       `${target}: could not resolve rustManifest`,
       undefined,
-      [`Set ${target}.rustManifest in rustra.json`],
+      [`Set ${target}.rustManifest in unikit.json`],
     );
   const metadata = getCargoMetadata(runner, manifest);
   if (!metadata.metadata)
@@ -108,7 +108,7 @@ function sectionBuildCheck(
         true,
         `node: no runnable binary in package ${cargoPackage.name}`,
         error instanceof Error ? error.message : String(error),
-        ['Set node.rustBinary in rustra.json'],
+        ['Set node.rustBinary in unikit.json'],
       );
     }
   }

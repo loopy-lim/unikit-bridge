@@ -1,12 +1,12 @@
 import {
   createJsonEngine,
   disposedBootstrapError,
-  parseRustraErrorString,
-  RustraCommandError,
+  parseUnikitErrorString,
+  UnikitCommandError,
   type BootstrapState,
   type EngineClientWithBatch,
   type EngineSupports,
-} from '@rustra/types';
+} from '@unikit/types';
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 
 /**
@@ -78,7 +78,7 @@ export function createNodeProcessTransport(
       const stdout: Buffer[] = [];
       const stderr: Buffer[] = [];
       if (!proc.stdout || !proc.stderr) {
-        reject(new RustraCommandError('transport.error', 'stdio unavailable', true));
+        reject(new UnikitCommandError('transport.error', 'stdio unavailable', true));
         return;
       }
       proc.stdout.on('data', (chunk: Buffer) => stdout.push(chunk));
@@ -86,7 +86,7 @@ export function createNodeProcessTransport(
       proc.on('error', (err) => {
         if (settled) return;
         settled = true;
-        reject(new RustraCommandError('transport.error', `spawn failed: ${String(err)}`, true));
+        reject(new UnikitCommandError('transport.error', `spawn failed: ${String(err)}`, true));
       });
       proc.on('close', (code) => {
         if (settled) return;
@@ -95,7 +95,7 @@ export function createNodeProcessTransport(
         if (!text) {
           const detail = Buffer.concat(stderr).toString('utf8').trim();
           reject(
-            new RustraCommandError(
+            new UnikitCommandError(
               'transport.error',
               detail || `runtime exited with code ${code}`,
               true,
@@ -106,10 +106,10 @@ export function createNodeProcessTransport(
         try {
           const frame = JSON.parse(text) as ResponseFrame;
           if (frame.ok) resolve(frame.result);
-          else reject(parseRustraErrorString(frame.error ?? 'invoke failed'));
+          else reject(parseUnikitErrorString(frame.error ?? 'invoke failed'));
         } catch {
           reject(
-            new RustraCommandError(
+            new UnikitCommandError(
               'transport.error',
               `invalid response frame: ${text.slice(0, 200)}`,
             ),
@@ -117,13 +117,13 @@ export function createNodeProcessTransport(
         }
       });
       if (!proc.stdin) {
-        reject(new RustraCommandError('transport.error', 'stdin unavailable', true));
+        reject(new UnikitCommandError('transport.error', 'stdin unavailable', true));
         return;
       }
       proc.stdin.once('error', (error) => {
         if (settled) return;
         settled = true;
-        reject(new RustraCommandError('transport.error', `write failed: ${String(error)}`, true));
+        reject(new UnikitCommandError('transport.error', `write failed: ${String(error)}`, true));
         proc.kill();
       });
       proc.stdin.write(JSON.stringify({ command, args: args === undefined ? {} : args }));
@@ -133,9 +133,9 @@ export function createNodeProcessTransport(
   return {
     invoke: invokeOnce,
     async getContractHash() {
-      const value = await invokeOnce('__rustra_contract');
+      const value = await invokeOnce('__unikit_contract');
       if (typeof value !== 'string' || !value)
-        throw new RustraCommandError(
+        throw new UnikitCommandError(
           'contract.unenforceable',
           'Node runtime contract endpoint returned an invalid hash',
         );
@@ -171,7 +171,7 @@ export type NodeBootstrapOptions = {
   readinessTimeoutMs?: number;
   contractHash?: string;
   /**
-   * (A2) 계약 검증 정책 — frame 엔진의 `contractVerification`(@rustra/types)과
+   * (A2) 계약 검증 정책 — frame 엔진의 `contractVerification`(@unikit/types)과
    * 같은 3모드. `contractHash` 미설정 시 검증 자체가 없으므로 정책도 무의미하다.
    * - `'strict'`(미설정 포함 기본): 후보 선택과 채택 모두에서 불일치는 기각/
    *   throw (`contract.mismatch`).
@@ -189,7 +189,7 @@ export type NodeBootstrapOptions = {
 };
 export type NodeBootstrap = {
   /**
-   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@rustra/types).
+   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@unikit/types).
    * dispose 는 멱등이고 dispose 후 ready 는 loud-fail 한다.
    */
   readonly state: BootstrapState;

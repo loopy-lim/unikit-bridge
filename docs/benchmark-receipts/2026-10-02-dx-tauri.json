@@ -7,7 +7,7 @@
   "sourceFileCount": 1050,
   "nativeArtifacts": [
     {
-      "path": "target/release/rustra-tauri-calculator",
+      "path": "target/release/unikit-tauri-calculator",
       "sha256": "00c7d19ba3db458e50babfa2833c2dafa801d28e32af2ea36348033f03175608"
     }
   ],
@@ -37,15 +37,15 @@
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)"
   ],
   "correctness": true,
-  "benchmarkMarker": "RUSTRA_HOST_BENCH_JSON",
-  "command": "RUSTRA_TAURI_BENCH_TIMEOUT_MS=120000 bun benchmark.mjs",
+  "benchmarkMarker": "UNIKIT_HOST_BENCH_JSON",
+  "command": "UNIKIT_TAURI_BENCH_TIMEOUT_MS=120000 bun benchmark.mjs",
   "buildCommand": "bun run --cwd examples/tauri-calculator build:benchmark",
   "deadlineMs": 120000,
   "window": {
     "visibilityState": "visible",
     "hasFocus": false
   },
-  "nativeWindowCheckpoint": "RUSTRA_TAURI_BENCH_NATIVE=window-ready visible=true focused=false elapsedMs=321",
+  "nativeWindowCheckpoint": "UNIKIT_TAURI_BENCH_NATIVE=window-ready visible=true focused=false elapsedMs=321",
   "results": [
     {
       "name": "tauri-generated-webview-ipc",

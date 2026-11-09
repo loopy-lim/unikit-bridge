@@ -1,4 +1,4 @@
-# 컨슈머(라이브러리 소비자) 관점 API/문서 DX 감사 — rustra-bridge
+# 컨슈머(라이브러리 소비자) 관점 API/문서 DX 감사 — unikit-bridge
 
 - 작업: `audit-consumer` (kind=research)
 - 관점: Rust 패키지를 정의하고 생성된 TS 클라이언트를 소비하는 앱 개발자
@@ -46,11 +46,11 @@ export interface UseCommandOptions {
 }
 ```
 
-코어의 `InvokeOptions`(`packages/types/src/public.ts:95-114`)는 `signal`, `timeoutMs`를 제공하는 것이 핵심 계약인데, React 바인딩이 이를 우회할 통로가 없다. 언마운트 시 내부 AbortController는 있지만(`useCommand.ts:32` `abortControllerRef`), 컨슈머가 타임아웃이나 외부 취소 신호를 걸려면 hook을 포기하고 `useEffect`+직접 invoke로 내려가야 한다. 또한 `error: Error | null`(L23)이라 `RustraCommandError` 좁히기(§1.5의 타입 가드)를 catch가 아닌 상태 값에서 수동으로 해야 한다.
+코어의 `InvokeOptions`(`packages/types/src/public.ts:95-114`)는 `signal`, `timeoutMs`를 제공하는 것이 핵심 계약인데, React 바인딩이 이를 우회할 통로가 없다. 언마운트 시 내부 AbortController는 있지만(`useCommand.ts:32` `abortControllerRef`), 컨슈머가 타임아웃이나 외부 취소 신호를 걸려면 hook을 포기하고 `useEffect`+직접 invoke로 내려가야 한다. 또한 `error: Error | null`(L23)이라 `UnikitCommandError` 좁히기(§1.5의 타입 가드)를 catch가 아닌 상태 값에서 수동으로 해야 한다.
 
 ### 1.5 [하] 에러 처리 인체공학은 전반적으로 우수 — 단 타입 가드는 옵트인
 
-`RustraCommandError` 단일 `instanceof` 분기, `TimeoutError`/`CancelledError` 서브클래스(`packages/types/src/errors.ts:24-42`), `#[command(error(...))]` 선언 시 명령별 가드 생성(`docs/getting-started.md:1226-1240`, `examples/calculator/generated/errors.ts`의 `isDivideError` 등)은 훌륭하다. 단, 가드는 Rust 측 에러 코드 선언이 있어야 생성되므로 미선언 패키지는 문자열 `code` 비교로 폴백한다. `errors.ts`의 한글 주석(예: "catch 분기용 타입 가드 — 미선언 코드(신규 네이티브 등)는 false")은 국제 컨슈머가 생성 코드에서 마주하는 내용이며, §4.3과 연결된다.
+`UnikitCommandError` 단일 `instanceof` 분기, `TimeoutError`/`CancelledError` 서브클래스(`packages/types/src/errors.ts:24-42`), `#[command(error(...))]` 선언 시 명령별 가드 생성(`docs/getting-started.md:1226-1240`, `examples/calculator/generated/errors.ts`의 `isDivideError` 등)은 훌륭하다. 단, 가드는 Rust 측 에러 코드 선언이 있어야 생성되므로 미선언 패키지는 문자열 `code` 비교로 폴백한다. `errors.ts`의 한글 주석(예: "catch 분기용 타입 가드 — 미선언 코드(신규 네이티브 등)는 false")은 국제 컨슈머가 생성 코드에서 마주하는 내용이며, §4.3과 연결된다.
 
 ---
 
@@ -65,7 +65,7 @@ export interface UseCommandOptions {
 | `node.ts:19-27`        | `createNodeBootstrap`    | `binaryName`, `commandCandidates`, `args`, `contractHash`, **`contractVerification: 'strict'`**                |
 | `bun.ts:16-29`         | `createBunBootstrap`     | `libraryName`, `libraryCandidates`, `frameCodecs`, `contractHash`, `contractVerification`, **`schemaVersion`** |
 | `tauri.ts:15-16`       | `createTauriBootstrap()` | **인자 없음**                                                                                                  |
-| `react-native.ts:9-16` | `createRustraBootstrap`  | `install`, `getNative`, `frameCodecs`, `contractHash`, `schemaVersion` — **`contractVerification` 없음**       |
+| `react-native.ts:9-16` | `createUnikitBootstrap`  | `install`, `getNative`, `frameCodecs`, `contractHash`, `schemaVersion` — **`contractVerification` 없음**       |
 
 "zero-config bootstrap per host"(calculator README L59)를 표방하지만, 계약 검증 옵션명과 기본값이 플랫폼마다 달라 "내 플랫폼에서 contract mismatch가 strict인가?"를 판단하려면 어댑터별 소스/문서를 열어봐야 한다. Rust 측도 각각 다르다: node=바이너리+stdio probe, bun=cdylib, tauri=`withGlobalTauri`+`register_with_events`, RN=staticlib+`native_entry!`+모듈 스캐폴딩(`packages/react-native/README.md:8-30`).
 
@@ -80,11 +80,11 @@ const engine = /* EngineClient */;
 const { item } = await createItem(engine, { name: 'Widget', value: 42 });
 ```
 
-- `rustra.json`(crud)에는 `schema`/`output`만 있고 `node: {}` 같은 호스트 키가 없어 `node.ts` 등 호스트 엔트리가 생성되지 않는다(calculator는 4개 전부 생성).
+- `unikit.json`(crud)에는 `schema`/`output`만 있고 `node: {}` 같은 호스트 키가 없어 `node.ts` 등 호스트 엔트리가 생성되지 않는다(calculator는 4개 전부 생성).
 - `package.json`이 없어 예제 디렉터리 자체가 설치/실행 단위가 아니다.
 - 스니펫 자체가 미완성 플레이스홀더이고, `createItem(engine, ...)` 형태는 실제 생성 함수(`createItem(input, options?)`, 전역 엔진 사용)와도 불일치한다 — `examples/crud/generated/commands.ts:14-16` 참조.
 
-calculator는 반대로 완결돼 있다(`import { addNumbers, rustra } from '../generated/node.js'` 후 `rustra.dispose()`). 두 예제의 완성도 격차 때문에, 두 번째 예제(crud)로 넘어온 컨슈머가 정작 부트스트랩을 스스로 조립해야 하는 지점이 된다.
+calculator는 반대로 완결돼 있다(`import { addNumbers, unikit } from '../generated/node.js'` 후 `unikit.dispose()`). 두 예제의 완성도 격차 때문에, 두 번째 예제(crud)로 넘어온 컨슈머가 정작 부트스트랩을 스스로 조립해야 하는 지점이 된다.
 
 ### 2.3 [중] 매크로 경로의 입/출력 래퍼 구조체 보일러플레이트
 
@@ -115,7 +115,7 @@ calculator는 생성 엔트리 경로(`apps/node-app.ts`)와 수동 경로(`apps
 
 ### 3.3 [하] 버전 파편화와 문서 내 하드코딩 버전
 
-`docs/compatibility-matrix.md:57-68`: types 0.12.0 / cli 0.11.3 / rust 0.11.0 / node·bun 0.10.2 / react-native 0.9.2 / tauri 0.9.3 / react 0.8.3 / devtools·testing 0.7.2. 어댑터 독립 릴리스 라인 자체는 정책이지만, `docs/getting-started.md:74-78`이 `bun add @rustra/node@0.10.2` 식의 하드코딩 설치 명령을 제공해 문서가 stale해질수록 구버전을 안내한다. `registry-onboarding.md`의 "compatible host pins"이 보완재지만 소비자는 매 설치마다 매트릭스 표를 대조해야 한다.
+`docs/compatibility-matrix.md:57-68`: types 0.12.0 / cli 0.11.3 / rust 0.11.0 / node·bun 0.10.2 / react-native 0.9.2 / tauri 0.9.3 / react 0.8.3 / devtools·testing 0.7.2. 어댑터 독립 릴리스 라인 자체는 정책이지만, `docs/getting-started.md:74-78`이 `bun add @unikit/node@0.10.2` 식의 하드코딩 설치 명령을 제공해 문서가 stale해질수록 구버전을 안내한다. `registry-onboarding.md`의 "compatible host pins"이 보완재지만 소비자는 매 설치마다 매트릭스 표를 대조해야 한다.
 
 ---
 
@@ -132,12 +132,12 @@ calculator는 생성 엔트리 경로(`apps/node-app.ts`)와 수동 경로(`apps
 ### 4.3 [하] ko/en 동기화는 양호 — 단 생성물 주석은 한국어 단일 언어
 
 - `docs/` 대부분의 en/ko 쌍이 같은 날짜에 커밋되고 섹션 구조가 일치한다(예: `compatibility-matrix.md` 309줄 vs `.ko.md` 348줄은 CJK 줄바꿈 특성, 헤더 구조는 동일). 예외: `compatibility-contract.md` en 2026-09-04 vs ko 2026-09-07.
-- 반면 **생성 코드와 코어 소스 주석은 한국어가 기본**이다: `examples/calculator/generated/errors.ts`·`types.ts`의 한글 주석, `packages/types/src/public.ts:82-114`(InvokeOptions JSDoc), `packages/types/src/errors.ts`(RustraErrorCode 주석 전체). 영문 문서를 읽는 컨슈머가 생성물/툴팁에서 한글 주석을 마주하는 불일치다.
+- 반면 **생성 코드와 코어 소스 주석은 한국어가 기본**이다: `examples/calculator/generated/errors.ts`·`types.ts`의 한글 주석, `packages/types/src/public.ts:82-114`(InvokeOptions JSDoc), `packages/types/src/errors.ts`(UnikitErrorCode 주석 전체). 영문 문서를 읽는 컨슈머가 생성물/툴팁에서 한글 주석을 마주하는 불일치다.
 - `docs/compatibility-matrix.md:74-76`과 `.ko.md:131-133`에 `<!-- release:versions:end -->` 마커가 3연속 중복됨 — 릴리스 자동화 교체 대상 블록 경계가 지저분하다는 품질 신호.
 
 ### 4.4 [하] CLI 이중 커맨드 `generate` vs `codegen`의 혼선
 
-`packages/cli/src/cli-main.ts:31-39`는 `generate`(스키마→TS 렌더)와 `codegen`(config 기반 전체 파이프라인)을 모두 제공한다. crud README는 `bun ../../packages/cli/src/index.ts generate --schema ...`(L27, 저장소 내부 경로 직접 실행)를 안내하는 반면, 생성 파일 헤더는 `examples/crud/generated/commands.ts:6` "Regen: rustra codegen --config rustra.json"으로 안내한다. 동일 산출물의 재생성 명령이 README·헤더·calculator README(`rustra codegen`) 간 3천 양단이다.
+`packages/cli/src/cli-main.ts:31-39`는 `generate`(스키마→TS 렌더)와 `codegen`(config 기반 전체 파이프라인)을 모두 제공한다. crud README는 `bun ../../packages/cli/src/index.ts generate --schema ...`(L27, 저장소 내부 경로 직접 실행)를 안내하는 반면, 생성 파일 헤더는 `examples/crud/generated/commands.ts:6` "Regen: unikit codegen --config unikit.json"으로 안내한다. 동일 산출물의 재생성 명령이 README·헤더·calculator README(`unikit codegen`) 간 3천 양단이다.
 
 ---
 

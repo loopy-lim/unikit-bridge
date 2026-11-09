@@ -1,7 +1,7 @@
 {
-  "name": "@rustra/bun",
+  "name": "@unikit/bun",
   "version": "0.11.1",
-  "description": "Type-safe Bun client for rustra — one Rust core over a compact binary wire, with CI contracts that block breaking schema changes.",
+  "description": "Type-safe Bun client for unikit — one Rust core over a compact binary wire, with CI contracts that block breaking schema changes.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -27,14 +27,14 @@
     "test:compile": "tsc -p tsconfig.test.json"
   },
   "dependencies": {
-    "@rustra/types": "^0.13.0"
+    "@unikit/types": "^0.13.0"
   },
   "devDependencies": {
     "@types/bun": "^1.4.0",
     "typescript": "^5.9.0"
   },
   "keywords": [
-    "rustra",
+    "unikit",
     "bun",
     "rust",
     "typescript",
@@ -47,11 +47,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/loopy-lim/rustra.git",
+    "url": "git+https://github.com/loopy-lim/unikit.git",
     "directory": "packages/bun"
   },
   "bugs": {
-    "url": "https://github.com/loopy-lim/rustra/issues"
+    "url": "https://github.com/loopy-lim/unikit/issues"
   },
-  "homepage": "https://github.com/loopy-lim/rustra#readme"
+  "homepage": "https://github.com/loopy-lim/unikit#readme"
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// rustra-bridge adapter benchmark: Node vs Bun
+// unikit-bridge adapter benchmark: Node vs Bun
 // Measures end-to-end bridge overhead from JavaScript side
 
 // ── Helpers ──────────────────────────────────────────────

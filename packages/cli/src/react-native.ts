@@ -15,13 +15,13 @@ import {
   renderReactNativeConfig,
 } from './react-native-template-common.js';
 
-export const GENERATED_REACT_NATIVE_PACKAGE = '@rustra/generated-react-native';
+export const GENERATED_REACT_NATIVE_PACKAGE = '@unikit/generated-react-native';
 const NATIVE_FILES = [
-  'android/rustra-jsi-jni.cpp',
-  'cpp/RustraJSIBridge.cpp',
-  'cpp/RustraJSIBridge.hpp',
-  'cpp/rustra-codec.hpp',
-  'ios/RustraJSIModule.mm',
+  'android/unikit-jsi-jni.cpp',
+  'cpp/UnikitJSIBridge.cpp',
+  'cpp/UnikitJSIBridge.hpp',
+  'cpp/unikit-codec.hpp',
+  'ios/UnikitJSIModule.mm',
 ] as const;
 
 export type ReactNativeScaffoldOptions = {
@@ -75,7 +75,7 @@ export function findReactNativeAdapterNative(
   let searchRoot = resolve(appRoot);
   const rejected: string[] = [];
   while (true) {
-    const packageRoot = resolve(searchRoot, 'node_modules/@rustra/react-native');
+    const packageRoot = resolve(searchRoot, 'node_modules/@unikit/react-native');
     const candidate = resolve(packageRoot, 'native');
     if (NATIVE_FILES.every((file) => existsSync(resolve(candidate, file)))) {
       try {
@@ -84,7 +84,7 @@ export function findReactNativeAdapterNative(
           version?: string;
         };
         if (
-          manifest.name === '@rustra/react-native' &&
+          manifest.name === '@unikit/react-native' &&
           manifest.version &&
           satisfiesAdapterRange(manifest.version, adapterRange)
         )
@@ -104,7 +104,7 @@ export function findReactNativeAdapterNative(
   }
   if (rejected.length > 0)
     throw new Error(
-      `Found a complete but incompatible @rustra/react-native package: ${rejected.join('; ')}. Install a version satisfying ${adapterRange} and regenerate.`,
+      `Found a complete but incompatible @unikit/react-native package: ${rejected.join('; ')}. Install a version satisfying ${adapterRange} and regenerate.`,
     );
   return undefined;
 }
@@ -115,10 +115,10 @@ function resolveReactNativeAdapterNative(appRoot: string, adapterRange: string):
   // 미설치(경로 자체가 없음)는 조용히 기본 경로를 반환하지 않는다(감사 A11) —
   // 생성된 podspec/gradle 이 존재하지 않는 경로를 가리키면 첫 loud 실패는
   // pod install 시점으로 미뤄진다. codegen 시점에 설치 안내로 실패한다.
-  const fallback = resolve(appRoot, 'node_modules/@rustra/react-native/native');
+  const fallback = resolve(appRoot, 'node_modules/@unikit/react-native/native');
   throw new Error(
-    `@rustra/react-native adapter not installed: ${fallback} was not found. ` +
-      `Run "bun install" to install @rustra/react-native@${adapterRange} first, then regenerate.`,
+    `@unikit/react-native adapter not installed: ${fallback} was not found. ` +
+      `Run "bun install" to install @unikit/react-native@${adapterRange} first, then regenerate.`,
   );
 }
 
@@ -133,7 +133,7 @@ export function renderReactNativeModule(
   // 깜빡임 — 2026-09-20 CI ts-checks 분할에서 적발). 문서화된 설치 위치는
   // 앱 자체의 node_modules다.
   resolveReactNativeAdapterNative(options.appRoot, options.adapterRange);
-  const adapterInstallRoot = resolve(options.appRoot, 'node_modules/@rustra/react-native/native');
+  const adapterInstallRoot = resolve(options.appRoot, 'node_modules/@unikit/react-native/native');
   const adapterFromIos = portableRelative(moduleRoot, adapterInstallRoot);
   const generatedFromIos = portableRelative(moduleRoot, options.cppOutputPath);
   const adapterFromAndroid = portableRelative(resolve(moduleRoot, 'android'), adapterInstallRoot);
@@ -158,17 +158,17 @@ export function renderReactNativeModule(
     'scripts/prepare-native.cjs': renderReactNativePrepare(
       portableRelative(resolve(moduleRoot, 'scripts'), options.appRoot),
     ),
-    'RustraBridge.podspec': renderPodspec(values),
-    'ios/RustraBridge.cpp':
-      '#include "RustraJSIBridge.cpp"\n#include "rustra-generated-codecs.cpp"\n',
-    'ios/RustraBridgeModule.mm': '#include "RustraJSIModule.mm"\n',
+    'UnikitBridge.podspec': renderPodspec(values),
+    'ios/UnikitBridge.cpp':
+      '#include "UnikitJSIBridge.cpp"\n#include "unikit-generated-codecs.cpp"\n',
+    'ios/UnikitBridgeModule.mm': '#include "UnikitJSIModule.mm"\n',
     'ios/build-rust-ios.sh': renderIosBuild(values),
     'android/build.gradle': renderGradle(values),
     'android/CMakeLists.txt': renderCmake(),
     'android/build-rust-android.sh': renderAndroidBuild(values),
     'android/src/main/AndroidManifest.xml':
       '<manifest xmlns:android="http://schemas.android.com/apk/res/android" />\n',
-    'android/src/main/java/dev/rustra/bridge/RustraBridgeModule.kt': renderAndroidModule(),
-    'android/src/main/java/dev/rustra/bridge/RustraBridgePackage.kt': renderAndroidPackage(),
+    'android/src/main/java/dev/unikit/bridge/UnikitBridgeModule.kt': renderAndroidModule(),
+    'android/src/main/java/dev/unikit/bridge/UnikitBridgePackage.kt': renderAndroidPackage(),
   };
 }

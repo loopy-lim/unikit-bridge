@@ -1,10 +1,10 @@
 /**
- * @rustra/cli — 커맨드별 타입화 에러 렌더러
+ * @unikit/cli — 커맨드별 타입화 에러 렌더러
  *
  * 스키마 명령 항목의 `errors` 선언에서 `errors.ts`를 생성한다 — 커맨드별
- * 에러 코드 리터럴 유니언(`{Fn}ErrorCode`) + `RustraCommandError` 교차 타입
+ * 에러 코드 리터럴 유니언(`{Fn}ErrorCode`) + `UnikitCommandError` 교차 타입
  * (`{Fn}Error`) + 타입 가드(`is{Fn}Error`). 런타임 에러 계약(와이어 프레임,
- * 호스트 승격, `RustraCommandError`)은 무변경 — 선언은 TS 표면만 좁힌다.
+ * 호스트 승격, `UnikitCommandError`)은 무변경 — 선언은 TS 표면만 좁힌다.
  *
  * 선언 커맨드가 1건이라도 있으면 파일 내용을, 없으면 빈 문자열을 반환한다
  * (events.ts 관례 — 선언 없는 패키지는 기존 출력과 바이트 동일).
@@ -13,14 +13,14 @@ import type { CommandErrorVariantSchema, CommandSchema, PackageSchema } from './
 import { commandFunctionName, escapeJsDoc, pascalCaseName } from './codegen.js';
 import { finishGeneratedText } from './generate-surface.js';
 
-/** Rust 빌더와 TS 파서(parseRustraErrorString)가 공유하는 코드 토큰 집합. */
+/** Rust 빌더와 TS 파서(parseUnikitErrorString)가 공유하는 코드 토큰 집합. */
 const ERROR_CODE_PATTERN = /^[a-z][a-z0-9_.]*$/;
 
 export function generateErrorsTs(schema: PackageSchema): string {
   const declared = schema.commands.filter((command) => (command.errors?.length ?? 0) > 0);
   if (declared.length === 0) return '';
 
-  let output = "import { RustraCommandError } from '@rustra/types';\n";
+  let output = "import { UnikitCommandError } from '@unikit/types';\n";
   const symbols = new Set<string>();
   for (const command of declared) {
     output += `\n${renderCommandErrorSurface(command, symbols)}`;
@@ -77,14 +77,14 @@ function renderCommandErrorSurface(command: CommandSchema, symbols: Set<string>)
   output += `export type ${symbol}ErrorCode = (typeof ${symbol}ErrorCode)[keyof typeof ${symbol}ErrorCode];\n`;
   output += '\n';
   output += `/** code 리터럴로 좁혀진 ${command.name}의 에러 (discriminated by \`code\`). */\n`;
-  output += `export type ${symbol}Error = RustraCommandError & { readonly code: ${symbol}ErrorCode };\n`;
+  output += `export type ${symbol}Error = UnikitCommandError & { readonly code: ${symbol}ErrorCode };\n`;
   output += '\n';
   output += `/**\n`;
   output += ` * catch 분기용 타입 가드 — 미선언 코드(신규 네이티브 등)는 false.\n`;
   output += ` * 런타임은 개방 계약, 타입은 폐쇄 유니언 — 폴백은 err.code 문자열 분기.\n`;
   output += ` */\n`;
   output += `export function is${symbol}Error(error: unknown): error is ${symbol}Error {\n`;
-  output += `  return error instanceof RustraCommandError && ${fnName}ErrorCodes.has(error.code);\n`;
+  output += `  return error instanceof UnikitCommandError && ${fnName}ErrorCodes.has(error.code);\n`;
   output += `}\n`;
   return output;
 }

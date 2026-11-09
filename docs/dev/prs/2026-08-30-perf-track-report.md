@@ -21,13 +21,13 @@
 ### T2-1 Rust 핸들러 (639a494b)
 
 `register()`가 `build_command(id, handler, force_tier3=false)`를 쓰도록 변경
-(`crates/rustra/src/registry.rs`). `build_command`의 3-way 판정이 그대로 적용된다:
+(`crates/unikit-bridge/src/registry.rs`). `build_command`의 3-way 판정이 그대로 적용된다:
 
 1. postcard 지원 스키마 → postcard binary 핸들러
 2. oneOf payload enum → complex binary 핸들러 (t3align 계약과 동일 승격)
 3. 둘 다 거부 (anyOf 3항 untagged 등) → Tier 3 JSON 유지
 
-테스트 (`crates/rustra/src/runtime_registry_tests.rs`):
+테스트 (`crates/unikit-bridge/src/runtime_registry_tests.rs`):
 `dynamic_postcard_supported_command_gets_binary_handler`,
 `dynamic_map_schema_gets_postcard_handler`,
 `dynamic_oneof_schema_gets_complex_binary_handler`,
@@ -94,7 +94,7 @@ processPayload postcard 왕복으로 전환(구 tier3 벤치는 T2-1 이후 패�
   (`docs/benchmarks.md` host matrix 표).
 - **Tauri**: 측정 정합화 후 WKWebView IPC 왕복 **246 µs** (trimmed-mean,
   native 성분 553–709 ns 분해) — 2회 실행 receipt
-  (`2026-08-30-tauri-timing-run1/2.log`). 와이어 배치 `rustra_dispatch_batch`
+  (`2026-08-30-tauri-timing-run1/2.log`). 와이어 배치 `unikit_dispatch_batch`
   로 N 명령 단일 IPC 횡단 지원.
 - **Complex 코어**: IR 사전컴파일 + serde 직결 — complex_route 벤치 기준
   oneOf data enum 1.00 µs, map of seqs 2.48 µs (receipt 동봉).
@@ -120,9 +120,9 @@ processPayload postcard 왕복으로 전환(구 tier3 벤치는 T2-1 이후 패�
 
 | 게이트                                         | 결과                                                                                                                 |
 | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `cargo test -p rustra` (workspace 전 바이너리) | 전부 ok — lib 103 + 통합(wire 31, fuzz 10, concurrency 3, public_authoring 38, trust_baseline 19 등) + doc 9, fail 0 |
-| `cargo test -p rustra --features tauri --lib`  | 108 pass, fail 0                                                                                                     |
-| `cargo fmt -p rustra -- --check`               | clean                                                                                                                |
+| `cargo test -p unikit-bridge` (workspace 전 바이너리) | 전부 ok — lib 103 + 통합(wire 31, fuzz 10, concurrency 3, public_authoring 38, trust_baseline 19 등) + doc 9, fail 0 |
+| `cargo test -p unikit-bridge --features tauri --lib`  | 108 pass, fail 0                                                                                                     |
+| `cargo fmt -p unikit-bridge -- --check`               | clean                                                                                                                |
 | `cd packages/types && bun test`                | 135 pass, fail 0                                                                                                     |
 | `bun run test:ts:node`                         | 63 pass, fail 0 (컴파일 포함, tsc 오류 0)                                                                            |
 | C++ codec tests (`run-cpp-codec-tests.sh`)     | OK — all passed                                                                                                      |
@@ -143,7 +143,7 @@ c487bee6 feat(types): 치환 재동기화 — generation 게이트로 스테일 
 2e841f87 feat(core): live_schema/FFI에 schema generation 노출
 6bdbb813 feat(core): schema generation — 치환 동기화 계약 기반
 456274e9 perf(rn): async byId 진입 — 이름 마샬링 제거
-8c82d316 perf(tauri): 와이어 배치 rustra_dispatch_batch — N 명령 단일 IPC 횡단
+8c82d316 perf(tauri): 와이어 배치 unikit_dispatch_batch — N 명령 단일 IPC 횡단
 037c6488 perf(tauri): IPC 벤치 측정 정합화 — 타이머 그리드 왜곡 제거 + 네이티브 성분 분해
 a6ced290 perf(node): persistent loop 바이너리 왕복 실측 — 파이프 왕복 하한 기록
 7c1ccda5 feat(node): 루프 transport 바이너리 모드 — Buffer 누적 프레이밍
@@ -161,7 +161,7 @@ c742eb7f feat(node): loop-stdio 바이너리 프레임 모드 — invoke_rkyv_v2
 - 정적/frozen 와이어 불변: PINNED fixtures(`wire_fixtures.rs` ↔
   `cross-wire.test.ts`) 전수 green — 정적 계약 해시 경로(`schema()`)에 필드
   추가 없음(live_schema 만 generation/definitions 노출).
-- 금지 파일 미수정: `crates/rustra-macros/src/lib.rs`,
-  `crates/rustra/src/codegen.rs`, `packages/types/src/errors.ts`,
+- 금지 파일 미수정: `crates/unikit-bridge-macros/src/lib.rs`,
+  `crates/unikit-bridge/src/codegen.rs`, `packages/types/src/errors.ts`,
   `packages/cli/**` (git diff로 확인).
 - git push / changesets 없음 — 발행은 별도 승인 절차.

@@ -73,7 +73,7 @@ impl Package {
 
 ## 5. 런타임 mutation API
 
-전부 `Result<()>` 반환. frozen 상태면 `RustraError::custom("registry.frozen", ...)`.
+전부 `Result<()>` 반환. frozen 상태면 `UnikitError::custom("registry.frozen", ...)`.
 
 ```rust
 impl Package {
@@ -125,7 +125,7 @@ generic `engine.invoke(name, args)`로 호출.
 
 ## 9. 에러 모델
 
-`RustraError::custom`로 표현:
+`UnikitError::custom`로 표현:
 
 | 상황                             | code                    | message 예시                         |
 | -------------------------------- | ----------------------- | ------------------------------------ |
@@ -154,8 +154,8 @@ generic `engine.invoke(name, args)`로 호출.
 
 ## 11. 영향 범위
 
-- `crates/rustra/src/lib.rs`: `Package`/`PackageBuilder` 재구조화, mutation API 추가.
-- `crates/rustra/src/error.rs`: 필요 시 helper 추가(`custom` 재사용).
+- `crates/unikit-bridge/src/lib.rs`: `Package`/`PackageBuilder` 재구조화, mutation API 추가.
+- `crates/unikit-bridge/src/error.rs`: 필요 시 helper 추가(`custom` 재사용).
 - 단위/통합 테스트 추가.
 - `README.md`/`docs/architecture.md`: runtime registry 섹션 추가.
 - 예시: (선택) runtime register 데모 추가.

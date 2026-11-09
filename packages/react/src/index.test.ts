@@ -3,14 +3,14 @@ import test from 'node:test';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import {
-  RustraProvider,
-  useRustraEngine,
+  UnikitProvider,
+  useUnikitEngine,
   useCommand,
   useMutation,
   useSuspenseCommand,
   invalidateCommands,
 } from './index.js';
-import type { EngineClient } from '@rustra/types';
+import type { EngineClient } from '@unikit/types';
 import type { UseCommandResult } from './useCommand.js';
 import type { UseMutationResult } from './useMutation.js';
 import { inputKey } from './input-key.js';
@@ -27,16 +27,16 @@ function createTestEngine(dataMap: Record<string, unknown>): EngineClient {
   };
 }
 
-void test('RustraProvider supplies engine to useRustraEngine', () => {
+void test('UnikitProvider supplies engine to useUnikitEngine', () => {
   const engine = createTestEngine({ testCmd: 'hello' });
   let capturedEngine: EngineClient | null = null;
 
   function TestComponent() {
-    capturedEngine = useRustraEngine();
+    capturedEngine = useUnikitEngine();
     return createElement('div', null, 'test');
   }
 
-  renderToString(createElement(RustraProvider, { engine }, createElement(TestComponent)));
+  renderToString(createElement(UnikitProvider, { engine }, createElement(TestComponent)));
 
   assert.equal(capturedEngine, engine);
 });
@@ -55,7 +55,7 @@ void test('useCommand hook contract and properties', () => {
   }
 
   const engine = createTestEngine({ dummyCmd: { res: 10 } });
-  renderToString(createElement(RustraProvider, { engine }, createElement(TestComponent)));
+  renderToString(createElement(UnikitProvider, { engine }, createElement(TestComponent)));
 
   const result = hookResult.current;
   assert.ok(result);
@@ -65,7 +65,7 @@ void test('useCommand hook contract and properties', () => {
 
 void test('inputKey supports bigint values without throwing', () => {
   assert.equal(inputKey({ value: 42n }), inputKey({ value: 42n }));
-  assert.notEqual(inputKey({ value: 42n }), inputKey({ value: { $rustraBigInt: '42' } }));
+  assert.notEqual(inputKey({ value: 42n }), inputKey({ value: { $unikitBigInt: '42' } }));
 });
 
 class Repo {
@@ -126,7 +126,7 @@ void test('useCommand render path no longer crashes on class instance, function,
       return createElement('div', null, 'ready');
     }
     const html = renderToString(
-      createElement(RustraProvider, { engine }, createElement(TestComponent)),
+      createElement(UnikitProvider, { engine }, createElement(TestComponent)),
     );
     const result = hookResult.current;
     assert.ok(result);
@@ -154,7 +154,7 @@ void test('useMutation hook contract and execution', async () => {
     return createElement('div', null, 'mutation');
   }
 
-  renderToString(createElement(RustraProvider, { engine }, createElement(TestComponent)));
+  renderToString(createElement(UnikitProvider, { engine }, createElement(TestComponent)));
 
   const result = mutationResult.current;
   assert.ok(result);

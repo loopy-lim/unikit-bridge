@@ -1,11 +1,11 @@
 import { Linking, Platform } from 'react-native';
-import { configure, bindSync } from '@rustra/types';
-import { installRustraJSI, getRustraNative } from '@rustra/generated-react-native';
+import { configure, bindSync } from '@unikit/types';
+import { installUnikitJSI, getUnikitNative } from '@unikit/generated-react-native';
 import { NitroModules } from 'react-native-nitro-modules';
 import type { NitroBench } from 'nitro-bench';
-import RustraCalculator from 'rustra-calculator';
+import UnikitCalculator from 'unikit-calculator';
 import { createFrameEngine } from '../adapters/frame-adapter';
-import { RUSTRA_BUILD_FINGERPRINT } from '../build-fingerprint';
+import { UNIKIT_BUILD_FINGERPRINT } from '../build-fingerprint';
 import { GENERATED_CONTRACT_HASH } from '../../generated/contract';
 import { emitAndroidReceiptChunks } from './android-receipt-transport';
 import {
@@ -24,8 +24,8 @@ export async function runDiagnostic(progress: (message: string) => void) {
     (await Linking.getInitialURL()) ?? process.env.EXPO_PUBLIC_PARITY_DIAGNOSTIC_URL ?? null,
   );
   const startedAt = new Date().toISOString();
-  await installRustraJSI();
-  configure(createFrameEngine(getRustraNative()));
+  await installUnikitJSI();
+  configure(createFrameEngine(getUnikitNative()));
   const nitro = NitroModules.createHybridObject<NitroBench>('NitroBench');
   const bytes = plan.caseId.startsWith('buffer') ? Number(plan.caseId.slice(6)) : 0;
   const data = new Uint8Array(bytes);
@@ -35,7 +35,7 @@ export async function runDiagnostic(progress: (message: string) => void) {
     : plan.caseId === 'add'
       ? { a: 42, b: 58 }
       : plan.caseId === 'string'
-        ? { value: 'Rustra ↔ Nitro: 문자열' }
+        ? { value: 'Unikit ↔ Nitro: 문자열' }
         : { name: 'pair', value: 123.5 };
   const command = bytes
     ? 'benchEchoBytes'
@@ -46,7 +46,7 @@ export async function runDiagnostic(progress: (message: string) => void) {
         : 'benchEchoPair';
   const bound = bindSync<unknown, unknown>(command);
   const calls: Record<Framework, () => unknown> = {
-    rustra: () => bound(input),
+    unikit: () => bound(input),
     nitro: () =>
       bytes
         ? nitro.echoBuffer(input as { data: ArrayBuffer })
@@ -73,7 +73,7 @@ export async function runDiagnostic(progress: (message: string) => void) {
     platform: Platform.OS,
     runtime: 'Hermes',
     release: true,
-    fingerprint: RUSTRA_BUILD_FINGERPRINT,
+    fingerprint: UNIKIT_BUILD_FINGERPRINT,
     generatedContract: GENERATED_CONTRACT_HASH,
     protocol: {
       rounds: 31,
@@ -93,7 +93,7 @@ export async function runDiagnostic(progress: (message: string) => void) {
       (line) => console.log(line),
       (ms) => new Promise<void>((resolve) => setTimeout(resolve, ms)),
     );
-  else if (RustraCalculator.writeBenchmarkReceipt) RustraCalculator.writeBenchmarkReceipt(json);
+  else if (UnikitCalculator.writeBenchmarkReceipt) UnikitCalculator.writeBenchmarkReceipt(json);
   else throw Error('diagnostic writer unavailable');
   return receipt;
 }

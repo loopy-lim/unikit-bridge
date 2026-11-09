@@ -4,11 +4,11 @@ import { collectPostcardFields } from './generate-postcard-graph.js';
 import { directCppProperty, type CppProperty } from './generate-cpp-properties.js';
 
 const MAP_VALUE_PUSHER: Record<string, (name: string) => string> = {
-  map_zigzag: (name) => `w.push_i64(rustra_i64(rt, _e, "${name}{}"));`,
-  map_i64: (name) => `w.push_i64(rustra_i64(rt, _e, "${name}{}"));`,
-  map_uvar: (name) => `w.push_uvar(rustra_u64(rt, _e, "${name}{}"));`,
-  map_u64: (name) => `w.push_uvar(rustra_u64(rt, _e, "${name}{}"));`,
-  map_f64: (name) => `w.push_f64(rustra_f64(rt, _e, "${name}{}"));`,
+  map_zigzag: (name) => `w.push_i64(unikit_i64(rt, _e, "${name}{}"));`,
+  map_i64: (name) => `w.push_i64(unikit_i64(rt, _e, "${name}{}"));`,
+  map_uvar: (name) => `w.push_uvar(unikit_u64(rt, _e, "${name}{}"));`,
+  map_u64: (name) => `w.push_uvar(unikit_u64(rt, _e, "${name}{}"));`,
+  map_f64: (name) => `w.push_f64(unikit_f64(rt, _e, "${name}{}"));`,
   map_bool: () => 'w.push_bool(_e.getBool());',
   map_string: () => 'w.push_string(_e.getString(rt).utf8(rt));',
 };
@@ -39,35 +39,35 @@ export function cppEncodeWithGetter(
   switch (field.kind) {
     case 'zigzag':
     case 'zigzag64':
-      return `${indent}w.push_i64(rustra_i64(rt, ${get}, "${field.name}"));`;
+      return `${indent}w.push_i64(unikit_i64(rt, ${get}, "${field.name}"));`;
     case 'uvar':
     case 'uvar64':
-      return `${indent}w.push_uvar(rustra_u64(rt, ${get}, "${field.name}"));`;
+      return `${indent}w.push_uvar(unikit_u64(rt, ${get}, "${field.name}"));`;
     case 'f64':
-      return `${indent}w.push_f64(rustra_f64(rt, ${get}, "${field.name}"));`;
+      return `${indent}w.push_f64(unikit_f64(rt, ${get}, "${field.name}"));`;
     case 'f32':
-      return `${indent}w.push_f32(rustra_f32(rt, ${get}, "${field.name}"));`;
+      return `${indent}w.push_f32(unikit_f32(rt, ${get}, "${field.name}"));`;
     case 'bool':
       return `${indent}{ auto _v = ${get}.getBool(); w.push_bool(_v); }`;
     case 'string':
       return `${indent}{ auto _v = ${get}.getString(rt).utf8(rt); w.push_string(_v); }`;
     case 'bytes':
-      return `${indent}{ const auto& _v = ${get}; auto _o = _v.asObject(rt); if (_o.isArray(rt)) { auto _arr = _o.getArray(rt); auto _n = _arr.length(rt); w.push_uvar(_n); auto _dst = w.append_uninitialized(_n); for (size_t _i = 0; _i < _n; _i++) _dst[_i] = rustra_u8(rt, _arr.getValueAtIndex(rt, _i), "${field.name}[]"); } else { auto _span = rustra_bytes(rt, _v, "${field.name}"); w.push_uvar(_span.size); w.push_bytes(_span.data, _span.size); } }`;
+      return `${indent}{ const auto& _v = ${get}; auto _o = _v.asObject(rt); if (_o.isArray(rt)) { auto _arr = _o.getArray(rt); auto _n = _arr.length(rt); w.push_uvar(_n); auto _dst = w.append_uninitialized(_n); for (size_t _i = 0; _i < _n; _i++) _dst[_i] = unikit_u8(rt, _arr.getValueAtIndex(rt, _i), "${field.name}[]"); } else { auto _span = unikit_bytes(rt, _v, "${field.name}"); w.push_uvar(_span.size); w.push_bytes(_span.data, _span.size); } }`;
     case 'vec_zigzag':
     case 'vec_i64':
-      return `${indent}{ auto _arr = ${get}.asObject(rt).getArray(rt); auto _n = _arr.length(rt); w.push_uvar(_n); for (size_t _i = 0; _i < _n; _i++) w.push_i64(rustra_i64(rt, _arr.getValueAtIndex(rt, _i), "${field.name}[]")); }`;
+      return `${indent}{ auto _arr = ${get}.asObject(rt).getArray(rt); auto _n = _arr.length(rt); w.push_uvar(_n); for (size_t _i = 0; _i < _n; _i++) w.push_i64(unikit_i64(rt, _arr.getValueAtIndex(rt, _i), "${field.name}[]")); }`;
     case 'vec_u64':
-      return `${indent}{ auto _arr = ${get}.asObject(rt).getArray(rt); auto _n = _arr.length(rt); w.push_uvar(_n); for (size_t _i = 0; _i < _n; _i++) w.push_uvar(rustra_u64(rt, _arr.getValueAtIndex(rt, _i), "${field.name}[]")); }`;
+      return `${indent}{ auto _arr = ${get}.asObject(rt).getArray(rt); auto _n = _arr.length(rt); w.push_uvar(_n); for (size_t _i = 0; _i < _n; _i++) w.push_uvar(unikit_u64(rt, _arr.getValueAtIndex(rt, _i), "${field.name}[]")); }`;
     case 'set_i64':
     case 'set_u64': {
       const write =
         field.kind === 'set_i64'
-          ? `w.push_i64(rustra_i64(rt, _arr.getValueAtIndex(rt, _i), "${field.name}{}"));`
-          : `w.push_uvar(rustra_u64(rt, _arr.getValueAtIndex(rt, _i), "${field.name}{}"));`;
+          ? `w.push_i64(unikit_i64(rt, _arr.getValueAtIndex(rt, _i), "${field.name}{}"));`
+          : `w.push_uvar(unikit_u64(rt, _arr.getValueAtIndex(rt, _i), "${field.name}{}"));`;
       return `${indent}{ auto _arr = ${get}.asObject(rt).getArray(rt); auto _n = _arr.length(rt); w.push_uvar(_n); for (size_t _i = 0; _i < _n; _i++) ${write} }`;
     }
     case 'vec_f64':
-      return `${indent}{ auto _arr = ${get}.asObject(rt).getArray(rt); auto _n = _arr.length(rt); w.push_uvar(_n); for (size_t _i = 0; _i < _n; _i++) w.push_f64(rustra_f64(rt, _arr.getValueAtIndex(rt, _i), "${field.name}[]")); }`;
+      return `${indent}{ auto _arr = ${get}.asObject(rt).getArray(rt); auto _n = _arr.length(rt); w.push_uvar(_n); for (size_t _i = 0; _i < _n; _i++) w.push_f64(unikit_f64(rt, _arr.getValueAtIndex(rt, _i), "${field.name}[]")); }`;
     case 'vec_bool':
       return `${indent}{ auto _arr = ${get}.asObject(rt).getArray(rt); auto _n = _arr.length(rt); w.push_uvar(_n); for (size_t _i = 0; _i < _n; _i++) { auto _e = _arr.getValueAtIndex(rt, _i).getBool(); w.push_bool(_e); } }`;
     case 'struct': {
@@ -96,7 +96,7 @@ export function cppEncodeWithGetter(
       const push = MAP_VALUE_PUSHER[field.kind];
       const pushVal =
         push !== undefined ? push(field.name) : 'w.push_string(_e.getString(rt).utf8(rt));';
-      return `${indent}{ auto _o = ${get}.asObject(rt); auto _names = _o.getPropertyNames(rt); const auto _count = _names.length(rt); RustraMapEntries _entries(rt, _count); for (size_t _j = 0; _j < _count; _j++) { auto _key = _names.getValueAtIndex(rt, _j).getString(rt); auto _k = _key.utf8(rt); auto _value = rustra_map_value(rt, _o, _key, _k); _entries.emplace_back(std::move(_k), std::move(_value)); } std::sort(_entries.begin(), _entries.end(), [](const auto& _a, const auto& _b){ return _a.first < _b.first; }); w.push_uvar(_entries.size()); for (auto& _it : _entries) { w.push_string(_it.first); jsi::Value& _e = _it.second; ${pushVal} } }`;
+      return `${indent}{ auto _o = ${get}.asObject(rt); auto _names = _o.getPropertyNames(rt); const auto _count = _names.length(rt); UnikitMapEntries _entries(rt, _count); for (size_t _j = 0; _j < _count; _j++) { auto _key = _names.getValueAtIndex(rt, _j).getString(rt); auto _k = _key.utf8(rt); auto _value = unikit_map_value(rt, _o, _key, _k); _entries.emplace_back(std::move(_k), std::move(_value)); } std::sort(_entries.begin(), _entries.end(), [](const auto& _a, const auto& _b){ return _a.first < _b.first; }); w.push_uvar(_entries.size()); for (auto& _it : _entries) { w.push_string(_it.first); jsi::Value& _e = _it.second; ${pushVal} } }`;
     }
     case 'tuple': {
       const lines = [`${indent}{ auto _arr = ${get}.asObject(rt).getArray(rt);`];

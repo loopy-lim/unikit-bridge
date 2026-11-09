@@ -27,142 +27,142 @@
       "assertions": 1412,
       "failures": 0,
       "command": {
-        "cwd": "/Users/loopy/dev/ll3/rustra-bridge",
+        "cwd": "/Users/loopy/dev/ll3/unikit-bridge",
         "env": {
-          "RUSTRA_NATIVE_TEST_PLATFORM": "mac-catalyst",
-          "RUSTRA_NATIVE_DEPS_ROOT": "/private/tmp/rustra-rn-audit-native-20261002/dependencies/packages/react-native/third-party/ReactNativeDependencies.xcframework",
-          "RUSTRA_NATIVE_TEST_DIR": "/private/tmp/rustra-rn-audit-native-20261002/build"
+          "UNIKIT_NATIVE_TEST_PLATFORM": "mac-catalyst",
+          "UNIKIT_NATIVE_DEPS_ROOT": "/private/tmp/unikit-rn-audit-native-20261002/dependencies/packages/react-native/third-party/ReactNativeDependencies.xcframework",
+          "UNIKIT_NATIVE_TEST_DIR": "/private/tmp/unikit-rn-audit-native-20261002/build"
         },
         "argv": [
           "bash",
-          "examples/react-native-calculator/modules/rustra-jsi/ios/run-hermes-sync-tests.sh"
+          "examples/react-native-calculator/modules/unikit-jsi/ios/run-hermes-sync-tests.sh"
         ]
       },
       "log": {
-        "path": "/private/tmp/rustra-rn-audit-native-20261002/hermes-final-green.log",
+        "path": "/private/tmp/unikit-rn-audit-native-20261002/hermes-final-green.log",
         "sha256": "895e65a7ad270392b118f764052cca115b5fb1bf39313ec1c1f37362070f091d"
       },
       "identities": [
         {
-          "path": "/private/tmp/rustra-rn-audit-native-20261002/build/native-sync-test",
+          "path": "/private/tmp/unikit-rn-audit-native-20261002/build/native-sync-test",
           "sha256": "ad87add6a4b260eb7c669e7382311a41ded58d5d1db92588e3eea0a9966a1ca4",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/packages/react-native/native/cpp/RustraJSIBridge.cpp",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/packages/react-native/native/cpp/UnikitJSIBridge.cpp",
           "sha256": "8206a89d25dd2df3b2d89de41435302b1576880f3dcf5f0316fac935db53d12a",
-          "repoPath": "packages/react-native/native/cpp/RustraJSIBridge.cpp",
+          "repoPath": "packages/react-native/native/cpp/UnikitJSIBridge.cpp",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/packages/react-native/native/cpp/RustraJSIBridge.hpp",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/packages/react-native/native/cpp/UnikitJSIBridge.hpp",
           "sha256": "c3ebd6de40b1512cf42f747bdbe68c9ff26bb638b1c3b7baa4d37a612d3e9b7e",
-          "repoPath": "packages/react-native/native/cpp/RustraJSIBridge.hpp",
+          "repoPath": "packages/react-native/native/cpp/UnikitJSIBridge.hpp",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/packages/react-native/native/cpp/RustraSyncBinding.inc",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/packages/react-native/native/cpp/UnikitSyncBinding.inc",
           "sha256": "8f860c7571012cee50703cff1d0128bd1850a6edb5a203a3fc9ac13863a93012",
-          "repoPath": "packages/react-native/native/cpp/RustraSyncBinding.inc",
+          "repoPath": "packages/react-native/native/cpp/UnikitSyncBinding.inc",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/generated/rustra-generated-codecs.cpp",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/generated/unikit-generated-codecs.cpp",
           "sha256": "b25b98046764e60bb30aebe776487a14b007a48ca37cb2433603839a83079f87",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/generated/rustra-generated-codecs.cpp",
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/generated/unikit-generated-codecs.cpp",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/generated/rustra-generated-codecs.hpp",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/generated/unikit-generated-codecs.hpp",
           "sha256": "50b5a8ffdb0751a5a0b8c5151ffcb9c5bed293075a21cea3d4dfa686a242819d",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/generated/rustra-generated-codecs.hpp",
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/generated/unikit-generated-codecs.hpp",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/test-rustra-native-sync.cpp",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/test-unikit-native-sync.cpp",
           "sha256": "048b5a89e4c6ec46698262e60eced861ce29a21c232800297c581e943342298f",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/test-rustra-native-sync.cpp",
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/test-unikit-native-sync.cpp",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-codec-tests.inc",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-codec-tests.inc",
           "sha256": "bed9769392c37d79e1edc2d070f614cde98eb0d5d6bca78ee7d19d6bd3e584fb",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-codec-tests.inc",
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-codec-tests.inc",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-ffi-stubs.inc",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-ffi-stubs.inc",
           "sha256": "ad6900f15b7ecdffc057a802d04a804cce415b45cb0564d000b2bd14e0c417fe",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-ffi-stubs.inc",
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-ffi-stubs.inc",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-lifecycle-tests.inc",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-lifecycle-tests.inc",
           "sha256": "3ce3761edacb8693f763a25326fbdd678f5689836b0c9318aca3e6ba50fe4d45",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-lifecycle-tests.inc",
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-lifecycle-tests.inc",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-peers.inc",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-peers.inc",
           "sha256": "7d2fa2de5070f9be68a7fc420d6f4133d8ddecd8139eeef2c460180ff49fa742",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-peers.inc",
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-peers.inc",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-perf.inc",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-perf.inc",
           "sha256": "2fc764cbedcaaddbc946fce079926c693504ea0f6cab7aed4da01d54d0029e19",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-perf.inc",
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-perf.inc",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-runtime-tests.inc",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-runtime-tests.inc",
           "sha256": "934b9ed9d39e912192beed4f1ff5b0ac57184b47a2a0a52eb1a2a131faa90d00",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-runtime-tests.inc",
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-runtime-tests.inc",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/run-hermes-sync-tests.sh",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/run-hermes-sync-tests.sh",
           "sha256": "1c7602e26c4a0b490a4b9370a8e355f0905a690f7bda42027ce08acdb0ebd945",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/run-hermes-sync-tests.sh",
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/run-hermes-sync-tests.sh",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/jsi/jsi/jsi.cpp",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/jsi/jsi/jsi.cpp",
           "sha256": "03234845ab9657805097c6617613ec85f89816d0343fc190e0c76be97289aa35",
           "repoPath": "examples/react-native-calculator/node_modules/react-native/ReactCommon/jsi/jsi/jsi.cpp",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/packages/react-native/native/cpp/rustra-sync-core.hpp",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/packages/react-native/native/cpp/unikit-sync-core.hpp",
           "sha256": "91470e07fbf481ebf34f7da1ca1cb43a7644b6f6418ef549c07108b95a4e3248",
-          "repoPath": "packages/react-native/native/cpp/rustra-sync-core.hpp",
+          "repoPath": "packages/react-native/native/cpp/unikit-sync-core.hpp",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/packages/react-native/native/cpp/rustra-sync-contract.hpp",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/packages/react-native/native/cpp/unikit-sync-contract.hpp",
           "sha256": "7d3f799d1f9cc323daf0423b102164e972d0b2c2420abf868e8e72ee9d207da1",
-          "repoPath": "packages/react-native/native/cpp/rustra-sync-contract.hpp",
+          "repoPath": "packages/react-native/native/cpp/unikit-sync-contract.hpp",
           "matchesExecutedInput": true
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/ios/Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework/ios-arm64_x86_64-maccatalyst/hermes.framework/hermes",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/ios/Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework/ios-arm64_x86_64-maccatalyst/hermes.framework/hermes",
           "sha256": "8ec4dbd155ab22f2694c87658b2886baeed5295058ee1f994a6a25e54bfdfa01",
           "repoPath": "examples/react-native-calculator/ios/Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework/ios-arm64_x86_64-maccatalyst/hermes.framework/hermes",
           "matchesExecutedInput": true
         },
         {
-          "path": "/private/tmp/rustra-rn-audit-native-20261002/dependencies/packages/react-native/third-party/ReactNativeDependencies.xcframework/ios-arm64_x86_64-maccatalyst/ReactNativeDependencies.framework/ReactNativeDependencies",
+          "path": "/private/tmp/unikit-rn-audit-native-20261002/dependencies/packages/react-native/third-party/ReactNativeDependencies.xcframework/ios-arm64_x86_64-maccatalyst/ReactNativeDependencies.framework/ReactNativeDependencies",
           "sha256": "8564901e165868f21f2e8a6a45bb7079c464fb5b1613ca70d25b6486f7a9841c",
           "matchesExecutedInput": true
         }
       ],
       "regressionRedLogs": [
         {
-          "path": "/private/tmp/rustra-rn-audit-native-20261002/hermes-invalidate-red.log",
+          "path": "/private/tmp/unikit-rn-audit-native-20261002/hermes-invalidate-red.log",
           "sha256": "a67d91cc83ba2252eb338da7f7b4781f3e5877b8f7106f682dffa20048603e58"
         },
         {
-          "path": "/private/tmp/rustra-rn-audit-native-20261002/hermes-inflight-red.log",
+          "path": "/private/tmp/unikit-rn-audit-native-20261002/hermes-inflight-red.log",
           "sha256": "020037f3d73d7ba850127612d07cb01419a9b61630043001367f4aa7c401f621"
         }
       ],
@@ -183,59 +183,59 @@
       "tests": 5,
       "failures": 0,
       "command": {
-        "cwd": "/Users/loopy/dev/ll3/rustra-bridge",
+        "cwd": "/Users/loopy/dev/ll3/unikit-bridge",
         "env": {
-          "RUSTRA_ANDROID_MODULE_SOURCE": "/private/tmp/rustra-rn-audit-native-20261002/android-rendered.kt"
+          "UNIKIT_ANDROID_MODULE_SOURCE": "/private/tmp/unikit-rn-audit-native-20261002/android-rendered.kt"
         },
         "argv": [
           "python3",
-          "examples/react-native-calculator/modules/rustra-jsi/android/test-lifecycle/run-host-tests.py"
+          "examples/react-native-calculator/modules/unikit-jsi/android/test-lifecycle/run-host-tests.py"
         ]
       },
       "redLog": {
-        "path": "/private/tmp/rustra-rn-audit-native-20261002/android-lifecycle-red.log",
+        "path": "/private/tmp/unikit-rn-audit-native-20261002/android-lifecycle-red.log",
         "sha256": "3f9f80cd91621d1e1dbd8ada32f708af4cf6c699d36373dbbc5ccd91aeec2eea"
       },
       "log": {
-        "path": "/private/tmp/rustra-rn-audit-native-20261002/android-rendered-lifecycle-green.log",
+        "path": "/private/tmp/unikit-rn-audit-native-20261002/android-rendered-lifecycle-green.log",
         "sha256": "dd2c6e6c727ca4ff3f3e7df34a62909698e944d23bf01367afe2fcd71a70d07c"
       },
       "boundary": "Generated Kotlin queue/control flow compiled unchanged; only JNI entrypoints/library loading and RN queue APIs replaced by host boundaries. This does not execute Android JNI or a device.",
       "identities": [
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/android/src/main/java/dev/rustra/bridge/RustraBridgeModule.kt",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/android/src/main/java/dev/unikit/bridge/UnikitBridgeModule.kt",
           "sha256": "35ffd61a882a8e2de8c94dd91ee4a8b1080c5a95b94111d6d19b179f11938fce",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/android/src/main/java/dev/rustra/bridge/RustraBridgeModule.kt"
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/android/src/main/java/dev/unikit/bridge/UnikitBridgeModule.kt"
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/packages/cli/src/react-native-template-android.ts",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/packages/cli/src/react-native-template-android.ts",
           "sha256": "472152cb56d8d496088b8f99e586781abbeae0fe5445aec501340ea4e7ec8128",
           "repoPath": "packages/cli/src/react-native-template-android.ts"
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/android/test-lifecycle/ApplicationInfo.kt",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/android/test-lifecycle/ApplicationInfo.kt",
           "sha256": "3ea33354f26d58604057ac90ca1d6063e54df99fc92ecbf30adfd1c90c580b29",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/android/test-lifecycle/ApplicationInfo.kt"
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/android/test-lifecycle/ApplicationInfo.kt"
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/android/test-lifecycle/BridgeStubs.kt",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/android/test-lifecycle/BridgeStubs.kt",
           "sha256": "5f0cdd7319c6471729407cdd7249417dd2d780d7881ea506f37f4be0cd85e104",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/android/test-lifecycle/BridgeStubs.kt"
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/android/test-lifecycle/BridgeStubs.kt"
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/android/test-lifecycle/CallInvokerHolder.kt",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/android/test-lifecycle/CallInvokerHolder.kt",
           "sha256": "93ddd0fb05de52f57affdc7459257b63e0e0e65b61e866c0610af46a86f16a35",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/android/test-lifecycle/CallInvokerHolder.kt"
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/android/test-lifecycle/CallInvokerHolder.kt"
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/android/test-lifecycle/LifecycleTest.kt",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/android/test-lifecycle/LifecycleTest.kt",
           "sha256": "3d5fd554edf0e60e5599865936dbf514084820de47738b65d8aba767fa81cf4d",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/android/test-lifecycle/LifecycleTest.kt"
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/android/test-lifecycle/LifecycleTest.kt"
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/android/test-lifecycle/run-host-tests.py",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/android/test-lifecycle/run-host-tests.py",
           "sha256": "8e916bad52ca8e3271a9cf4ab86ac8f99bef2cece6b96d868d9ee7a778e7b6ec",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/android/test-lifecycle/run-host-tests.py"
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/android/test-lifecycle/run-host-tests.py"
         }
       ]
     },
@@ -243,7 +243,7 @@
       "verdict": "passed",
       "exitCode": 0,
       "command": {
-        "cwd": "/Users/loopy/dev/ll3/rustra-bridge",
+        "cwd": "/Users/loopy/dev/ll3/unikit-bridge",
         "argv": [
           "java",
           "-cp",
@@ -252,30 +252,30 @@
           "-no-stdlib",
           "-no-reflect",
           "-classpath",
-          "/Users/loopy/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.0.21/618b539767b4899b4660a83006e052b63f1db551/kotlin-stdlib-2.0.21.jar:/Users/loopy/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar:/private/tmp/rustra-rn-audit-native-20261002/android-api/react-android.jar:/Users/loopy/Library/Android/sdk/platforms/android-35/android.jar",
+          "/Users/loopy/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.0.21/618b539767b4899b4660a83006e052b63f1db551/kotlin-stdlib-2.0.21.jar:/Users/loopy/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar:/private/tmp/unikit-rn-audit-native-20261002/android-api/react-android.jar:/Users/loopy/Library/Android/sdk/platforms/android-35/android.jar",
           "-d",
-          "/private/tmp/rustra-rn-audit-native-20261002/android-api/classes",
-          "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/android/src/main/java/dev/rustra/bridge/RustraBridgeModule.kt"
+          "/private/tmp/unikit-rn-audit-native-20261002/android-api/classes",
+          "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/android/src/main/java/dev/unikit/bridge/UnikitBridgeModule.kt"
         ]
       },
       "log": {
-        "path": "/private/tmp/rustra-rn-audit-native-20261002/android-api/compile.log",
+        "path": "/private/tmp/unikit-rn-audit-native-20261002/android-api/compile.log",
         "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       },
       "reactAndroidVersion": "0.81.5",
       "apiLevel": 35,
       "identities": [
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/android/src/main/java/dev/rustra/bridge/RustraBridgeModule.kt",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/android/src/main/java/dev/unikit/bridge/UnikitBridgeModule.kt",
           "sha256": "35ffd61a882a8e2de8c94dd91ee4a8b1080c5a95b94111d6d19b179f11938fce",
-          "repoPath": "examples/react-native-calculator/modules/rustra-jsi/android/src/main/java/dev/rustra/bridge/RustraBridgeModule.kt"
+          "repoPath": "examples/react-native-calculator/modules/unikit-jsi/android/src/main/java/dev/unikit/bridge/UnikitBridgeModule.kt"
         },
         {
           "path": "/Users/loopy/.gradle/caches/modules-2/files-2.1/com.facebook.react/react-android/0.81.5/98805d876957296e393f2c1ef180f7a650afce7c/react-android-0.81.5-debug.aar",
           "sha256": "5780b154ece55333bf4c606fc9e0fda3f7e925aaa7297e89faf95ca92db9619b"
         },
         {
-          "path": "/private/tmp/rustra-rn-audit-native-20261002/android-api/react-android.jar",
+          "path": "/private/tmp/unikit-rn-audit-native-20261002/android-api/react-android.jar",
           "sha256": "d366df3f9e5ce41dfb823403b21c72e904e83fd38eff6134299e89bf8fd30f15"
         },
         {
@@ -289,7 +289,7 @@
       "verdict": "passed",
       "exitCode": 0,
       "command": {
-        "cwd": "/Users/loopy/dev/ll3/rustra-bridge",
+        "cwd": "/Users/loopy/dev/ll3/unikit-bridge",
         "argv": [
           "xcrun",
           "clang++",
@@ -305,102 +305,102 @@
           "-isystem",
           "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/System/iOSSupport/usr/include",
           "-F/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/System/iOSSupport/System/Library/Frameworks",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-microtasksnativemodule",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-RCTAppDelegate",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-callinvoker",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-debug",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-ImageManager",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-RCTBlob",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/RCTTypeSafety",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-defaultsnativemodule",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-RCTText",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-jsinspectorcdp",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/Yoga",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-Core",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-logger",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-idlecallbacksnativemodule",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-rendererconsistency",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-FabricComponents",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/RCTDeprecation",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/FBLazyVector",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-runtimescheduler",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/ReactCommon",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-jsi",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-RCTRuntime",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-cxxreact",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-RuntimeHermes",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-domnativemodule",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/RCTRequired",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-FabricImage",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-runtimeexecutor",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-jsitooling",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-timing",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-Mapbuffer",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-utils",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-RuntimeCore",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-performancetimeline",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-perflogger",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-featureflagsnativemodule",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-NativeModulesApple",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-jserrorhandler",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-RCTFBReactNativeSpec",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-jsinspectortracing",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-Fabric",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-RCTAnimation",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-hermes",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-featureflags",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-rendererdebug",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-jsinspector",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-jsiexecutor",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-graphics",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-RuntimeApple",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-renderercss",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-oscompat",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-jsinspectornetwork",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/ios-headers/React-RCTFabric",
-          "-I/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/node_modules/react-native/React/Base",
-          "-I/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/node_modules/react-native/React/CxxBridge",
-          "-I/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/jsi",
-          "-I/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/callinvoker",
-          "-I/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/cxxreact",
-          "-I/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/react/nativemodule/core",
-          "-I/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios",
-          "-I/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon",
-          "-I/Users/loopy/dev/ll3/rustra-bridge/packages/react-native/native/cpp",
-          "-I/private/tmp/rustra-rn-audit-native-20261002/dependencies/packages/react-native/third-party/ReactNativeDependencies.xcframework/Headers",
-          "/Users/loopy/dev/ll3/rustra-bridge/packages/react-native/native/ios/RustraJSIModule.mm"
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-microtasksnativemodule",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-RCTAppDelegate",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-callinvoker",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-debug",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-ImageManager",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-RCTBlob",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/RCTTypeSafety",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-defaultsnativemodule",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-RCTText",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-jsinspectorcdp",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/Yoga",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-Core",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-logger",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-idlecallbacksnativemodule",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-rendererconsistency",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-FabricComponents",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/RCTDeprecation",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/FBLazyVector",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-runtimescheduler",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/ReactCommon",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-jsi",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-RCTRuntime",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-cxxreact",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-RuntimeHermes",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-domnativemodule",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/RCTRequired",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-FabricImage",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-runtimeexecutor",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-jsitooling",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-timing",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-Mapbuffer",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-utils",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-RuntimeCore",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-performancetimeline",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-perflogger",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-featureflagsnativemodule",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-NativeModulesApple",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-jserrorhandler",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-RCTFBReactNativeSpec",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-jsinspectortracing",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-Fabric",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-RCTAnimation",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-hermes",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-featureflags",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-rendererdebug",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-jsinspector",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-jsiexecutor",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-graphics",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-RuntimeApple",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-renderercss",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-oscompat",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-jsinspectornetwork",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/ios-headers/React-RCTFabric",
+          "-I/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/node_modules/react-native/React/Base",
+          "-I/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/node_modules/react-native/React/CxxBridge",
+          "-I/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/jsi",
+          "-I/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/callinvoker",
+          "-I/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/cxxreact",
+          "-I/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/react/nativemodule/core",
+          "-I/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios",
+          "-I/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon",
+          "-I/Users/loopy/dev/ll3/unikit-bridge/packages/react-native/native/cpp",
+          "-I/private/tmp/unikit-rn-audit-native-20261002/dependencies/packages/react-native/third-party/ReactNativeDependencies.xcframework/Headers",
+          "/Users/loopy/dev/ll3/unikit-bridge/packages/react-native/native/ios/UnikitJSIModule.mm"
         ]
       },
       "log": {
-        "path": "/private/tmp/rustra-rn-audit-native-20261002/ios-adapter-syntax.log",
+        "path": "/private/tmp/unikit-rn-audit-native-20261002/ios-adapter-syntax.log",
         "sha256": "7b67ae00befc15abfbb761bd2ed00180f9fe148658187012cac1fa74a347fa81"
       },
       "identities": [
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/packages/react-native/native/ios/RustraJSIModule.mm",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/packages/react-native/native/ios/UnikitJSIModule.mm",
           "sha256": "66b652ab941907fbd74aa2ca7cd209b3036264ed871255d63a4ac1980d02e0bb",
-          "repoPath": "packages/react-native/native/ios/RustraJSIModule.mm"
+          "repoPath": "packages/react-native/native/ios/UnikitJSIModule.mm"
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/packages/react-native/native/cpp/RustraJSIBridge.hpp",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/packages/react-native/native/cpp/UnikitJSIBridge.hpp",
           "sha256": "c3ebd6de40b1512cf42f747bdbe68c9ff26bb638b1c3b7baa4d37a612d3e9b7e",
-          "repoPath": "packages/react-native/native/cpp/RustraJSIBridge.hpp"
+          "repoPath": "packages/react-native/native/cpp/UnikitJSIBridge.hpp"
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/node_modules/react-native/React/CxxBridge/RCTCxxBridge.mm",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/node_modules/react-native/React/CxxBridge/RCTCxxBridge.mm",
           "sha256": "bd5ffc6fbca8ab6972618d648c6d2941de9e48aec1094f05d736e3b8a0348dbb",
           "repoPath": "examples/react-native-calculator/node_modules/react-native/React/CxxBridge/RCTCxxBridge.mm"
         },
         {
-          "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModuleManager.mm",
+          "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModuleManager.mm",
           "sha256": "4e4f155e29e88ef6e694c74e52f793b7b3d88de565cc5b917d2dfd6ba7ccaea4",
           "repoPath": "examples/react-native-calculator/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModuleManager.mm"
         }
       ],
       "preparedHeaders": {
-        "path": "/private/tmp/rustra-rn-audit-native-20261002/ios-headers",
+        "path": "/private/tmp/unikit-rn-audit-native-20261002/ios-headers",
         "method": "Mirrored cached Pod public header symlink layout into temporary directory, rebased React Native targets to installed live 0.81.5 source headers; no Pod/project writes."
       },
       "boundary": "Objective-C++ Catalyst syntax compile, with SDK availability warnings. No linked iOS app, Simulator or device execution."
@@ -409,132 +409,132 @@
   "performance": {
     "verdict": "measured-current-controlled-peer-only",
     "command": {
-      "cwd": "/Users/loopy/dev/ll3/rustra-bridge",
+      "cwd": "/Users/loopy/dev/ll3/unikit-bridge",
       "env": {
-        "RUSTRA_NATIVE_TEST_PLATFORM": "mac-catalyst",
-        "RUSTRA_NATIVE_DEPS_ROOT": "/private/tmp/rustra-rn-audit-native-20261002/dependencies/packages/react-native/third-party/ReactNativeDependencies.xcframework",
-        "RUSTRA_NATIVE_TEST_DIR": "/private/tmp/rustra-rn-audit-native-20261002/perf-build",
-        "RUSTRA_NATIVE_SYNC_PERF": "1"
+        "UNIKIT_NATIVE_TEST_PLATFORM": "mac-catalyst",
+        "UNIKIT_NATIVE_DEPS_ROOT": "/private/tmp/unikit-rn-audit-native-20261002/dependencies/packages/react-native/third-party/ReactNativeDependencies.xcframework",
+        "UNIKIT_NATIVE_TEST_DIR": "/private/tmp/unikit-rn-audit-native-20261002/perf-build",
+        "UNIKIT_NATIVE_SYNC_PERF": "1"
       },
       "argv": [
         "bash",
-        "examples/react-native-calculator/modules/rustra-jsi/ios/run-hermes-sync-tests.sh"
+        "examples/react-native-calculator/modules/unikit-jsi/ios/run-hermes-sync-tests.sh"
       ]
     },
     "log": {
-      "path": "/private/tmp/rustra-rn-audit-native-20261002/hermes-caller-perf-final.log",
+      "path": "/private/tmp/unikit-rn-audit-native-20261002/hermes-caller-perf-final.log",
       "sha256": "e655a38700951132a02841ae085c3b1bc162e3d8bb89fd4ea949a2a399bb7f4a"
     },
     "identities": [
       {
-        "path": "/private/tmp/rustra-rn-audit-native-20261002/perf-build/native-sync-test",
+        "path": "/private/tmp/unikit-rn-audit-native-20261002/perf-build/native-sync-test",
         "sha256": "6533322f34dcf3abd606690cc84aaacfdade70db34fcfaec209677770f5d8890",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/packages/react-native/native/cpp/RustraJSIBridge.cpp",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/packages/react-native/native/cpp/UnikitJSIBridge.cpp",
         "sha256": "8206a89d25dd2df3b2d89de41435302b1576880f3dcf5f0316fac935db53d12a",
-        "repoPath": "packages/react-native/native/cpp/RustraJSIBridge.cpp",
+        "repoPath": "packages/react-native/native/cpp/UnikitJSIBridge.cpp",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/packages/react-native/native/cpp/RustraJSIBridge.hpp",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/packages/react-native/native/cpp/UnikitJSIBridge.hpp",
         "sha256": "c3ebd6de40b1512cf42f747bdbe68c9ff26bb638b1c3b7baa4d37a612d3e9b7e",
-        "repoPath": "packages/react-native/native/cpp/RustraJSIBridge.hpp",
+        "repoPath": "packages/react-native/native/cpp/UnikitJSIBridge.hpp",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/packages/react-native/native/cpp/RustraSyncBinding.inc",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/packages/react-native/native/cpp/UnikitSyncBinding.inc",
         "sha256": "8f860c7571012cee50703cff1d0128bd1850a6edb5a203a3fc9ac13863a93012",
-        "repoPath": "packages/react-native/native/cpp/RustraSyncBinding.inc",
+        "repoPath": "packages/react-native/native/cpp/UnikitSyncBinding.inc",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/generated/rustra-generated-codecs.cpp",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/generated/unikit-generated-codecs.cpp",
         "sha256": "b25b98046764e60bb30aebe776487a14b007a48ca37cb2433603839a83079f87",
-        "repoPath": "examples/react-native-calculator/modules/rustra-jsi/generated/rustra-generated-codecs.cpp",
+        "repoPath": "examples/react-native-calculator/modules/unikit-jsi/generated/unikit-generated-codecs.cpp",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/generated/rustra-generated-codecs.hpp",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/generated/unikit-generated-codecs.hpp",
         "sha256": "50b5a8ffdb0751a5a0b8c5151ffcb9c5bed293075a21cea3d4dfa686a242819d",
-        "repoPath": "examples/react-native-calculator/modules/rustra-jsi/generated/rustra-generated-codecs.hpp",
+        "repoPath": "examples/react-native-calculator/modules/unikit-jsi/generated/unikit-generated-codecs.hpp",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/test-rustra-native-sync.cpp",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/test-unikit-native-sync.cpp",
         "sha256": "048b5a89e4c6ec46698262e60eced861ce29a21c232800297c581e943342298f",
-        "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/test-rustra-native-sync.cpp",
+        "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/test-unikit-native-sync.cpp",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-codec-tests.inc",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-codec-tests.inc",
         "sha256": "bed9769392c37d79e1edc2d070f614cde98eb0d5d6bca78ee7d19d6bd3e584fb",
-        "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-codec-tests.inc",
+        "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-codec-tests.inc",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-ffi-stubs.inc",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-ffi-stubs.inc",
         "sha256": "ad6900f15b7ecdffc057a802d04a804cce415b45cb0564d000b2bd14e0c417fe",
-        "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-ffi-stubs.inc",
+        "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-ffi-stubs.inc",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-lifecycle-tests.inc",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-lifecycle-tests.inc",
         "sha256": "3ce3761edacb8693f763a25326fbdd678f5689836b0c9318aca3e6ba50fe4d45",
-        "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-lifecycle-tests.inc",
+        "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-lifecycle-tests.inc",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-peers.inc",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-peers.inc",
         "sha256": "7d2fa2de5070f9be68a7fc420d6f4133d8ddecd8139eeef2c460180ff49fa742",
-        "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-peers.inc",
+        "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-peers.inc",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-perf.inc",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-perf.inc",
         "sha256": "2fc764cbedcaaddbc946fce079926c693504ea0f6cab7aed4da01d54d0029e19",
-        "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-perf.inc",
+        "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-perf.inc",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-runtime-tests.inc",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-runtime-tests.inc",
         "sha256": "934b9ed9d39e912192beed4f1ff5b0ac57184b47a2a0a52eb1a2a131faa90d00",
-        "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/native-sync-runtime-tests.inc",
+        "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/native-sync-runtime-tests.inc",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/modules/rustra-jsi/ios/run-hermes-sync-tests.sh",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/modules/unikit-jsi/ios/run-hermes-sync-tests.sh",
         "sha256": "1c7602e26c4a0b490a4b9370a8e355f0905a690f7bda42027ce08acdb0ebd945",
-        "repoPath": "examples/react-native-calculator/modules/rustra-jsi/ios/run-hermes-sync-tests.sh",
+        "repoPath": "examples/react-native-calculator/modules/unikit-jsi/ios/run-hermes-sync-tests.sh",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/jsi/jsi/jsi.cpp",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/node_modules/react-native/ReactCommon/jsi/jsi/jsi.cpp",
         "sha256": "03234845ab9657805097c6617613ec85f89816d0343fc190e0c76be97289aa35",
         "repoPath": "examples/react-native-calculator/node_modules/react-native/ReactCommon/jsi/jsi/jsi.cpp",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/packages/react-native/native/cpp/rustra-sync-core.hpp",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/packages/react-native/native/cpp/unikit-sync-core.hpp",
         "sha256": "91470e07fbf481ebf34f7da1ca1cb43a7644b6f6418ef549c07108b95a4e3248",
-        "repoPath": "packages/react-native/native/cpp/rustra-sync-core.hpp",
+        "repoPath": "packages/react-native/native/cpp/unikit-sync-core.hpp",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/packages/react-native/native/cpp/rustra-sync-contract.hpp",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/packages/react-native/native/cpp/unikit-sync-contract.hpp",
         "sha256": "7d3f799d1f9cc323daf0423b102164e972d0b2c2420abf868e8e72ee9d207da1",
-        "repoPath": "packages/react-native/native/cpp/rustra-sync-contract.hpp",
+        "repoPath": "packages/react-native/native/cpp/unikit-sync-contract.hpp",
         "matchesExecutedInput": true
       },
       {
-        "path": "/Users/loopy/dev/ll3/rustra-bridge/examples/react-native-calculator/ios/Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework/ios-arm64_x86_64-maccatalyst/hermes.framework/hermes",
+        "path": "/Users/loopy/dev/ll3/unikit-bridge/examples/react-native-calculator/ios/Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework/ios-arm64_x86_64-maccatalyst/hermes.framework/hermes",
         "sha256": "8ec4dbd155ab22f2694c87658b2886baeed5295058ee1f994a6a25e54bfdfa01",
         "repoPath": "examples/react-native-calculator/ios/Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework/ios-arm64_x86_64-maccatalyst/hermes.framework/hermes",
         "matchesExecutedInput": true
       },
       {
-        "path": "/private/tmp/rustra-rn-audit-native-20261002/dependencies/packages/react-native/third-party/ReactNativeDependencies.xcframework/ios-arm64_x86_64-maccatalyst/ReactNativeDependencies.framework/ReactNativeDependencies",
+        "path": "/private/tmp/unikit-rn-audit-native-20261002/dependencies/packages/react-native/third-party/ReactNativeDependencies.xcframework/ios-arm64_x86_64-maccatalyst/ReactNativeDependencies.framework/ReactNativeDependencies",
         "sha256": "8564901e165868f21f2e8a6a45bb7079c464fb5b1613ca70d25b6486f7a9841c",
         "matchesExecutedInput": true
       }
@@ -614,19 +614,19 @@
       "verdict": "blocked-before-main",
       "exactRunnerExit": 143,
       "sample": {
-        "path": "/private/tmp/rustra-rn-audit-native-20261002/hermes-asan-sample.txt",
+        "path": "/private/tmp/unikit-rn-audit-native-20261002/hermes-asan-sample.txt",
         "sha256": "c2a1c8efce0a861ddb686d6a2ed893e39e34b83e61f43a236ab1d0d77de21885"
       },
       "log": {
-        "path": "/private/tmp/rustra-rn-audit-native-20261002/hermes-asan.log",
+        "path": "/private/tmp/unikit-rn-audit-native-20261002/hermes-asan.log",
         "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       },
       "independentEmptyMainProbe": {
-        "path": "/private/tmp/rustra-rn-audit-native-20261002/asan-startup-probe.cpp",
+        "path": "/private/tmp/unikit-rn-audit-native-20261002/asan-startup-probe.cpp",
         "sha256": "bc1b869310e785bead337ff8f97f76ecd3e559c708cd017fc074e0172fedd7b7"
       },
       "probeLog": {
-        "path": "/private/tmp/rustra-rn-audit-native-20261002/asan-startup-probe.log",
+        "path": "/private/tmp/unikit-rn-audit-native-20261002/asan-startup-probe.log",
         "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       },
       "reason": "Exact test PID stack sampled in ASan InitializeShadowMemory recursive malloc/StaticSpinMutex startup deadlock; independent empty-main Catalyst ASan probe timed out beforemain after3s. No native memory safety acceptance claimed."

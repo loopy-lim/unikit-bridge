@@ -1,4 +1,4 @@
-use rustra_crud_example::crud_package;
+use unikit_crud_example::crud_package;
 
 fn main() {
     let package = crud_package();

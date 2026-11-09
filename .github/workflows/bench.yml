@@ -20,7 +20,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'crates/rustra/**'
+      - 'crates/unikit-bridge/**'
       - 'packages/types/**'
       - 'packages/cli/**'
       - 'examples/react-native-calculator/modules/**'
@@ -101,19 +101,19 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          cargo bench -p rustra --profile dev --bench tier_compare 2>&1 | tee bench_tier.txt
+          cargo bench -p unikit-bridge --profile dev --bench tier_compare 2>&1 | tee bench_tier.txt
 
       - name: Run type_scaling benchmark
         shell: bash
         run: |
           set -o pipefail
-          cargo bench -p rustra --profile dev --bench type_scaling 2>&1 | tee bench_scaling.txt
+          cargo bench -p unikit-bridge --profile dev --bench type_scaling 2>&1 | tee bench_scaling.txt
 
       - name: Run dynamic_registry benchmark
         shell: bash
         run: |
           set -o pipefail
-          cargo bench -p rustra --profile dev --bench dynamic_registry 2>&1 | tee bench_dynamic.txt
+          cargo bench -p unikit-bridge --profile dev --bench dynamic_registry 2>&1 | tee bench_dynamic.txt
 
       - name: Run complex_route benchmark
         shell: bash
@@ -121,19 +121,19 @@ jobs:
           set -o pipefail
           # complex_route is fully static, so measure the production-equivalent
           # optimized path instead of the dev-only dynamic command profile.
-          cargo bench -p rustra --bench complex_route 2>&1 | tee bench_complex.txt
+          cargo bench -p unikit-bridge --bench complex_route 2>&1 | tee bench_complex.txt
 
       - name: Run tree_route benchmark
         shell: bash
         run: |
           set -o pipefail
-          cargo bench -p rustra --bench tree_route 2>&1 | tee bench_tree.txt
+          cargo bench -p unikit-bridge --bench tree_route 2>&1 | tee bench_tree.txt
 
       - name: Run function_dispatch benchmark
         shell: bash
         run: |
           set -o pipefail
-          cargo bench -p rustra --bench function_dispatch 2>&1 | tee bench_functions.txt
+          cargo bench -p unikit-bridge --bench function_dispatch 2>&1 | tee bench_functions.txt
 
       - name: Enforce 10% regression budget
         id: gate

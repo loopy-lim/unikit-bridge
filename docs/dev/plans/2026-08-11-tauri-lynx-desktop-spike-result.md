@@ -67,12 +67,12 @@ LYNX_CAPI_EXPORT void lynx_view_builder_set_windowless_renderer(
 ### 5. 빌드 스모크 (Task 0.3) — 기반 신호 확인
 
 ```sh
-cargo build --release -p rustra-calculator-example
+cargo build --release -p unikit-calculator-example
 # → Finished `release` profile [optimized] in 5.31s
-# → target/release/librustra_calculator_example.a 존재
+# → target/release/libunikit_calculator_example.a 존재
 ```
 
-rustra staticlib 정상. host.cpp 자산(windowless 경로)도 이전 Phase A에서 10/10 검증됨.
+unikit staticlib 정상. host.cpp 자산(windowless 경로)도 이전 Phase A에서 10/10 검증됨.
 
 ## Phase 2에서 실행: Task 2.A
 
@@ -87,11 +87,11 @@ rustra staticlib 정상. host.cpp 자산(windowless 경로)도 이전 Phase A에
 | --------------------------------------------------------------------------- | -------------------- | ------------------------------------------------------- |
 | `LynxMain()` env init 순서                                                  | **재사용**           | LynxEnv/ICU/bundle 경로 초기화                          |
 | `LynxWindowlessRenderer` + RGBA present                                     | **폐기(본 경로)**    | headless 자산. capture/테스트용 보존                    |
-| `rustra_ui_init` 자체 NSWindow 생성                                         | **폐기**             | Tauri NSView를 부모로 쓰므로 불필요                     |
+| `unikit_ui_init` 자체 NSWindow 생성                                         | **폐기**             | Tauri NSView를 부모로 쓰므로 불필요                     |
 | `resolve_liblynx_symbols()` Mach-O 오프셋(0x3ecc 등)                        | **폐기**             | 정식 C++ API 헤더 링크 시 직접 호출 가능, ABI 핵 불필요 |
-| `InvokeRkyvV2` N-API (RustraModule)                                         | **재사용**           | rustra staticlib FFI 왕복 (Phase 3)                     |
-| `RustraModuleCreator` / `InstallRustraNative`                               | **재사용**           | NativeModule 등록                                       |
-| `OnExtRuntimeAttach/Ready`, `RustraExtCreator`, `register_extension_module` | **재사용**           | extension-module BTS 주입 (Phase 3)                     |
+| `InvokeRkyvV2` N-API (UnikitModule)                                         | **재사용**           | unikit staticlib FFI 왕복 (Phase 3)                     |
+| `UnikitModuleCreator` / `InstallUnikitNative`                               | **재사용**           | NativeModule 등록                                       |
+| `OnExtRuntimeAttach/Ready`, `UnikitExtCreator`, `register_extension_module` | **재사용**           | extension-module BTS 주입 (Phase 3)                     |
 | FML message pump (`pump_fml_message_loop`)                                  | **재사용(재배치)**   | Tauri 루프 통합 형태로                                  |
 | vsync ticker (`VsyncTickCb`, `lynx_vsync_observer_*`)                       | **재사용(optional)** | Phase 3 Task 3.2 tick 왕복                              |
 
@@ -113,7 +113,7 @@ rustra staticlib 정상. host.cpp 자산(windowless 경로)도 이전 Phase A에
 
 ### Phase 2 — Lynx surface 통합 (경로 A) — ✅ PASS
 
-`lynx_desktop.mm` 가 host.cpp 의 env init / bundle 로드 / FML 펌프 / RustraModule BTS 주입 블록을 재사용하고, windowless RGBA renderer 블록을 `lynx_view_builder_set_parent((NativeWindow)nsview)` 로 교체했다. Tauri `setup` 에서 `get_webview_window("main").window_handle()` → `RawWindowHandle::AppKit(h).ns_view` 로 NSView 포인터를 얻어 `lynx_spike_init` 로 전달. FML 펌프는 `app.run` 의 `MainEventsCleared` 에서 매 틱 `lynx_spike_pump()` 로 전진.
+`lynx_desktop.mm` 가 host.cpp 의 env init / bundle 로드 / FML 펌프 / UnikitModule BTS 주입 블록을 재사용하고, windowless RGBA renderer 블록을 `lynx_view_builder_set_parent((NativeWindow)nsview)` 로 교체했다. Tauri `setup` 에서 `get_webview_window("main").window_handle()` → `RawWindowHandle::AppKit(h).ns_view` 로 NSView 포인터를 얻어 `lynx_spike_init` 로 전달. FML 펌프는 `app.run` 의 `MainEventsCleared` 에서 매 틱 `lynx_spike_pump()` 로 전진.
 
 **결정적 로그(stderr, `verify.sh` 캡처):**
 
@@ -124,7 +124,7 @@ rustra staticlib 정상. host.cpp 자산(windowless 경로)도 이전 Phase A에
 [spike] on_first_screen
 [spike] on_load_success
 [spike] on_runtime_ready
-[spike] runtime_ready : install RustraModule (NativeModules ABSENT->created)
+[spike] runtime_ready : install UnikitModule (NativeModules ABSENT->created)
 ```
 
 - **성공 기준 1 (Tauri window 오픈):** ✅ `NSView = 0x… → Lynx SetParent` + `lynx_spike_init rc=0`.
@@ -132,9 +132,9 @@ rustra staticlib 정상. host.cpp 자산(windowless 경로)도 이전 Phase A에
 
 `error=1` (g_error 플래그)은 위 CSS 130300 warning 이 `on_received_error` 로도 보고되기 때문이며, 치명적 오류가 아니다.
 
-### Phase 3 — rustra rkyv 왕복 — ✅ PASS
+### Phase 3 — unikit rkyv 왕복 — ✅ PASS
 
-RustraModule N-API(`invokeRkyvV2`) + extension-module BTS 주입(host.cpp 재사용)이 동작. ReactLynx `App.tsx` 의 `addNumbers({a:20,b:22}).then(out => ackResult(out.value))` 가 rkyv V2 fast-path 로 Rust `rustra_calculator_invoke_rkyv_v2` 를 호출하고 결과 42 를 다시 JS 로 받아 host `AckResult` N-API 콜백으로 통보.
+UnikitModule N-API(`invokeRkyvV2`) + extension-module BTS 주입(host.cpp 재사용)이 동작. ReactLynx `App.tsx` 의 `addNumbers({a:20,b:22}).then(out => ackResult(out.value))` 가 rkyv V2 fast-path 로 Rust `unikit_calculator_invoke_rkyv_v2` 를 호출하고 결과 42 를 다시 JS 로 받아 host `AckResult` N-API 콜백으로 통보.
 
 **결정적 로그:**
 
@@ -172,16 +172,16 @@ FML 펌프는 Tauri `MainEventsCleared` 통합 형태로 동작(host.cpp 의 `wh
 
 ## host.cpp 재사용/폐기 블록 — 최종 정리
 
-Phase 0 의 표와 동일 결론이 스파이크 실행으로 확정. 핵심: `SetParent` 정식 C++ API 로 임베딩 성공 → **ABI 핵(Mach-O 오프셋)은 FML 펌프 전진에만 국부 재사용**, windowless RGBA blit 는 headless 자산으로 보존. N-API RustraModule + extension-module BTS 주입 패턴은 데스크톱에서도 그대로 동작한다.
+Phase 0 의 표와 동일 결론이 스파이크 실행으로 확정. 핵심: `SetParent` 정식 C++ API 로 임베딩 성공 → **ABI 핵(Mach-O 오프셋)은 FML 펌프 전진에만 국부 재사용**, windowless RGBA blit 는 headless 자산으로 보존. N-API UnikitModule + extension-module BTS 주입 패턴은 데스크톱에서도 그대로 동작한다.
 
 ## 남은 리스크
 
 - **Windows libLynx 바이너리 입수**: 로컬은 macOS arm64 prebuilt 만. Windows prebuilt 입수/빌드 경로 미확정.
 - **ABI 부채**: FML 펌프의 Mach-O 오프셋(0x3ecc/0x43a4/0x9329bc) 은 SDK 4.0/engine 3.2 에 고정됨. 정식 FML 진입점 헤더 노출 시 제거 가능.
-- **모바일 확장**: Android/iOS Lynx SDK 셸 + rustra rkyv NativeModule(Kotlin/Obj-C) 신규 작성 필요(design §7 Phase 2/3).
+- **모바일 확장**: Android/iOS Lynx SDK 셸 + unikit rkyv NativeModule(Kotlin/Obj-C) 신규 작성 필요(design §7 Phase 2/3).
 
 ## Phase 2(Android)로 가기 위한 전제 조건
 
 1. 단일 ReactLynx 번들(`index.lynx.bundle`) 재사용 — 본 스파이크 번들이 Android 셸에서도 로드 가능해야 함.
-2. rustra rkyv V2 Rust → Kotlin NativeModule FFI(`/data/data/.../librustra.so` + JNI) — 데스크톱 extern "C" 패턴의 Kotlin 대응.
+2. unikit rkyv V2 Rust → Kotlin NativeModule FFI(`/data/data/.../libunikit.so` + JNI) — 데스크톱 extern "C" 패턴의 Kotlin 대응.
 3. Android Lynx SDK 바이너리 입수.

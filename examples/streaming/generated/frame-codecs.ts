@@ -1,7 +1,7 @@
-// ── rustra generated ────────────────────────────────────────
+// ── unikit generated ────────────────────────────────────────
 // File:   frame-codecs.ts
 // Source: schema.json (single source of truth for this file)
-// Regen:  rustra codegen --config rustra.json
+// Regen:  unikit codegen --config unikit.json
 // Stage:  schema → ts codec renderer
 // DO NOT EDIT — changes will be overwritten and fail codegen --check.
 // ────────────────────────────────────────────────────────────
@@ -32,12 +32,12 @@ function _pcDecodeVarint(buf: Uint8Array, offset: number): { value: number; byte
   let bytesRead = 0;
   while (true) {
     const b = buf[offset + bytesRead];
-    if (b === undefined) throw new Error('rustra: varint out of bounds (offset ' + (offset + bytesRead) + ')');
+    if (b === undefined) throw new Error('unikit: varint out of bounds (offset ' + (offset + bytesRead) + ')');
     value += (b & 0x7f) * multiplier;
     bytesRead++;
     if ((b & 0x80) === 0) break;
     multiplier *= 128;
-    if (bytesRead > 10) throw new Error('rustra: varint too long (offset ' + (offset + bytesRead) + ')');
+    if (bytesRead > 10) throw new Error('unikit: varint too long (offset ' + (offset + bytesRead) + ')');
   }
   return { value, bytesRead };
 }
@@ -79,7 +79,7 @@ function _pcDecodeVarint64(buf: Uint8Array, offset: number): { value: number | b
   let bytesRead = 0;
   while (true) {
     const b = buf[offset + bytesRead];
-    if (b === undefined) throw new Error('rustra: varint out of bounds (offset ' + (offset + bytesRead) + ')');
+    if (b === undefined) throw new Error('unikit: varint out of bounds (offset ' + (offset + bytesRead) + ')');
     bytesRead++;
     if (bytesRead <= 7) {
       num += (b & 0x7f) * multiplier;
@@ -89,12 +89,12 @@ function _pcDecodeVarint64(buf: Uint8Array, offset: number): { value: number | b
       if (bytesRead === 8) big = BigInt(num);
       big |= BigInt(b & 0x7f) << BigInt(7 * (bytesRead - 1));
       if ((b & 0x80) === 0) {
-        if (bytesRead === 10 && (b & 0x7f) > 0x01) throw new Error('rustra: varint exceeds 64 bits (offset ' + (offset + bytesRead) + ')');
+        if (bytesRead === 10 && (b & 0x7f) > 0x01) throw new Error('unikit: varint exceeds 64 bits (offset ' + (offset + bytesRead) + ')');
         const asNumber = Number(big);
         return { value: Number.isSafeInteger(asNumber) ? asNumber : big, bytesRead };
       }
     }
-    if (bytesRead >= 10) throw new Error('rustra: varint too long (offset ' + (offset + bytesRead) + ')');
+    if (bytesRead >= 10) throw new Error('unikit: varint too long (offset ' + (offset + bytesRead) + ')');
   }
 }
 
@@ -136,9 +136,9 @@ function _utf8Encode(s: string): Uint8Array {
 function _utf8Decode(bytes: Uint8Array, start: number, end: number): string {
   // end 가 버퍼를 넘으면 즉시 실패 — 잘린 프레임에서 while (i < end) 가
   // undefined 바이트를 수없이 돌아 런타임이 멈추는 것을 막는다. 오류는
-  // 'rustra: <원인> (offset N)' 계약(postcard-primitive 주석)으로 보고한다 —
+  // 'unikit: <원인> (offset N)' 계약(postcard-primitive 주석)으로 보고한다 —
   // 읽으려다 만 지점(end)이 실패 경계다.
-  if (end > bytes.length) throw new Error('rustra: string out of bounds (offset ' + end + ')');
+  if (end > bytes.length) throw new Error('unikit: string out of bounds (offset ' + end + ')');
   let s = ''; let i = start;
   while (i < end) {
     // 리드 바이트는 i < end <= bytes.length 로 항상 존재한다(함수 머리의
@@ -165,8 +165,8 @@ function _pcDecodeF64(buf: Uint8Array, offset: number): { value: number; bytesRe
 function _pcEncodeF32(n: number): Uint8Array { const buf = new ArrayBuffer(4); new DataView(buf).setFloat32(0, n, true); return new Uint8Array(buf); }
 function _pcDecodeF32(buf: Uint8Array, offset: number): { value: number; bytesRead: number } { return { value: new DataView(buf.buffer, buf.byteOffset + offset, 4).getFloat32(0, true), bytesRead: 4 }; }
 
-import { createComplexCodec } from '@rustra/types';
-import type { FrameCodec, RustraError, ComplexSchema } from '@rustra/types';
+import { createComplexCodec } from '@unikit/types';
+import type { FrameCodec, UnikitError, ComplexSchema } from '@unikit/types';
 import type { JobStatusInput, JobStatusOutput, StartJobInput, StartJobOutput } from './types.js';
 
 export const jobStatusCodec: FrameCodec<JobStatusInput, JobStatusOutput> = {
@@ -199,7 +199,7 @@ export const jobStatusCodec: FrameCodec<JobStatusInput, JobStatusOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: JobStatusOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: JobStatusOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -212,7 +212,7 @@ export const jobStatusCodec: FrameCodec<JobStatusInput, JobStatusOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {
@@ -277,7 +277,7 @@ export const startJobCodec: FrameCodec<StartJobInput, StartJobOutput> = {
     return out.subarray(0, w);
   },
 
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: StartJobOutput; error?: RustraError } {
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: StartJobOutput; error?: UnikitError } {
     // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
     // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
     // (buf.buffer, byteOffset) 로 정규화한다.
@@ -290,7 +290,7 @@ export const startJobCodec: FrameCodec<StartJobInput, StartJobOutput> = {
       : new DataView(buf);
     if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
     if (u8[0] !== 1) {
-      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
       try {
         const errLen = view.getUint16(8, true);
         if (errLen > 0) {

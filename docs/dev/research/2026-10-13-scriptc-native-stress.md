@@ -17,7 +17,7 @@
 
 ## 구현과 관찰하는 경계
 
-[`scriptc-stress.ts`](../../../examples/calculator/apps/scriptc-stress.ts)는 generated production FFI 선언과 descriptor를 사용한다. [`stress-fixture`](../../../examples/calculator/scriptc/stress-fixture/src/lib.rs)는 실제 rustra package를 등록하고 worker gate 3개 진입만 테스트 전용으로 추가한다. 공개 rustra ABI나 production Rust 함수 본문은 이번 follow-up에서 변경하지 않았다. 기존 calculator 스모크도 계속 실행한다.
+[`scriptc-stress.ts`](../../../examples/calculator/apps/scriptc-stress.ts)는 generated production FFI 선언과 descriptor를 사용한다. [`stress-fixture`](../../../examples/calculator/scriptc/stress-fixture/src/lib.rs)는 실제 unikit package를 등록하고 worker gate 3개 진입만 테스트 전용으로 추가한다. 공개 unikit ABI나 production Rust 함수 본문은 이번 follow-up에서 변경하지 않았다. 기존 calculator 스모크도 계속 실행한다.
 
 각 native 프로세스는 다음을 단정한다.
 
@@ -72,9 +72,9 @@ Linux 작업 전용 container에서는 hello와 UAF canary를 통과했다. 이�
 
 추가 빌드는 중지했다. 이 작업이 생성한 옛 `target/scriptc-stress/debug`, 옛 `target/scriptc-stress/release/{deps,build,.fingerprint,incremental}`, `target/safety/foreign-exception/debug/{deps,build,.fingerprint,incremental}`만 추적 파일·symlink가 없음을 확인하고 정리했다. 제거 대상 allocated blocks 합은 694.8 MiB이며, hardlink와 다른 작업의 동시 정리가 있어 실제 파일시스템 회수량으로 단정하지 않는다. 당시 Data volume 여유 공간은 1.4 GiB로 관찰됐다. 소스·로그·receipt·archive·최종 바이너리와 정적 라이브러리는 보존했다.
 
-정리 대기 중인 owned container는 `rustra-scriptc-asan-oct13` / `cf967b973317d243ed6a0244fe8bcb7907168e505f65e89ce4a1f389359acd32`다. 마지막 확인에서 Docker socket `/Users/loopy/.orbstack/run/docker.sock`가 없어 상태 조회와 제거가 불가능했다. daemon 재시작이나 기존 `risuai-nodeonly` container 변경은 하지 않았다. daemon 복귀 시 이 ID만 종료·제거해야 한다. 충분한 자원에서 전체 `--sanitize` stress와 누수 검사를 다시 통과하기 전까지 D5의 native sanitizer/LSan 완료로 표시하지 않는다.
+정리 대기 중인 owned container는 `unikit-scriptc-asan-oct13` / `cf967b973317d243ed6a0244fe8bcb7907168e505f65e89ce4a1f389359acd32`다. 마지막 확인에서 Docker socket `/Users/loopy/.orbstack/run/docker.sock`가 없어 상태 조회와 제거가 불가능했다. daemon 재시작이나 기존 `risuai-nodeonly` container 변경은 하지 않았다. daemon 복귀 시 이 ID만 종료·제거해야 한다. 충분한 자원에서 전체 `--sanitize` stress와 누수 검사를 다시 통과하기 전까지 D5의 native sanitizer/LSan 완료로 표시하지 않는다.
 
-daemon 복귀 뒤 사용할 scoped 정리 명령은 다음과 같다. 삭제 전에 첫 명령의 이름이 `/rustra-scriptc-asan-oct13`인지 확인한다.
+daemon 복귀 뒤 사용할 scoped 정리 명령은 다음과 같다. 삭제 전에 첫 명령의 이름이 `/unikit-scriptc-asan-oct13`인지 확인한다.
 
 ```bash
 docker inspect --format '{{.Id}} {{.Name}} {{.State.Status}}' cf967b973317d243ed6a0244fe8bcb7907168e505f65e89ce4a1f389359acd32

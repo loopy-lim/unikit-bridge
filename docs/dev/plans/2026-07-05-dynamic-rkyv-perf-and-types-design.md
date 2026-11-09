@@ -33,7 +33,7 @@
 
 ## 2. 섹션별 설계
 
-### 2.1 Rust 벤치마크 (criterion, `crates/rustra/benches/`)
+### 2.1 Rust 벤치마크 (criterion, `crates/unikit-bridge/benches/`)
 
 의존성: `criterion` 을 `[dev-dependencies]` + `[[bench]] { harness = false }` 3종.
 
@@ -44,9 +44,9 @@
   frozen vs mutable 의 `invoke_rkyv_v2` read 경로 차이.
 - **`type_scaling.rs`**: 동적 Tier 3 경로 payload 1/10/100/1000 items 확장성.
 
-### 2.2 Rust 타입별 와이어 테스트 (`crates/rustra/tests/rkyv_v2_wire.rs` 신규)
+### 2.2 Rust 타입별 와이어 테스트 (`crates/unikit-bridge/tests/rkyv_v2_wire.rs` 신규)
 
-현재 `crates/rustra` 에서 Tier 1/2 wire = zero coverage 해소. `invoke_rkyv_v2` round-trip 검증:
+현재 `crates/unikit-bridge` 에서 Tier 1/2 wire = zero coverage 해소. `invoke_rkyv_v2` round-trip 검증:
 
 | 경로        | 타입                                                                       |
 | ----------- | -------------------------------------------------------------------------- |
@@ -78,7 +78,7 @@
 
 - `DynamicRegistryApp.tsx` 확장: string/vec/map/중첩 타입 동적 명령 등록 → 단일 rkyvV2 엔진 호출 →
   결과 + live schema commandId/types 화면 표시.
-- 빌드 파이프라인: `modules/rustra-jsi/ios/build-rust-ios.sh` (RUSTRA_PROFILE=debug) → `npx expo run:ios`.
+- 빌드 파이프라인: `modules/unikit-jsi/ios/build-rust-ios.sh` (UNIKIT_PROFILE=debug) → `npx expo run:ios`.
 - **검증 체크리스트**(`docs/plans/2026-07-05-rn-verification-checklist.md`): 단계별 예상 결과 + 스크린샷 가이드.
 
 ### 2.6 문서
@@ -97,8 +97,8 @@
 
 ## 4. 완료 기준
 
-- [x] `cargo bench -p rustra --profile dev` 3종(tier_compare/dynamic_registry/type_scaling) 정상 동작 + 수치 기록. → `docs/benchmarks.md` "동적 명령 (Tier 3)" 섹션.
-- [x] `cargo test -p rustra`(wire 27 / fuzz 5 / concurrency 3) 전부 pass. `cargo test --release -p rustra` 도 pass(정적 10종). `cargo clippy -- -D warnings` / `cargo fmt --check` clean.
+- [x] `cargo bench -p unikit-bridge --profile dev` 3종(tier_compare/dynamic_registry/type_scaling) 정상 동작 + 수치 기록. → `docs/benchmarks.md` "동적 명령 (Tier 3)" 섹션.
+- [x] `cargo test -p unikit-bridge`(wire 27 / fuzz 5 / concurrency 3) 전부 pass. `cargo test --release -p unikit-bridge` 도 pass(정적 10종). `cargo clippy -- -D warnings` / `cargo fmt --check` clean.
 - [x] TS Tier 3 fallback 단위 테스트 pass — `packages/types/src/index.test.ts` (8 tests, `npm run test:types`, node:test 기반으로 vitest 대신 저장소 표준 채택).
 - [x] RN 데모 코드(`DynamicRegistryApp.tsx` 4종 타입) + 빌드 스크립트(`build-rust-ios.sh`) + 검증 체크리스트(`docs/plans/2026-07-05-rn-verification-checklist.md`) 작성(실행은 사용자 로컬).
 - [x] `docs/benchmarks.md` 동적/Tier 3 수치 추가, 양쪽(2026-07-04) design done criteria 체크, `docs/architecture.md` 서브섹션 추가.

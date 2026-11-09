@@ -14,14 +14,14 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
-import type { DylibProfile, RustraUniffiConfig } from './config.js';
+import type { DylibProfile, UnikitUniffiConfig } from './config.js';
 import { readCargoMetadata, selectHostPackage } from './cargo-metadata.js';
 import { spawnInherit } from './process.js';
 import { spawnCapturingStdout, pickCdylibArtifact } from './dev-dylib.js';
 import { execFileSync } from 'node:child_process';
 import { withBindingOutput } from './uniffi-output.js';
 
-/** Rust 프로브가 RUSTRA_UNIFFI_OUT 에 쓰는 파일명 — 커밋 대상이기도 하다. */
+/** Rust 프로브가 UNIKIT_UNIFFI_OUT 에 쓰는 파일명 — 커밋 대상이기도 하다. */
 export const UNIFFI_GENERATED_RS = 'uniffi_generated.rs';
 
 /** 예제 크레이트가 노출하는 bindgen 바이너리 이름 — uniffi-bindgen fetch-bin 관례. */
@@ -55,8 +55,8 @@ export function expectedDylibPath(
         `the cdylib build runs on the host and must produce a dylib (.dylib/.so/.dll)`,
     );
   }
-  // crate name → 파일명 규약: 하이픈은 밑줄로 치환된다(rustra-calculator-example
-  // → librustra_calculator_example.dylib).
+  // crate name → 파일명 규약: 하이픈은 밑줄로 치환된다(unikit-calculator-example
+  // → libunikit_calculator_example.dylib).
   return resolve(targetDirectory, profile, naming(libName.replace(/-/g, '_')));
 }
 
@@ -66,7 +66,7 @@ export function resolveUniffiDir(configDir: string, dir: string): string {
 }
 
 /** uniffi_generated.rs 의 커밋 위치 — srcOut 기본값("src")을 여기서 채운다. */
-export function resolveUniffiSrcOut(configDir: string, uniffi: RustraUniffiConfig): string {
+export function resolveUniffiSrcOut(configDir: string, uniffi: UnikitUniffiConfig): string {
   return resolveUniffiDir(configDir, uniffi.srcOut ?? 'src');
 }
 
@@ -97,7 +97,7 @@ export type UniffiRunOptions = {
  */
 export async function runUniffiBindings(
   ctx: UniffiSpawnContext,
-  uniffi: RustraUniffiConfig,
+  uniffi: UnikitUniffiConfig,
   bindingOutDir: string,
   options: UniffiRunOptions,
   progress: (message: string) => void,
@@ -110,7 +110,7 @@ export async function runUniffiBindings(
 
 async function generateUniffiBindings(
   ctx: UniffiSpawnContext,
-  uniffi: RustraUniffiConfig,
+  uniffi: UnikitUniffiConfig,
   bindingOutDir: string,
   options: UniffiRunOptions,
   progress: (message: string) => void,
@@ -268,7 +268,7 @@ export async function checkUniffiGeneratedRs(
   } catch {
     throw new Error(
       `Rust codegen did not produce ${temporaryRsPath}; the generator must honor ` +
-        `RUSTRA_UNIFFI_OUT in check mode`,
+        `UNIKIT_UNIFFI_OUT in check mode`,
     );
   }
   let committed: string;
@@ -276,14 +276,14 @@ export async function checkUniffiGeneratedRs(
     committed = await readFile(committedRsPath, 'utf-8');
   } catch {
     throw new Error(
-      `uniffi drift (missing): ${committedRsPath}. Run rustra codegen --config <rustra.json> ` +
+      `uniffi drift (missing): ${committedRsPath}. Run unikit codegen --config <unikit.json> ` +
         `to generate the committed ${UNIFFI_GENERATED_RS}`,
     );
   }
   if (generated !== committed) {
     throw new Error(
       `uniffi drift (disk changed): ${committedRsPath} differs from the regenerated ` +
-        `${UNIFFI_GENERATED_RS}. Run rustra codegen --config <rustra.json> to update ` +
+        `${UNIFFI_GENERATED_RS}. Run unikit codegen --config <unikit.json> to update ` +
         `the committed file`,
     );
   }

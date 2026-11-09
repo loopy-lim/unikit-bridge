@@ -21,7 +21,7 @@
 
 ## 2. GitHub 메타데이터 확인 (gh 재확인)
 
-`gh repo view loopy-lim/rustra --json description,repositoryTopics` 실행 결과:
+`gh repo view loopy-lim/unikit --json description,repositoryTopics` 실행 결과:
 
 - **Description**: "One Rust core generates type-safe clients for Node, Bun, Tauri, and React Native over a compact binary wire, with CI contracts that block breaking schema changes." — 영어 피치로 갱신 완료
 - **Topics (11개)**: `rust`, `typescript`, `ffi`, `tauri`, `react-native`, `codegen`, `bindings`, `nodejs`, `bun`, `bridge`, `cross-platform` — 요청 토픽 전부 반영

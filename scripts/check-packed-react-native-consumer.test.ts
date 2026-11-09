@@ -4,11 +4,11 @@ import { createConsumerManifest } from './check-packed-react-native-consumer.mjs
 
 void test('pins the local types tarball for transitive 0.4.1 dependencies', () => {
   const manifest = createConsumerManifest({
-    typesArchive: '/tmp/rustra-types-0.4.1.tgz',
-    cliArchive: '/tmp/rustra-cli-0.4.1.tgz',
-    reactNativeArchive: '/tmp/rustra-react-native-0.4.1.tgz',
+    typesArchive: '/tmp/unikit-types-0.4.1.tgz',
+    cliArchive: '/tmp/unikit-cli-0.4.1.tgz',
+    reactNativeArchive: '/tmp/unikit-react-native-0.4.1.tgz',
   });
 
-  assert.equal(manifest.dependencies['@rustra/types'], 'file:/tmp/rustra-types-0.4.1.tgz');
-  assert.equal(manifest.overrides['@rustra/types'], 'file:/tmp/rustra-types-0.4.1.tgz');
+  assert.equal(manifest.dependencies['@unikit/types'], 'file:/tmp/unikit-types-0.4.1.tgz');
+  assert.equal(manifest.overrides['@unikit/types'], 'file:/tmp/unikit-types-0.4.1.tgz');
 });

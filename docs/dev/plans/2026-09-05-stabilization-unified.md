@@ -34,9 +34,9 @@
 | A03         | **부분** — Node loop-stdio+Tauri MockRuntime sink는 검증 존재. 잔여: Tauri JS 어댑터 이벤트, RN 실호스트                            | event_push.rs 4테스트, node index.test.ts         |
 | A04         | **여전** — allSettled 표면 0건                                                                                                      | 전 패키지 grep                                    |
 | A05         | **부분** — generation 가드+drain 프리미티브 존재. 상태 모델·dispose-once·reload drain 미연결                                        | global-config.ts:38-43, node-loop.ts:384-400      |
-| A07         | **여전** — `rustra_dispatch_profiled`가 기본 register에 포함                                                                        | tauri_support.rs:156-160                          |
+| A07         | **여전** — `unikit_dispatch_profiled`가 기본 register에 포함                                                                        | tauri_support.rs:156-160                          |
 | A09/A15/A16 | **여전** (P2/P3 — 이번 사이클 수동 체크리스트·보류)                                                                                 | ffi_free_guard.rs 등                              |
-| A10         | **dx 트랙이 버전 스니펫 소처** — README `rustra = "0.6"`. 잔여: Cargo 0.5.0 vs npm 0.6.0 조합 문서                                  | dx 브랜치 README:149                              |
+| A10         | **dx 트랙이 버전 스니펫 소처** — README `unikit = "0.6"`. 잔여: Cargo 0.5.0 vs npm 0.6.0 조합 문서                                  | dx 브랜치 README:149                              |
 | A11         | **보류** — 발행은 사용자 게이트                                                                                                     | release-procedure                                 |
 | A12         | **여전** — README.md:32 "manual d.ts" 그대로                                                                                        | dx 브랜치에서도 무변경                            |
 | A13         | **여전** — "rkyv V2" 명칭+11.8× 표현 그대로 (manifest는 postcard)                                                                   | README.md:33                                      |
@@ -61,7 +61,7 @@
 **Step 1: dx 트랙을 changeset-release/main에 로컬 머지** — **실행 전 사용자 확인 필요.** 기존 트랙 리듬(쌓인 트랙 로컬 머지, push는 별도 승인)을 따른다. dx 트랙의 changeset은 없었으므로(검증 완료: `.changeset/` diff 0) 머지 후 changeset 적립은 이 트랙(Task 16)에서 일괄.
 
 ```bash
-cd /Users/loopy/dev/ll3/rustra-bridge
+cd /Users/loopy/dev/ll3/unikit-bridge
 git checkout changeset-release/main
 git merge --no-ff feat/dx-friction-track -m "merge: DX 마찰 제거 트랙 — codegen 정합+에러 정규화+capability 게이트+온보딩 E2E"
 ```
@@ -95,15 +95,15 @@ bun install --frozen-lockfile
 
 - Modify: `packages/cli/src/generated-header.ts`
 - Test: `packages/cli/src/generated-header.test.ts`
-- Regen: `examples/react-native-calculator/modules/rustra-jsi/**`, `examples/react-native-bare-calculator/**` (codegen 재실행)
+- Regen: `examples/react-native-calculator/modules/unikit-jsi/**`, `examples/react-native-bare-calculator/**` (codegen 재실행)
 
-**재확정된 원인 (로컬 재현 완료):** `generatedFileHeader()`가 무조건 `//` 라인을 7개 내보낸다. `package.json`(JSON — 주석 문법 없음), `RustraBridge.podspec`(Ruby), `AndroidManifest.xml`(XML), `build-rust-android.sh`(shebang 선행 필요)에 찍히면 파일이 파괴된다.
+**재확정된 원인 (로컬 재현 완료):** `generatedFileHeader()`가 무조건 `//` 라인을 7개 내보낸다. `package.json`(JSON — 주석 문법 없음), `UnikitBridge.podspec`(Ruby), `AndroidManifest.xml`(XML), `build-rust-android.sh`(shebang 선행 필요)에 찍히면 파일이 파괴된다.
 
-- typescript job: codegen이 `modules/rustra-bridge/package.json`에 헤더 → `react-native config` JSON 파싱 사망 → `test:autolink` exit 1 (로컬 100% 재현)
+- typescript job: codegen이 `modules/unikit-bridge/package.json`에 헤더 → `react-native config` JSON 파싱 사망 → `test:autolink` exit 1 (로컬 100% 재현)
 - rn-ios: pod install이 podspec의 `//` 라인에서 Ruby SyntaxError
 - rn-android: settings.gradle line 29 autolinking 커맨드(node)가 동일 JSON 파싱 사망
 
-**설계 결정:** 헤더 문법을 확장자별로 판정한다. JSON은 RFC 8259상 주석이 불가하므로 **헤더를 넣지 않는다**(대신 `.rustra-generated.json` 매니페스트가 이미 출처 추적 — 단일 진실원 유지). shebang 파일은 shebang 뒤에 부착. Ruby/XML/CMake/Gradle은 각 네이티브 주석 문법.
+**설계 결정:** 헤더 문법을 확장자별로 판정한다. JSON은 RFC 8259상 주석이 불가하므로 **헤더를 넣지 않는다**(대신 `.unikit-generated.json` 매니페스트가 이미 출처 추적 — 단일 진실원 유지). shebang 파일은 shebang 뒤에 부착. Ruby/XML/CMake/Gradle은 각 네이티브 주석 문법.
 
 **Step 1: 실패하는 테스트 작성** — `generated-header.test.ts`에 추가:
 
@@ -117,12 +117,12 @@ test('json 파일은 주석 문법이 없어 헤더를 찍지 않는다', () => 
 test('shell은 shebang 뒤에 # 주석 헤더를 부착한다', () => {
   const out = generatedFileHeader('run.sh', 'test', '#!/bin/sh\nset -e\n');
   expect(out).toMatch(/^#!/);
-  expect(out).toContain('# ── rustra generated');
+  expect(out).toContain('# ── unikit generated');
   expect(out.startsWith('#!/bin/sh')).toBe(true);
 });
 test('ruby podspec은 # 주석 헤더를 부착한다', () => {
-  const out = generatedFileHeader('RustraBridge.podspec', 'test', 'Pod::Spec.new\n');
-  expect(out.startsWith('# ── rustra generated')).toBe(true);
+  const out = generatedFileHeader('UnikitBridge.podspec', 'test', 'Pod::Spec.new\n');
+  expect(out.startsWith('# ── unikit generated')).toBe(true);
 });
 test('xml은 <!-- --> 헤더를 부착한다', () => {
   const out = generatedFileHeader('AndroidManifest.xml', 'test', '<manifest>\n');
@@ -130,11 +130,11 @@ test('xml은 <!-- --> 헤더를 부착한다', () => {
 });
 test('cmake/gradle/kotlin/cpp는 // 헤더를 유지한다', () => {
   expect(
-    generatedFileHeader('build.gradle', 'test', 'plugins {}\n').startsWith('// ── rustra'),
+    generatedFileHeader('build.gradle', 'test', 'plugins {}\n').startsWith('// ── unikit'),
   ).toBe(true);
   expect(
     generatedFileHeader('CMakeLists.txt', 'test', 'cmake_minimum_required\n').startsWith(
-      '// ── rustra',
+      '// ── unikit',
     ),
   ).toBe(true);
 });
@@ -166,10 +166,10 @@ function syntaxFor(fileName: string): HeaderSyntax {
 
 function commentLines(fileName: string, stage: string, opener: string, closer?: string): string[] {
   const body = [
-    `${opener} ── rustra generated ────────────────────────────────`,
+    `${opener} ── unikit generated ────────────────────────────────`,
     `${opener} File:   ${fileName}`,
     `${opener} Source: schema.json (single source of truth for this file)`,
-    `${opener} Regen:  rustra codegen --config rustra.json`,
+    `${opener} Regen:  unikit codegen --config unikit.json`,
     `${opener} Stage:  ${stage}`,
     `${opener} DO NOT EDIT — changes will be overwritten and fail codegen --check.`,
     `${opener} ────────────────────────────────────────────────────────────`,
@@ -180,7 +180,7 @@ function commentLines(fileName: string, stage: string, opener: string, closer?: 
 }
 ```
 
-주의: 위 스케치는 의도 전달용 — 구현 시 XML 라인은 `<!-- ... -->`로, `none`은 원문 반환, shebang 검출(`content.startsWith('#!')`) 후 hash 헤더를 2행째부터 삽입. `headerFor(content, fileName)`은 역방향 스트립(codegen --check와 .rustra-generated.json 매니페스트 대조 경로가 이미 있으므로 이 헬퍼는 테스트 대칭성 증명용 최소 구현 — 기존 검증 경로와 중복 만들지 말 것).
+주의: 위 스케치는 의도 전달용 — 구현 시 XML 라인은 `<!-- ... -->`로, `none`은 원문 반환, shebang 검출(`content.startsWith('#!')`) 후 hash 헤더를 2행째부터 삽입. `headerFor(content, fileName)`은 역방향 스트립(codegen --check와 .unikit-generated.json 매니페스트 대조 경로가 이미 있으므로 이 헬퍼는 테스트 대칭성 증명용 최소 구현 — 기존 검증 경로와 중복 만들지 말 것).
 
 **핵심 검증 지점:** `packages/cli/src/cli-generate-files.ts:86`의 `${generatedFileHeader(name, stageFor(name))}${content}` 호출부가 전달하는 `name`이 확장자를 포함하는지 실측하고, 포함하지 않으면 호출부에서 실제 파일명을 넘기도록 수정한다.
 
@@ -190,9 +190,9 @@ function commentLines(fileName: string, stage: string, opener: string, closer?: 
 
 ```bash
 cd examples/react-native-bare-calculator && bun run codegen && bun run typecheck && bun run test:autolink
-cd ../../examples/react-native-calculator && bun run codegen 2>/dev/null || bun ../../packages/cli/src/index.ts codegen --config rustra.json
-head -1 modules/rustra-jsi/package.json   # '{' 로 시작해야 함
-ruby -c modules/rustra-jsi/RustraBridge.podspec   # Syntax OK
+cd ../../examples/react-native-calculator && bun run codegen 2>/dev/null || bun ../../packages/cli/src/index.ts codegen --config unikit.json
+head -1 modules/unikit-jsi/package.json   # '{' 로 시작해야 함
+ruby -c modules/unikit-jsi/UnikitBridge.podspec   # Syntax OK
 ```
 
 Expected: autolink PASS, package.json이 `{`로 시작, podspec `Syntax OK`.
@@ -279,7 +279,7 @@ gate:
 **설계 (통합 문서 요구):** transport payload 변환(JSON.parse)과 사용자 콜백을 다른 오류 경계로 분리.
 
 ```ts
-const unlisten = await listen(rustraEventChannel(name), (event) => {
+const unlisten = await listen(unikitEventChannel(name), (event) => {
   let payload: T;
   try {
     payload = JSON.parse(event.payload) as T; // ← transport 변환 경계 (R03에서 추가 축소)
@@ -292,12 +292,12 @@ const unlisten = await listen(rustraEventChannel(name), (event) => {
   try {
     callback(payload);
   } catch (error) {
-    reportListenerError(name, error); // RUSTRA_DEBUG 시 console.error + 콜백 예외는 재던지지 않음(다른 listener 보호)
+    reportListenerError(name, error); // UNIKIT_DEBUG 시 console.error + 콜백 예외는 재던지지 않음(다른 listener 보호)
   }
 });
 ```
 
-`reportListenerError`는 tauri 패키지 신설 헬퍼 — `@rustra/types`의 debug 스위치(`debugRustra`)를 재사용해 `{ kind: 'tauri.listener_error', event: name, error }`로 관측. 다른 listener 중단 정책: **예외 삼켜서 나머지 listener 계속**(브라우저 EventTarget 표준 동작과 동일) — 문서와 테스트로 고정.
+`reportListenerError`는 tauri 패키지 신설 헬퍼 — `@unikit/types`의 debug 스위치(`debugUnikit`)를 재사용해 `{ kind: 'tauri.listener_error', event: name, error }`로 관측. 다른 listener 중단 정책: **예외 삼켜서 나머지 listener 계속**(브라우저 EventTarget 표준 동작과 동일) — 문서와 테스트로 고정.
 
 **Step 1: 실패 테스트** — 기존 index.test.ts의 `subscribeEvent` 스위트에:
 
@@ -318,9 +318,9 @@ const unlisten = await listen(rustraEventChannel(name), (event) => {
 
 **Files:**
 
-- Modify: `packages/tauri/src/tauri-events.ts:30-36` (`rustraEventChannel`)
-- Modify: `crates/rustra/src/tauri_support.rs:248-258` (`sanitize_event_name`)
-- Modify: `crates/rustra/src/builder_events.rs:28-35` (등록 시 충돌 검증)
+- Modify: `packages/tauri/src/tauri-events.ts:30-36` (`unikitEventChannel`)
+- Modify: `crates/unikit-bridge/src/tauri_support.rs:248-258` (`sanitize_event_name`)
+- Modify: `crates/unikit-bridge/src/builder_events.rs:28-35` (등록 시 충돌 검증)
 - Test: `packages/tauri/src/index.test.ts`
 - Test: `examples/tauri-calculator/src-tauri/tests/event_name_mapping.rs` (신설)
 - Fixture: 코드젠 event name golden — `examples/calculator/generated/tauri.ts` 비교
@@ -336,21 +336,21 @@ const unlisten = await listen(rustraEventChannel(name), (event) => {
 
 **Step 1: 실패 테스트 (Rust)** — `event_name_mapping.rs`:
 
-- golden: `진행.갱신`→`rustra://진행_갱신`, `a.b`→`rustra://a_b`, 결합문자, 비BMP(emoji) 포함 케이스 — Rust `sanitize_event_name` 단위 assert.
+- golden: `진행.갱신`→`unikit://진행_갱신`, `a.b`→`unikit://a_b`, 결합문자, 비BMP(emoji) 포함 케이스 — Rust `sanitize_event_name` 단위 assert.
 - 충돌 거부: `event::<A>("a.b")` + `event::<B>("a_b")` 빌드 → panic (should_panic 테스트).
-- MockRuntime 발행·구독 정합: 한글 이벤트 emit → `app.listen("rustra://진행_갱신")` 도달.
+- MockRuntime 발행·구독 정합: 한글 이벤트 emit → `app.listen("unikit://진행_갱신")` 도달.
 
-**Step 2: 실패 테스트 (TS)** — `rustraEventChannel('진행.갱신') === 'rustra://진행_갱신'`, `'a.b' === 'rustra://a_b'`, emoji 케이스 golden 공유(Rust와 같은 표 생성 — 테스트에 리터럴로 박아 양측 드리프트 방지).
+**Step 2: 실패 테스트 (TS)** — `unikitEventChannel('진행.갱신') === 'unikit://진행_갱신'`, `'a.b' === 'unikit://a_b'`, emoji 케이스 golden 공유(Rust와 같은 표 생성 — 테스트에 리터럴로 박아 양측 드리프트 방지).
 
-**Step 3: FAIL 확인** (Rust: `cargo test -p rustra-tauri-calculator --test event_name_mapping` / TS: `bun test packages/tauri`).
+**Step 3: FAIL 확인** (Rust: `cargo test -p unikit-tauri-calculator --test event_name_mapping` / TS: `bun test packages/tauri`).
 
-**Step 4: 구현** — TS `rustraEventChannel`을 코드포인트 순회(`for..of`)+`/\p{L}|\p{N}/u` 판정으로 교체. Rust는 기존 로직 유지(이미 Unicode-aware)하되 **builder 충돌 검증 신설**. JS 측 충돌은 빌드 타임 Rust가 단일 진실원이므로 런타임 거부 불필요(등록은 Rust만).
+**Step 4: 구현** — TS `unikitEventChannel`을 코드포인트 순회(`for..of`)+`/\p{L}|\p{N}/u` 판정으로 교체. Rust는 기존 로직 유지(이미 Unicode-aware)하되 **builder 충돌 검증 신설**. JS 측 충돌은 빌드 타임 Rust가 단일 진실원이므로 런타임 거부 불필요(등록은 Rust만).
 
 **Step 5: PASS + golden 동기 확인** — `cargo test` + `bun test packages/tauri` + `bun run test:docs`(generated tauri.ts 재생성 대상 있으면 갱신).
 
-**Step 6: 호환성 기록** — 구 JS(ASCII 치환)로 한글 이벤트를 구독하던 조합은 신 Rust에서 수신 불가가 **됨**(기존에도 수신 불가였음 — 구 JS가 `rustra://________`를 구독하고 Rust는 `rustra://진행_갱신` 발행. 즉 기존에도 이미 불일치로 유실 상태였으므로 신규 유실 없음. 이 판정을 커밋 메시지와 문서에 기록).
+**Step 6: 호환성 기록** — 구 JS(ASCII 치환)로 한글 이벤트를 구독하던 조합은 신 Rust에서 수신 불가가 **됨**(기존에도 수신 불가였음 — 구 JS가 `unikit://________`를 구독하고 Rust는 `unikit://진행_갱신` 발행. 즉 기존에도 이미 불일치로 유실 상태였으므로 신규 유실 없음. 이 판정을 커밋 메시지와 문서에 기록).
 
-**Step 7: 커밋** `fix(tauri,rustra): 이벤트 채널명 Unicode 규칙 통일 + 빌드 타임 충돌 거부 (R02)`
+**Step 7: 커밋** `fix(tauri,unikit): 이벤트 채널명 Unicode 규칙 통일 + 빌드 타임 충돌 거부 (R02)`
 
 ---
 
@@ -361,7 +361,7 @@ const unlisten = await listen(rustraEventChannel(name), (event) => {
 - Modify: `packages/tauri/src/tauri-events.ts` (`subscribeEvent` 본체, Task 4 코드의 parse 경계)
 - Modify: `packages/tauri/src/index.ts:63-66` (`TauriListen` payload 타입)
 - Test: `packages/tauri/src/index.test.ts`
-- 문서: `docs/compatibility-matrix.md`+ko (Events 행 Tauri 셀 보강), `crates/rustra/src/tauri_support.rs:179-185` doc은 이미 올바름 — 무변경
+- 문서: `docs/compatibility-matrix.md`+ko (Events 행 Tauri 셀 보강), `crates/unikit-bridge/src/tauri_support.rs:179-185` doc은 이미 올바름 — 무변경
 
 **설계:** 실제 WebView 경계(`emit_str` → `payload: {}` 인라인 평가, tauri 2.11.1 검증 완료)에서 JS listener는 **이미 해석된 값**을 받는다. 따라서:
 
@@ -393,13 +393,13 @@ const unlisten = await listen(rustraEventChannel(name), (event) => {
 **수정 내용 (재검증 확정 3건):**
 
 1. **R04-a**: `:53`의 `entry.options?.timeoutMs` truthiness → `entry.options?.timeoutMs !== undefined`로 판정 변경. `0`은 "제공된 옵션"으로 per-entry 폴백 경로를 태워야 한다(단건 경로 cancel.ts:42와 동일 판정). NaN/Infinity/음수 정책: 기존 단건 경로와 동일하게 유지(setTimeout이 비정상 값을 즉시 실행으로 처리하는 브라우저 동작 의존 — 통합 문서의 "호스트 timer 범위 초과 정책 명시"는 R10 문서 태스크에서 다룬다).
-2. **R04-b**: `:55` `Promise.resolve(rawTransport.invokeBatch(entries))`를 try/catch로 감싸 동기 throw → `Promise.reject(normalizeRustraError(error))` (단건 경로 :26-41 패턴 동일).
+2. **R04-b**: `:55` `Promise.resolve(rawTransport.invokeBatch(entries))`를 try/catch로 감싸 동기 throw → `Promise.reject(normalizeUnikitError(error))` (단건 경로 :26-41 패턴 동일).
 3. **R04-c**: wire batch 진입 전 각 entry의 args에 `normalizeArgs` 적용 — 단, dx 트랙이 global-batch에 적용한 방식이 있으면 그것과 같은 규칙. entry 객체 재생성 시 **원본 배열·원본 entry를 변이하지 않는다**(새 entry 객체).
 
 **Step 1: 실패 테스트** — 통합 문서 회귀 표 기준:
 
 1. delayed transport + `timeoutMs: 0` → 단건과 동일하게 즉시 timeout rejection (직접 engine).
-2. 동기 throwing batch transport → Promise rejection (동기 throw 아님), `normalizeRustraError` 통과.
+2. 동기 throwing batch transport → Promise rejection (동기 throw 아님), `normalizeUnikitError` 통과.
 3. custom normalizer 주입 → wire batch에서도 entry별 적용, 원본 entries 불변.
 4. signal 혼합 entry → 기존 폴백 경로 유지 확인.
 5. 빈 batch → `[]` (기존 동작 회귀 방지).
@@ -498,10 +498,10 @@ const onAbort = () =>
 
 **10a — R07 도착 검증 (구현 최소화):** dx 트랙(e5b53055, 3114119b)이 timeout→TimeoutError, cancel→CancelledError, pre-abort 승격을 착지했다. 여기에 통합 문서 회귀 T09의 **나머지 축만 추가**:
 
-1. wire가 구조화 `{code:'transport.timeout'}`을 줄 때 `normalizeRustraError` 승격 → `instanceof TimeoutError` (기존 errors.ts:90-95 — 회귀 고정).
+1. wire가 구조화 `{code:'transport.timeout'}`을 줄 때 `normalizeUnikitError` 승격 → `instanceof TimeoutError` (기존 errors.ts:90-95 — 회귀 고정).
 2. 전역 batch timeout race → TimeoutError (dx 이후 코드에서 확인, 없으면 dx 스타일 승격 보강).
 3. `cause`/`retryable` 보존 — 서브클래스 경유 시에도 유지.
-4. 부작용 검증: 기존 사용자 code 커스텀 RustraCommandError가 normalize를 통과 시 원본 보존(errors.ts:85 — 회귀 고정).
+4. 부작용 검증: 기존 사용자 code 커스텀 UnikitCommandError가 normalize를 통과 시 원본 보존(errors.ts:85 — 회귀 고정).
 
 **10b — R08 최소 가드 (이번 사이클):** 통합 문서 R08은 "다중 엔진 사용 전 P1" — 다중 엔진 API는 이번 사이클 범위 밖이되, **단일 엔진 제한을 명시하고 조용한 교차 라우팅을 loud-fail로 바꾼다**:
 
@@ -599,14 +599,14 @@ export function invokeBatchSettled<T>(entries: BatchEntry[]): Promise<Array<Batc
 
 **Files:**
 
-- Modify: `crates/rustra/src/tauri_support.rs` (`register`의 generate_handler에서 `rustra_dispatch_profiled` 제거, `register_profiled` 신설 또는 feature 게이트)
+- Modify: `crates/unikit-bridge/src/tauri_support.rs` (`register`의 generate_handler에서 `unikit_dispatch_profiled` 제거, `register_profiled` 신설 또는 feature 게이트)
 - Modify: `examples/tauri-calculator/src/benchmark.ts` 및 관련 bench host 설정 (`register_profiled` 경로 사용)
 - Test: `examples/tauri-calculator/src-tauri/tests/` (등록 노출 검증)
 
-**설계:** `register()`는 `rustra_dispatch`+`rustra_dispatch_batch`만. 벤치용은 `register_profiled()`를 별도 공용 함수로 제공(삭제가 아니라 분리 — 기존 symbol은 유지, "이미 소비하는 공용 API" 보호. Tauri invoke는 handler 목록에 있어야만 도달 가능하므로 production 등록에서 빠지면 노출이 꺼진다).
+**설계:** `register()`는 `unikit_dispatch`+`unikit_dispatch_batch`만. 벤치용은 `register_profiled()`를 별도 공용 함수로 제공(삭제가 아니라 분리 — 기존 symbol은 유지, "이미 소비하는 공용 API" 보호. Tauri invoke는 handler 목록에 있어야만 도달 가능하므로 production 등록에서 빠지면 노출이 꺼진다).
 
-**Step 1: 실패 테스트** — ① `register()`로 빌드한 mock app에서 `rustra_dispatch_profiled` invoke → not-found 에러. ② `register_profiled()`로 빌드 → 정상. ③ 일반 `rustra_dispatch`는 양쪽 모두 정상(성능 무영향).
-**Step 2: FAIL → 구현 → PASS.** **Step 3: bench 예제가 `register_profiled` 사용하도록 갱신** + `cargo test` 전체. **Step 4: 커밋** `refactor(rustra): profiled dispatch 등록 분리 — production 기본 노출 제거 (A07)`
+**Step 1: 실패 테스트** — ① `register()`로 빌드한 mock app에서 `unikit_dispatch_profiled` invoke → not-found 에러. ② `register_profiled()`로 빌드 → 정상. ③ 일반 `unikit_dispatch`는 양쪽 모두 정상(성능 무영향).
+**Step 2: FAIL → 구현 → PASS.** **Step 3: bench 예제가 `register_profiled` 사용하도록 갱신** + `cargo test` 전체. **Step 4: 커밋** `refactor(unikit): profiled dispatch 등록 분리 — production 기본 노출 제거 (A07)`
 
 ---
 
@@ -646,11 +646,11 @@ export function invokeBatchSettled<T>(entries: BatchEntry[]): Promise<Array<Batc
 - Create: `.changeset/stabilization-unified.md`
 - Modify: `Cargo.toml` — **수정하지 않는다** (Rust 0.5.0 bump는 발행 절차 — A10 문서에서 명시만)
 
-**A12:** README.md:32의 napi-rs "manual d.ts" 셀을 공식 문서 기준으로 정정 — "TypeScript definitions generated from Rust structs (attributes)" 수준으로. 각 셀에 확인 기준일·참조 링크를 각주로. Rustra 우위 표현은 multi-host 계약·검증 관리로 재배치. **확인 날짜(2026-09-05)와 출처를 문서에 남긴다.**
+**A12:** README.md:32의 napi-rs "manual d.ts" 셀을 공식 문서 기준으로 정정 — "TypeScript definitions generated from Rust structs (attributes)" 수준으로. 각 셀에 확인 기준일·참조 링크를 각주로. Unikit 우위 표현은 multi-host 계약·검증 관리로 재배치. **확인 날짜(2026-09-05)와 출처를 문서에 남긴다.**
 
 **A13:** 신설 `docs/wire-format.md`:
 
-- "rkyv V2"는 Rustra 자체 프레임/프로토콜 이름이고, payload codec은 postcard(manifest/dispatch 경로)다 — upstream rkyv 아카이브 포맷과의 호환은 별도 검증 없이 동일하다고 표기하지 않는다.
+- "rkyv V2"는 Unikit 자체 프레임/프로토콜 이름이고, payload codec은 postcard(manifest/dispatch 경로)다 — upstream rkyv 아카이브 포맷과의 호환은 별도 검증 없이 동일하다고 표기하지 않는다.
 - "zero-copy"의 실제 범위: 어느 경계의 copy/allocation을 없애는지(Bun `toArrayBuffer` 뷰 등 실측 사례 참조) 명시 — 전체 RTT 의미로 확대 금지.
 - 11.8×/47B 사례: payload 요청 wire 기준, 측정 경로·분모 명시. bytes/core dispatch/FFI/RTT 구분 표.
   README의 "rkyv V2 (11.8× smaller)" 표현은 wire-format.md로 링크 + "(request wire vs JSON, see wire-format)" 수준으로 정밀화.
@@ -664,11 +664,11 @@ export function invokeBatchSettled<T>(entries: BatchEntry[]): Promise<Array<Batc
 
 ```md
 ---
-'@rustra/cli': minor
-'@rustra/types': minor
-'@rustra/tauri': minor
-'@rustra/node': minor
-'@rustra/bun': minor
+'@unikit/cli': minor
+'@unikit/types': minor
+'@unikit/tauri': minor
+'@unikit/node': minor
+'@unikit/bun': minor
 ---
 
 안정화 통합: generated 헤더 형식 판정(CI 근원 수정), Tauri 이벤트 콜백 경계·채널명 Unicode 통일·payload 단일 파싱,
@@ -682,7 +682,7 @@ bootstrap 단일 슬롯 가드, EngineSupports 표면, invokeBatchSettled.
 
 ```bash
 bun test packages/testing packages/types packages/react packages/node packages/bun packages/tauri packages/cli packages/react-native
-cargo test -p rustra-naming -p rustra -p rustra-macros
+cargo test -p unikit-bridge-naming -p unikit-bridge -p unikit-bridge-macros
 cargo clippy --workspace --all-targets -- -D warnings
 cargo fmt --all -- --check
 bun run lint && bun run format:check
@@ -740,7 +740,7 @@ git merge --no-ff feat/stabilization-unified -m "merge: 안정화 통합 트랙 
 
 ## 참고 자료
 
-- 통합 문서: 사용자 제공 "Rustra 안정화 및 개선 통합 문서" (2026-09-05)
+- 통합 문서: 사용자 제공 "Unikit 안정화 및 개선 통합 문서" (2026-09-05)
 - 리서치: `docs/research/2026-09-03-20-08-17-production-readiness-gap-analysis.md`
 - 선행 트랙: `docs/plans/2026-09-03-readiness-tracks.md`, `docs/plans/2026-09-04-dx-friction-track.md` (dx는 Task 0에서 선머지)
 - CI 실패 로그: run 33776685582 (typescript/rn-ios/rn-android failure + 로컬 재현)

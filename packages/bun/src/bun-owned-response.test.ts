@@ -6,13 +6,13 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { dlopen, FFIType, suffix } from 'bun:ffi';
-import type { FrameCodec } from '@rustra/types';
+import type { FrameCodec } from '@unikit/types';
 import { createBunFfiEngine as candidateEngine } from './bun-ffi.js';
 
 // Allows the same behavioral assertions to demonstrate RED against a saved adapter.
-const createEngine: typeof candidateEngine = process.env.RUSTRA_BUN_OWNED_TEST_ADAPTER
+const createEngine: typeof candidateEngine = process.env.UNIKIT_BUN_OWNED_TEST_ADAPTER
   ? (
-      (await import(pathToFileURL(process.env.RUSTRA_BUN_OWNED_TEST_ADAPTER).href)) as {
+      (await import(pathToFileURL(process.env.UNIKIT_BUN_OWNED_TEST_ADAPTER).href)) as {
         createBunFfiEngine: typeof candidateEngine;
       }
     ).createBunFfiEngine
@@ -42,7 +42,7 @@ for (const variant of ['owned', 'legacy', 'missing-free'] as const) {
     `Bun ${variant}: one dispatch, correct allocator, 512-byte boundary and retained results`,
     { skip: process.platform === 'win32' },
     async () => {
-      const temporary = mkdtempSync(join(tmpdir(), 'rustra-bun-owned-'));
+      const temporary = mkdtempSync(join(tmpdir(), 'unikit-bun-owned-'));
       const library = join(temporary, `fixture.${suffix}`);
       const compile = spawnSync(
         'cc',

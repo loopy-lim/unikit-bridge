@@ -1,10 +1,10 @@
 import {
   createFrameEngine,
   disposedBootstrapError,
-  RustraErrorCode,
-  RustraCommandError,
+  UnikitErrorCode,
+  UnikitCommandError,
   type EngineSupports,
-} from '@rustra/types';
+} from '@unikit/types';
 import type { Pointer } from 'bun:ffi';
 import {
   bunLibraryCandidates,
@@ -45,35 +45,35 @@ export const BUN_FRAME_ENGINE_SUPPORTS: EngineSupports = {
 
 export async function createBunFfiEngine(options: BunFfiEngineOptions): Promise<BunFfiRuntime> {
   const { dlopen, FFIType, toArrayBuffer } = await import('bun:ffi').catch((cause: unknown) => {
-    throw new RustraCommandError(
-      RustraErrorCode.TransportUnavailable,
-      'Bun FFI requires the Bun runtime. Run this client with bun, or use @rustra/node for a Node.js host.',
+    throw new UnikitCommandError(
+      UnikitErrorCode.TransportUnavailable,
+      'Bun FFI requires the Bun runtime. Run this client with bun, or use @unikit/node for a Node.js host.',
       false,
       cause,
     );
   });
   const definitions = {
-    rustra_mobile_init: { args: [], returns: FFIType.void },
-    rustra_ffi_invoke_frame: {
+    unikit_mobile_init: { args: [], returns: FFIType.void },
+    unikit_ffi_invoke_frame: {
       args: [FFIType.ptr, FFIType.u64, FFIType.ptr],
       returns: FFIType.ptr,
     },
-    rustra_ffi_invoke_frame_into: {
+    unikit_ffi_invoke_frame_into: {
       args: [FFIType.ptr, 'usize' as const, FFIType.ptr, 'usize' as const, FFIType.ptr],
       returns: 'usize' as const,
     },
-    rustra_ffi_free: { args: [FFIType.ptr, FFIType.u64], returns: FFIType.void },
-    rustra_ffi_get_schema: { args: [FFIType.ptr], returns: FFIType.ptr },
-    rustra_ffi_contract_hash: { args: [FFIType.ptr], returns: FFIType.ptr },
+    unikit_ffi_free: { args: [FFIType.ptr, FFIType.u64], returns: FFIType.void },
+    unikit_ffi_get_schema: { args: [FFIType.ptr], returns: FFIType.ptr },
+    unikit_ffi_contract_hash: { args: [FFIType.ptr], returns: FFIType.ptr },
     // (T0-3) 스키마 세대 — u64 반환, 인자 없음.
-    rustra_ffi_schema_generation: { args: [], returns: 'u64' as const },
+    unikit_ffi_schema_generation: { args: [], returns: 'u64' as const },
   } as const;
   const ownedDefinitions = {
-    rustra_ffi_invoke_frame_owned: {
+    unikit_ffi_invoke_frame_owned: {
       args: [FFIType.ptr, 'usize' as const, FFIType.ptr, 'usize' as const, FFIType.ptr],
       returns: FFIType.ptr,
     },
-    rustra_ffi_free_owned_bytes: {
+    unikit_ffi_free_owned_bytes: {
       args: [FFIType.ptr, 'usize' as const],
       returns: FFIType.void,
     },
@@ -83,8 +83,8 @@ export async function createBunFfiEngine(options: BunFfiEngineOptions): Promise<
       const handle = dlopen(library, { ...definitions, ...ownedDefinitions });
       return {
         handle,
-        invokeOwned: handle.symbols.rustra_ffi_invoke_frame_owned,
-        freeOwned: handle.symbols.rustra_ffi_free_owned_bytes,
+        invokeOwned: handle.symbols.unikit_ffi_invoke_frame_owned,
+        freeOwned: handle.symbols.unikit_ffi_free_owned_bytes,
       };
     } catch {
       // Older cores lack the optional pair. Reopen the complete legacy surface;
@@ -119,7 +119,7 @@ export async function createBunFfiEngine(options: BunFfiEngineOptions): Promise<
     const outLength = new BigUint64Array(1);
     const copyOwned = (pointer: Pointer | bigint | null): ArrayBuffer => {
       if (pointer === null || Number(pointer) === 0) {
-        throw new RustraCommandError('invoke.failed', 'Bun FFI returned a null response pointer');
+        throw new UnikitCommandError('invoke.failed', 'Bun FFI returned a null response pointer');
       }
       const length = Number(outLength[0]);
       try {
@@ -128,7 +128,7 @@ export async function createBunFfiEngine(options: BunFfiEngineOptions): Promise<
         new Uint8Array(owned).set(new Uint8Array(borrowed));
         return owned;
       } finally {
-        handle.symbols.rustra_ffi_free(pointer, BigInt(length));
+        handle.symbols.unikit_ffi_free(pointer, BigInt(length));
       }
     };
     const callerBufferCapacity = 512;
@@ -151,7 +151,7 @@ export async function createBunFfiEngine(options: BunFfiEngineOptions): Promise<
         if (pointer !== null && Number(pointer) !== 0) {
           try {
             if (!Number.isSafeInteger(size) || size <= callerBufferCapacity) {
-              throw new RustraCommandError(
+              throw new UnikitCommandError(
                 'invoke.failed',
                 `Bun FFI owned response reported an invalid size: ${length}`,
               );
@@ -167,14 +167,14 @@ export async function createBunFfiEngine(options: BunFfiEngineOptions): Promise<
           }
         }
         if (size > callerBufferCapacity) {
-          throw new RustraCommandError(
+          throw new UnikitCommandError(
             'invoke.failed',
             `Bun FFI caller-buffer status exceeds capacity: ${length}`,
           );
         }
         return size === 0 ? new ArrayBuffer(0) : callerBuffer.buffer;
       }
-      const status = handle.symbols.rustra_ffi_invoke_frame_into(
+      const status = handle.symbols.unikit_ffi_invoke_frame_into(
         request,
         BigInt(request.byteLength),
         callerBuffer,
@@ -184,14 +184,14 @@ export async function createBunFfiEngine(options: BunFfiEngineOptions): Promise<
       if (status === statusOverflow) {
         const needed = Number(outLength[0]);
         if (needed <= callerBufferCapacity || needed === 0) {
-          throw new RustraCommandError(
+          throw new UnikitCommandError(
             'invoke.failed',
             `Bun FFI caller-buffer overflow reported an invalid size: ${needed}`,
           );
         }
         const large = new Uint8Array(needed);
         outLength[0] = 0n;
-        const retried = handle.symbols.rustra_ffi_invoke_frame_into(
+        const retried = handle.symbols.unikit_ffi_invoke_frame_into(
           request,
           BigInt(request.byteLength),
           large,
@@ -199,7 +199,7 @@ export async function createBunFfiEngine(options: BunFfiEngineOptions): Promise<
           outLength,
         );
         if (retried === 0n || retried === statusOverflow) {
-          throw new RustraCommandError(
+          throw new UnikitCommandError(
             'invoke.failed',
             `Bun FFI caller-buffer retry failed (status ${retried})`,
           );
@@ -209,7 +209,7 @@ export async function createBunFfiEngine(options: BunFfiEngineOptions): Promise<
       }
       if (status === 0n) return new ArrayBuffer(0);
       if (status > callerBufferCapacity) {
-        throw new RustraCommandError(
+        throw new UnikitCommandError(
           'invoke.failed',
           `Bun FFI caller-buffer status exceeds capacity: ${status}`,
         );
@@ -229,17 +229,17 @@ export async function createBunFfiEngine(options: BunFfiEngineOptions): Promise<
       getSchema: () => {
         assertOpen();
         outLength[0] = 0n;
-        return copyOwned(handle.symbols.rustra_ffi_get_schema(outLength));
+        return copyOwned(handle.symbols.unikit_ffi_get_schema(outLength));
       },
       getContractHash: () => {
         assertOpen();
         outLength[0] = 0n;
-        return copyOwned(handle.symbols.rustra_ffi_contract_hash(outLength));
+        return copyOwned(handle.symbols.unikit_ffi_contract_hash(outLength));
       },
       // (T0-3) 치환 재동기화 게이트용 세대 폴링 — u64 → JS number (안전 범위).
       getSchemaGeneration: () => {
         assertOpen();
-        return Number(handle.symbols.rustra_ffi_schema_generation());
+        return Number(handle.symbols.unikit_ffi_schema_generation());
       },
     };
     const engine = createFrameEngine(native, frameCodecs, engineOptions);
@@ -272,7 +272,7 @@ export async function createBunFfiEngine(options: BunFfiEngineOptions): Promise<
   const selection = await selectVerifiedLibrary(bunLibraryCandidates(options), (candidate) => {
     const loaded = open(candidate);
     try {
-      loaded.handle.symbols.rustra_mobile_init();
+      loaded.handle.symbols.unikit_mobile_init();
       return buildRuntime(loaded, candidate);
     } catch (error) {
       loaded.handle.close();
@@ -282,9 +282,9 @@ export async function createBunFfiEngine(options: BunFfiEngineOptions): Promise<
   if (!('runtime' in selection)) {
     const detail =
       selection.probeFailures.length > 0 ? ` Tried ${selection.probeFailures.join('; ')}` : '';
-    throw new RustraCommandError(
-      RustraErrorCode.TransportUnavailable,
-      `No compatible Rustra Bun cdylib was found. Build the inferred Cargo library, or set RUSTRA_BUN_LIBRARY to its absolute path.${detail}`,
+    throw new UnikitCommandError(
+      UnikitErrorCode.TransportUnavailable,
+      `No compatible Unikit Bun cdylib was found. Build the inferred Cargo library, or set UNIKIT_BUN_LIBRARY to its absolute path.${detail}`,
     );
   }
   return selection.runtime;

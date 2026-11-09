@@ -26,8 +26,8 @@
 
 1. **스파이크 특수물 제거** — `ackResult`/`benchResult` 검증 훅, 벤치마크 코드, hex dump,
    SUMMARY 카운터 중 검증 전용은 제거. 단 run.sh 게이트가 grep 하는 로그 라인은 유지.
-2. **식별자는 전부 `template` 계열** — `rustra_template_init` / `template.app` /
-   `rustra-template-desktop` / `RustraTemplate` / `com.rustra.template`.
+2. **식별자는 전부 `template` 계열** — `unikit_template_init` / `template.app` /
+   `unikit-template-desktop` / `UnikitTemplate` / `com.unikit.template`.
    `create-runner.sh` 의 기존 4종 치환 규칙이 그대로 작동해야 한다.
 3. **하나의 bundle 산출물, 세 셸이 같이 소비** — `app/dist/index.lynx.bundle`을
    desktop(파일 로드) / iOS(`app/Resources/app.lynx.js` 복사) / Android
@@ -50,36 +50,36 @@ desktop/
 ├── build-lynx-host.sh        (신규: backend staticlib + src-tauri 빌드 + TemplateApp.app 조립)
 ├── verify-windows.ps1        (Windows 머신 게이트 — 스파이크 것 정제 이식)
 └── src-tauri/
-    ├── Cargo.toml            (tauri 2 + raw-window-handle 0.6 + cc; rustra-template-backend staticlib 링크)
+    ├── Cargo.toml            (tauri 2 + raw-window-handle 0.6 + cc; unikit-template-backend staticlib 링크)
     ├── build.rs              (cc 로 lynx_desktop.mm 컴파일 + Lynx SDK + staticlib 링크)
-    ├── tauri.conf.json       (productName Rustra Template, identifier dev.rustra.template)
-    ├── Info.plist            (CFBundleExecutable rustra-template-desktop)
+    ├── tauri.conf.json       (productName Unikit Template, identifier dev.unikit.template)
+    ├── Info.plist            (CFBundleExecutable unikit-template-desktop)
     └── src/
         ├── main.rs           (spike main.rs 와 동일 구조: handle 추출 → AppKit/Win32 분기 →
         │                      lynx_template_init/pump/summary extern. 식별자만 template)
         └── lynx_desktop.mm   (spike 414줄에서 정제: bench 관련 제거, ack 는 게이트용 유지,
-                               rustra_template_* FFI 로 교체, 심볼명 lynx_template_*)
+                               unikit_template_* FFI 로 교체, 심볼명 lynx_template_*)
 ```
 
 정제 규칙:
 
-- `lynx_desktop.mm`: extern `rustra_template_init/invoke_rkyv_v2/free_buffer` 사용.
+- `lynx_desktop.mm`: extern `unikit_template_init/invoke_rkyv_v2/free_buffer` 사용.
   `BenchResult`/`g_invoke_times_ns` 벤치 블록 제거. `ackResult` 는 run.sh 게이트가
   `SUMMARY resultAcked` 를 grep 하므로 **유지** (greet 결과 "Hello" ack).
-- `main.rs`: `rustra-lynx-tauri-spike` → `rustra-template-desktop`, extern 은
+- `main.rs`: `unikit-lynx-tauri-spike` → `unikit-template-desktop`, extern 은
   `lynx_template_{init,pump,summary}` 로. ack 검증 exit 3 로직 유지 (run.sh 의 pkill wait 정합).
 - `build-lynx-host.sh`: spike build-lynx-host.sh 를 template 경로에 맞게 —
-  (1) `cargo build --release --manifest-path backend/Cargo.toml`(→ backend/target/release/librustra_template_backend.a),
+  (1) `cargo build --release --manifest-path backend/Cargo.toml`(→ backend/target/release/libunikit_template_backend.a),
   (2) src-tauri build (LYNX_SDK 환경 주입), (3) TemplateApp.app 조립
   (binary + LynxResources.bundle symlink + Info.plist). run.sh 가 참조하는 경로
-  `$HERE/src-tauri/../../TemplateApp.app/Contents/MacOS/rustra-template-desktop` 에 정확히 맞춤.
+  `$HERE/src-tauri/../../TemplateApp.app/Contents/MacOS/unikit-template-desktop` 에 정확히 맞춤.
 
 **게이트(verify):** `runner/template/desktop/run.sh` — 기존 4단계 grep 게이트 그대로 통과해야 함.
 전제: LYNX_SDK(/tmp/lynx-prebuilt/macsdk).
 
 ## Task 2 — iOS 셸 추출 (`runner/template/mobile-ios/`)
 
-스파이크 `examples/lynx-calculator/{ios, modules/rustra-lynx/ios}` 를 정제:
+스파이크 `examples/lynx-calculator/{ios, modules/unikit-lynx/ios}` 를 정제:
 
 ```
 mobile-ios/
@@ -88,30 +88,30 @@ mobile-ios/
 │   ├── AppDelegate.{h,m}    (동일; 주석의 calculator → template)
 │   ├── ViewController.{h,m} (동일; loadTemplate app.lynx.js)
 │   ├── main.m
-│   ├── Info.plist            (bundle id dev.rustra.template)
+│   ├── Info.plist            (bundle id dev.unikit.template)
 │   └── Resources/            (번들 복사 대상 — .gitkeep)
-├── project.yml               (xcodegen; RustraTemplate, bundleIdPrefix dev.rustra)
-└── modules/rustra-lynx/
+├── project.yml               (xcodegen; UnikitTemplate, bundleIdPrefix dev.unikit)
+└── modules/unikit-lynx/
     ├── build-rust-ios.sh     (spike 것에서 --manifest-path backend/Cargo.toml + lib 이름 치환)
-    ├── RustraLynx.podspec    (vendored rust/lib/librustra_template_backend.a)
-    ├── RustraModule.{h,m}    (extern rustra_template_* 로 교체)
+    ├── UnikitLynx.podspec    (vendored rust/lib/libunikit_template_backend.a)
+    ├── UnikitModule.{h,m}    (extern unikit_template_* 로 교체)
     └── Podfile               (RustaTemplate target — mobile-ios/Podfile)
 ```
 
 - `build-rust-ios.sh`: spike 스크립트에서 REPO_ROOT 계산 대신 `MODULE_DIR/../../backend`,
-  `-p rustra_template_backend`(crate 하이픈 주의 — manifest-path 단독이면 -p 불필요), 산출
-  `backend/target/$TARGET/$PROFILE/librustra_template_backend.a` → `modules/rustra-lynx/ios/rust/lib/`.
-- `RustraModule.m`: `rustra_calculator_*` → `rustra_template_*` extern 교체. 로그 `[template-ios]`.
+  `-p unikit_template_backend`(crate 하이픈 주의 — manifest-path 단독이면 -p 불필요), 산출
+  `backend/target/$TARGET/$PROFILE/libunikit_template_backend.a` → `modules/unikit-lynx/ios/rust/lib/`.
+- `UnikitModule.m`: `unikit_calculator_*` → `unikit_template_*` extern 교체. 로그 `[template-ios]`.
 - `run.sh` 재작성: spike verify-ios.sh 의 실제 절차(번들→Resources 복사, staticlib 빌드,
   xcodegen + pod install (없으면), xcodebuild -derivedDataPath build, simctl install/launch,
   log poll, 게이트 grep) 를 template 경로로. 로그 TAG `[template-ios]`.
 
 **게이트(verify):** `runner/template/mobile-ios/run.sh` — iOS 시뮬레이터에서
-`loadTemplate bytes>0` / `RustraModule registered` / `rkyv in/out` / `Hello, rustra` 확인.
+`loadTemplate bytes>0` / `UnikitModule registered` / `rkyv in/out` / `Hello, unikit` 확인.
 
 ## Task 3 — Android 셸 추출 (`runner/template/mobile-android/`)
 
-스파이크 `examples/lynx-calculator/{android, modules/rustra-lynx/android}` 를 정제:
+스파이크 `examples/lynx-calculator/{android, modules/unikit-lynx/android}` 를 정제:
 
 ```
 mobile-android/
@@ -119,25 +119,25 @@ mobile-android/
 ├── gradle/wrapper/           (gradle-wrapper.jar/properties — spike 것 복사, 8.14.3)
 ├── gradlew
 ├── gradle.properties
-├── settings.gradle.kts       (rootProject RustraTemplate)
+├── settings.gradle.kts       (rootProject UnikitTemplate)
 ├── build.gradle.kts          (AGP 8.7.3 / Kotlin 2.0.21, ndkVersion 27.1.12297006 핀)
 └── app/
-    ├── build.gradle.kts      (namespace com.rustra.template, cmake path ../../modules/...,
-    │                          java.srcDirs ../../modules/rustra-lynx/android/src/main/java)
+    ├── build.gradle.kts      (namespace com.unikit.template, cmake path ../../modules/...,
+    │                          java.srcDirs ../../modules/unikit-lynx/android/src/main/java)
     └── src/main/
         ├── AndroidManifest.xml
         ├── assets/           (번들 복사 대상 — .gitkeep)
-        └── java/com/rustra/template/
+        └── java/com/unikit/template/
             ├── MainActivity.kt     (renderTemplateUrl main.lynx.bundle, TAG template-android)
-            ├── RustraApplication.kt (LynxEnv init)
+            ├── UnikitApplication.kt (LynxEnv init)
             └── DemoTemplateProvider.kt
-└── modules/rustra-lynx/
+└── modules/unikit-lynx/
     ├── build-rust-android.sh  (★Task 6: NDK 핀 포함 재작성)
     └── android/
-        ├── CMakeLists.txt     (librustra_template_backend-<triple>.a)
+        ├── CMakeLists.txt     (libunikit_template_backend-<triple>.a)
         └── src/main/
-            ├── cpp/rustra_jni.cpp   (rustra_template_* extern + JNI_OnLoad init)
-            └── java/com/rustra/lynx/RustraModule.kt (TAG template-android)
+            ├── cpp/unikit_jni.cpp   (unikit_template_* extern + JNI_OnLoad init)
+            └── java/com/unikit/lynx/UnikitModule.kt (TAG template-android)
 ```
 
 - gradle wrapper 바이너리(jar)는 스파이크에서 복사해 커밋 — 템플릿 사용자가 별도 설치 없이
@@ -145,14 +145,14 @@ mobile-android/
 - `local.properties` 는 커밋하지 않고 README 에 안내 (기계 의존).
 
 **게이트(verify):** `runner/template/mobile-android/run.sh` — 에뮬레이터에서
-`renderTemplateUrl` / `rkyv in bytes=` / `rkyv out bytes=` / `Hello, rustra` / no error.
+`renderTemplateUrl` / `rkyv in bytes=` / `rkyv out bytes=` / `Hello, unikit` / no error.
 
 ## Task 4 — codegen 실경로화 (G2)
 
 - `backend/src/bin/generate.rs` 신규 — calculator main.rs 패턴: `template_package().generate_typescript()?.write_to_dir(<app>/generated)`.
 - `app/package.json` codegen script 실구현:
   `"codegen": "npm_run_codegen_rust && node ../../../packages/cli/dist/index.js generate --schema generated/schema.json --output generated"`.
-  템플릿이 in-repo 에 있는 동안(복사 전) 에는 `packages/cli/dist` 와 `crates/rustra` path 가
+  템플릿이 in-repo 에 있는 동안(복사 전) 에는 `packages/cli/dist` 와 `crates/unikit-bridge` path 가
   유효 — 복사 후에는 create-runner.sh 가 절대/상대 경로를 안내(기존 P7 정책 유지).
   in-repo 검증 시 사용할 스크립트를 `runner/template/codegen.sh` 로도 제공:
   `cargo run --manifest-path backend/Cargo.toml --bin generate` + CLI 2종 왕복 (memory: dual-path).
@@ -178,8 +178,8 @@ mobile-android/
      stub 이 아니라, **에러를 정직하게 반환**하는 기본 구현 + Tauri plugin 연결 가이드 주석.
      (플랫폼 셸에 의존하지 않는 순수 Rust 계층 유지)
    - Mobile: NotifyCap 콜백 브리지도 동일 패턴으로 trait + setter 제공.
-3. FFI 심볼 노출: `rustra_template_set_file_read_callback` 등 `#[no_mangle]` —
-   NativeModule(iOS RustraModule.m / Android JNI)이 startup 에 호출.
+3. FFI 심볼 노출: `unikit_template_set_file_read_callback` 등 `#[no_mangle]` —
+   NativeModule(iOS UnikitModule.m / Android JNI)이 startup 에 호출.
 4. 샘플 command `read_config`(FileCap 사용) 활성화 + 단위테스트 확장:
    - MobileRegistry CB 주입 → read 성공/실패 경로
    - registry 미주입 시 capability.missing 에러
@@ -207,7 +207,7 @@ capabilities/README.md 갱신: 미구현 → 구현됨 (Mobile 브리지 사용�
 
 - `docs/plans/2026-05-14-rkyv-command-id-design.md` 헤더: "설계 완료, 구현 대기" →
   "구현 완료(invoke_rkyv_v2, 2026-05 시행)" 갱신 + 근거 링크.
-- `2026-08-12-rustra-runner-template-design.md` §7: 셸 추출 완료 상태로 갱신 (본 계획 링크).
+- `2026-08-12-unikit-runner-template-design.md` §7: 셸 추출 완료 상태로 갱신 (본 계획 링크).
 - `2026-08-12-cross-platform-problems-review.md`: P6 해소 표시(NDK 핀 이식), P7 은 유지(미발행).
 - `runner/template/README.md` 전면 갱신 — 실제 구조와 1:1 (셸 파일 표, codegen 절차,
   capability 브리지 사용법, Windows 절차).
@@ -226,14 +226,14 @@ in-repo 템플릿 상태로:
 5. `bash runner/template/mobile-android/run.sh` — Android 에뮬 게이트 PASS.
 6. **instantiation 스파크테스트:** `./runner/template/create-runner.sh gap-test com.example.gaptest /tmp/gap-test` →
    식별자 치환 확인(grep) + `cargo check` + `npm install && npm run codegen && npm run build`.
-   (path 의존성 문제로 외부 복사본의 cargo 는 rustra path 를 해석 못함 — P7 정책에 따라
-   create-runner.sh 가 rustra path 를 **원본 절대경로로 재작성**하는 기능을 추가해 해결.)
+   (path 의존성 문제로 외부 복사본의 cargo 는 unikit path 를 해석 못함 — P7 정책에 따라
+   create-runner.sh 가 unikit path 를 **원본 절대경로로 재작성**하는 기능을 추가해 해결.)
 7. 기존 회귀: `cargo test --workspace` + `npm run test:packages` + `test:ts:node` — green 유지.
 
 ## 완료 기준 (전체)
 
 - [x] T1: desktop/run.sh 게이트 PASS (macOS) — 6/6 PASS (SetParent NSView + greet rkyv 왕복 ack)
-- [x] T2: mobile-ios/run.sh 게이트 PASS (iOS 시뮬) — 5/5 PASS (loadTemplate/RustraModule/rkyv in/out)
+- [x] T2: mobile-ios/run.sh 게이트 PASS (iOS 시뮬) — 5/5 PASS (loadTemplate/UnikitModule/rkyv in/out)
 - [x] T3: mobile-android/run.sh 게이트 PASS (Android 에뮬) — 5/5 PASS (JNI_OnLoad + rkyv 왕복)
 - [x] T4: app codegen+build 성공, generated/ 5종 생성
 - [x] T5: backend capability 테스트 전 PASS (MobileRegistry 포함) — 테스트 3→6 PASS
@@ -243,8 +243,8 @@ in-repo 템플릿 상태로:
 - [x] 기존 워크스페이스 회귀 전부 green — cargo workspace 146/0 · test:packages 24/24 · test:ts:node 32/32 · clippy clean
 
 > **완료 (2026-08-14, 커밋 `3f6939e6` + `080b75c8`)** — 본 머신 검증 수치는
-> 커밋 메시지에 기록. 설계 대비 구현 차이: 개별 setter(`rustra_template_set_file_read_callback`)
-> 대신 통합 `MobileBridge` + `rustra_template_register_mobile_registry` 단일 FFI로 변경,
+> 커밋 메시지에 기록. 설계 대비 구현 차이: 개별 setter(`unikit_template_set_file_read_callback`)
+> 대신 통합 `MobileBridge` + `unikit_template_register_mobile_registry` 단일 FFI로 변경,
 > CLI 직접 호출 대신 `codegen.sh` dual-path 위임.
 
 ## 리스크

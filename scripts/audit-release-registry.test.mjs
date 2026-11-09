@@ -9,20 +9,20 @@ import { gzipSync } from 'node:zlib';
 import { auditRegistry, renderRegistryMarkdown } from './audit-release-registry.mjs';
 
 function rootFixture() {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-registry-audit-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-registry-audit-'));
   mkdirSync(join(root, 'packages', 'node'), { recursive: true });
-  mkdirSync(join(root, 'crates', 'rustra'), { recursive: true });
+  mkdirSync(join(root, 'crates', 'unikit'), { recursive: true });
   writeFileSync(
     join(root, 'packages', 'node', 'package.json'),
-    JSON.stringify({ name: '@rustra/node', version: '1.2.3' }),
+    JSON.stringify({ name: '@unikit/node', version: '1.2.3' }),
   );
   writeFileSync(
     join(root, 'Cargo.toml'),
-    '[workspace]\nmembers = ["crates/rustra"]\n[workspace.package]\nversion = "2.3.4"\n',
+    '[workspace]\nmembers = ["crates/unikit-bridge"]\n[workspace.package]\nversion = "2.3.4"\n',
   );
   writeFileSync(
-    join(root, 'crates', 'rustra', 'Cargo.toml'),
-    '[package]\nname = "rustra"\nversion.workspace = true\n',
+    join(root, 'crates', 'unikit', 'Cargo.toml'),
+    '[package]\nname = "unikit-bridge"\nversion.workspace = true\n',
   );
   return root;
 }
@@ -93,13 +93,13 @@ test('separates an unpublished npm exact version from a latest version with unkn
     }),
   });
   assert.deepEqual(report.npm[0], {
-    name: '@rustra/node',
+    name: '@unikit/node',
     workspaceVersion: '1.2.3',
     exactVersion: null,
     latestVersion: '1.2.4',
     publication: 'unpublished',
     source: { revision: null, relation: 'unknown', dirty: null },
-    registryUrl: 'https://registry.npmjs.org/%40rustra%2Fnode',
+    registryUrl: 'https://registry.npmjs.org/%40unikit%2Fnode',
     dist: null,
     error: null,
   });
@@ -114,7 +114,7 @@ test('reports npm exact metadata and distinguishes matching and different gitHea
     [undefined, 'unknown'],
   ]) {
     const exact = {
-      name: '@rustra/node',
+      name: '@unikit/node',
       version: '1.2.3',
       gitHead,
       dist: {
@@ -142,11 +142,11 @@ test('reports npm exact metadata and distinguishes matching and different gitHea
 
 test('verifies crate checksum before reading VCS metadata from the in-memory archive', async () => {
   const candidateSha = 'a'.repeat(40);
-  const archive = crateArchive('rustra', '2.3.4', candidateSha);
+  const archive = crateArchive('unikit', '2.3.4', candidateSha);
   const checksum = createHash('sha256').update(archive).digest('hex');
   const index = [
-    JSON.stringify({ name: 'rustra', vers: '2.3.4', cksum: checksum, yanked: false }),
-    JSON.stringify({ name: 'rustra', vers: '2.4.0', cksum: 'f'.repeat(64), yanked: false }),
+    JSON.stringify({ name: 'unikit', vers: '2.3.4', cksum: checksum, yanked: false }),
+    JSON.stringify({ name: 'unikit', vers: '2.4.0', cksum: 'f'.repeat(64), yanked: false }),
   ].join('\n');
   const report = await auditRegistry({
     root: rootFixture(),
@@ -168,9 +168,9 @@ test('verifies crate checksum before reading VCS metadata from the in-memory arc
 });
 
 test('makes checksum mismatch and network errors operational failures without guessing source', async () => {
-  const archive = crateArchive('rustra', '2.3.4', 'a'.repeat(40));
+  const archive = crateArchive('unikit', '2.3.4', 'a'.repeat(40));
   const index = JSON.stringify({
-    name: 'rustra',
+    name: 'unikit',
     vers: '2.3.4',
     cksum: 'd'.repeat(64),
     yanked: false,
@@ -215,7 +215,7 @@ test('hashes repeated local artifacts and renders evidence limits in Markdown', 
   const markdown = renderRegistryMarkdown(report);
   assert.match(markdown, /Local artifact evidence/);
   assert.match(markdown, /do not prove registry publication or physical-device runtime/i);
-  assert.match(markdown, /@rustra\/node/);
+  assert.match(markdown, /@unikit\/node/);
 });
 
 test('rejects malformed npm metadata and exact package identity as query errors', async () => {
@@ -224,27 +224,27 @@ test('rejects malformed npm metadata and exact package identity as query errors'
     { 'dist-tags': { latest: '1.2.3' }, versions: [] },
     {
       'dist-tags': { latest: '1.2.3' },
-      versions: { '1.2.3': { name: '@rustra/other', version: '1.2.3', dist: {} } },
+      versions: { '1.2.3': { name: '@unikit/other', version: '1.2.3', dist: {} } },
     },
     {
       'dist-tags': { latest: '1.2.3' },
-      versions: { '1.2.3': { name: '@rustra/node', version: '9.9.9', dist: {} } },
+      versions: { '1.2.3': { name: '@unikit/node', version: '9.9.9', dist: {} } },
     },
     { 'dist-tags': { latest: '1.2.3' }, versions: { '1.2.3': null } },
     { 'dist-tags': { latest: '1.2.3' }, versions: { '1.2.3': false } },
     {
       'dist-tags': { latest: '1.2.3' },
-      versions: { '1.2.3': { name: '@rustra/node', version: '1.2.3', dist: [] } },
+      versions: { '1.2.3': { name: '@unikit/node', version: '1.2.3', dist: [] } },
     },
     {
       'dist-tags': { latest: '1.2.3' },
-      versions: { '1.2.3': { name: '@rustra/node', version: '1.2.3', dist: {} } },
+      versions: { '1.2.3': { name: '@unikit/node', version: '1.2.3', dist: {} } },
     },
     {
       'dist-tags': { latest: '1.2.3' },
       versions: {
         '1.2.3': {
-          name: '@rustra/node',
+          name: '@unikit/node',
           version: '1.2.3',
           dist: { tarball: 'http://npm.test/pkg.tgz', shasum: 'a'.repeat(40) },
         },
@@ -254,7 +254,7 @@ test('rejects malformed npm metadata and exact package identity as query errors'
       'dist-tags': { latest: '1.2.3' },
       versions: {
         '1.2.3': {
-          name: '@rustra/node',
+          name: '@unikit/node',
           version: '1.2.3',
           dist: { tarball: 'https://npm.test/pkg.tgz', shasum: 'not-a-sha1' },
         },
@@ -297,14 +297,14 @@ test('accepts only full hex revisions and does not claim exact source for a dirt
     const archive = gzipSync(
       Buffer.concat([
         tarEntry(
-          'rustra-2.3.4/.cargo_vcs_info.json',
+          'unikit-2.3.4/.cargo_vcs_info.json',
           JSON.stringify({ git: { sha1: revision, dirty }, path_in_vcs: '' }),
         ),
         Buffer.alloc(1024),
       ]),
     );
     const checksum = createHash('sha256').update(archive).digest('hex');
-    const index = JSON.stringify({ name: 'rustra', vers: '2.3.4', cksum: checksum, yanked: false });
+    const index = JSON.stringify({ name: 'unikit', vers: '2.3.4', cksum: checksum, yanked: false });
     const report = await auditRegistry({
       root: rootFixture(),
       candidate: { sha: 'a'.repeat(40), dirty: false },
@@ -324,14 +324,14 @@ test('treats omitted Cargo VCS dirty metadata as clean while preserving explicit
   const archive = gzipSync(
     Buffer.concat([
       tarEntry(
-        'rustra-2.3.4/.cargo_vcs_info.json',
+        'unikit-2.3.4/.cargo_vcs_info.json',
         JSON.stringify({ git: { sha1: revision }, path_in_vcs: '' }),
       ),
       Buffer.alloc(1024),
     ]),
   );
   const checksum = createHash('sha256').update(archive).digest('hex');
-  const index = JSON.stringify({ name: 'rustra', vers: '2.3.4', cksum: checksum, yanked: false });
+  const index = JSON.stringify({ name: 'unikit', vers: '2.3.4', cksum: checksum, yanked: false });
   const report = await auditRegistry({
     root: rootFixture(),
     candidate: { sha: revision, dirty: false },
@@ -345,11 +345,11 @@ test('treats omitted Cargo VCS dirty metadata as clean while preserving explicit
 });
 
 test('validates sparse index entries and exposes a yanked exact version separately from latest', async () => {
-  const archive = crateArchive('rustra', '2.3.4', 'a'.repeat(40));
+  const archive = crateArchive('unikit', '2.3.4', 'a'.repeat(40));
   const checksum = createHash('sha256').update(archive).digest('hex');
   const yanked = [
-    JSON.stringify({ name: 'rustra', vers: '2.3.4', cksum: checksum, yanked: true }),
-    JSON.stringify({ name: 'rustra', vers: '2.4.0', cksum: 'f'.repeat(64), yanked: false }),
+    JSON.stringify({ name: 'unikit', vers: '2.3.4', cksum: checksum, yanked: true }),
+    JSON.stringify({ name: 'unikit', vers: '2.4.0', cksum: 'f'.repeat(64), yanked: false }),
   ].join('\n');
   const report = await auditRegistry({
     root: rootFixture(),
@@ -385,7 +385,7 @@ test('rejects prefix-only and otherwise invalid sparse semver values', async () 
         npm: response(404, ''),
         index: response(
           200,
-          JSON.stringify({ name: 'rustra', vers, cksum: 'a'.repeat(64), yanked: false }),
+          JSON.stringify({ name: 'unikit', vers, cksum: 'a'.repeat(64), yanked: false }),
         ),
       }),
     });
@@ -396,7 +396,7 @@ test('rejects prefix-only and otherwise invalid sparse semver values', async () 
 
 test('accepts digit-leading alphanumeric prereleases and applies SemVer ASCII and numeric ordering', async () => {
   const revision = 'a'.repeat(40);
-  const archive = crateArchive('rustra', '2.3.4', revision);
+  const archive = crateArchive('unikit', '2.3.4', revision);
   const checksum = createHash('sha256').update(archive).digest('hex');
   const versions = [
     ['2.3.4', checksum],
@@ -408,7 +408,7 @@ test('accepts digit-leading alphanumeric prereleases and applies SemVer ASCII an
     ['2.4.0-9007199254740993', '6'.repeat(64)],
   ];
   const index = versions
-    .map(([vers, cksum]) => JSON.stringify({ name: 'rustra', vers, cksum, yanked: false }))
+    .map(([vers, cksum]) => JSON.stringify({ name: 'unikit', vers, cksum, yanked: false }))
     .join('\n');
   const report = await auditRegistry({
     root: rootFixture(),
@@ -427,7 +427,7 @@ test('accepts digit-leading alphanumeric prereleases and applies SemVer ASCII an
     ['2.4.0-9007199254740993', '6'.repeat(64)],
     ['2.4.0-9007199254740992', '5'.repeat(64)],
   ]
-    .map(([vers, cksum]) => JSON.stringify({ name: 'rustra', vers, cksum, yanked: false }))
+    .map(([vers, cksum]) => JSON.stringify({ name: 'unikit', vers, cksum, yanked: false }))
     .join('\n');
   const numericReport = await auditRegistry({
     root: rootFixture(),
@@ -447,7 +447,7 @@ test('rejects truncated tar entries and a VCS file outside the exact archive roo
     gzipSync(Buffer.from('truncated tar')),
   ]) {
     const checksum = createHash('sha256').update(archive).digest('hex');
-    const index = JSON.stringify({ name: 'rustra', vers: '2.3.4', cksum: checksum, yanked: false });
+    const index = JSON.stringify({ name: 'unikit', vers: '2.3.4', cksum: checksum, yanked: false });
     const report = await auditRegistry({
       root: rootFixture(),
       candidate: { sha: 'a'.repeat(40), dirty: false },

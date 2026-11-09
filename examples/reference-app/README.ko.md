@@ -1,6 +1,6 @@
-# @rustra/example-reference-app
+# @unikit/example-reference-app
 
-`@rustra/react` 훅(useCommand/useMutation/useEvent/RustraProvider)의 레퍼런스
+`@unikit/react` 훅(useCommand/useMutation/useEvent/UnikitProvider)의 레퍼런스
 앱 — CRUD + 이벤트 흐름을 어떻게 구성하는지 보여준다.
 
 ## 구조
@@ -20,12 +20,12 @@ crud 예제를 먼저 빌드해야 한다(아래 실행 참고).
 # 저장소 루트에서
 bun run test:app:reference
 # 또는 직접:
-cargo build -p rustra-crud-example && \
+cargo build -p unikit-crud-example && \
   tsc -p examples/reference-app/tsconfig.json && \
   node examples/reference-app/dist/examples/reference-app/src/main.js
 ```
 
-스모크는 실제 훅 트리를 실행해 Node 프로세스 transport 로 실 `rustra-crud-example`
+스모크는 실제 훅 트리를 실행해 Node 프로세스 transport 로 실 `unikit-crud-example`
 런타임 CRUD 왕복을 검증한다.
 
 ## 웹/RN으로 옮기기
@@ -34,16 +34,16 @@ UI 트리는 엔진 주입만 바꾸면 어디서든 동일하다:
 
 ```tsx
 // RN
-const engine = createReactNativeEngine(NativeModules.RustraJSI);
-<RustraProvider engine={engine}>
+const engine = createReactNativeEngine(NativeModules.UnikitJSI);
+<UnikitProvider engine={engine}>
   <App />
-</RustraProvider>;
+</UnikitProvider>;
 
 // 웹 (Tauri)
 const engine = createTauriEngine({ invoke: window.__TAURI__.core.invoke });
-<RustraProvider engine={engine}>
+<UnikitProvider engine={engine}>
   <App />
-</RustraProvider>;
+</UnikitProvider>;
 ```
 
 ### 채널도 4호스트 동형
@@ -68,4 +68,4 @@ Rust 가 회신을 푸시한다. 호스트별 발급자만 다르다:
   기반 minify-안전 식별
 - `useMutation` — 낙관적 갱신 없이 성공/실패 콜백 구성
 - `useEvent` — 이벤트 구독 정리(unsubscribe)
-- `RustraProvider` — 엔진 스코프 주입
+- `UnikitProvider` — 엔진 스코프 주입

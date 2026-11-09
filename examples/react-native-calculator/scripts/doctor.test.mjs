@@ -15,16 +15,16 @@ import {
 } from './generate-build-fingerprint.mjs';
 
 const REQUIRED_SYMBOLS = `
-000 T _rustra_mobile_init
-000 T _rustra_ffi_invoke_buffer
-000 T _rustra_ffi_has_buffer
-000 T _rustra_ffi_invoke_raw
-000 T _rustra_ffi_has_raw
-000 T _rustra_ffi_free_owned_bytes
-000 T _rustra_ffi_invoke_frame_async
-000 T _rustra_calculator_invoke_frame
-000 T _rustra_calculator_invoke_typed_raw
-000 T _rustra_calculator_free_frame_buffer
+000 T _unikit_mobile_init
+000 T _unikit_ffi_invoke_buffer
+000 T _unikit_ffi_has_buffer
+000 T _unikit_ffi_invoke_raw
+000 T _unikit_ffi_has_raw
+000 T _unikit_ffi_free_owned_bytes
+000 T _unikit_ffi_invoke_frame_async
+000 T _unikit_calculator_invoke_frame
+000 T _unikit_calculator_invoke_typed_raw
+000 T _unikit_calculator_free_frame_buffer
 `;
 
 describe('RN doctor', () => {
@@ -102,8 +102,8 @@ describe('RN doctor', () => {
       exists: true,
       archiveMtimeMs: 1,
       newestSourceMtimeMs: 2,
-      newestSourcePath: 'crates/rustra/src/ffi.rs',
-      symbols: '_rustra_ffi_invoke_buffer',
+      newestSourcePath: 'crates/unikit-bridge/src/ffi.rs',
+      symbols: '_unikit_ffi_invoke_buffer',
       architectures: 'arm64',
     });
     expect(broken.map((result) => result.id)).toEqual([
@@ -127,8 +127,8 @@ describe('RN doctor', () => {
     const stale = analyzeInstalledBinary({
       binaryMtimeMs: 1,
       newestInputMtimeMs: 2,
-      newestInputPath: 'modules/rustra-jsi/ios/rust/lib/librustra_calculator_example.a',
-      symbols: '_rustra_ffi_invoke_buffer',
+      newestInputPath: 'modules/unikit-jsi/ios/rust/lib/libunikit_calculator_example.a',
+      symbols: '_unikit_ffi_invoke_buffer',
     });
     expect(stale.map((result) => result.id)).toEqual(['ios.app.freshness', 'ios.app.symbols']);
     expect(stale.every((result) => result.status === 'fail')).toBe(true);
@@ -160,15 +160,15 @@ describe('RN doctor', () => {
   test('requires one generated module to autolink on bare RN iOS and Android', () => {
     const reactNativeConfig = JSON.stringify({
       dependencies: {
-        '@rustra/generated-react-native': {
+        '@unikit/generated-react-native': {
           platforms: {
-            ios: { podspecPath: '/app/modules/rustra-bridge/RustraBridge.podspec' },
-            android: { sourceDir: '/app/modules/rustra-bridge/android' },
+            ios: { podspecPath: '/app/modules/unikit-bridge/UnikitBridge.podspec' },
+            android: { sourceDir: '/app/modules/unikit-bridge/android' },
           },
         },
       },
     });
-    const pods = ['RustraBridge', 'RustraCalculator', 'NitroBench']
+    const pods = ['UnikitBridge', 'UnikitCalculator', 'NitroBench']
       .map((name) => `  - ${name} (0.0.0):`)
       .join('\n');
     expect(

@@ -1,10 +1,10 @@
 [English](./rust-api-guide.md)
 
-# rustra-bridge Rust API 가이드
+# unikit-bridge Rust API 가이드
 
 ## 1. 개요
 
-rustra-bridge는 Rust에서 명령을 한 번 정의하면, Node / Bun / Tauri / React Native 어디서든 동작하는 TypeScript 클라이언트를 자동 생성하는 브릿지 프레임워크입니다.
+unikit-bridge는 Rust에서 명령을 한 번 정의하면, Node / Bun / Tauri / React Native 어디서든 동작하는 TypeScript 클라이언트를 자동 생성하는 브릿지 프레임워크입니다.
 
 ```text
 Rust #[command] 정의 → TypeScript 클라이언트 자동 생성 → 각 플랫폼 어댑터로 실행
@@ -16,13 +16,13 @@ Rust #[command] 정의 → TypeScript 클라이언트 자동 생성 → 각 플�
 | ------------------ | ------------------------------------------------------ |
 | `#[command]`       | 함수를 브릿지 명령으로 변환하는 속성 매크로            |
 | `#[bridge_type]`   | 구조체/열거형에 필요한 derive와 serde 설정을 자동 추가 |
-| `rustra::build!()` | 패키지 빌더를 생성하고 여러 명령을 한 번에 등록        |
+| `unikit_bridge::build!()` | 패키지 빌더를 생성하고 여러 명령을 한 번에 등록        |
 
 ---
 
 ## 2. `#[command]` 매크로
 
-함수를 rustra-bridge 명령으로 변환하는 속성 매크로입니다. `#[command]` 또는 `#[command(name = "customName")]` 형태로 사용합니다.
+함수를 unikit-bridge 명령으로 변환하는 속성 매크로입니다. `#[command]` 또는 `#[command(name = "customName")]` 형태로 사용합니다.
 
 ### 2-1. 구조체 파라미터 모드 (유일한 입력 형태)
 
@@ -36,7 +36,7 @@ Rust #[command] 정의 → TypeScript 클라이언트 자동 생성 → 각 플�
 여러 값이 필요하면 Input 구조체를 정의합니다:
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 struct AddNumbersInput {
@@ -89,7 +89,7 @@ fn ping() -> Result<()> {
 #[command]
 fn divide(input: DivisionInput) -> Result<DivisionOutput> {
     if input.divisor == 0 {
-        return Err(RustraError::invalid_args("division by zero"));
+        return Err(UnikitError::invalid_args("division by zero"));
     }
     Ok(DivisionOutput {
         quotient: input.dividend / input.divisor,
@@ -171,12 +171,12 @@ async fn find_user(input: UserQuery) -> Result<User> {
 
 async 문법 지원은 범용 비동기 런타임 제공이 **아닙니다**. 생성된 래퍼는 호출 스레드에서
 park 기반 실행기로 future를 구동합니다(waker는 `Thread::unpark`;
-`crates/rustra/src/executor.rs` 참고). 호스트 통합자가 알아야 할 귀결은 네 가지입니다:
+`crates/unikit-bridge/src/executor.rs` 참고). 호스트 통합자가 알아야 할 귀결은 네 가지입니다:
 
 1. **실행기는 현재 스레드를 park 합니다.** 멀티스레드 호스트 런타임(예: tokio) 안에서
    park된 워커 스레드는 굶은 워커입니다 — 비동기 커맨드 디스패치를 `spawn_blocking`
    (또는 동등한 전용 풀)으로 돌리거나, 완전한 비동기 dispatch 경로를 기다리세요. FFI
-   async 경로에서는 핸들러가 rustra 고정 워커 풀(아래)에서 실행되므로 느린 비동기
+   async 경로에서는 핸들러가 unikit 고정 워커 풀(아래)에서 실행되므로 느린 비동기
    커맨드 하나가 워커 2개 중 하나를 점유합니다.
 2. **`State<T>`는 thread-local이라 spawned task에서 보이지 않습니다.** 상태 주입은
    thread-local 컨텍스트로 전달되어 디스패치가 시작된 스레드에서만 유효합니다. 핸들러가
@@ -184,12 +184,12 @@ park 기반 실행기로 future를 구동합니다(waker는 `Thread::unpark`;
    미리 캡처하세요(`Arc` 클론).
 3. **FFI async 호출은 고정 풀 — 워커 2개, 큐 깊이 256 — 에서 실행됩니다.** 풀은
    fail-fast입니다. 큐가 가득 차면 hang하지 않고 즉시 `invoke.backpressure`로
-   거부합니다(`crates/rustra/src/ffi_pool.rs`). 백프레셔로 다뤄 drain 후 재시도하세요.
+   거부합니다(`crates/unikit-bridge/src/ffi_pool.rs`). 백프레셔로 다뤄 drain 후 재시도하세요.
    상수는 고정값이며 설정할 수 없습니다.
 4. **I/O 리액터나 타이머 드라이버는 제공하지 않습니다.** 런타임 컨텍스트와 무관하게
    완료되는 future라면 무엇이든 동작합니다 — 어떤 스레드에서 깨워도 park된 스레드가
    unpark 됩니다. 리액터나 타이머를 요구하는 future(tokio 리소스, `tokio::time`)는
-   디스패치 주위에 호스트의 런타임 진입이 필요합니다. rustra는 만들어주지 않습니다.
+   디스패치 주위에 호스트의 런타임 진입이 필요합니다. unikit는 만들어주지 않습니다.
 
 실행기 주입(자체 `block_on` 끼워 넣기)은 지원하지 않습니다. 필요성을 느낀다면 먼저
 측정하세요 — 의도적으로 범위 밖입니다.
@@ -267,7 +267,7 @@ enum Shape {
 
 ---
 
-## 4. `rustra::build!()` 매크로
+## 4. `unikit_bridge::build!()` 매크로
 
 패키지 빌더를 생성하고 `#[command]` 함수들을 한 번에 등록하는 매크로입니다.
 
@@ -275,7 +275,7 @@ enum Shape {
 
 ```rust
 // 등록 + 빌드
-let pkg = rustra::build!("examples.calculator", add_numbers, multiply).done();
+let pkg = unikit_bridge::build!("examples.calculator", add_numbers, multiply).done();
 
 // TypeScript 생성은 Package 의 generate_typescript 에서
 pkg.generate_typescript()?.write_schema_to_dir("generated")?;
@@ -283,26 +283,26 @@ pkg.generate_typescript()?.write_schema_to_dir("generated")?;
 
 ### 매크로 내부 동작
 
-`rustra::build!("examples.calculator", add_numbers)` 호출 시 다음 코드로 확장됩니다:
+`unikit_bridge::build!("examples.calculator", add_numbers)` 호출 시 다음 코드로 확장됩니다:
 
 ```rust
-rustra::Package::builder("examples.calculator")
-    .command(__RUstra_meta_add_numbers, __rustra_add_numbers_handler)
+unikit_bridge::Package::builder("examples.calculator")
+    .command(__UNikit_meta_add_numbers, __unikit_add_numbers_handler)
 ```
 
 각 `#[command]` 함수에 대해 매크로가 생성하는 것:
 
 | 생성물           | 이름 규칙                    | 역할                                            |
 | ---------------- | ---------------------------- | ----------------------------------------------- |
-| 메타데이터 상수  | `__RUstra_meta_<fn_name>`    | 커맨드 이름을 저장하는 `&str` 상수              |
-| 핸들러 함수      | `__rustra_<fn_name>_handler` | 입력 타입 변환과 Ok() 래핑을 수행하는 래퍼 함수 |
+| 메타데이터 상수  | `__UNikit_meta_<fn_name>`    | 커맨드 이름을 저장하는 `&str` 상수              |
+| 핸들러 함수      | `__unikit_<fn_name>_handler` | 입력 타입 변환과 Ok() 래핑을 수행하는 래퍼 함수 |
 | trait bound 검증 | `_check_command_bounds`      | 입출력 타입이 필요한 trait을 충족하는지 확인    |
 
 ---
 
 ## 5. PackageBuilder 메서드
 
-`PackageBuilder`는 명령을 점진적으로 등록하는 빌더입니다. `Package::builder(id)`로 생성합니다 (또는 `rustra::build!` 매크로가 내부적으로 호출).
+`PackageBuilder`는 명령을 점진적으로 등록하는 빌더입니다. `Package::builder(id)`로 생성합니다 (또는 `unikit_bridge::build!` 매크로가 내부적으로 호출).
 
 ### `.command_fn(handler)`
 
@@ -310,7 +310,7 @@ rustra::Package::builder("examples.calculator")
 제거한 뒤 lowerCamelCase로 변환하여 커맨드 이름으로 사용합니다.
 
 ```rust
-use rustra::register;
+use unikit_bridge::register;
 
 let pkg = register!(Package::builder("example.calculator"), add_numbers).build();
 ```
@@ -339,7 +339,7 @@ postcard/JSON 명령 계약도 함께 유지되므로 다른 호스트와 구 �
 ```rust
 #[derive(Serialize, Deserialize, JsonSchema)]
 struct Bytes {
-    #[serde(with = "rustra::byte_buffer")]
+    #[serde(with = "unikit_bridge::byte_buffer")]
     #[schemars(with = "Vec<u8>")]
     data: Vec<u8>,
 }
@@ -394,12 +394,12 @@ let pkg = Package::builder("example.bytes")
 ### 상태 주입: `State<T>` 파라미터
 
 `#[command]` 함수는 단일 입력 구조체 외에 추가 `State<T>` 파라미터를 받을 수 있다.
-상태는 빌더의 `.manage(state)`로 등록하고, 매크로가 `rustra::get_state::<T>()`로
+상태는 빌더의 `.manage(state)`로 등록하고, 매크로가 `unikit_bridge::get_state::<T>()`로
 핸들러에 주입한다. `.manage()` 없이 등록된 `State<T>` 파라미터를 가진 명령을 호출하면
 `internal` 에러 `State<T> not managed in package`로 실패한다.
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 struct QueryInput { user_id: String }
@@ -435,7 +435,7 @@ Win32/AppKit 호출, 네이티브 윈도우 핸들 같은 플랫폼 특화 명�
 실제 핸들러로 교체한다:
 
 ```rust
-use rustra::platform::Platform;
+use unikit_bridge::platform::Platform;
 
 let builder = Package::builder("app.native")
     .platform_command::<(), NativeWindowInfo>(
@@ -471,7 +471,7 @@ let pkg = builder.build();
 ### `.build()` / `.done()`
 
 등록된 모든 명령을 불변 `Package`로 빌드합니다. `.done()`은 `.build()`의 별칭입니다
-(`rustra::build!` 확장 결과는 `.done()`으로 마무리).
+(`unikit_bridge::build!` 확장 결과는 `.done()`으로 마무리).
 
 ```rust
 let pkg = Package::builder("example.calculator")
@@ -529,18 +529,18 @@ let output: AddNumbersOutput =
 ### Frame 와이어 헬퍼 (크레이트 레벨 자유 함수)
 
 raw Frame 응답/에러 프레임을 다루는 모든 곳의 동반 헬퍼입니다
-(`crates/rustra/src/frame_error.rs`). 성공 프레임은
+(`crates/unikit-bridge/src/frame_error.rs`). 성공 프레임은
 `[ok:1][7B reserved][postcard(O) @8]`, 에러 프레임은
 `[ok: u8 @0 = 0][pad 7B][err_len: u16 @8 LE][postcard({code, message}) @10...]` 입니다.
 
 - `decode_frame_response(frame: &[u8]) -> Result<&[u8]>` — 성공 프레임의 postcard
   본문을 빌려 반환합니다. 에러 프레임은 `code` 와 `message` 가 합쳐진
-  (`"{code}: {message}"`) `RustraError::internal` 로 돌아옵니다. 코드를 따로
+  (`"{code}: {message}"`) `UnikitError::internal` 로 돌아옵니다. 코드를 따로
   필요하면 아래 구조화 변형을 쓰세요.
 - `decode_frame_error_parts(frame: &[u8]) -> Result<(String, String)>` — 에러
   프레임 한정 구조화 변형: 소유 `(code, message)` 쌍을 반환합니다. 성공 프레임은
   `command.invalid_args` 로 거절합니다.
-- `encode_frame_error(error: &RustraError) -> Vec<u8>` — 에러를 FFI 경계용 와이어
+- `encode_frame_error(error: &UnikitError) -> Vec<u8>` — 에러를 FFI 경계용 와이어
   에러 프레임으로 인코딩합니다(postcard `{code, message}`, 메시지가 `u16::MAX` 를
   넘으면 잘림 마커를 남깁니다).
 
@@ -568,7 +568,7 @@ TypeScript 코드 생성 결과를 담는 구조체입니다.
 ### `.write_schema_to_dir(dir)`
 
 계약 프로브 출력인 `schema.json`을 지정한 디렉토리에 저장합니다. 디렉토리가 없으면
-생성합니다. 이어서 `rustra codegen`이 이 단일 파일에서 전 표면(types, commands,
+생성합니다. 이어서 `unikit codegen`이 이 단일 파일에서 전 표면(types, commands,
 contract, 코덱, 호스트 엔트리)을 렌더링합니다.
 
 ```rust
@@ -580,7 +580,7 @@ generated.write_schema_to_dir("generated")?;
 
 ```text
 generated/schema.json   # Rust 프로브가 발행
-        │ rustra codegen --config rustra.json
+        │ unikit codegen --config unikit.json
         ▼
 generated/
   schema.json      # 전체 명령 스키마
@@ -591,19 +591,19 @@ generated/
 ```
 
 > `.write_schema_to_dir(dir)`은 `schema.json`만 발행합니다. TS 표면(`types.ts` 등)은
-> `rustra codegen`의 소관 — Rust에서 재생성하지 않습니다. 구(舊) `.write_to_dir(dir)`
+> `unikit codegen`의 소관 — Rust에서 재생성하지 않습니다. 구(舊) `.write_to_dir(dir)`
 > 듀얼 패스는 이런 이유로 deprecated입니다.
 
 ---
 
 ## 8. 에러 처리
 
-### RustraError
+### UnikitError
 
 모든 에러는 `code`와 `message` 필드를 가집니다.
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 struct DivideInput { a: i64, b: i64 }
@@ -614,7 +614,7 @@ struct DivideOutput { value: i64 }
 #[command(error("math.divide_by_zero"))]
 fn divide(input: DivideInput) -> Result<DivideOutput> {
     if input.b == 0 {
-        return Err(RustraError::custom("math.divide_by_zero", "cannot divide by zero"));
+        return Err(UnikitError::custom("math.divide_by_zero", "cannot divide by zero"));
     }
     Ok(DivideOutput { value: input.a / input.b })
 }
@@ -623,7 +623,7 @@ fn divide(input: DivideInput) -> Result<DivideOutput> {
 ### 커맨드별 에러 코드 선언 (타입화 에러)
 
 TypeScript 에서 `err.code` 를 문자열 비교로 분기하면 코드 오타가 컴파일 타임에
-잡히지 않는다. 커맨드가 반환할 수 있는 도메인 코드를 선언하면 `rustra codegen`이
+잡히지 않는다. 커맨드가 반환할 수 있는 도메인 코드를 선언하면 `unikit codegen`이
 커맨드별 리터럴 유니언 + 타입 가드로 바꿔준다.
 
 속성 폼으로 선언한다(권장 — 선언이 핸들러 옆에 산다):
@@ -637,7 +637,7 @@ fn divide(input: DivideInput) -> Result<DivideOutput> { /* … */ }
 소비되고 와이어 의미는 바꾸지 않는다)를 붙일 수 있다:
 
 ```rust
-use rustra::CommandErrorVariant;
+use unikit_bridge::CommandErrorVariant;
 
 let package = Package::builder("example.math")
     .command_errors(
@@ -648,7 +648,7 @@ let package = Package::builder("example.math")
     // …명령 등록 후 build…
 ```
 
-`rustra codegen`을 다시 돌리면, 에러를 선언한 커맨드가 1건이라도 있을 때 생성
+`unikit codegen`을 다시 돌리면, 에러를 선언한 커맨드가 1건이라도 있을 때 생성
 `errors.ts`가 나타난다. TypeScript 측에서는 문자열 비교 대신 가드로 좁힌다:
 
 ```ts
@@ -669,25 +669,25 @@ try {
   폴백 경로가 이런 코드를 Display 출력에서 되분할할 수 없기 때문).
 - 선언은 커맨드의 **도메인** 코드만 담는다. 프레임워크 코드(`cancelled`,
   `transport.timeout`, `command.invalid_args`, …)는 어느 커맨드에서든 발생할 수
-  있어 공유 `RustraErrorCode` 표에 그대로 둔다 — 그쪽은 직접 비교한다.
+  있어 공유 `UnikitErrorCode` 표에 그대로 둔다 — 그쪽은 직접 비교한다.
 - 선언은 계약 문서이지 런타임 검증이 아니다. 핸들러가 미선언 코드를 반환해도
   그대로 흐르고, 가드는 그런 코드에 false 를 반환한다(런타임은 개방 계약, 타입은
   폐쇄 유니언). 선언 추가는 schema.json 과 계약 해시를 바꾼다 — 의도된 계약
-  진화이며 `rustra diff` 가 잡는다.
-- 와이어 에러 프레임과 `RustraCommandError`는 무변경 —
+  진화이며 `unikit diff` 가 잡는다.
+- 와이어 에러 프레임과 `UnikitCommandError`는 무변경 —
   [wire-format.md](./wire-format.md) 참조.
 
 ### 에러 코드 분류
 
 | 코드                   | 팩토리 메서드                          | 의미                                    |
 | ---------------------- | -------------------------------------- | --------------------------------------- |
-| `command.not_found`    | `RustraError::command_not_found(name)` | 등록되지 않은 명령 호출                 |
-| `command.invalid_args` | `RustraError::invalid_args(error)`     | 입력 인자 역직렬화 실패                 |
-| `capability.denied`    | `RustraError::capability_denied(d)`    | capability 미부여                       |
-| `transport.error`      | `RustraError::transport(error)`        | transport/네트워크 오류 — **retryable** |
-| `transport.timeout`    | `RustraError::timeout(error)`          | 타임아웃 — **retryable**                |
-| `internal`             | `RustraError::internal(error)`         | 내부 오류 (직렬화, I/O 등)              |
-| (커스텀)               | `RustraError::custom(code, message)`   | 사용자 정의 에러                        |
+| `command.not_found`    | `UnikitError::command_not_found(name)` | 등록되지 않은 명령 호출                 |
+| `command.invalid_args` | `UnikitError::invalid_args(error)`     | 입력 인자 역직렬화 실패                 |
+| `capability.denied`    | `UnikitError::capability_denied(d)`    | capability 미부여                       |
+| `transport.error`      | `UnikitError::transport(error)`        | transport/네트워크 오류 — **retryable** |
+| `transport.timeout`    | `UnikitError::timeout(error)`          | 타임아웃 — **retryable**                |
+| `internal`             | `UnikitError::internal(error)`         | 내부 오류 (직렬화, I/O 등)              |
+| (커스텀)               | `UnikitError::custom(code, message)`   | 사용자 정의 에러                        |
 
 ### 재시도 가능 여부 (retryable)
 
@@ -695,22 +695,22 @@ try {
 임의의 에러에 `.retryable()` 빌더를 붙일 수 있고, `is_retryable()`로 조회한다:
 
 ```rust
-let err = RustraError::custom("db.locked", "retry later").retryable();
+let err = UnikitError::custom("db.locked", "retry later").retryable();
 assert!(err.is_retryable());
 ```
 
-TypeScript 측 `RustraCommandError`는 `.retryable` 필드로 같은 값을 노출한다
+TypeScript 측 `UnikitCommandError`는 `.retryable` 필드로 같은 값을 노출한다
 (와이어에 플래그가 없는 JSON 경로에서는 `transport.*` 코드 기반으로 추론).
 JS 측 `invoke`의 `options.timeoutMs`는 만료 시 이 `transport.timeout`(retryable)로
 거부한다 — 네이티브 hang의 JS 측 탈출구.
 
 ### JS 호출 시맨틱: signal, timeoutMs, invokeBatch
 
-생성된 모든 헬퍼는 마지막 파라미터로 `InvokeOptions`를 받고, `@rustra/types`는
+생성된 모든 헬퍼는 마지막 파라미터로 `InvokeOptions`를 받고, `@unikit/types`는
 raw `invoke`/`invokeBatch`에도 같은 옵션을 제공한다:
 
 ```ts
-import { invokeBatch } from '@rustra/types';
+import { invokeBatch } from '@unikit/types';
 import { addNumbers, slowCompute } from './generated/commands.js';
 
 // 취소 — AbortSignal은 프라미스를 즉시 거부한다(`cancelled`).
@@ -746,7 +746,7 @@ const [sum, echo] = await invokeBatch([
 확인하라:
 
 ```ts
-import { withRetry } from '@rustra/types';
+import { withRetry } from '@unikit/types';
 
 // 안전: 읽기 커맨드 — 재시도해도 부작용이 중복되지 않는다.
 const user = await withRetry((attempt) => invoke('getUser', { id }), {
@@ -769,7 +769,7 @@ await withRetry((attempt) => invoke('chargeCard', { id, amountCents: 500 }), {
 트랜잭션이 없다. 항목별 폴백은 모든 항목을 동시에 시작하고, RN 단일 횡단 배치는
 첫 실패 항목에서 멈추며, Tauri wire 배치는 전부 실행한 뒤 거부한다. `invokeBatch`
 자체에 settled 형태는 없다 — 부분 결과를 관측하려면 `invokeBatchSettled`
-(`@rustra/types`)를 쓰라: 항상 per-entry 순차 실행(원자적 와이어 배치는 사용하지
+(`@unikit/types`)를 쓰라: 항상 per-entry 순차 실행(원자적 와이어 배치는 사용하지
 않음)이라 실패한 항목과 그 이후 항목이 구별된다 — 항목별로
 `{ status: 'fulfilled', value }`, `{ status: 'rejected', reason }`,
 `{ status: 'unexecuted' }` 중 하나로 settle 되며, `unexecuted`는 dispatch 자체가
@@ -779,17 +779,17 @@ await withRetry((attempt) => invoke('chargeCard', { id, amountCents: 500 }), {
 ### 에러 메서드
 
 ```rust
-let err = RustraError::custom("auth.unauthorized", "invalid token");
+let err = UnikitError::custom("auth.unauthorized", "invalid token");
 assert_eq!(err.code(), "auth.unauthorized");
 assert_eq!(err.message(), "invalid token");
 ```
 
 ### Result 타입
 
-`rustra::prelude::Result<T>`는 `std::result::Result<T, RustraError>`의 별칭입니다.
+`unikit_bridge::prelude::Result<T>`는 `std::result::Result<T, UnikitError>`의 별칭입니다.
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 fn my_function() -> Result<String> {
     Ok("hello".into())
@@ -802,7 +802,7 @@ fn my_function() -> Result<String> {
 
 ```rust
 fn write_output() -> Result<()> {
-    std::fs::write("output.txt", "hello")?; // io::Error → RustraError(internal)
+    std::fs::write("output.txt", "hello")?; // io::Error → UnikitError(internal)
     Ok(())
 }
 ```
@@ -832,7 +832,7 @@ fn write_output() -> Result<()> {
 
 `Wrapper<T> { value: T }` 같은 제네릭 구조체는 **구체 인스턴스 단위로** 동작합니다.
 schemars 0.8은 인스턴스마다 모노몰포이즈된 스키마를 만들고(`Wrapper<String>` →
-스키마 이름 `Wrapper_for_String`), rustra는 명령의 `inputType`/`outputType`을 그
+스키마 이름 `Wrapper_for_String`), unikit는 명령의 `inputType`/`outputType`을 그
 schemars 이름에 고정합니다. 결과물은 유효한 TypeScript 식별자이며 스키마 `title`과
 `definitions` 키와 일치하므로 검증·TS/C++ 렌더링·코덱 생성이 특수 처리 없이 하나의
 이름으로 묶입니다.
@@ -858,9 +858,9 @@ export type Wrapper_for_String = { value: string };
 - 파라미터화된 제네릭 템플릿(`Wrapper<T>` 자체)은 코드젠되지 않습니다. 사용된
   인스턴스마다 각각의 타입이 생성됩니다. 구체 별칭(`type StringWrapper =
 Wrapper<String>;`)도 하나의 구체 타입으로 동작합니다.
-- 구버전 rustra는 `type_name`이 그대로 `inputType`에 새어 나갔습니다
+- 구버전 unikit는 `type_name`이 그대로 `inputType`에 새어 나갔습니다
   (`Wrapper<String >` — 식별자 아님). 오래된 schema.json이 CLI 검증에서
-  "generic type name" 오류로 실패하면, 현재 rustra로 Rust 패키지를 재빌드하고
+  "generic type name" 오류로 실패하면, 현재 unikit로 Rust 패키지를 재빌드하고
   `schema.json`을 재생성하세요.
 
 ### 선택적 필드 처리
@@ -903,8 +903,8 @@ export const addNumbers = createGeneratedFields2<AddNumbersInput, int64>(1, 'add
 ### 생성된 types.ts 예시
 
 ```typescript
-export type { EngineClient, RustraError } from '@rustra/types';
-export { RustraCommandError } from '@rustra/types';
+export type { EngineClient, UnikitError } from '@unikit/types';
+export { UnikitCommandError } from '@unikit/types';
 
 export type AddNumbersInput = {
   a: number | bigint;
@@ -923,8 +923,8 @@ export type AddNumbersOutput = {
 <!-- prettier-ignore -->
 ```typescript
 import type { AddNumbersInput, AddNumbersOutput, BenchAddInput, BenchAddOutput, BenchBytesPayload, BenchPairPayload, BenchStringPayload, ChannelDemoBytesInput, ChannelDemoBytesOutput, ChannelDemoInput, ChannelDemoOutput, ClampInput, ClampOutput, CreateItemInput, CreateItemOutput, DeviceDemoOutput, DivideInput, DivideOutput, EchoGroupsInput, EchoGroupsOutput, EmitDemoInput, EmitDemoOutput, GaugeInput, GaugeOutput, GreetInput, GreetOutput, IsEvenInput, IsEvenOutput, KindEchoInput, KindEchoOutput, MultiplyInput, MultiplyOutput, ParityFindInput, ParityQuery, ParitySearch, ParityStored, ParityTree, PlatformNativeInfoOutput, ProcessItemInput, ProcessItemOutput, RegistryDemoInput, RegistryDemoOutput, ResourceCloseInput, ResourceCloseOutput, ResourceHandleOutput, ResourceOpenInput, ResourceReadInput, ResourceReadOutput, ResourceWriteInput, ResourceWriteOutput, ScoreTotalInput, ScoreTotalOutput, SecureComputeInput, SecureComputeOutput, SizeOfInput, SizeOfOutput, SpanInput, SpanOutput, SumListInput, SumListOutput, TagSetInput, TagSetOutput, ToUpperInput, ToUpperOutput, WideAggInput, WideAggOutput } from './types.js';
-import { createGeneratedFields1, createGeneratedFields2, invokeGenerated, invokeGeneratedBytes, invokeGeneratedFields3 } from '@rustra/types';
-import type { InvokeOptions as CoreInvokeOptions } from '@rustra/types';
+import { createGeneratedFields1, createGeneratedFields2, invokeGenerated, invokeGeneratedBytes, invokeGeneratedFields3 } from '@unikit/types';
+import type { InvokeOptions as CoreInvokeOptions } from '@unikit/types';
 
 /**
  * 이 패키지 생성 명령의 호출 옵션 — 모든 생성 함수의 마지막 파라미터.
@@ -939,7 +939,7 @@ import type { InvokeOptions as CoreInvokeOptions } from '@rustra/types';
  * 시도가 반영되지 않았음을 확인한 뒤에만 하세요.
  *
  * 전체 의미론은 docs/compatibility-matrix.md "Signal semantics in detail" 및
- * 원본 타입(`InvokeOptions`(@rustra/types)) 문서를 참고하세요.
+ * 원본 타입(`InvokeOptions`(@unikit/types)) 문서를 참고하세요.
  */
 export type InvokeOptions = CoreInvokeOptions;
 
@@ -1078,7 +1078,7 @@ resourceWrite.commandId = 'resourceWrite';
  * 런타임 registry 제어 명령. op:
  * `register` / `unregister` / `replacePing` / `replaceAdd` / `restoreAdd` / `freeze` / `state`.
  */
-export const rustraRegistryDemo = createGeneratedFields1<RegistryDemoInput, RegistryDemoOutput>(12, 'rustraRegistryDemo', "op", 'rustraRegistryDemo');
+export const unikitRegistryDemo = createGeneratedFields1<RegistryDemoInput, RegistryDemoOutput>(12, 'unikitRegistryDemo', "op", 'unikitRegistryDemo');
 
 export function safeDivide(arg0: number, arg1: number, options?: InvokeOptions): Promise<number> {
   return invokeGenerated<number>(41, 'safeDivide', [arg0, arg1], options);
@@ -1144,7 +1144,7 @@ wideAgg.commandId = 'wideAgg';
 자주 사용하는 타입과 매크로를 한 번에 가져옵니다:
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 ```
 
 제공 항목:
@@ -1156,8 +1156,8 @@ use rustra::prelude::*;
 | `command`          | 속성 매크로 | 함수를 브릿지 명령으로 변환           |
 | `Package`          | 구조체      | 등록된 명령 집합                      |
 | `PackageBuilder`   | 구조체      | 명령 등록 빌더                        |
-| `Result<T>`        | 타입 별칭   | `std::result::Result<T, RustraError>` |
-| `RustraError`      | 구조체      | 에러 타입                             |
+| `Result<T>`        | 타입 별칭   | `std::result::Result<T, UnikitError>` |
+| `UnikitError`      | 구조체      | 에러 타입                             |
 | `Serialize`        | trait       | serde 직렬화                          |
 | `Deserialize`      | trait       | serde 역직렬화                        |
 | `JsonSchema`       | trait       | JSON Schema 생성                      |
@@ -1174,11 +1174,11 @@ feature는 `libloading` 의존을 추가할 뿐 나머지는 움직이지 않는
 ([versioning-policy.ko.md](versioning-policy.ko.md)의 experimental 표) — 1.0 전에는
 계약이 깨질 수 있다.
 
-### 타입 목록 (`rustra::hot_core`)
+### 타입 목록 (`unikit_bridge::hot_core`)
 
 - `JsonDispatch` — `pub trait JsonDispatch: Send + Sync`. 단일 메서드
   `fn invoke_json(&self, command: &str, args: serde_json::Value)` 는
-  `Result<serde_json::Value, serde_json::Value>` 를 반환하고, 에러는 rustra 에러
+  `Result<serde_json::Value, serde_json::Value>` 를 반환하고, 에러는 unikit 에러
   와이어 모양 `{"code": ..., "message": ...}` 로 돌아온다. `Package`(정적 경로)와
   `HotCoreHandle` 이 구현한다. `Send + Sync` 는 `Arc<dyn JsonDispatch>` 를 Tauri
   managed state 에 두기 위한 요구다(`JsonDispatch` 자체는 `hot-core` 없이도
@@ -1215,7 +1215,7 @@ feature는 `libloading` 의존을 추가할 뿐 나머지는 움직이지 않는
 언로드가 불가능(std TLS 때문에 `dlclose` 가 no-op)하고 Linux 는 해서는 안 된다
 (스왑 전부터 살아있던 구 심볼 포인터가 use-after-unload 된다). 따라서 모든
 `DylibCore::open` 은 라이브러리 매핑을 프로세스 수명 동안 유지하며 open 시점에
-한 번 계수된다 — 이후 심볼 바인딩이 실패한 로드도 포함한다. `rustra::hot_core` 는
+한 번 계수된다 — 이후 심볼 바인딩이 실패한 로드도 포함한다. `unikit_bridge::hot_core` 는
 이를 보고하는 세 항목을 노출한다:
 
 - `retained_library_stats()` — 프로세스 전체 `RetainedLibraryStats` 스냅샷.
@@ -1240,13 +1240,13 @@ feature는 `libloading` 의존을 추가할 뿐 나머지는 움직이지 않는
 `tauri_support::HotSwapReporter`(`.new()`, `.report(outcome)`; `.install(sink)`
 단계는 플러그인 내부라 공개 API 가 아니다)가 예약 채널 상수
 `HOT_SWAP_EVENT = "hot-core/swapped"` 로 결과를 보고한다 — 웹뷰 채널은
-`rustra://hot-core/swapped` 다. `tauri_support::register_dispatch_with_swap_events`
+`unikit://hot-core/swapped` 다. `tauri_support::register_dispatch_with_swap_events`
 — 파라미터 `dispatch: Arc<dyn JsonDispatch>`, `reporter: HotSwapReporter`,
 `builder: tauri::Builder<R>` (반환 `tauri::Builder<R>`) — 는 정적 디스패치에
-`rustra-hot-swap` 플러그인을 얹어 리포터를 Tauri 이벤트 싱크에 설치한다.
+`unikit-hot-swap` 플러그인을 얹어 리포터를 Tauri 이벤트 싱크에 설치한다.
 `register_with_events` 와 달리 **패키지 이벤트는 배선되지 않는다**(스왑이 코어
 내부 이벤트 싱크를 버리는 상태 소실 정책은 그대로) — 이 함수가 추가하는
-emission 은 스왑 결과 1종뿐이다. JS 쪽에서 이 채널은 `@rustra/tauri` 의
+emission 은 스왑 결과 1종뿐이다. JS 쪽에서 이 채널은 `@unikit/tauri` 의
 `subscribeHotSwap` 가 소비한다
 ([events-and-channels.ko.md](events-and-channels.ko.md) 참고).
 
@@ -1254,8 +1254,8 @@ emission 은 스왑 결과 1종뿐이다. JS 쪽에서 이 채널은 `@rustra/ta
 
 ```rust
 use std::sync::Arc;
-use rustra::hot_core::{self, DylibCore, DylibWatchConfig, HotCoreHandle};
-use rustra::tauri_support::{self, HotSwapReporter};
+use unikit_bridge::hot_core::{self, DylibCore, DylibWatchConfig, HotCoreHandle};
+use unikit_bridge::tauri_support::{self, HotSwapReporter};
 
 // 1) 새로 빌드된 cdylib 을 열고 공유 스왑 지점으로 감싼다
 let core = DylibCore::open(artifact)?;            // dlopen + 심볼 바인딩 + init
@@ -1267,12 +1267,12 @@ let mut config = DylibWatchConfig::new(artifact, handle.clone());
 config.poll = std::time::Duration::from_millis(300); // 기본값 — 튜닝 지점 표시
 let sink = reporter.clone();
 config.on_swap = Arc::new(move |outcome| {
-    eprintln!("rustra hot-core: swap {outcome:?}");
+    eprintln!("unikit hot-core: swap {outcome:?}");
     sink.report(outcome.map_err(|e| e.to_string()));
 });
 hot_core::spawn_dylib_watch(config);              // std 스레드, sha256 폴링
 
-// 3) 정적 디스패치 + rustra-hot-swap 플러그인
+// 3) 정적 디스패치 + unikit-hot-swap 플러그인
 tauri_support::register_dispatch_with_swap_events(handle, reporter, builder)
 ```
 
@@ -1303,7 +1303,7 @@ bun run build
 bun run test:app:resident-tree
 ```
 
-[Rust 상태 구현](../crates/rustra/examples/support/resident_tree_model.rs)은
+[Rust 상태 구현](../crates/unikit-bridge/examples/support/resident_tree_model.rs)은
 `loadTree`, `findNode`, `updateNode`, `releaseTree`, `clearTrees`를 제공한다.
 생성 TypeScript 소비자가 계약을 확인하고 해제된 핸들과 이전 generation을 거부한다.
 프로세스 안에서 ID를 재사용하지 않으며 트리 수·노드 수·깊이를 제한한다.
@@ -1351,7 +1351,7 @@ let bus = pkg.event_bus(); // EventBus 직접 접근
 [호환성 매트릭스](compatibility-matrix.ko.md#채널-전달-경로) 참고):
 
 ```rust
-use rustra::channels;
+use unikit_bridge::channels;
 
 // 핸들을 발급하고 sender 설치 (호스트 어댑터는 이걸 대신 해준다 —
 // 커스텀 호스트용 탈출구)
@@ -1380,11 +1380,11 @@ Package::builder("app.secure")
 pkg.grant_capability("app.admin")?;
 ```
 
-**FFI (C ABI)** — 네이티브 모듈/프로세스 경유 호출 (`rustra::ffi`):
+**FFI (C ABI)** — 네이티브 모듈/프로세스 경유 호출 (`unikit_bridge::ffi`):
 
-- `rustra_ffi_register` / `rustra_ffi_invoke_json` / `rustra_ffi_invoke_postcard`
-- `rustra_ffi_invoke_async` / `rustra_ffi_invoke_cancel` — 체크포인트 취소 전파
-- `rustra_ffi_set_max_payload` / `rustra_ffi_contract_hash` / `rustra_ffi_schema_json`
+- `unikit_ffi_register` / `unikit_ffi_invoke_json` / `unikit_ffi_invoke_postcard`
+- `unikit_ffi_invoke_async` / `unikit_ffi_invoke_cancel` — 체크포인트 취소 전파
+- `unikit_ffi_set_max_payload` / `unikit_ffi_contract_hash` / `unikit_ffi_schema_json`
 
 **동결(freeze)** — 런타임 mutation 잠금:
 
@@ -1393,24 +1393,24 @@ pkg.freeze();          // 이후 register/unregister 는 registry.frozen 에러
 assert!(pkg.is_frozen());
 ```
 
-**Tauri 지원** (`tauri` feature) — `rustra::tauri_support`:
+**Tauri 지원** (`tauri` feature) — `unikit_bridge::tauri_support`:
 
 - `tauri_support::register(app, pkg)` — invoke 핸들러 등록
 - `tauri_support::register_with_events(...)` — 이벤트 푸시 포함
-- `tauri_support::register_profiled(...)` — 벤치 전용, `rustra_dispatch_profiled` 노출
-- `tauri_support::rustra_dispatch(...)` — 커맨드 디스패치
+- `tauri_support::register_profiled(...)` — 벤치 전용, `unikit_dispatch_profiled` 노출
+- `tauri_support::unikit_dispatch(...)` — 커맨드 디스패치
 - `tauri_support::register_dispatch_with_swap_events(...)` — 핫코어 스왑 보고
-  (`rustra://hot-core/swapped` 채널, §11 참고)
+  (`unikit://hot-core/swapped` 채널, §11 참고)
 
 **스키마/버전** — `pkg.schema()` (전체 스키마 JSON), `pkg.live_schema()`
 (동적 명령 포함), `.schema_version(v)` 빌더 (T2/OTA 협상).
 
 ### 페이로드 크기 제한 (요청과 응답)
 
-하나의 동적 게이트가 호출의 양방향을 모두 한정한다 (`crates/rustra/src/limits.rs`):
+하나의 동적 게이트가 호출의 양방향을 모두 한정한다 (`crates/unikit-bridge/src/limits.rs`):
 
 ```rust
-// crates/rustra/src/limits.rs
+// crates/unikit-bridge/src/limits.rs
 /// Default maximum encoded request/response size: 1 MiB.
 pub const DEFAULT_MAX_PAYLOAD_BYTES: usize = 1024 * 1024;
 ```
@@ -1420,12 +1420,12 @@ pub const DEFAULT_MAX_PAYLOAD_BYTES: usize = 1024 * 1024;
   않는다 (불변식과 검증은 [안전 계약 §S4](safety-contract.ko.md)에 고정돼 있다).
 - **응답 측**: 같은 한도가 8바이트 응답 프레임 헤더를 **포함한 응답 총량**에
   적용된다. 모든 디스패치 경로가 이를 강제한다: postcard fast path는 반환 전에
-  `8 + body`를 한도와 비교하고 (`crates/rustra/src/command_handlers.rs`의
+  `8 + body`를 한도와 비교하고 (`crates/unikit-bridge/src/command_handlers.rs`의
   `checked_frame_response_len`), complex 코덱 경로는 완전히 인코딩된 프레임을
   재검사하며(같은 파일의 `complex_encode_response`), JSON 폴백 경로는 인코딩된
-  응답을 검사한다 (`crates/rustra/src/invoke_dispatch.rs`). caller 버퍼 직접 응답
+  응답을 검사한다 (`crates/unikit-bridge/src/invoke_dispatch.rs`). caller 버퍼 직접 응답
   경로도 헤더를 포함해 계산하고, 총량이 한도를 넘으면 버퍼드 경로로 폴백해 두
-  경로가 같은 에러를 표면화한다 (`crates/rustra/src/command_into.rs`).
+  경로가 같은 에러를 표면화한다 (`crates/unikit-bridge/src/command_into.rs`).
 
 한도를 넘게 인코딩되는 출력은 한도를 넘는 요청과 같은 코드로 실패한다 — 경로와
 무관하게 하나의 원인, 하나의 코드다:
@@ -1434,12 +1434,12 @@ pub const DEFAULT_MAX_PAYLOAD_BYTES: usize = 1024 * 1024;
 payload.too_large: payload NB exceeds max payload MB   // retryable: false
 ```
 
-(`crates/rustra/src/error.rs`의 `RustraError::payload_too_large`. non-retryable —
+(`crates/unikit-bridge/src/error.rs`의 `UnikitError::payload_too_large`. non-retryable —
 값의 결정론적 성질이므로 같은 출력을 내는 명령을 다시 실행해도 들어가지 않는다.)
 
 **조정 노브**: 노브는 하나이고, 양방향을 함께 움직인다.
-`rustra_ffi_set_max_payload(bytes)` / `rustra_ffi_get_max_payload()`
-(`crates/rustra/src/ffi_lifecycle_entries.rs`)가 공유 아토믹을 다시 쓰므로, 한도를
+`unikit_ffi_set_max_payload(bytes)` / `unikit_ffi_get_max_payload()`
+(`crates/unikit-bridge/src/ffi_lifecycle_entries.rs`)가 공유 아토믹을 다시 쓰므로, 한도를
 올리면 요청 한도와 응답 한도가 함께 올라간다 (동시 set은 last-writer-wins; 새 값은
 그 이후의 호출에 적용). JS 측에서는 엔진 옵션 `maxPayloadBytes`가 인코딩 직후
 **요청** 바이트를 사전 검사해 네이티브 왕복 전에 조기 실패시킨다 — 네이티브 동적
@@ -1451,7 +1451,7 @@ payload.too_large: payload NB exceeds max payload MB   // retryable: false
 ### 계산기 예제
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 struct AddNumbersInput {
@@ -1491,7 +1491,7 @@ fn multiply(input: MultiplyInput) -> Result<MultiplyOutput> {
 
 fn main() -> Result<()> {
     // 런타임 사용
-    let pkg = rustra::build!("example.calculator", add_numbers, multiply).done();
+    let pkg = unikit_bridge::build!("example.calculator", add_numbers, multiply).done();
 
     let sum: AddNumbersOutput = pkg.invoke("addNumbers", AddNumbersInput { a: 2, b: 3 })?;
     println!("2 + 3 = {}", sum.value);
@@ -1506,7 +1506,7 @@ fn main() -> Result<()> {
 ### 사용자 검색 예제
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 struct UserQuery {
@@ -1531,7 +1531,7 @@ fn find_user(input: UserQuery) -> Result<User> {
 }
 
 fn main() -> Result<()> {
-    let pkg = rustra::build!("app.users", find_user).done();
+    let pkg = unikit_bridge::build!("app.users", find_user).done();
 
     let user: User = pkg.invoke(
         "findUser",
@@ -1547,7 +1547,7 @@ fn main() -> Result<()> {
 ### 에러 처리 예제
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 struct DivisionInput {
@@ -1564,7 +1564,7 @@ struct DivisionOutput {
 #[command]
 fn divide(input: DivisionInput) -> Result<DivisionOutput> {
     if input.divisor == 0 {
-        return Err(RustraError::custom(
+        return Err(UnikitError::custom(
             "math.divide_by_zero",
             "cannot divide by zero",
         ));
@@ -1576,7 +1576,7 @@ fn divide(input: DivisionInput) -> Result<DivisionOutput> {
 }
 
 fn main() -> Result<()> {
-    let pkg = rustra::build!("math.division", divide).done();
+    let pkg = unikit_bridge::build!("math.division", divide).done();
 
     match pkg.invoke("divide", DivisionInput { dividend: 10, divisor: 3 }) {
         Ok(result) => println!("10 / 3 = {} (나머지: {})", result.quotient, result.remainder),
@@ -1609,7 +1609,7 @@ fn main() -> Result<()> {
   양쪽 주체를 보고한다)이며, 다중 엔진 API 가 아니다.
 
 모든 자사 어댑터(`createNodeBootstrap`, `createBunBootstrap`,
-`createTauriBootstrap`, RN `createRustraBootstrap`)가 같은 슬롯 경로를
+`createTauriBootstrap`, RN `createUnikitBootstrap`)가 같은 슬롯 경로를
 공유하므로 가드가 자동으로 함께 적용된다. 현재 `ownerId` 를 전달하는 어댑터는
 Node(`node-bootstrap.ts`)와 Bun(`bun-ffi.ts`)이고 — 나머지 어댑터의 충돌 진단은
 익명 주체로 보고된다.

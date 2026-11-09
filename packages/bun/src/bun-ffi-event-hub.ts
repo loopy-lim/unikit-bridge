@@ -48,8 +48,8 @@ function createHub(key: string) {
   // Resolve Bun only when invoked, preserving Node-safe package imports.
   const { dlopen, FFIType, JSCallback } = requireFfi('bun:ffi') as typeof import('bun:ffi');
   const library = dlopen(key, {
-    rustra_ffi_event_sink_register: { args: ['ptr', 'ptr'], returns: FFIType.void },
-    rustra_ffi_event_sink_unregister: { args: [], returns: FFIType.void },
+    unikit_ffi_event_sink_register: { args: ['ptr', 'ptr'], returns: FFIType.void },
+    unikit_ffi_event_sink_unregister: { args: [], returns: FFIType.void },
   });
   const subscribers = new SubscriberMap();
   let callback: InstanceType<typeof JSCallback> | undefined;
@@ -60,7 +60,7 @@ function createHub(key: string) {
   const cleanup = () => {
     if (closed || callbackDepth || !subscribers.isEmpty()) return;
     if (callback) {
-      library.symbols.rustra_ffi_event_sink_unregister();
+      library.symbols.unikit_ffi_event_sink_unregister();
       callback.close();
       callback = undefined;
     }
@@ -96,7 +96,7 @@ function createHub(key: string) {
       },
       { args: ['ptr', 'cstring', 'cstring'], returns: 'void' },
     );
-    library.symbols.rustra_ffi_event_sink_register(callback.ptr, null);
+    library.symbols.unikit_ffi_event_sink_register(callback.ptr, null);
   };
   return {
     acquire() {

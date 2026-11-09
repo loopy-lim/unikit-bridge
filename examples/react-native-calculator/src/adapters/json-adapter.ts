@@ -1,7 +1,7 @@
-import type { EngineClient, RustraNative } from '@rustra/types';
+import type { EngineClient, UnikitNative } from '@unikit/types';
 import { decodeUtf8, encodeUtf8, exactArrayBuffer } from '../utf8';
 
-export function createJsonEngine(native: RustraNative): EngineClient {
+export function createJsonEngine(native: UnikitNative): EngineClient {
   return {
     invoke<T>(command: string, args?: unknown): Promise<T> {
       const json = JSON.stringify({ command, args });
@@ -13,7 +13,7 @@ export function createJsonEngine(native: RustraNative): EngineClient {
         error?: string;
       };
       if (!response.ok) {
-        throw new Error(response.error ?? 'Rustra invoke failed');
+        throw new Error(response.error ?? 'Unikit invoke failed');
       }
       return Promise.resolve(response.result as T);
     },

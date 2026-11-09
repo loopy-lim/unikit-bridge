@@ -32,7 +32,7 @@ export function resolveDefinition(ref: string, definitions: Record<string, unkno
 /** Same discriminator precedence as the complex codec; title is only a fallback. */
 export function variantKeys(schema: Record<string, unknown>): unknown[] | undefined {
   if (!Array.isArray(schema.oneOf)) return undefined;
-  const explicit = schema['x-rustra-variant-order'];
+  const explicit = schema['x-unikit-variant-order'];
   return schema.oneOf.map((value, index) => {
     if (Array.isArray(explicit) && explicit[index] !== undefined) return explicit[index];
     const variant = asRecord(value);

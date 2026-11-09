@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADR)
 
-Numbered records of decisions that change an rustra contract or its enforcement.
+Numbered records of decisions that change an unikit contract or its enforcement.
 Format per record: Status / Context / Decision / Consequences. A rejected option is
 worth recording too — write down why it was rejected.
 

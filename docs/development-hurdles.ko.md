@@ -2,7 +2,7 @@
 
 # 개발 허들 줄이기
 
-Rustra는 Rust 명령을 네이티브 코드로 연결하므로 모든 환경 의존성을 없앨 수는
+Unikit는 Rust 명령을 네이티브 코드로 연결하므로 모든 환경 의존성을 없앨 수는
 없습니다. 대신 설치 전에 필요한 도구를 확인하고, Rust schema 생성과 TypeScript/C++
 생성을 한 명령으로 묶으며, 생성물의 동기화를 CI에서 자동으로 검사할 수 있습니다.
 
@@ -14,19 +14,19 @@ manifest를 함께 확인해야 합니다. setup 완료와 registry 발행·실�
 
 | 형태                                                        | 언제                                         |
 | ----------------------------------------------------------- | -------------------------------------------- |
-| `bunx --bun @rustra/cli@0.12.0 <cmd>`                       | 명시한 CLI 버전으로 일회성 실행              |
-| `bun add -d @rustra/cli@0.12.0` + `bunx --bun rustra <cmd>` | 패키지 스크립트로 CLI 명령을 돌리는 프로젝트 |
-| `bun i -g @rustra/cli@0.12.0` + `rustra <cmd>`              | 드물게 — 전역 바이너리가 필요한 머신만       |
+| `bunx --bun @unikit/cli@0.12.0 <cmd>`                       | 명시한 CLI 버전으로 일회성 실행              |
+| `bun add -d @unikit/cli@0.12.0` + `bunx --bun unikit <cmd>` | 패키지 스크립트로 CLI 명령을 돌리는 프로젝트 |
+| `bun i -g @unikit/cli@0.12.0` + `unikit <cmd>`              | 드물게 — 전역 바이너리가 필요한 머신만       |
 
-`rustra init`이 만드는 패키지 스크립트(`bun run doctor`, `bun run codegen`, …)는
+`unikit init`이 만드는 패키지 스크립트(`bun run doctor`, `bun run codegen`, …)는
 디펜던시 형태를 쓰고, CI와 문서 예제는 `bunx` 형태를 쓴다. 모든 명령은
-`--config rustra.json`을 명시적으로 받는다.
+`--config unikit.json`을 명시적으로 받는다.
 
 종료 코드는 모든 명령에 공통이다: `2`는 CLI를 잘못 호출했다는 뜻(usage 오류 — 알 수
 없는 명령·플래그, `--config` 없는 `codegen`이나 `--old`/`--new` 없는 `diff` 같은
 필수 인자 누락)이고, `1`은 명령이 실행됐지만 실패했다는 뜻(codegen 오류, `doctor`
 실패, breaking `diff`)이며, `0`은 성공이다. `--help`는 진입점에서 모든 명령에 대해
-한 번 처리되므로 `rustra dev --help`는 watch 모드에 들어가지 않고 사용법만 출력한다.
+한 번 처리되므로 `unikit dev --help`는 watch 모드에 들어가지 않고 사용법만 출력한다.
 `doctor`, `codegen`, `codegen --explain`, `diff`는 `--format json`을 받고
 `{ "schemaVersion": 1, ... }` 봉투 하나를 공유한다: `codegen`은
 `{ written, drift, durationMs }`, `--explain`은 `{ explain }`, `diff`는
@@ -35,18 +35,18 @@ manifest를 함께 확인해야 합니다. setup 완료와 registry 발행·실�
 
 ## Rust 없이 시작하기: mock 엔진
 
-UI가 네이티브 빌드를 기다릴 필요는 없다. `@rustra/testing`의
+UI가 네이티브 빌드를 기다릴 필요는 없다. `@unikit/testing`의
 `createMockEngine`은 실제 `EngineClient`다 — `configure()`로 한 번 설치하면 생성된
 커맨드 헬퍼가 그대로 동작하고 Rust 툴체인이 필요 없다:
 
 ```bash
-bun add @rustra/testing @rustra/types
+bun add @unikit/testing @unikit/types
 ```
 
 ```ts
 // src/mock.ts — UI를 만드는 동안 일찍 import한다
-import { createMockEngine } from '@rustra/testing';
-import { configure } from '@rustra/types';
+import { createMockEngine } from '@unikit/testing';
+import { configure } from '@unikit/types';
 import { addNumbers } from './generated/commands.js';
 
 const engine = createMockEngine()
@@ -54,7 +54,7 @@ const engine = createMockEngine()
   .on('addNumbers', ({ a, b }) => ({ value: a + b }))
   // 타입 형태 — 생성 함수에서 이름을 해석, 오타는 바로 실패
   .mock(addNumbers, ({ a, b }) => ({ value: a + b }))
-  // 실패 시뮬레이션: {code,message}는 구조화된 RustraCommandError가 된다
+  // 실패 시뮬레이션: {code,message}는 구조화된 UnikitCommandError가 된다
   .fail('secureCompute', { code: 'capability.denied', message: 'not granted in mock' });
 
 configure(engine); // 글로벌 invoke에 설치
@@ -84,37 +84,37 @@ mock은 비정상 경로도 커버한다:
 새 Node 프로젝트는 한 명령으로 첫 Rust 호출까지 실행합니다.
 
 ```bash
-bunx --bun @rustra/cli@0.12.0 init my-project --setup
-# Bun FFI: bunx --bun @rustra/cli@0.12.0 init my-bun-project --host bun --setup
+bunx --bun @unikit/cli@0.12.0 init my-project --setup
+# Bun FFI: bunx --bun @unikit/cli@0.12.0 init my-bun-project --host bun --setup
 ```
 
 수정 후에는 `cd my-project`와 `bun run start`로 생성·설치·빌드·데모를 반복합니다.
 `bun run setup`은 데모 없이 준비만 합니다. 실패하면 오류를 해결한 뒤 출력된 setup
 명령으로 재시도합니다. `init --force`로 다시 만들 필요가 없습니다.
-기존 Node/Bun 프로젝트의 `rustra setup --run`에는 `package.json`의 `demo` 스크립트가 필요합니다.
+기존 Node/Bun 프로젝트의 `unikit setup --run`에는 `package.json`의 `demo` 스크립트가 필요합니다.
 RN/Tauri 앱은 `--run` 없이 setup을 실행하고 안내된 네이티브 작업을 마무리합니다.
 
-`rustra init`은 `rustra.json`과 다음 스크립트를 함께 만듭니다.
+`unikit init`은 `unikit.json`과 다음 스크립트를 함께 만듭니다.
 
 ```json
 {
-  "setup": "rustra setup --config rustra.json",
-  "start": "rustra setup --config rustra.json --run",
-  "doctor": "rustra doctor --config rustra.json",
-  "codegen": "rustra codegen --config rustra.json",
-  "codegen:check": "rustra codegen --config rustra.json --check",
-  "dev": "rustra dev --config rustra.json"
+  "setup": "unikit setup --config unikit.json",
+  "start": "unikit setup --config unikit.json --run",
+  "doctor": "unikit doctor --config unikit.json",
+  "codegen": "unikit codegen --config unikit.json",
+  "codegen:check": "unikit codegen --config unikit.json --check",
+  "dev": "unikit dev --config unikit.json"
 }
 ```
 
-## `rustra doctor`
+## `unikit doctor`
 
 `doctor`는 설치나 파일 변경 없이 현재 호스트를 진단합니다.
 
 ```bash
-bunx --bun @rustra/cli@0.12.0 doctor --config rustra.json
-bunx --bun @rustra/cli@0.12.0 doctor --config rustra.json --format json
-bunx --bun @rustra/cli@0.12.0 doctor --config rustra.json --strict
+bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json
+bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json --format json
+bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json --strict
 ```
 
 Rust MSRV 1.88+, Cargo, 설정된 Cargo manifest와 Rust target을 확인합니다.
@@ -131,7 +131,7 @@ macOS의 Xcode/CocoaPods와 Android의 Java 17, `ANDROID_NDK_HOME` 또는 SDK의
 `warn`을 보고합니다 — `fail`은 절대 아니라서 오프라인 CI가 빨개지지 않으며, Cargo
 자체가 없으면 건너뜁니다. `codegen.device_catalog`는 생성된 `schema.json`을 읽습니다:
 디바이스를 선언한 명령이 없으면 `skip`, 명령은 디바이스를 선언했는데 스키마에
-`deviceCapabilities` 카탈로그가 없으면 `warn`(최신 rustra로 재생성), 선언된 토큰이
+`deviceCapabilities` 카탈로그가 없으면 `warn`(최신 unikit로 재생성), 선언된 토큰이
 전부 카탈로그 안이면 `pass`, 카탈로그 밖 토큰이 있으면 `fail`입니다 — debug 빌드는
 그런 토큰을 경고와 함께 수용하지만 release 빌드는 등록 시 패닉합니다
 ([dev-tier.ko.md](dev-tier.ko.md) 참고).
@@ -149,10 +149,10 @@ Cargo metadata로 target 선택
   -> cargo run --bin <configured generator>
   -> schema.json
   -> TypeScript/C++/React Native 생성
-  -> .rustra-generated.json 기록
+  -> .unikit-generated.json 기록
 ```
 
-`rustra.json`에는 workspace에서 모호하지 않도록 Rust manifest, package, binary를
+`unikit.json`에는 workspace에서 모호하지 않도록 Rust manifest, package, binary를
 명시할 수 있습니다.
 
 ```json
@@ -171,7 +171,7 @@ binary를 생략하면 이름이 `generate`인 binary, 또는 유일한 binary�
 이상 후보가 있으면 자동으로 추측하지 않고 `codegen.rust_binary_ambiguous`와 후보를
 출력합니다.
 
-`--config`가 없으면 `codegen`은 `./rustra.json`이 존재할 때 그 파일을 기본으로 채택합니다(`doctor`와 같은 기본값).
+`--config`가 없으면 `codegen`은 `./unikit.json`이 존재할 때 그 파일을 기본으로 채택합니다(`doctor`와 같은 기본값).
 텍스트 모드에서는 `generate`와 같은 파일 목록을 출력하며 각 줄에 `(unchanged)` 또는
 `(updated)`가 붙습니다. `(updated)` 줄이 하나라도 있으면 커밋된 생성물이 바뀐 것이고,
 codegen은 `invoke`를 서브하는 런타임 바이너리를 재빌드하지 않으므로 CLI가 `cargo build`
@@ -198,7 +198,7 @@ Node·Bun 런타임 프로듀서 재빌드가 끝난 뒤에만 보고되고, 런
 
 ## 생성물 drift 게이트
 
-일반 생성은 산출물과 `.rustra-generated.json`을 갱신합니다. 생성된 TS/C++/RN 파일을
+일반 생성은 산출물과 `.unikit-generated.json`을 갱신합니다. 생성된 TS/C++/RN 파일을
 커밋하는 프로젝트는 다음 명령을 CI에 추가할 수 있습니다.
 
 ```bash
@@ -208,7 +208,7 @@ bun run codegen:check
 `generate --check`는 현재 schema로 예상한 모든 파일의 바이트, schema hash, generator
 버전을 매니페스트와 비교하고 파일을 쓰지 않습니다. 디스크 내용 변경과 stale manifest를
 서로 다른 오류로 보고하며, 누락·변경·예상 밖 파일은 실패로 처리합니다. `codegen --check`는
-Rust generator에 `RUSTRA_SCHEMA_OUT` 임시 디렉터리를 전달해 Cargo 단계도 작업 트리를
+Rust generator에 `UNIKIT_SCHEMA_OUT` 임시 디렉터리를 전달해 Cargo 단계도 작업 트리를
 쓰지 않게 한 뒤 TS/C++/RN 검증을 수행합니다. 생성된 Rust 파일은 내용이 같으면 재작성하지
 않습니다.
 
@@ -216,44 +216,44 @@ Rust generator에 `RUSTRA_SCHEMA_OUT` 임시 디렉터리를 전달해 Cargo 단
 붙습니다: TypeScript, C++, Swift, Kotlin, Gradle 등 슬래시 주석 파일은 `//`,
 `CMakeLists.txt`/`.cmake`, `.podspec`, `.rb`, `.py`, `.sh`, `.yml`/`.yaml`, `.toml`,
 `.properties`, `.gitignore`, `.env`는 `#`, `.xml`/`.html`은 `<!-- -->`이며 XML 주석에는
-`--`를 쓸 수 없어 `--config rustra.json` 플래그를 `[config: rustra.json]`으로 적습니다.
+`--`를 쓸 수 없어 `--config unikit.json` 플래그를 `[config: unikit.json]`으로 적습니다.
 shebang 줄은 첫 줄에 남고 헤더는 그 뒤에 붙습니다. JSON 파일에는 헤더가 전혀 없습니다 —
-JSON에 주석 문법이 없기 때문 — 그래서 `.rustra-generated.json`이 JSON 생성물의 유일한
+JSON에 주석 문법이 없기 때문 — 그래서 `.unikit-generated.json`이 JSON 생성물의 유일한
 출처 기록입니다. 헤더는 `--check`와 매니페스트 해시가 비교하는 바이트의 일부이므로 헤더를
 손으로 고치는 것도 다른 수정과 똑같이 drift입니다.
 
-## 런타임 진단: `RUSTRA_DEBUG`
+## 런타임 진단: `UNIKIT_DEBUG`
 
-프로세스 환경에 `RUSTRA_DEBUG=1`(`true`, `verbose`도 가능)을 설정하면 모든 어댑터가
-`@rustra/types`를 통해 공유하는 opt-in 진단이 켜집니다. 값은 프로세스당 첫 사용 시 한 번
+프로세스 환경에 `UNIKIT_DEBUG=1`(`true`, `verbose`도 가능)을 설정하면 모든 어댑터가
+`@unikit/types`를 통해 공유하는 opt-in 진단이 켜집니다. 값은 프로세스당 첫 사용 시 한 번
 읽습니다.
 
-- 모든 와이어 왕복이 `console.debug`로 `[rustra:debug]` 이벤트로 기록됩니다 —
+- 모든 와이어 왕복이 `console.debug`로 `[unikit:debug]` 이벤트로 기록됩니다 —
   `direction`(`request`/`response`/`error`), `transport`(`json`/`frame`/`typed`), `command`,
   길이가 제한된 hex `bytes` 미리보기와 `byteLength`, 절단된 `value` 스냅숏(깊이 3, 항목
   32개, 2 KB 예산). debug가 꺼져 있으면 아무것도 기록하지 않으므로 기본적으로 비밀 값이
   로그에 남지 않습니다.
-- 원시 와이어 바이트는 추가로 stderr에 `[rustra:wire] <direction> <hex>`(앞 256바이트)로
+- 원시 와이어 바이트는 추가로 stderr에 `[unikit:wire] <direction> <hex>`(앞 256바이트)로
   hex 덤프됩니다.
 - JSON 엔진은 resolve된 응답이 와이어 봉투 이상으로 보이면 `kind: 'response.shape'` 경고
   이벤트를 냅니다 — `reason`은 `double_envelope`, `failed_without_error`,
   `envelope_missing_payload`, `resolved_error_envelope` 중 하나로, JS/native 버전
   스큐의 전형적 증상입니다. 이 경고는 던지지도, 결과를 바꾸지도 않습니다.
-- `@rustra/node`는 NDJSON 루프가 파싱하지 못한 stdout 줄마다 `kind: 'ndjson.unparsed'`를
+- `@unikit/node`는 NDJSON 루프가 파싱하지 못한 stdout 줄마다 `kind: 'ndjson.unparsed'`를
   내고 stderr에 최초 1회만 경고합니다. debug 모드가 아니면 대신 최근 32줄(각 4 096자에서
   절단)을 보존해 자식 프로세스가 종료될 때 대기 중 요청의 에러에 첨부하고, debug 모드에서는
   8 KB stderr 꼬리도 함께 첨부합니다.
 
-React Native에는 `process.env`가 없으므로 대신 `globalThis.__RUSTRA_DEBUG__ = true`를
+React Native에는 `process.env`가 없으므로 대신 `globalThis.__UNIKIT_DEBUG__ = true`를
 설정합니다(이벤트 로그가 켜지며 stderr hex 덤프는 env 전용). 구조화된 소비자가 필요하면
-`@rustra/types`의 `configureDebug(sink)`로 싱크를 설치하세요: 싱크는 `RUSTRA_DEBUG`가
-없어도 모든 `RustraDebugEvent`를 받고, `configureDebug(undefined)`가 제거합니다.
+`@unikit/types`의 `configureDebug(sink)`로 싱크를 설치하세요: 싱크는 `UNIKIT_DEBUG`가
+없어도 모든 `UnikitDebugEvent`를 받고, `configureDebug(undefined)`가 제거합니다.
 
 ## 플랫폼별 현실적인 경계
 
 ### Rust와 native toolchain
 
-Rustra CLI 자체는 npm/Bun 패키지로 설치할 수 있습니다. 그러나 사용자의 `#[command]`,
+Unikit CLI 자체는 npm/Bun 패키지로 설치할 수 있습니다. 그러나 사용자의 `#[command]`,
 schema, staticlib를 포함한 애플리케이션 네이티브 산출물은 앱과 target에 종속되므로
 범용 prebuilt binary 하나로 대체할 수 없습니다.
 
@@ -265,13 +265,13 @@ schema, staticlib를 포함한 애플리케이션 네이티브 산출물은 앱�
 팀에서는 모든 개발자가 매번 native archive를 다시 만들게 하지 말고, CI가 각 플랫폼과
 아키텍처별 archive를 빌드해 캐시 또는 내부 artifact로 제공하는 방식을 권장합니다.
 그 artifact는 같은 Rust commit, schema hash, target에만 사용할 수 있는 앱별 결과물이며
-Rustra가 제공하는 범용 runtime prebuilt가 아닙니다.
+Unikit가 제공하는 범용 runtime prebuilt가 아닙니다.
 
 ### Expo Go
 
-Rustra의 RN adapter는 C++ JSI와 Rust FFI를 포함하므로 Expo Go에 사후 로드할 수
+Unikit의 RN adapter는 C++ JSI와 Rust FFI를 포함하므로 Expo Go에 사후 로드할 수
 없습니다. Expo 앱은 development build를 한 번 만든 뒤 실행합니다. Expo Go 안에서
-rustra를 호출하면 불투명한 브릿지 실패가 아니라 분류된 `native.not_installed` 오류로
+unikit를 호출하면 불투명한 브릿지 실패가 아니라 분류된 `native.not_installed` 오류로
 실패합니다 — JavaScript reload로는 복구되지 않습니다.
 
 ```bash
@@ -332,29 +332,29 @@ Apple Silicon에서 calculator 예제와 맞는 iOS Pods를 준비한 뒤, 로�
 프로세스의 Hermes로 실제 C++ binder/codec을 검사할 수 있습니다.
 
 ```bash
-RUSTRA_NATIVE_TEST_PLATFORM=mac-catalyst \
-  bash examples/react-native-calculator/modules/rustra-jsi/ios/run-hermes-sync-tests.sh
+UNIKIT_NATIVE_TEST_PLATFORM=mac-catalyst \
+  bash examples/react-native-calculator/modules/unikit-jsi/ios/run-hermes-sync-tests.sh
 ```
 
-의존성 framework가 다른 위치에 있으면 `RUSTRA_NATIVE_DEPS_ROOT`에 `Headers`와
+의존성 framework가 다른 위치에 있으면 `UNIKIT_NATIVE_DEPS_ROOT`에 `Headers`와
 대상 slice를 포함한 `ReactNativeDependencies.xcframework` 디렉터리를 지정합니다.
 예제의 React Native 의존성과 같은 framework 버전을 사용해야 합니다. 스크립트는
-컴파일 전에 누락된 입력을 알리고 소스·바이너리 hash를 `RUSTRA_NATIVE_TEST_DIR`
-(기본 `/private/tmp/rustra-native-sync-hermes`)의 `identities.txt`에 기록합니다.
-기본 플랫폼은 `ios-simulator`이고 `RUSTRA_NATIVE_TEST_BUILD_ONLY=1`이면 빌드만 합니다.
-실행하려면 이미 부팅된 `RUSTRA_SIMULATOR_UDID`가 필요합니다. 스크립트는 시뮬레이터를
+컴파일 전에 누락된 입력을 알리고 소스·바이너리 hash를 `UNIKIT_NATIVE_TEST_DIR`
+(기본 `/private/tmp/unikit-native-sync-hermes`)의 `identities.txt`에 기록합니다.
+기본 플랫폼은 `ios-simulator`이고 `UNIKIT_NATIVE_TEST_BUILD_ONLY=1`이면 빌드만 합니다.
+실행하려면 이미 부팅된 `UNIKIT_SIMULATOR_UDID`가 필요합니다. 스크립트는 시뮬레이터를
 부팅하거나 앱을 설치하지 않습니다.
 
 실제 Hermes와 제품 binder/codec을 쓰지만 C ABI 상대는 통제된 테스트 구현입니다.
 Android/iOS 앱 시작, native 이벤트 스케줄링, 실제 소비자의 Rust FFI 수명 검증을
 대신하지 않습니다.
 
-0.x API의 변경 가능성은 남아 있으므로, CI에서 `doctor`, `codegen:check`, `rustra diff`
+0.x API의 변경 가능성은 남아 있으므로, CI에서 `doctor`, `codegen:check`, `unikit diff`
 를 함께 실행하고 CLI/Rust/adapter 버전을 각각 lock합니다. 문제를 재현할 때는 다음
 정보를 함께 남기면 소스 코드까지 내려가지 않고도 진단할 수 있습니다.
 
 ```bash
-bunx --bun @rustra/cli@0.12.0 doctor --config rustra.json --format json > rustra-doctor.json
+bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json --format json > unikit-doctor.json
 bun run codegen:check
-bunx --bun @rustra/cli diff --old generated/schema.v1.json --new generated/schema.json
+bunx --bun @unikit/cli diff --old generated/schema.v1.json --new generated/schema.json
 ```

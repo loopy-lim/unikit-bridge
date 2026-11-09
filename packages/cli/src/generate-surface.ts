@@ -1,7 +1,7 @@
 /**
- * @rustra/cli — TypeScript 코드 생성기
+ * @unikit/cli — TypeScript 코드 생성기
  *
- * rustra 패키지 스키마에서 TypeScript 타입 정의, 명령 헬퍼 함수,
+ * unikit 패키지 스키마에서 TypeScript 타입 정의, 명령 헬퍼 함수,
  * 계약 해시 파일을 생성합니다.
  */
 
@@ -51,7 +51,7 @@ export function finishGeneratedText(output: string): string {
  * 커맨드와 동일한 "한 번 정의하면 어디서든 타입 안전" 계약을 이벤트에
  * 적용한다: Rust `PackageBuilder::event::<E>("name")` 선언이 여기 페이로드
  * 타입으로 내려온다. 구독 헬퍼는 플랫폼별 구독 함수를 주입받는 형태다
- * (RN `subscribeEvent` / Tauri `@rustra/tauri` 의 `subscribeEvent`).
+ * (RN `subscribeEvent` / Tauri `@unikit/tauri` 의 `subscribeEvent`).
  *
  * 스키마에 events 섹션이 없으면 빈 문자열을 반환한다(파일 미생성).
  */
@@ -82,10 +82,10 @@ export function generateEventsTs(schema: PackageSchema): string {
 
   // 이벤트 이름 유니언 + 페이로드 매핑.
   const names = events.map((e) => `'${e.name}'`).join(' | ');
-  output += `/** 선언된 rustra 이벤트 이름 (Rust \`PackageBuilder::event\`). */\n`;
-  output += `export type RustraEventName = ${names};\n\n`;
+  output += `/** 선언된 unikit 이벤트 이름 (Rust \`PackageBuilder::event\`). */\n`;
+  output += `export type UnikitEventName = ${names};\n\n`;
   output += `/** 이벤트 이름 → 페이로드 타입 매핑. */\n`;
-  output += `export type RustraEventPayloads = {\n`;
+  output += `export type UnikitEventPayloads = {\n`;
   for (const ev of events) {
     const payloadType = tsTypeFromSchema(ev.payload, allDefinitions);
     output += `  '${ev.name}': ${payloadType};\n`;
@@ -95,17 +95,17 @@ export function generateEventsTs(schema: PackageSchema): string {
   // 구독 헬퍼 — 플랫폼 구독 함수(콜백 해지를 반환)를 주입받아 이름/페이로드를
   // 타입으로 연결한다. RN 의 subscribeEvent 는 (name, cb) → unsubscribe 다.
   output += `/** 플랫폼 구독 함수 — RN \`subscribeEvent\` / Tauri 래퍼 등. */\n`;
-  output += `export type SubscribeFn = <N extends RustraEventName>(\n`;
+  output += `export type SubscribeFn = <N extends UnikitEventName>(\n`;
   output += `  name: N,\n`;
-  output += `  callback: (payload: RustraEventPayloads[N]) => void,\n`;
+  output += `  callback: (payload: UnikitEventPayloads[N]) => void,\n`;
   output += `) => (() => void) | Promise<() => void>;\n\n`;
   output += `/** 타입 안전 이벤트 구독 — 페이로드가 자동으로 좁혀진다. */\n`;
-  output += `export function onRustraEvent<N extends RustraEventName>(\n`;
+  output += `export function onUnikitEvent<N extends UnikitEventName>(\n`;
   output += `  subscribe: SubscribeFn,\n`;
   output += `  name: N,\n`;
-  output += `  callback: (payload: RustraEventPayloads[N]) => void,\n`;
+  output += `  callback: (payload: UnikitEventPayloads[N]) => void,\n`;
   output += `): (() => void) | Promise<() => void> {\n`;
-  output += `  return subscribe(name, callback as (payload: RustraEventPayloads[N]) => void);\n`;
+  output += `  return subscribe(name, callback as (payload: UnikitEventPayloads[N]) => void);\n`;
   output += `}\n`;
 
   return output;
@@ -116,8 +116,8 @@ export function generateEventsTs(schema: PackageSchema): string {
  */
 export function generateTypesTs(schema: PackageSchema): string {
   let output =
-    "export type { EngineClient, RustraError } from '@rustra/types';\n" +
-    "export { RustraCommandError } from '@rustra/types';\n\n";
+    "export type { EngineClient, UnikitError } from '@unikit/types';\n" +
+    "export { UnikitCommandError } from '@unikit/types';\n\n";
 
   const allDefinitions: Record<string, import('./schema.js').JsonSchema> = {};
   for (const command of schema.commands) {

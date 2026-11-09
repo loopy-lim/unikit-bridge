@@ -10,7 +10,7 @@ priority: high
 
 ## 문제
 
-2026-08-29 전수 조사 결과, rustra-bridge의 각 호스트 경로에 아직 정량화된 병목이 남아 있다.
+2026-08-29 전수 조사 결과, unikit-bridge의 각 호스트 경로에 아직 정량화된 병목이 남아 있다.
 복합 스키마 명령은 호출마다 `serde_json::Value` 트리 3회 생성/소모로 로직 앞뒤가 막혀 있고
 (2.9µs, 핸들러 자체는 수 ns), Bun generated 경로는 safe-integer 값에도 BigInt 산술을 강제해
 raw FFI 대비 4.5x 느리며(2.27µs vs 0.5µs), Node persistent loop는 이중 JSON + 파이프로
@@ -23,7 +23,7 @@ cachedProp 2단 해시와 async 이름 기반 진입 등 미세 잔여가 있고
 **현재:**
 
 - Complex 라우트 명령: `complex_decode → from_value → handler → to_value → complex_encode`
-  체인으로 Value 트리 3회 왕복 (`crates/rustra/src/command.rs:133-139`). 스키마 인터프리터는
+  체인으로 Value 트리 3회 왕복 (`crates/unikit-bridge/src/command.rs:133-139`). 스키마 인터프리터는
   노드마다 `schema.clone()`(`complex_codec.rs:50`), oneOf마다 variants 클론+정렬
   (`complex_codec.rs:466`). JS 코덱도 동일 구조라 echoGroups 등은 JS+Rust 이중 비용.
 - Bun generated: i64 필드가 safe integer임에도 BigInt 산술 5회+ (`rkyv-codecs.ts:279-280,
@@ -31,7 +31,7 @@ cachedProp 2단 해시와 async 이름 기반 진입 등 미세 잔여가 있고
   (`rkyv-engine.ts:432`), `callerBuffer.slice` 복사 잔여 (`bun/index.ts:234`).
 - Node persistent loop: NDJSON + `invoke_json`(Value 경로) + 문자열 연쇄 버퍼링
   (`packages/node/src/index.ts:328-439`, `loop-stdio.rs:31-44`).
-- Tauri: 표준 `__TAURI__.core.invoke` + `rustra_dispatch(command: String, args: Value)` 단일
+- Tauri: 표준 `__TAURI__.core.invoke` + `unikit_dispatch(command: String, args: Value)` 단일
   진입점, 코어의 postcard/raw/buffer 인프라 미배선 (`tauri_support.rs:38-48`). 측정은
   batch 20호출 × 1ms 타이머 → 50µs/call 그리드로 왜곡.
 - RN: 동기 경로(raw/caller-buffer/positional) 완결. 잔여는 decode PropNameID 2단 해시
@@ -47,7 +47,7 @@ cachedProp 2단 해시와 async 이름 기반 진입 등 미세 잔여가 있고
 - Node persistent loop: 바이너리 프레이밍(postcard/rkyv V2 into) + Buffer 누적으로
   16.9µs → 3~6µs (프로세스 경계 하한 존중).
 - Tauri: 먼저 측정 정합화(Rust `Instant` 타임스탬프 차감, 배치 확대)로 실성능 규명, 이후
-  `rustra_dispatch_batch` 와이어 배치로 호출당 IPC 비용 희석.
+  `unikit_dispatch_batch` 와이어 배치로 호출당 IPC 비용 희석.
 - RN: cachedProp 정적 테이블화, async byId 진입. F3/Android는 실측만.
 
 ## 성공 기준
@@ -101,8 +101,8 @@ generation이 없다. 이를 명시적 계약으로 고정한 뒤, 동적 명령
 
 ### 조사 근거 (2026-08-29 전수 조사)
 
-- Complex 코어: `crates/rustra/src/command.rs:96-258` (핸들러 생성 3분기),
-  `crates/rustra/src/complex_codec.rs:29-51` (resolved_schema clone), `:466-490` (variants
+- Complex 코어: `crates/unikit-bridge/src/command.rs:96-258` (핸들러 생성 3분기),
+  `crates/unikit-bridge/src/complex_codec.rs:29-51` (resolved_schema clone), `:466-490` (variants
   클론+정렬), `:1021-1063` (encode/encode_into/decode 진입). JS 미러:
   `packages/types/src/complex-codec.ts:133-150, 330-400, 556+`
 - Bun: `examples/calculator/generated/rkyv-codecs.ts:268-308` (i64 BigInt 코덱),
@@ -111,26 +111,26 @@ generation이 없다. 이를 명시적 계약으로 고정한 뒤, 동적 명령
 - Node loop: `examples/calculator/apps/node-performance.ts:24-34` (측정),
   `examples/calculator/src/bin/loop-stdio.rs:31-44` (`invoke_json` 위임),
   `packages/node/src/index.ts:328-439` (transport)
-- Tauri: `crates/rustra/src/tauri_support.rs:38-60`, `packages/tauri/src/index.ts:78-116`,
+- Tauri: `crates/unikit-bridge/src/tauri_support.rs:38-60`, `packages/tauri/src/index.ts:78-116`,
   `examples/tauri-calculator/src/benchmark.ts:30-45` (측정 방식),
   `docs/benchmark-receipts/2026-08-24-host-matrix.json`
-- RN: `packages/react-native/native/cpp/RustraJSIBridge.cpp:203-257` (typedInvokeTail),
+- RN: `packages/react-native/native/cpp/UnikitJSIBridge.cpp:203-257` (typedInvokeTail),
   `:909-1015` (byId/Pos), `:1115-1275` (async), 생성 코덱
-  `examples/react-native-calculator/modules/rustra-jsi/generated/rustra-generated-codecs.cpp:44-56`
+  `examples/react-native-calculator/modules/unikit-jsi/generated/unikit-generated-codecs.cpp:44-56`
   (cachedProp)
 
 ### 벤치/측정
 
 - 현 수치: `docs/benchmarks.md` (2026-08-24 host matrix, 2026-08-28 caller-buffer 실측,
   Track B 실측)
-- 실행: `bun run bench:hosts -- --output /tmp/rustra-host-matrix.json`,
-  `cargo bench -p rustra`, `bun scripts/transport-bench.mjs`
+- 실행: `bun run bench:hosts -- --output /tmp/unikit-host-matrix.json`,
+  `cargo bench -p unikit-bridge`, `bun scripts/transport-bench.mjs`
 - 이전 성능 트랙 설계: `docs/dev/plans/2026-08-28-perf-three-tracks-design.md`
 
 ### 트랙 T 근거
 
-- register 강제 tier3: `crates/rustra/src/registry.rs:118` (`force_tier3=true`),
-  게이트 구조: `crates/rustra/src/command.rs:86-97` (`js_codec_supported` 재사용 가능)
+- register 강제 tier3: `crates/unikit-bridge/src/registry.rs:118` (`force_tier3=true`),
+  게이트 구조: `crates/unikit-bridge/src/command.rs:86-97` (`js_codec_supported` 재사용 가능)
 - 치환 불변식: commandId 재사용(`registry.rs:96-104`), live_schema 캐시 무효화
   (`registry.rs:122,162,191`), 테스트 `runtime_registry_tests.rs:247-283`
 - `schema_version`은 빌드 시점 고정(`package.rs:51`, builder:231) — 치환 시 증가하는
@@ -141,6 +141,6 @@ generation이 없다. 이를 명시적 계약으로 고정한 뒤, 동적 명령
 
 ### 검증 게이트
 
-- PINNED hex: `crates/rustra/tests/wire_fixtures.rs` ↔ `packages/types` cross-wire.test.ts ↔
-  C++ `test-rustra-generated-codecs.cpp`
+- PINNED hex: `crates/unikit-bridge/tests/wire_fixtures.rs` ↔ `packages/types` cross-wire.test.ts ↔
+  C++ `test-unikit-generated-codecs.cpp`
 - generated/ 재생성은 Rust bin + TS CLI 이중 경로, generated/는 prettier 제외

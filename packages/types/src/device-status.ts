@@ -1,7 +1,7 @@
 /**
  * 디바이스 역량 조회 표면 (디바이스 역량 계약 레이어 D절).
  *
- * 선언(`#[command(device(...))]`)과 조회는 rustra 몫, OS 권한 요청은 호스트
+ * 선언(`#[command(device(...))]`)과 조회는 unikit 몫, OS 권한 요청은 호스트
  * 몫 — 이 모듈은 호스트가 단일 provider 를 등록하고 JS 코드가 역량의
  * 가용성/권한을 물을 수 있는 표면만 제공한다. W3C Permissions API 처럼
  * request() 는 없다: 요청은 point-of-use 에서 호스트가 한다.
@@ -35,7 +35,7 @@ interface DeviceStatusState {
 }
 
 const state: DeviceStatusState = (() => {
-  const key = Symbol.for('dev.rustra.types.v0.4.0.deviceStatusState');
+  const key = Symbol.for('dev.unikit.types.v0.4.0.deviceStatusState');
   const global = globalThis as Record<PropertyKey, unknown>;
   const existing = global[key] as DeviceStatusState | undefined;
   if (existing) return existing;
@@ -62,7 +62,7 @@ function unknownStatus(): DeviceStatus {
 /** debug.ts 진단 관례 — console.debug 미지원 환경은 console.log 폴백. */
 function logDeviceDiagnostic(message: string, error?: unknown): void {
   const logger = typeof console.debug === 'function' ? console.debug : console.log;
-  logger('[rustra:device]', message, ...(error === undefined ? [] : [error]));
+  logger('[unikit:device]', message, ...(error === undefined ? [] : [error]));
 }
 
 /**

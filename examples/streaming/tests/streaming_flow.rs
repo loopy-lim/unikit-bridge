@@ -1,6 +1,6 @@
 //! streaming 예제 통합 테스트 — 실제 이벤트 왕복 증명.
 
-use rustra_streaming_example::{StartJobInput, event_bus, streaming_package};
+use unikit_streaming_example::{StartJobInput, event_bus, streaming_package};
 use std::sync::Mutex;
 
 /// 전역 이벤트 버스를 테스트 간 공유하므로 직렬화한다 — 병렬 실행 시 서로의
@@ -11,7 +11,7 @@ static TEST_LOCK: Mutex<()> = Mutex::new(());
 fn job_emits_progress_and_done_events() {
     let _guard = TEST_LOCK.lock().unwrap();
     let package = streaming_package();
-    let out: rustra::prelude::Result<rustra_streaming_example::StartJobOutput> = package.invoke(
+    let out: unikit_bridge::prelude::Result<unikit_streaming_example::StartJobOutput> = package.invoke(
         "startJob",
         StartJobInput {
             job_id: String::from("t-1"),
@@ -54,7 +54,7 @@ fn event_payloads_carry_typed_json() {
     let _ = event_bus().take_pending_events();
 
     let package = streaming_package();
-    let _: rustra::prelude::Result<rustra_streaming_example::StartJobOutput> = package.invoke(
+    let _: unikit_bridge::prelude::Result<unikit_streaming_example::StartJobOutput> = package.invoke(
         "startJob",
         StartJobInput {
             job_id: String::from("t-2"),

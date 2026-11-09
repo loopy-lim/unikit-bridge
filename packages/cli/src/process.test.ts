@@ -93,7 +93,7 @@ describe('spawnInherit progress spinner', () => {
         console.error = originalError;
       }
       const output = chunks.join('\n');
-      assert.ok(output.includes('[rustra] ⠋ spinner probe...'));
+      assert.ok(output.includes('[unikit] ⠋ spinner probe...'));
       assert.match(output, /spinner probe still running \(1s\)/);
       assert.match(output, /spinner probe done in 1\.\ds/);
     },
@@ -118,7 +118,7 @@ describe('spawnInherit progress spinner', () => {
         console.error = originalError;
       }
       const output = chunks.join('\n');
-      assert.ok(output.includes('[rustra] ⠋ fast op...'));
+      assert.ok(output.includes('[unikit] ⠋ fast op...'));
       assert.match(output, /fast op done in 0\.\ds/);
       assert.ok(!output.includes('still running'));
     },

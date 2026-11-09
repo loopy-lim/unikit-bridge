@@ -54,7 +54,7 @@ export function dependencyManifest(dependency: Dependency | undefined): string |
   return existsSync(manifest) ? realpathSync(manifest) : undefined;
 }
 
-export function rustraDependencyLine(
+export function unikitDependencyLine(
   dependency: Dependency | undefined,
   nativeRoot: string,
   fallback: string,
@@ -70,7 +70,7 @@ export function rustraDependencyLine(
     );
   delete value.optional;
   value.features = [...new Set([...((value.features as string[] | undefined) ?? []), 'tauri'])];
-  return `rustra = { ${Object.entries(value)
+  return `unikit = { ${Object.entries(value)
     .map(
       ([key, item]) =>
         `${/^[A-Za-z_][A-Za-z0-9_-]*$/.test(key) ? key : JSON.stringify(key)} = ${JSON.stringify(item)}`,

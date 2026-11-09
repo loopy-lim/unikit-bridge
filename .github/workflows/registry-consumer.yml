@@ -22,12 +22,12 @@ jobs:
           bun-version: 1.4.0
       - uses: dtolnay/rust-toolchain@1.95.0
       - name: Verify exact public packages and rollback
-        run: node scripts/registry-consumer-gate.mjs --output "$RUNNER_TEMP/rustra-registry/receipt.json"
+        run: node scripts/registry-consumer-gate.mjs --output "$RUNNER_TEMP/unikit-registry/receipt.json"
       - name: Preserve result and logs
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: registry-consumer-macos-${{ github.sha }}
-          path: ${{ runner.temp }}/rustra-registry/
+          path: ${{ runner.temp }}/unikit-registry/
           if-no-files-found: error
           retention-days: 30

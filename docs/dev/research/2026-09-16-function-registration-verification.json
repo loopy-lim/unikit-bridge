@@ -20,26 +20,26 @@
     "branch": "codex/function-registration",
     "baseCommit": "1f277de2e68e2242b7a6503e6e0ab731833e60e3",
     "uncommitted": true,
-    "worktree": "/Users/loopy/dev/ll3/rustra-bridge/.worktrees/function-registration",
+    "worktree": "/Users/loopy/dev/ll3/unikit-bridge/.worktrees/function-registration",
     "codeAndTestFilesSha256": {
       "api-surface/snapshot.json": "87e2ab1e091702e9bc75a021810306795c7bb7c4d3971afa38eb499ec11a17ce",
-      "crates/rustra/Cargo.toml": "f2784fb48b2fad62703d661680b1626c0cf21a8cad9fbe45e2a3e7da2490a38a",
-      "crates/rustra/benches/function_dispatch.rs": "490fedbb2e8359a729e6cacbfae55778098acf2c47b6b2cc2ca1810f7c29007e",
-      "crates/rustra/examples/function_fixture.rs": "c614662e087c67046e66fd93509dcce031920efad3b5e999a50931c3b971f86b",
-      "crates/rustra/src/builder.rs": "1d7b9d9acfdea47379fed9323e0b3f5028ed4265cd4e6131189946b4925c31be",
-      "crates/rustra/src/builder_functions.rs": "b563748f6c64316985e772a39e567e42d8fb0307ca4cba1ba9497d7602b34e12",
-      "crates/rustra/src/command_build.rs": "49d1f2c5cb5502973d0bab0985a51503de7bddffd2755c800c613311fd8585a6",
-      "crates/rustra/src/command_handlers.rs": "b079f538c6da09a6186c1505d422d8350de1b639497470f25e5fddb95bd826a7",
-      "crates/rustra/src/command_into.rs": "a0cd8afd8ff15d87c27bf31aee48c0577db8138a6b74f0434b598a8eed85a663",
-      "crates/rustra/src/command_types.rs": "93e8261b2bd3db5379b75bfd0b48a4ec5b710eed91fb5e7e040de019f9962e1a",
-      "crates/rustra/src/frame_support.rs": "c5f89d7cc87107e3d5b203f456c41c5ab77ac651968ce407b7eaab30e34281ab",
-      "crates/rustra/src/function.rs": "8f6c526278c4898fb9d70023b26e762a52e9a9e69b1c41e0632bf1b686e75ef5",
-      "crates/rustra/src/lib.rs": "d0abba25330360189654e55417f07842debe79066f0189c75eef2f80f4a9a48d",
-      "crates/rustra/src/package_commands_gen.rs": "dbb3ddecf95d5e6577bc92e13285b858c3ed57c0908c850a4eeb778684c2e09e",
-      "crates/rustra/src/package_schema.rs": "c742e12e647384cf46d0bfd3bed0f26c4ae429ba1f20e674f27868eeb8555c1a",
-      "crates/rustra/tests/function_allocations.rs": "69c905c0af872ad0bb6130aa29a277232ce5b4b5b0d4b7b25400f37a103e5748",
-      "crates/rustra/tests/function_registration.rs": "167c979a035f7730754952bbffc62fd07bc9dc22d9516df6879b97c064f2f8ae",
-      "crates/rustra/tests/trust_baseline_ffi.rs": "e037ca2a7a6da23380624d676f6fe23dfe071f5003a03586ba6f6a85f4b953a7",
+      "crates/unikit-bridge/Cargo.toml": "f2784fb48b2fad62703d661680b1626c0cf21a8cad9fbe45e2a3e7da2490a38a",
+      "crates/unikit-bridge/benches/function_dispatch.rs": "490fedbb2e8359a729e6cacbfae55778098acf2c47b6b2cc2ca1810f7c29007e",
+      "crates/unikit-bridge/examples/function_fixture.rs": "c614662e087c67046e66fd93509dcce031920efad3b5e999a50931c3b971f86b",
+      "crates/unikit-bridge/src/builder.rs": "1d7b9d9acfdea47379fed9323e0b3f5028ed4265cd4e6131189946b4925c31be",
+      "crates/unikit-bridge/src/builder_functions.rs": "b563748f6c64316985e772a39e567e42d8fb0307ca4cba1ba9497d7602b34e12",
+      "crates/unikit-bridge/src/command_build.rs": "49d1f2c5cb5502973d0bab0985a51503de7bddffd2755c800c613311fd8585a6",
+      "crates/unikit-bridge/src/command_handlers.rs": "b079f538c6da09a6186c1505d422d8350de1b639497470f25e5fddb95bd826a7",
+      "crates/unikit-bridge/src/command_into.rs": "a0cd8afd8ff15d87c27bf31aee48c0577db8138a6b74f0434b598a8eed85a663",
+      "crates/unikit-bridge/src/command_types.rs": "93e8261b2bd3db5379b75bfd0b48a4ec5b710eed91fb5e7e040de019f9962e1a",
+      "crates/unikit-bridge/src/frame_support.rs": "c5f89d7cc87107e3d5b203f456c41c5ab77ac651968ce407b7eaab30e34281ab",
+      "crates/unikit-bridge/src/function.rs": "8f6c526278c4898fb9d70023b26e762a52e9a9e69b1c41e0632bf1b686e75ef5",
+      "crates/unikit-bridge/src/lib.rs": "d0abba25330360189654e55417f07842debe79066f0189c75eef2f80f4a9a48d",
+      "crates/unikit-bridge/src/package_commands_gen.rs": "dbb3ddecf95d5e6577bc92e13285b858c3ed57c0908c850a4eeb778684c2e09e",
+      "crates/unikit-bridge/src/package_schema.rs": "c742e12e647384cf46d0bfd3bed0f26c4ae429ba1f20e674f27868eeb8555c1a",
+      "crates/unikit-bridge/tests/function_allocations.rs": "69c905c0af872ad0bb6130aa29a277232ce5b4b5b0d4b7b25400f37a103e5748",
+      "crates/unikit-bridge/tests/function_registration.rs": "167c979a035f7730754952bbffc62fd07bc9dc22d9516df6879b97c064f2f8ae",
+      "crates/unikit-bridge/tests/trust_baseline_ffi.rs": "e037ca2a7a6da23380624d676f6fe23dfe071f5003a03586ba6f6a85f4b953a7",
       "package.json": "b6ba40f1baefda5472795725aabe33331f16649b9a2ff53cc3b26b5edd300a49",
       "packages/cli/package.json": "b57fd089411b921f7333ed0f4eee9a0c1f203d83a88bd3fe94b209b62ce7a7f6",
       "packages/cli/src/function-registration.test.ts": "aa9352578c334331595c1ad1afdc424a18fae2d7db0038206940287077c2193e",
@@ -84,9 +84,9 @@
   "checks": {
     "rust": {
       "status": "passed",
-      "command": "CARGO_TARGET_DIR=/tmp/rustra-function-target cargo test -p rustra --locked",
+      "command": "CARGO_TARGET_DIR=/tmp/unikit-function-target cargo test -p unikit-bridge --locked",
       "scope": "after R1",
-      "logPath": "/tmp/rustra-function-rust-final.log",
+      "logPath": "/tmp/unikit-function-rust-final.log",
       "logSha256": "d0ffd2833901d6b6fb12d9f655e859f5d5e04b7496febb9dda0038db4f745c88",
       "summaries": [
         "test result: ok. 178 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s",
@@ -116,7 +116,7 @@
       "status": "passed",
       "command": "bun run --cwd packages/types test",
       "scope": "after R1",
-      "logPath": "/tmp/rustra-function-types-final.log",
+      "logPath": "/tmp/unikit-function-types-final.log",
       "logSha256": "7b6e04872702e9f6fadfec995cedf1c6b7efcedb4829bf305fec43d3323ead5f",
       "summaries": [" 271 pass", " 0 fail", "Ran 271 tests across 8 files. [400.00ms]"]
     },
@@ -124,7 +124,7 @@
       "status": "passed",
       "command": "bun run --cwd packages/cli test",
       "scope": "after R1",
-      "logPath": "/tmp/rustra-function-cli-final.log",
+      "logPath": "/tmp/unikit-function-cli-final.log",
       "logSha256": "3e894dc2097f0cb29e005dc6199a07badb371076a3c1282646b0d1cfa2b9b7cb",
       "summaries": [
         "# tests 318",
@@ -140,15 +140,15 @@
       "status": "passed",
       "command": "bun run build",
       "scope": "after R1",
-      "logPath": "/tmp/rustra-function-build-final.log",
+      "logPath": "/tmp/unikit-function-build-final.log",
       "logSha256": "685baea275dedba6391f052baa7c97373713fd4e904b42fe192bf264d25a0d4c",
       "summaries": []
     },
     "clippy": {
       "status": "passed",
-      "command": "CARGO_TARGET_DIR=/tmp/rustra-function-target cargo clippy -p rustra --all-targets --locked -- -D warnings",
+      "command": "CARGO_TARGET_DIR=/tmp/unikit-function-target cargo clippy -p unikit-bridge --all-targets --locked -- -D warnings",
       "scope": "after R1",
-      "logPath": "/tmp/rustra-function-clippy-final.log",
+      "logPath": "/tmp/unikit-function-clippy-final.log",
       "logSha256": "2ea2e2276bd990d41a1120bc5391812b8b35253d5630efa70f5d0ddef91f03e5",
       "summaries": []
     },
@@ -156,7 +156,7 @@
       "status": "passed",
       "command": "node scripts/check-codegen-fresh.mjs",
       "scope": "after R1; all six examples",
-      "logPath": "/tmp/rustra-function-codegen-final.log",
+      "logPath": "/tmp/unikit-function-codegen-final.log",
       "logSha256": "137b19bab15b36f724d8b9a63d771b10e5cd153251a8cfa1f91f033de3c26c94",
       "summaries": ["OK: 6개 예제 codegen check 통과 (committed 생성물이 재현 결과와 일치)"]
     },
@@ -164,7 +164,7 @@
       "status": "passed",
       "command": "cargo fmt --all -- --check && bun run test:api-surface && bun run test:architecture && bun run test:docs && bun run test:release-coherence && git diff --check",
       "scope": "after R1",
-      "logPath": "/tmp/rustra-function-gates-final.log",
+      "logPath": "/tmp/unikit-function-gates-final.log",
       "logSha256": "711b3b3cc6c3f42a33dd3f0eb99be3c86f161ac00e9aec8788d3a41d72b7463c",
       "summaries": [
         "OK: API surface matches snapshot",
@@ -181,7 +181,7 @@
       "status": "passed",
       "command": "bun scripts/function-registration-integration.ts --cpp",
       "scope": "after R1",
-      "logPath": "/tmp/rustra-function-integration-final.log",
+      "logPath": "/tmp/unikit-function-integration-final.log",
       "logSha256": "aa157ab07955d6a6cf4790705b9785c0b6b91f302e2fbf256fbf13f406a99605",
       "summaries": []
     },
@@ -189,7 +189,7 @@
       "status": "passed",
       "command": "bun run --cwd packages/node test",
       "scope": "before R1; unchanged Node transport source",
-      "logPath": "/tmp/rustra-function-node-tests.log",
+      "logPath": "/tmp/unikit-function-node-tests.log",
       "logSha256": "cf220563a7aac97364da1442c248ee9335fc171e65f0b1444ba8bc42a5382513",
       "summaries": [" 74 pass", " 29 skip", " 0 fail", "Ran 103 tests across 5 files. [131.00ms]"]
     },
@@ -197,7 +197,7 @@
       "status": "passed",
       "command": "bun run --cwd packages/node test:node-runtime",
       "scope": "before R1; real calculator runtime; unchanged Node transport source",
-      "logPath": "/tmp/rustra-function-node-runtime.log",
+      "logPath": "/tmp/unikit-function-node-runtime.log",
       "logSha256": "5733c0ccfbacbaf691bc314cdc4a0cba8393fc7b608630f1810f16f509dfd675",
       "summaries": ["# tests 71", "# pass 71", "# fail 0", "# skipped 0"]
     },
@@ -205,7 +205,7 @@
       "status": "passed",
       "command": "bun run --cwd packages/tauri test",
       "scope": "before R1; unchanged Tauri adapter source",
-      "logPath": "/tmp/rustra-function-tauri-tests.log",
+      "logPath": "/tmp/unikit-function-tauri-tests.log",
       "logSha256": "7ed34ef015b44cd6d322f27e5b5a5e12321f2fd80bb3eae925f499ff5e6cf2ed",
       "summaries": [" 47 pass", " 0 fail", "Ran 47 tests across 1 file. [39.00ms]"]
     },
@@ -213,7 +213,7 @@
       "status": "passed",
       "command": "bun run test:docs",
       "scope": "After adding the final report and receipt",
-      "logPath": "/tmp/rustra-function-docs-report-final.log",
+      "logPath": "/tmp/unikit-function-docs-report-final.log",
       "logSha256": "483e183563430c3c0a1ffc795e4077d7a5aad58924666a641151f46b5f687f58",
       "summaries": ["# tests 37", "# pass 37", "# fail 0", "# skipped 0"]
     }
@@ -233,7 +233,7 @@
     ],
     "rustAndCliWrappers": true,
     "cppShimCapabilityCheck": true,
-    "source": "/Users/loopy/dev/ll3/rustra-bridge/.worktrees/function-registration"
+    "source": "/Users/loopy/dev/ll3/unikit-bridge/.worktrees/function-registration"
   },
   "performance": {
     "rust": {

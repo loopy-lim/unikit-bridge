@@ -3,10 +3,10 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "RustraWasmSpike",
+      "name": "UnikitWasmSpike",
       "dependencies": {
         "@react-native/new-app-screen": "0.81.5",
-        "@rustra-wasm-spike/bridge": "file:./modules/RustraWasmSpike",
+        "@unikit-wasm-spike/bridge": "file:./modules/UnikitWasmSpike",
         "react": "19.1.0",
         "react-native": "0.81.5",
         "react-native-safe-area-context": "^5.5.2",
@@ -406,7 +406,7 @@
 
     "@react-native/virtualized-lists": ["@react-native/virtualized-lists@0.81.5", "", { "dependencies": { "invariant": "^2.2.4", "nullthrows": "^1.1.1" }, "peerDependencies": { "@types/react": "^19.1.0", "react": "*", "react-native": "*" }, "optionalPeers": ["@types/react"] }, "sha512-UVXgV/db25OPIvwZySeToXD/9sKKhOdkcWmmf4Jh8iBZuyfML+/5CasaZ1E7Lqg6g3uqVQq75NqIwkYmORJMPw=="],
 
-    "@rustra-wasm-spike/bridge": ["@rustra-wasm-spike/bridge@file:modules/RustraWasmSpike", { "peerDependencies": { "react-native": "*" } }],
+    "@unikit-wasm-spike/bridge": ["@unikit-wasm-spike/bridge@file:modules/UnikitWasmSpike", { "peerDependencies": { "react-native": "*" } }],
 
     "@sideway/address": ["@sideway/address@4.1.5", "", { "dependencies": { "@hapi/hoek": "^9.0.0" } }, "sha512-IqO/DUQHUkPeixNQ8n0JA6102hT9CmaljNTPmQ1u8MEhBo/R4Q8eKLN/vGZxuebwOroDB4cbpjheD4+/sKFK4Q=="],
 

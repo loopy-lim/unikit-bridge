@@ -23,7 +23,7 @@ const cxxCompiler = (): string | null => {
 test('canonical native codec identity matches the exact schema bytes used by JS', async () => {
   const cxx = cxxCompiler();
   if (!cxx) return;
-  const directory = mkdtempSync(join(tmpdir(), 'rustra-codec-identity-'));
+  const directory = mkdtempSync(join(tmpdir(), 'unikit-codec-identity-'));
   try {
     const raw = '{ "packageId": "test.identity", "commands": [] }\n';
     const schema = join(directory, 'schema.json');
@@ -34,11 +34,11 @@ test('canonical native codec identity matches the exact schema bytes used by JS'
     writeFileSync(
       join(directory, 'main.cpp'),
       `
-#include "rustra-generated-codecs.hpp"
+#include "unikit-generated-codecs.hpp"
 #include <iostream>
 int main() {
-#if defined(RUSTRA_GENERATED_CODEC_CONTRACT_IDENTITY)
-  auto hash = rustra::generated::compiled_contract_hash();
+#if defined(UNIKIT_GENERATED_CODEC_CONTRACT_IDENTITY)
+  auto hash = unikit_bridge::generated::compiled_contract_hash();
   std::cout << (hash ? hash : "missing");
 #else
   std::cout << "missing";
@@ -48,7 +48,7 @@ int main() {
     );
     const shim = fileURLToPath(
       new URL(
-        '../../../examples/react-native-calculator/modules/rustra-jsi/ios/test-jsi-shim.hpp',
+        '../../../examples/react-native-calculator/modules/unikit-jsi/ios/test-jsi-shim.hpp',
         import.meta.url,
       ),
     );
@@ -58,14 +58,14 @@ int main() {
         cxx,
         [
           '-std=c++17',
-          '-DRUSTRA_TEST_JSI_SHIM=1',
+          '-DUNIKIT_TEST_JSI_SHIM=1',
           '-include',
           shim,
           '-I',
           directory,
           '-I',
           adapter,
-          join(directory, 'rustra-generated-codecs.cpp'),
+          join(directory, 'unikit-generated-codecs.cpp'),
           join(directory, 'main.cpp'),
           '-o',
           join(directory, 'identity'),
@@ -81,7 +81,7 @@ int main() {
     // The older renderer call shape cannot recover exact original schema bytes.
     // It must emit unknown identity, not assert a reconstructed contract.
     writeFileSync(
-      join(directory, 'rustra-generated-codecs.cpp'),
+      join(directory, 'unikit-generated-codecs.cpp'),
       generateFrameCodecsCpp({ packageId: 'test.identity', commands: [] }),
     );
     assert.equal(compiledIdentity(), 'missing');

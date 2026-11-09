@@ -223,12 +223,12 @@ void test('complex codec survives a full bit-flip sweep with typed outcomes only
     outputSchema: sweepSchema,
   });
   const request = new Uint8Array(
-    codec.encode({ label: 'rustra', score: -7, flag: true, scores: [1, 2, 255] }),
+    codec.encode({ label: 'unikit', score: -7, flag: true, scores: [1, 2, 255] }),
   );
   const source = new Uint8Array([...header, ...request.slice(2)]);
   assert.deepEqual(codec.decode(source.buffer), {
     ok: true,
-    result: { label: 'rustra', score: -7, flag: true, scores: [1, 2, 255] },
+    result: { label: 'unikit', score: -7, flag: true, scores: [1, 2, 255] },
   });
 
   let okCount = 0;

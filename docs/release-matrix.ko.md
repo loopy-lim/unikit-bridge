@@ -4,11 +4,11 @@
 
 ```bash
 fnm exec --using=22 node scripts/audit-release-registry.mjs \
-  --output /tmp/rustra-m0/registry-audit.json \
-  --artifact packages/react-native/native/cpp/RustraJSIBridge.cpp \
-  --artifact packages/react-native/native/android/rustra-jsi-jni.cpp \
-  --artifact packages/react-native/native/ios/RustraJSIModule.mm \
-  --artifact examples/react-native-bare-calculator/generated/.rustra-generated.json
+  --output /tmp/unikit-m0/registry-audit.json \
+  --artifact packages/react-native/native/cpp/UnikitJSIBridge.cpp \
+  --artifact packages/react-native/native/android/unikit-jsi-jni.cpp \
+  --artifact packages/react-native/native/ios/UnikitJSIModule.mm \
+  --artifact examples/react-native-bare-calculator/generated/.unikit-generated.json
 ```
 
 `--output receipt.json`은 완전한 JSON 영수증과 같은 이름의 `receipt.md`를 쓴다. `--artifact PATH`는 반복할 수 있다. 이 명령은 발행·설치하지 않으며 archive를 디스크에 풀지 않는다.
@@ -35,22 +35,22 @@ crates.io는 sparse index의 각 항목에 완전한 SemVer 문법을 적용하�
 
 | npm 패키지             | Workspace / exact / latest     |
 | ---------------------- | ------------------------------ |
-| `@rustra/bun`          | `0.10.0` / `0.10.0` / `0.10.0` |
-| `@rustra/cli`          | `0.10.0` / `0.10.0` / `0.10.0` |
-| `@rustra/devtools`     | `0.7.0` / `0.7.0` / `0.7.0`    |
-| `@rustra/node`         | `0.10.0` / `0.10.0` / `0.10.0` |
-| `@rustra/react`        | `0.8.0` / `0.8.0` / `0.8.0`    |
-| `@rustra/react-native` | `0.9.0` / `0.9.0` / `0.9.0`    |
-| `@rustra/tauri`        | `0.9.0` / `0.9.0` / `0.9.0`    |
-| `@rustra/testing`      | `0.7.0` / `0.7.0` / `0.7.0`    |
-| `@rustra/types`        | `0.10.0` / `0.10.0` / `0.10.0` |
+| `@unikit/bun`          | `0.10.0` / `0.10.0` / `0.10.0` |
+| `@unikit/cli`          | `0.10.0` / `0.10.0` / `0.10.0` |
+| `@unikit/devtools`     | `0.7.0` / `0.7.0` / `0.7.0`    |
+| `@unikit/node`         | `0.10.0` / `0.10.0` / `0.10.0` |
+| `@unikit/react`        | `0.8.0` / `0.8.0` / `0.8.0`    |
+| `@unikit/react-native` | `0.9.0` / `0.9.0` / `0.9.0`    |
+| `@unikit/tauri`        | `0.9.0` / `0.9.0` / `0.9.0`    |
+| `@unikit/testing`      | `0.7.0` / `0.7.0` / `0.7.0`    |
+| `@unikit/types`        | `0.10.0` / `0.10.0` / `0.10.0` |
 
 | crate           | Workspace / exact / latest     | Exact yanked | Archive checksum |
 | --------------- | ------------------------------ | ------------ | ---------------- |
-| `rustra`        | `0.10.0` / `0.10.0` / `0.10.0` | 아니요       | 확인됨           |
-| `rustra-macros` | `0.10.0` / `0.10.0` / `0.10.0` | 아니요       | 확인됨           |
-| `rustra-naming` | `0.10.0` / `0.10.0` / `0.10.0` | 아니요       | 확인됨           |
+| `unikit`        | `0.10.0` / `0.10.0` / `0.10.0` | 아니요       | 확인됨           |
+| `unikit-bridge-macros` | `0.10.0` / `0.10.0` / `0.10.0` | 아니요       | 확인됨           |
+| `unikit-bridge-naming` | `0.10.0` / `0.10.0` / `0.10.0` | 아니요       | 확인됨           |
 
-재현 실행 영수증은 `/tmp/rustra-m0/registry-audit.json`과 `/tmp/rustra-m0/registry-audit.md`에 있다. `/tmp` 영수증은 실행 artifact이며 저장소 이력은 아니다.
+재현 실행 영수증은 `/tmp/unikit-m0/registry-audit.json`과 `/tmp/unikit-m0/registry-audit.md`에 있다. `/tmp` 영수증은 실행 artifact이며 저장소 이력은 아니다.
 
 [저장소 JSON 영수증](verification/evidence/2026-09-14-registry-audit.json)과 [생성 표](verification/evidence/2026-09-14-registry-audit.md)를 구현과 함께 보존한다.

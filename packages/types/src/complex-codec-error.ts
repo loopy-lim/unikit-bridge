@@ -1,8 +1,8 @@
-import type { RustraError } from './index.js';
+import type { UnikitError } from './index.js';
 import { DEFAULT_MAX_COLLECTION_LENGTH } from './complex-codec-types.js';
 import { Reader } from './complex-codec-reader.js';
 
-export function decodeErrorFrame(bytes: Uint8Array): RustraError {
+export function decodeErrorFrame(bytes: Uint8Array): UnikitError {
   if (bytes.length < 10)
     return { code: 'invoke.malformed', message: 'complex response error frame is truncated' };
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);

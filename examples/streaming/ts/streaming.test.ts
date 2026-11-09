@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configure } from '@rustra/types';
+import { configure } from '@unikit/types';
 import { startJob, jobStatus } from '../generated/commands.js';
 import type { EngineClient } from '../generated/types.js';
 

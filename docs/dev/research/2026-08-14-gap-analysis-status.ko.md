@@ -3,7 +3,7 @@ date: 2026-08-14T19:59:46+09:00
 researcher: claude (loopy 세션)
 git_commit: 4808fb8343048aac7a159055a4afee082c67adb3
 branch: main
-repository: rustra-bridge
+repository: unikit-bridge
 topic: '프로젝트 현재 상태 파악 — 디자인 문서 페이즈 완료 상태, 미완료 항목, 다음 할 일'
 tags: [research, codebase, plans, runner-template, cross-platform, windows]
 status: complete
@@ -16,7 +16,7 @@ last_updated_by: claude
 **날짜**: 2026-08-14T19:59:46+09:00
 **Git Commit**: 4808fb83
 **Branch**: main
-**Repository**: rustra-bridge
+**Repository**: unikit-bridge
 
 ## 연구 질문
 
@@ -25,7 +25,7 @@ last_updated_by: claude
 
 ## 요약
 
-- **핵심 프레임워크는 완성**: rustra core/macros + 5 어댑터(Node/Bun/Tauri/RN/Lynx) + codegen,
+- **핵심 프레임워크는 완성**: unikit core/macros + 5 어댑터(Node/Bun/Tauri/RN/Lynx) + codegen,
   테스트 게이트 전부 green (`test:types` 24/24, `test:ts:node` 32/32, `test:packages` 24/24,
   `cargo test` 144).
 - **런타임 증명 3/4 플랫폼**: macOS/iOS/Android 각 7/7 PASS. Windows만 코드·계획 완료 상태로 연기.
@@ -49,12 +49,12 @@ last_updated_by: claude
 | Documentation (05-13)               | docs/ 5트랙 실재, impl Task 1~9                                                                                       |
 | Rust DX improvement (05-14)         | `bridge_type`/`build!`/`command` 매크로 실재 (설계는 `derive`였으나 attribute로 변경 적용)                            |
 | Complex type testing (05-14)        | codegen Map/Tuple 지원 실재                                                                                           |
-| rkyv-command-id (05-14)             | `invoke_rkyv_v2` (`crates/rustra/src/lib.rs:420`) 구현 완료 — **단 문서 헤더가 여전히 "설계 완료, 구현 대기"로 방치** |
+| rkyv-command-id (05-14)             | `invoke_rkyv_v2` (`crates/unikit-bridge/src/lib.rs:420`) 구현 완료 — **단 문서 헤더가 여전히 "설계 완료, 구현 대기"로 방치** |
 | Runtime command registry (07-04)    | impl Done criteria 8/8 [x]                                                                                            |
 | Dynamic rkyv path (07-04)           | impl Done criteria 6/6 [x]                                                                                            |
 | Dynamic rkyv perf/types (07-05)     | 완료 기준 5/5 [x] (시뮬레이터 수동 검증 제외)                                                                         |
 | Lynx adapter (08-10)                | `packages/lynx` + test:packages 24/24                                                                                 |
-| rustra-lynx-runtime Phase A (08-10) | 10/10 ✅                                                                                                              |
+| unikit-lynx-runtime Phase A (08-10) | 10/10 ✅                                                                                                              |
 | Tauri×Lynx desktop spike (08-11)    | 성공기준 4/4 PASS (경로 A SetParent)                                                                                  |
 | Lynx mobile spike (08-11)           | iOS 7/7 + Android 7/7                                                                                                 |
 | Cross-platform Phase 4/5 (08-12)    | §7 Phase 1~5 전부 ✅ 표시                                                                                             |
@@ -79,12 +79,12 @@ last_updated_by: claude
 | `backend/src/capabilities.rs` (FileCap/NotifyCap/Registry/DesktopRegistry + 테스트 3) | ✅ 구현·컴파일 검증                                                                   |
 | `create-runner.sh` (복사 + 4종 식별자 치환)                                           | ✅ 구현 (단 path 의존성은 안내만)                                                     |
 | `desktop/src-tauri/` (main.rs, lynx_host.mm/cpp)                                      | ❌ 없음 (run.sh 뿐)                                                                   |
-| `mobile-android/{app/, modules/rustra-lynx/}`                                         | ❌ 없음                                                                               |
-| `mobile-ios/{app/, modules/rustra-lynx/}`                                             | ❌ 없음                                                                               |
+| `mobile-android/{app/, modules/unikit-lynx/}`                                         | ❌ 없음                                                                               |
+| `mobile-ios/{app/, modules/unikit-lynx/}`                                             | ❌ 없음                                                                               |
 | 플랫폼 `run.sh` 게이트                                                                | ⚠️ grep 게이트 로직은 실제, 그러나 참조 파일 부재로 실행 즉시 실패                    |
 | `app/package.json` codegen script                                                     | ❌ echo 스텁 → 템플릿 단독 `npm run build` 불가 (`App.tsx`가 `../generated/*` import) |
 | Windows scaffold (verify-windows.ps1)                                                 | ❌ 없음 (스파이크에만 존재)                                                           |
-| Mobile capability 브리지 (`rustra_register_file_callback`)                            | ❌ 문서만 (capabilities/README.md)                                                    |
+| Mobile capability 브리지 (`unikit_register_file_callback`)                            | ❌ 문서만 (capabilities/README.md)                                                    |
 | NotifyCap 구현체                                                                      | ❌ trait 정의만                                                                       |
 
 핵심: 디자인 §7 "각 플랫폼 코드는 대응 스파이크에서 정제 추출 (전체 복사 아닌 **핵심 파일 + 포인터**)" 중
@@ -122,7 +122,7 @@ last_updated_by: claude
 2. **P6 조치** — verify-android.sh의 NDK 핀 로직을 build-rust-android.sh에 이식 (셸 추출과 동시 진행).
 3. **문서 상태 부채 정리** — rkyv-command-id design 헤더 갱신("구현 완료"), masterplan 진척 표시,
    Phase 5 완료 표시에 셸 추출 잔존 명시(또는 1 완료 후 유지).
-4. **capability 계층 B 확장** — Mobile 브리지 FFI(`rustra_register_file_callback`) + NotifyCap 구현체.
+4. **capability 계층 B 확장** — Mobile 브리지 FFI(`unikit_register_file_callback`) + NotifyCap 구현체.
 5. **Windows 런타임** (환경 의존) — Windows 머신 확보 후 `lynx_desktop_win.cpp` 작성 + P1 FML PE
    심볼(GetProcAddress → PE 오프셋 순) + `verify-windows.ps1` 7패턴.
 6. **CI 보강** — release.yml/bench.yml (masterplan 잔존), 런타임 verify 스크립트 package.json 등록 논의.

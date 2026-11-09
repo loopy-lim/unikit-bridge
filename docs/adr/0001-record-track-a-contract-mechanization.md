@@ -17,7 +17,7 @@ and proceeds per item.
 The Mozilla UniFFI benchmark study (`docs/dev/research/2026-09-11-uniffi-maturity-catchup.md`)
 found that maturity is not about language count but about **mechanizing contracts**:
 checksums, load-time verification, failure-injection fixtures, fixture discipline, and
-artifact-based codegen gates. rustra already leads on some axes (public schema, wire
+artifact-based codegen gates. unikit already leads on some axes (public schema, wire
 freeze, hot swap, en/ko docs), but five weakly-enforced points carry the load of any
 maturity claim:
 
@@ -34,11 +34,11 @@ maturity claim:
 
 ## Decision
 
-Adopt UniFFI's maturity practices **while keeping the rustra model** (Track A —
+Adopt UniFFI's maturity practices **while keeping the unikit model** (Track A —
 independent of the language-coverage decision, Track B). Six items:
 
 1. **Per-symbol signature pinning**: promote the api-surface snapshot to v2 so it compares
-   signatures (args, return, async-ness) beyond symbol names — rustra's form of UniFFI's
+   signatures (args, return, async-ness) beyond symbol names — unikit's form of UniFFI's
    per-symbol u16 checksums.
 2. **contractVerification policy option**: introduce the policy option that turns
    `contract.mismatch` runtime verification default-on while keeping an escape hatch.
@@ -59,7 +59,7 @@ independent of the language-coverage decision, Track B). Six items:
 - **Positive**: signature, freshness, and contract verification are promoted to CI-hard,
   so "bindings ↔ core mismatch" becomes a failure before it can become UB. The safety
   contract becomes a first-class review/change target. The practices gap closes while
-  keeping rustra's advantages over UniFFI (public schema, wire freeze, hot swap).
+  keeping unikit's advantages over UniFFI (public schema, wire freeze, hot swap).
 - **Negative/cost**: PRs without regenerated generated files will fail the freshness gate
   (a regen commit is required). contractVerification default-on can break apps that
   previously passed on installs mixing old and new artifacts (mitigated by the escape

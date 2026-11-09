@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "schemaHash": "e70c24c62944ff78fb6ca58b5658d85bb5cff49af4acc96b3a78bedcbdfb0a58",
+  "generatorVersion": "0.13.0",
+  "files": [
+    {
+      "path": "../modules/unikit-jsi/android/build-rust-android.sh",
+      "sha256": "a915117c69c6ad73b9d42a89ea5d67f6ee238c242f194b6fc67d8d02c074a485"
+    },
+    {
+      "path": "../modules/unikit-jsi/android/build.gradle",
+      "sha256": "93186e3c6b9e97a502eab63b6efc2ff3d8571fa6e73f5e368ee9f02f9ff79601"
+    },
+    {
+      "path": "../modules/unikit-jsi/android/CMakeLists.txt",
+      "sha256": "9ca4eccc6db13c1d584551c4901847c84188eb7e7d74765e7884770b51501656"
+    },
+    {
+      "path": "../modules/unikit-jsi/android/src/main/AndroidManifest.xml",
+      "sha256": "29a5250621c15524c26a69d3f3f62199b1a2946cce7a0b738acf299f9ca6e547"
+    },
+    {
+      "path": "../modules/unikit-jsi/android/src/main/java/dev/unikit/bridge/UnikitBridgeModule.kt",
+      "sha256": "35ffd61a882a8e2de8c94dd91ee4a8b1080c5a95b94111d6d19b179f11938fce"
+    },
+    {
+      "path": "../modules/unikit-jsi/android/src/main/java/dev/unikit/bridge/UnikitBridgePackage.kt",
+      "sha256": "92feda53ca4718d0e2980440003af58b43d22262e72d2e883cce713f232e8e07"
+    },
+    {
+      "path": "../modules/unikit-jsi/generated/unikit-generated-codecs.cpp",
+      "sha256": "b25b98046764e60bb30aebe776487a14b007a48ca37cb2433603839a83079f87"
+    },
+    {
+      "path": "../modules/unikit-jsi/generated/unikit-generated-codecs.hpp",
+      "sha256": "50b5a8ffdb0751a5a0b8c5151ffcb9c5bed293075a21cea3d4dfa686a242819d"
+    },
+    {
+      "path": "../modules/unikit-jsi/ios/build-rust-ios.sh",
+      "sha256": "e65e51258d0cfc5476d6dfc7fb5ddca41d5bbf54684013789a6005095557f00e"
+    },
+    {
+      "path": "../modules/unikit-jsi/ios/UnikitBridge.cpp",
+      "sha256": "c1976b169699047ba51a3777bb16ddda2c52279220af72ee6f24e48b10893798"
+    },
+    {
+      "path": "../modules/unikit-jsi/ios/UnikitBridgeModule.mm",
+      "sha256": "f19d84598dbdfdce63845af9ec3076df61e84a577ab34fb1a8f6ef7ac163d785"
+    },
+    {
+      "path": "../modules/unikit-jsi/package.json",
+      "sha256": "1afb5170a456e2cd3d17d35c398888f7b38ef275044742eaa5015d3df2e27781"
+    },
+    {
+      "path": "../modules/unikit-jsi/react-native.config.js",
+      "sha256": "d86b7c9c1a00caea8b0b06d07e719d790c83212a285303a730d9b6805cec8d3b"
+    },
+    {
+      "path": "../modules/unikit-jsi/UnikitBridge.podspec",
+      "sha256": "4f55ec5ef3af8d6b4aad8c9237749fcf0517732cbac8b6efe9723ce035cd50ae"
+    },
+    {
+      "path": "../modules/unikit-jsi/scripts/prepare-native.cjs",
+      "sha256": "28705d1d555796b41fe31f7172e1468477332ba03008fa56fe45a88574bcd700"
+    },
+    {
+      "path": "../modules/unikit-jsi/src/index.ts",
+      "sha256": "6159334c0710e6ab19715b520cac967e393ff9ef9142926217838db6be213a88"
+    },
+    {
+      "path": "commands.ts",
+      "sha256": "f480202c9daf7a79f5615af71fcac89b8a4b698648bc958e63ddf63f6b0cebe1"
+    },
+    {
+      "path": "contract.ts",
+      "sha256": "68a92f4a96ae09133e70b696b175ca0dc9fd27b6d80dee33d2462d26727ac6b3"
+    },
+    {
+      "path": "devices.ts",
+      "sha256": "2be579d552f36a83114ff751934b58b2e8cf764ce2970f79b5273a045127a7e9"
+    },
+    {
+      "path": "errors.ts",
+      "sha256": "01de485660ff23d21fcd77009c5d23310ed8dae06da1b4b21be7576f57ef08b7"
+    },
+    {
+      "path": "frame-codecs.ts",
+      "sha256": "264543db2c15dc193d87a5ad7e0ad26d9f7d1922b0af85969d3738766388c39d"
+    },
+    {
+      "path": "frame-registry.ts",
+      "sha256": "5c0b5eaaf01fd732f9aa1b25e13190e6fc328871544af451a48587a60e6de136"
+    },
+    {
+      "path": "positional-facade.ts",
+      "sha256": "9851448a8e98803fdeba9198ad21c4c9cb998190ed1a71ea1e0f3d0816cb8081"
+    },
+    {
+      "path": "react-native.ts",
+      "sha256": "dc840641ade3347c1cf0eaa4929caf8c913e4b93eee868cf8bca36b6f78ffc54"
+    },
+    {
+      "path": "types.ts",
+      "sha256": "67b0029f8864f8fd24df3850bc496f1ea9536bc0c83425e9489d6a19084820dc"
+    }
+  ]
+}

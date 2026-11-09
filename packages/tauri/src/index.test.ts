@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createTauriBootstrap, createTauriEngine, subscribeTauriEvent } from './index.js';
-import { RustraCommandError, configureDebug, type RustraDebugEvent } from '@rustra/types';
+import { UnikitCommandError, configureDebug, type UnikitDebugEvent } from '@unikit/types';
 
-void test('createTauriEngine routes invoke through rustra_dispatch', async () => {
+void test('createTauriEngine routes invoke through unikit_dispatch', async () => {
   const calls: Array<{ command: string; args: unknown }> = [];
   const engine = createTauriEngine({
     async invoke(command, args) {
@@ -15,7 +15,7 @@ void test('createTauriEngine routes invoke through rustra_dispatch', async () =>
   const result = await engine.invoke<{ value: number }>('addNumbers', { a: 20, b: 22 });
   assert.deepEqual(result, { value: 42 });
   assert.deepEqual(calls, [
-    { command: 'rustra_dispatch', args: { command: 'addNumbers', args: { a: 20, b: 22 } } },
+    { command: 'unikit_dispatch', args: { command: 'addNumbers', args: { a: 20, b: 22 } } },
   ]);
 });
 
@@ -26,7 +26,7 @@ void test('createTauriEngine applies timeoutMs and shallow abort to pending tran
 
   await assert.rejects(
     engine.invoke('slow', undefined, { timeoutMs: 10 }),
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'transport.timeout',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'transport.timeout',
   );
 
   const controller = new AbortController();
@@ -34,16 +34,16 @@ void test('createTauriEngine applies timeoutMs and shallow abort to pending tran
   controller.abort();
   await assert.rejects(
     pending,
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'cancelled',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'cancelled',
   );
 });
 
 void test('createTauriEngine exposes Promise-based invokeBatch with stable order', async () => {
-  // 트랙 E2 — invokeBatch 는 이제 rustra_dispatch_batch 와이어 배치 한 번으로
+  // 트랙 E2 — invokeBatch 는 이제 unikit_dispatch_batch 와이어 배치 한 번으로
   // 처리된다. mock 호스트는 Rust 계약(항목별 ok/result)을 그대로 흉내 낸다.
   const engine = createTauriEngine({
     async invoke(command, args) {
-      if (command === 'rustra_dispatch_batch') {
+      if (command === 'unikit_dispatch_batch') {
         const requests = (args as { requests: Array<{ command: string }> }).requests;
         return requests.map((request) => ({
           ok: true,
@@ -67,7 +67,7 @@ void test('createTauriEngine normalizes undefined args to empty object', async (
   });
 
   await engine.invoke('noArgs');
-  assert.deepEqual(calls, [{ command: 'rustra_dispatch', args: { command: 'noArgs', args: {} } }]);
+  assert.deepEqual(calls, [{ command: 'unikit_dispatch', args: { command: 'noArgs', args: {} } }]);
 });
 
 void test('Tauri verifies an expected contract before commands and shares the startup handshake', async () => {
@@ -76,8 +76,8 @@ void test('Tauri verifies an expected contract before commands and shares the st
     contractHash: 'expected',
     async invoke(command) {
       calls.push(command);
-      if (command === 'rustra_contract_hash') return 'expected';
-      if (command === 'rustra_dispatch_batch') return [{ ok: true, result: 42 }];
+      if (command === 'unikit_contract_hash') return 'expected';
+      if (command === 'unikit_dispatch_batch') return [{ ok: true, result: 42 }];
       return 42;
     },
   });
@@ -85,7 +85,7 @@ void test('Tauri verifies an expected contract before commands and shares the st
     await Promise.all([engine.invoke('one'), engine.invokeBatch([{ command: 'two' }])]),
     [42, [42]],
   );
-  assert.deepEqual(calls, ['rustra_contract_hash', 'rustra_dispatch', 'rustra_dispatch_batch']);
+  assert.deepEqual(calls, ['unikit_contract_hash', 'unikit_dispatch', 'unikit_dispatch_batch']);
 });
 
 void test('Tauri strict contract mismatch rejects before executing a command', async () => {
@@ -99,16 +99,16 @@ void test('Tauri strict contract mismatch rejects before executing a command', a
   });
   await assert.rejects(
     engine.invoke('one'),
-    (error: unknown) => error instanceof RustraCommandError && error.code === 'contract.mismatch',
+    (error: unknown) => error instanceof UnikitCommandError && error.code === 'contract.mismatch',
   );
-  assert.deepEqual(calls, ['rustra_contract_hash']);
+  assert.deepEqual(calls, ['unikit_contract_hash']);
 });
 
 void test('Tauri preserves a native IPC contract mismatch error and sends the expected hash', async () => {
   const engine = createTauriEngine({
     contractHash: 'expected',
     async invoke(command, args) {
-      assert.equal(command, 'rustra_contract_hash');
+      assert.equal(command, 'unikit_contract_hash');
       assert.deepEqual(args, { expectedHash: 'expected' });
       // eslint-disable-next-line @typescript-eslint/only-throw-error -- 비-Error throw 의 정규화 계약이 검증 대상이다
       throw { code: 'contract.mismatch', message: 'native rejected stale client' };
@@ -117,7 +117,7 @@ void test('Tauri preserves a native IPC contract mismatch error and sends the ex
   await assert.rejects(
     engine.invoke('one'),
     (error: unknown) =>
-      error instanceof RustraCommandError &&
+      error instanceof UnikitCommandError &&
       error.code === 'contract.mismatch' &&
       error.message === 'native rejected stale client',
   );
@@ -129,7 +129,7 @@ void test('Tauri strict contract verification rejects old or malformed native ha
     await assert.rejects(
       engine.invoke('one'),
       (error: unknown) =>
-        error instanceof RustraCommandError && error.code === 'contract.unenforceable',
+        error instanceof UnikitCommandError && error.code === 'contract.unenforceable',
     );
   }
   const old = createTauriEngine({
@@ -137,18 +137,18 @@ void test('Tauri strict contract verification rejects old or malformed native ha
     invoke: async () => {
       // 문자열 throw 의 정규화 계약이 검증 대상이다.
       // eslint-disable-next-line @typescript-eslint/only-throw-error
-      throw 'Command rustra_contract_hash not found';
+      throw 'Command unikit_contract_hash not found';
     },
   });
   await assert.rejects(
     old.invoke('one'),
     (error: unknown) =>
-      error instanceof RustraCommandError && error.code === 'contract.unenforceable',
+      error instanceof UnikitCommandError && error.code === 'contract.unenforceable',
   );
 });
 
 void test('Tauri missing native registration explains the handler replacement and repair', async () => {
-  const cause = 'Command rustra_contract_hash not found';
+  const cause = 'Command unikit_contract_hash not found';
   const bootstrap = createTauriBootstrap({
     contractHash: 'expected',
     // 임의 거절 값(String)이 정규화/레이블링되는 계약이 검증 대상이다.
@@ -157,9 +157,9 @@ void test('Tauri missing native registration explains the handler replacement an
   });
   try {
     await assert.rejects(bootstrap.ready(), (error: unknown) => {
-      assert.ok(error instanceof RustraCommandError);
+      assert.ok(error instanceof UnikitCommandError);
       assert.equal(error.code, 'contract.unenforceable');
-      assert.match(error.message, /rustra_contract_hash/);
+      assert.match(error.message, /unikit_contract_hash/);
       assert.match(error.message, /register_with_events/);
       assert.match(error.message, /invoke_handler/);
       assert.match(error.message, /with_app_commands/);
@@ -180,7 +180,7 @@ void test('Tauri custom transport failures are not mislabeled as missing native 
       invoke: () => Promise.reject(cause),
     });
     await assert.rejects(engine.invoke('first'), (error: unknown) => {
-      assert.ok(error instanceof RustraCommandError);
+      assert.ok(error instanceof UnikitCommandError);
       assert.equal(error.code, 'contract.unenforceable');
       assert.doesNotMatch(error.message, /with_app_commands/);
       assert.equal(error.cause, cause);
@@ -204,19 +204,19 @@ void test('Tauri warn permits old transports with one warning and off skips the 
         calls.push(command);
         // 문자열 throw 의 정규화 계약이 검증 대상이다.
         // eslint-disable-next-line @typescript-eslint/only-throw-error
-        if (command === 'rustra_contract_hash') throw 'Command rustra_contract_hash not found';
+        if (command === 'unikit_contract_hash') throw 'Command unikit_contract_hash not found';
         return 42;
       },
     });
     assert.equal(await engine.invoke('one'), 42);
     assert.equal(await engine.invoke('two'), 42);
     assert.equal(warnings.length, 1);
-    assert.deepEqual(calls, ['rustra_contract_hash', 'rustra_dispatch', 'rustra_dispatch']);
+    assert.deepEqual(calls, ['unikit_contract_hash', 'unikit_dispatch', 'unikit_dispatch']);
     const unchecked = createTauriEngine({
       contractHash: 'expected',
       contractVerification: 'off',
       invoke(command) {
-        assert.equal(command, 'rustra_dispatch');
+        assert.equal(command, 'unikit_dispatch');
         return 42;
       },
     });
@@ -227,7 +227,7 @@ void test('Tauri warn permits old transports with one warning and off skips the 
 });
 
 void test('Tauri bootstrap ready waits for strict native contract verification', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   try {
     let calls = 0;
@@ -240,7 +240,7 @@ void test('Tauri bootstrap ready waits for strict native contract verification',
     });
     await assert.rejects(
       bootstrap.ready(),
-      (error: unknown) => error instanceof RustraCommandError && error.code === 'contract.mismatch',
+      (error: unknown) => error instanceof UnikitCommandError && error.code === 'contract.mismatch',
     );
     assert.equal(bootstrap.state, 'initializing');
     assert.equal(calls, 1);
@@ -251,7 +251,7 @@ void test('Tauri bootstrap ready waits for strict native contract verification',
 });
 
 void test('disposing Tauri during its native handshake cannot publish or return the stale engine', async () => {
-  const { configure, invoke } = await import('@rustra/types');
+  const { configure, invoke } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   let started!: () => void;
   const handshaking = new Promise<void>((resolve) => {
@@ -277,7 +277,7 @@ void test('disposing Tauri during its native handshake cannot publish or return 
     await assert.rejects(
       invoke('echo'),
       (error: unknown) =>
-        error instanceof RustraCommandError && error.code === 'transport.unavailable',
+        error instanceof UnikitCommandError && error.code === 'transport.unavailable',
     );
   } finally {
     finish('expected');
@@ -289,7 +289,7 @@ void test('Tauri batch rejects malformed response envelopes instead of resolving
   for (const response of [null, {}, [{ ok: 'true', result: 1 }], [{ ok: true }], [{ ok: false }]]) {
     const engine = createTauriEngine({ invoke: async () => response });
     await assert.rejects(engine.invokeBatch([{ command: 'one' }]), (error: unknown) => {
-      assert.ok(error instanceof RustraCommandError);
+      assert.ok(error instanceof UnikitCommandError);
       assert.equal(error.code, 'invoke.malformed');
       assert.match(error.message, /batch response/i);
       return true;
@@ -302,7 +302,7 @@ void test('Tauri batch rejects a response with fewer entries than requested', as
   await assert.rejects(
     engine.invokeBatch([{ command: 'one' }, { command: 'two' }]),
     (error: unknown) =>
-      error instanceof RustraCommandError && /batch response/i.test(error.message),
+      error instanceof UnikitCommandError && /batch response/i.test(error.message),
   );
 });
 
@@ -324,7 +324,7 @@ void test('createTauriEngine discovers the Tauri global without manual transport
       b: 22,
     });
     assert.deepEqual(result, { value: 42 });
-    assert.equal(calls[0]?.command, 'rustra_dispatch');
+    assert.equal(calls[0]?.command, 'unikit_dispatch');
   } finally {
     root.__TAURI__ = previous;
   }
@@ -346,10 +346,10 @@ void test('createTauriBootstrap delays global discovery until the first command'
   }
 });
 
-void test('createTauriEngine wraps RustraError-shaped rejects into RustraCommandError', async () => {
+void test('createTauriEngine wraps UnikitError-shaped rejects into UnikitCommandError', async () => {
   const engine = createTauriEngine({
     async invoke() {
-      // 객체 throw 의 RustraCommandError 래핑 계약이 검증 대상이다.
+      // 객체 throw 의 UnikitCommandError 래핑 계약이 검증 대상이다.
       // eslint-disable-next-line @typescript-eslint/only-throw-error
       throw { code: 'transport.timeout', message: 'request timed out', retryable: true };
     },
@@ -358,7 +358,7 @@ void test('createTauriEngine wraps RustraError-shaped rejects into RustraCommand
   await assert.rejects(
     () => engine.invoke('cmd'),
     (err: unknown) => {
-      if (!(err instanceof RustraCommandError)) return false;
+      if (!(err instanceof UnikitCommandError)) return false;
       assert.equal(err.code, 'transport.timeout');
       assert.equal(err.message, 'request timed out');
       assert.equal(err.retryable, true);
@@ -380,18 +380,18 @@ void test('createTauriEngine wraps non-Error throws as unknown, Error messages v
   await assert.rejects(
     () => engine.invoke('cmd'),
     (err: unknown) => {
-      if (!(err instanceof RustraCommandError)) return false;
+      if (!(err instanceof UnikitCommandError)) return false;
       assert.equal(err.code, 'unknown');
       return true;
     },
   );
 });
 
-// ── Rust 와이어 에러 — Error.message 의 RustraError JSON/Display 복원 ──
+// ── Rust 와이어 에러 — Error.message 의 UnikitError JSON/Display 복원 ──
 
-void test('createTauriEngine parses RustraError JSON message from wire Error', async () => {
-  // Rust 가 RustraError 를 JSON 직렬화해 Error 로 던지는 경우 code/retryable 을
-  // 보존한다(unknown 래핑 금지 — @rustra/node 와 동일 파이프라인).
+void test('createTauriEngine parses UnikitError JSON message from wire Error', async () => {
+  // Rust 가 UnikitError 를 JSON 직렬화해 Error 로 던지는 경우 code/retryable 을
+  // 보존한다(unknown 래핑 금지 — @unikit/node 와 동일 파이프라인).
   const engine = createTauriEngine({
     async invoke() {
       throw new Error('{"code":"command.not_found","message":"command not found: nope"}');
@@ -401,7 +401,7 @@ void test('createTauriEngine parses RustraError JSON message from wire Error', a
   await assert.rejects(
     () => engine.invoke('nope'),
     (err: unknown) => {
-      if (!(err instanceof RustraCommandError)) return false;
+      if (!(err instanceof UnikitCommandError)) return false;
       assert.equal(err.code, 'command.not_found');
       assert.equal(err.retryable, false);
       return true;
@@ -419,7 +419,7 @@ void test('createTauriEngine parses Display-style "code: message" Error message'
   await assert.rejects(
     () => engine.invoke('nope'),
     (err: unknown) => {
-      if (!(err instanceof RustraCommandError)) return false;
+      if (!(err instanceof UnikitCommandError)) return false;
       assert.equal(err.code, 'command.not_found');
       assert.equal(err.message, 'nope');
       return true;
@@ -428,7 +428,7 @@ void test('createTauriEngine parses Display-style "code: message" Error message'
 });
 
 // ── R02 — 이벤트 채널명 Unicode 규칙 통일 ──
-// (구 `rustraEventChannel sanitizes...` 테스트는 GOLDEN_CASES 에 흡수됐다 —
+// (구 `unikitEventChannel sanitizes...` 테스트는 GOLDEN_CASES 에 흡수됐다 —
 // 골든 테이블이 이 함수 매핑의 단일 진실원이다.)
 // 공동 골든 테이블 — Rust 측 examples/tauri-calculator/src-tauri/tests/
 // event_name_mapping.rs 의 GOLDEN_CASES 와 문자 그대로 동일한 리터럴이다.
@@ -440,30 +440,30 @@ void test('createTauriEngine parses Display-style "code: message" Error message'
 // 수렴 사례는 빌드 타임 충돌 거부가 잡는다.
 const GOLDEN_CASES: ReadonlyArray<readonly [string, string]> = [
   // 기본 치환 — '.' → '_'.
-  ['progress.tick', 'rustra://progress_tick'],
+  ['progress.tick', 'unikit://progress_tick'],
   // 한국어(Unicode 알파벳) 보존 — 구 JS 규칙은 전부 '_' 로 깨뜨렸다.
-  ['진행.갱신', 'rustra://진행_갱신'],
-  ['a.b', 'rustra://a_b'],
-  ['llm.stream-token', 'rustra://llm_stream-token'],
-  ['a b/c', 'rustra://a_b/c'],
+  ['진행.갱신', 'unikit://진행_갱신'],
+  ['a.b', 'unikit://a_b'],
+  ['llm.stream-token', 'unikit://llm_stream-token'],
+  ['a b/c', 'unikit://a_b/c'],
   // 결합 문자(U+0301)는 알파벳이 아니므로 '_' — NFC 정규화는 하지 않는다.
   // (Rust 와 동일하게 이스케이프로 적는다 — 에디터 NFC 정규화 방지.)
-  ['cafe\u{301}', 'rustra://cafe_'],
+  ['cafe\u{301}', 'unikit://cafe_'],
   // 비 BMP 이모지는 코드포인트 1개 — '_' 1개 (surrogate 2개 아님).
-  ['done🎉now', 'rustra://done_now'],
+  ['done🎉now', 'unikit://done_now'],
   // 비 BMP 영숫자(U+1D54F) 보존 — 구 JS 규칙은 surrogate 쌍을 '__' 로.
-  ['n.𝕏', 'rustra://n_𝕏'],
+  ['n.𝕏', 'unikit://n_𝕏'],
   // Alphabetic-but-not-L (U+0345, ypogegrammeni) 보존 게이트 — 술어를
   // `\p{L}|\p{N}` 으로 "단순화"하면 이 행이 깨진다. `is_alphanumeric()` =
   // Alphabetic ∪ N 이라는 설계 결정을 산문 대신 게이트로 고정한다.
-  ['ypogegrammeni:\u{0345}', 'rustra://ypogegrammeni:\u{0345}'],
+  ['ypogegrammeni:\u{0345}', 'unikit://ypogegrammeni:\u{0345}'],
 ];
 
-void test('rustraEventChannel matches the shared Unicode golden table (Rust event_channel twin)', async () => {
-  const { rustraEventChannel } = await import('./index.js');
+void test('unikitEventChannel matches the shared Unicode golden table (Rust event_channel twin)', async () => {
+  const { unikitEventChannel } = await import('./index.js');
   for (const [input, expected] of GOLDEN_CASES) {
     assert.equal(
-      rustraEventChannel(input),
+      unikitEventChannel(input),
       expected,
       `channel mapping drifted for ${JSON.stringify(input)} — TS/Rust 골든 테이블 동기 필요`,
     );
@@ -485,7 +485,7 @@ void test('subscribeEvent parses JSON payloads and falls back to raw string', as
     payloadEncoding: 'serialized-json',
   });
 
-  assert.equal(captured!.channel, 'rustra://tick');
+  assert.equal(captured!.channel, 'unikit://tick');
   fire!('{"value":42}');
   assert.deepEqual(seen, [{ value: 42 }]);
   // 비 JSON 페이로드는 원본 문자열로 전달(조용한 드롭 방지).
@@ -551,7 +551,7 @@ function mockListen(): {
   const handlers: Array<(event: { payload: unknown }) => void> = [];
   return {
     listen: async (channel, handler) => {
-      assert.equal(channel, 'rustra://tick');
+      assert.equal(channel, 'unikit://tick');
       handlers.push(handler);
       return () => {};
     },
@@ -564,7 +564,7 @@ function mockListen(): {
 void test('subscribeEvent keeps a throwing callback inside the listener boundary (called once, error observed)', async () => {
   const { subscribeEvent } = await import('./index.js');
   const { listen, fire } = mockListen();
-  const events: RustraDebugEvent[] = [];
+  const events: UnikitDebugEvent[] = [];
   configureDebug((event) => events.push(event));
   try {
     let calls = 0;
@@ -639,7 +639,7 @@ void test('subscribeEvent delivers invalid JSON as the original string exactly o
 void test('subscribeEvent protects sibling listeners from a throwing listener', async () => {
   const { subscribeEvent } = await import('./index.js');
   const { listen, fire } = mockListen();
-  const events: RustraDebugEvent[] = [];
+  const events: UnikitDebugEvent[] = [];
   configureDebug((event) => events.push(event));
   try {
     // 같은 이벤트 채널에 리스너 2개 — 첫 리스너가 throw 해도 둘째는 정상 도달.
@@ -671,7 +671,7 @@ void test('subscribeEvent keeps the raw-string fallback inside the callback boun
   // 호출 경로가 경계 안에 있다.
   const { subscribeEvent } = await import('./index.js');
   const { listen, fire } = mockListen();
-  const events: RustraDebugEvent[] = [];
+  const events: UnikitDebugEvent[] = [];
   configureDebug((event) => events.push(event));
   try {
     let calls = 0;
@@ -715,7 +715,7 @@ void test('subscribeTauriEvent discovers the global listen API', async () => {
     await subscribeTauriEvent('calc.tick', (value) => {
       payload = value;
     });
-    assert.equal(channel, 'rustra://calc_tick');
+    assert.equal(channel, 'unikit://calc_tick');
     assert.deepEqual(payload, { value: 42 });
   } finally {
     root.__TAURI__ = previous;
@@ -808,15 +808,15 @@ void test('decoded and explicit serialized-json transports deliver the same even
   }
 });
 
-// ── 와이어 배치 — rustra_dispatch_batch 단일 횡단 (트랙 E2) ──
+// ── 와이어 배치 — unikit_dispatch_batch 단일 횡단 (트랙 E2) ──
 
-void test('createTauriEngine routes invokeBatch through rustra_dispatch_batch', async () => {
+void test('createTauriEngine routes invokeBatch through unikit_dispatch_batch', async () => {
   const calls: Array<{ command: string; args: unknown }> = [];
   let dispatchCalls = 0;
   const engine = createTauriEngine({
     invoke(command, args) {
       calls.push({ command, args });
-      if (command === 'rustra_dispatch_batch') {
+      if (command === 'unikit_dispatch_batch') {
         dispatchCalls += 1;
         const requests = (args as { requests: Array<{ command: string }> }).requests;
         return Promise.resolve(
@@ -835,10 +835,10 @@ void test('createTauriEngine routes invokeBatch through rustra_dispatch_batch', 
     { command: 'mul', args: { a: 2, b: 3 } },
     { command: 'add', args: { a: 1, b: 1 } },
   ]);
-  assert.equal(dispatchCalls, 1, 'batch must be a single rustra_dispatch_batch crossing');
-  assert.equal(calls.length, 1, 'no per-entry rustra_dispatch calls');
+  assert.equal(dispatchCalls, 1, 'batch must be a single unikit_dispatch_batch crossing');
+  assert.equal(calls.length, 1, 'no per-entry unikit_dispatch calls');
   assert.deepEqual(calls[0], {
-    command: 'rustra_dispatch_batch',
+    command: 'unikit_dispatch_batch',
     args: {
       requests: [
         { command: 'add', args: { a: 20, b: 22 } },
@@ -856,7 +856,7 @@ void test('createTauriEngine batch rejects with the failing entry error without 
   // 에러 객체는 실패한 항목 것임이 보장되어야 한다.
   const engine = createTauriEngine({
     async invoke(command, args) {
-      if (command === 'rustra_dispatch_batch') {
+      if (command === 'unikit_dispatch_batch') {
         const requests = (args as { requests: Array<{ command: string }> }).requests;
         return requests.map((request) =>
           request.command === 'boom'
@@ -876,7 +876,7 @@ void test('createTauriEngine batch rejects with the failing entry error without 
       { command: 'boom', args: {} },
     ]),
     (error: unknown) => {
-      if (!(error instanceof RustraCommandError)) return false;
+      if (!(error instanceof UnikitCommandError)) return false;
       assert.equal(error.code, 'command.not_found');
       assert.equal(error.message, 'command not found: boom');
       return true;
@@ -887,7 +887,7 @@ void test('createTauriEngine batch rejects with the failing entry error without 
 void test('createTauriEngine batch normalizes undefined args to empty objects', async () => {
   const engine = createTauriEngine({
     async invoke(command, args) {
-      if (command === 'rustra_dispatch_batch') {
+      if (command === 'unikit_dispatch_batch') {
         const requests = (args as { requests: Array<{ args: unknown }> }).requests;
         return requests.map(() => ({ ok: true, result: null }));
       }
@@ -923,10 +923,10 @@ void test('A02: createTauriEngine exposes supports matching the compatibility ma
 
 const A05_SLOT_ENGINE = {
   invoke: async <T>() => 'slot' as T,
-} as unknown as import('@rustra/types').EngineClientWithBatch;
+} as unknown as import('@unikit/types').EngineClientWithBatch;
 
 void test('A05: createTauriBootstrap exposes the lifecycle state surface', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createTauriBootstrap({ invoke: () => ({}) });
@@ -941,13 +941,13 @@ void test('A05: createTauriBootstrap exposes the lifecycle state surface', async
 });
 
 void test('A05: ready after dispose rejects loudly (tauri)', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createTauriBootstrap({ invoke: () => ({}) });
     bootstrap.dispose();
     await assert.rejects(bootstrap.ready(), (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.match(err.message, /disposed/);
       return true;
     });
@@ -957,7 +957,7 @@ void test('A05: ready after dispose rejects loudly (tauri)', async () => {
 });
 
 void test('A05: dispose is idempotent — second dispose is a no-op (tauri)', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createTauriBootstrap({ invoke: () => ({}) });
@@ -972,7 +972,7 @@ void test('A05: dispose is idempotent — second dispose is a no-op (tauri)', as
 });
 
 void test('A05: concurrent ready calls share one initialization promise (tauri)', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createTauriBootstrap({ invoke: () => ({}) });
@@ -985,7 +985,7 @@ void test('A05: concurrent ready calls share one initialization promise (tauri)'
 });
 
 void test('disposing an uninitialized Tauri bootstrap releases its generated command registration', async () => {
-  const { configure, invoke } = await import('@rustra/types');
+  const { configure, invoke } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   let calls = 0;
   try {
@@ -994,7 +994,7 @@ void test('disposing an uninitialized Tauri bootstrap releases its generated com
     await assert.rejects(
       invoke('echo'),
       (error: unknown) =>
-        error instanceof RustraCommandError && error.code === 'transport.unavailable',
+        error instanceof UnikitCommandError && error.code === 'transport.unavailable',
     );
     assert.equal(calls, 0);
     const replacement = createTauriBootstrap({ invoke: () => 'replacement' });
@@ -1006,7 +1006,7 @@ void test('disposing an uninitialized Tauri bootstrap releases its generated com
 });
 
 void test('disposing a ready Tauri bootstrap releases its generated command registration', async () => {
-  const { configure, invoke } = await import('@rustra/types');
+  const { configure, invoke } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createTauriBootstrap({ invoke: () => 'alive' });
@@ -1015,7 +1015,7 @@ void test('disposing a ready Tauri bootstrap releases its generated command regi
     await assert.rejects(
       invoke('echo'),
       (error: unknown) =>
-        error instanceof RustraCommandError && error.code === 'transport.unavailable',
+        error instanceof UnikitCommandError && error.code === 'transport.unavailable',
     );
   } finally {
     configure(A05_SLOT_ENGINE);
@@ -1023,7 +1023,7 @@ void test('disposing a ready Tauri bootstrap releases its generated command regi
 });
 
 void test('a captured Tauri bootstrap engine rejects new calls after disposal', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   let calls = 0;
   try {
@@ -1039,14 +1039,14 @@ void test('a captured Tauri bootstrap engine rejects new calls after disposal', 
 });
 
 void test('Tauri bootstrap ready rejects when another registration takes ownership', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createTauriBootstrap({ invoke: () => 'old' });
     configure(A05_SLOT_ENGINE);
     await assert.rejects(
       bootstrap.ready(),
-      (error: unknown) => error instanceof RustraCommandError && /replaced/.test(error.message),
+      (error: unknown) => error instanceof UnikitCommandError && /replaced/.test(error.message),
     );
     bootstrap.dispose();
   } finally {
@@ -1055,7 +1055,7 @@ void test('Tauri bootstrap ready rejects when another registration takes ownersh
 });
 
 void test('disposing an older Tauri bootstrap preserves a newer engine registration', async () => {
-  const { configure, invoke } = await import('@rustra/types');
+  const { configure, invoke } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createTauriBootstrap({ invoke: () => 'old' });
@@ -1109,7 +1109,7 @@ function fakeIpcChannel() {
 
 for (const binary of [false, true]) {
   const name = binary ? 'createChannelBytes' : 'createChannel';
-  const command = binary ? 'rustra_channel_create_bytes' : 'rustra_channel_create';
+  const command = binary ? 'unikit_channel_create_bytes' : 'unikit_channel_create';
   void test(`${name} binds IPC before allocation and closes once without any event listener`, async () => {
     const api = await import('./index.js');
     const received: unknown[] = [];
@@ -1138,7 +1138,7 @@ for (const binary of [false, true]) {
     wire.fire(binary ? [9] : 'late');
     assert.equal(received.length, 1);
     assert.equal(wire.disposed(), 1);
-    assert.deepEqual(calls[1], { command: 'rustra_channel_drop', args: { handle: 7 } });
+    assert.deepEqual(calls[1], { command: 'unikit_channel_drop', args: { handle: 7 } });
     assert.equal(calls.length, 2);
   });
 
@@ -1217,7 +1217,7 @@ for (const binary of [false, true]) {
           },
         }),
         (error: unknown) =>
-          error instanceof RustraCommandError &&
+          error instanceof UnikitCommandError &&
           error.code === (binary ? 'channel.unavailable' : 'transport.unavailable'),
       );
       assert.equal(invoked, 0);
@@ -1245,7 +1245,7 @@ void test('JSON IPC preserves string values without parsing them a second time',
 void test('bytes IPC rejects invalid arrays and reports diagnostics', async () => {
   const { createChannelBytes } = await import('./index.js');
   const wire = fakeIpcChannel();
-  const events: RustraDebugEvent[] = [];
+  const events: UnikitDebugEvent[] = [];
   const received: Uint8Array[] = [];
   configureDebug((event) => events.push(event));
   try {
@@ -1367,7 +1367,7 @@ void test('IPC Channel arity guard: callback-style use on a pre-2.5 constructor 
     assert.throws(
       () => requireTauriIpcChannel(() => {}, 'transport.unavailable'),
       (error: unknown) => {
-        if (!(error instanceof RustraCommandError)) return false;
+        if (!(error instanceof UnikitCommandError)) return false;
         assert.equal(error.code, 'transport.unavailable');
         assert.match(error.message, /@tauri-apps\/api is too old/);
         assert.match(error.message, /requires @tauri-apps\/api 2\.5\+/);
@@ -1405,13 +1405,13 @@ void test('IPC Channel arity guard: callback-less construction on a length-0 con
   }
 });
 
-// ── 핫코어 스왑 보고 구독 (예약 채널 rustra://hot-core/swapped) ──
+// ── 핫코어 스왑 보고 구독 (예약 채널 unikit://hot-core/swapped) ──
 // Rust 측 tauri_support::register_dispatch_with_swap_events 가 emit 하는
 // 스왑 보고 채널의 래퍼 계약. 예약 세그먼트 이름('hot-core/swapped')은 치환
-// 대상 문자가 없으므로 rustraEventChannel 유도와 정확히 일치해야 한다.
+// 대상 문자가 없으므로 unikitEventChannel 유도와 정확히 일치해야 한다.
 
 void test('subscribeHotSwap listens on the reserved swap channel and delivers both payload shapes', async () => {
-  const { subscribeHotSwap, rustraEventChannel } = await import('./index.js');
+  const { subscribeHotSwap, unikitEventChannel } = await import('./index.js');
   let captured: { channel: string } | null = null;
   let fire: ((payload: unknown) => void) | null = null;
   const fakeListen = async (channel: string, handler: (e: { payload: unknown }) => void) => {
@@ -1425,8 +1425,8 @@ void test('subscribeHotSwap listens on the reserved swap channel and delivers bo
 
   // 채널 고정 — Rust 단위 테스트 hot_swap_tests::hot_swap_event_maps_to_reserved_channel
   // 과 문자 단위까지 쌍생이다(치환 대상 문자가 없음을 양쪽에서 게이트).
-  assert.equal(captured!.channel, 'rustra://hot-core/swapped');
-  assert.equal(captured!.channel, rustraEventChannel('hot-core/swapped'));
+  assert.equal(captured!.channel, 'unikit://hot-core/swapped');
+  assert.equal(captured!.channel, unikitEventChannel('hot-core/swapped'));
 
   // 실제 WebView 경계 — emit_str JSON 이 이미 파싱된 객체로 도달한다(무손실 통과).
   fire!({ oldContractHash: '0123456789abcdef', newContractHash: 'fedcba9876543210' });
@@ -1450,7 +1450,7 @@ void test('subscribeHotSwap rejects loudly when the Tauri global listen API is m
   try {
     await assert.rejects(
       subscribeHotSwap(() => {}),
-      (err: unknown) => err instanceof RustraCommandError && err.code === 'transport.unavailable',
+      (err: unknown) => err instanceof UnikitCommandError && err.code === 'transport.unavailable',
     );
   } finally {
     root.__TAURI__ = previous;
@@ -1502,7 +1502,7 @@ void test('JSON adapter preserves explicit null while legacy omitted input remai
   const engine = createTauriEngine({
     async invoke(command, args) {
       const value = args as { args?: unknown; requests?: { args: unknown }[] };
-      return command === 'rustra_dispatch_batch'
+      return command === 'unikit_dispatch_batch'
         ? value.requests!.map((request) => ({ ok: true, result: request.args }))
         : value.args;
     },

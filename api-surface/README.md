@@ -54,7 +54,7 @@ It does not build application crates, expand macros or run application code.
 
 ## Rust boundary
 
-- Parse `crates/rustra/src/lib.rs` and `crates/rustra-macros/src/lib.rs` with `syn`, following
+- Parse `crates/unikit-bridge/src/lib.rs` and `crates/unikit-bridge-macros/src/lib.rs` with `syn`, following
   public **and private** inline/file modules, literal `#[path]` modules and literal
   `include!` files. This covers reexports from private modules and methods split across
   include files. Missing files, parse errors, include cycles, nonliteral includes and

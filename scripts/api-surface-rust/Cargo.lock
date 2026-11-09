@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustra-api-surface"
+name = "unikit-api-surface"
 version = "0.0.0"
 dependencies = [
  "quote",

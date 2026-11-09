@@ -1,4 +1,4 @@
-import { RustraCommandError, RustraErrorCode } from './errors.js';
+import { UnikitCommandError, UnikitErrorCode } from './errors.js';
 import { invokeByIdWithTimeout, invokeWithTimeout } from './cancel.js';
 import type { EngineClient, InvokeOptions } from './public.js';
 import { invokeByIdSync, resetConfiguredRoutes, runtime } from './global-state.js';
@@ -27,8 +27,8 @@ function rejectConflictingRegistration(
   if (!pendingFresh) return;
   const holder = runtime.engineOwnerId ?? 'an anonymous bootstrap';
   const incoming = options?.ownerId ?? 'an anonymous registration';
-  throw new RustraCommandError(
-    RustraErrorCode.RegistryFrozen,
+  throw new UnikitCommandError(
+    UnikitErrorCode.RegistryFrozen,
     `bootstrap slot already claimed by ${holder} (lazy initialization pending); ` +
       `rejecting conflicting registration from ${incoming}. The engine slot is ` +
       `single-engine: reuse the existing one (reload), or configure() an explicit ` +
@@ -95,11 +95,11 @@ export function ensureConfigured(): Promise<EngineClient> {
   if (runtime.engine) return Promise.resolve(runtime.engine);
   if (!runtime.engineInitializer)
     return Promise.reject(
-      new RustraCommandError(
-        RustraErrorCode.TransportUnavailable,
+      new UnikitCommandError(
+        UnikitErrorCode.TransportUnavailable,
         // 호스트 중립 안내 — 등록 엔트리는 호스트별로 생성되므로 특정 호스트를
         // 지시하지 않는다(감사 A8).
-        'Rustra not configured. Call configure(engine), or import your generated host entry ' +
+        'Unikit not configured. Call configure(engine), or import your generated host entry ' +
           '(node.ts/bun.ts/tauri.ts/react-native.ts) that registers lazy setup.',
       ),
     );
@@ -141,9 +141,9 @@ export function resolveCommandId(commandFn: (...args: never[]) => unknown): stri
 function lazyRetryOrLoudReject<T>(retry: () => Promise<T>): Promise<T> {
   if (isLazyConfigured()) return ensureConfigured().then(retry);
   return Promise.reject(
-    new RustraCommandError(
-      RustraErrorCode.TransportUnavailable,
-      'Rustra not configured. Call configure(engine) first.',
+    new UnikitCommandError(
+      UnikitErrorCode.TransportUnavailable,
+      'Unikit not configured. Call configure(engine) first.',
     ),
   );
 }

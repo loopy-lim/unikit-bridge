@@ -1,4 +1,4 @@
-use rustra::{Package, channels, tauri_support};
+use unikit_bridge::{Package, channels, tauri_support};
 use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
 use tauri::ipc::{CallbackFn, InvokeBody, InvokeResponseBody};
@@ -59,12 +59,12 @@ fn ipc_json_and_bytes_channels_are_owned_by_the_calling_webview() {
         .unwrap();
     for (command, prefix, binary) in [
         (
-            "rustra_channel_create",
+            "unikit_channel_create",
             tauri_support::CHANNEL_EVENT_PREFIX,
             false,
         ),
         (
-            "rustra_channel_create_bytes",
+            "unikit_channel_create_bytes",
             tauri_support::CHANNEL_BYTES_EVENT_PREFIX,
             true,
         ),
@@ -112,15 +112,15 @@ fn ipc_json_and_bytes_channels_are_owned_by_the_calling_webview() {
             "other WebView must not receive the frame"
         );
         assert_eq!(
-            invoke(&other, "rustra_channel_drop", json!({"handle":handle})),
+            invoke(&other, "unikit_channel_drop", json!({"handle":handle})),
             false
         );
         assert_eq!(
-            invoke(&owner, "rustra_channel_drop", json!({"handle":handle})),
+            invoke(&owner, "unikit_channel_drop", json!({"handle":handle})),
             true
         );
         assert_eq!(
-            invoke(&owner, "rustra_channel_drop", json!({"handle":handle})),
+            invoke(&owner, "unikit_channel_drop", json!({"handle":handle})),
             false
         );
     }
@@ -149,7 +149,7 @@ fn app_exit_releases_webview_and_host_channels() {
         .unwrap();
     let handle = invoke(
         &owner,
-        "rustra_channel_create",
+        "unikit_channel_create",
         json!({"onMessage":"__CHANNEL__:123"}),
     )["handle"]
         .as_u64()

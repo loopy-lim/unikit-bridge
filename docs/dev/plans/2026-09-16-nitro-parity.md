@@ -20,10 +20,10 @@
 ## Task 1: Reproducible native comparison
 
 **Files:** RN example package/lockfile and Nitro fixture; new `src/nitro-parity/*`; benchmark entry point and receipt scripts/tests; calculator benchmark fixture modules and generated bindings as needed.
-**Interfaces:** Self-contained parity mode selected by `EXPO_PUBLIC_RUSTRA_DEMO=nitro-parity`; JSON receipt `rustra-nitro-parity.json` via existing native receipt writer or explicit matching filename; no UI interaction required.
+**Interfaces:** Self-contained parity mode selected by `EXPO_PUBLIC_UNIKIT_DEMO=nitro-parity`; JSON receipt `unikit-nitro-parity.json` via existing native receipt writer or explicit matching filename; no UI interaction required.
 
 - [x] Pin root RN example and Nitro module runtime/generator to 0.37.1; regenerate Nitro bindings with that exact generator. Parent installs/builds.
-- [x] Add independently verified small-operation sync and async lanes; sync Rustra native route is explicitly diagnostic until Task 2's public binding is available.
+- [x] Add independently verified small-operation sync and async lanes; sync Unikit native route is explicitly diagnostic until Task 2's public binding is available.
 - [x] Pilot recursive Nitro DTO generation. Prefer recursive data if supported; otherwise use identical flat arena nodes on both sides and document why.
 - [x] Add balanced 255/1023/8191 and wide1025 fixtures with echo, full-input DFS, resident DFS, indexed lookup, setup/update timing; exact parity tests before time measurement.
 - [x] Unit-test shape/result checks and statistical gate with synthetic fixtures that include slow/ambiguous/mismatched samples; runtime performance must never be inferred from those tests.

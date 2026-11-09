@@ -1,22 +1,22 @@
 // Bun 호스트 기준 벤치 — scriptc-bench.ts (scriptc 네이티브) 와 동일 워크로드.
-// 세 팔: (1) rustra_ffi_invoke_json_into_len caller-buffer 왕복 raw(FFI 경계만),
+// 세 팔: (1) unikit_ffi_invoke_json_into_len caller-buffer 왕복 raw(FFI 경계만),
 // (2) 같은 호출 + TextDecoder/JSON.parse 까지(end-to-end) — scriptc 앱과 동일 루프,
 // (3) 생성된 typed addNumbers(postcard frame 경로 — Bun 클라이언트의 실제 프로덕션
 // 진입). 시간 예산 방식(팔마다 ~0.8s 이상)으로 반복 수를 자동 조정해 ns/op 을 낸다.
 import { dlopen, FFIType } from 'bun:ffi';
 import { join } from 'node:path';
-import { addNumbers, rustra } from '../generated/bun.js';
+import { addNumbers, unikit } from '../generated/bun.js';
 
 const repoRoot = join(import.meta.dir, '..', '..', '..');
-const library = join(repoRoot, 'target', 'release', 'librustra_calculator_example.dylib');
+const library = join(repoRoot, 'target', 'release', 'libunikit_calculator_example.dylib');
 const { symbols } = dlopen(library, {
-  rustra_mobile_init: { args: [], returns: FFIType.void },
-  rustra_ffi_invoke_json_into_len: {
+  unikit_mobile_init: { args: [], returns: FFIType.void },
+  unikit_ffi_invoke_json_into_len: {
     args: [FFIType.ptr, 'usize' as const, FFIType.ptr, 'usize' as const],
     returns: 'usize' as const,
   },
 });
-symbols.rustra_mobile_init();
+symbols.unikit_mobile_init();
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -28,7 +28,7 @@ const outputBuffer = new Uint8Array(4096);
 function rawRun(iters: number): number {
   const start = performance.now();
   for (let i = 0; i < iters; i++) {
-    const written = symbols.rustra_ffi_invoke_json_into_len(
+    const written = symbols.unikit_ffi_invoke_json_into_len(
       inputBytes,
       inputBytes.length,
       outputBuffer,
@@ -45,7 +45,7 @@ function e2eRun(iters: number): number {
   const start = performance.now();
   let last = 0;
   for (let i = 0; i < iters; i++) {
-    const written = symbols.rustra_ffi_invoke_json_into_len(
+    const written = symbols.unikit_ffi_invoke_json_into_len(
       inputBytes,
       inputBytes.length,
       outputBuffer,
@@ -97,4 +97,4 @@ async function measure(
 await measure('[bun] raw', rawRun);
 await measure('[bun] e2e', e2eRun);
 await measure('[bun] typed', typedRun);
-rustra.dispose();
+unikit.dispose();

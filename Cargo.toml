@@ -1,8 +1,8 @@
 [workspace]
 members = [
-  "crates/rustra-naming",
-  "crates/rustra",
-  "crates/rustra-macros",
+  "crates/unikit-bridge-naming",
+  "crates/unikit-bridge",
+  "crates/unikit-bridge-macros",
   "examples/calculator",
   "examples/crud",
   "examples/calculator-napi",
@@ -20,8 +20,8 @@ members = [
 # 한다 — Linux CI 는 물론, Tauri 시스템 라이브러리가 없는 macOS 환경에서도 bare
 # 명령이 green. Tauri 예제는 자체 smoke 게이트로 검증.
 default-members = [
-  "crates/rustra",
-  "crates/rustra-macros",
+  "crates/unikit-bridge",
+  "crates/unikit-bridge-macros",
   "examples/calculator",
   "examples/crud",
   "examples/calculator-napi",
@@ -37,18 +37,18 @@ edition = "2024"
 license = "MIT"
 version = "0.13.0"
 description = "Rust → TypeScript bridge framework with auto-generated type-safe clients"
-repository = "https://github.com/loopy-lim/rustra"
-homepage = "https://github.com/loopy-lim/rustra"
-documentation = "https://docs.rs/rustra"
+repository = "https://github.com/loopy-lim/unikit"
+homepage = "https://github.com/loopy-lim/unikit"
+documentation = "https://docs.rs/unikit-bridge"
 keywords = ["typescript", "bridge", "codegen", "ffi", "react-native"]
 categories = ["api-bindings", "development-tools::ffi"]
-# edition 2024 (1.85) + let-chains (1.88, rustra-macros 에서 사용) 요구 최소 — MSRV 계약화
+# edition 2024 (1.85) + let-chains (1.88, unikit-bridge-macros 에서 사용) 요구 최소 — MSRV 계약화
 rust-version = "1.88"
 
 [workspace.dependencies]
-rustra-naming = { version = "0.13.0", path = "crates/rustra-naming" }
-rustra-macros = { version = "0.13.0", path = "crates/rustra-macros" }
-rustra = { version = "0.13.0", path = "crates/rustra" }
+unikit-bridge-naming = { version = "0.13.0", path = "crates/unikit-bridge-naming" }
+unikit-bridge-macros = { version = "0.13.0", path = "crates/unikit-bridge-macros" }
+unikit-bridge = { version = "0.13.0", path = "crates/unikit-bridge" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 schemars = { version = "0.8", features = ["derive", "preserve_order"] }
@@ -70,7 +70,7 @@ uniffi = "=0.32.1"
 unwrap_used = "deny"
 expect_used = "deny"
 
-# Rustra builds several native hosts and target triples. Full dependency debug
+# Unikit builds several native hosts and target triples. Full dependency debug
 # info plus incremental caches grows into tens of GiB without a size limit.
 # Keep line tables for workspace debugging, but do not retain incremental state
 # or dependency debug info in the local dev/test profiles.

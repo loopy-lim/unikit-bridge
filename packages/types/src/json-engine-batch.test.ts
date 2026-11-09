@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createJsonEngine } from './json-engine.js';
-import { RustraCommandError } from './errors.js';
+import { UnikitCommandError } from './errors.js';
 
 void test('JSON wire batch normalizes asynchronous transport rejection like a single invoke', async () => {
   const engine = createJsonEngine({
@@ -18,7 +18,7 @@ void test('JSON wire batch normalizes asynchronous transport rejection like a si
   });
   for (const call of [() => engine.invoke('one'), () => engine.invokeBatch([{ command: 'one' }])]) {
     await assert.rejects(call(), (error: unknown) => {
-      assert.ok(error instanceof RustraCommandError);
+      assert.ok(error instanceof UnikitCommandError);
       assert.equal(error.code, 'transport.error');
       assert.equal(error.message, 'IPC disconnected');
       assert.equal(error.retryable, true);
@@ -36,7 +36,7 @@ void test('JSON wire batch rejects missing, extra, and non-array response entrie
     await assert.rejects(
       engine.invokeBatch([{ command: 'one' }, { command: 'two' }]),
       (error: unknown) =>
-        error instanceof RustraCommandError && /batch response/.test(error.message),
+        error instanceof UnikitCommandError && /batch response/.test(error.message),
     );
   }
 });

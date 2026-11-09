@@ -50,13 +50,13 @@ PR #29 이후 발견된 결함 6건 + 발행 인프라 3건을 수정한다. 전
 
 #### 1.1 release capability 결함
 
-**파일**: `crates/rustra/src/lib.rs:1414, 862-887`
+**파일**: `crates/unikit-bridge/src/lib.rs:1414, 862-887`
 **변경사항**: `grant_capability`가 freeze 상태와 무관하게 동작하도록 `ensure_mutable` 호출 제거(grant는 권한 부여이지 레지스트리 구조 변경이 아님). register/unregister/replace만 동결 대상 유지. 테스트: release cfg 조건 테스트 + 기존 `grant_capability_blocked_when_frozen`(lib.rs:1731-1744)을 "register는 차단, grant는 허용" 의미로 재작성.
 
 #### 1.2 `#[command(capability = "...")]` 속성
 
-**파일**: `crates/rustra-macros/src/lib.rs:40-57`, `crates/rustra/src/lib.rs:1240-1256`
-**변경사항**: `CommandAttr`에 `capability` 파싱 추가. 매크로가 메타 상수(`__RUstra_meta_*` 패턴)에 capability를 싣고 `require_capability`가 문자열 대신 심볼 참조를 받는 경로 추가(문자열 API는 deprecated 아님, 병행 유지).
+**파일**: `crates/unikit-bridge-macros/src/lib.rs:40-57`, `crates/unikit-bridge/src/lib.rs:1240-1256`
+**변경사항**: `CommandAttr`에 `capability` 파싱 추가. 매크로가 메타 상수(`__UNikit_meta_*` 패턴)에 capability를 싣고 `require_capability`가 문자열 대신 심볼 참조를 받는 경로 추가(문자열 API는 deprecated 아님, 병행 유지).
 
 #### 1.3 README 퀵스타트 수정
 
@@ -81,7 +81,7 @@ PR #29 이후 발견된 결함 6건 + 발행 인프라 3건을 수정한다. 전
 #### 1.7 release.yml 버전 동적화 + provenance
 
 **파일**: `.github/workflows/release.yml:108, 64-74`
-**변경사항**: `cargo info rustra-macros@$(cargo metadata에서 파싱)`로 교체. env에 `NPM_CONFIG_PROVENANCE: true` 추가.
+**변경사항**: `cargo info unikit-bridge-macros@$(cargo metadata에서 파싱)`로 교체. env에 `NPM_CONFIG_PROVENANCE: true` 추가.
 
 #### 1.8 CHANGELOG 0.2.0
 
@@ -92,8 +92,8 @@ PR #29 이후 발견된 결함 6건 + 발행 인프라 3건을 수정한다. 전
 
 #### 자동 검증:
 
-- [x] `cargo test -p rustra` — grant/freeze 재조정 테스트 포함 green
-- [x] `cargo test -p rustra-macros` — capability 속성 테스트 green
+- [x] `cargo test -p unikit-bridge` — grant/freeze 재조정 테스트 포함 green
+- [x] `cargo test -p unikit-bridge-macros` — capability 속성 테스트 green
 - [x] `npm run test:packages` — react/testing/devtools/node/bun/tauri 테스트 green
 - [x] `npm run lint && npm run format:check` green
 - [x] README 예제가 `examples/` 패턴과 정합 (육안 + grep 스칼라 멀티파라미터 0건)
@@ -110,49 +110,49 @@ FFI 경로의 정확성(probe 2회 실행), 안전성(spawn 가드, free 역참�
 
 #### 2.1 probe 1회 실행 프로토콜
 
-**파일**: `crates/rustra/src/ffi.rs:493-556`
+**파일**: `crates/unikit-bridge/src/ffi.rs:493-556`
 **변경사항**: probe 호출의 결과를 invocation별 1회 캐시(ThreadLocal 또는 마지막 probe 결과 재사용 — 단일 호출 흐름에서 probe→write가 연속하므로 last-probe 캐시로 충분). 문서에 멱등성 보장 명시.
 
 #### 2.2 async spawn 패닉 가드 + 선검사
 
-**파일**: `crates/rustra/src/ffi.rs:627-700`
+**파일**: `crates/unikit-bridge/src/ffi.rs:627-700`
 **변경사항**: `std::thread::spawn`을 catch_unwind로 감싸고 실패 시 invocation 완료 프레임 전송. 페이로드 복사 전 `max_payload_bytes()` 검사 이동.
 
 #### 2.3 패닉 메시지 포맷 통일
 
-**파일**: `crates/rustra/src/ffi.rs:297, 538`, `lib.rs:841-844`, `events.rs:102-106`
-**변경사항**: 단일 `panic_message()` 헬퍼로 통일. JS 파서 정합 확인(`parseRustraErrorString`).
+**파일**: `crates/unikit-bridge/src/ffi.rs:297, 538`, `lib.rs:841-844`, `events.rs:102-106`
+**변경사항**: 단일 `panic_message()` 헬퍼로 통일. JS 파서 정합 확인(`parseUnikitErrorString`).
 
 #### 2.4 `$ref` 재검증
 
-**파일**: `crates/rustra/src/rkyv_codec.rs:604-612`
+**파일**: `crates/unikit-bridge/src/rkyv_codec.rs:604-612`
 **변경사항**: `js_field_supported`이 definitions 맵을 받아 `$ref`를 실제 스키마까지 따라감. 미지원 도달 시 false → typed fast-path 비활성.
 
 #### 2.5 rkyv V2 코어 FFI 심볼
 
-**파일**: `crates/rustra/src/ffi.rs` (신규), `examples/calculator/src/lib.rs:1093-1210`
-**변경사항**: `rustra_ffi_invoke_rkyv_v2`(sync/async/into 변형) 노출. calculator 래퍼를 코어 심볼 위임으로 교체. 테스트: 기존 trust_baseline + 신규 심볼 직접 테스트.
+**파일**: `crates/unikit-bridge/src/ffi.rs` (신규), `examples/calculator/src/lib.rs:1093-1210`
+**변경사항**: `unikit_ffi_invoke_rkyv_v2`(sync/async/into 변형) 노출. calculator 래퍼를 코어 심볼 위임으로 교체. 테스트: 기존 trust_baseline + 신규 심볼 직접 테스트.
 
 #### 2.6 emit 경고 + 에러 잘림 마커
 
-**파일**: `crates/rustra/src/lib.rs:679-686`, `rkyv_codec.rs:360-372`
+**파일**: `crates/unikit-bridge/src/lib.rs:679-686`, `rkyv_codec.rs:360-372`
 **변경사항**: 직렬화 실패 시 `eprintln!` 경고. `body_len` 잘림 시 `"…(truncated)"` 접미.
 
 #### 2.7 free 문서화 + 최소 검사
 
-**파일**: `crates/rustra/src/ffi.rs:785-819`
+**파일**: `crates/unikit-bridge/src/ffi.rs:785-819`
 **변경사항**: 모듈 독에 release 제약 명시, null/정렬 검사 추가.
 
 #### 2.8 테스트 공백 5건
 
-**파일**: `crates/rustra/tests/` (payload_robustness 확장 등)
+**파일**: `crates/unikit-bridge/tests/` (payload_robustness 확장 등)
 **변경사항**: caller-buffer robustness(잘못된 size/포인터), caller-buffer×async, Json 기본 디스패치, 이벤트 싱크 교체, 심볼 혼용 테스트 추가.
 
 ### 성공 기준:
 
 #### 자동 검증:
 
-- [x] `cargo test -p rustra` green (신규 테스트 포함)
+- [x] `cargo test -p unikit-bridge` green (신규 테스트 포함)
 - [x] `cargo clippy --all-targets -- -D warnings` green
 - [x] probe 2회 실행 회귀 테스트(카운터 핸들러) green
 
@@ -168,27 +168,27 @@ FFI 경로의 정확성(probe 2회 실행), 안전성(spawn 가드, free 역참�
 
 #### 3.1 Command 스키마 Arc화
 
-**파일**: `crates/rustra/src/lib.rs:493-512, 744-753, 795-809`
+**파일**: `crates/unikit-bridge/src/lib.rs:493-512, 744-753, 795-809`
 **변경사항**: `input_schema/output_schema/definitions: Value` → `Arc<Value>`. clone-out은 여전히 Command clone이지만 이제 값싸다.
 
 #### 3.2 u16→핸들러 직접 캐시
 
-**파일**: `crates/rustra/src/lib.rs:794-809`
+**파일**: `crates/unikit-bridge/src/lib.rs:794-809`
 **변경사항**: 등록 시점에 `id_to_command: HashMap<u16, Arc<Command>>` 구축. dispatch에서 id_to_name→commands 이중 조회 제거.
 
 #### 3.3 rkyv V2 caller-buffer
 
-**파일**: `crates/rustra/src/ffi.rs`, `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp:351`
+**파일**: `crates/unikit-bridge/src/ffi.rs`, `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp:351`
 **변경사항**: `invoke_rkyv_v2_into` 심볼(Phase 2.5와 동일 구조). JSI 브릿지가 ArrayBuffer 선할당 후 caller 버퍼로 전달. (기기 측정은 범위 밖 — 로컬 벤치/논리 검증까지만)
 
 #### 3.4 napi Buffer 반환
 
 **파일**: `examples/calculator-napi/src/lib.rs:16-29`
-**변경사항**: `rustra_invoke`가 `Buffer` 반환, `rustra_ffi_invoke_json_into` 재사용. 인자도 JSON String 유지(호환) 또는 Buffer 병행.
+**변경사항**: `unikit_invoke`가 `Buffer` 반환, `unikit_ffi_invoke_json_into` 재사용. 인자도 JSON String 유지(호환) 또는 Buffer 병행.
 
 #### 3.5 caller-buffer JSON 임시 Vec 제거
 
-**파일**: `crates/rustra/src/ffi.rs:493-556`
+**파일**: `crates/unikit-bridge/src/ffi.rs:493-556`
 **변경사항**: `serde_json::to_writer` + 남은 용량 커서 어댑터. 오버런 시 usize::MAX 반환(기존 프로토콜 유지).
 
 #### 3.6 벤치 통계 정밀화
@@ -205,8 +205,8 @@ FFI 경로의 정확성(probe 2회 실행), 안전성(spawn 가드, free 역참�
 
 #### 자동 검증:
 
-- [x] `cargo test -p rustra` green (Arc 교체 회귀 없음)
-- [x] `cargo bench -p rustra --bench tier_compare` 동작(수치는 기록만)
+- [x] `cargo test -p unikit-bridge` green (Arc 교체 회귀 없음)
+- [x] `cargo bench -p unikit-bridge --bench tier_compare` 동작(수치는 기록만)
 - [x] `npm run bench` 동작, 통계 출력에 p99/stddev 포함
 - [x] calculator 예제가 코어 심볼로 동작: `npm run test:runtime:node` green
 
@@ -220,10 +220,10 @@ JS 층의 조용한 드롭·누락을 메우고 타입 표면을 정리한다.
 
 ### 필요한 변경사항:
 
-#### 4.1 RustraErrorCode 상수
+#### 4.1 UnikitErrorCode 상수
 
 **파일**: `packages/types/src/index.ts:124-126`
-**변경사항**: `RustraErrorCode` const 객체(13종) + `isRustraErrorCode`. 문서화(docs 또는 README).
+**변경사항**: `UnikitErrorCode` const 객체(13종) + `isUnikitErrorCode`. 문서화(docs 또는 README).
 
 #### 4.2 mock 엔진 보강
 
@@ -238,7 +238,7 @@ JS 층의 조용한 드롭·누락을 메우고 타입 표면을 정리한다.
 #### 4.4 RN 타입 미러링 해소
 
 **파일**: `packages/react-native/src/index.ts:31-65`
-**변경사항**: `RustraJSINative`이 `RkyvV2SchemaNative`를 extends하도록(RN 전용 메서드만 추가 선언).
+**변경사항**: `UnikitJSINative`이 `RkyvV2SchemaNative`를 extends하도록(RN 전용 메서드만 추가 선언).
 
 #### 4.5 UTF-8 Writer 개선
 
@@ -252,7 +252,7 @@ JS 층의 조용한 드롭·누락을 메우고 타입 표면을 정리한다.
 
 #### 4.7 byId 배치 JSI 구현
 
-**파일**: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp`, `rustra-generated-codecs.cpp`
+**파일**: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp`, `unikit-generated-codecs.cpp`
 **변경사항**: `invokeTypedBatchById(cmdIds, payload)` — 단일 페이로드 배치 엔벨로프 재사용으로 cmd_id 배열 진입. JS 분기(`types/index.ts:1060-1063`) 활성화. 테스트: react-native-app 어댑터 스모크 + 매트릭스 갱신.
 
 #### 4.8 positional facade 개선
@@ -292,7 +292,7 @@ JS 층의 조용한 드롭·누락을 메우고 타입 표면을 정리한다.
 #### 5.1 Tauri 이벤트 구독 API
 
 **파일**: `packages/tauri/src/index.ts`, `docs/extending/transport-guide.md`
-**변경사항**: `subscribeEvent(name, cb)` — `@tauri-apps/api` `listen("rustra://{name}")` 래핑, unsubscribe 반환. Rust측 `register_with_events`와 짝. 테스트: mock listen으로 구독 해지/전파 검증.
+**변경사항**: `subscribeEvent(name, cb)` — `@tauri-apps/api` `listen("unikit://{name}")` 래핑, unsubscribe 반환. Rust측 `register_with_events`와 짝. 테스트: mock listen으로 구독 해지/전파 검증.
 
 #### 5.2 Node 이벤트 전파
 
@@ -301,19 +301,19 @@ JS 층의 조용한 드롭·누락을 메우고 타입 표면을 정리한다.
 
 #### 5.3 이벤트 계약 코드젠
 
-**파일**: `crates/rustra/src/codegen.rs`, `packages/cli/src/generate.ts`, schema.json 형식
+**파일**: `crates/unikit-bridge/src/codegen.rs`, `packages/cli/src/generate.ts`, schema.json 형식
 **변경사항**: `#[command]`와 유사한 `#[event]` 매크로(또는 빌더 `.event(name, payload_type)`)로 이벤트 정의 → schema.json `events` 섹션 → TS 이벤트 타입 + `subscribeEvent` 헬퍼 생성. dual-path 재생성. RN/tauri/node 3표면 매트릭스 갱신.
 
 - 하위 호환: 기존 schema.json에 events 없으면 산출물 변화 없음.
 
 #### 5.4 워커 풀 + bounded channel
 
-**파일**: `crates/rustra/src/ffi.rs:646-699`
+**파일**: `crates/unikit-bridge/src/ffi.rs:646-699`
 **변경사항**: 호출당 spawn을 lazy 초기화 고정 풀(예: 2~4 스레드) + bounded channel로 교체. 큐 가득 시 즉시 `invoke.failed`/신규 `invoke.backpressure` 에러 프레임. 풀 크기는 상수 + 문서.
 
 #### 5.5 block_on waker 기반 + state 제약
 
-**파일**: `crates/rustra/src/executor.rs:21-32`, `state.rs:60-85`
+**파일**: `crates/unikit-bridge/src/executor.rs:21-32`, `state.rs:60-85`
 **변경사항**: park 대신 waker/no-op wake 재호출 구조 검토(타입 제약상 불가하면 현재 구조 유지 + 제약 문서화). thread_local state 유실 제약을 rust-api-guide에 문서화.
 
 #### 5.6 Node persistent transport
@@ -325,7 +325,7 @@ JS 층의 조용한 드롭·누락을 메우고 타입 표면을 정리한다.
 
 #### 자동 검증:
 
-- [x] `cargo test -p rustra` green (워커 풀/백프레셔 테스트 포함)
+- [x] `cargo test -p unikit-bridge` green (워커 풀/백프레셔 테스트 포함)
 - [x] `npm run test:packages` green (tauri/node 신규 테스트)
 - [x] `npm run test:ts:node` green (이벤트 코드젠 산출물)
 - [x] 코드젠 dual-path 재생성 후 산출물 일치 (메모리 관례)

@@ -8,7 +8,7 @@ export async function emitAndroidReceiptChunks(
   const chunks = Math.ceil(json.length / 2000);
   for (let index = 0; index < chunks; index++) {
     emit(
-      `RUSTRA_PARITY_CHUNK=${JSON.stringify({ runId, index, total: chunks, text: json.slice(index * 2000, (index + 1) * 2000) })}`,
+      `UNIKIT_PARITY_CHUNK=${JSON.stringify({ runId, index, total: chunks, text: json.slice(index * 2000, (index + 1) * 2000) })}`,
     );
     await sleep(10);
   }

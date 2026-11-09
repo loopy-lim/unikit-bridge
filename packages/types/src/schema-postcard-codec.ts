@@ -1,7 +1,7 @@
 // ── T2-2: 스키마→postcard 코덱 인터프리터 ────────────────────
 //
 // live_schema 의 inputSchema/outputSchema(JSON Schema 노드)로부터 런타임에
-// FrameCodec 을 생성한다 — 코드젠(@rustra/cli)이 하는 일을 스키마 인터프리터로
+// FrameCodec 을 생성한다 — 코드젠(@unikit/cli)이 하는 일을 스키마 인터프리터로
 // 재현해, **동적 명령**(register/replace)도 postcard fast-path 를 쓸 수 있게 한다.
 //
 // 와이어 패리티 계약:
@@ -9,7 +9,7 @@
 //     `_pc*` 헬퍼(postcardPrimitive/Wide/Text/FloatSource)와 동일 알고리즘이다.
 //     중복 구현이 아니라 단일 알고리즘의 두 번째 서빙 지점이며, 바이트 동일성은
 //     PINNED hex(wire_fixtures.rs 와 공유) 교차 테스트로 고정한다.
-//   - 필드 판정은 @rustra/cli classifyPostcardField 의 미러다(Rust 측
+//   - 필드 판정은 @unikit/cli classifyPostcardField 의 미러다(Rust 측
 //     js_postcard_codec_supported_with_defs 도 동일 판정). 미러 간 불일치는
 //     Tier 3 로 안전하게 실패한다 — 와이어 오염이 없다.
 //   - 미지원 노드는 null 을 반환하고, 엔진은 그 명령을 Tier 3(JSON) 로 폴백한다.
@@ -24,12 +24,12 @@ import type { ComplexSchema } from './complex-codec-types.js';
 import { postcardSchemaSupported, isNamedPostcardRoot } from './schema-postcard-support.js';
 import { compileNode, compileStruct } from './schema-postcard-node.js';
 import { concatBytes, decString } from './schema-postcard-wire.js';
-import type { RustraError } from './errors.js';
+import type { UnikitError } from './errors.js';
 import type { FrameCodec } from './public.js';
 
-function decodeErrorFrame(u8: Uint8Array, view: DataView): { ok: false; error: RustraError } {
+function decodeErrorFrame(u8: Uint8Array, view: DataView): { ok: false; error: UnikitError } {
   const errLen = view.getUint16(8, true);
-  let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+  let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
   if (errLen > 0) {
     // postcard({ code: String, message: String })
     const c = decString(u8, 10);
@@ -80,7 +80,7 @@ export function createSchemaPostcardCodec(
     decode(buf: ArrayBuffer | ArrayBufferView): {
       ok: boolean;
       result?: unknown;
-      error?: RustraError;
+      error?: UnikitError;
     } {
       const view =
         buf instanceof ArrayBuffer

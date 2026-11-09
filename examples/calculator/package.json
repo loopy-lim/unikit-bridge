@@ -1,19 +1,19 @@
 {
-  "name": "@rustra/example-calculator",
+  "name": "@unikit/example-calculator",
   "private": true,
   "packageManager": "bun@1.4.0",
   "type": "module",
   "scripts": {
-    "codegen": "bun ../../packages/cli/src/index.ts codegen --config rustra.json",
-    "codegen:check": "bun ../../packages/cli/src/index.ts codegen --config rustra.json --check"
+    "codegen": "bun ../../packages/cli/src/index.ts codegen --config unikit.json",
+    "codegen:check": "bun ../../packages/cli/src/index.ts codegen --config unikit.json --check"
   },
   "dependencies": {
-    "@rustra/bun": "file:../../packages/bun",
-    "@rustra/node": "file:../../packages/node",
-    "@rustra/tauri": "file:../../packages/tauri",
-    "@rustra/types": "file:../../packages/types"
+    "@unikit/bun": "file:../../packages/bun",
+    "@unikit/node": "file:../../packages/node",
+    "@unikit/tauri": "file:../../packages/tauri",
+    "@unikit/types": "file:../../packages/types"
   },
   "overrides": {
-    "@rustra/types": "file:../../packages/types"
+    "@unikit/types": "file:../../packages/types"
   }
 }

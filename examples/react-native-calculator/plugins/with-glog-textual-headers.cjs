@@ -10,7 +10,7 @@ function configurePodfile(contents) {
     throw new Error('Cannot configure glog: expected the Expo Podfile post_install hook.');
   }
   return contents.replace(anchor, (line, indent) =>
-    `${line}\n${indent}  ${hook}\n${indent}  rustra_fix_glog_modulemap(installer)`,
+    `${line}\n${indent}  ${hook}\n${indent}  unikit_fix_glog_modulemap(installer)`,
   );
 }
 

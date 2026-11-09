@@ -2,15 +2,15 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** 동일 ReactLynx 번들 + 동일 rustra rkyv 백엔드가 iOS 시뮬레이터(그리고 가능하면 Android 에뮬레이터)에서 `addNumbers(20,22) → 42` rkyv 왕복을 증명한다.
+**Goal:** 동일 ReactLynx 번들 + 동일 unikit rkyv 백엔드가 iOS 시뮬레이터(그리고 가능하면 Android 에뮬레이터)에서 `addNumbers(20,22) → 42` rkyv 왕복을 증명한다.
 
-**Architecture:** iOS = CocoaPods `pod 'Lynx'` + `pod 'LynxService'` (로컬 바이너리 불필요, pod install 시 소스 컴파일) + `RustraLynx` local pod(이미 구현됨, `examples/lynx-calculator/modules/rustra-lynx/ios/`) + Rust staticlib(`build-rust-ios.sh`, `aarch64-apple-ios-sim`). iOS 호스트 앱 셸(AppDelegate/ViewController/LynxView/Podfile)은 lynx-calculator에 신규 추가. Android = `org.lynxsdk.lynx` Maven coords 확인 후 gradle 모듈(템플릿 이미 구현됨) — 단 SDK 입수 경로가 미확정이라 조건부 Phase.
+**Architecture:** iOS = CocoaPods `pod 'Lynx'` + `pod 'LynxService'` (로컬 바이너리 불필요, pod install 시 소스 컴파일) + `UnikitLynx` local pod(이미 구현됨, `examples/lynx-calculator/modules/unikit-lynx/ios/`) + Rust staticlib(`build-rust-ios.sh`, `aarch64-apple-ios-sim`). iOS 호스트 앱 셸(AppDelegate/ViewController/LynxView/Podfile)은 lynx-calculator에 신규 추가. Android = `org.lynxsdk.lynx` Maven coords 확인 후 gradle 모듈(템플릿 이미 구현됨) — 단 SDK 입수 경로가 미확정이라 조건부 Phase.
 
 **Tech Stack:** Lynx 4.0.1 (CocoaPods source pod, iOS 14+), Rust `cargo build --target aarch64-apple-ios-sim`, Xcode 26.2 / iPhone 17 sim, xcodegen(프로젝트 생성), cargo-ndk(Android).
 
 **사전 조사 결론 (2026-08-11):**
 
-- iOS 자산 전부 로컬 준비됨: Xcode 26.2, iPhone 17 sim booted, CocoaPods 1.16, rustup `aarch64-apple-ios-sim` installed, `RustraLynx.podspec` + `RustraModule.m` + `build-rust-ios.sh` 구현됨.
+- iOS 자산 전부 로컬 준비됨: Xcode 26.2, iPhone 17 sim booted, CocoaPods 1.16, rustup `aarch64-apple-ios-sim` installed, `UnikitLynx.podspec` + `UnikitModule.m` + `build-rust-ios.sh` 구현됨.
 - Android 환경 8/9 (gradle만 보충, NDK 27.x, AVD `Medium_Phone_API_36.1`, cargo-ndk) — 그러나 **Lynx Android SDK 입수 경로 미확정**: `/tmp/lynx-prebuilt/`엔 macOS 바이너리 + iOS podspec source만, Maven Central `org.lynxsdk.lynx` 없음(numFound:0). Android는 Phase B에서 입수 시도 후 결과에 따라 정직 보고.
 - iOS 통합 패턴(공식 가이드): `AppDelegate` `[LynxEnv sharedInstance]` → `LynxView`(UIView 서브클래스) `addSubview` → `LynxTemplateProvider` 로 bundle 로드.
 
@@ -37,7 +37,7 @@
 which xcodegen || brew install xcodegen
 ```
 
-**Step 2: project.yml** — 단일 target `RustraLynxApp`, iOS 14.0, source `app/*.{m,h}`, bundle resource `dist/index.lynx.bundle`.
+**Step 2: project.yml** — 단일 target `UnikitLynxApp`, iOS 14.0, source `app/*.{m,h}`, bundle resource `dist/index.lynx.bundle`.
 
 **Step 3: AppDelegate.m**
 
@@ -82,11 +82,11 @@ which xcodegen || brew install xcodegen
 
 ```ruby
 platform :ios, '14.0'
-target 'RustraLynxApp' do
+target 'UnikitLynxApp' do
   use_frameworks!
   pod 'Lynx'
   pod 'LynxService'
-  pod 'RustraLynx', :path => '../modules/rustra-lynx/ios'
+  pod 'UnikitLynx', :path => '../modules/unikit-lynx/ios'
 end
 # Xcode 26 호환 (공식 가이드 post_install hook)
 post_install do |installer|
@@ -105,18 +105,18 @@ end
 cd examples/lynx-calculator/ios && xcodegen generate
 ```
 
-Expected: `RustraLynxApp.xcodeproj` 생성.
+Expected: `UnikitLynxApp.xcodeproj` 생성.
 
-### Task A2: rustra iOS staticlib + ReactLynx bundle
+### Task A2: unikit iOS staticlib + ReactLynx bundle
 
 **Step 1: Rust staticlib 빌드**
 
 ```sh
 cd examples/lynx-calculator && \
-  modules/rustra-lynx/ios/build-rust-ios.sh
+  modules/unikit-lynx/ios/build-rust-ios.sh
 ```
 
-Expected: `modules/rustra-lynx/ios/rust/lib/librustra_calculator_example.a` 생성 (`aarch64-apple-ios-sim`).
+Expected: `modules/unikit-lynx/ios/rust/lib/libunikit_calculator_example.a` 생성 (`aarch64-apple-ios-sim`).
 
 **Step 2: ReactLynx bundle 빌드 + iOS 리소스 복사**
 
@@ -136,13 +136,13 @@ project.yml 은 `app/Resources/index.lynx.bundle` 를 `Copy Bundle Resources` �
 cd examples/lynx-calculator/ios && pod install
 ```
 
-Expected: `Lynx` / `LynxService` / `RustraLynx` 설치. (첫 install 은 Lynx 소스 컴파일로 수 분 소요.)
+Expected: `Lynx` / `LynxService` / `UnikitLynx` 설치. (첫 install 은 Lynx 소스 컴파일로 수 분 소요.)
 
 **Step 2: xcodebuild 시뮬레이터 빌드**
 
 ```sh
 cd examples/lynx-calculator/ios && \
-  xcodebuild -workspace RustraLynxApp.xcworkspace -scheme RustraLynxApp \
+  xcodebuild -workspace UnikitLynxApp.xcworkspace -scheme UnikitLynxApp \
     -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17' \
     -derivedDataPath build ONLY_ACTIVE_ARCH=YES build
 ```
@@ -160,9 +160,9 @@ xcrun simctl list devices booted
 **Step 2: 앱 설치 + 실행**
 
 ```sh
-APP_PATH=$(find examples/lynx-calculator/ios/build/Build/Products -name 'RustraLynxApp.app' -path '*Simulator*' | head -1)
+APP_PATH=$(find examples/lynx-calculator/ios/build/Build/Products -name 'UnikitLynxApp.app' -path '*Simulator*' | head -1)
 xcrun simctl install booted "$APP_PATH"
-xcrun simctl launch booted dev.rustra.lynx-calculator   # bundle id 는 Info.plist 에 맞춤
+xcrun simctl launch booted dev.unikit.lynx-calculator   # bundle id 는 Info.plist 에 맞춤
 ```
 
 **Step 3: 증명 캡처**
@@ -170,8 +170,8 @@ xcrun simctl launch booted dev.rustra.lynx-calculator   # bundle id 는 Info.pli
 ```sh
 # UI 스크린샷 — "result: 42" 가 보이면 rkyv 왕복 성공
 xcrun simctl io booted screenshot /tmp/lynx-ios-result.png
-# 런타임 로그 — addNumbers/invokeRkyvV2 호출 추적 (필요시 RustraModule.m 에 NSLog 추가)
-xcrun simctl spawn booted log stream --predicate 'process == "RustraLynxApp"' --timeout 8
+# 런타임 로그 — addNumbers/invokeRkyvV2 호출 추적 (필요시 UnikitModule.m 에 NSLog 추가)
+xcrun simctl spawn booted log stream --predicate 'process == "UnikitLynxApp"' --timeout 8
 ```
 
 **Step 4: 검증(성공 기준)** — 스크린샷에 `result: 42` (또는 로그에서 rkyv 왕복 확인).
@@ -187,8 +187,8 @@ xcrun simctl spawn booted log stream --predicate 'process == "RustraLynxApp"' --
 ### Task A5: Phase A 커밋
 
 ```sh
-git add examples/lynx-calculator/ios/ examples/lynx-calculator/modules/rustra-lynx/ios/rust/  # rust/.a 만, build 산물 제외
-git commit -m "feat(mobile): iOS 시뮬레이터 Lynx + rustra rkyv 왕복 스파이크"
+git add examples/lynx-calculator/ios/ examples/lynx-calculator/modules/unikit-lynx/ios/rust/  # rust/.a 만, build 산물 제외
+git commit -m "feat(mobile): iOS 시뮬레이터 Lynx + unikit rkyv 왕복 스파이크"
 ```
 
 (lefthook prettier/rustfmt 후 amend.)
@@ -212,8 +212,8 @@ git commit -m "feat(mobile): iOS 시뮬레이터 Lynx + rustra rkyv 왕복 스�
 
 ### Task B2: (입수 성공 시) Android gradle 모듈 + 에뮬 빌드/런
 
-- `examples/lynx-calculator/modules/rustra-lynx/android/build-rust-android.sh` (cargo-ndk, 이미 구현).
-- Android 호스트 앱(Activity → LynxView + RustraModule 등록) + gradle(Lynx coords).
+- `examples/lynx-calculator/modules/unikit-lynx/android/build-rust-android.sh` (cargo-ndk, 이미 구현).
+- Android 호스트 앱(Activity → LynxView + UnikitModule 등록) + gradle(Lynx coords).
 - `Medium_Phone_API_36.1` 에뮬에서 빌드/런, `result: 42` 증명.
 
 ---
@@ -231,19 +231,19 @@ iOS PASS → design §7 Phase 3(iOS) ✅. Android PASS → Phase 2(Android) ✅.
 
 ## Phase A 결과 (2026-08-11) — iOS PASS ✅
 
-`verify-ios.sh` 7/7 PASS. 동일 ReactLynx 번들(`app.lynx.js`) + 동일 rustra rkyv 백엔드가
+`verify-ios.sh` 7/7 PASS. 동일 ReactLynx 번들(`app.lynx.js`) + 동일 unikit rkyv 백엔드가
 iOS 시뮬레이터(iPhone 17, iOS 26.2)에서 실제 Rust FFI 왕복을 수행했다.
 
 **결정적 로그 증거:**
 
 - `[spike-ios] loadTemplate path=…/app.lynx.js bytes=114733` — ReactLynx 번들 로드.
-- `module: RustraModule registered with param (address): 0x0` — `LynxConfig registerModule:` 등록 성공.
+- `module: UnikitModule registered with param (address): 0x0` — `LynxConfig registerModule:` 등록 성공.
 - `[spike-ios] rkyv in bytes=4` — addNumbers 요청 (`[cmd 1 u16 LE][postcard {a:20,b:22}]`).
 - `[spike-ios] rkyv out bytes=9` — addNumbers→**42** 응답 (`[ok=1][7B pad][postcard {value:42}]`), rkyv V2 와이어 포맷 정확 일치.
 - `[spike-ios] rkyv out bytes=52` — divide(1,0) typed error(`math.divide_by_zero`) 왕복.
 - `[spike-ios] rkyv out bytes=95` — secureCompute `capability.denied` (deny-by-default authority).
-- `LynxModuleDarwin did invokeMethod: RustraModule.invokeRkyvV2` — FFI 정상 왕복.
-- "Rustra not configured" 에러 없음.
+- `LynxModuleDarwin did invokeMethod: UnikitModule.invokeRkyvV2` — FFI 정상 왕복.
+- "Unikit not configured" 에러 없음.
 
 **해결한 핵심 갭 — NativeModules 클로저 변수 (iOS 공식 SDK):**
 ReactLynx 런타임(`lynx_core.js`)은 `globalThis.NativeModules`를 **설정하지 않는다**.
@@ -251,14 +251,14 @@ ReactLynx 런타임(`lynx_core.js`)은 `globalThis.NativeModules`를 **설정하
 주입하는 **클로저 변수**다 (번들 내 모든 모듈의 bare 식별자가 이 클로저로 해석됨 —
 `@lynx-js/websocket`의 `NativeModules.LynxWebSocketModule`과 동일 패턴).
 데스크톱 헤드리스 호스트(`host.cpp`)는 이 갭을 `globalThis.NativeModules` 수동 주입으로 우회했지만,
-iOS 공식 SDK는 그렇지 않다. `packages/lynx/src/index.ts`의 `getRustraNative()`가
+iOS 공식 SDK는 그렇지 않다. `packages/lynx/src/index.ts`의 `getUnikitNative()`가
 `globalThis.NativeModules`만 보던 것을 **bare `NativeModules`(typeof 가드) → `globalThis` 폴백**
 2경로로 수정해 양쪽(host/iOS·Android SDK)을 모두 지원한다. (Node 테스트는 `globalThis` 경로 유지로 통과.)
 
-**등록 패턴:** per-view `LynxViewBuilder.config`(LynxConfig + `registerModule:[RustraModule class]`)로 충분.
+**등록 패턴:** per-view `LynxViewBuilder.config`(LynxConfig + `registerModule:[UnikitModule class]`)로 충분.
 글로벌 `LynxEnv prepareConfig:` 불필요 (여러 LynxView 공유 시에만).
 
-**회귀 확인:** `test:packages` 24/24, `test:ts:node` 32/32 통과 — getRustraNative 변경 데스크톱/타 패키지 영향 없음.
+**회귀 확인:** `test:packages` 24/24, `test:ts:node` 32/32 통과 — getUnikitNative 변경 데스크톱/타 패키지 영향 없음.
 
 스크린샷: `/tmp/lynx-ios-result.png` (result: 42, err: math.divide_by_zero, cap: capability.denied 표시).
 
@@ -266,7 +266,7 @@ iOS 공식 SDK는 그렇지 않다. `packages/lynx/src/index.ts`의 `getRustraNa
 
 ## Phase B 결과 (2026-08-11) — Android PASS ✅
 
-`verify-android.sh` 7/7 PASS. 단일 ReactLynx 번들(`main.lynx.bundle`) + 단일 rustra rkyv 백엔드가
+`verify-android.sh` 7/7 PASS. 단일 ReactLynx 번들(`main.lynx.bundle`) + 단일 unikit rkyv 백엔드가
 Android 에뮬레이터(`Medium_Phone_API_36.1`, arm64-v8a)에서 실제 Rust FFI 왕복을 수행했다.
 **iOS(9/52/95 바이트)와 완전 동일한 와이어 포맷** — 동일 Rust staticlib, 동일 rkyv V2 wire.
 
@@ -288,30 +288,30 @@ Android 에뮬레이터(`Medium_Phone_API_36.1`, arm64-v8a)에서 실제 Rust FF
 - `spike-android: rkyv out bytes=9 hex=010000000000000054` — addNumbers 응답 (`ok=01`, `0x54=84`, 즉 40+44). rkyv V2 와이어 포맷 iOS 와 정확 일치.
 - `spike-android: rkyv out bytes=52 hex=...6d6174682e6469766964655f62795f7a65726f...` — divide typed error(`math.divide_by_zero`) 왕복.
 - `spike-android: rkyv out bytes=95 hex=...6361706162696c6974792e64656e696564...` — secureCompute `capability.denied` (deny-by-default authority).
-- "Rustra not configured" 에러 없음 — `NativeModules.RustraModule` 등록 성공.
+- "Unikit not configured" 에러 없음 — `NativeModules.UnikitModule` 등록 성공.
 
 (인자 a,b 값은 번들이 매 실행 동적으로 생성하므로 런마다 다르지만, 와이어 구조/바이트 카운트는 iOS 와 동일하다.)
 
 ### 해결한 핵심 갭 3종 (Android 공식 SDK)
 
-1. **LynxEnv 명시 init (`RustraApplication.onCreate`):**
+1. **LynxEnv 명시 init (`UnikitApplication.onCreate`):**
    Android 는 `LynxViewBuilder.build()` / `renderTemplateUrl` 이전에
    `LynxEnv.inst().init(this, null, null, null)` 이 필수(iOS 는 `[LynxEnv sharedInstance]` 로 충분).
-   생략 시 `errCode 102 "LynxEnv has not been prepared successfully"`. → `Application` 서브클래스 + manifest `android:name=".RustraApplication"` 로 해결.
+   생략 시 `errCode 102 "LynxEnv has not been prepared successfully"`. → `Application` 서브클래스 + manifest `android:name=".UnikitApplication"` 로 해결.
 
 2. **NativeModule API (`com.lynx.jsbridge.*`, NOT `com.lynx.react.bridge.*`):**
    - 베이스 클래스: `com.lynx.jsbridge.LynxModule`(abstract) — **반드시 상속**, `Context` 생성자 필요(프레임워크가 리플렉션 생성).
    - 애노테이션: `@LynxMethod`(`com.lynx.jsbridge`) 로 메서드 노출.
    - JS 식별자 매핑: Kotlin 메서드명 **그대로**(reflection). iOS 의 `+methodLookup` 사전 매핑이 Android 에는 없다.
    - 타입 매핑: `ArrayBuffer ↔ ByteArray`(`byte[]` → 시그니처 'a').
-   - 등록: per-view `LynxViewBuilder.registerModule("RustraModule", RustraModule::class.java)` (build 전).
+   - 등록: per-view `LynxViewBuilder.registerModule("UnikitModule", UnikitModule::class.java)` (build 전).
 
 3. **Rust 패키지 등록 — ELF 에 `__mod_init_func` 없음 (`JNI_OnLoad` 명시 init):**
    Rust crate 는 `#[cfg(target_vendor = "apple")] mod apple_init` 으로 Mach-O `__mod_init_func`
    constructor 가 라이브러리 로드 시 자동으로 `calculator_package()` 를 FFI 레지스트리에 등록한다.
    **Android(ELF) 에는 이런 constructor 가 없다** → 패키지 레지스트리가 비어 모든 rkyv 호출이
    `out bytes=52`(`ffi.not_registered` / `package not registered`) 를 반환.
-   → `rustra_jni.cpp` 의 `JNI_OnLoad` 에서 공개 심볼 `rustra_calculator_init()` 를 명시 호출.
+   → `unikit_jni.cpp` 의 `JNI_OnLoad` 에서 공개 심볼 `unikit_calculator_init()` 를 명시 호출.
    (`System.loadLibrary` 시 1회). 이후 `out=9`(ok) 로 전환.
 
 ### 빌드 스택
@@ -322,7 +322,7 @@ ABI `arm64-v8a` → Rust triple `aarch64-linux-android`.
 
 ### 회귀 확인
 
-`test:packages` 24/24, `test:ts:node` 32/32 통과 — Phase A 의 `getRustraNative()` 2경로 변경이
+`test:packages` 24/24, `test:ts:node` 32/32 통과 — Phase A 의 `getUnikitNative()` 2경로 변경이
 데스크톱/타 패키지에 영향 없음(iOS·Android SDK 양쪽 + Node `globalThis` 경로 모두 지원).
 
-스크린샷: `/tmp/lynx-android-result.png` (RustraLynx 앱 렌더링).
+스크린샷: `/tmp/lynx-android-result.png` (UnikitLynx 앱 렌더링).

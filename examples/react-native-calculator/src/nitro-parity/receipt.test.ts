@@ -19,14 +19,14 @@ function receipt(index = 0) {
     generatedContract: manifest.generatedContract,
     nitroVersion: '0.37.1',
     nitrogenVersion: '0.37.1',
-    rustraVersion: '0.10.2',
+    unikitVersion: '0.10.2',
     representation: 'flat-arena',
     setupLifecycle: 'warm-full-build-and-replacement',
     baseline: manifest.baseline,
     cases: manifest.cases.map(({ rounds, ...c }) => ({
       ...c,
       verified: true,
-      rustra: Array(rounds).fill(100),
+      unikit: Array(rounds).fill(100),
       nitro: Array(rounds).fill(100),
       checksum: 2,
     })),
@@ -81,7 +81,7 @@ test.each([
   ['byte size', { inputBytes: 1 }],
   ['byte meaning', { byteMeaning: 'payload only' }],
   ['batch', { batch: 99 }],
-  ['rounds', { rustra: Array(32).fill(100), nitro: Array(32).fill(100) }],
+  ['rounds', { unikit: Array(32).fill(100), nitro: Array(32).fill(100) }],
 ] as const)('rejects five consistent wrong %s values under a valid case ID', (_label, patch) => {
   const bad = (index: number) => {
     const r = receipt(index);
@@ -103,8 +103,8 @@ test('candidate v2 public-sync matrix and historical v1 matrices remain distinct
   const base = receipt();
   const legacyCases = base.cases.filter((c) => c.lane !== 'sync-public');
   const legacyPlans = manifest.cases.filter((c) => c.lane !== 'sync-public');
-  const legacy = { ...base, contract: 'rustra-nitro-parity/v1', cases: legacyCases };
-  const legacyManifest = { ...manifest, contract: 'rustra-nitro-parity/v1', cases: legacyPlans };
+  const legacy = { ...base, contract: 'unikit-nitro-parity/v1', cases: legacyCases };
+  const legacyManifest = { ...manifest, contract: 'unikit-nitro-parity/v1', cases: legacyPlans };
   validateReceipt(legacy, legacyManifest);
   expect(legacy.cases).toHaveLength(60);
   const sync = legacyCases
@@ -115,12 +115,12 @@ test('candidate v2 public-sync matrix and historical v1 matrices remain distinct
     .map((c) => ({ ...c, lane: 'sync-public' as const }));
   const candidate = {
     ...base,
-    contract: 'rustra-nitro-parity/v2',
+    contract: 'unikit-nitro-parity/v2',
     cases: [...legacyCases, ...sync],
   };
   const candidateManifest = {
     ...manifest,
-    contract: 'rustra-nitro-parity/v2',
+    contract: 'unikit-nitro-parity/v2',
     cases: [...legacyPlans, ...syncPlans],
   };
   validateReceipt(candidate, candidateManifest);

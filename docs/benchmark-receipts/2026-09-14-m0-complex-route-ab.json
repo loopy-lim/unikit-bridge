@@ -14,7 +14,7 @@
     "profile": "bench (optimized)"
   },
   "method": {
-    "command": "cargo bench -p rustra --bench complex_route -- --noplot --save-baseline <run-name>",
+    "command": "cargo bench -p unikit-bridge --bench complex_route -- --noplot --save-baseline <run-name>",
     "independentProcessesPerVariant": 5,
     "warmupSecondsPerCase": 3,
     "criterionSamplesPerCase": 500,
@@ -37,12 +37,12 @@
     "benchmarkSourceSha256": "d497511152c72ebd75fd127bb560b556c7b9e2400353945767c57e585d228d8b",
     "benchmarkBinarySha256": "f34053ee18b93ac1319975d260e102486a423be9a91342aa4a1e1dfec4122628",
     "relevantSourceSha256": {
-      "crates/rustra/src/complex_schema_ir.rs": "bdce05a934c398ea02dca89b712d7ddb819ca5c7c6fcb8ee2fab6cf06c88e3c1",
-      "crates/rustra/src/complex_schema_ir_compile.rs": "1fab09c84bad184f5984d1639277e618a5fdaf717e69dd642498279c4aff8bf8",
-      "crates/rustra/src/complex_serde_support.rs": "efab548b444d3a2b98d9c8b09e13dde46f9b1d6e9dcf2c00b27e71eb34fb7bba",
-      "crates/rustra/src/complex_serde_ser_core.rs": "c2a05473b979f186dfb09b7893f8c1423904bab0d26c765c4df6fd48e03c3bae",
-      "crates/rustra/src/complex_serde_de_core.rs": "9b117440c89df020f30029371e42b795fee31ff59b1a8143b9b67de8f2cb22e0",
-      "crates/rustra/src/complex_codec_encode_object.rs": "0e720545f05d45ae78844a0bfb9caef03f880b7fc97bd66e26364f50e2626d13"
+      "crates/unikit-bridge/src/complex_schema_ir.rs": "bdce05a934c398ea02dca89b712d7ddb819ca5c7c6fcb8ee2fab6cf06c88e3c1",
+      "crates/unikit-bridge/src/complex_schema_ir_compile.rs": "1fab09c84bad184f5984d1639277e618a5fdaf717e69dd642498279c4aff8bf8",
+      "crates/unikit-bridge/src/complex_serde_support.rs": "efab548b444d3a2b98d9c8b09e13dde46f9b1d6e9dcf2c00b27e71eb34fb7bba",
+      "crates/unikit-bridge/src/complex_serde_ser_core.rs": "c2a05473b979f186dfb09b7893f8c1423904bab0d26c765c4df6fd48e03c3bae",
+      "crates/unikit-bridge/src/complex_serde_de_core.rs": "9b117440c89df020f30029371e42b795fee31ff59b1a8143b9b67de8f2cb22e0",
+      "crates/unikit-bridge/src/complex_codec_encode_object.rs": "0e720545f05d45ae78844a0bfb9caef03f880b7fc97bd66e26364f50e2626d13"
     }
   },
   "results": [

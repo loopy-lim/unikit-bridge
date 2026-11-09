@@ -1,6 +1,6 @@
-# @rustra/types
+# @unikit/types
 
-rustra-bridge의 핵심 타입 패키지입니다. 모든 플랫폼 어댑터(Node, Bun, Tauri,
+unikit-bridge의 핵심 타입 패키지입니다. 모든 플랫폼 어댑터(Node, Bun, Tauri,
 React Native)가 공유하는 `EngineClient` 인터페이스, 에러 타입, Frame
 코덱, Tauri-like 글로벌 invoke를 제공합니다.
 
@@ -8,8 +8,8 @@ React Native)가 공유하는 `EngineClient` 인터페이스, 에러 타입, Fra
 
 ```ts
 // 플랫폼별 엔진을 한 번만 설정
-import { configure } from '@rustra/types';
-import { createFrameEngine } from '@rustra/react-native';
+import { configure } from '@unikit/types';
+import { createFrameEngine } from '@unikit/react-native';
 configure(createFrameEngine(native, registry));
 
 // 어디서든 타입 안전 호출 (generated 클라이언트 내부에서 사용)
@@ -30,13 +30,13 @@ const result = await addNumbers({ a: 42, b: 58 });
 - `withRetry(fn, options?)` — retryable 실패에 한한 지수 백오프 재시도(`retries` 기본 2,
   `baseDelayMs` 기본 100, `retryIf` 는 기본 판정을 대체, `signal` abort 는 백오프
   중에도 즉시 `CancelledError`); 마지막 에러는 원본 그대로 재던진다
-- `configureDebug(sink)` / `RustraDebugEvent` — opt-in 구조화 진단 싱크.
-  `RUSTRA_DEBUG=1|true|verbose` 면 추가로 모든 이벤트를 `[rustra:debug]` 로 로그하고
-  와이어 바이트를 hex 로 stderr 에 덤프한다(`[rustra:wire]`); React Native 에서는
-  `globalThis.__RUSTRA_DEBUG__ = true` 가 이벤트 로그를 켠다. 진단 이벤트는 선택
-  필드 `kind`/`reason` 을 싣는다(JSON 엔진의 `response.shape`, `@rustra/node` 의
+- `configureDebug(sink)` / `UnikitDebugEvent` — opt-in 구조화 진단 싱크.
+  `UNIKIT_DEBUG=1|true|verbose` 면 추가로 모든 이벤트를 `[unikit:debug]` 로 로그하고
+  와이어 바이트를 hex 로 stderr 에 덤프한다(`[unikit:wire]`); React Native 에서는
+  `globalThis.__UNIKIT_DEBUG__ = true` 가 이벤트 로그를 켠다. 진단 이벤트는 선택
+  필드 `kind`/`reason` 을 싣는다(JSON 엔진의 `response.shape`, `@unikit/node` 의
   `ndjson.unparsed`)
-- `RustraCommandError` — 직렬화 가능 에러 + `parseRustraErrorString`
+- `UnikitCommandError` — 직렬화 가능 에러 + `parseUnikitErrorString`
 - Frame 코덱 — Rust `invoke_frame` 왕복용 pure-JS 인코더/디코더
 - `contractHash` 검증 — 빌드 시 계약과 런타임 계약 일치 확인
 - `FrameEngineOptions` — 엔진 옵션: `onContractMismatch`(해시 불일치 시
@@ -48,5 +48,5 @@ const result = await addNumbers({ a: 42, b: 58 });
 
 ## 관련 문서
 
-- [rustra-bridge](https://github.com/loopy-lim/rustra#readme)
+- [unikit-bridge](https://github.com/loopy-lim/unikit#readme)
 - `docs/architecture.md`, `docs/compatibility-contract.md`

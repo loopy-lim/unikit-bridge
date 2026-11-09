@@ -4,21 +4,21 @@
 
 Register an unchanged safe synchronous Rust function with zero through twelve
 arguments using `Package::builder("app").function("add", add)`. The caller does
-not need a Rustra command macro, input/output DTO, or a `Result` return. Generate
+not need a Unikit command macro, input/output DTO, or a `Result` return. Generate
 TypeScript `add(arg0, arg1, options?)` with a `Promise` of the actual return type;
 `fn reset() {}` becomes `reset(options?): Promise<void>`.
 
 ```rust
 fn add(a: i32, b: i32) -> i32 { a + b }
 fn reset() {}
-let package = rustra::Package::builder("app")
+let package = unikit_bridge::Package::builder("app")
     .function("add", add)
     .function("reset", reset)
     .build();
 ```
 
 Fallible functions use `.try_function("read", read, map_error)` where the mapper
-is `Fn(E) -> RustraError`. This preserves arbitrary domain error types and avoids
+is `Fn(E) -> UnikitError`. This preserves arbitrary domain error types and avoids
 ambiguous overlapping plain-return and result-unwrapping inference. A `Result`
 registered through `.function` remains data if it satisfies the output bounds.
 

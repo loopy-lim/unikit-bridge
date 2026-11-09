@@ -1,5 +1,5 @@
 [package]
-name = "rustra-calculator-example"
+name = "unikit-calculator-example"
 edition.workspace = true
 license.workspace = true
 version.workspace = true
@@ -20,7 +20,7 @@ path = "src/bin/uniffi-bindgen.rs"
 required-features = ["uniffi"]
 
 [dependencies]
-rustra.workspace = true
+unikit-bridge.workspace = true
 schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true

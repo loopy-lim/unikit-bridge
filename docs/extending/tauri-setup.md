@@ -1,35 +1,35 @@
 English | [한국어](./tauri-setup.ko.md)
 
-# Adding rustra to an Existing Tauri App
+# Adding unikit to an Existing Tauri App
 
-A file-by-file walkthrough for putting rustra commands into a Tauri v2 app you
+A file-by-file walkthrough for putting unikit commands into a Tauri v2 app you
 already have. A complete
 working app built exactly this way lives in
 [`examples/tauri-calculator`](../../examples/tauri-calculator/).
 
 ## Prepare the existing app in one command
 
-With `rustra.json` at your frontend root and `"tauri": {}` enabled, run CLI 0.12.0.
-Both the Rust core and Tauri host need Rustra 0.12.0 or later:
+With `unikit.json` at your frontend root and `"tauri": {}` enabled, run CLI 0.12.0.
+Both the Rust core and Tauri host need Unikit 0.12.0 or later:
 
 ```bash
-bunx --bun @rustra/cli@0.12.0 setup --config rustra.json
+bunx --bun @unikit/cli@0.12.0 setup --config unikit.json
 ```
 
 Setup generates clients, installs dependencies, builds the selected Rust core,
-enables `app.withGlobalTauri`, and creates `src-tauri/src/rustra_setup.rs`. It
+enables `app.withGlobalTauri`, and creates `src-tauri/src/unikit_setup.rs`. It
 detects the core library and its public zero-argument `Package` factory. Existing
 native Rust sources and Cargo dependencies are preserved. Add any dependency
 lines printed by setup, then register your existing builder:
 
 ```rust
-mod rustra_setup;
+mod unikit_setup;
 // Keep your existing plugins and managed state on builder.
-let builder = rustra_setup::register(builder);
+let builder = unikit_setup::register(builder);
 ```
 
 If the app has native Tauri commands, replace its `.invoke_handler(...)` with
-`rustra_setup::with_app_commands(builder, tauri::generate_handler![greet, open_document])`
+`unikit_setup::with_app_commands(builder, tauri::generate_handler![greet, open_document])`
 instead of `register`. Keep that as the final handler installation. Import
 commands from the generated `tauri.js` entry and rebuild your Tauri app.
 
@@ -42,20 +42,20 @@ are separate checks.
 | #   | File                           | Change                                                          |
 | --- | ------------------------------ | --------------------------------------------------------------- |
 | 1   | Rust core crate — `src/lib.rs` | define `#[command]` functions + a package function              |
-| 2   | Frontend root — `rustra.json`  | add `"tauri": {}` and the codegen generator keys                |
-| 3   | `src-tauri/Cargo.toml`         | depend on the core crate + `rustra` with the `tauri` feature    |
+| 2   | Frontend root — `unikit.json`  | add `"tauri": {}` and the codegen generator keys                |
+| 3   | `src-tauri/Cargo.toml`         | depend on the core crate + `unikit` with the `tauri` feature    |
 | 4   | `src-tauri/src/main.rs`        | register the package with `tauri_support::register_with_events` |
 | 5   | `src-tauri/tauri.conf.json`    | set `app.withGlobalTauri: true`                                 |
 | 6   | frontend (e.g. `src/app.ts`)   | import from `../generated/tauri.js` — no engine setup code      |
 
 ## 1. Rust core crate: commands and package
 
-In the crate that holds your business logic (here `rustra-app`, adjust paths to
+In the crate that holds your business logic (here `unikit-app`, adjust paths to
 your layout):
 
 ```rust
-// rustra-app/src/lib.rs
-use rustra::prelude::*;
+// unikit-app/src/lib.rs
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 pub struct AddNumbersInput { pub a: i64, pub b: i64 }
@@ -69,15 +69,15 @@ pub fn add_numbers(input: AddNumbersInput) -> Result<AddNumbersOutput> {
 }
 
 pub fn package() -> Package {
-    rustra::build!("dev.rustra.app", add_numbers).done()
+    unikit_bridge::build!("dev.unikit.app", add_numbers).done()
 }
 ```
 
-## 2. `rustra.json` — turn on the Tauri host
+## 2. `unikit.json` — turn on the Tauri host
 
-Create (or extend) `rustra.json` at the frontend root, next to `package.json`
+Create (or extend) `unikit.json` at the frontend root, next to `package.json`
 and `src-tauri/`. Point `codegen.rustManifest` at the Rust core crate. In this
-layout the core is `rustra-app/`, and generated clients stay at frontend
+layout the core is `unikit-app/`, and generated clients stay at frontend
 `generated/`. The empty `tauri` block infers standard Tauri APIs:
 
 ```json
@@ -85,7 +85,7 @@ layout the core is `rustra-app/`, and generated clients stay at frontend
   "schema": "./generated/schema.json",
   "output": "./generated",
   "codegen": {
-    "rustManifest": "./rustra-app/Cargo.toml",
+    "rustManifest": "./unikit-app/Cargo.toml",
     "rustBinary": "generate"
   },
   "tauri": {}
@@ -95,7 +95,7 @@ layout the core is `rustra-app/`, and generated clients stay at frontend
 Then generate the client surfaces:
 
 ```bash
-bunx --bun @rustra/cli@0.12.0 codegen --config rustra.json
+bunx --bun @unikit/cli@0.12.0 codegen --config unikit.json
 ```
 
 This renders `generated/tauri.ts` (plus `types.ts`, `commands.ts`, `contract.ts`).
@@ -105,8 +105,8 @@ see [getting started §2-4](../getting-started.md).
 
 The generated entry supplies the expected contract hash and defaults to strict
 native startup verification. The current Rust registration exposes
-`rustra_contract_hash`; update Rust and generated TypeScript together. Use the
-matching Rustra and CLI release versions above. Old/custom
+`unikit_contract_hash`; update Rust and generated TypeScript together. Use the
+matching Unikit and CLI release versions above. Old/custom
 native hosts need an explicit `contractVerification: 'warn'` or `'off'` if
 verification cannot be enforced.
 
@@ -114,18 +114,18 @@ verification cannot be enforced.
 
 ```toml
 [dependencies]
-rustra = { version = "0.12.0", features = ["tauri"] }
-rustra-app = { path = "../rustra-app" }   # your core crate
+unikit-bridge = { version = "0.12.0", features = ["tauri"] }
+unikit-app = { path = "../unikit-app" }   # your core crate
 ```
 
 ## 4. `src-tauri/src/main.rs` — one-line registration
 
 ```rust
-use rustra::tauri_support;
+use unikit_bridge::tauri_support;
 
 fn main() {
     let builder = tauri_support::register_with_events(
-        rustra_app::package(),
+        unikit_app::package(),
         tauri::Builder::default(),
     );
     builder
@@ -135,30 +135,30 @@ fn main() {
 ```
 
 - `register_with_events` is the production default: `register` + event push
-  wiring (`Package::emit` → `rustra://{name}` Tauri events).
+  wiring (`Package::emit` → `unikit://{name}` Tauri events).
 - `register(package, builder)` is the variant without event wiring.
-- All commands are multiplexed through the single `rustra_dispatch` Tauri
+- All commands are multiplexed through the single `unikit_dispatch` Tauri
   command — you never list commands on the Tauri side.
 
 For an existing app that also has native Tauri commands, compose its handler with
-the Rustra registration:
+the Unikit registration:
 
 ```rust
 let builder = tauri_support::with_app_commands(
-    tauri_support::register_with_events(rustra_app::package(), tauri::Builder::default()),
+    tauri_support::register_with_events(unikit_app::package(), tauri::Builder::default()),
     tauri::generate_handler![greet, open_document],
 );
 ```
 
 `greet` and `open_document` are the app's existing `#[tauri::command]` functions.
 Tauri's `.invoke_handler()` replaces the previous handler, so use
-`with_app_commands` as the final handler installation. It preserves Rustra's
-managed producer, events, and channels; the six production Rustra endpoints take
+`with_app_commands` as the final handler installation. It preserves Unikit's
+managed producer, events, and channels; the six production Unikit endpoints take
 precedence over app commands. The profiling endpoint stays unavailable. The
 helper also works after `register` and `register_dispatch`.
 
-A missing `rustra_contract_hash` startup error now points to native registration
-and handler replacement. Register with the matching Rustra version and rebuild
+A missing `unikit_contract_hash` startup error now points to native registration
+and handler replacement. Register with the matching Unikit version and rebuild
 the host; use the composition helper when the app also installs native commands.
 
 ## 5. `src-tauri/tauri.conf.json` — enable the global API
@@ -170,7 +170,7 @@ Tauri API. Turn it on inside `app`:
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "My App",
-  "identifier": "dev.rustra.myapp",
+  "identifier": "dev.unikit.myapp",
   "app": {
     "withGlobalTauri": true
   }
@@ -188,7 +188,7 @@ Apps that do not want the global API can instead pass
 Install the adapter once, then import the generated entry:
 
 ```bash
-bun add @rustra/tauri@0.10.0 @rustra/types@0.12.1
+bun add @unikit/tauri@0.10.0 @unikit/types@0.12.1
 ```
 
 ```ts
@@ -220,7 +220,7 @@ layout:
 
    ```toml
    [lib]
-   name = "rustra_tauri_calculator_lib"
+   name = "unikit_tauri_calculator_lib"
    crate-type = ["staticlib", "cdylib", "rlib"]
    ```
 
@@ -233,14 +233,14 @@ layout:
    `bunx tauri android init` (generated under `src-tauri/gen/`), then build
    with `tauri ios build` / `tauri android build`.
 
-The rustra side needs nothing extra on mobile — the same
+The unikit side needs nothing extra on mobile — the same
 `tauri_support::register_with_events` registration runs inside the shared
-entry. (`rustra::native_entry!` is the **React Native** path's
-`rustra_mobile_init` contract; a Tauri mobile app does not use it.)
+entry. (`unikit_bridge::native_entry!` is the **React Native** path's
+`unikit_mobile_init` contract; a Tauri mobile app does not use it.)
 
 ## Verify and troubleshoot
 
-- `bunx --bun @rustra/cli doctor --config rustra.json` — checks the toolchain,
+- `bunx --bun @unikit/cli doctor --config unikit.json` — checks the toolchain,
   manifest wiring, and generated-output freshness.
 - First-call contract failure (`contract.mismatch`): the generated TS and the
   Rust binary were built from different schemas — re-run codegen and rebuild.

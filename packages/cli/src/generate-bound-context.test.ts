@@ -80,7 +80,7 @@ const schema: PackageSchema = {
 test('bound codec retains only its command layout and dispatches by its own identity', () => {
   const hpp = generateFrameCodecsHpp(schema);
   const cpp = generateFrameCodecsCpp(schema);
-  assert.ok(hpp.includes('#define RUSTRA_GENERATED_BOUND_CODEC_CONTEXT 1'));
+  assert.ok(hpp.includes('#define UNIKIT_GENERATED_BOUND_CODEC_CONTEXT 1'));
   assert.ok(hpp.includes('struct BoundCodecContext;'));
   assert.ok(hpp.includes('std::shared_ptr<const BoundCodecContext> make_bound_codec_context'));
   assert.match(cpp, /const uint16_t commandId;/);

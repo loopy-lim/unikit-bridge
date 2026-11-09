@@ -24,7 +24,7 @@ RN(metro) 번들이 **사용 명령 수가 아닌 전체 명령 수**에 비례�
 
 ### 개요 결정 5줄
 
-1. **옵트인 config `registry.commands`** — `rustra.json` 최상위
+1. **옵트인 config `registry.commands`** — `unikit.json` 최상위
    `registry: { commands: string[] }`. 이 목록이 rkyv V2 정적 레지스트리에
    들어갈 명령(=번들에 코덱이 포함될 명령)을 정의한다.
 2. **미설정 시 오늘과 바이트 동일** — 단일 `rkyv-codecs.ts` + 전체
@@ -44,7 +44,7 @@ RN(metro) 번들이 **사용 명령 수가 아닌 전체 명령 수**에 비례�
 ### A. config 표면
 
 ```jsonc
-// rustra.json
+// unikit.json
 {
   "schema": "./generated/schema.json",
   "output": "./generated",
@@ -54,14 +54,14 @@ RN(metro) 번들이 **사용 명령 수가 아닌 전체 명령 수**에 비례�
 ```
 
 - `packages/cli/src/config.ts`: `REGISTRY_CONFIG_KEYS = ['commands']` 추가,
-  `RustraConfig.registry?: { commands: string[] }`. 최상위 키 화이트리스트
+  `UnikitConfig.registry?: { commands: string[] }`. 최상위 키 화이트리스트
   (`CONFIG_ROOT_KEYS`)에 `registry` 등록 — L1 fail-closed 관례 유지.
 - 검증(fail-closed, 기존 closestMatch 제안 관례 재사용):
   - 배열 외 형태/빈 배열 → 오류 ("omit the registry section to include
     all commands" 안내).
   - schema.json 명령에 없는 이름 → 오류 + closestMatch 제안.
   - 중복 이름 → 오류.
-- `packages/cli/rustra.schema.json`: `registry` 섹션 스키마 추가
+- `packages/cli/unikit.schema.json`: `registry` 섹션 스키마 추가
   (에디터 검증).
 - **호스트별 분리는 하지 않는다** — registry 파일은 RN/bun 엔트리가 공유하는
   1개다. 스키마 1개 = 앱 1개라는 패키지 구조에서 목록도 1개가 맞다(과설계
@@ -80,7 +80,7 @@ RN(metro) 번들이 **사용 명령 수가 아닌 전체 명령 수**에 비례�
   출력. 블록 경계는 벤치 하니스가 검증한 `^export const` 분할과 동일 로직.
 - 파일 확장 규약 유지(`.js` 지정자, metro.config 의 소스 우선 해석과 정합).
 - `cli-generate-files.ts`: subset 모드에서 `rkyv-codecs.ts` 대신 분할
-  파일군 addFile. **manifest(.rustra-generated.json) 는 모드 전환을
+  파일군 addFile. **manifest(.unikit-generated.json) 는 모드 전환을
   감지해 이전 모드 파일을 삭제**한다(오늘은 불일치만 감지 — manifest 가
   기록한 파일 중 새 세트에 없는 것 제거. full→subset: rkyv-codecs.ts 제거,
   subset→full: codec-*.ts·헬퍼 제거). doctor 의 stale 감지가 이 전환을
@@ -114,7 +114,7 @@ RN(metro) 번들이 **사용 명령 수가 아닌 전체 명령 수**에 비례�
   - config 검증 4케이스(빈 배열/불명확 이름/중복/정상).
   - manifest 모드 전환 정리(full↔subset).
   - doctor registry subset 검사 3케이스.
-- e2e: bare-calculator 재생성(`rustra codegen`) 후 앱 동작 — RN 실행은
+- e2e: bare-calculator 재생성(`unikit codegen`) 후 앱 동작 — RN 실행은
   기존 예제 게이트 경로 재사용. metro 번들 크기 측정은 CI 에 넣지 않는다
   (metro 세팅 비용 대비 가치 — 벤치 문서의 수동 재현 절차로 유지).
 - api-surface: 패키지 export 무변경(생성물 파일 셋은 스냅샷 밖) — 예상

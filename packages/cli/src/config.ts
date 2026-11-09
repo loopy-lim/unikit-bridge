@@ -1,4 +1,4 @@
-// rustra.json 로더 — 파일 적기 + L1 fail-closed 검증(config-sections.ts) + L2 의미
+// unikit.json 로더 — 파일 적기 + L1 fail-closed 검증(config-sections.ts) + L2 의미
 // 수집(config-semantic.ts)으로 구성된 진입점. 계약 데이터(허용 키·타입)는
 // config-schema.ts 에서 재수출해 기존 './config.js' 임포트 경로를 유지한다.
 import { readFileSync } from 'node:fs';
@@ -18,13 +18,13 @@ import {
   CONFIG_ROOT_KEYS,
   NODE_CONFIG_KEYS,
   REACT_NATIVE_CONFIG_KEYS,
-  type RustraConfig,
+  type UnikitConfig,
 } from './config-schema.js';
 
 export * from './config-schema.js';
 export { collectSemanticErrors } from './config-semantic.js';
 
-export function readConfigSync(configPath: string): RustraConfig {
+export function readConfigSync(configPath: string): UnikitConfig {
   const resolvedPath = resolve(configPath);
   let content: string;
   try {
@@ -35,7 +35,7 @@ export function readConfigSync(configPath: string): RustraConfig {
     const code = (error as NodeJS.ErrnoException | undefined)?.code;
     if (code === 'ENOENT') {
       throw new Error(
-        `Config file not found: ${resolvedPath}. Run "rustra init <dir>" to create a ` +
+        `Config file not found: ${resolvedPath}. Run "unikit init <dir>" to create a ` +
           `project, or pass the right path via --config.`,
         { cause: error },
       );
@@ -44,7 +44,7 @@ export function readConfigSync(configPath: string): RustraConfig {
   }
   const parsed = JSON.parse(content) as unknown;
   assertKnownKeys(parsed, CONFIG_ROOT_KEYS, 'config');
-  const config = parsed as RustraConfig;
+  const config = parsed as UnikitConfig;
 
   if (
     typeof config.schema !== 'string' ||
@@ -86,7 +86,7 @@ export function readConfigSync(configPath: string): RustraConfig {
     assertKnownKeys(rn, REACT_NATIVE_CONFIG_KEYS, 'config reactNative');
     if ('nativeModule' in rn) {
       throw new Error(
-        'Config reactNative.nativeModule was removed. Use the generated @rustra/generated-react-native module.',
+        'Config reactNative.nativeModule was removed. Use the generated @unikit/generated-react-native module.',
       );
     }
     if (

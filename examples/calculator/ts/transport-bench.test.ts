@@ -55,7 +55,7 @@ function parseInvokeResponse(raw: string): unknown {
 // ── Subprocess transport ────────────────────────────────
 
 function createSubprocessInvoke() {
-  const binPath = join(ROOT, 'target/debug/rustra-calculator-example');
+  const binPath = join(ROOT, 'target/debug/unikit-calculator-example');
   return (command: string, args: unknown): unknown => {
     const output = spawnSync(binPath, ['invoke'], {
       input: JSON.stringify({ command, args }),
@@ -74,11 +74,11 @@ function createNapiInvoke() {
     `examples/calculator-napi/calculator-napi.${process.platform}-${process.arch}.node`,
   );
   const native = createRequire(__dirname)(napiPath) as {
-    rustraInvoke: (cmd: string, args: string | undefined) => string;
+    unikitInvoke: (cmd: string, args: string | undefined) => string;
   };
   return (command: string, args: unknown): unknown => {
     const argsJson = args !== undefined ? JSON.stringify(args) : undefined;
-    const rawResponse = native.rustraInvoke(command, argsJson);
+    const rawResponse = native.unikitInvoke(command, argsJson);
     return parseInvokeResponse(rawResponse);
   };
 }
@@ -86,7 +86,7 @@ function createNapiInvoke() {
 // ── Tests ───────────────────────────────────────────────
 
 void describe('transport performance', { concurrency: 1 }, () => {
-  const binPath = join(ROOT, 'target/debug/rustra-calculator-example');
+  const binPath = join(ROOT, 'target/debug/unikit-calculator-example');
   const napiPath = join(
     ROOT,
     `examples/calculator-napi/calculator-napi.${process.platform}-${process.arch}.node`,
@@ -104,7 +104,7 @@ void describe('transport performance', { concurrency: 1 }, () => {
   if (runningUnderBunTest) {
     void it.skip('subprocess/napi: bun test 러너의 spawnSync 호환 버그로 스킵 (bun run bench 사용)', () => {});
   } else if (!existsSync(binPath)) {
-    void it.skip("subprocess: binary not found, run 'cargo build -p rustra-calculator-example'", () => {});
+    void it.skip("subprocess: binary not found, run 'cargo build -p unikit-calculator-example'", () => {});
     void it.skip('subprocess: latency (no binary)', () => {});
   } else {
     void it('subprocess: addNumbers returns correct result', () => {

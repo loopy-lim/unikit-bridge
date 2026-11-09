@@ -1,17 +1,17 @@
 /**
- * @rustra/tauri — Tauri 2용 rustra 엔진 어댑터
+ * @unikit/tauri — Tauri 2용 unikit 엔진 어댑터
  *
- * Tauri 애플리케이션에서 rustra 명령을 실행할 수 있는 EngineClient 구현체를 제공합니다.
- * Rust 측의 `rustra_dispatch` Tauri 커맨드를 통해 모든 rustra 명령을 라우팅합니다.
+ * Tauri 애플리케이션에서 unikit 명령을 실행할 수 있는 EngineClient 구현체를 제공합니다.
+ * Rust 측의 `unikit_dispatch` Tauri 커맨드를 통해 모든 unikit 명령을 라우팅합니다.
  *
  * ## 설정
  *
- * Rust 측에서 `tauri` feature를 활성화하고 `rustra::tauri_support::register`로
+ * Rust 측에서 `tauri` feature를 활성화하고 `unikit_bridge::tauri_support::register`로
  * 패키지를 등록해야 합니다.
  *
  * @example
  * ```ts
- * import { createTauriEngine } from '@rustra/tauri';
+ * import { createTauriEngine } from '@unikit/tauri';
  * import { addNumbers } from './generated/commands.js';
  *
  * const engine = createTauriEngine({
@@ -25,33 +25,33 @@
 export type {
   EngineClient,
   EngineSupports,
-  RustraError,
+  UnikitError,
   FrameCodec,
   FrameNative,
   InvokeOptions,
-} from '@rustra/types';
+} from '@unikit/types';
 export {
-  RustraCommandError,
+  UnikitCommandError,
   configure,
   configureLazy,
   ensureConfigured,
   invoke,
   createFrameEngine,
-} from '@rustra/types';
+} from '@unikit/types';
 
 import {
   configureLazy,
   createJsonEngine,
   disposedBootstrapError,
   ensureConfigured,
-  normalizeRustraError,
-  RustraErrorCode,
-  RustraCommandError,
+  normalizeUnikitError,
+  UnikitErrorCode,
+  UnikitCommandError,
   type BatchEntry,
   type BootstrapState,
   type EngineClientWithBatch,
   type EngineSupports,
-} from '@rustra/types';
+} from '@unikit/types';
 import { createTauriContractVerifier } from './tauri-contract.js';
 
 /**
@@ -95,8 +95,8 @@ function tauriGlobal(): TauriGlobal {
 function requireTauriInvoke(): TauriInvoke {
   const core = tauriGlobal().__TAURI__?.core;
   if (typeof core?.invoke !== 'function') {
-    throw new RustraCommandError(
-      RustraErrorCode.TransportUnavailable,
+    throw new UnikitCommandError(
+      UnikitErrorCode.TransportUnavailable,
       'Tauri IPC was not found. Enable app.withGlobalTauri, or pass { invoke } to createTauriEngine().',
     );
   }
@@ -129,7 +129,7 @@ export const TAURI_ENGINE_SUPPORTS: EngineSupports = {
 /**
  * Tauri IPC로 EngineClient를 생성합니다.
  *
- * 내부적으로 모든 rustra 명령을 `rustra_dispatch` Tauri 커맨드로 라우팅합니다.
+ * 내부적으로 모든 unikit 명령을 `unikit_dispatch` Tauri 커맨드로 라우팅합니다.
  * `{ command, args }` 형태로 래핑하여 전송합니다.
  *
  * @param options.invoke - Tauri IPC invoke 함수
@@ -155,23 +155,23 @@ function createTauriEngineDetails(options: TauriEngineOptions) {
     {
       invoke: (command, args) =>
         verifyBeforeInvoke
-          ? ready().then(() => tauriInvoke('rustra_dispatch', { command, args }))
-          : tauriInvoke('rustra_dispatch', { command, args }),
-      // 트랙 E2 — N 개 명령을 `rustra_dispatch_batch` 한 번의 IPC 횡단으로
+          ? ready().then(() => tauriInvoke('unikit_dispatch', { command, args }))
+          : tauriInvoke('unikit_dispatch', { command, args }),
+      // 트랙 E2 — N 개 명령을 `unikit_dispatch_batch` 한 번의 IPC 횡단으로
       // 실행한다. Rust 측은 항목별 ok/error 로 응답하므로(fail-fast 아님)
-      // 실패 항목만 RustraCommandError 로 재구성해 reject 한다.
+      // 실패 항목만 UnikitCommandError 로 재구성해 reject 한다.
       invokeBatch: async <T>(entries: BatchEntry[]): Promise<T[]> => {
         if (verifyBeforeInvoke) await ready();
         // IPC 응답은 unknown — 항목 봉투 형태로 좁힌 뒤 검증한다.
-        const responses = (await tauriInvoke('rustra_dispatch_batch', {
+        const responses = (await tauriInvoke('unikit_dispatch_batch', {
           requests: entries.map((entry) => ({
             command: entry.command,
             args: entry.args === undefined ? {} : entry.args,
           })),
         })) as unknown[];
         if (!Array.isArray(responses)) {
-          throw new RustraCommandError(
-            RustraErrorCode.InvokeMalformed,
+          throw new UnikitCommandError(
+            UnikitErrorCode.InvokeMalformed,
             'Invalid Tauri batch response: expected an array of response envelopes',
           );
         }
@@ -188,13 +188,13 @@ function createTauriEngineDetails(options: TauriEngineOptions) {
               typeof response.ok !== 'boolean' ||
               !Object.prototype.hasOwnProperty.call(response, response.ok ? 'result' : 'error')
             ) {
-              throw new RustraCommandError(
-                RustraErrorCode.InvokeMalformed,
+              throw new UnikitCommandError(
+                UnikitErrorCode.InvokeMalformed,
                 `Invalid Tauri batch response envelope at entry ${index}`,
               );
             }
             if (response.ok) return response.result as T;
-            throw normalizeRustraError(
+            throw normalizeUnikitError(
               response.error ?? {
                 code: 'invoke.failed',
                 message: `batch entry ${entries[index]?.command ?? index} failed without an error payload`,
@@ -212,7 +212,7 @@ function createTauriEngineDetails(options: TauriEngineOptions) {
 
 export type TauriBootstrap = {
   /**
-   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@rustra/types).
+   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@unikit/types).
    * dispose 는 멱등이고 dispose 후 ready 는 loud-fail 한다.
    */
   readonly state: BootstrapState;
@@ -226,9 +226,9 @@ export type TauriBootstrap = {
  * Registers lazy global-Tauri setup for generated platform entrypoints.
  *
  * 핫스왑 계약(Task A1) — Tauri 어댑터는 reload 표면이 없다. 엔진은 Tauri IPC
- * (rustra_dispatch) 위의 상태 없는 래퍼라 재초기화할 엔진 상태가 없고, 러스트
+ * (unikit_dispatch) 위의 상태 없는 래퍼라 재초기화할 엔진 상태가 없고, 러스트
  * 측 바이너리 교체는 Tauri 호스트 프로세스의 책임이다(재빌드 후 앱 재시작 또는
- * A2 rustra_ffi_hot_reload 주입). dev 루프의 onReload 훅을 Tauri 호스트가 받으면
+ * A2 unikit_ffi_hot_reload 주입). dev 루프의 onReload 훅을 Tauri 호스트가 받으면
  * 앱 재시작 안내를 노출하는 것이 정직한 동작이다.
  */
 export function createTauriBootstrap(options: TauriEngineOptions = {}): TauriBootstrap {
@@ -249,8 +249,8 @@ export function createTauriBootstrap(options: TauriEngineOptions = {}): TauriBoo
   const registration = configureLazy(bootstrap, { ownerId: 'Tauri bootstrap' });
   const requireOwnership = () => {
     if (!registration.isCurrent()) {
-      throw new RustraCommandError(
-        RustraErrorCode.RegistryFrozen,
+      throw new UnikitCommandError(
+        UnikitErrorCode.RegistryFrozen,
         'Tauri bootstrap registration was replaced by another engine',
       );
     }
@@ -290,21 +290,21 @@ export function createTauriBootstrap(options: TauriEngineOptions = {}): TauriBoo
 }
 
 export {
-  rustraEventChannel,
+  unikitEventChannel,
   subscribeEvent,
   subscribeHotSwap,
   subscribeTauriEvent,
   type HotSwapEvent,
   type TauriEventOptions,
 } from './tauri-events.js';
-export { disposedBootstrapError, type BootstrapState } from '@rustra/types';
+export { disposedBootstrapError, type BootstrapState } from '@unikit/types';
 export {
   createChannel,
   createChannelBytes,
-  rustraChannelEventChannel,
-  rustraChannelBytesEventChannel,
-  type RustraTauriChannel,
-  type RustraTauriBytesChannel,
+  unikitChannelEventChannel,
+  unikitChannelBytesEventChannel,
+  type UnikitTauriChannel,
+  type UnikitTauriBytesChannel,
   type TauriChannelIo,
   type TauriIpcChannel,
 } from './tauri-channels.js';

@@ -1,5 +1,5 @@
 import { decodeUtf8, encodeUtf8 } from './utf8.js';
-import type { RustraError } from './errors.js';
+import type { UnikitError } from './errors.js';
 
 // ── Tier 3 (JSON-in-binary) wire helpers ────────────────────
 // request:  [command_id: u16 LE @0][json @2]
@@ -23,7 +23,7 @@ export function encodeTier3Request(
 /**
  * JSON 경로에서 `Set`을 배열로 직렬화한다 — Rust `BTreeSet`/`HashSet`은
  * serde JSON 에서 배열로 직렬화되므로 와이어 호환을 맞춘다
- * (`Map`은 rustra 계약에 없으므로 다루지 않는다).
+ * (`Map`은 unikit 계약에 없으므로 다루지 않는다).
  */
 function _jsonSetReplacer(_key: string, value: unknown): unknown {
   if (value instanceof Set) return [...value];
@@ -58,7 +58,7 @@ function _tier3DecodeString(u: Uint8Array, offset: number): { value: string; byt
 export function decodeTier3Response(bytes: ArrayBuffer | ArrayBufferView): {
   ok: boolean;
   result?: unknown;
-  error?: RustraError;
+  error?: UnikitError;
 } {
   if (bytes.byteLength < 8) {
     return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
@@ -94,7 +94,7 @@ export function decodeTier3Response(bytes: ArrayBuffer | ArrayBufferView): {
     return { ok: false, error: { code: 'invoke.too_short', message: 'error frame too short' } };
   }
   const errLen = dv.getUint16(8, true);
-  let error: RustraError = { code: 'invoke.failed', message: 'invoke failed' };
+  let error: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
   if (errLen > 0) {
     // postcard({ code: String, message: String })
     try {

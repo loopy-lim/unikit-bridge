@@ -1,7 +1,7 @@
-// ── rustra generated ────────────────────────────────────────
+// ── unikit generated ────────────────────────────────────────
 // File:   node.ts
 // Source: schema.json (single source of truth for this file)
-// Regen:  rustra codegen --config rustra.json
+// Regen:  unikit codegen --config unikit.json
 // Stage:  schema → host entry
 // DO NOT EDIT — changes will be overwritten and fail codegen --check.
 // ────────────────────────────────────────────────────────────
@@ -17,16 +17,16 @@
 //   계약 검증 기본값('strict')과 옵션명을 명시한다. 옵션명 변경/제거는
 //   없다 — 기존 생성 엔트리 코드는 그대로 동작한다(하위 호환).
 import { fileURLToPath } from 'node:url';
-import { createNodeBootstrap } from '@rustra/node';
+import { createNodeBootstrap } from '@unikit/node';
 import { GENERATED_CONTRACT_HASH } from './contract.js';
 
 export * from './commands.js';
 
 const targetDirectory = new URL("../../../target/", import.meta.url);
-const executable = "rustra-streaming-invoke" + (process.platform === 'win32' ? '.exe' : '');
+const executable = "unikit-streaming-invoke" + (process.platform === 'win32' ? '.exe' : '');
 
-export const rustra = createNodeBootstrap({
-  binaryName: "rustra-streaming-invoke",
+export const unikit = createNodeBootstrap({
+  binaryName: "unikit-streaming-invoke",
   commandCandidates: [
     fileURLToPath(new URL(`release/${executable}`, targetDirectory)),
     fileURLToPath(new URL(`debug/${executable}`, targetDirectory)),
@@ -39,8 +39,8 @@ export const rustra = createNodeBootstrap({
 
 
 const eventUnsubscribes = new Set<() => void>();
-const subscribe: typeof rustra.subscribeEvent = (name, callback) => {
-  const unsubscribe = rustra.subscribeEvent(name, callback);
+const subscribe: typeof unikit.subscribeEvent = (name, callback) => {
+  const unsubscribe = unikit.subscribeEvent(name, callback);
   const remove = () => {
     eventUnsubscribes.delete(remove);
     unsubscribe();
@@ -56,8 +56,8 @@ export const events = {
   },
 };
 export const subscribeEvent = events.subscribeEvent;
-const disposeBootstrap = rustra.dispose.bind(rustra);
-rustra.dispose = () => {
+const disposeBootstrap = unikit.dispose.bind(unikit);
+unikit.dispose = () => {
   events.dispose();
   disposeBootstrap();
 };

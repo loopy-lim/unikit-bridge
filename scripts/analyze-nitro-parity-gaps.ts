@@ -22,7 +22,7 @@ type Archive = Record<
     results: ReturnType<typeof aggregate>;
   }
 > & { source: { fingerprint: { fingerprint: string } } };
-const frameworks = ['rustra', 'nitro'] as const;
+const frameworks = ['unikit', 'nitro'] as const;
 
 const input = 'docs/benchmark-receipts/2026-09-16-nitro-parity-candidate.json';
 const baselinePath = 'docs/benchmark-receipts/2026-09-16-nitro-parity-baseline.json';
@@ -83,8 +83,8 @@ for (const platform of platforms) {
         nodes: r.nodes,
         classification: r.classification,
         ratio: r.confidence95,
-        medianGapNs: r.rustra.p50 - r.nitro.p50,
-        rustra: r.rustra,
+        medianGapNs: r.unikit.p50 - r.nitro.p50,
+        unikit: r.unikit,
         nitro: r.nitro,
         pointEstimateReductionTo105Percent: Math.max(0, 100 * (1 - 1.05 / r.confidence95.estimate)),
         upperBoundReductionTo105Percent: Math.max(0, 100 * (1 - 1.05 / r.confidence95.upper)),
@@ -92,13 +92,13 @@ for (const platform of platforms) {
     if (r.id.startsWith('buffer')) {
       const samples = data.runs.flatMap((run, launch) => {
         const c = getCase(run, r.lane, r.id);
-        return c.rustra.flatMap((_: number, round: number) =>
+        return c.unikit.flatMap((_: number, round: number) =>
           frameworks.map((framework) => ({
             launch: launch + 1,
             round,
             framework,
             nsPerOperationBatchMean: c[framework][round],
-            firstFramework: round % 2 === 0 ? 'rustra' : 'nitro',
+            firstFramework: round % 2 === 0 ? 'unikit' : 'nitro',
             batch: c.batch,
           })),
         );
@@ -141,7 +141,7 @@ for (const platform of platforms) {
                 ['first', 'second'].map((order) => {
                   const selected = values.filter(
                     (_, round) =>
-                      ((round % 2 === 0 ? 'rustra' : 'nitro') === framework) ===
+                      ((round % 2 === 0 ? 'unikit' : 'nitro') === framework) ===
                       (order === 'first'),
                   );
                   return [order, { count: selected.length, ...summary(selected) }];
@@ -165,7 +165,7 @@ for (const platform of platforms) {
       ratios,
       confidence95: confidence(ratios),
       interpretation:
-        'Same Nitro method measured in two sequential lane phases; exploratory phase association, not Rustra guard overhead or a causal order test.',
+        'Same Nitro method measured in two sequential lane phases; exploratory phase association, not Unikit guard overhead or a causal order test.',
     });
   }
   for (const old of oldResults.filter((r) => r.lane === 'async-public')) {
@@ -173,7 +173,7 @@ for (const platform of platforms) {
     historical.push({
       platform,
       id: old.id,
-      rustraP50ChangePercent: 100 * (current.rustra.p50 / old.rustra.p50 - 1),
+      unikitP50ChangePercent: 100 * (current.unikit.p50 / old.unikit.p50 - 1),
       nitroP50ChangePercent: 100 * (current.nitro.p50 / old.nitro.p50 - 1),
       oldWithinLaunchRatio: old.confidence95.estimate,
       currentWithinLaunchRatio: current.confidence95.estimate,

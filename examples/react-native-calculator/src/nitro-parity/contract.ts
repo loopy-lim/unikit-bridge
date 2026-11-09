@@ -1,5 +1,5 @@
-export const LEGACY_CONTRACT = 'rustra-nitro-parity/v1';
-export const CONTRACT = 'rustra-nitro-parity/v2';
+export const LEGACY_CONTRACT = 'unikit-nitro-parity/v1';
+export const CONTRACT = 'unikit-nitro-parity/v2';
 export const DEFAULT_WIRE_LIMIT = 1024 * 1024;
 // command ID (2 bytes) + postcard length (3 bytes) counts against the wire limit.
 export const BUFFER_LIMIT = DEFAULT_WIRE_LIMIT - 5;

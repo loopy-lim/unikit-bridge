@@ -2,7 +2,7 @@
 
 # 용어집 (Glossary)
 
-rustra 내부에서 여러 뜻으로 쓰이거나, 같은 이름의 외부 개념과 혼동되기 쉬운
+unikit 내부에서 여러 뜻으로 쓰이거나, 같은 이름의 외부 개념과 혼동되기 쉬운
 용어의 정의 레퍼런스. 각 항목은 그 용어가 **무엇인지**, **표기 표준**, 그리고
 권위 문서 위치를 선언한다. 이 문서는 이력을 추적하지 않는다 — 판단과 경로는
 링크된 문서를 따른다.
@@ -14,17 +14,17 @@ rustra 내부에서 여러 뜻으로 쓰이거나, 같은 이름의 외부 개�
 
 | 용어                         | 한 줄 정의                                                                                           |
 | ---------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Frame                        | Rustra의 바이너리 프레임 프로토콜 — V2 프레이밍 + command id + postcard 페이로드 코덱(구칭 rkyv V2)  |
+| Frame                        | Unikit의 바이너리 프레임 프로토콜 — V2 프레이밍 + command id + postcard 페이로드 코덱(구칭 rkyv V2)  |
 | postcard                     | 실제 페이로드 코덱(serde 호환 compact 포맷)                                                          |
 | 일반 함수(ordinary function) | `#[command]` 매크로 없이 `PackageBuilder::function`/`try_function` 으로 등록한 평범한 Rust `fn`      |
 | `functionArgs`               | 일반 함수의 인자 수(0~12)를 기록하는 스키마 메타데이터 — 위치 인자 TS 클라이언트 생성의 근거         |
 | 동기 바인딩(sync binding)    | 스키마 메타데이터가 `execution:"sync"` 인 명령 — RN JSI 호스트에서만 동기 호출 가능                  |
-| 레지스트리 소비자            | 발행된 `@rustra/*` 패키지를 설치하는 프로젝트 — registry consumer 게이트와 호스트 핀이 정합성을 지킴 |
+| 레지스트리 소비자            | 발행된 `@unikit/*` 패키지를 설치하는 프로젝트 — registry consumer 게이트와 호스트 핀이 정합성을 지킴 |
 | Tier 1 / 2 / 3               | 와이어 코덱 티어: 정적 postcard / complex 스키마 / JSON-in-binary 폴백                               |
 | dev tier                     | "개발 중 동적 / 릴리스 정적" 개발 장치 — 와이어 티어와 무관                                          |
 | hot-core                     | 네이티브 dylib 핫스왑 dev 메커니즘(실험)                                                             |
-| `rustra_ffi_hot_reload`      | 구 hot-* 메커니즘: replace 의미론 리로드 주입                                                        |
-| parity gate                  | `rustra dev`가 reload 방출 전 contract hash 를 비교하는 재빌드 게이트                                |
+| `unikit_ffi_hot_reload`      | 구 hot-* 메커니즘: replace 의미론 리로드 주입                                                        |
+| parity gate                  | `unikit dev`가 reload 방출 전 contract hash 를 비교하는 재빌드 게이트                                |
 | contract hash                | 스키마 JSON만의 SHA-256                                                                              |
 | dylib / cdylib               | Rust 동적 라이브러리 crate-type — 핫스왑 단위                                                        |
 | 채널 계열                    | `ChannelHandle` + 호스트별 4종 바이너리 채널 팩토리                                                  |
@@ -37,7 +37,7 @@ rustra 내부에서 여러 뜻으로 쓰이거나, 같은 이름의 외부 개�
 
 ## Frame
 
-**Frame**은 Rustra의 바이너리 프레임 프로토콜(V2 프레이밍 + command id +
+**Frame**은 Unikit의 바이너리 프레임 프로토콜(V2 프레이밍 + command id +
 postcard 페이로드 코덱)의 이름이며, 구칭은 "rkyv V2"였다. 페이로드 코덱은
 postcard이고 업스트림 `rkyv` crate가 아니다 — 그 crate는 `Cargo.lock`에 없다.
 표준 와이어 형태 —
@@ -48,7 +48,7 @@ postcard이고 업스트림 `rkyv` crate가 아니다 — 그 crate는 `Cargo.lo
 
 ## postcard
 
-manifest/dispatch 경로에서 실제로 쓰는 페이로드 직렬화기(`crates/rustra/Cargo.toml`
+manifest/dispatch 경로에서 실제로 쓰는 페이로드 직렬화기(`crates/unikit-bridge/Cargo.toml`
 의 `postcard` 의존성). serde 호환 compact 바이너리 포맷이다. 문서가 어떤 명령을
 "postcard 인코딩"이라고 하면 그 Frame 안의 구체 코덱이 이것이다.
 
@@ -60,7 +60,7 @@ manifest/dispatch 경로에서 실제로 쓰는 페이로드 직렬화기(`crate
 - **Tier 2** — complex 스키마: 재귀 map/enum/Option/Set/BigInt 형태를
   스키마 기반 complex codec 으로 처리.
 - **Tier 3** — JSON-in-binary 폴백: `[cmd_id u16 LE][JSON]`, 어느 바이너리
-  코덱도 지원하지 않는 스키마용. 구현: `crates/rustra/src/frame_tier3.rs`.
+  코덱도 지원하지 않는 스키마용. 구현: `crates/unikit-bridge/src/frame_tier3.rs`.
 
 [architecture.md](architecture.md)("동적 명령의 호출 경로")와
 [complex-codecs.md](complex-codecs.md) 참고.
@@ -80,21 +80,21 @@ manifest/dispatch 경로에서 실제로 쓰는 페이로드 직렬화기(`crate
 네이티브 dylib 핫스왑 개발 메커니즘: Rust 코어를 cdylib 으로 빌드해 실행 중인
 호스트에 재시작 없이 스왑한다. `hot-core` cargo feature, `DylibCore`/
 `HotCoreHandle` 프리미티브, sha256 폴링 감시자, 아티팩트 경로를 호스트에 알리는
-`RUSTRA_HOT_CORE` 환경변수로 구성된다(React Native 어댑터는 대신
-`RUSTRA_HOT_CORE_DIR`가 지정한 디렉터리를 폴링한다 — 파일 경로와 디렉터리는
+`UNIKIT_HOT_CORE` 환경변수로 구성된다(React Native 어댑터는 대신
+`UNIKIT_HOT_CORE_DIR`가 지정한 디렉터리를 폴링한다 — 파일 경로와 디렉터리는
 서로 다른 두 변수다). **실험**
 ([versioning-policy.md](versioning-policy.md) 실험 표면 표 참고). 설계와 상태:
 [plans/2026-09-09-native-hot-core-design.md](dev/plans/2026-09-09-native-hot-core-design.md).
 
 표기 표준: 두 언어 모두 `hot-core`. 한국어 서술에서 개념 설명은 핫코어/핫스왑
-병기를 허용하지만, 피처·모듈·플래그 표기는 `hot-core` / `RUSTRA_HOT_CORE` 라틴
+병기를 허용하지만, 피처·모듈·플래그 표기는 `hot-core` / `UNIKIT_HOT_CORE` 라틴
 그대로 유지한다.
 
-## `rustra_ffi_hot_reload` vs hot-core
+## `unikit_ffi_hot_reload` vs hot-core
 
 혼동하면 안 되는 서로 다른 두 hot-* 메커니즘:
 
-- **`rustra_ffi_hot_reload`** — 구 메커니즘: replace 의미론의 리로드 **주입**
+- **`unikit_ffi_hot_reload`** — 구 메커니즘: replace 의미론의 리로드 **주입**
   (호스트가 호출해 프로세스 내 엔진 상태를 리셋하는 FFI 엔트리).
   [versioning-policy.md](versioning-policy.md) 기준 실험 표면.
 - **hot-core** — 신 메커니즘: 네이티브 **dylib 스왑**(재빌드된 cdylib 을
@@ -105,7 +105,7 @@ manifest/dispatch 경로에서 실제로 쓰는 페이로드 직렬화기(`crate
 
 ## parity gate
 
-`rustra dev` 재빌드 게이트: reload 를 방출하기 전에 CLI가 codegen 전후의
+`unikit dev` 재빌드 게이트: reload 를 방출하기 전에 CLI가 codegen 전후의
 contract hash 를 비교하고, 어긋나면 reload 를 아예 방출하지 않는다(fail-closed —
 호스트는 구 엔진을 유지). config 키 `dev.wasm.parityGate` /
 `dev.dylib.parityGate`, 기본값 `true`. 한국어 문서는 표기가 갈린다(parity
@@ -114,23 +114,23 @@ contract hash 를 비교하고, 어긋나면 reload 를 아예 방출하지 않�
 
 ## contract hash
 
-**스키마 JSON만의** SHA-256 해시(`crates/rustra/src/package_schema.rs`의
+**스키마 JSON만의** SHA-256 해시(`crates/unikit-bridge/src/package_schema.rs`의
 `generated_contract_hash` — generation 카운터를 제외한 `generate_typescript()`
-와 동일 입력). `rustra diff`, parity gate, `rustra_ffi_contract_hash`가 쓰는
+와 동일 입력). `unikit diff`, parity gate, `unikit_ffi_contract_hash`가 쓰는
 계약의 신원이다. 한국어 문서는 contract hash, 계약 해시, 컨트랙트 해시를 섞어
 쓴다 — 같은 것이다.
 
 ## dylib / cdylib
 
 Rust 동적 라이브러리: `crate-type = ["cdylib"]`(C ABI 동적 라이브러리) 또는
-일반적 dylib 개념. rustra에서 cdylib 산출물은 hot-core의 **핫스왑 단위**다 —
-`rustra dev`가 빌드하고(`dev.target: "dylib"`) 호스트가 스왑 카피를 dlopen 한다.
+일반적 dylib 개념. unikit에서 cdylib 산출물은 hot-core의 **핫스왑 단위**다 —
+`unikit dev`가 빌드하고(`dev.target: "dylib"`) 호스트가 스왑 카피를 dlopen 한다.
 릴리스 빌드는 무관하다: 정적 링크 경로는 그대로다.
 
 ## channel / ChannelHandle / binary channel
 
 채널은 하나의 호출에 귀속된 유니캐스트 응답 스트림이다. `ChannelHandle`은
-`u32` 뉴타입(`crates/rustra/src/channels_handles.rs`)이고, `ChannelHost`는
+`u32` 뉴타입(`crates/unikit-bridge/src/channels_handles.rs`)이고, `ChannelHost`는
 코어 측 발신 레지스트다(아래 **host** 참고). 바이너리 채널(JSON 문자열 대신
 원시 바이트 프레임)의 팩토리 이름은 호스트별로 다르다 — 불일치가 아니라
 설계다. 표준 계열:
@@ -152,7 +152,7 @@ Rust 동적 라이브러리: `crate-type = ["cdylib"]`(C ABI 동적 라이브러
    Bun, Tauri, React Native) 또는 그것을 섬기는 어댑터 패키지. "Host-neutral",
    "host adapter", "per-host"는 모두 이 뜻이다.
 2. **`ChannelHost`** — 코어 측 채널/리소스 발신 레지스트리
-   (`crates/rustra/src/channels_host.rs`). 의미 1과 거의 **반대**다: 이 host는
+   (`crates/unikit-bridge/src/channels_host.rs`). 의미 1과 거의 **반대**다: 이 host는
    코어 안에 살며 임베딩 앱에 핸들을 발급한다.
 3. **JSI host 객체 / host function** — RN 네이티브 측: `invokeFrame` 등을
    JavaScript에 노출하는 C++/TurboModule 객체.
@@ -165,9 +165,9 @@ Rust 동적 라이브러리: `crate-type = ["cdylib"]`(C ABI 동적 라이브러
 
 1. **api-surface 스냅샷** — `scripts/api-surface.mjs`와
    `api-surface/snapshot.json`, 공용 API drift 게이트.
-2. **`rustra_ffi_capture_snapshot`** — B1 인스펙터 와이어 덤프(실험 표면,
-   [versioning-policy.md](versioning-policy.md)), `rustra inspect` 가 렌더링.
-3. **디버그 로그 값 스냅샷** — `RUSTRA_DEBUG` 와이어 로그의 잘린 `value`
+2. **`unikit_ffi_capture_snapshot`** — B1 인스펙터 와이어 덤프(실험 표면,
+   [versioning-policy.md](versioning-policy.md)), `unikit inspect` 가 렌더링.
+3. **디버그 로그 값 스냅샷** — `UNIKIT_DEBUG` 와이어 로그의 잘린 `value`
    필드([development-hurdles.md](development-hurdles.md)).
 4. **`--snapshot canary`** — 발행 절차 카나리 단계의 changeset 스냅샷 발행
    ([release-procedure.md](release-procedure.md)).
@@ -196,7 +196,7 @@ codec, JSON codec, 생성 TS/C++ codec).
 **Codec IR** — complex codec 이 컴파일되는 공유 스키마 중간 표현. TS·C++
 제너레이터가 네이티브로 인코딩할 수 있는 형태를 판정한다
 ([complex-codecs.md](complex-codecs.md), [codegen.md](dev/internal/codegen.md),
-`crates/rustra/src/complex_codec_schema.rs`).
+`crates/unikit-bridge/src/complex_codec_schema.rs`).
 
 ## mirror (미러)
 
@@ -205,7 +205,7 @@ codec, JSON codec, 생성 TS/C++ codec).
 1. **문서 미러** — en/ko 쌍 관례: `*.md`에 `*.ko.md`를 긴밀히 미러링해 유지
    (docs/README.md 참고).
 2. **수동 미러 (manual mirror)** — 문서 안에 손으로 관리하는 생성 데이터
-   사본; rustra는 단일 소싱으로 이를 피한다(예: 디바이스 capability 카탈로그는
+   사본; unikit는 단일 소싱으로 이를 피한다(예: 디바이스 capability 카탈로그는
    수동 미러가 없다, [dev-tier.md](dev-tier.md)).
 3. **동사** — "X mirrors Y": 한 표면이 다른 표면의 형태를 의도적으로 따른다
    (예: TS 인스펙터 타입은 blob 계약을 mirror 한다,

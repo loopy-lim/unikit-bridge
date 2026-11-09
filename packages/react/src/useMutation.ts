@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useInsertionEffect, useMemo } from 'react';
-import type { InvokeOptions } from '@rustra/types';
-import { resolveCommandId } from '@rustra/types';
-import { useRustraEngine } from './context.js';
+import type { InvokeOptions } from '@unikit/types';
+import { resolveCommandId } from '@unikit/types';
+import { useUnikitEngine } from './context.js';
 import type { CommandFn, VoidCommandFn } from './useCommand.js';
 
 export interface UseMutationOptions<I, O> {
@@ -23,7 +23,7 @@ export function useMutation<I = void, O = unknown>(
   commandFn: CommandFn<I, O> | VoidCommandFn<O>,
   options?: UseMutationOptions<I, O>,
 ): UseMutationResult<I, O> {
-  const engine = useRustraEngine();
+  const engine = useUnikitEngine();
   const commandName = resolveCommandId(commandFn);
   // Each engine/command pair owns its counters and callback snapshot. Retained
   // async functions cannot borrow a replacement scope's callbacks or state.

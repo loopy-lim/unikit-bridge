@@ -1,5 +1,5 @@
 import type { ComplexSchema } from './complex-codec-types.js';
-import { RustraCommandError } from './errors.js';
+import { UnikitCommandError } from './errors.js';
 import { decodeUtf8 } from './utf8.js';
 
 // ── Live schema (정적 + 동적 명령 조회) ──────────────────────
@@ -36,7 +36,7 @@ export type FrameSchemaNative = {
   invokeFrame(payload: ArrayBuffer): ArrayBuffer | ArrayBufferView;
   getSchema?(): ArrayBuffer;
   /**
-   * (T0-3) 현재 스키마 세대 — `rustra_ffi_schema_generation` 과 대응.
+   * (T0-3) 현재 스키마 세대 — `unikit_ffi_schema_generation` 과 대응.
    * register/replace/unregister 마다 증가한다. 엔진은 동적 명령(live schema
    * 캐시) 진입 전에 이 값을 비교해 불일치 시 live schema 를 재조회한다.
    * 미노출 호스트는 폴링을 건너뛴다(현상 유지).
@@ -44,7 +44,7 @@ export type FrameSchemaNative = {
   getSchemaGeneration?(): number;
   /**
    * 네이티브 빌드의 계약 해시(SHA-256 hex)를 반환한다 (F5 opt-in 검증용).
-   * `rustra_ffi_contract_hash` 와 대응. `contractHash` 엔진 옵션이 설정된
+   * `unikit_ffi_contract_hash` 와 대응. `contractHash` 엔진 옵션이 설정된
    * 경우에만 호출된다.
    */
   getContractHash?(): ArrayBuffer;
@@ -111,7 +111,7 @@ export function parseLiveSchemaDocument(native: { getSchema?(): ArrayBuffer }): 
     // 오해받는다. 스키마 조회가 실제로 필요한 호출자가 즉시 실패하도록 명시적
     // 에러를 던진다 (엔진 생성 시 schemaVersion 협상은 선택적이라 try/catch 로
     // 이미 흡수된다).
-    throw new RustraCommandError(
+    throw new UnikitCommandError(
       'schema.unavailable',
       'native module does not expose getSchema(); live schema is unavailable',
     );

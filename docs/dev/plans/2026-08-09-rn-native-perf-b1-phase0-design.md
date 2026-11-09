@@ -25,7 +25,7 @@ commands.ts:addNumbers(x)  ──►  invoke('addNumbers', x)   [글로벌]
    └─► createRkyvV2Engine.invoke:
          registry.has(cmd)?
            ├─ 정적: codec.encode(x) [JS postcard] ─► native.invokeRkyvV2(ArrayBuffer)
-           │        ─► JSI HostObject ─► rustra_calculator_invoke_rkyv_v2
+           │        ─► JSI HostObject ─► unikit_calculator_invoke_rkyv_v2
            │        ─► Rust invoke_rkyv_v2 (typed postcard handler) ─► bytes
            │        ─► codec.decode(bytes) [JS postcard] ─► result
            └─ 동적: getLiveSchema ─► encodeTier3Request(JSON) ─► invokeRkyvV2 ─► decodeTier3Response
@@ -42,7 +42,7 @@ JS codec(정적 경로)가 단건 latency 의 대부분을 차지한다.
 대신 **B1**: "TS가 아닌 **C++** 로 postcard codec을 codegen 한다."
 
 - 생성된 `rkyv-codecs.ts`는 순수 postcard 로직(varint/zigzag/string/concat 헬퍼 + per-command encode/decode) → **C++ 로 1:1 이식 가능**. 이미 codegen 이 스키마 기반으로 TS codec 을 생성하므로, **C++ emitter 추가만으로 동일 로직을 네이티브로** 내린다.
-- **와이어 포맷(rkyv V2 postcard)·Rust FFI(`rustra_*_invoke_rkyv_v2`)·응답 헤더 — 전부 불변.**
+- **와이어 포맷(rkyv V2 postcard)·Rust FFI(`unikit_*_invoke_rkyv_v2`)·응답 헤더 — 전부 불변.**
 - 정적 명령 → C++ postcard fast path(JS codec 3.4µs 제거).
 - 동적 명령 → **Tier 3 JSON fallback 그대로**(JS `decodeTier3Response`). 단일 엔진의 2계층 모델 유지.
 
@@ -56,7 +56,7 @@ JS codec(정적 경로)가 단건 latency 의 대부분을 차지한다.
 
 #### P0-1 응답 복사 최소화 ✅ (B1 으로 달성)
 
-- 현재 `createArrayBuffer` = 새 JS ArrayBuffer alloc + `std::memcpy` + Rust 버퍼 즉시 `rustra_ffi_free`.
+- 현재 `createArrayBuffer` = 새 JS ArrayBuffer alloc + `std::memcpy` + Rust 버퍼 즉시 `unikit_ffi_free`.
 - **B1 도입 후** JSI 가 C++ codec 으로 디코드하면서 결과를 JSI Object 로 직접 조립하므로, **중간 ArrayBuffer 자체가 사라짐**(정적 경로). 이것이 가장 큰 zero-copy 효과. 요청 방향도 JS 객체 → C++ `Writer` 직접 직렬화로 JS ArrayBuffer/DataView/TextEncoder 왕복 제거.
 - 동적(Tier 3)/레거시 경로는 기존 memcpy 유지(YAGNI).
 
@@ -65,7 +65,7 @@ JS codec(정적 경로)가 단건 latency 의 대부분을 차지한다.
 - 잦은 단건 호출의 JSI 횡단 비용 상쇄. **단일 JSI 횡단**으로 N 개 정적 명령을 처리.
 - C++ JSI: `invokeTypedBatch(names[], args[])` — 루프하며 `encode_by_name → invoke_rkyv_v2 → decode_by_name` → 결과 JS Array 1회 반환. 첫 에러에서 throw(fail-fast).
 - 엔진: `createRkyvV2Engine` 가 `invokeBatch(entries)` 제공. **모든 항목이 정적(`hasStaticCodec`)이면** `invokeTypedBatch` 1회 호출, **동적 명령이 섞이면** 항목별 `invoke` 로 자동 폴백(typed/Tier3 분기 유지).
-- 글로벌 `invokeBatch<T>(entries)` 헬퍼(`@rustra/types`) 추가 — `invoke` 패턴과 일치.
+- 글로벌 `invokeBatch<T>(entries)` 헬퍼(`@unikit/types`) 추가 — `invoke` 패턴과 일치.
 - codegen 이 `RkyvV2Codec` dispatch 테이블(`encode_by_name`/`decode_by_name`/`has_static_codec`)을 C++ 에 노출하므로 자연스럽게 구현.
 - **in-session 검증**: 엔진 라우팅 단위 테스트 3종(단일 배치 / 혼합 폴백 / 미지원 폴백) green. C++ 루프 자체는 동일한 검증된 primitives 재사용 → 디바이스 빌드에서 링크 확인.
 
@@ -79,12 +79,12 @@ JS codec(정적 경로)가 단건 latency 의 대부분을 차지한다.
 
 ### 3.2 B1 — codegen C++ codec + JSI typed marshal
 
-#### 3.2.1 C++ postcard 코덱 라이브러리 (`rustra-codec.hpp/.cpp`)
+#### 3.2.1 C++ postcard 코덱 라이브러리 (`unikit-codec.hpp/.cpp`)
 
 - **JSI 의존성 없는** 순수 postcard Reader/Writer. iOS/Android 공통, clang++ 단위 테스트 가능.
 - 인터페이스:
   ```cpp
-  namespace rustra::codec {
+  namespace unikit_bridge::codec {
     struct Writer { std::vector<uint8_t> buf; void u8/u32var/zigzag_i64/f64/f32/string/bytes(...); };
     struct Reader { const uint8_t* data; size_t len, pos; uint8_t/u32var/i64(double)/f64/f32/string read(...); };
   }
@@ -94,16 +94,16 @@ JS codec(정적 경로)가 단건 latency 의 대부분을 차지한다.
 #### 3.2.2 Codegen C++ emitter (`generateRkyvCodecsCpp`)
 
 - `packages/cli/src/generate.ts` 에 추가. 기존 `classifyPostcardField`/`collectPostcardFields`/`generateFieldEncodeExpr`/`generateFieldDecodeExpr` 로직을 **재사용**해 TS → C++ 로 방출만 변경.
-- 출력 `rustra-generated-codecs.hpp/.cpp`:
+- 출력 `unikit-generated-codecs.hpp/.cpp`:
   - per-command `Value encode_<cmd>(Runtime&, const Value& args)` / `Value decode_<cmd>(Runtime&, const uint8_t*, size_t)`.
   - `bool dispatch(name, args, out)` — name→codec 스위치. 미발견 → `false`(JS 가 Tier 3 fallback).
 - 필드 순서/알파벳 정렬 케이브(TS emitter 와 동일) 상속.
 
-#### 3.2.3 JSI HostObject `invokeTyped` (`RustraJSIBridge.cpp`)
+#### 3.2.3 JSI HostObject `invokeTyped` (`UnikitJSIBridge.cpp`)
 
 - 신규 호스트 메서드 `invokeTyped(name, args)`:
   1. `dispatch(name, ...)` → C++ codec 으로 postcard 인코딩(cmd_id + payload).
-  2. `rustra_calculator_invoke_rkyv_v2` 호출(또는 제네릭 `rustra_ffi_invoke_postcard` 경로).
+  2. `unikit_calculator_invoke_rkyv_v2` 호출(또는 제네릭 `unikit_ffi_invoke_postcard` 경로).
   3. C++ codec 으로 응답 디코딩 → **JSI Object 직접 조립**(중간 ArrayBuffer 제거).
   4. 미발겵 명령 → 식별 가능한 sentinel throw → JS 가 Tier 3 fallback.
 - 기존 `invokeRkyvV2(ArrayBuffer)` raw 경로는 **유지**(동적 Tier 3 + 레거시 호환).
@@ -136,9 +136,9 @@ JS codec(정적 경로)가 단건 latency 의 대부분을 차지한다.
 
 ### in-session 검증(이 세션에서 green)
 
-- [x] C++ postcard 라이브러리 단위 테스트(clang++) — varint/zigzag/f64/string round-trip + Rust 와 바이트-동일 known-value. (`test-rustra-codec.cpp`)
+- [x] C++ postcard 라이브러리 단위 테스트(clang++) — varint/zigzag/f64/string round-trip + Rust 와 바이트-동일 known-value. (`test-unikit-codec.cpp`)
 - [x] `generateRkyvCodecsCpp` emitter + `generate.test.ts` 구조 검증; `npm run build`(cli) + 기존 코드젠 테스트 16/16 green.
-- [x] 생성된 C++ 코덱 round-trip 테스트(clang++ + 최소 JSI shim) — encode 바이트가 Rust 와 동일 + decode 값 보존 + `rustraRegistryDemo` 구조체 필드순서 검증. (`test-rustra-generated-codecs.cpp`)
+- [x] 생성된 C++ 코덱 round-trip 테스트(clang++ + 최소 JSI shim) — encode 바이트가 Rust 와 동일 + decode 값 보존 + `unikitRegistryDemo` 구조체 필드순서 검증. (`test-unikit-generated-codecs.cpp`)
 - [x] codegen 재실행으로 calculator/crud 예제 generated 파일 갱신. **필드 순서 버그 수정** 적용(schemars + serde_json `preserve_order` → 스키마가 구조체 선언 순서 = postcard 와이어 순서).
 - [x] `cargo test --workspace` green + TS types(14)/cli(16) 테스트 green.
 - [x] JSI `invokeTyped` + `invokeTypedBatch`(P0-2) + 엔진 연결 코드 작성(컴파일은 디바이스 빌드에서).
@@ -159,12 +159,12 @@ JS codec(정적 경로)가 단건 latency 의 대부분을 차지한다.
 
 | 경로                                                            | 변화                                           |
 | --------------------------------------------------------------- | ---------------------------------------------- |
-| `crates/rustra-jsi/rustra-codec.hpp/.cpp`(신규, RN 모듈 ios 하) | 순수 postcard Reader/Writer (JSI 무의존)       |
-| `crates/.../rustra-generated-codecs.hpp/.cpp`(codegen 출력)     | per-command C++ codec + dispatch               |
+| `crates/unikit-bridge-jsi/unikit-codec.hpp/.cpp`(신규, RN 모듈 ios 하) | 순수 postcard Reader/Writer (JSI 무의존)       |
+| `crates/.../unikit-generated-codecs.hpp/.cpp`(codegen 출력)     | per-command C++ codec + dispatch               |
 | `packages/cli/src/generate.ts`                                  | `generateRkyvCodecsCpp()` 추가                 |
-| `packages/cli/src/index.ts`                                     | emit `rustra-generated-codecs.{hpp,cpp}`       |
+| `packages/cli/src/index.ts`                                     | emit `unikit-generated-codecs.{hpp,cpp}`       |
 | `packages/cli/src/generate.test.ts`                             | C++ 출력 구조 검증                             |
-| `examples/.../RustraJSIBridge.{hpp,cpp}`                        | `invokeTyped` + C++ codec 호출                 |
+| `examples/.../UnikitJSIBridge.{hpp,cpp}`                        | `invokeTyped` + C++ codec 호출                 |
 | `examples/.../src/index.ts` (RN 모듈)                           | `invokeTyped?` 타입 추가                       |
 | `packages/types/src/index.ts`                                   | `createRkyvV2Engine` 정적 경로 → `invokeTyped` |
 | `examples/calculator/generated/*`                               | codegen 재실행                                 |

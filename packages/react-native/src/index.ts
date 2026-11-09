@@ -1,45 +1,45 @@
-/** @rustra/react-native — JSI, async, event, and channel adapter surfaces. */
+/** @unikit/react-native — JSI, async, event, and channel adapter surfaces. */
 export type {
   EngineClient,
   EngineSupports,
   BootstrapState,
   InvokeOptions,
-  RustraError,
+  UnikitError,
   FrameCodec,
   FrameNative,
   FrameSchemaNative,
-} from '@rustra/types';
+} from '@unikit/types';
 export {
   CancelledError,
-  RustraCommandError,
+  UnikitCommandError,
   TimeoutError,
   configure,
   disposedBootstrapError,
   invoke,
   createFrameEngine,
-  parseRustraErrorString,
-} from '@rustra/types';
+  parseUnikitErrorString,
+} from '@unikit/types';
 export {
   createReactNativeEngine,
-  createRustraBootstrap,
-  getRustraNative,
+  createUnikitBootstrap,
+  getUnikitNative,
   createFastEngine,
   REACT_NATIVE_JSON_ENGINE_SUPPORTS,
   REACT_NATIVE_FRAME_ENGINE_SUPPORTS,
 } from './react-native-core.js';
 export type {
   ReactNativeEngine,
-  RustraJSINative,
+  UnikitJSINative,
   FastEngineOptions,
-  RustraBootstrapOptions,
-  RustraBootstrap,
+  UnikitBootstrapOptions,
+  UnikitBootstrap,
 } from './react-native-core.js';
 export { createAsyncEngine } from './react-native-async.js';
-export type { RustraJSIAsyncNative } from './react-native-async.js';
+export type { UnikitJSIAsyncNative } from './react-native-async.js';
 export {
   createBytesChannel,
   createChannel,
   invokeTypedSync,
   subscribeEvent,
 } from './react-native-events.js';
-export type { RustraEventNative, RustraChannelNative } from './react-native-events.js';
+export type { UnikitEventNative, UnikitChannelNative } from './react-native-events.js';

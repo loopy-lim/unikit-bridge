@@ -1,9 +1,9 @@
-//! 루프형 stdio 런타임 — persistent 프로세스로 rustra 명령을 NDJSON 라인
+//! 루프형 stdio 런타임 — persistent 프로세스로 unikit 명령을 NDJSON 라인
 //! 프레이밍으로 처리한다.
 //!
 //! `createNodeProcessTransport`(lazy-respawn, 호출마다 프로세스 재시작)의
 //! 전제였던 "요청 하나만 읽고 종료" 대신, 이 런타임은 stdin 이 닫힐 때까지
-//! 라인 단위로 요청을 읽어 응답을 한 줄씩 쓴다. `@rustra/node` 의
+//! 라인 단위로 요청을 읽어 응답을 한 줄씩 쓴다. `@unikit/node` 의
 //! `createNodeLoopTransport` 가 이 바이너리와 짝을 이룬다.
 //!
 //! 프로토콜 (요청/응답 모두 한 줄 JSON):
@@ -73,12 +73,12 @@
 //! `channel.unavailable` 로 loud-fail 한다(조용한 경로 불일치 방지). 구
 //! 클라이언트는 알 수 없는 필드를 무시한다(binary/events 와 동일 규약).
 //!
-//! 프로토콜 구현 본체는 `rustra_calculator_example::loop_stdio` 모듈 — 통합
+//! 프로토콜 구현 본체는 `unikit_calculator_example::loop_stdio` 모듈 — 통합
 //! 테스트(`tests/loop_stdio_events.rs`)가 같은 모듈을 직접 검증한다. 바이트
 //! 채널 발급 가로채기(모드 플래그 분기)만 이 bin 이 소유한다.
 
-use rustra_calculator_example::calculator_package;
-use rustra_calculator_example::loop_stdio::{
+use unikit_calculator_example::calculator_package;
+use unikit_calculator_example::loop_stdio::{
     BINARY_CHANNEL_CREATE_CMD, PUSH_CAPABILITY, handle_hello_with_policy, hello_response,
     lock_stdout, run_binary,
 };
@@ -97,7 +97,7 @@ const BINARY_CHANNEL_PUSH_BYTES_CMD: u16 = 0xFFF9;
 const CHANNEL_CREATE_MODE_JSON: u8 = 0x00;
 const CHANNEL_CREATE_MODE_BYTES: u8 = 0x01;
 
-fn main() -> rustra::Result<()> {
+fn main() -> unikit_bridge::Result<()> {
     let package = calculator_package();
     let stdin = std::io::stdin();
     let mut reader = stdin.lock();
@@ -107,7 +107,7 @@ fn main() -> rustra::Result<()> {
         line.clear();
         let read = reader
             .read_line(&mut line)
-            .map_err(rustra::RustraError::internal)?;
+            .map_err(unikit_bridge::UnikitError::internal)?;
         if read == 0 {
             return Ok(()); // stdin EOF
         }
@@ -137,10 +137,10 @@ fn main() -> rustra::Result<()> {
                 == Some(PUSH_CAPABILITY);
             let events_mode = if wants_push {
                 match handle_hello_with_policy(&package, true) {
-                    rustra_calculator_example::loop_stdio::PushDecision::Push => {
+                    unikit_calculator_example::loop_stdio::PushDecision::Push => {
                         Some(PUSH_CAPABILITY)
                     }
-                    rustra_calculator_example::loop_stdio::PushDecision::PollOnly => None,
+                    unikit_calculator_example::loop_stdio::PushDecision::PollOnly => None,
                 }
             } else {
                 // 암묵적 폴링 전용 — 응답에 events 필드를 두지 않는다(구 클라이언트
@@ -154,7 +154,7 @@ fn main() -> rustra::Result<()> {
             // 바이트 채널을 만든다(구 런타임 = loud-fail, 아래 모듈 문서 참조).
             response["channelBytes"] = json!(true);
             let mut encoded =
-                serde_json::to_vec(&response).map_err(rustra::RustraError::internal)?;
+                serde_json::to_vec(&response).map_err(unikit_bridge::UnikitError::internal)?;
             encoded.push(b'\n');
             // stdout 획득 순서 규약(loop_stdio::STDOUT_LOCK 문서): 락 먼저,
             // 그 안에서 stdout.lock(). 프로그램 수명 StdoutLock 을 쥐지 않는다 —
@@ -164,8 +164,8 @@ fn main() -> rustra::Result<()> {
             {
                 let mut out = stdout.lock();
                 out.write_all(&encoded)
-                    .map_err(rustra::RustraError::internal)?;
-                out.flush().map_err(rustra::RustraError::internal)?;
+                    .map_err(unikit_bridge::UnikitError::internal)?;
+                out.flush().map_err(unikit_bridge::UnikitError::internal)?;
             }
             drop(guard);
             // 0xfffb 모드 플래그 가로채기 리더로 감싼다 — 바이트 채널 발급만 이
@@ -174,22 +174,22 @@ fn main() -> rustra::Result<()> {
             return run_binary(&package, &mut interceptor, &mut stdout);
         }
         let response = handle_line(&package, trimmed);
-        let mut encoded = serde_json::to_vec(&response).map_err(rustra::RustraError::internal)?;
+        let mut encoded = serde_json::to_vec(&response).map_err(unikit_bridge::UnikitError::internal)?;
         encoded.push(b'\n');
         // NDJSON 응답 쓰기도 같은 규약 — 푸시 프레임이 응답 한가운데 끼지 못한다.
         let guard = lock_stdout();
         let stdout = std::io::stdout();
         let mut out = stdout.lock();
         out.write_all(&encoded)
-            .map_err(rustra::RustraError::internal)?;
+            .map_err(unikit_bridge::UnikitError::internal)?;
         // 라인 단위 flush — 호출자가 파이프에서 라인을 기다린다.
-        out.flush().map_err(rustra::RustraError::internal)?;
+        out.flush().map_err(unikit_bridge::UnikitError::internal)?;
         drop(out);
         drop(guard);
     }
 }
 
-fn handle_line(package: &rustra::Package, line: &str) -> Value {
+fn handle_line(package: &unikit_bridge::Package, line: &str) -> Value {
     let request: Value = match serde_json::from_str(line) {
         Ok(v) => v,
         Err(e) => {
@@ -261,7 +261,7 @@ fn write_frame_to_stdout(frame: &[u8]) {
     let _ = out
         .write_all(frame)
         .and_then(|_| out.flush())
-        .inspect_err(|error| eprintln!("rustra: bytes channel write failed: {error}"));
+        .inspect_err(|error| eprintln!("unikit: bytes channel write failed: {error}"));
     drop(out);
     drop(guard);
 }
@@ -280,12 +280,12 @@ fn frame_with(body: Vec<u8>) -> Vec<u8> {
 ///
 /// 핸들 공간 소진 시 0 — ok=0 응답으로 되돌리고 JS 어댑터가 loud-fail 한다.
 fn issue_bytes_channel() -> u32 {
-    let host = rustra::channels::host();
+    let host = unikit_bridge::channels::host();
     let handle = host.reserve_handle();
     if handle == 0 {
         return 0;
     }
-    let sender: rustra::channels::ChannelBytesSender = Arc::new(move |payload: &[u8]| {
+    let sender: unikit_bridge::channels::ChannelBytesSender = Arc::new(move |payload: &[u8]| {
         let frame = encode_channel_bytes_push_frame(handle, payload);
         write_frame_to_stdout(&frame);
     });

@@ -2,7 +2,7 @@ English | [한국어](./README.ko.md)
 
 # Calculator Example
 
-A complete example that uses `rustra` in a separate Rust crate. It shows how application authors actually use it.
+A complete example that uses `unikit` in a separate Rust crate. It shows how application authors actually use it.
 
 ## Generation and Run
 
@@ -15,11 +15,11 @@ bun run test:runtime:bun
 The Node example lazily discovers a generated binary candidate, and the Bun example lazily links a generated cdylib candidate against the stable ABI. Neither requires `configure()`, process spawning, `dlopen`, or pointer lifetime management in application code.
 
 ```ts
-import { addNumbers, rustra } from '../generated/node.js'; // bun.js for Bun
+import { addNumbers, unikit } from '../generated/node.js'; // bun.js for Bun
 
 const { value } = await addNumbers({ a: 20, b: 22 });
 console.log(value);
-rustra.dispose();
+unikit.dispose();
 ```
 
 The executables live in [`apps/node-app.ts`](apps/node-app.ts) and
@@ -30,7 +30,7 @@ The executables live in [`apps/node-app.ts`](apps/node-app.ts) and
 1. **Type definitions** — define `AddNumbersInput`, `AddNumbersOutput` with `Serialize + Deserialize + JsonSchema`
 2. **Command registration** — mark handler functions with `#[command]` and register them via `Package::builder(...).command_fn(...)`
 3. **Local invoke** — type-safe invocation with `package.invoke("addNumbers", ...)`
-4. **TypeScript generation** — contract probe publishes `schema.json` (`generate` bin), then `rustra codegen` renders the TS/C++ surfaces from it
+4. **TypeScript generation** — contract probe publishes `schema.json` (`generate` bin), then `unikit codegen` renders the TS/C++ surfaces from it
 5. **Host generated entrypoints** — `node.ts`, `bun.ts`, `tauri.ts`, `react-native.ts`
 6. **Native entrypoint** — `native_entry!` in one line shares the stable C ABI and the RN staticlib
 7. **High-performance options** — measured Node persistent loop/N-API and Bun FFI Frame
@@ -48,7 +48,7 @@ The following files are generated in the `examples/calculator/generated/` direct
 - `node.ts`, `bun.ts`, `tauri.ts`, `react-native.ts` — zero-config bootstrap per host
 
 Enabling the `positional` option (as the React Native examples do) additionally
-generates `positional-facade.ts`. `.rustra-generated.json` records the schema hash
+generates `positional-facade.ts`. `.unikit-generated.json` records the schema hash
 and per-file hashes so `codegen:check` (CI) can detect a single byte of drift.
 
 ## Generated Command Helper
@@ -64,8 +64,8 @@ This code uses a helper generated on top of `createGeneratedFields2` together wi
 
 ## scriptc Native FFI (Statically Linked)
 
-The `scriptc` section in [`rustra.json`](rustra.json) turns on the scriptc stage of
-`rustra codegen`, which writes `scriptc/ffi.json` (the `ffi_format` 7 manifest) and
+The `scriptc` section in [`unikit.json`](unikit.json) turns on the scriptc stage of
+`unikit codegen`, which writes `scriptc/ffi.json` (the `ffi_format` 7 manifest) and
 `scriptc/scriptc-ffi.d.ts` (signature-only declarations). `scriptc build` statically
 links the Rust staticlib into a native binary — no JavaScript engine, no `dlopen`,
 no runtime symbol lookup:
@@ -81,9 +81,9 @@ when no `scriptc` is on `PATH` — scriptc requires Node >= 24. CI runs this
 smoke in the `ts-runtime` job with the same pinned literal
 (`check-test-list-parity` verifies the two cannot drift).
 
-[`apps/scriptc-app.ts`](apps/scriptc-app.ts) calls `rustra_mobile_init()` once
+[`apps/scriptc-app.ts`](apps/scriptc-app.ts) calls `unikit_mobile_init()` once
 (the `native_entry!` entry), then the caller-buffer envelope
-`rustra_ffi_invoke_json_into_len(payload, buf)`, which writes the JSON response
+`unikit_ffi_invoke_json_into_len(payload, buf)`, which writes the JSON response
 into a caller-owned `Uint8Array` and returns the written byte count as a `bigint`
 (`0xffff_ffff_ffff_ffffn` = failure). The manifest carries only symbols whose
 arguments scriptc's direct-call world can supply: out-pointer writes and callback

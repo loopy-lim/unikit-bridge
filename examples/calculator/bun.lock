@@ -3,26 +3,26 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@rustra/example-calculator",
+      "name": "@unikit/example-calculator",
       "dependencies": {
-        "@rustra/bun": "file:../../packages/bun",
-        "@rustra/node": "file:../../packages/node",
-        "@rustra/tauri": "file:../../packages/tauri",
-        "@rustra/types": "file:../../packages/types",
+        "@unikit/bun": "file:../../packages/bun",
+        "@unikit/node": "file:../../packages/node",
+        "@unikit/tauri": "file:../../packages/tauri",
+        "@unikit/types": "file:../../packages/types",
       },
     },
   },
   "overrides": {
-    "@rustra/types": "file:../../packages/types",
+    "@unikit/types": "file:../../packages/types",
   },
   "packages": {
-    "@rustra/bun": ["@rustra/bun@file:../../packages/bun", { "dependencies": { "@rustra/types": "^0.10.0" }, "devDependencies": { "@types/bun": "^1.4.0", "typescript": "^5.9.0" } }],
+    "@unikit/bun": ["@unikit/bun@file:../../packages/bun", { "dependencies": { "@unikit/types": "^0.10.0" }, "devDependencies": { "@types/bun": "^1.4.0", "typescript": "^5.9.0" } }],
 
-    "@rustra/node": ["@rustra/node@file:../../packages/node", { "dependencies": { "@rustra/types": "^0.10.0" }, "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit/node": ["@unikit/node@file:../../packages/node", { "dependencies": { "@unikit/types": "^0.10.0" }, "devDependencies": { "typescript": "^5.9.0" } }],
 
-    "@rustra/tauri": ["@rustra/tauri@file:../../packages/tauri", { "dependencies": { "@rustra/types": "^0.10.0" }, "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit/tauri": ["@unikit/tauri@file:../../packages/tauri", { "dependencies": { "@unikit/types": "^0.10.0" }, "devDependencies": { "typescript": "^5.9.0" } }],
 
-    "@rustra/types": ["@rustra/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit/types": ["@unikit/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
 
     "@types/bun": ["@types/bun@1.4.0", "", { "dependencies": { "bun-types": "1.4.0" } }, "sha512-K+lZULY23vRgK/CfTjFIV+tyifaNdSMlPh9j+6mQ/cLfpOznLyAuzgV/JQysyECpkBQLVMSyvjlr2fBUSA9wFQ=="],
 
@@ -34,10 +34,10 @@
 
     "undici-types": ["undici-types@8.3.0", "", {}, "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ=="],
 
-    "@rustra/bun/@rustra/types": ["@rustra/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit/bun/@unikit/types": ["@unikit/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
 
-    "@rustra/node/@rustra/types": ["@rustra/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit/node/@unikit/types": ["@unikit/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
 
-    "@rustra/tauri/@rustra/types": ["@rustra/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit/tauri/@unikit/types": ["@unikit/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
   }
 }

@@ -1,7 +1,7 @@
 /**
  * 계약 게이트 — schema.json 의 명령 목록과 클라이언트가 노출하는 명령 목록의 정합성.
  *
- * CI 에서 `rustra diff` (스키마 버전 간 breaking change) 와 짝을 이뤄,
+ * CI 에서 `unikit diff` (스키마 버전 간 breaking change) 와 짝을 이뤄,
  * 커밋된 schema.json 이 생성된 클라이언트와 어긋나는지 (드리프트) 검출한다.
  */
 import { createHash } from 'node:crypto';
@@ -26,7 +26,7 @@ export function assertContractCurrent(
  * 정합이면 조용히 통과한다:
  *
  * ```ts
- * import { expectContractCurrent } from '@rustra/testing';
+ * import { expectContractCurrent } from '@unikit/testing';
  *
  * test('client matches schema.json', () => {
  *   expectContractCurrent(schemaJson, Object.keys(generatedCommands));
@@ -42,7 +42,7 @@ export function expectContractCurrent(
 ): void {
   const { missingInClient, missingInSchema } = assertContractCurrent(schema, clientCommands);
   if (missingInClient.length === 0 && missingInSchema.length === 0) return;
-  const lines = ['rustra contract drift detected:'];
+  const lines = ['unikit contract drift detected:'];
   if (missingInClient.length > 0) {
     lines.push(
       `  commands in schema.json but missing from the client: ${missingInClient.join(', ')}`,
@@ -53,7 +53,7 @@ export function expectContractCurrent(
       `  commands in the client but missing from schema.json: ${missingInSchema.join(', ')}`,
     );
   }
-  lines.push('  → regenerate the client (bunx @rustra/cli generate) or update schema.json.');
+  lines.push('  → regenerate the client (bunx @unikit/cli generate) or update schema.json.');
   throw new Error(lines.join('\n'));
 }
 
@@ -262,11 +262,11 @@ export function expectContractFieldsCurrent(
 ): void {
   const { drift } = assertContractFieldsCurrent(schema, generatedCommandsSource);
   if (drift.length === 0) return;
-  const lines = ['rustra contract field drift detected:'];
+  const lines = ['unikit contract field drift detected:'];
   for (const d of drift) {
     lines.push(`  [${d.command}] ${d.kind}: ${d.detail}`);
   }
-  lines.push('  → regenerate the client (bunx @rustra/cli generate) or update schema.json.');
+  lines.push('  → regenerate the client (bunx @unikit/cli generate) or update schema.json.');
   throw new Error(lines.join('\n'));
 }
 
@@ -285,17 +285,17 @@ export function assertContractHashCurrent(
   const m = /GENERATED_CONTRACT_HASH\s*=\s*['"]([0-9a-fA-F]{64})['"]/.exec(contractTsContent);
   if (!m) {
     throw new Error(
-      'rustra contract hash check failed: GENERATED_CONTRACT_HASH constant not found in contract.ts\n' +
-        '  → regenerate the client (bunx @rustra/cli generate).',
+      'unikit contract hash check failed: GENERATED_CONTRACT_HASH constant not found in contract.ts\n' +
+        '  → regenerate the client (bunx @unikit/cli generate).',
     );
   }
   const actual = m[1];
   if (actual !== expected) {
     throw new Error(
-      'rustra contract hash mismatch:\n' +
+      'unikit contract hash mismatch:\n' +
         `  expected (sha256 of schema.json): ${expected}\n` +
         `  actual (contract.ts):             ${actual}\n` +
-        '  → regenerate the client (bunx @rustra/cli generate).',
+        '  → regenerate the client (bunx @unikit/cli generate).',
     );
   }
 }

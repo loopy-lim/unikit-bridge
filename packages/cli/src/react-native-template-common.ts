@@ -1,14 +1,14 @@
 export function renderModuleIndex(): string {
   return `import { NativeModules } from 'react-native';
-import { getRustraNative as getInstalledNative } from '@rustra/react-native';
+import { getUnikitNative as getInstalledNative } from '@unikit/react-native';
 
 type Installer = { install(): boolean | Promise<boolean | void> };
 
 function nativeInstaller(): Installer {
-  const current = NativeModules.RustraBridge as Installer | undefined;
+  const current = NativeModules.UnikitBridge as Installer | undefined;
   if (!current) {
     throw new Error(
-      '[rustra:autolink] RustraBridge was not linked. Run ' +
+      '[unikit:autolink] UnikitBridge was not linked. Run ' +
         '\`npx react-native config\` (or \`bunx --bun react-native config\`) to inspect bare RN ' +
         'autolinking, then \`cd ios && pod install\` or rebuild Android. Expo Go cannot load JSI; ' +
         'Expo apps need a development build.',
@@ -17,17 +17,17 @@ function nativeInstaller(): Installer {
   return current;
 }
 
-export async function installRustraJSI(): Promise<void> {
+export async function installUnikitJSI(): Promise<void> {
   const installed = await nativeInstaller().install();
   if (installed === false) {
     throw new Error(
-      '[rustra:install] The native JSI installer reported failure. Rebuild the native app and retry.',
+      '[unikit:install] The native JSI installer reported failure. Rebuild the native app and retry.',
     );
   }
   getInstalledNative();
 }
 
-export function getRustraNative(): ReturnType<typeof getInstalledNative> {
+export function getUnikitNative(): ReturnType<typeof getInstalledNative> {
   return getInstalledNative();
 }
 `;
@@ -36,7 +36,7 @@ export function getRustraNative(): ReturnType<typeof getInstalledNative> {
 export function renderPackageJson(adapterRange: string): string {
   return `${JSON.stringify(
     {
-      name: '@rustra/generated-react-native',
+      name: '@unikit/generated-react-native',
       version: '0.0.0',
       private: true,
       // "type" 을 지정하지 않는다(=CommonJS) — RN CLI/gradle 오톬링킹이 이 패키지의
@@ -46,7 +46,7 @@ export function renderPackageJson(adapterRange: string): string {
       // 런타임 동작에는 영향이 없다.
       main: 'src/index.ts',
       'react-native': 'src/index.ts',
-      peerDependencies: { '@rustra/react-native': adapterRange, 'react-native': '>=0.76' },
+      peerDependencies: { '@unikit/react-native': adapterRange, 'react-native': '>=0.76' },
     },
     null,
     2,
@@ -57,11 +57,11 @@ export function renderReactNativeConfig(): string {
   return `module.exports = {
   dependency: {
     platforms: {
-      ios: { podspecPath: './RustraBridge.podspec' },
+      ios: { podspecPath: './UnikitBridge.podspec' },
       android: {
         sourceDir: './android',
-        packageImportPath: 'import dev.rustra.bridge.RustraBridgePackage;',
-        packageInstance: 'new RustraBridgePackage()',
+        packageImportPath: 'import dev.unikit.bridge.UnikitBridgePackage;',
+        packageInstance: 'new UnikitBridgePackage()',
       },
     },
   },
@@ -75,11 +75,11 @@ export function renderPodspec(options: {
   rustLibrary: string;
 }): string {
   return `Pod::Spec.new do |s|
-  s.name = 'RustraBridge'
+  s.name = 'UnikitBridge'
   s.version = '0.0.0'
-  s.summary = 'Generated Rustra JSI bridge'
-  s.author = 'Rustra contributors'
-  s.homepage = 'https://github.com/loopy-lim/rustra'
+  s.summary = 'Generated Unikit JSI bridge'
+  s.author = 'Unikit contributors'
+  s.homepage = 'https://github.com/loopy-lim/unikit'
   s.license = 'MIT'
   s.platforms = { :ios => '15.1' }
   s.source = { :path => '.' }
@@ -91,7 +91,7 @@ export function renderPodspec(options: {
 
   s.prepare_command = 'sh ios/build-rust-ios.sh'
   s.vendored_libraries = rust_archive
-  s.source_files = 'ios/RustraBridge*.{mm,cpp}'
+  s.source_files = 'ios/UnikitBridge*.{mm,cpp}'
   s.dependency 'React-jsi'
   s.dependency 'React-Core'
   install_modules_dependencies(s)

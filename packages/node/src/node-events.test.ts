@@ -42,11 +42,11 @@ function fakeTransport(eventsByPoll: Array<Array<{ name: string; payload: unknow
 
 /** 폴링 간격을 0으로 압축해 테스트를 즉시 진행시킨다. */
 function useFastPolling() {
-  const previous = process.env.RUSTRA_NODE_EVENT_POLL_MS;
-  process.env.RUSTRA_NODE_EVENT_POLL_MS = '0';
+  const previous = process.env.UNIKIT_NODE_EVENT_POLL_MS;
+  process.env.UNIKIT_NODE_EVENT_POLL_MS = '0';
   return () => {
-    if (previous === undefined) delete process.env.RUSTRA_NODE_EVENT_POLL_MS;
-    else process.env.RUSTRA_NODE_EVENT_POLL_MS = previous;
+    if (previous === undefined) delete process.env.UNIKIT_NODE_EVENT_POLL_MS;
+    else process.env.UNIKIT_NODE_EVENT_POLL_MS = previous;
   };
 }
 

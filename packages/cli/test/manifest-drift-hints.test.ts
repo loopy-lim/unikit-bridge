@@ -8,7 +8,7 @@ import { buildGeneratedManifest, checkGeneratedFiles } from '../src/manifest.js'
 // Q4 — drift의 1차 소비자는 CI다. 변형(this 종류)만 바뀌고 "다음 행동"이 없는
 // 메시지는 복구 시간을 늘린다. 9종 변형 전부가 doctor의 fix: 관례와 같은
 // 재생성 힌트로 끝나는지 실제 checkGeneratedFiles 경로로 검증한다.
-const HINT_SUFFIX = /Run rustra codegen --config rustra\.json\.$/;
+const HINT_SUFFIX = /Run unikit codegen --config unikit\.json\.$/;
 
 async function expectDriftWithHint(run: () => Promise<void>, variant: RegExp): Promise<void> {
   await assert.rejects(run, (error: Error) => {
@@ -24,12 +24,12 @@ function tempRoot(prefix: string): string {
 
 describe('Generated drift messages carry the regeneration hint', () => {
   test('missing manifest file', async () => {
-    const root = tempRoot('rustra-hint-missing-manifest-');
+    const root = tempRoot('unikit-hint-missing-manifest-');
     try {
-      const manifestPath = join(root, '.rustra-generated.json');
+      const manifestPath = join(root, '.unikit-generated.json');
       await expectDriftWithHint(
         () => checkGeneratedFiles([], manifestPath),
-        /Generated drift \(missing\): .*\.rustra-generated\.json/,
+        /Generated drift \(missing\): .*\.unikit-generated\.json/,
       );
     } finally {
       rmSync(root, { recursive: true, force: true });
@@ -37,9 +37,9 @@ describe('Generated drift messages carry the regeneration hint', () => {
   });
 
   test('invalid manifest shape', async () => {
-    const root = tempRoot('rustra-hint-invalid-manifest-');
+    const root = tempRoot('unikit-hint-invalid-manifest-');
     try {
-      const manifestPath = join(root, '.rustra-generated.json');
+      const manifestPath = join(root, '.unikit-generated.json');
       writeFileSync(manifestPath, '{}\n');
       await expectDriftWithHint(
         () => checkGeneratedFiles([], manifestPath),
@@ -51,9 +51,9 @@ describe('Generated drift messages carry the regeneration hint', () => {
   });
 
   test('schema changed', async () => {
-    const root = tempRoot('rustra-hint-schema-');
+    const root = tempRoot('unikit-hint-schema-');
     try {
-      const manifestPath = join(root, '.rustra-generated.json');
+      const manifestPath = join(root, '.unikit-generated.json');
       writeFileSync(manifestPath, `${JSON.stringify(buildGeneratedManifest('{}', '0.8.0', []))}\n`);
       await expectDriftWithHint(
         () => checkGeneratedFiles([], manifestPath, { schemaContent: 'edited' }),
@@ -65,9 +65,9 @@ describe('Generated drift messages carry the regeneration hint', () => {
   });
 
   test('generator changed', async () => {
-    const root = tempRoot('rustra-hint-generator-');
+    const root = tempRoot('unikit-hint-generator-');
     try {
-      const manifestPath = join(root, '.rustra-generated.json');
+      const manifestPath = join(root, '.unikit-generated.json');
       writeFileSync(manifestPath, `${JSON.stringify(buildGeneratedManifest('{}', '0.8.0', []))}\n`);
       await expectDriftWithHint(
         () => checkGeneratedFiles([], manifestPath, { generatorVersion: '0.9.0' }),
@@ -79,9 +79,9 @@ describe('Generated drift messages carry the regeneration hint', () => {
   });
 
   test('missing manifest entry for an expected file', async () => {
-    const root = tempRoot('rustra-hint-no-entry-');
+    const root = tempRoot('unikit-hint-no-entry-');
     try {
-      const manifestPath = join(root, '.rustra-generated.json');
+      const manifestPath = join(root, '.unikit-generated.json');
       writeFileSync(
         manifestPath,
         `${JSON.stringify(
@@ -99,9 +99,9 @@ describe('Generated drift messages carry the regeneration hint', () => {
   });
 
   test('missing generated file on disk', async () => {
-    const root = tempRoot('rustra-hint-missing-file-');
+    const root = tempRoot('unikit-hint-missing-file-');
     try {
-      const manifestPath = join(root, '.rustra-generated.json');
+      const manifestPath = join(root, '.unikit-generated.json');
       writeFileSync(
         manifestPath,
         `${JSON.stringify(
@@ -118,9 +118,9 @@ describe('Generated drift messages carry the regeneration hint', () => {
   });
 
   test('disk bytes changed', async () => {
-    const root = tempRoot('rustra-hint-disk-');
+    const root = tempRoot('unikit-hint-disk-');
     try {
-      const manifestPath = join(root, '.rustra-generated.json');
+      const manifestPath = join(root, '.unikit-generated.json');
       writeFileSync(join(root, 'types.ts'), 'old\n');
       writeFileSync(
         manifestPath,
@@ -139,9 +139,9 @@ describe('Generated drift messages carry the regeneration hint', () => {
   });
 
   test('manifest stale', async () => {
-    const root = tempRoot('rustra-hint-stale-');
+    const root = tempRoot('unikit-hint-stale-');
     try {
-      const manifestPath = join(root, '.rustra-generated.json');
+      const manifestPath = join(root, '.unikit-generated.json');
       writeFileSync(join(root, 'types.ts'), 'new\n');
       writeFileSync(
         manifestPath,
@@ -160,9 +160,9 @@ describe('Generated drift messages carry the regeneration hint', () => {
   });
 
   test('unexpected manifest entry', async () => {
-    const root = tempRoot('rustra-hint-unexpected-');
+    const root = tempRoot('unikit-hint-unexpected-');
     try {
-      const manifestPath = join(root, '.rustra-generated.json');
+      const manifestPath = join(root, '.unikit-generated.json');
       writeFileSync(join(root, 'types.ts'), 'x');
       writeFileSync(
         manifestPath,

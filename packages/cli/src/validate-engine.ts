@@ -17,7 +17,7 @@ export function createValidatedEngine(options: ValidateOptions): EngineClient {
     async invoke<T>(command: string, args?: unknown): Promise<T> {
       const cmd = commands.get(command);
       if (!cmd) {
-        console.warn(`[rustra:validate] Unknown command: ${command}`);
+        console.warn(`[unikit:validate] Unknown command: ${command}`);
         return options.engine.invoke<T>(command, args);
       }
 

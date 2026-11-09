@@ -5,14 +5,14 @@
   "sourceDirty": true,
   "sourceTreeHash": "0d267d6a9c9980ae8d7ebe061915033fb04f8a3e214d6ba18bc21e1c757d0389",
   "sourceFileCount": 1048,
-  "nativeArtifact": "target/release/librustra_calculator_example.dylib",
+  "nativeArtifact": "target/release/libunikit_calculator_example.dylib",
   "nativeArtifacts": [
     {
-      "path": "target/release/librustra_calculator_example.dylib",
+      "path": "target/release/libunikit_calculator_example.dylib",
       "sha256": "3bc64368aa1b22cbcbd314a006f2f6ff850d910987b62d4bec7889167e4f45ed"
     },
     {
-      "path": "target/release/rustra-calculator-example",
+      "path": "target/release/unikit-calculator-example",
       "sha256": "2d860f63405d86c8971ea772a48bd7c01888c2ac75ca19a7251c37e8b1d21605"
     },
     {

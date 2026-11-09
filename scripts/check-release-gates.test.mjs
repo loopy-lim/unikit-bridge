@@ -8,7 +8,7 @@ import test from 'node:test';
 import { DEFAULT_WORKFLOWS, auditReleaseGates, evaluateRuns } from './check-release-gates.mjs';
 
 const SHA = '0123456789abcdef0123456789abcdef01234567';
-const REPOSITORY = 'rustra/rustra';
+const REPOSITORY = 'unikit/unikit';
 
 test('crate propagation waits for the registry even when a matching workspace package exists', () => {
   const workflow = readFileSync(
@@ -16,10 +16,10 @@ test('crate propagation waits for the registry even when a matching workspace pa
     'utf8',
   );
   for (const [step, crate] of [
-    ['Wait for rustra-naming index propagation', 'rustra-naming'],
-    ['Wait for crates.io index propagation', 'rustra-macros'],
+    ['Wait for unikit-bridge-naming index propagation', 'unikit-bridge-naming'],
+    ['Wait for crates.io index propagation', 'unikit-bridge-macros'],
   ]) {
-    const root = mkdtempSync(join(tmpdir(), 'rustra-index-wait-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-index-wait-'));
     try {
       // Without an explicit registry Cargo resolves the matching local package
       // immediately. The registry only exposes the version on the second poll.
@@ -80,7 +80,7 @@ function run(overrides = {}) {
     created_at: '2026-09-14T00:00:00Z',
     run_started_at: '2026-09-14T00:00:01Z',
     updated_at: '2026-09-14T00:01:00Z',
-    html_url: 'https://github.com/rustra/rustra/actions/runs/100',
+    html_url: 'https://github.com/unikit/unikit/actions/runs/100',
     repository: { full_name: REPOSITORY },
     head_repository: { full_name: REPOSITORY },
     actor: { login: 'fixture-user' },
@@ -107,8 +107,8 @@ test('evaluateRuns fails closed for missing or mismatched source runs', () => {
     ['missing', []],
     ['different SHA', [run({ head_sha: 'f'.repeat(40) })]],
     ['different workflow', [run({ path: '.github/workflows/release.yml' })]],
-    ['different repository', [run({ repository: { full_name: 'fork/rustra' } })]],
-    ['different head repository', [run({ head_repository: { full_name: 'fork/rustra' } })]],
+    ['different repository', [run({ repository: { full_name: 'fork/unikit' } })]],
+    ['different head repository', [run({ head_repository: { full_name: 'fork/unikit' } })]],
   ];
 
   for (const [label, runs] of cases) {

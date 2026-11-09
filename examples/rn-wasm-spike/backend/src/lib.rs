@@ -1,12 +1,12 @@
-//! Task A0 spike backend — a minimal rustra engine built for BOTH the native
+//! Task A0 spike backend — a minimal unikit engine built for BOTH the native
 //! staticlib path (baseline) and the wasm32-unknown-unknown path (loaded by
 //! wasm3 inside the RN spike app).
 //!
 //! Design contract for this spike:
 //! - The SAME command source produces both artifacts, so the contract hash and
 //!   the postcard wire bytes must be identical across native and wasm.
-//! - Only the SYNC FFI entries are exercised (`rustra_ffi_invoke_postcard`,
-//!   `rustra_ffi_contract_hash`). The core's async worker pool
+//! - Only the SYNC FFI entries are exercised (`unikit_ffi_invoke_postcard`,
+//!   `unikit_ffi_contract_hash`). The core's async worker pool
 //!   (`ffi_pool.rs`, `std::thread::spawn`) is lazily initialized ONLY by the
 //!   async entries — the sync entries never touch it, so it is never compiled
 //!   INTO the call path the wasm host drives. Runtime-safety note for wasm:
@@ -15,8 +15,8 @@
 //!   wasm3 is itself the proof that no thread spawn happened on that path.
 //!   The spike host must never call the async entries (`*_async`) on wasm.
 
-use rustra::ffi::FfiFormat;
-use rustra::prelude::*;
+use unikit_bridge::ffi::FfiFormat;
+use unikit_bridge::prelude::*;
 
 // ── Commands ─────────────────────────────────────────────────────────────
 //
@@ -79,7 +79,7 @@ pub fn spike_package() -> Package {
         .get_or_init(|| {
             let pkg =
                 register!(Package::builder("examples.wasm-spike"), double, add_numbers).build();
-            // Postcard default: `rustra_ffi_invoke` and the spike host both use
+            // Postcard default: `unikit_ffi_invoke` and the spike host both use
             // the postcard wire.
             pkg.register_ffi_with_default(FfiFormat::Postcard);
             pkg
@@ -107,7 +107,7 @@ pub unsafe extern "C" fn spike_invoke(
     out_len: *mut usize,
 ) -> *mut u8 {
     spike_package();
-    unsafe { rustra::ffi::rustra_ffi_invoke_postcard(payload, payload_len, out_len) }
+    unsafe { unikit_bridge::ffi::unikit_ffi_invoke_postcard(payload, payload_len, out_len) }
 }
 
 /// # Safety
@@ -117,7 +117,7 @@ pub unsafe extern "C" fn spike_invoke(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn spike_contract_hash(out_len: *mut usize) -> *mut u8 {
     spike_package();
-    unsafe { rustra::ffi::rustra_ffi_contract_hash(out_len) }
+    unsafe { unikit_bridge::ffi::unikit_ffi_contract_hash(out_len) }
 }
 
 /// # Safety
@@ -125,7 +125,7 @@ pub unsafe extern "C" fn spike_contract_hash(out_len: *mut usize) -> *mut u8 {
 /// Frees a buffer returned by [`spike_invoke`] or [`spike_contract_hash`].
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn spike_free(ptr: *mut u8, len: usize) {
-    unsafe { rustra::ffi::rustra_ffi_free(ptr, len) }
+    unsafe { unikit_bridge::ffi::unikit_ffi_free(ptr, len) }
 }
 
 /// Allocates `len` scratch bytes INSIDE the engine's own (linear) memory and
@@ -199,11 +199,11 @@ mod tests {
         let payload = postcard_envelope(command, args);
         let mut out_len: usize = 0;
         let ptr = unsafe {
-            rustra::ffi::rustra_ffi_invoke_postcard(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_bridge::ffi::unikit_ffi_invoke_postcard(payload.as_ptr(), payload.len(), &mut out_len)
         };
         assert!(!ptr.is_null());
         let resp = unsafe { std::slice::from_raw_parts(ptr, out_len) }.to_vec();
-        unsafe { rustra::ffi::rustra_ffi_free(ptr, out_len) };
+        unsafe { unikit_bridge::ffi::unikit_ffi_free(ptr, out_len) };
         resp
     }
 
@@ -244,14 +244,14 @@ mod tests {
         let ptr = unsafe { spike_contract_hash(&mut out_len) };
         assert!(!ptr.is_null());
         let hex = unsafe { std::slice::from_raw_parts(ptr, out_len) }.to_vec();
-        unsafe { rustra::ffi::rustra_ffi_free(ptr, out_len) };
+        unsafe { unikit_bridge::ffi::unikit_ffi_free(ptr, out_len) };
         let hex = std::str::from_utf8(&hex).unwrap();
         assert_eq!(hex.len(), 64); // sha-256 hex, header-free payload
         assert!(hex.chars().all(|c| c.is_ascii_hexdigit()));
         let mut out_len2: usize = 0;
         let ptr2 = unsafe { spike_contract_hash(&mut out_len2) };
         let hex2 = unsafe { std::slice::from_raw_parts(ptr2, out_len2) }.to_vec();
-        unsafe { rustra::ffi::rustra_ffi_free(ptr2, out_len2) };
+        unsafe { unikit_bridge::ffi::unikit_ffi_free(ptr2, out_len2) };
         assert_eq!(hex.as_bytes(), hex2);
     }
 

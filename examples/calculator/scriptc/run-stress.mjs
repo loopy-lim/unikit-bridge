@@ -97,12 +97,12 @@ try {
     'examples/calculator/scriptc/stress-fixture/Cargo.lock',
     'examples/calculator/scriptc/stress-fixture/src/lib.rs',
     'examples/calculator/scriptc/stress-fixture/asan-canary.c',
-    'crates/rustra/src/ffi_scriptc.rs',
-    'crates/rustra/src/ffi_event_core.rs',
-    'crates/rustra/src/ffi_channel.rs',
-    'crates/rustra/src/ffi_async_entries.rs',
-    'crates/rustra/src/ffi_workers.rs',
-    'crates/rustra/src/ffi_pool.rs',
+    'crates/unikit-bridge/src/ffi_scriptc.rs',
+    'crates/unikit-bridge/src/ffi_event_core.rs',
+    'crates/unikit-bridge/src/ffi_channel.rs',
+    'crates/unikit-bridge/src/ffi_async_entries.rs',
+    'crates/unikit-bridge/src/ffi_workers.rs',
+    'crates/unikit-bridge/src/ffi_pool.rs',
   ];
   for (const input of inputs) receipt.sourceHashes[input] = hash(resolve(root, input));
   if (sanitize) {
@@ -143,8 +143,8 @@ try {
         ffi_format: 7,
         functions: [
           {
-            name: 'rustra_stress_asan_canary',
-            symbol: 'rustra_stress_asan_canary',
+            name: 'unikit_stress_asan_canary',
+            symbol: 'unikit_stress_asan_canary',
             params: [],
             returns: 'u32',
           },
@@ -157,7 +157,7 @@ try {
     const canaryBinary = resolve(output, 'sanitizer-canary');
     writeFileSync(
       canarySource,
-      'export declare function rustra_stress_asan_canary(): number;\nconsole.log(rustra_stress_asan_canary());\n',
+      'export declare function unikit_stress_asan_canary(): number;\nconsole.log(unikit_stress_asan_canary());\n',
     );
     run(
       compiler,
@@ -180,7 +180,7 @@ try {
     ],
     'fixture-build',
   );
-  const archive = resolve(buildRoot, 'release/librustra_scriptc_stress_fixture.a');
+  const archive = resolve(buildRoot, 'release/libunikit_scriptc_stress_fixture.a');
   receipt.archiveSha256 = hash(archive);
   // Reuse every production callback descriptor. Only the linked fixture and its
   // private scheduling controls differ; generated/public declarations stay intact.
@@ -189,9 +189,9 @@ try {
   );
   manifest.libraries = [archive];
   for (const [name, returns] of [
-    ['rustra_stress_wait_workers', 'bool'],
-    ['rustra_stress_release_workers', 'void'],
-    ['rustra_stress_handler_calls', 'u32'],
+    ['unikit_stress_wait_workers', 'bool'],
+    ['unikit_stress_release_workers', 'void'],
+    ['unikit_stress_handler_calls', 'u32'],
   ])
     manifest.functions.push({ name, symbol: name, params: [], returns });
   const manifestPath = resolve(output, 'stress-ffi.json');

@@ -1,4 +1,4 @@
-import type { RustraError } from './errors.js';
+import type { UnikitError } from './errors.js';
 import type { LiveSchemaEntry } from './live-schema.js';
 
 // ── Core types ──────────────────────────────────────────────
@@ -149,7 +149,7 @@ export type FrameCodec<I, O> = {
    * `buf` 는 소유 ArrayBuffer 또는 재사용 버퍼의 뷰다 — 디코드 동안에만
    * 유효하다(호스트가 재사용하는 caller-buffer 뷰일 수 있음).
    */
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: O; error?: RustraError };
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: O; error?: UnikitError };
 };
 
 export { createComplexCodec } from './complex-codec.js';
@@ -166,7 +166,7 @@ export type FrameNative = {
  * 통합 네이티브 인터페이스 — JSI/FFI 브릿지가 노출하는 모든 메서드.
  * 각 어댑터는 필요한 메서드만 사용합니다.
  */
-export type RustraNative = {
+export type UnikitNative = {
   invoke(payload: ArrayBuffer): ArrayBuffer;
   invokeMsgpack(payload: ArrayBuffer): ArrayBuffer;
   invokeBincode(payload: ArrayBuffer): ArrayBuffer;
@@ -211,7 +211,7 @@ export type RustraNative = {
   invokeTypedBatchById?(cmdIds: number[], args: unknown[]): unknown[];
   /**
    * Rust → JS 이벤트 푸시 리스너 등록(RN JSI). `payloadJson` 은 **JSON 문자열**로
-   * 전달된다 — TS 래퍼(`@rustra/react-native` `subscribeEvent`)가
+   * 전달된다 — TS 래퍼(`@unikit/react-native` `subscribeEvent`)가
    * `JSON.parse` 1회로 객체로 복원한다. 등록 시점에 C++ 이 FFI 싱크를
    * 설치하고, 이후 Rust `emit` 은 CallInvoker 로 JS 스레드에 마샬링되어
    * 콜백을 호출한다.

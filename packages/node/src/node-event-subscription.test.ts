@@ -17,7 +17,7 @@ void test('event subscription is lazy — nothing is spawned or resolved before 
 
 void test('event subscription surfaces runtime discovery failure on the first subscribe', () => {
   const subscription = createNodeEventSubscription({ commandCandidates: ['./missing-runtime'] });
-  assert.throws(() => subscription.subscribeEvent('x', () => {}), /RUSTRA_NODE_BINARY/);
+  assert.throws(() => subscription.subscribeEvent('x', () => {}), /UNIKIT_NODE_BINARY/);
   subscription.dispose();
 });
 
@@ -29,7 +29,7 @@ void test('event subscription shares one transport across subscribers and stops 
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');
   // drainEvents 프레임에 응답하는 최소 loop-stdio 더블 — NDJSON id 상관 프로토콜.
-  const root = mkdtempSync(join(tmpdir(), 'rustra-node-events-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-node-events-'));
   const script = join(root, 'loop.mjs');
   writeFileSync(
     script,

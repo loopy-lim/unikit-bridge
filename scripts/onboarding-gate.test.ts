@@ -35,7 +35,7 @@ const CYCLE_STEPS = ONBOARDING_STEPS.filter((step) => step.report !== false).map
 
 /** 검증용 스크래치 프로젝트 — verify 가 읽는 생성물만 심어둔다(스폰 없는 단위 실험). */
 function scratchProject({ typesTs }: { typesTs?: string }) {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-onboarding-test-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-onboarding-test-'));
   const projectDir = join(root, 'onboarding-probe');
   mkdirSync(join(projectDir, 'src', 'generated'), { recursive: true });
   if (typesTs !== undefined)
@@ -47,7 +47,7 @@ function scratchProject({ typesTs }: { typesTs?: string }) {
  *  행위로 확인하는 결정적 픽스처다. */
 function scaffoldFromTemplate() {
   const files = renderInitProjectFiles(templateVersions('0.7.0', '^0.7.0', '^0.5.0'));
-  const root = mkdtempSync(join(tmpdir(), 'rustra-onboarding-scaffold-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-onboarding-scaffold-'));
   const projectDir = join(root, 'onboarding-probe');
   mkdirSync(join(projectDir, 'src'), { recursive: true });
   writeFileSync(join(projectDir, 'src', 'lib.rs'), files.libRs);
@@ -115,13 +115,13 @@ void test('gate converts a throwing runner into a named fail-closed report', asy
     mutate: () => ran.push('mutate'),
     runner: async (step: string) => {
       ran.push(step);
-      if (step === 'init') throw new Error('spawn rustra ENOENT');
+      if (step === 'init') throw new Error('spawn unikit ENOENT');
       return { ok: true, output: '' };
     },
   });
   assert.equal(report.ok, false);
   assert.match(report.error ?? '', /step "init"/);
-  assert.match(report.error ?? '', /spawn rustra ENOENT/);
+  assert.match(report.error ?? '', /spawn unikit ENOENT/);
   assert.deepEqual(ran, ['init']);
 });
 
@@ -154,26 +154,26 @@ void test('gate treats a nonzero runner result with empty output as failure', as
     runner: async (step: string) => {
       ran.push(step);
       return step === 'init'
-        ? { ok: false, output: '', status: 127, error: 'spawnSync rustra ENOENT' }
+        ? { ok: false, output: '', status: 127, error: 'spawnSync unikit ENOENT' }
         : { ok: true, output: '' };
     },
   });
   assert.equal(report.ok, false);
   assert.match(report.error ?? '', /step "init"/);
   assert.match(report.error ?? '', /status 127/);
-  assert.match(report.error ?? '', /spawnSync rustra ENOENT/);
+  assert.match(report.error ?? '', /spawnSync unikit ENOENT/);
   assert.deepEqual(ran, ['init']);
 });
 
 void test('gate aborts when hidden workspace patch preparation fails on disk', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-onboarding-patch-failure-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-onboarding-patch-failure-'));
   const repoRoot = join(root, 'repo');
   const projectRoot = join(root, 'scratch');
   const projectDir = join(projectRoot, 'onboarding-probe');
   const ran: string[] = [];
   try {
-    mkdirSync(join(repoRoot, 'crates', 'rustra'), { recursive: true });
-    writeFileSync(join(repoRoot, 'crates', 'rustra', 'Cargo.toml'), '[package]\nname="rustra"\n');
+    mkdirSync(join(repoRoot, 'crates', 'unikit'), { recursive: true });
+    writeFileSync(join(repoRoot, 'crates', 'unikit', 'Cargo.toml'), '[package]\nname="unikit"\n');
     mkdirSync(projectDir, { recursive: true });
     writeFileSync(join(projectDir, '.cargo'), 'blocks mkdir');
     const report = await runOnboardingSteps({
@@ -199,14 +199,14 @@ void test('gate aborts when hidden workspace patch preparation fails on disk', a
   }
 });
 
-void test('scaffold generate bin honors RUSTRA_SCHEMA_OUT (codegen:check contract)', () => {
-  // cli-codegen.ts check 모드는 RUSTRA_SCHEMA_OUT=<mkdtemp 디렉터리> 를 넘기고
+void test('scaffold generate bin honors UNIKIT_SCHEMA_OUT (codegen:check contract)', () => {
+  // cli-codegen.ts check 모드는 UNIKIT_SCHEMA_OUT=<mkdtemp 디렉터리> 를 넘기고
   // resolve(checkRoot, 'schema.json') 이 존재하는지 요구한다. 스캐폴드의 generate bin
   // (src/bin/generate.rs)은 env 디렉터리 안에 schema.json 을 써야 codegen:check 가 녹색이다.
   const files = renderInitProjectFiles(templateVersions('0.7.0', '^0.7.0', '^0.5.0'));
   const generateRs = files.generateRs;
   // 1) env 를 읽는다.
-  assert.match(generateRs, /RUSTRA_SCHEMA_OUT/);
+  assert.match(generateRs, /UNIKIT_SCHEMA_OUT/);
   // 2) env 값은 디렉터리 — 그 안에 schema.json 을 붙여 쓴다 (<env>/schema.json 합성).
   assert.match(generateRs, /PathBuf::from\(p\)\.join\("schema\.json"\)/);
   // 3) env 가 없으면 기존처럼 generated/schema.json 폴백 (docs 가 가르치는 기본 흐름).
@@ -217,7 +217,7 @@ void test('scaffold generate bin honors RUSTRA_SCHEMA_OUT (codegen:check contrac
   assert.doesNotMatch(generateRs, /write(_schema)?_to_dir/);
 });
 
-void test('cargo steps inherit RUSTRA_ONBOARDING_CARGO_TARGET_DIR as CARGO_TARGET_DIR; unset stays env-free', async () => {
+void test('cargo steps inherit UNIKIT_ONBOARDING_CARGO_TARGET_DIR as CARGO_TARGET_DIR; unset stays env-free', async () => {
   // 웜 캐시 옵트인 — 설정 시 cargo 스텝들이 공유 타깃을 상속한다. 상대 경로는 스텝 cwd 가
   // 제각각이므로 게이트 프로세스 cwd 기준 절대 경로로 정규화된다. build/rebuild 뿐 아니라
   // codegen/regen 도 함께 운반한다 — codegen 이 cargo metadata 로 생성 엔트리의 바이너리
@@ -242,7 +242,7 @@ void test('cargo steps inherit RUSTRA_ONBOARDING_CARGO_TARGET_DIR as CARGO_TARGE
     }
   };
   const expected = { CARGO_TARGET_DIR: resolve('target/onboarding-shared') };
-  const warm = await capture({ RUSTRA_ONBOARDING_CARGO_TARGET_DIR: 'target/onboarding-shared' });
+  const warm = await capture({ UNIKIT_ONBOARDING_CARGO_TARGET_DIR: 'target/onboarding-shared' });
   for (const name of ['build', 'rebuild', 'codegen', 'regen']) {
     const hit = warm.find((command) => command.step === name);
     assert.ok(hit, `${name} step must spawn`);
@@ -252,7 +252,7 @@ void test('cargo steps inherit RUSTRA_ONBOARDING_CARGO_TARGET_DIR as CARGO_TARGE
   // 검증이라는 게이트의 기본 동작 보존.
   for (const cold of [
     await capture({}),
-    await capture({ RUSTRA_ONBOARDING_CARGO_TARGET_DIR: '   ' }),
+    await capture({ UNIKIT_ONBOARDING_CARGO_TARGET_DIR: '   ' }),
   ]) {
     assert.ok(cold.length > 0);
     for (const command of cold) assert.equal(command.env, undefined);
@@ -289,7 +289,7 @@ void test('codegen-check gate step mirrors codegen plus --check; regen reuses co
   const check = commandFor('codegen-check', ROOT, ROOT);
   const regen = commandFor('regen', ROOT, ROOT);
   assert.deepEqual(check.argv, [...codegen.argv, '--check']);
-  assert.match(check.argv.join(' '), /codegen --config rustra\.json --check$/);
+  assert.match(check.argv.join(' '), /codegen --config unikit\.json --check$/);
   assert.deepEqual(regen.argv, codegen.argv, 'regen is the same codegen command');
   for (const cmd of [codegen, check, regen]) assert.equal(cmd.cwd, PROJECT_DIR);
 });
@@ -564,7 +564,7 @@ void test('onboarding evidence classes and existing receipts cannot be silently 
     () => onboardingReceipt({ consumption: 'release-ish' }),
     /unknown onboarding consumption/,
   );
-  const root = mkdtempSync(join(tmpdir(), 'rustra-onboarding-receipt-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-onboarding-receipt-'));
   try {
     const path = join(root, 'evidence.json');
     writeOnboardingReceipt(path, { ok: true, consumption: 'source-injected' });
@@ -598,7 +598,7 @@ void test('quick-start exposes actual pnpm/yarn flows and distinct target-cache 
 });
 
 void test('onboarding provenance hashes built package modules, not just the unchanged CLI entry', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-onboarding-built-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-onboarding-built-'));
   try {
     writeFileSync(join(root, 'package.json'), '{"name":"test-cli","version":"1.0.0"}');
     assert.throws(() => onboardingPackageArtifact(root), /built JavaScript is missing/);
@@ -617,7 +617,7 @@ void test('onboarding provenance hashes built package modules, not just the unch
 });
 
 void test('onboarding provenance hashes Bun file-dependency symlinks to built modules', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-onboarding-links-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-onboarding-links-'));
   try {
     writeFileSync(join(root, 'package.json'), '{"name":"linked-cli","version":"1.0.0"}');
     mkdirSync(join(root, 'dist'));

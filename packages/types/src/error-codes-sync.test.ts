@@ -1,11 +1,11 @@
 /**
- * TS ↔ Rust 에러 코드 동기화 게이트 — `RustraErrorCode`(errors.ts)와
- * `crates/rustra/src/error.rs` 팩토리 코드 집합이 갈라지면 CI에서 잡는다.
+ * TS ↔ Rust 에러 코드 동기화 게이트 — `UnikitErrorCode`(errors.ts)와
+ * `crates/unikit-bridge/src/error.rs` 팩토리 코드 집합이 갈라지면 CI에서 잡는다.
  *
  * 계약(양방향):
- *  1. Rust → TS: error.rs 의 `code: "..."` 팩토리 리터럴은 모두 RustraErrorCode 에
+ *  1. Rust → TS: error.rs 의 `code: "..."` 팩토리 리터럴은 모두 UnikitErrorCode 에
  *     있어야 한다 — Rust 가 새 코드를 발급하기 시작하면 TS 상수가 반드시 따라온다.
- *  2. TS → Rust: RustraErrorCode 의 모든 코드는 error.rs 팩토리 코드이거나,
+ *  2. TS → Rust: UnikitErrorCode 의 모든 코드는 error.rs 팩토리 코드이거나,
  *     아래 `OUTSIDE_ERROR_RS` 에 사유와 함께 선언되어야 한다 — TS 전용 코드가
  *     조용히 늘어나는 것을 막고, 한쪽 전용임을 문서로 남긴다.
  *  3. 선언 신선도: `OUTSIDE_ERROR_RS` 에 낡은 항목(이제 error.rs 에 존재하는 코드,
@@ -23,29 +23,29 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
-import { RustraErrorCode } from './errors.js';
+import { UnikitErrorCode } from './errors.js';
 
 /**
- * crates/rustra/src/error.rs 위치 — 이 테스트는 소스 트리(packages/types/src) 와
+ * crates/unikit-bridge/src/error.rs 위치 — 이 테스트는 소스 트리(packages/types/src) 와
  * tsc 산출물(dist-ts/packages/types/src, bun test 경로 필터가 substring 매칭으로
- * 수집) 양쪽에서 실행될 수 있어 고정 상대경로 대신 crates/rustra 를 기준 삼아
+ * 수집) 양쪽에서 실행될 수 있어 고정 상대경로 대신 crates/unikit-bridge 를 기준 삼아
  * 상향 탐색한다. 찾지 못하면 loud 하게 실패한다(조용한 스킵 없음).
  */
 function locateRustErrorRs(): string {
   let dir = import.meta.dir;
   for (;;) {
-    const candidate = resolve(dir, 'crates/rustra/src/error.rs');
+    const candidate = resolve(dir, 'crates/unikit-bridge/src/error.rs');
     if (existsSync(candidate)) return candidate;
     const parent = dirname(dir);
     if (parent === dir) {
-      throw new Error(`crates/rustra/src/error.rs not found above ${import.meta.dir}`);
+      throw new Error(`crates/unikit-bridge/src/error.rs not found above ${import.meta.dir}`);
     }
     dir = parent;
   }
 }
 const RUST_ERROR_RS = locateRustErrorRs();
 
-/** TS 파서(parseRustraErrorString)와 Rust validate_error_code 가 공유하는 코드 토큰 패턴. */
+/** TS 파서(parseUnikitErrorString)와 Rust validate_error_code 가 공유하는 코드 토큰 패턴. */
 const CODE_TOKEN = /^[a-z][a-z0-9_.]*$/;
 
 /**
@@ -62,7 +62,7 @@ function extractRustFactoryCodes(source: string): string[] {
 
 const RUST_CODES = extractRustFactoryCodes(readFileSync(RUST_ERROR_RS, 'utf8'));
 const rustCodes = new Set(RUST_CODES);
-const tsCodes = new Set<string>(Object.values(RustraErrorCode));
+const tsCodes = new Set<string>(Object.values(UnikitErrorCode));
 
 /**
  * error.rs 팩토리 리터럴이 없는 TS 코드의 명시적 선언 — 사유는 errors.ts JSDoc 과
@@ -71,18 +71,18 @@ const tsCodes = new Set<string>(Object.values(RustraErrorCode));
  * JS/어댑터 측 전용 코드다.
  */
 const OUTSIDE_ERROR_RS: Record<string, string> = {
-  'registry.frozen': 'Rust registry.rs 가 RustraError::custom 으로 발급 — error.rs 팩토리 없음',
+  'registry.frozen': 'Rust registry.rs 가 UnikitError::custom 으로 발급 — error.rs 팩토리 없음',
   'registry.id_exhausted':
-    'Rust registry.rs 가 RustraError::custom 으로 발급 — error.rs 팩토리 없음',
+    'Rust registry.rs 가 UnikitError::custom 으로 발급 — error.rs 팩토리 없음',
   'signature.mismatch':
-    'Rust registry.rs replace_runtime_route 가 RustraError::custom 으로 발급 — error.rs 팩토리 없음',
+    'Rust registry.rs replace_runtime_route 가 UnikitError::custom 으로 발급 — error.rs 팩토리 없음',
   'invoke.backpressure':
     'Rust ffi_async_entries.rs 가 err_frame Display 문자열로 발급 — error.rs 팩토리 없음',
   'ffi.not_registered':
     'Rust FFI 엔트리(ffi_typed_entries/buffer, ffi_hot_reload) 발급 — 팩토리 없음',
   'invoke.failed':
-    '양측 폴백 코드 — JS parseRustraErrorString, Rust hot_core_dylib/ffi_schema_entries',
-  unknown: '양측 최후 폴백 — JS normalizeRustraError, Rust hot_core/tauri_support 에러 JSON 폴백',
+    '양측 폴백 코드 — JS parseUnikitErrorString, Rust hot_core_dylib/ffi_schema_entries',
+  unknown: '양측 최후 폴백 — JS normalizeUnikitError, Rust hot_core/tauri_support 에러 JSON 폴백',
   'sync.unavailable': 'JS 어댑터 전용(frame-engine-sync/global-sync) — Rust error.rs 대응 값 없음',
   'transport.unavailable':
     'JS 어댑터 전용(bun-ffi/node-bootstrap/react context) — Rust 대응 값 없음',
@@ -91,9 +91,9 @@ const OUTSIDE_ERROR_RS: Record<string, string> = {
   'schema.unavailable': 'JS 어댑터 전용(live-schema) — Rust 대응 값 없음',
   'event.unavailable': 'JS 어댑터 전용(node-events/react-native-events) — Rust 대응 값 없음',
   'channel.unavailable': 'JS 어댑터 전용(react-native-events/tauri-channels) — Rust 대응 값 없음',
-  'device.unavailable': '호스트 앱/파생 provider 전용 — rustra 코어는 디바이스 게이팅을 하지 않음',
+  'device.unavailable': '호스트 앱/파생 provider 전용 — unikit 코어는 디바이스 게이팅을 하지 않음',
   'device.permission_denied':
-    '호스트 앱/파생 provider 전용 — rustra 코어는 디바이스 게이팅을 하지 않음',
+    '호스트 앱/파생 provider 전용 — unikit 코어는 디바이스 게이팅을 하지 않음',
   'contract.mismatch': 'JS 계약 게이트 전용(frame-engine-contract) — Rust 대응 값 없음',
   'contract.unenforceable': 'JS 계약 게이트 전용(frame-engine-contract) — Rust 대응 값 없음',
   'inspector.invalid_snapshot': 'TS 인스펙터 디코더 전용(experimental) — Rust 대응 값 없음',
@@ -101,16 +101,16 @@ const OUTSIDE_ERROR_RS: Record<string, string> = {
   'bootstrap.failed':
     'RN 부트스트랩(install/네이티브 엔진 구성) 전용 — 설정 경계, invoke 경로 아님',
   'native.not_installed':
-    'RN JSI 미설치 전용(installRustraJSI 미호출/Expo Go) — 네이티브 재빌드 필요',
+    'RN JSI 미설치 전용(installUnikitJSI 미호출/Expo Go) — 네이티브 재빌드 필요',
 };
 
-test('error.rs 팩토리 코드는 모두 TS RustraErrorCode 에 있다 (Rust → TS)', () => {
+test('error.rs 팩토리 코드는 모두 TS UnikitErrorCode 에 있다 (Rust → TS)', () => {
   const missing = RUST_CODES.filter((code) => !tsCodes.has(code)).sort();
   assert.deepEqual(
     missing,
     [],
-    `crates/rustra/src/error.rs 팩토리 코드 중 TS RustraErrorCode 에 없는 코드 (${missing.length}개): ${missing.join(', ')}` +
-      '\n→ errors.ts 의 RustraErrorCode 에 상수를 추가하세요 — 새 코드는 양쪽을 함께 갱신하는 단일 소스 관례다.',
+    `crates/unikit-bridge/src/error.rs 팩토리 코드 중 TS UnikitErrorCode 에 없는 코드 (${missing.length}개): ${missing.join(', ')}` +
+      '\n→ errors.ts 의 UnikitErrorCode 에 상수를 추가하세요 — 새 코드는 양쪽을 함께 갱신하는 단일 소스 관례다.',
   );
 });
 
@@ -121,7 +121,7 @@ test('TS 코드는 error.rs 팩토리 코드이거나 문서화된 스코프 밖
   assert.deepEqual(
     undeclared,
     [],
-    `RustraErrorCode 에 있는데 error.rs 팩토리에도 OUTSIDE_ERROR_RS 선언에도 없는 코드 (${undeclared.length}개): ${undeclared.join(', ')}` +
+    `UnikitErrorCode 에 있는데 error.rs 팩토리에도 OUTSIDE_ERROR_RS 선언에도 없는 코드 (${undeclared.length}개): ${undeclared.join(', ')}` +
       '\n→ Rust error.rs 에 팩토리를 추가하거나, 한쪽 전용 코드라면 OUTSIDE_ERROR_RS 에 사유와 함께 선언하세요.',
   );
 });
@@ -142,7 +142,7 @@ test('OUTSIDE_ERROR_RS 선언은 낡은 항목 없이 양방향으로 정확히 
   assert.deepEqual(
     phantom,
     [],
-    `TS RustraErrorCode 에 없는데 OUTSIDE_ERROR_RS 에 선언된 코드: ${phantom.join(', ')}` +
+    `TS UnikitErrorCode 에 없는데 OUTSIDE_ERROR_RS 에 선언된 코드: ${phantom.join(', ')}` +
       '\n→ errors.ts 와 함께 정리하세요.',
   );
 });
@@ -154,6 +154,6 @@ test('추출 sanity — 양쪽 집합이 비지 않았다 (정규식 부패 시 
   );
   assert.ok(
     tsCodes.size >= 27,
-    `RustraErrorCode 가 비정상적으로 적다: ${tsCodes.size}개 — errors.ts 의 의도된 삭제인지 확인`,
+    `UnikitErrorCode 가 비정상적으로 적다: ${tsCodes.size}개 — errors.ts 의 의도된 삭제인지 확인`,
   );
 });

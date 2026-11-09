@@ -1,7 +1,7 @@
-# Rustra M0 안전성·릴리스 구현 검증
+# Unikit M0 안전성·릴리스 구현 검증
 
 - 기준: `b1ed9aa422fb4e627131f02f67de9f50bdbfedf7` 위 `codex/m0-safety-release-gates` 작업 트리
-- SPEC: [로드맵 M0 실행 계약](../specs/2026-09-14-rustra-roadmap.md)
+- SPEC: [로드맵 M0 실행 계약](../specs/2026-09-14-unikit-roadmap.md)
 - PLAN: [M0 실행 계획](../dev/plans/2026-09-14-m0-safety-release.md), [G0 성능 기준선 계획](../dev/plans/2026-09-14-g0-performance-baseline.md)
 - 상태: M0-1~M0-5 구현, 최신 후보 로컬 안전성 검증과 코어 성능 A/B 완료. 새 GitHub Actions 실행·발행은 미수행.
 
@@ -16,8 +16,8 @@
 | 발행 게이트      | 기본 CI 성공만으로 npm 자동 경로가 진행하고 수동 cargo도 CI만 확인                                                                                      | 두 경로 모두 고정 후보 SHA의 CI 및 새 Miri/Sanitizer/Fuzz 성공에 의존. CI는 발행 직전 재확인. schedule 부분 CI와 최신 실패·취소·대기 결과를 성공으로 간주하지 않음                                                                                  |
 | 배포 출처        | 버전 표만으로 gitHead/crate source를 재조회할 수 없음                                                                                                   | 읽기 전용 JSON/Markdown 감사. 9 npm/3 crate exact/latest와 출처, archive checksum, 로컬 생성/native hash를 구분                                                                                                                                     |
 
-원본 재현 로그는 `/tmp/rustra-m0/miri-before.log`,
-`/tmp/rustra-m0/asan-before/asan.2477`이다. ASan 보고서의 주소를 같은 바이너리의
+원본 재현 로그는 `/tmp/unikit-m0/miri-before.log`,
+`/tmp/unikit-m0/asan-before/asan.2477`이다. ASan 보고서의 주소를 같은 바이너리의
 `addr2line`으로 심볼화해 `complex_schema_ir_compile.rs`와 재귀 codec 테스트로
 연결했다. 원격 ASan 보고서 자체는 기존 upload 누락으로 남아 있지 않으므로,
 원격 exit 1의 상세 원인은 이 로컬 재현과 구분한다.
@@ -45,17 +45,17 @@ callback을 강제 종료하는 API는 아니다. 전역 풀 unload/shutdown 계
 
 | 검사                                      | 결과                                                         | 원본                                                        |
 | ----------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------- |
-| 소유 풀 회귀                              | 3 passed: drain/join, 반복 생성, 포화 거절, 완료 계측        | `/tmp/rustra-m0/pool-green.log`                             |
+| 소유 풀 회귀                              | 3 passed: drain/join, 반복 생성, 포화 거절, 완료 계측        | `/tmp/unikit-m0/pool-green.log`                             |
 | Rust workspace 전체 + doctest             | 최신 후보 483 passed, 0 failed, doctest 5 ignored            | `cargo test --workspace`                                    |
-| cargo fmt / scoped all-target clippy      | 통과                                                         | `/tmp/rustra-m0/clippy.log`                                 |
+| cargo fmt / scoped all-target clippy      | 통과                                                         | `/tmp/unikit-m0/clippy.log`                                 |
 | Linux ASan+LSan lib                       | 최신 후보 178 passed, exit 0, leak report 없음               | `target/safety/asan-latest/`                                |
 | Linux Miri lib                            | 최신 후보 178 passed, exit 0                                 | `target/safety/miri-latest/`                                |
 | Linux Miri frame_wire / field_order_drift | 최신 후보 31 / 4 passed, 각각 exit 0                         | `target/safety/miri-latest/`                                |
 | Fuzz 3 target                             | 최신 후보 seed 및 각 601초 통과, 종료 코드 모두 0            | `target/safety/fuzz-latest/`                                |
 | 릴리스 도구 전체                          | 최신 후보 77 passed, 0 failed                                | `bun run test:release-tools`                                |
-| EN/KO 문서 검사                           | 37 passed, mirror 68개 및 설치/버전 문서 6개 통과            | `/tmp/rustra-m0/docs-check.log`                             |
+| EN/KO 문서 검사                           | 37 passed, mirror 68개 및 설치/버전 문서 6개 통과            | `/tmp/unikit-m0/docs-check.log`                             |
 | actionlint                                | 변경 workflow 5개 통과                                       | Bench/Miri/Sanitizer/Fuzz/Release                           |
-| 독립 안전성·릴리스 코드 리뷰              | 차단 결함 없음                                               | `/tmp/rustra-m0/review-safety-release.md`                   |
+| 독립 안전성·릴리스 코드 리뷰              | 차단 결함 없음                                               | `/tmp/unikit-m0/review-safety-release.md`                   |
 | complex route release A/B                 | 기준/후보 각 5개 독립 프로세스, 비재귀 control 10% 예산 이내 | `../benchmark-receipts/2026-09-14-m0-complex-route-ab.json` |
 
 API snapshot은 private import/IR variant/opaque pool struct/Drop 선언도 추적한다.
@@ -64,16 +64,16 @@ API snapshot은 private import/IR variant/opaque pool struct/Drop 선언도 추�
 
 커밋 훅이 검증 뒤 `ffi_pool.rs`를 rustfmt로 정리했다. Linux 안전성 실행에 사용한
 파일 hash는 `92907d…bf741`, 커밋된 파일 hash는 `689454…da47`이다. 포맷된 최종
-소스에서 `cargo fmt --all -- --check`와 rustra lib 178개 테스트를 다시 통과했다.
+소스에서 `cargo fmt --all -- --check`와 unikit lib 178개 테스트를 다시 통과했다.
 최종 커밋 SHA 자체에 대한 Miri/Sanitizer/Fuzz 증거는 변경 workflow의 원격 실행이
 끝나야 생긴다.
 
 최신 Fuzz 실행 수는 invoke_frame 53,964,068회, invoke_complex_value 9,817,508회,
 invoke_complex_serde 16,309,069회다. 모두 seed 100개를 먼저 재생하고 601초 구간을
-완료했다. 최신 evolved corpus는 `/tmp/rustra-m0/latest-fuzz-corpus.tar.gz`에 보존한다.
+완료했다. 최신 evolved corpus는 `/tmp/unikit-m0/latest-fuzz-corpus.tar.gz`에 보존한다.
 
 일반 Rust release 모드도 295 passed, 0 failed, 기존 doctest 2 ignored로
-통과했다(`/tmp/rustra-m0/rust-release.log`). 릴리스 도구 전체 최신 실행은 77 passed,
+통과했다(`/tmp/unikit-m0/rust-release.log`). 릴리스 도구 전체 최신 실행은 77 passed,
 0 failed이며 구조 경계 검사도 4/4 통과했다.
 
 릴리스 도구의 최신 실행 선택은 원래 생성 시각만 보지 않는다. 오래된 run을
@@ -109,7 +109,7 @@ Actions에서 실제로 실행됐다는 증거가 아니다.
 [검증 JSON](evidence/2026-09-14-m0-validation.json)은 최신 변경 소스 SHA-256,
 각 Miri/Fuzz 종료 코드·실행 수·시간과 원본 로그 hash를 보존한다. Linux 검사는
 현재 작업 트리를 컨테이너에 bind mount해 실행했다. 원본 상세 로그는
-`target/safety/*-latest/`와 `/tmp/rustra-m0/latest-safety-logs.tar.gz`에 남긴다. 원격 기존 실패를 확인한 [게이트 JSON](evidence/2026-09-14-baseline-release-gates.json)도
+`target/safety/*-latest/`와 `/tmp/unikit-m0/latest-safety-logs.tar.gz`에 남긴다. 원격 기존 실패를 확인한 [게이트 JSON](evidence/2026-09-14-baseline-release-gates.json)도
 별도로 보존해 현재 수정본의 로컬 결과와 혼동하지 않는다.
 
 최신 Miri 결과: lib 178개(156.11초), frame_wire 31개(650.67초),
@@ -119,4 +119,4 @@ field_order_drift 4개(1.36초), 모두 종료 코드 0. 큰 payload 테스트�
 환경, 기준 SHA, dirty 후보 source hash, 벤치 바이너리 hash, case별 5회 분포를
 보존한다. Criterion median을 사용했으므로 p95로 표현하지 않는다.
 
-최신 상세 실행 로그 묶음: [latest-safety-logs.tar.gz](/tmp/rustra-m0/latest-safety-logs.tar.gz). 이번 검증 전용 Docker 컨테이너는 최신 corpus를 보존한 뒤 정리한다.
+최신 상세 실행 로그 묶음: [latest-safety-logs.tar.gz](/tmp/unikit-m0/latest-safety-logs.tar.gz). 이번 검증 전용 Docker 컨테이너는 최신 corpus를 보존한 뒤 정리한다.

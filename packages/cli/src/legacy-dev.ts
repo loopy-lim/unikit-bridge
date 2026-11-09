@@ -28,12 +28,12 @@ export async function runLegacyDev(options: DevOptions): Promise<DevWatchHandle>
   const generated = join(app, 'generated');
   const schema = join(generated, 'schema.json');
   const manifest = join(backend, 'Cargo.toml');
-  assertDirectory(backend, 'backend', 'rustra dev --backend <dir>');
-  assertDirectory(join(backend, 'src'), 'backend/src', 'rustra dev --backend <dir>');
-  assertDirectory(app, 'app', 'rustra dev --app <dir>');
-  if (!process.env.RUSTRA_CLI && !findRepoCli(app))
+  assertDirectory(backend, 'backend', 'unikit dev --backend <dir>');
+  assertDirectory(join(backend, 'src'), 'backend/src', 'unikit dev --backend <dir>');
+  assertDirectory(app, 'app', 'unikit dev --app <dir>');
+  if (!process.env.UNIKIT_CLI && !findRepoCli(app))
     throw new Error(
-      `Could not find the Rustra CLI from ${app}. Install @rustra/cli or set RUSTRA_CLI.`,
+      `Could not find the Unikit CLI from ${app}. Install @unikit/cli or set UNIKIT_CLI.`,
     );
 
   const fallbackPaths = (): RustInputPaths => ({
@@ -114,8 +114,8 @@ export async function runLegacyDev(options: DevOptions): Promise<DevWatchHandle>
       signal: cancellation.signal,
     });
   const tsCli = async () => {
-    const cli = process.env.RUSTRA_CLI ?? findRepoCli(app);
-    if (!cli) throw new Error('Rustra CLI is unavailable; set RUSTRA_CLI.');
+    const cli = process.env.UNIKIT_CLI ?? findRepoCli(app);
+    if (!cli) throw new Error('Unikit CLI is unavailable; set UNIKIT_CLI.');
     await spawnInherit('node', [cli, 'generate', '--schema', schema, '--output', generated], app, {
       signal: cancellation.signal,
     });
@@ -146,7 +146,7 @@ export async function runLegacyDev(options: DevOptions): Promise<DevWatchHandle>
       log(`[dev] ${new Date().toLocaleTimeString()} regenerated`);
       if (options.inspect) {
         log('[dev:inspect] Wrap your engine with createInstrumentedEngine in the app process');
-        log('[dev:inspect] to expose report() via console or remote: @rustra/devtools');
+        log('[dev:inspect] to expose report() via console or remote: @unikit/devtools');
       }
       if (next.rustBin) await reload.emitReload(reason);
     } catch (error) {

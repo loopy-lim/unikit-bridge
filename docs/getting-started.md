@@ -1,6 +1,6 @@
 English | [한국어](./getting-started.ko.md)
 
-# Getting Started with rustra
+# Getting Started with unikit
 
 For ordinary functions with multiple arguments and plain returns, see [function registration](./function-registration.md).
 
@@ -8,17 +8,17 @@ For ordinary functions with multiple arguments and plain returns, see [function 
 > npm package versions pinned below. Upgrade native libraries, JS packages and
 > generated output together; see the [DX migration guide](migrations/0.11-to-0.12.md).
 
-rustra is a bridge framework that automatically generates a TypeScript client — working on Node, Bun, Tauri, and React Native alike — once you define a Rust package.
+unikit is a bridge framework that automatically generates a TypeScript client — working on Node, Bun, Tauri, and React Native alike — once you define a Rust package.
 
-This guide aims to get a developer new to rustra building their first package and generating a TypeScript client within 10 minutes.
+This guide aims to get a developer new to unikit building their first package and generating a TypeScript client within 10 minutes.
 
-> Terminology: **rustra** is the Rust crate and the npm scope (`@rustra/*`);
-> **rustra-bridge** is this repository. The two names refer to the same project.
+> Terminology: **unikit** is the Rust crate and the npm scope (`@unikit/*`);
+> **unikit-bridge** is this repository. The two names refer to the same project.
 
 ## 10-Minute Summary
 
 1. Install Rust and Bun, then scaffold and run a project:
-   `bunx --bun @rustra/cli@0.13.0 init my-project --setup`.
+   `bunx --bun @unikit/cli@0.13.0 init my-project --setup`.
 2. Add Rust commands in `src/lib.rs`; expose them through the package builder.
 3. Run `bun run start` to generate the TypeScript client, build Rust, and call the demo.
 4. For platform integration, continue with [Tauri](extending/tauri-setup.md) or [React Native](extending/react-native-setup.md).
@@ -38,20 +38,20 @@ This is the fast path; the detailed sections below remain the complete reference
 | Xcode / CocoaPods            | iOS only     | React Native iOS (see the [RN setup guide](extending/react-native-setup.md))                                      |
 | Android SDK/NDK 27+, Java 17 | Android only | React Native Android                                                                                              |
 
-`rustra doctor` checks every row that applies to your configuration — see the
+`unikit doctor` checks every row that applies to your configuration — see the
 [development hurdles guide](development-hurdles.md).
 
 ---
 
 ## 1. Installation
 
-### The Fastest Start — `rustra init --setup`
+### The Fastest Start — `unikit init --setup`
 
 With Rust and Bun 1.4+ installed, run:
 
 ```bash
-bunx --bun @rustra/cli@0.13.0 init my-project --setup
-# Bun FFI instead: bunx --bun @rustra/cli@0.13.0 init my-bun-project --host bun --setup
+bunx --bun @unikit/cli@0.13.0 init my-project --setup
+# Bun FFI instead: bunx --bun @unikit/cli@0.13.0 init my-bun-project --host bun --setup
 ```
 
 This creates the project, generates its client, installs dependencies, builds
@@ -66,22 +66,22 @@ cd my-project
 bun run start
 ```
 
-`start` runs `rustra setup --config rustra.json --run`; `bun run setup` performs
+`start` runs `unikit setup --config unikit.json --run`; `bun run setup` performs
 the same preparation without running `demo`. If setup fails, fix the reported
 error and rerun the printed setup command. Retry setup directly; `init --force`
 is only for deliberately replacing scaffold files.
 
 Without `--setup`, start with `cd my-project`, `bun install`, and `bun run start`.
-For an existing Node/Bun project with `rustra.json` and a `demo` script, use
-`rustra setup --config rustra.json --run`.
+For an existing Node/Bun project with `unikit.json` and a `demo` script, use
+`unikit setup --config unikit.json --run`.
 
 The scaffold includes the Cargo crate, an `echo` command, a `generate` schema
-probe, `src/index.ts`, `rustra.json`, `package.json`, `.gitignore`, and
+probe, `src/index.ts`, `unikit.json`, `package.json`, `.gitignore`, and
 `tsconfig.json`. Node is the default host; `--host bun` adds the native library
 entry and selects Bun FFI. The generated entry verifies that the Rust and
 TypeScript contracts match before the first invocation.
 
-RN setup connects the generated module and adds `rustra:ios` / `rustra:android`
+RN setup connects the generated module and adds `unikit:ios` / `unikit:android`
 preparation scripts. Tauri setup generates a registration helper and prints the
 remaining app connection. Use setup without `--run` for native-only apps; then
 build and launch with the existing platform commands. Preparation does not prove
@@ -105,7 +105,7 @@ registry publication.
 
 ```toml
 [dependencies]
-rustra = "0.13.0"
+unikit-bridge = "0.13.0"
 serde = { version = "1", features = ["derive"] }
 schemars = { version = "0.8", features = ["derive"] }
 ```
@@ -115,21 +115,21 @@ Installation versions follow the current Rust and npm manifests. Adapters have i
 For the TypeScript adapters, install only the environment you use:
 
 ```bash
-bun add @rustra/node@0.11.1      # Node.js
-bun add @rustra/bun@0.11.1       # Bun
-bun add @rustra/tauri@0.10.1     # Tauri
-bun add @rustra/react-native@0.11.0  # React Native
+bun add @unikit/node@0.11.1      # Node.js
+bun add @unikit/bun@0.11.1       # Bun
+bun add @unikit/tauri@0.10.1     # Tauri
+bun add @unikit/react-native@0.11.0  # React Native
 ```
 
 ### Using in a Monorepo / Workspace
 
-Workspace-based management is recommended for rustra. Add the following dependencies
+Workspace-based management is recommended for unikit. Add the following dependencies
 to the top-level `Cargo.toml`.
 
 ```toml
 [workspace.dependencies]
-rustra = { path = "crates/rustra" }
-rustra-macros = { path = "crates/rustra-macros" }
+unikit-bridge = { path = "crates/unikit-bridge" }
+unikit-bridge-macros = { path = "crates/unikit-bridge-macros" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 schemars = { version = "0.8", features = ["derive"] }
@@ -142,7 +142,7 @@ Then pull the workspace dependencies from your actual package crate (e.g.
 
 ```toml
 [package]
-name = "rustra-calculator-example"
+name = "unikit-calculator-example"
 edition.workspace = true
 version.workspace = true
 publish = false
@@ -151,7 +151,7 @@ publish = false
 crate-type = ["rlib", "staticlib"]
 
 [dependencies]
-rustra.workspace = true
+unikit-bridge.workspace = true
 schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -161,8 +161,8 @@ Only four crates are needed.
 
 | crate                | Role                                                                           |
 | -------------------- | ------------------------------------------------------------------------------ |
-| `rustra`             | Package builder, TypeScript generator, JSON Schema-based type mapping          |
-| `rustra-macros`      | The `#[command]` attribute macro (re-exported automatically by rustra)         |
+| `unikit`             | Package builder, TypeScript generator, JSON Schema-based type mapping          |
+| `unikit-bridge-macros`      | The `#[command]` attribute macro (re-exported automatically by unikit)         |
 | `serde` + `schemars` | Serialization/deserialization + JSON Schema generation. Three derives per type |
 
 ---
@@ -177,7 +177,7 @@ Define the input and output structs. The keys are the **three derives** and
 `#[serde(rename_all = "camelCase")]`.
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -215,7 +215,7 @@ pub fn add_numbers(input: AddNumbersInput) -> Result<AddNumbersOutput> {
 Rules:
 
 - The input parameter is **exactly one**, received as a struct.
-- The return type must be `Result<O>`. Use `rustra::prelude::Result`.
+- The return type must be `Result<O>`. Use `unikit_bridge::prelude::Result`.
 - The function name `add_numbers` is automatically converted to the camelCase command name `addNumbers`.
 
 #### Specifying a Command Name Directly
@@ -254,10 +254,10 @@ pub fn calculator_package() -> Package {
 Use the `register!` macro to register multiple commands at once. List the command functions alongside `Package::builder()`.
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 fn main() -> Result<()> {
-    let package = rustra::register!(Package::builder("my.pkg"), add_numbers, multiply)
+    let package = unikit_bridge::register!(Package::builder("my.pkg"), add_numbers, multiply)
         .build();
 
     // Generate TypeScript — publish the schema; the CLI renders the surfaces
@@ -270,22 +270,22 @@ fn main() -> Result<()> {
 
 ### 2-4. TypeScript Generation
 
-One command renders every surface: `bun run codegen` (i.e. `rustra codegen --config rustra.json`).
+One command renders every surface: `bun run codegen` (i.e. `unikit codegen --config unikit.json`).
 The Rust side only publishes the contract — `src/bin/generate.rs` writes `schema.json`
 (and nothing else), and the CLI renders the TypeScript/C++ artifacts from it, so there is
 a single source of truth for generated code. This is the calculator's own probe, and it
-respects `RUSTRA_SCHEMA_OUT`: when the variable is set, `schema.json` is written inside
+respects `UNIKIT_SCHEMA_OUT`: when the variable is set, `schema.json` is written inside
 that directory (this is how `codegen --check` verifies the Rust stage without touching
 your working tree); when unset, it lands in `generated/schema.json`.
 
 ```rust
 // examples/calculator/src/bin/generate.rs
-use rustra_calculator_example::calculator_package;
+use unikit_calculator_example::calculator_package;
 use std::path::PathBuf;
 
-fn main() -> rustra::Result<()> {
+fn main() -> unikit_bridge::Result<()> {
     let generated = calculator_package().generate_typescript()?;
-    let out = match std::env::var_os("RUSTRA_SCHEMA_OUT") {
+    let out = match std::env::var_os("UNIKIT_SCHEMA_OUT") {
         Some(p) if !p.is_empty() => PathBuf::from(p).join("schema.json"),
         _ => PathBuf::from("generated").join("schema.json"),
     };
@@ -308,8 +308,8 @@ println!("2 + 3 = {}", output.value);
 Run it:
 
 ```bash
-cargo run -p rustra-calculator-example          # demo: 2 + 3 = 5
-cargo run -p rustra-calculator-example --bin generate   # contract probe: schema.json
+cargo run -p unikit-calculator-example          # demo: 2 + 3 = 5
+cargo run -p unikit-calculator-example --bin generate   # contract probe: schema.json
 bun run --cwd examples/calculator codegen                # render TS surfaces from it
 ```
 
@@ -337,13 +337,13 @@ files `frame-codecs.ts`/`frame-registry.ts` (always emitted). Configuring `node`
 
 <!-- prettier-ignore -->
 ```ts
-export type { EngineClient, RustraError } from '@rustra/types';
-export { RustraCommandError } from '@rustra/types';
+export type { EngineClient, UnikitError } from '@unikit/types';
+export { UnikitCommandError } from '@unikit/types';
 
 /**
  * 커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.
  *
- * 코드젠은 이 타입을 인식하면 TS 를 `RustraChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).
+ * 코드젠은 이 타입을 인식하면 TS 를 `UnikitChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).
  */
 export type ChannelHandle = number;
 
@@ -756,7 +756,7 @@ export type WideAggOutput = {
 
 ```ts
 import type { AddNumbersInput, AddNumbersOutput } from './types.js';
-import { createGeneratedFields2 } from '@rustra/types';
+import { createGeneratedFields2 } from '@unikit/types';
 
 // Commands with one or two fields are generated as a const form that passes the required fields directly on each call
 // (one-field commands use `createGeneratedFields1`; the (input, options) call surface is unchanged).
@@ -836,7 +836,7 @@ engine or call `configure()` themselves — the platform entry point installs th
 
 ### Node
 
-Add a Node block to `rustra.json` — `rustra init` scaffolds the same block with
+Add a Node block to `unikit.json` — `unikit init` scaffolds the same block with
 `output: ./src/generated` (imports from `src/index.ts` are then `./generated/...`).
 
 ```json
@@ -852,10 +852,10 @@ const result = await addNumbers({ a: 20, b: 22 });
 Codegen pins the default binary and target directory from Cargo metadata. It prefers
 Release and falls back to Debug; after transpilation it looks for the same Cargo target
 in the parent of the current working directory. If the deployment directory differs,
-set `RUSTRA_NODE_BINARY`. The standard runtime must implement the one-shot stdio
-protocol `{command, args}` → `{ok, result}`. On top of that, the reserved `__rustra_contract`
+set `UNIKIT_NODE_BINARY`. The standard runtime must implement the one-shot stdio
+protocol `{command, args}` → `{ok, result}`. On top of that, the reserved `__unikit_contract`
 command must return the current contract hash as a string for the generated Node entry
-point's fail-fast check to pass. `run_invoke_stdio` in the calculator and the `rustra init`
+point's fail-fast check to pass. `run_invoke_stdio` in the calculator and the `unikit init`
 scaffold is the reference implementation — here is the complete minimal `src/main.rs`
 (generalized from that scaffold, ~30 lines):
 
@@ -863,7 +863,7 @@ scaffold is the reference implementation — here is the complete minimal `src/m
 use serde_json::{json, Value};
 use std::io::{Read, Write};
 
-fn main() -> rustra::Result<()> {
+fn main() -> unikit_bridge::Result<()> {
     if std::env::args().nth(1).as_deref() == Some("invoke") {
         return run_invoke_stdio();
     }
@@ -871,17 +871,17 @@ fn main() -> rustra::Result<()> {
     Ok(())
 }
 
-fn run_invoke_stdio() -> rustra::Result<()> {
+fn run_invoke_stdio() -> unikit_bridge::Result<()> {
     let mut input = String::new();
     std::io::stdin().read_to_string(&mut input)?;
-    let request: Value = serde_json::from_str(&input).map_err(rustra::RustraError::invalid_args)?;
+    let request: Value = serde_json::from_str(&input).map_err(unikit_bridge::UnikitError::invalid_args)?;
     let command = request.get("command").and_then(Value::as_str)
-        .ok_or_else(|| rustra::RustraError::invalid_args("missing command"))?;
-    if command == "__rustra_contract" {
+        .ok_or_else(|| unikit_bridge::UnikitError::invalid_args("missing command"))?;
+    if command == "__unikit_contract" {
         // the generated Node entry verifies Rust and TS share one contract
         let hash = my_package().generate_typescript()?.contract_hash;
         let response = serde_json::to_vec(&json!({ "ok": true, "result": hash }))
-            .map_err(rustra::RustraError::internal)?;
+            .map_err(unikit_bridge::UnikitError::internal)?;
         std::io::stdout().write_all(&response)?;
         return Ok(());
     }
@@ -900,7 +900,7 @@ The generated entry spawns this binary once per invoke with the JSON envelope on
 **Custom transports (napi-rs, etc.):**
 
 ```ts
-import { createNodeEngine } from '@rustra/node';
+import { createNodeEngine } from '@unikit/node';
 
 const engine = createNodeEngine({
   invoke(command, args) {
@@ -921,7 +921,7 @@ channel surface is in [events-and-channels.md](events-and-channels.md).
 ### Bun
 
 The Rust library declares `crate-type = ["rlib", "cdylib"]` and
-`rustra::native_entry!(app_package)`. Leave an empty Bun block in the config.
+`unikit_bridge::native_entry!(app_package)`. Leave an empty Bun block in the config.
 
 ```json
 { "schema": "./generated/schema.json", "output": "./generated", "bun": {} }
@@ -936,7 +936,7 @@ const result = await addNumbers({ a: 20, b: 22 });
 The generated entry point inspects Release/Debug cdylib candidates down to the actual ABI
 symbols and wires Bun FFI's stable C ABI into the Frame engine. The Rust response is
 copied into a JS-owned `ArrayBuffer` and freed with the exact pointer/length. Specify a
-different deployment layout with `RUSTRA_BUN_LIBRARY`.
+different deployment layout with `UNIKIT_BUN_LIBRARY`.
 
 ### Tauri
 
@@ -949,13 +949,13 @@ await subscribeEvent('progress.tick', console.log);
 const result = await addNumbers({ a: 20, b: 22 });
 ```
 
-The Tauri adapter multiplexes all commands through the single `rustra_dispatch` endpoint internally. `createTauriEngine` wraps each command call as `invoke('rustra_dispatch', { command, args })`.
+The Tauri adapter multiplexes all commands through the single `unikit_dispatch` endpoint internally. `createTauriEngine` wraps each command call as `invoke('unikit_dispatch', { command, args })`.
 
-On the Rust side, register the package with the Tauri builder in one line via `rustra::tauri_support::register`.
+On the Rust side, register the package with the Tauri builder in one line via `unikit_bridge::tauri_support::register`.
 
 ```rust
 // Tauri app main.rs
-use rustra::tauri_support;
+use unikit_bridge::tauri_support;
 
 fn main() {
     let builder = tauri_support::register(my_package(), tauri::Builder::default());
@@ -966,7 +966,7 @@ fn main() {
 > **Note:** using `tauri_support` requires enabling the `tauri` feature in `Cargo.toml`.
 >
 > ```toml
-> rustra = { path = "...", features = ["tauri"] }
+> unikit = { path = "...", features = ["tauri"] }
 > ```
 
 ### React Native
@@ -979,13 +979,13 @@ the app package and native entry once.
 **Rust-side setup:**
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 pub fn my_package() -> Package {
     register!(Package::builder("my.pkg"), add_numbers, multiply).build()
 }
 
-rustra::native_entry!(my_package);
+unikit_bridge::native_entry!(my_package);
 ```
 
 In `Cargo.toml`, `[lib]` holds `crate-type = ["rlib", "staticlib"]`.
@@ -1011,8 +1011,8 @@ commands whose input has 0–3 fields are published as field-positional helpers
 outside that shape keep the object-input `commands.ts` path.
 
 ```bash
-bunx --bun @rustra/cli@0.13.0 doctor --config rustra.json
-bunx --bun @rustra/cli@0.13.0 codegen --config rustra.json
+bunx --bun @unikit/cli@0.13.0 doctor --config unikit.json
+bunx --bun @unikit/cli@0.13.0 codegen --config unikit.json
 ```
 
 **TypeScript-side usage:**
@@ -1028,7 +1028,7 @@ hash/schema version verification, and `frameRegistry` fast-engine setup exactly 
 even under concurrent calls. Failed installs are retried on the next call, and an engine
 explicitly `configure()`d by the app is never overwritten by a late-finishing install.
 The generator infers the Cargo package/library and builds the Podspec, Gradle/CMake/JNI,
-and shared C++ bridge into an app-specific `@rustra/generated-react-native` package.
+and shared C++ bridge into an app-specific `@unikit/generated-react-native` package.
 Both Expo development builds and bare RN use standard autolinking, leaving no
 install/configure boilerplate in app code. Expo Go is not supported.
 
@@ -1039,12 +1039,12 @@ JS realm throws `native.not_installed` — both branchable via `error.code`. See
 
 2026-08-24 Release performance on the same public object operations is a 3-run median
 against Nitro of add 1.0297x, string 1.0229x, bytes 0.9219x, pair 1.0656x. The latest
-runner includes Nitro/Rustra/FFI rotation measurement, paired 95% CI, and diagnostics of
+runner includes Nitro/Unikit/FFI rotation measurement, paired 95% CI, and diagnostics of
 the generated helper/native paths, and a Bun command extracts the JSON receipt
 automatically. For the comparison scope and feature parity matrix, see the
 [benchmark document](benchmarks.md) §"Nitro Modules comparison".
 
-**C++ codec codegen:** when `reactNative` is enabled, `rustra-generated-codecs.{hpp,cpp}`
+**C++ codec codegen:** when `reactNative` is enabled, `unikit-generated-codecs.{hpp,cpp}`
 is also placed inside the generated package automatically and included in the iOS and
 Android builds. You never add the files to Xcode/Podspec/Gradle by hand. For details see
 the [React Native setup guide](extending/react-native-setup.md).
@@ -1060,8 +1060,8 @@ for CI is available via `bun run doctor -- --json`.
 #### JSON (low-level transport compatibility)
 
 ```ts
-import { createReactNativeEngine } from '@rustra/react-native';
-import { configure } from '@rustra/types';
+import { createReactNativeEngine } from '@unikit/react-native';
+import { configure } from '@unikit/types';
 import { addNumbers } from '../generated/commands.js';
 import { customNativeTransport } from './native-transport';
 
@@ -1111,7 +1111,7 @@ Runs the unit tests of all crates.
 ### Verifying the TypeScript Output
 
 ```bash
-cargo run -p rustra-calculator-example --bin generate   # contract probe: schema.json
+cargo run -p unikit-calculator-example --bin generate   # contract probe: schema.json
 bun run --cwd examples/calculator codegen                # render TS surfaces
 ```
 
@@ -1155,10 +1155,10 @@ How to use the generated files in a TypeScript project after code generation.
 
 ```
 my-app/
-├── rust-core/            # Rust package (uses rustra)
+├── rust-core/            # Rust package (uses unikit)
 │   ├── Cargo.toml
 │   ├── src/lib.rs
-│   └── generated/        ← rustra generates TS here
+│   └── generated/        ← unikit generates TS here
 │       ├── types.ts
 │       ├── commands.ts
 │       ├── contract.ts
@@ -1191,17 +1191,17 @@ If the generated files live outside the project, map them with `paths`:
 // package.json
 {
   "scripts": {
-    "doctor": "rustra doctor --config rustra.json",
-    "codegen": "rustra codegen --config rustra.json",
-    "codegen:check": "rustra codegen --config rustra.json --check",
+    "doctor": "unikit doctor --config unikit.json",
+    "codegen": "unikit codegen --config unikit.json",
+    "codegen:check": "unikit codegen --config unikit.json --check",
     "build:ts": "tsc",
     "build": "bun run codegen && bun run build:ts",
-    "dev": "rustra dev --config rustra.json"
+    "dev": "unikit dev --config unikit.json"
   }
 }
 ```
 
-The `dev` script uses `rustra dev --config rustra.json` — the same scaffold `rustra init`
+The `dev` script uses `unikit dev --config unikit.json` — the same scaffold `unikit init`
 creates — and watches Rust source changes too, handling schema regeneration + TS
 regeneration in one pass. It watches the configured host crates in addition to the schema
 crate, and a reload is reported as successful only after the configured Node and Bun
@@ -1214,10 +1214,10 @@ separate script.
 
 While prototyping on a debug build you can call a Rust handler that is not in the
 generated client yet with `invokeLoose(engine, 'commandName', args?)` from
-`@rustra/types` — the dynamic development tier, its unknown-device-token wall, and the
+`@unikit/types` — the dynamic development tier, its unknown-device-token wall, and the
 release-time gates are described in [dev-tier.md](dev-tier.md).
 
-`rustra.json` names the Rust generator:
+`unikit.json` names the Rust generator:
 
 ```json
 {
@@ -1248,7 +1248,7 @@ Only when an existing project must keep its own subcommand, write `main.rs` to h
 `generate` subcommand under `cargo run`:
 
 ```rust
-fn main() -> rustra::Result<()> {
+fn main() -> unikit_bridge::Result<()> {
     let args: Vec<String> = std::env::args().collect();
     if args.get(1).map(|s| s.as_str()) == Some("generate") {
         let package = my_package();
@@ -1276,15 +1276,15 @@ stage of `codegen --check` executes, but the TS/C++/RN verification stages write
 
 ### Rust Side
 
-Return errors as `RustraError`. `Serialize` is implemented, so it is serialized to JSON.
+Return errors as `UnikitError`. `Serialize` is implemented, so it is serialized to JSON.
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[command]
 fn divide(input: DivideInput) -> Result<DivideOutput> {
     if input.b == 0 {
-        return Err(RustraError::custom("math.divide_by_zero", "cannot divide by zero"));
+        return Err(UnikitError::custom("math.divide_by_zero", "cannot divide by zero"));
     }
     Ok(DivideOutput { value: input.a / input.b })
 }
@@ -1297,29 +1297,29 @@ Error codes:
 | `command.not_found`    | Invoking a nonexistent command                    |
 | `command.invalid_args` | Input JSON deserialization failure                |
 | `internal`             | Internal error (serialization failure, I/O, etc.) |
-| custom (your code)     | `RustraError::custom(code, message)`              |
+| custom (your code)     | `UnikitError::custom(code, message)`              |
 
 ### TypeScript Side
 
 When a command call fails, the adapter throws. All host adapters (Node/Bun/Tauri/RN)
-normalize it to `@rustra/types`' `RustraCommandError`, so there is exactly one
+normalize it to `@unikit/types`' `UnikitCommandError`, so there is exactly one
 `instanceof` branch:
 
 ```ts
-import { RustraCommandError } from '@rustra/types';
+import { UnikitCommandError } from '@unikit/types';
 import { divide } from '../generated/node.js';
 
 try {
   const result = await divide({ a: 10, b: 0 });
 } catch (e) {
-  if (e instanceof RustraCommandError) {
+  if (e instanceof UnikitCommandError) {
     console.log(e.code); // "math.divide_by_zero"
     console.log(e.message); // "cannot divide by zero"
   }
 }
 ```
 
-`RustraCommandError` exposes `err.code` and `err.retryable`; timeouts/cancellations can
+`UnikitCommandError` exposes `err.code` and `err.retryable`; timeouts/cancellations can
 also be caught as the `TimeoutError`/`CancelledError` subclasses respectively. The
 original transport error is preserved in `err.cause`.
 
@@ -1327,7 +1327,7 @@ original transport error is preserved in `err.cause`.
 
 String comparisons don't catch typos. If the Rust command declares its domain error
 codes (see the [Rust API Guide — command-scoped error
-declarations](./rust-api-guide.md))), `rustra codegen` also emits `generated/errors.ts`
+declarations](./rust-api-guide.md))), `unikit codegen` also emits `generated/errors.ts`
 with one guard per command. Catch with the guard and the code becomes a literal union —
 a typo'd code stops compiling:
 
@@ -1343,12 +1343,12 @@ try {
     }
   }
   // Undeclared codes (e.g. a newer native returning a new code) fall through:
-  // fall back to `e instanceof RustraCommandError` + `e.code` string checks.
+  // fall back to `e instanceof UnikitCommandError` + `e.code` string checks.
 }
 ```
 
 Commands without declarations simply have no guard — the plain
-`RustraCommandError` pattern above keeps working everywhere.
+`UnikitCommandError` pattern above keeps working everywhere.
 
 ---
 
@@ -1407,7 +1407,7 @@ or register!(Package::builder("id"), fn1, fn2, ...).build()
 package.generate_typescript()?.write_schema_to_dir("generated")   (schema.json only)
         |
         v
-rustra codegen --config rustra.json                                (TS CLI renders every surface)
+unikit codegen --config unikit.json                                (TS CLI renders every surface)
         |
         v
 generated/

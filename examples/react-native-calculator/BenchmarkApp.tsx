@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Platform, StyleSheet, Text, View, ScrollView } from 'react-native';
 import { NitroModules } from 'react-native-nitro-modules';
 import type { NitroBench } from 'nitro-bench';
-import { configure } from '@rustra/types';
+import { configure } from '@unikit/types';
 import {
   addNumbers,
   greet,
@@ -24,8 +24,8 @@ import {
   resourceClose,
 } from '../calculator/generated/commands';
 // ── Benchmark internals (not part of user-facing API) ───────
-import { installRustraJSI, getRustraNative } from '@rustra/generated-react-native';
-import RustraCalculator, { invokeCommand as invokeFfiCommand } from 'rustra-calculator';
+import { installUnikitJSI, getUnikitNative } from '@unikit/generated-react-native';
+import UnikitCalculator, { invokeCommand as invokeFfiCommand } from 'unikit-calculator';
 import { createJsonEngine } from './src/adapters/json-adapter';
 import { createFrameEngine, frameRegistry } from './src/adapters/frame-adapter';
 import {
@@ -36,7 +36,7 @@ import {
   type RouteDiagnostic,
 } from './src/benchmark-stats';
 import { decodeUtf8, encodeUtf8, exactArrayBuffer } from './src/utf8';
-import { RUSTRA_BUILD_FINGERPRINT } from './src/build-fingerprint';
+import { UNIKIT_BUILD_FINGERPRINT } from './src/build-fingerprint';
 import { formatError } from './src/format-error';
 // ── End benchmark internals ─────────────────────────────────
 
@@ -62,8 +62,8 @@ type CiStartupStage =
 
 // CI startup checkpoints stay outside timed batches and contain no runtime data.
 function traceCiStartup(stage: CiStartupStage): void {
-  if (process.env.EXPO_PUBLIC_RUSTRA_CI_TRACE === '1') {
-    console.warn(`__RUSTRA_SMOKE_STAGE_${stage}`);
+  if (process.env.EXPO_PUBLIC_UNIKIT_CI_TRACE === '1') {
+    console.warn(`__UNIKIT_SMOKE_STAGE_${stage}`);
   }
 }
 
@@ -158,7 +158,7 @@ async function runBenchmarks(): Promise<string[]> {
   log('Installing JSI...');
   try {
     traceCiStartup('INSTALL_BEGIN');
-    await installRustraJSI();
+    await installUnikitJSI();
     traceCiStartup('INSTALL_END');
   } catch (e: any) {
     traceCiStartup('INSTALL_FAILED');
@@ -166,17 +166,17 @@ async function runBenchmarks(): Promise<string[]> {
     return lines;
   }
   log('JSI installed, getting native...');
-  const native = getRustraNative();
+  const native = getUnikitNative();
 
   // ══════════════════════════════════════════════════════
-  // DX example: how users would set up rustra in their app
+  // DX example: how users would set up unikit in their app
   // ─────────────────────────────────────────────────────
-  //   import { configure } from "@rustra/types";
+  //   import { configure } from "@unikit/types";
   //   import { createFrameEngine } from "./src/adapters/frame-adapter";
-  //   import { installRustraJSI, getRustraNative } from "./modules/rustra-jsi/src";
+  //   import { installUnikitJSI, getUnikitNative } from "./modules/unikit-jsi/src";
   //
-  //   await installRustraJSI();
-  //   configure(createFrameEngine(getRustraNative()));
+  //   await installUnikitJSI();
+  //   configure(createFrameEngine(getUnikitNative()));
   //
   //   // Then use generated commands anywhere:
   //   const result = await addNumbers({ a: 42, b: 58 });
@@ -197,7 +197,7 @@ async function runBenchmarks(): Promise<string[]> {
 
   // ══════════════════════════════════════════════════════
   log('╔════════════════════════════════════════════════╗');
-  log('║  rustra Frame — Multi-Tier Benchmark        ║');
+  log('║  unikit Frame — Multi-Tier Benchmark        ║');
   log('╚════════════════════════════════════════════════╝');
   log('');
 
@@ -233,12 +233,12 @@ async function runBenchmarks(): Promise<string[]> {
   try {
     const smoke = await addNumbers(INPUT);
     if (smoke.value === 100) {
-      console.warn('__RUSTRA_SMOKE_OK__ addNumbers(42,58)=100');
+      console.warn('__UNIKIT_SMOKE_OK__ addNumbers(42,58)=100');
     } else {
-      console.warn(`__RUSTRA_SMOKE_FAIL__ addNumbers returned ${smoke.value}`);
+      console.warn(`__UNIKIT_SMOKE_FAIL__ addNumbers returned ${smoke.value}`);
     }
   } catch (e: any) {
-    console.warn(`__RUSTRA_SMOKE_FAIL__ ${String(e).slice(0, 80)}`);
+    console.warn(`__UNIKIT_SMOKE_FAIL__ ${String(e).slice(0, 80)}`);
   }
 
   configure(frameEngine);
@@ -262,8 +262,8 @@ async function runBenchmarks(): Promise<string[]> {
   log('┌─ Tier 2: String / Vec<primitive> ─────────────┐');
   configure(frameEngine);
   try {
-    const g = await greet({ name: 'Rustra' });
-    log(`│  greet("Rustra")="${g.message}" ${g.message === 'Hello, Rustra!' ? '✓' : '✗'}`);
+    const g = await greet({ name: 'Unikit' });
+    log(`│  greet("Unikit")="${g.message}" ${g.message === 'Hello, Unikit!' ? '✓' : '✗'}`);
   } catch (e: any) {
     log(`│  greet FAIL ${String(e).slice(0, 40)}`);
   }
@@ -462,14 +462,14 @@ async function runBenchmarks(): Promise<string[]> {
   let ffiAsyncValue: { value: number } | undefined;
   if (Platform.OS === 'ios') {
     try {
-      const syncValue = RustraCalculator.addSync(42, 58);
+      const syncValue = UnikitCalculator.addSync(42, 58);
       if (syncValue !== 100) {
         throw new Error(`Swift FFI addSync expected 100, got ${syncValue}`);
       }
       ffiSyncResult = measureSync(
         'Swift FFI sync',
         () => {
-          RustraCalculator.addSync(42, 58);
+          UnikitCalculator.addSync(42, 58);
         },
         10_000,
       );
@@ -560,13 +560,13 @@ async function runBenchmarks(): Promise<string[]> {
   // 시작하지 않아 서로 다른 작업의 ratio가 로그에 남지 않는다.
   const nitroAddValue = nitroBench.benchAdd(INPUT);
   configure(frameEngine);
-  const rustraAddValue = await benchAdd(INPUT);
+  const unikitAddValue = await benchAdd(INPUT);
   const nitroStringValue = nitroBench.echoString(stringPayload);
-  const rustraStringValue = await benchEchoString(stringPayload);
+  const unikitStringValue = await benchEchoString(stringPayload);
   const nitroBytesValue = normalizeBytes(nitroBench.echoBuffer(byteBufferPayload));
-  const rustraBytesValue = normalizeBytes(await benchEchoBytes(byteBufferPayload));
+  const unikitBytesValue = normalizeBytes(await benchEchoBytes(byteBufferPayload));
   const nitroPairValue = nitroBench.echoPair(pairPayload);
-  const rustraPairValue = await benchEchoPair(pairPayload);
+  const unikitPairValue = await benchEchoPair(pairPayload);
 
   let ffiStringValue: { value: string } | undefined;
   let ffiBytesValue: { data: number[] } | undefined;
@@ -590,47 +590,47 @@ async function runBenchmarks(): Promise<string[]> {
     }
   }
 
-  const rustraNitroOutputsEquivalent =
-    nitroAddValue.value === rustraAddValue.value &&
-    nitroStringValue.value === rustraStringValue.value &&
+  const unikitNitroOutputsEquivalent =
+    nitroAddValue.value === unikitAddValue.value &&
+    nitroStringValue.value === unikitStringValue.value &&
     Array.isArray(nitroBytesValue.data) &&
-    Array.isArray(rustraBytesValue.data) &&
-    JSON.stringify(nitroBytesValue.data) === JSON.stringify(rustraBytesValue.data) &&
-    nitroPairValue.name === rustraPairValue.name &&
-    nitroPairValue.value === rustraPairValue.value;
+    Array.isArray(unikitBytesValue.data) &&
+    JSON.stringify(nitroBytesValue.data) === JSON.stringify(unikitBytesValue.data) &&
+    nitroPairValue.name === unikitPairValue.name &&
+    nitroPairValue.value === unikitPairValue.value;
   const ffiOutputsEquivalent =
     Platform.OS !== 'ios' ||
     (ffiSuiteAvailable &&
-      ffiAsyncValue?.value === rustraAddValue.value &&
-      ffiStringValue?.value === rustraStringValue.value &&
-      JSON.stringify(ffiBytesValue?.data) === JSON.stringify(rustraBytesValue.data) &&
-      ffiPairValue?.name === rustraPairValue.name &&
-      ffiPairValue?.value === rustraPairValue.value);
-  const equivalentOutputs = rustraNitroOutputsEquivalent && ffiOutputsEquivalent;
+      ffiAsyncValue?.value === unikitAddValue.value &&
+      ffiStringValue?.value === unikitStringValue.value &&
+      JSON.stringify(ffiBytesValue?.data) === JSON.stringify(unikitBytesValue.data) &&
+      ffiPairValue?.name === unikitPairValue.name &&
+      ffiPairValue?.value === unikitPairValue.value);
+  const equivalentOutputs = unikitNitroOutputsEquivalent && ffiOutputsEquivalent;
   if (!equivalentOutputs) {
-    throw new Error('Nitro/rustra/FFI equivalent benchmark returned different outputs');
+    throw new Error('Nitro/unikit/FFI equivalent benchmark returned different outputs');
   }
   log('│  equivalent outputs checked before timing: ✓');
 
   const measureEquivalent = async (
     operation: string,
     nitro: () => Promise<unknown>,
-    rustra: () => Promise<unknown>,
+    unikit: () => Promise<unknown>,
     iterations = 10_000,
     warmupIterations = 500,
   ) => {
     const measurement = await measureInterleaved(
       [
         { key: 'nitro', label: `nitro ${operation}`, run: nitro },
-        { key: 'rustra', label: `rustra ${operation}`, run: rustra },
+        { key: 'unikit', label: `unikit ${operation}`, run: unikit },
       ],
       iterations,
       warmupIterations,
     );
     return {
       nitro: measurement.results.nitro,
-      rustra: measurement.results.rustra,
-      confidence95: pairedRatioConfidence95(measurement.samples.rustra, measurement.samples.nitro),
+      unikit: measurement.results.unikit,
+      confidence95: pairedRatioConfidence95(measurement.samples.unikit, measurement.samples.nitro),
     };
   };
 
@@ -657,7 +657,7 @@ async function runBenchmarks(): Promise<string[]> {
   );
 
   // FFI is an order of magnitude slower and schedules through Swift/Promise.
-  // Mixing it into the sub-4us Nitro/rustra lane changes their GC/microtask
+  // Mixing it into the sub-4us Nitro/unikit lane changes their GC/microtask
   // environment. Keep an independent, still-interleaved Nitro/FFI lane so
   // both comparisons remain equivalent without cross-contaminating the fast
   // bridge gate.
@@ -707,19 +707,19 @@ async function runBenchmarks(): Promise<string[]> {
     : undefined;
 
   const nitroAdd = addResults.nitro;
-  const rustraAdd = addResults.rustra;
+  const unikitAdd = addResults.unikit;
   const ffiAsyncResult = ffiAddResults?.ffi;
   const ffiNitroAdd = ffiAddResults?.nitro;
   const nitroStr = stringResults.nitro;
-  const rustraStr = stringResults.rustra;
+  const unikitStr = stringResults.unikit;
   const ffiStr = ffiStringResults?.ffi;
   const ffiNitroStr = ffiStringResults?.nitro;
   const nitroBuf = bytesResults.nitro;
-  const rustraBuf = bytesResults.rustra;
+  const unikitBuf = bytesResults.unikit;
   const ffiBuf = ffiBytesResults?.ffi;
   const ffiNitroBuf = ffiBytesResults?.nitro;
   const nitroPair = pairResults.nitro;
-  const rustraPair = pairResults.rustra;
+  const unikitPair = pairResults.unikit;
   const ffiPair = ffiPairResults?.ffi;
   const ffiNitroPair = ffiPairResults?.nitro;
   const byteSizeResults: Record<
@@ -728,7 +728,7 @@ async function runBenchmarks(): Promise<string[]> {
       sizeBytes: number;
       iterations: number;
       nitro: BenchResult;
-      rustra: BenchResult;
+      unikit: BenchResult;
       ratio: number;
       confidence95: ReturnType<typeof pairedRatioConfidence95>;
     }
@@ -737,8 +737,8 @@ async function runBenchmarks(): Promise<string[]> {
       sizeBytes: 64,
       iterations: 10_000,
       nitro: nitroBuf,
-      rustra: rustraBuf,
-      ratio: rustraBuf.avg / nitroBuf.avg,
+      unikit: unikitBuf,
+      ratio: unikitBuf.avg / nitroBuf.avg,
       confidence95: bytesResults.confidence95,
     },
   };
@@ -807,7 +807,7 @@ async function runBenchmarks(): Promise<string[]> {
     };
     for (const [operation, result] of Object.entries(generatedRouteDiagnostics)) {
       console.log(
-        `RUSTRA_ROUTE_OP_JSON=${JSON.stringify({
+        `UNIKIT_ROUTE_OP_JSON=${JSON.stringify({
           operation,
           nativeAvgNs: result.native.avg,
           generatedAvgNs: result.generated.avg,
@@ -828,9 +828,9 @@ async function runBenchmarks(): Promise<string[]> {
   ]) {
     const payload = makeByteBufferPayload(byteCase.sizeBytes);
     const nitroValue = nitroBench.echoBuffer(payload);
-    const rustraValue = await benchEchoBytes(payload);
-    if (!byteViewsEqual(asByteView(nitroValue.data), asByteView(rustraValue.data))) {
-      throw new Error(`${byteCase.key} Nitro/rustra outputs differ before timing`);
+    const unikitValue = await benchEchoBytes(payload);
+    if (!byteViewsEqual(asByteView(nitroValue.data), asByteView(unikitValue.data))) {
+      throw new Error(`${byteCase.key} Nitro/unikit outputs differ before timing`);
     }
     const measured = await measureEquivalent(
       byteCase.key,
@@ -843,20 +843,20 @@ async function runBenchmarks(): Promise<string[]> {
       sizeBytes: byteCase.sizeBytes,
       iterations: byteCase.iterations,
       nitro: measured.nitro,
-      rustra: measured.rustra,
-      ratio: measured.rustra.avg / measured.nitro.avg,
+      unikit: measured.unikit,
+      ratio: measured.unikit.avg / measured.nitro.avg,
       confidence95: measured.confidence95,
     };
   }
   for (const [operation, result] of Object.entries(byteSizeResults)) {
     console.log(
-      `RUSTRA_BYTES_OP_JSON=${JSON.stringify({
+      `UNIKIT_BYTES_OP_JSON=${JSON.stringify({
         operation,
         sizeBytes: result.sizeBytes,
         iterations: result.iterations,
         nitroAvgNs: result.nitro.avg,
-        rustraAvgNs: result.rustra.avg,
-        rustraToNitro: result.ratio,
+        unikitAvgNs: result.unikit.avg,
+        unikitToNitro: result.ratio,
         confidence95: result.confidence95,
       })}`,
     );
@@ -867,13 +867,13 @@ async function runBenchmarks(): Promise<string[]> {
       `│  ${prefix.padEnd(11)} avg ${formatNs(result.avg).padStart(9)}  p50 ${formatNs(result.p50).padStart(9)}  p95 ${formatNs(result.p95).padStart(9)}  p99 ${formatNs(result.p99).padStart(9)}`,
     );
   logResult('add Nitro', nitroAdd);
-  logResult('add rustra', rustraAdd);
+  logResult('add unikit', unikitAdd);
   logResult('str Nitro', nitroStr);
-  logResult('str rustra', rustraStr);
+  logResult('str unikit', unikitStr);
   logResult('buf Nitro', nitroBuf);
-  logResult('buf rustra', rustraBuf);
+  logResult('buf unikit', unikitBuf);
   logResult('obj Nitro', nitroPair);
-  logResult('obj rustra', rustraPair);
+  logResult('obj unikit', unikitPair);
   if (ffiSuiteAvailable && ffiAsyncResult && ffiStr && ffiBuf && ffiPair) {
     logResult('add FFI', ffiAsyncResult);
     logResult('str FFI', ffiStr);
@@ -882,10 +882,10 @@ async function runBenchmarks(): Promise<string[]> {
   }
 
   log('│');
-  log(`│  add  rustra/Nitro = ${(rustraAdd.avg / nitroAdd.avg).toFixed(2)}x`);
-  log(`│  str  rustra/Nitro = ${(rustraStr.avg / nitroStr.avg).toFixed(2)}x`);
-  log(`│  buf  rustra/Nitro = ${(rustraBuf.avg / nitroBuf.avg).toFixed(2)}x`);
-  log(`│  obj  rustra/Nitro = ${(rustraPair.avg / nitroPair.avg).toFixed(2)}x`);
+  log(`│  add  unikit/Nitro = ${(unikitAdd.avg / nitroAdd.avg).toFixed(2)}x`);
+  log(`│  str  unikit/Nitro = ${(unikitStr.avg / nitroStr.avg).toFixed(2)}x`);
+  log(`│  buf  unikit/Nitro = ${(unikitBuf.avg / nitroBuf.avg).toFixed(2)}x`);
+  log(`│  obj  unikit/Nitro = ${(unikitPair.avg / nitroPair.avg).toFixed(2)}x`);
   if (
     ffiSuiteAvailable &&
     ffiAsyncResult &&
@@ -911,7 +911,7 @@ async function runBenchmarks(): Promise<string[]> {
     : undefined;
   const equivalentBenchmarkReceipt = {
     schemaVersion: 5,
-    buildFingerprint: RUSTRA_BUILD_FINGERPRINT,
+    buildFingerprint: UNIKIT_BUILD_FINGERPRINT,
     generatedAt: new Date().toISOString(),
     platform: Platform.OS,
     platformVersion: String(Platform.Version),
@@ -937,33 +937,33 @@ async function runBenchmarks(): Promise<string[]> {
     equivalent: {
       add: {
         nitro: nitroAdd,
-        rustra: rustraAdd,
-        ratio: rustraAdd.avg / nitroAdd.avg,
+        unikit: unikitAdd,
+        ratio: unikitAdd.avg / nitroAdd.avg,
         confidence95: addResults.confidence95,
       },
       string: {
         nitro: nitroStr,
-        rustra: rustraStr,
-        ratio: rustraStr.avg / nitroStr.avg,
+        unikit: unikitStr,
+        ratio: unikitStr.avg / nitroStr.avg,
         confidence95: stringResults.confidence95,
       },
       bytes64: {
         nitro: nitroBuf,
-        rustra: rustraBuf,
-        ratio: rustraBuf.avg / nitroBuf.avg,
+        unikit: unikitBuf,
+        ratio: unikitBuf.avg / nitroBuf.avg,
         confidence95: bytesResults.confidence95,
       },
       pair: {
         nitro: nitroPair,
-        rustra: rustraPair,
-        ratio: rustraPair.avg / nitroPair.avg,
+        unikit: unikitPair,
+        ratio: unikitPair.avg / nitroPair.avg,
         confidence95: pairResults.confidence95,
       },
     },
     byteSizes: byteSizeResults,
     receiptExport: {
       format: 'json',
-      filename: 'rustra-benchmark-receipt.json',
+      filename: 'unikit-benchmark-receipt.json',
       atomicWrite: true,
     },
     ffi:
@@ -1002,13 +1002,13 @@ async function runBenchmarks(): Promise<string[]> {
   const bytes1MiBWireReceipt = equivalentBenchmarkReceipt.byteSizes.bytes1MiBWire;
   lines.unshift(
     `RESULT equivalent=${equivalentOutputs ? '✓' : '✗'} ffi=${Platform.OS === 'ios' ? (ffiSuiteAvailable ? '✓' : '✗') : 'skipped'} add=${equivalentBenchmarkReceipt.equivalent.add.ratio.toFixed(4)}x str=${equivalentBenchmarkReceipt.equivalent.string.ratio.toFixed(4)}x buf=${equivalentBenchmarkReceipt.equivalent.bytes64.ratio.toFixed(4)}x obj=${equivalentBenchmarkReceipt.equivalent.pair.ratio.toFixed(4)}x`,
-    `BYTES 64KiB nitro=${bytes64KiBReceipt.nitro.avg.toFixed(3)}ns rustra=${bytes64KiBReceipt.rustra.avg.toFixed(3)}ns ratio=${bytes64KiBReceipt.ratio.toFixed(4)}x ci95=[${bytes64KiBReceipt.confidence95.lower.toFixed(4)},${bytes64KiBReceipt.confidence95.upper.toFixed(4)}]`,
-    `BYTES 1MiB-wire nitro=${bytes1MiBWireReceipt.nitro.avg.toFixed(3)}ns rustra=${bytes1MiBWireReceipt.rustra.avg.toFixed(3)}ns ratio=${bytes1MiBWireReceipt.ratio.toFixed(4)}x ci95=[${bytes1MiBWireReceipt.confidence95.lower.toFixed(4)},${bytes1MiBWireReceipt.confidence95.upper.toFixed(4)}]`,
+    `BYTES 64KiB nitro=${bytes64KiBReceipt.nitro.avg.toFixed(3)}ns unikit=${bytes64KiBReceipt.unikit.avg.toFixed(3)}ns ratio=${bytes64KiBReceipt.ratio.toFixed(4)}x ci95=[${bytes64KiBReceipt.confidence95.lower.toFixed(4)},${bytes64KiBReceipt.confidence95.upper.toFixed(4)}]`,
+    `BYTES 1MiB-wire nitro=${bytes1MiBWireReceipt.nitro.avg.toFixed(3)}ns unikit=${bytes1MiBWireReceipt.unikit.avg.toFixed(3)}ns ratio=${bytes1MiBWireReceipt.ratio.toFixed(4)}x ci95=[${bytes1MiBWireReceipt.confidence95.lower.toFixed(4)},${bytes1MiBWireReceipt.confidence95.upper.toFixed(4)}]`,
     '',
   );
-  if (Platform.OS === 'ios' && typeof RustraCalculator.writeBenchmarkReceipt === 'function') {
+  if (Platform.OS === 'ios' && typeof UnikitCalculator.writeBenchmarkReceipt === 'function') {
     try {
-      const filename = RustraCalculator.writeBenchmarkReceipt(
+      const filename = UnikitCalculator.writeBenchmarkReceipt(
         JSON.stringify(equivalentBenchmarkReceipt),
       );
       lines.unshift(`RECEIPT ${filename}`, '');
@@ -1016,10 +1016,10 @@ async function runBenchmarks(): Promise<string[]> {
       throw new Error(`benchmark receipt export failed: ${formatError(error)}`);
     }
   }
-  console.log(`RUSTRA_NITRO_JSON=${JSON.stringify(equivalentBenchmarkReceipt)}`);
-  console.log(`RUSTRA_FFI_JSON=${JSON.stringify(equivalentBenchmarkReceipt.ffi)}`);
+  console.log(`UNIKIT_NITRO_JSON=${JSON.stringify(equivalentBenchmarkReceipt)}`);
+  console.log(`UNIKIT_FFI_JSON=${JSON.stringify(equivalentBenchmarkReceipt.ffi)}`);
   console.log(
-    `RUSTRA_NITRO_META_JSON=${JSON.stringify({
+    `UNIKIT_NITRO_META_JSON=${JSON.stringify({
       schemaVersion: equivalentBenchmarkReceipt.schemaVersion,
       generatedAt: equivalentBenchmarkReceipt.generatedAt,
       platform: equivalentBenchmarkReceipt.platform,
@@ -1048,19 +1048,19 @@ async function runBenchmarks(): Promise<string[]> {
           ]
         : undefined;
     console.log(
-      `RUSTRA_BENCH_OP_JSON=${JSON.stringify({
+      `UNIKIT_BENCH_OP_JSON=${JSON.stringify({
         operation,
         nitroAvgNs: result.nitro.avg,
-        rustraAvgNs: result.rustra.avg,
+        unikitAvgNs: result.unikit.avg,
         ffiAvgNs: ffiResult?.avg,
-        rustraToNitro: result.ratio,
-        rustraToNitroConfidence95: result.confidence95,
+        unikitToNitro: result.ratio,
+        unikitToNitroConfidence95: result.confidence95,
         ffiToNitro: ffiResult && ffiNitroResult ? ffiResult.avg / ffiNitroResult.avg : undefined,
       })}`,
     );
   }
   for (const [operation, result] of Object.entries(equivalentBenchmarkReceipt.equivalent)) {
-    console.log(`RUSTRA_NITRO_OP_JSON=${JSON.stringify({ operation, ...result })}`);
+    console.log(`UNIKIT_NITRO_OP_JSON=${JSON.stringify({ operation, ...result })}`);
   }
 
   // ── 채널/리소스 E2E (타입 패리티 2단계 — Tauri v2 모델) ──────────

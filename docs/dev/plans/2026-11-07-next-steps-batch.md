@@ -1,7 +1,7 @@
 # 0.13.0 이후 다음 스텝 5트랙 일괄 계획
 
 - 작성일: 2026-11-07 · SDD 파이프라인(G0–G5) 일괄 실행
-- 원 요청: "rustra그 다음 스텝으로 어떻게 해야할까??" → 5개 트랙 제시 → "를 통해서 각각 모든 것들을 이용해줘."(전트랙 실행 지시)
+- 원 요청: "unikit그 다음 스텝으로 어떻게 해야할까??" → 5개 트랙 제시 → "를 통해서 각각 모든 것들을 이용해줘."(전트랙 실행 지시)
 - 기준 리비전: `b7c07503` (main, clean — 미커밋 변경 없음)
 - 환경: Linux(omarchy), bun 1.4.4, node 26.13, cargo/rustc 1.95.0. adb·xcodebuild·actionlint·Android NDK 부재 → 기기·macOS·Windows 네이티브 실행 증거는 이번 로컬에서 BLOCKED로 기록.
 - 위임: Agent 스폰 가능(독립 평가 직군용). 커밋·푸시·PR 병합은 사용자 승인 전 금지 — working tree에만 반영.
@@ -38,11 +38,11 @@
 
 ### T1 — RN 이벤트 교착 (원인과 수정)
 
-- **원인(코드 계약 기반)**: `EventDispatcher::onRustEvent`(RustraJSIBridge.cpp:562)은 FFI 싱크 콜백이다. 동기 invoke(HostFunction) 실행 중 명령이 `Package::emit`을 호출하면 이 콜백이 **JS 스레드에서 재진입**되고, `scheduleDrainLocked`(:579)은 같은 JS 스레드가 동기 네이티브 호출 중인 상태에서 `CallInvoker::invokeAsync`(:591)를 호출한다. Android(RN 0.81.5 실기기 3/3)에서 이 재진입 post 직후 JS 이벤트 루프가 다음 매크로태스크 전에 정지한다(영수증: `docs/verification/evidence/2026-09-21-registry-rn-android-device.json` findings). pollMs도 같은 싱크를 공유해 우회 불가.
+- **원인(코드 계약 기반)**: `EventDispatcher::onRustEvent`(UnikitJSIBridge.cpp:562)은 FFI 싱크 콜백이다. 동기 invoke(HostFunction) 실행 중 명령이 `Package::emit`을 호출하면 이 콜백이 **JS 스레드에서 재진입**되고, `scheduleDrainLocked`(:579)은 같은 JS 스레드가 동기 네이티브 호출 중인 상태에서 `CallInvoker::invokeAsync`(:591)를 호출한다. Android(RN 0.81.5 실기기 3/3)에서 이 재진입 post 직후 JS 이벤트 루프가 다음 매크로태스크 전에 정지한다(영수증: `docs/verification/evidence/2026-09-21-registry-rn-android-device.json` findings). pollMs도 같은 싱크를 공유해 우회 불가.
 - **수정(초크포인트 전수 부착)**: `thread_local` 깊이 카운터(`JsNativeCallScope` RAII)를 동기적으로 Rust 코드를 실행하는 HostFunction 전체에 걸치는 **공용 초크포인트 3곳**에 부착한다(개별 진입점 12+곳을 하나씩 붙이지 않는다):
   1. `makeInvoke` 람다 본체(.cpp:1045) — `invoke`·`invokeJson`·`invokePostcardFFI`·`invokeFrame` 4변형 공용(:1070-1077).
   2. `typedInvokeTail`(.cpp:329) — typed 동기 5종(`invokeTyped`·`invokeTypedById`·`invokeTypedPos`·`invokeTypedBatch`·`invokeTypedBatchById`, 직접 호출 :437/:460 포함) 공용 테일.
-  3. `RustraSyncBinding.inc`의 `invokeRawOnCore`/`invokeBufferOnCore` 테일(.inc:80/:103) — `invokeTypedRaw`(:1402)·`invokeTypedBuffer`(:1320)와 `createNativeSyncBinding`(.inc:167)·`bindSyncCommand` 생성 함수 경유 동기 바인딩.
+  3. `UnikitSyncBinding.inc`의 `invokeRawOnCore`/`invokeBufferOnCore` 테일(.inc:80/:103) — `invokeTypedRaw`(:1402)·`invokeTypedBuffer`(:1320)와 `createNativeSyncBinding`(.inc:167)·`bindSyncCommand` 생성 함수 경유 동기 바인딩.
 
   추가로 비동기 디스패치 `invokeTypedAsync`·`invokeTypedAsyncById` HostFunction에도 스코프를 부착한다(G1 F-8) — 이 진입은 세 초크포인트를 지나지 않아 "깊이>0 라우팅"이 작동하지 않기 때문. 즉시 실패 완료만 이 스코프 내부에서 발생하며, 워커 완료는 나중에 별도 스레드(깊이 0)에서 도착해 기존 경로를 쓴다.
 - **통합 에필로그 큐**: 깊이 > 0이면 `invokeAsync` 대신 에필로그 큐에 callable을 적재한다. 항목 3종 — ① EventDispatcher drain, ② ChannelDispatcher 드레인(일반·바이트 큐), ③ 지연된 비동기 완료 람다. 스코프 이탈(깊이 0)에서 큐를 적재 순서대로 JS 스레드에서 인라인 실행(이미 JS 스레드, rt 사용 가능 — `invokeAsync`가 한 틱 뒤에 하려던 일을 안전한 시점에 수행). **ChannelDispatcher::scheduleDrainLocked**(.cpp:836, EventDispatcher와 동일 재진입 패턴 — 동기 명령의 `ChannelHandle::send`→`ChannelHost::send`(호출 스레드에서 sink 동기 실행)→`onChannelPayload`(:757/:774)→`invokeAsync` 경로)도 같은 깊이 검사로 전환한다. 드롭-올리스트 정책·`invokerGeneration_` 재로드 무효화 계약은 양 디스패처 모두 유지.
@@ -63,9 +63,9 @@
 | PR | 범프 | 로컬 검증 | 병합 판정 기준 |
 |---|---|---|---|
 | #101 | tauri 2.11.5→2.11.6 | `cargo update` 해석 + deny + PR 체크 상태 | macOS 전용 예제 — PR 브랜치 CI green이면 병합 권고 |
-| #102 | napi-derive 3.6.5→3.6.12 | `cargo check/test -p rustra-calculator-napi` + macro 회귀 | 게이트 green |
-| #103 | syn 3.0.5→3.0.6 | `cargo check/test -p rustra-macros` + clippy | 게이트 green |
-| #104 | napi 3.12.4→3.14.2 | `cargo check/test -p rustra-calculator-napi` + napi 스모크 | 게이트 green |
+| #102 | napi-derive 3.6.5→3.6.12 | `cargo check/test -p unikit-calculator-napi` + macro 회귀 | 게이트 green |
+| #103 | syn 3.0.5→3.0.6 | `cargo check/test -p unikit-bridge-macros` + clippy | 게이트 green |
+| #104 | napi 3.12.4→3.14.2 | `cargo check/test -p unikit-calculator-napi` + napi 스모크 | 게이트 green |
 | #105 | napi-build 2.4.2→2.6.0 | 빌드 스크립트 경로 check | 게이트 green |
 | #106 | dorny/paths-filter v3→v4 | ci.yml `changes` 잡 사용처 입력 호환성 대조 + 웹 릴리스 노트 | 호환 시 권고 |
 | #111 | dawidd6/action-download-artifact 24→28 | 사용처(workflow) 입출력 호환 대조 + PR 체크 | 호환 시 권고 |
@@ -76,7 +76,7 @@
 
 | PR | 로컬 검증 결과 | 권고 |
 |---|---|---|
-| #101 tauri 2.11.6 | `cargo check -p rustra --features tauri` PASS | **병합** |
+| #101 tauri 2.11.6 | `cargo check -p unikit-bridge --features tauri` PASS | **병합** |
 | #102 napi-derive 3.6.12 | 단독 적용 시 `calculator-napi` 컴파일 FAIL — derive-backend 6.1.6 codegen이 `napi::bindgen_prelude::defer_native_borrow_scope`를 생성하나 napi 3.14.2 런타임에 해당 함수 부재(캐시 소스 grep 실측). 런타임 ≥3.15 필요 | **보류·닫기** — 하위 조정 범프로 대체 |
 | #103 syn 3.0.6 | check·test(4 pass)·clippy `-D warnings` PASS(1차 시도는 `cargo update -p syn` ambiguous 스펙으로 미적용 — `syn@3.0.5` 명시로 재검증) | **병합** |
 | #104 napi 3.14.2 | 단독 PASS — 그러나 crates.io 최신 3.16.1 존재 + #102(derive)와 조합 시 FAIL | **보류·닫기** — 조정 범프로 대체 |
@@ -101,7 +101,7 @@
 
 | ID | 목적·AC | 담당 직군 | 수정할 파일/경계 | 선행 | 검증 | 상태 |
 |---|---|---|---|---|---|---|
-| T1-1 | 네이티브 재진입 가드+에필로그 drain·JS 대리 시나리오 (AC-1) | Backend/Core Engineer | `packages/react-native/native/cpp/RustraJSIBridge.cpp`, `RustraSyncBinding.inc`, `packages/react-native/src/index.test.ts`(신규 모킹 케이스만) | 없음 | V1, V2 | done(구현+자체검증 — 독립 Task QA 대기. +272/-22: 깊이 가드·에필로그 큐·초크포인트 4곳[.inc는 WithDecode 템플릿에 부착해 바운드 변형 커버]·양 디스패처+비동기 완료 2곳 라우팅. RN 90 pass·types 311 pass·test:compile 0. C++ 컴파일·기기 BLOCKED) |
+| T1-1 | 네이티브 재진입 가드+에필로그 drain·JS 대리 시나리오 (AC-1) | Backend/Core Engineer | `packages/react-native/native/cpp/UnikitJSIBridge.cpp`, `UnikitSyncBinding.inc`, `packages/react-native/src/index.test.ts`(신규 모킹 케이스만) | 없음 | V1, V2 | done(구현+자체검증 — 독립 Task QA 대기. +272/-22: 깊이 가드·에필로그 큐·초크포인트 4곳[.inc는 WithDecode 템플릿에 부착해 바운드 변형 커버]·양 디스패처+비동기 완료 2곳 라우팅. RN 90 pass·types 311 pass·test:compile 0. C++ 컴파일·기기 BLOCKED) |
 | T1-2 | 교착 결함 문서 갱신+재검증 절차 (AC-2) | Backend/Core Engineer | `docs/compatibility-matrix.md`(+ko) 이벤트 셀 각주. 로드맵 상태 문서는 T4-1과 공유하므로 순차 처리 | T1-1 | V2 | done(구현+자체검증 — 독립 Task QA 대기. Events·Channels 행 RN 셀 †각주 EN/KO 대칭, '수정 완료·발행 대기' 정확 표기, test:docs 37/37 통과) |
 | T1-3 | rn-android 여정 `--assert-events` 옵트인 (AC-2) | Platform/Tooling Engineer | `scripts/registry-consumer-rn-android.mjs`(+test) | T1-1 | V3 | done(구현+자체검증 — 독립 Task QA 대기. 플래그 부재 시 렌더 바이트 동일 실증, 신규 유닛 9종 포함 15/15(6→15), 마커 subscribed→arrival×N→emit-returned→complete(매크로태스크+다음 명령)+`eventValues===[1,2,3]` 단언, findings 정직 갱신. 실기기 실행은 adb 부재로 BLOCKED — 발행 후 versions.json 핀 갱신→`--assert-events` 실행→영수증 증거 커밋 절차 보고됨. 문서 제안 문구는 조율자가 registry-onboarding EN/KO에 반영 완료) |
 | T2-1 | RN/iOS 여정 스크립트·배선·문서 (AC-3, AC-4) | Platform/Tooling Engineer | `scripts/registry-consumer-rn-ios.mjs`(+test), `package.json`(script), `docs/registry-onboarding.md`(+ko) | 없음 | V3, V4 | done(구현+자체검증 — 독립 Task QA 대기. 여정 1,432줄·유닛 11종. 설계 발견: RN console.log는 os_log행 → Rust println! 마커+simctl stdout 캡처, Release 번들 빌드. Linux 실행 시 정직 BLOCKED 영수증 exit 1 확인. package.json 배선은 조율자 반영 완료) |

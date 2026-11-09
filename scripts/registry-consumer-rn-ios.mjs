@@ -4,7 +4,7 @@
 //
 // 공개 레지스트리만으로 (1) RN 앱을 만들고(커뮤니티 CLI 템플릿 — Expo 미사용,
 // 기존 rn-ios CI 잡의 Expo prebuild 와 다르다) (2) 발행 CLI·어댑터를 정확 핀
-// 설치해 (3) 코드젠이 rustra-bridge 네이티브 모듈(podspec 포함)을 렌더링하게
+// 설치해 (3) 코드젠이 unikit-bridge 네이티브 모듈(podspec 포함)을 렌더링하게
 // 하고 (4) `pod install` 의 prepare_command 가 Rust staticlib(aarch64-apple-ios-sim
 // + x86_64-apple-ios lipo)을 빌드하며 (5) `xcodebuild -sdk iphonesimulator
 // CODE_SIGNING_ALLOWED=NO` 로 .app 을 만들어 (6) 시뮬레이터에서 실행, JS 관측을
@@ -19,7 +19,7 @@
 // 마커 채널 — logcat 이 아니라 stdout 캡처: RN 0.81 의 console.log 는
 // RCTDefaultLogFunction 을 거쳐 os_log 로만 나간다(React/Base/RCTLog.mm,
 // scripts/ci-ios-runtime-smoke.sh 주석과 동일 결론 — stdout/stderr 에는 못
-// 나온다). 그래서 JS 관측은 rustra 브릿지 자체의 reportEvidence 커맨드로
+// 나온다). 그래서 JS 관측은 unikit 브릿지 자체의 reportEvidence 커맨드로
 // Rust println! 까지 되돌려 보내고, `simctl launch --stdout=<sim 경로>` 가
 // 그 줄을 캡처 파일에 남긴다. 캡처 경로는 시뮬레이터 안에서 해석되므로
 // SIMULATOR_SHARED_RESOURCES_DIRECTORY 호스트 매핑(ci-ios-runtime-smoke.sh
@@ -69,10 +69,10 @@ import { errorDetails, runOrderedSteps, sanitizeStepName } from './registry-cons
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const VERSIONS_PATH = fileURLToPath(new URL('./registry-consumer/versions.json', import.meta.url));
 const APP_NAME = 'RegistryRnConsumer';
-const APP_PACKAGE = 'dev.rustra.registryrn';
+const APP_PACKAGE = 'dev.unikit.registryrn';
 const ERROR_SENTINEL = 'registry rn-ios journey error propagation';
 const ECHO_MESSAGE = 'registry-rn-ios';
-const JOURNEY_MARKER = '__RUSTRA_RN_IOS_JOURNEY__';
+const JOURNEY_MARKER = '__UNIKIT_RN_IOS_JOURNEY__';
 const EVIDENCE_WAIT_MS = 180_000;
 const RN_TEMPLATE_VERSION = '0.81.5';
 const COMMUNITY_CLI_VERSION = '20.2.0';
@@ -118,7 +118,7 @@ export function parseCliArgs(argv) {
 // ── 소스 렌더러(순수 함수) ────────────────────────────────────────────────
 
 export function renderRnIosLibRs() {
-  return `use rustra::prelude::*;
+  return `use unikit_bridge::prelude::*;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -132,14 +132,14 @@ pub struct EchoOutput {
     pub message: String,
 }
 
-#[rustra::command]
+#[unikit_bridge::command]
 fn echo(input: EchoInput) -> Result<EchoOutput> {
     Ok(EchoOutput { message: input.message })
 }
 
-#[rustra::command]
+#[unikit_bridge::command]
 fn fail_echo(_input: EchoInput) -> Result<EchoOutput> {
-    Err(RustraError::invalid_args("${ERROR_SENTINEL}"))
+    Err(UnikitError::invalid_args("${ERROR_SENTINEL}"))
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
@@ -155,12 +155,12 @@ pub struct EmitTicksOutput {
 }
 
 // JSI 푸시 — 설치된 싱크로 Package::emit 이 앱 JS 로 전달된다. 싱크는 등록된
-// 패키지 인스턴스에 설치된다 — rustra::ffi::get_package() 핸들로 발행한다
+// 패키지 인스턴스에 설치된다 — unikit_bridge::ffi::get_package() 핸들로 발행한다
 // (calculator 예제 emit_demo 와 동일한 계약). iOS 푸시 경로의 첫 실측이다.
-#[rustra::command]
+#[unikit_bridge::command]
 fn emit_ticks(input: EmitTicksInput) -> Result<EmitTicksOutput> {
-    let package = rustra::ffi::get_package()
-        .ok_or_else(|| RustraError::custom("ffi.not_registered", "package not registered"))?;
+    let package = unikit_bridge::ffi::get_package()
+        .ok_or_else(|| UnikitError::custom("ffi.not_registered", "package not registered"))?;
     for index in 0..input.ticks {
         package.emit("calc.tick", serde_json::json!({ "value": index + 1 }));
     }
@@ -184,14 +184,14 @@ pub struct ReportEvidenceOutput {
 // 앱 stdout 에 마커로 찍는다. simctl launch --stdout 캡처가 이 줄을 담고,
 // 여정이 호스트 경로로 매핑해 폴링한다(Tauri 여정의 reportEvidence 와 같은
 // "브릿지 자체로 증거를 되돌린다" 계약, 출력 채널만 파일→stdout).
-#[rustra::command]
+#[unikit_bridge::command]
 fn report_evidence(input: ReportEvidenceInput) -> Result<ReportEvidenceOutput> {
     use std::io::Write as _;
     let stdout = std::io::stdout();
     let mut handle = stdout.lock();
     writeln!(handle, "${JOURNEY_MARKER}{}", input.payload)
         .and_then(|()| handle.flush())
-        .map_err(|error| RustraError::internal(format!("evidence stdout write failed: {error}")))?;
+        .map_err(|error| UnikitError::internal(format!("evidence stdout write failed: {error}")))?;
     Ok(ReportEvidenceOutput { written: 1 })
 }
 
@@ -202,13 +202,13 @@ pub fn package() -> Package {
         .command_fn(emit_ticks)
         .command_fn(report_evidence)
         .build();
-    // 모바일 엔트리 계약 — rustra_mobile_init 이 이 함수를 호출할 때 FFI 전역에
+    // 모바일 엔트리 계약 — unikit_mobile_init 이 이 함수를 호출할 때 FFI 전역에
     // 자동 등록돼야 install 시점의 계약 해시 조회가 성립한다.
     package.register_ffi();
     package
 }
 
-rustra::native_entry!(package);
+unikit_bridge::native_entry!(package);
 `;
 }
 
@@ -245,7 +245,7 @@ import {
   emitTicks,
   failEcho,
   reportEvidence,
-  rustra,
+  unikit,
   subscribeEvent,
 } from './generated/react-native.js';
 import { INPUT } from './journey-input.js';
@@ -274,7 +274,7 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
-        await rustra.ready();
+        await unikit.ready();
         await report('ready', {});
 
         const echoResult: any = await echo(INPUT as never);
@@ -338,18 +338,18 @@ export function renderJourneyInputTs(input) {
 export function renderRnIosCargoToml() {
   return `# Generated by the RN/iOS registry journey — registry-only consumer crate.
 [package]
-name = "rustra-app"
+name = "unikit-app"
 version = "0.1.0"
 edition = "2021"
 publish = false
 
 [lib]
-name = "rustra_app"
+name = "unikit_app"
 crate-type = ["rlib", "staticlib"]
 
 [dependencies]
-rustra = "0"
-rustra-macros = "0"
+unikit-bridge = "0"
+unikit-bridge-macros = "0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 schemars = "0.8"
@@ -363,9 +363,9 @@ path = "src/bin/generate.rs"
 export function renderGenerateRs() {
   return `use std::path::PathBuf;
 
-fn main() -> rustra::Result<()> {
-    let generated = rustra_app::package().generate_typescript()?;
-    let out = match std::env::var_os("RUSTRA_SCHEMA_OUT") {
+fn main() -> unikit_bridge::Result<()> {
+    let generated = unikit_app::package().generate_typescript()?;
+    let out = match std::env::var_os("UNIKIT_SCHEMA_OUT") {
         Some(p) if !p.is_empty() => PathBuf::from(p).join("schema.json"),
         _ => PathBuf::from("generated").join("schema.json"),
     };
@@ -382,7 +382,7 @@ fn main() -> rustra::Result<()> {
 export function renderRnIosConfigJson() {
   return `${JSON.stringify(
     {
-      $schema: './node_modules/@rustra/cli/rustra.schema.json',
+      $schema: './node_modules/@unikit/cli/unikit.schema.json',
       schema: './generated/schema.json',
       output: './generated',
       reactNative: { rustManifest: './Cargo.toml' },
@@ -400,8 +400,8 @@ export function renderAppReactNativeConfigJs() {
 
 module.exports = {
   dependencies: {
-    '@rustra/generated-react-native': {
-      root: path.resolve(__dirname, 'modules', 'rustra-bridge'),
+    '@unikit/generated-react-native': {
+      root: path.resolve(__dirname, 'modules', 'unikit-bridge'),
     },
   },
 };
@@ -767,7 +767,7 @@ function writeRustCore(context) {
     mkdirSync(join(projectDir, 'src', 'bin'), { recursive: true });
     writeFileSync(join(projectDir, 'src', 'lib.rs'), renderRnIosLibRs());
     writeFileSync(join(projectDir, 'src', 'bin', 'generate.rs'), renderGenerateRs());
-    writeJson(join(projectDir, 'rustra.json'), JSON.parse(renderRnIosConfigJson()));
+    writeJson(join(projectDir, 'unikit.json'), JSON.parse(renderRnIosConfigJson()));
     writeFileSync(join(projectDir, 'metro.config.js'), renderMetroConfigJs());
     writeFileSync(join(projectDir, 'react-native.config.js'), renderAppReactNativeConfigJs());
     writeFileSync(
@@ -789,7 +789,7 @@ function applyPublishedCliWorkaround(context) {
     // manifest 의 "type":"module" 때문에 Node 기반 오톨링킹이 react-native
     // .config.js 를 require 하지 못한다. 핀이 0.12.0+ 이면 no-op 이지만, 안전
     // 위해 조건부로 유지한다(Android 다리와 동일).
-    const moduleManifestPath = join(context.projectDir, 'modules', 'rustra-bridge', 'package.json');
+    const moduleManifestPath = join(context.projectDir, 'modules', 'unikit-bridge', 'package.json');
     const manifest = readJson(moduleManifestPath);
     if (manifest.type === 'module') {
       delete manifest.type;
@@ -823,7 +823,7 @@ function snapshotEvidence(context, phase) {
     'Cargo.toml',
     'package.json',
     'package-lock.json',
-    'rustra.json',
+    'unikit.json',
     'ios/Podfile.lock',
     'App.tsx',
     'journey-input.ts',
@@ -876,7 +876,7 @@ async function environmentEvidence(context) {
 function launchAndCollect(context, label, phase) {
   const { simulator } = context;
   const capture = internalStep(context, `${label}-prepare-stdout-capture`, () => {
-    const simDir = `/tmp/rustra-rn-ios-journey-${label}-${process.pid}`;
+    const simDir = `/tmp/unikit-rn-ios-journey-${label}-${process.pid}`;
     const hostDir = `${context.simulatorHostRoot}${simDir}`;
     mkdirSync(hostDir, { recursive: true });
     return {
@@ -1001,10 +1001,10 @@ function verifyCollectedObservations(context, label, phase, collected) {
 
 async function executeRnIosCycle({ logDir, sim }) {
   const versions = validateVersionManifest(readJson(VERSIONS_PATH));
-  const reactNativeVersion = versions.hosts?.['@rustra/react-native'];
+  const reactNativeVersion = versions.hosts?.['@unikit/react-native'];
   if (!reactNativeVersion)
-    throw new Error('versions.json hosts["@rustra/react-native"] pin is required');
-  const scratchRoot = mkdtempSync(join(tmpdir(), 'rustra-registry-rn-ios-'));
+    throw new Error('versions.json hosts["@unikit/react-native"] pin is required');
+  const scratchRoot = mkdtempSync(join(tmpdir(), 'unikit-registry-rn-ios-'));
   const projectDir = join(scratchRoot, APP_NAME);
   const derivedDataPath = join(scratchRoot, 'ios-dd');
   const repoRoot = resolve(dirname(SCRIPT_PATH), '..');
@@ -1024,9 +1024,9 @@ async function executeRnIosCycle({ logDir, sim }) {
     },
   };
   const npmVersions = {
-    '@rustra/cli': versions.npm['@rustra/cli'],
-    '@rustra/types': versions.npm['@rustra/types'],
-    '@rustra/react-native': reactNativeVersion,
+    '@unikit/cli': versions.npm['@unikit/cli'],
+    '@unikit/types': versions.npm['@unikit/types'],
+    '@unikit/react-native': reactNativeVersion,
   };
   try {
     // 선점 검사가 가장 먼저 — macOS 전용 도구가 없으면 그 자체로 BLOCKED 영수증
@@ -1062,9 +1062,9 @@ async function executeRnIosCycle({ logDir, sim }) {
     internalStep(context, 'pin-npm-versions', () => {
       const packagePath = join(projectDir, 'package.json');
       const packageJson = readJson(packagePath);
-      packageJson.dependencies['@rustra/react-native'] = npmVersions['@rustra/react-native'];
-      packageJson.dependencies['@rustra/types'] = npmVersions['@rustra/types'];
-      packageJson.devDependencies['@rustra/cli'] = npmVersions['@rustra/cli'];
+      packageJson.dependencies['@unikit/react-native'] = npmVersions['@unikit/react-native'];
+      packageJson.dependencies['@unikit/types'] = npmVersions['@unikit/types'];
+      packageJson.devDependencies['@unikit/cli'] = npmVersions['@unikit/cli'];
       writeJson(packagePath, packageJson);
     });
     await runChecked(context, 'install-npm', projectDir, [
@@ -1076,26 +1076,26 @@ async function executeRnIosCycle({ logDir, sim }) {
     internalStep(context, 'verify-exact-npm-sources', () => {
       assertNoConsumerContamination(projectDir, {
         expectedNpm: npmVersions,
-        allowedWorkspacePackages: ['@rustra/generated-react-native'],
+        allowedWorkspacePackages: ['@unikit/generated-react-native'],
       });
       return assertExactNpmProvenance(projectDir, npmVersions);
     });
 
-    // 3) 코드젠 — rustra-bridge 네이티브 모듈(podspec/gradle/cmake) + 생성 클라.
-    const projectCli = join(projectDir, 'node_modules', '@rustra', 'cli', 'dist', 'index.js');
+    // 3) 코드젠 — unikit-bridge 네이티브 모듈(podspec/gradle/cmake) + 생성 클라.
+    const projectCli = join(projectDir, 'node_modules', '@unikit', 'cli', 'dist', 'index.js');
     await runChecked(context, 'baseline-codegen', projectDir, [
       process.execPath,
       projectCli,
       'codegen',
       '--config',
-      'rustra.json',
+      'unikit.json',
     ]);
     internalStep(context, 'install-generated-workspace', () => {
       const packageJson = readJson(join(projectDir, 'package.json'));
-      if (packageJson.dependencies['@rustra/generated-react-native'] !== 'workspace:*')
+      if (packageJson.dependencies['@unikit/generated-react-native'] !== 'workspace:*')
         throw new Error('codegen did not register the generated workspace package');
-      if (!packageJson.workspaces?.includes('modules/rustra-bridge'))
-        throw new Error('codegen did not register the rustra-bridge workspace');
+      if (!packageJson.workspaces?.includes('modules/unikit-bridge'))
+        throw new Error('codegen did not register the unikit-bridge workspace');
     });
     applyPublishedCliWorkaround(context);
     await runChecked(context, 'install-workspaces', projectDir, [
@@ -1109,12 +1109,12 @@ async function executeRnIosCycle({ logDir, sim }) {
       projectCli,
       'doctor',
       '--config',
-      'rustra.json',
+      'unikit.json',
     ]);
     const baselineContractHash = contractHash(projectDir);
 
     // 4) pod install — podspec prepare_command 이 Rust staticlib(aarch64-apple-
-    //    ios-sim + x86_64-apple-ios lipo, RUSTRA_PROFILE 기본 release)을 빌드한다.
+    //    ios-sim + x86_64-apple-ios lipo, UNIKIT_PROFILE 기본 release)을 빌드한다.
     await runChecked(
       context,
       'baseline-pod-install',
@@ -1203,7 +1203,7 @@ async function executeRnIosCycle({ logDir, sim }) {
       projectCli,
       'codegen',
       '--config',
-      'rustra.json',
+      'unikit.json',
     ]);
     applyPublishedCliWorkaround(context);
     // CocoaPods 는 변하지 않은 development pod 의 prepare_command 재실행을
@@ -1212,11 +1212,11 @@ async function executeRnIosCycle({ logDir, sim }) {
     // 를 지운다. prepare_command 가 돌지 않으면 vendored library 가 없어 링크가
     // loud-fail 한다 — 낡은 아카이브가 조용히 재사용되는 일은 없다.
     internalStep(context, 'mutated-force-pod-reprepare', () => {
-      rmSync(join(projectDir, 'modules', 'rustra-bridge', 'ios', 'rust', 'lib'), {
+      rmSync(join(projectDir, 'modules', 'unikit-bridge', 'ios', 'rust', 'lib'), {
         recursive: true,
         force: true,
       });
-      rmSync(join(projectDir, 'ios', 'Pods', 'RustraBridge'), { recursive: true, force: true });
+      rmSync(join(projectDir, 'ios', 'Pods', 'UnikitBridge'), { recursive: true, force: true });
       rmSync(join(projectDir, 'ios', 'Pods', 'Manifest.lock'), { force: true });
     });
     await runChecked(
@@ -1277,7 +1277,7 @@ async function executeRnIosCycle({ logDir, sim }) {
     );
 
     return {
-      gate: 'rustra-public-registry-rn-ios-consumer',
+      gate: 'unikit-public-registry-rn-ios-consumer',
       configuration: {
         manifestPath: VERSIONS_PATH,
         versions: {
@@ -1299,7 +1299,7 @@ async function executeRnIosCycle({ logDir, sim }) {
         scaffold: [
           'public RN community template (no Expo, unlike the Expo prebuild rn-ios CI job)',
           'exact-pin npm install of CLI/types/react-native adapter',
-          'codegen renders rustra-bridge module (podspec/gradle/cmake) + generated client',
+          'codegen renders unikit-bridge module (podspec/gradle/cmake) + generated client',
           'pod install prepare_command builds the Rust staticlib (aarch64-apple-ios-sim + x86_64-apple-ios lipo)',
           'xcodebuild Release for iphonesimulator embeds the standalone main.jsbundle (no metro at runtime)',
           'simctl boot/install/launch with --stdout capture mapped through SIMULATOR_SHARED_RESOURCES_DIRECTORY',

@@ -20,7 +20,7 @@ import {
   WASM_ENGINES,
   collectSemanticErrors,
   readConfigSync,
-  type RustraConfig,
+  type UnikitConfig,
   type WasmEngine,
 } from './config.js';
 
@@ -36,11 +36,11 @@ test('node.persistent is an additive boolean opt-in and preserves explicit runti
   );
 });
 
-type LoadResult = { config?: RustraConfig; error?: string };
+type LoadResult = { config?: UnikitConfig; error?: string };
 
 function loadConfig(body: unknown): LoadResult {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-config-matrix-'));
-  const path = join(root, 'rustra.json');
+  const root = mkdtempSync(join(tmpdir(), 'unikit-config-matrix-'));
+  const path = join(root, 'unikit.json');
   writeFileSync(path, JSON.stringify(body));
   try {
     return { config: readConfigSync(path) };
@@ -171,7 +171,7 @@ test('a dev.targt typo fails L1 closed before L2 runs', () => {
 
 test('multiple L2 violations are all collected and listed together', () => {
   // L1 통과 후의 JSON을 그대로 재현 — 허용값 벗어난 engine 문자열을 포함한다.
-  const body: RustraConfig = {
+  const body: UnikitConfig = {
     ...baseConfig,
     dev: { target: 'wasm', wasm: { engine: 'wasmer' as WasmEngine } },
   };
@@ -189,7 +189,7 @@ test('multiple L2 violations are all collected and listed together', () => {
 test('a complete wasm dev config with reactNative is accepted', () => {
   const result = loadConfig({
     ...baseConfig,
-    reactNative: { rustLibrary: 'rustra_bridge' },
+    reactNative: { rustLibrary: 'unikit_bridge' },
     dev: { target: 'wasm', wasm: { engine: 'wasm3', parityGate: true } },
     inspector: { onMismatch: 'ignore' },
   });
@@ -275,15 +275,15 @@ test('a config without a uniffi section loads exactly as before (feature switch 
   assert.equal(result.config?.uniffi, undefined);
 });
 
-test('a missing config file points at rustra init instead of a raw ENOENT', () => {
-  const missing = join(mkdtempSync(join(tmpdir(), 'rustra-config-missing-')), 'nope.json');
+test('a missing config file points at unikit init instead of a raw ENOENT', () => {
+  const missing = join(mkdtempSync(join(tmpdir(), 'unikit-config-missing-')), 'nope.json');
   try {
     assert.throws(
       () => readConfigSync(missing),
       (error: unknown) => {
         const message = error instanceof Error ? error.message : String(error);
         assert.match(message, /Config file not found/);
-        assert.match(message, /rustra init/);
+        assert.match(message, /unikit init/);
         assert.ok(!/ENOENT/.test(message), 'raw ENOENT must not leak to users');
         return true;
       },
@@ -293,8 +293,8 @@ test('a missing config file points at rustra init instead of a raw ENOENT', () =
   }
 });
 
-test('rustra.schema.json stays in sync with the config field lists', () => {
-  const schemaPath = fileURLToPath(new URL('../rustra.schema.json', import.meta.url));
+test('unikit.schema.json stays in sync with the config field lists', () => {
+  const schemaPath = fileURLToPath(new URL('../unikit.schema.json', import.meta.url));
   const schema = JSON.parse(readFileSync(schemaPath, 'utf8')) as {
     $schema: string;
     type: string;
@@ -355,7 +355,7 @@ test('rustra.schema.json stays in sync with the config field lists', () => {
     readFileSync(fileURLToPath(new URL('../package.json', import.meta.url)), 'utf8'),
   ) as { files: string[] };
   assert.ok(
-    packageJson.files.includes('rustra.schema.json'),
-    'rustra.schema.json must ship in the published package files field',
+    packageJson.files.includes('unikit.schema.json'),
+    'unikit.schema.json must ship in the published package files field',
   );
 });

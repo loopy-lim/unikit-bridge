@@ -1,14 +1,14 @@
 [English](./README.md) | 한국어
 
-# @rustra/react
+# @unikit/react
 
-Rustra 명령 클라이언트를 위한 React 훅과 컨텍스트다. `RustraProvider`,
-`useRustraEngine`, `useCommand`, `useMutation`, `useEvent`, `useSuspenseCommand`,
+Unikit 명령 클라이언트를 위한 React 훅과 컨텍스트다. `UnikitProvider`,
+`useUnikitEngine`, `useCommand`, `useMutation`, `useEvent`, `useSuspenseCommand`,
 `invalidateCommands`, `configureSuspenseCache`를 제공한다. React는 peer dependency이며,
 Provider를 렌더링하기 전에 플랫폼별 엔진을 설정한다.
 
 ```tsx
-import { RustraProvider, useCommand } from '@rustra/react';
+import { UnikitProvider, useCommand } from '@unikit/react';
 import { getItem } from './generated/commands.js';
 
 function Item({ id }: { id: string }) {
@@ -18,9 +18,9 @@ function Item({ id }: { id: string }) {
   return <span>{data?.name}</span>;
 }
 
-<RustraProvider engine={engine}>
+<UnikitProvider engine={engine}>
   <Item id="item-1" />
-</RustraProvider>;
+</UnikitProvider>;
 ```
 
 `useSuspenseCommand(commandFn, input?, options?)`는 대기 중 Promise를 던지고 완료 값을
@@ -52,7 +52,7 @@ Suspense 재시도를 위해 유지한다. 모든 슬롯이 대기 중이면 새
 
 ```tsx
 import { Suspense } from 'react';
-import { invalidateCommands, useSuspenseCommand } from '@rustra/react';
+import { invalidateCommands, useSuspenseCommand } from '@unikit/react';
 import { getItem, saveItem } from './generated/commands.js';
 
 function Item({ id }: { id: string }) {
@@ -82,7 +82,7 @@ TypeError로 거부한다. 엔진에는 원래 입력을 전달한다.
 완료하더라도 해당 호출에 귀속되어 실행한다. 중첩 호출은 현재 범위의 모든 호출이
 끝날 때까지 `loading`을 유지하고, 마지막 호출만 data/error를 갱신한다.
 
-**엔진 정체성.** 엔진은 값이 아니라 객체 정체성(`WeakMap`)으로 구분한다. `RustraProvider` 에는
+**엔진 정체성.** 엔진은 값이 아니라 객체 정체성(`WeakMap`)으로 구분한다. `UnikitProvider` 에는
 모듈 상수나 `useMemo` 결과처럼 안정적인 엔진을 전달한다. 렌더링마다 새 객체가 만들어지는
 불안정한 `engine` prop 은 엔진 교체로 관측되어 매 렌더링 `useMutation` 상태를 초기화한다.
 의도한 교체에서 상태가 초기화되는 것은 설계된 동작이다.

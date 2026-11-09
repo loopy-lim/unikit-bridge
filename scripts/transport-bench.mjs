@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// rustra-bridge transport benchmark
+// unikit-bridge transport benchmark
 // Measures actual end-to-end performance across all transport types
 //
 // Usage:
@@ -59,7 +59,7 @@ function findCalculatorDylib(suffix) {
   return candidates
     .map((c) => ({
       ...c,
-      path: join(ROOT, `target/${c.dir}/librustra_calculator_example.${suffix}`),
+      path: join(ROOT, `target/${c.dir}/libunikit_calculator_example.${suffix}`),
     }))
     .find((c) => existsSync(c.path));
 }
@@ -88,15 +88,15 @@ function createBunFfiTransport() {
   const found = findCalculatorDylib(suffix);
   if (!found) {
     throw new Error(
-      'no librustra_calculator_example dylib in target/release|debug — run cargo build --release -p rustra-calculator-example',
+      'no libunikit_calculator_example dylib in target/release|debug — run cargo build --release -p unikit-calculator-example',
     );
   }
   const lib = dlopen(found.path, {
-    rustra_calculator_invoke: {
+    unikit_calculator_invoke: {
       args: [FFIType.cstring],
       returns: FFIType.ptr,
     },
-    rustra_calculator_free_string: {
+    unikit_calculator_free_string: {
       args: [FFIType.ptr],
       returns: FFIType.void,
     },
@@ -106,12 +106,12 @@ function createBunFfiTransport() {
     profile: found.dir,
     invoke(command, args) {
       const payload = Buffer.from(JSON.stringify({ command, args }) + '\0');
-      const rawPtr = lib.symbols.rustra_calculator_invoke(payload);
+      const rawPtr = lib.symbols.unikit_calculator_invoke(payload);
       if (!rawPtr) throw new Error('Bun FFI returned a null response pointer');
       // CString는 native pointer view라 free 뒤 lazy coercion하면 use-after-free가
       // 된다. 호스트 소유 문자열로 먼저 복사한 다음 Rust 버퍼를 해제한다.
       const rawResponse = new CString(rawPtr).toString();
-      lib.symbols.rustra_calculator_free_string(rawPtr);
+      lib.symbols.unikit_calculator_free_string(rawPtr);
       const response = JSON.parse(rawResponse);
       if (!response.ok) throw new Error(response.error);
       return response.result;
@@ -125,7 +125,7 @@ function createNapiBufferTransport() {
     name: 'Node napi Buffer',
     invoke(command, args) {
       const argsJson = args !== undefined ? JSON.stringify(args) : undefined;
-      const raw = native.rustraInvokeBuffer(command, argsJson);
+      const raw = native.unikitInvokeBuffer(command, argsJson);
       // Buffer→문자열 1회 — 실제 소비 형태. JS 엔진 디코드 비용은 동일하게 포함.
       const response = JSON.parse(raw.toString('utf8'));
       if (!response.ok) throw new Error(response.error);
@@ -140,7 +140,7 @@ function createNapiTransport() {
     name: 'Node napi-rs',
     invoke(command, args) {
       const argsJson = args !== undefined ? JSON.stringify(args) : undefined;
-      const rawResponse = native.rustraInvoke(command, argsJson);
+      const rawResponse = native.unikitInvoke(command, argsJson);
       const response = JSON.parse(rawResponse);
       if (!response.ok) throw new Error(response.error);
       return response.result;
@@ -150,8 +150,8 @@ function createNapiTransport() {
 
 // ── Frame direct transports (postcard 왕복 — JSON/UTF-16 없음) ──
 //
-// 코어 FFI(rustra_ffi_invoke_frame, wire-bench 61.5ns)를 버퍼 직결로 태운다.
-// napi는 rustraInvokeFrame 바인딩, Bun은 dlopen 심볼 직접 바인딩. JS 코덱
+// 코어 FFI(unikit_ffi_invoke_frame, wire-bench 61.5ns)를 버퍼 직결로 태운다.
+// napi는 unikitInvokeFrame 바인딩, Bun은 dlopen 심볼 직접 바인딩. JS 코덱
 // 인코딩은 bench harness에서 고정 프레임을 재사용해 측정한다(코덱 자체 비용은
 // adapter-bench/JS codec 벤치가 담당) — 여기선 transport 비용만 격리한다.
 
@@ -184,8 +184,8 @@ function decodeFrameResult(frame) {
 
 function createNapiFrameTransport() {
   const native = loadNapi();
-  if (typeof native.rustraInvokeFrame !== 'function') {
-    throw new Error('napi addon predates rustraInvokeFrame — rebuild with napi build');
+  if (typeof native.unikitInvokeFrame !== 'function') {
+    throw new Error('napi addon predates unikitInvokeFrame — rebuild with napi build');
   }
   // addNumbers(cmd_id=1) 고정 프레임 — { a: 42, b: 58 }의 postcard 인코딩.
   const frame = Buffer.from([1, 0, ...zigzagVarint(42), ...zigzagVarint(58)]);
@@ -194,7 +194,7 @@ function createNapiFrameTransport() {
     invoke(command, args) {
       void command;
       void args;
-      const resp = native.rustraInvokeFrame(frame);
+      const resp = native.unikitInvokeFrame(frame);
       return decodeFrameResult(resp);
     },
   };
@@ -208,13 +208,13 @@ function createBunFrameTransport() {
     ? require('bun:ffi')
     : { dlopen: undefined, FFIType: undefined, suffix: undefined, toArrayBuffer: undefined };
   const found = findCalculatorDylib(suffix);
-  if (!found) throw new Error('no librustra_calculator_example dylib');
+  if (!found) throw new Error('no libunikit_calculator_example dylib');
   const lib = dlopen(found.path, {
-    rustra_calculator_invoke_frame: {
+    unikit_calculator_invoke_frame: {
       args: [FFIType.ptr, FFIType.usize, FFIType.ptr],
       returns: FFIType.ptr,
     },
-    rustra_calculator_free_frame_buffer: {
+    unikit_calculator_free_frame_buffer: {
       args: [FFIType.ptr, FFIType.usize],
       returns: FFIType.void,
     },
@@ -226,7 +226,7 @@ function createBunFrameTransport() {
     invoke(command, args) {
       void command;
       void args;
-      const ptr = lib.symbols.rustra_calculator_invoke_frame(
+      const ptr = lib.symbols.unikit_calculator_invoke_frame(
         frame,
         BigInt(frame.byteLength),
         outLen,
@@ -236,7 +236,7 @@ function createBunFrameTransport() {
       // toArrayBuffer 는 Rust 메모리를 참조하는 뷰고 new Uint8Array(뷰) 도
       // 버퍼를 공유한다 — free 전에 값 복사로 materialize 해야 한다.
       const copied = Array.from(new Uint8Array(toArrayBuffer(ptr, 0, len)));
-      lib.symbols.rustra_calculator_free_frame_buffer(ptr, BigInt(len));
+      lib.symbols.unikit_calculator_free_frame_buffer(ptr, BigInt(len));
       return decodeFrameResult(copied);
     },
   };
@@ -282,7 +282,7 @@ const transports = [];
 
 // Subprocess always available (debug bin — 프로세스 스폰이 지배적이라 프로필 무의미)
 const binCandidates = ['release', 'debug']
-  .map((d) => join(ROOT, `target/${d}/rustra-calculator-example`))
+  .map((d) => join(ROOT, `target/${d}/unikit-calculator-example`))
   .filter((p) => existsSync(p));
 const binPath = binCandidates[0];
 if (existsSync(binPath)) {
@@ -307,7 +307,7 @@ if (isBun) {
 if (!isBun) {
   try {
     transports.push(createNapiTransport());
-    if (typeof loadNapi().rustraInvokeBuffer === 'function') {
+    if (typeof loadNapi().unikitInvokeBuffer === 'function') {
       transports.push(createNapiBufferTransport());
     }
   } catch (e) {
@@ -334,7 +334,7 @@ console.log('');
 
 if (transports.length === 0) {
   console.log('No transports available. Build first:');
-  console.log('  cargo build -p rustra-calculator-example');
+  console.log('  cargo build -p unikit-calculator-example');
   if (!isBun) console.log('  cd examples/calculator-napi && bun run build:debug');
   process.exit(1);
 }
@@ -494,15 +494,15 @@ if (nativeResult && subprocessResult) {
 }
 
 // ── 4) Response-size scaling: String vs Buffer 변형 (Node napi) ──
-// rustraInvokeBuffer 의 "대형 응답에서 유리" 주장을 실측으로만 유지한다.
+// unikitInvokeBuffer 의 "대형 응답에서 유리" 주장을 실측으로만 유지한다.
 // 작은 응답(addNumbers)에선 Buffer 할당+toString 비용으로 오히려 느릴 수 있다.
 if (!isBun) {
   try {
     const native = loadNapi();
-    if (typeof native.rustraInvokeBuffer === 'function') {
+    if (typeof native.unikitInvokeBuffer === 'function') {
       console.log('┌─ 4) Response Size Scaling — String vs Buffer (napi) ──┐');
       console.log(`│`);
-      const largeString = 'rustra'.repeat(1366); // 약 8 KiB 실제 echo 응답
+      const largeString = 'unikit'.repeat(1366); // 약 8 KiB 실제 echo 응답
       const cases = [
         { label: 'addNumbers (34 B)', command: 'addNumbers', args: { a: 42, b: 58 } },
         {
@@ -521,7 +521,7 @@ if (!isBun) {
           {
             name: 'str',
             invoke: (command, args) => {
-              const raw = native.rustraInvoke(
+              const raw = native.unikitInvoke(
                 command,
                 args !== undefined ? JSON.stringify(args) : undefined,
               );
@@ -536,7 +536,7 @@ if (!isBun) {
           {
             name: 'buf',
             invoke: (command, args) => {
-              const raw = native.rustraInvokeBuffer(
+              const raw = native.unikitInvokeBuffer(
                 command,
                 args !== undefined ? JSON.stringify(args) : undefined,
               );

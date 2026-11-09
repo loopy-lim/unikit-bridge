@@ -9,7 +9,7 @@ const calls: Array<{ command: string; args: unknown }> = [];
     // eslint-disable-next-line @typescript-eslint/require-await
     async invoke(command: string, args?: unknown) {
       calls.push({ command, args });
-      if (command === 'rustra_contract_hash') return GENERATED_CONTRACT_HASH;
+      if (command === 'unikit_contract_hash') return GENERATED_CONTRACT_HASH;
       return { value: 42 };
     },
   },
@@ -24,8 +24,8 @@ if (result.value !== 42) {
 if (
   JSON.stringify(calls) !==
   JSON.stringify([
-    { command: 'rustra_contract_hash', args: { expectedHash: GENERATED_CONTRACT_HASH } },
-    { command: 'rustra_dispatch', args: { command: 'addNumbers', args: { a: 20, b: 22 } } },
+    { command: 'unikit_contract_hash', args: { expectedHash: GENERATED_CONTRACT_HASH } },
+    { command: 'unikit_dispatch', args: { command: 'addNumbers', args: { a: 20, b: 22 } } },
   ])
 ) {
   throw new Error(`unexpected Tauri invoke calls: ${JSON.stringify(calls)}`);

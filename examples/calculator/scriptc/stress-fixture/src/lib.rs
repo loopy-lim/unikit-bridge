@@ -1,5 +1,5 @@
 //! Test-only scheduling controls. All callbacks, ownership and cancellation use
-//! the production rustra FFI; these symbols are not part of the published ABI.
+//! the production unikit FFI; these symbols are not part of the published ABI.
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Condvar, Mutex};
 use std::time::{Duration, Instant};
@@ -10,9 +10,9 @@ static BLOCKED: AtomicU32 = AtomicU32::new(0);
 static HANDLER_CALLS: AtomicU32 = AtomicU32::new(0);
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rustra_mobile_init() {
-    rustra::Package::builder("scriptc.stress")
-        .command("echo", |value: u32| Ok::<_, rustra::RustraError>(value))
+pub extern "C" fn unikit_mobile_init() {
+    unikit_bridge::Package::builder("scriptc.stress")
+        .command("echo", |value: u32| Ok::<_, unikit_bridge::UnikitError>(value))
         .command("block", |value: u32| {
             let gate = OPEN.lock().unwrap();
             BLOCKED.fetch_add(1, Ordering::SeqCst);
@@ -21,7 +21,7 @@ pub extern "C" fn rustra_mobile_init() {
                 .unwrap();
             BLOCKED.fetch_sub(1, Ordering::SeqCst);
             if timeout.timed_out() && !*gate {
-                return Err(rustra::RustraError::custom(
+                return Err(unikit_bridge::UnikitError::custom(
                     "stress.timeout",
                     "worker gate timed out",
                 ));
@@ -30,11 +30,11 @@ pub extern "C" fn rustra_mobile_init() {
         })
         .command("count", |value: u32| {
             HANDLER_CALLS.fetch_add(1, Ordering::SeqCst);
-            Ok::<_, rustra::RustraError>(value)
+            Ok::<_, unikit_bridge::UnikitError>(value)
         })
         .command("emit", |value: u32| {
-            rustra::ffi::get_package().unwrap().emit("notice", value);
-            Ok::<_, rustra::RustraError>(value)
+            unikit_bridge::ffi::get_package().unwrap().emit("notice", value);
+            Ok::<_, unikit_bridge::UnikitError>(value)
         })
         .event::<u32>("notice")
         .build()
@@ -42,7 +42,7 @@ pub extern "C" fn rustra_mobile_init() {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rustra_stress_wait_workers() -> bool {
+pub extern "C" fn unikit_stress_wait_workers() -> bool {
     let deadline = Instant::now() + Duration::from_secs(5);
     while BLOCKED.load(Ordering::SeqCst) != 2 {
         if Instant::now() >= deadline {
@@ -54,12 +54,12 @@ pub extern "C" fn rustra_stress_wait_workers() -> bool {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rustra_stress_release_workers() {
+pub extern "C" fn unikit_stress_release_workers() {
     *OPEN.lock().unwrap() = true;
     RELEASE.notify_all();
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rustra_stress_handler_calls() -> u32 {
+pub extern "C" fn unikit_stress_handler_calls() -> u32 {
     HANDLER_CALLS.load(Ordering::SeqCst)
 }

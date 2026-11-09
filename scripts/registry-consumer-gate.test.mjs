@@ -18,18 +18,18 @@ import {
 } from './registry-consumer-gate.mjs';
 
 const NPM = {
-  '@rustra/cli': '0.10.0',
-  '@rustra/types': '0.10.0',
-  '@rustra/node': '0.10.0',
-  '@rustra/bun': '0.10.0',
+  '@unikit/cli': '0.10.0',
+  '@unikit/types': '0.10.0',
+  '@unikit/node': '0.10.0',
+  '@unikit/bun': '0.10.0',
 };
 const RUST = {
-  rustra: '0.10.0',
-  'rustra-macros': '0.10.0',
-  'rustra-naming': '0.10.0',
+  unikit: '0.10.0',
+  'unikit-bridge-macros': '0.10.0',
+  'unikit-bridge-naming': '0.10.0',
 };
 
-function scratch(prefix = 'rustra-registry-gate-test-') {
+function scratch(prefix = 'unikit-registry-gate-test-') {
   const root = mkdtempSync(join(tmpdir(), prefix));
   return { root, cleanup: () => rmSync(root, { recursive: true, force: true }) };
 }
@@ -43,7 +43,7 @@ function seedNpmConsumer(root, { mismatchVersion } = {}) {
   writeJson(join(root, 'package.json'), { private: true, dependencies: NPM });
   const packages = { '': { dependencies: NPM } };
   for (const [name, version] of Object.entries(NPM)) {
-    const installed = mismatchVersion && name === '@rustra/node' ? mismatchVersion : version;
+    const installed = mismatchVersion && name === '@unikit/node' ? mismatchVersion : version;
     const packageDir = join(root, 'node_modules', ...name.split('/'));
     writeJson(join(packageDir, 'package.json'), { name, version: installed });
     packages[`node_modules/${name}`] = {
@@ -70,9 +70,9 @@ function cargoMetadata({ mismatch = false, pathDependency = false } = {}) {
       },
       ...Object.entries(RUST).map(([name, version]) => ({
         name,
-        version: mismatch && name === 'rustra' ? '0.9.0' : version,
+        version: mismatch && name === 'unikit' ? '0.9.0' : version,
         source:
-          pathDependency && name === 'rustra'
+          pathDependency && name === 'unikit'
             ? null
             : 'registry+https://github.com/rust-lang/crates.io-index',
         manifest_path: pathDependency
@@ -90,19 +90,19 @@ name = "registry-consumer"
 version = "0.1.0"
 
 [[package]]
-name = "rustra"
+name = "unikit-bridge"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aaa"
 
 [[package]]
-name = "rustra-macros"
+name = "unikit-bridge-macros"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbb"
 
 [[package]]
-name = "rustra-naming"
+name = "unikit-bridge-naming"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ccc"
@@ -130,9 +130,9 @@ test('version manifest requires exact semver pins and the three named phases', (
         baseline: RUST,
         candidate: {
           ...RUST,
-          rustra: '0.10.1',
-          'rustra-macros': '0.10.1',
-          'rustra-naming': '0.10.1',
+          unikit: '0.10.1',
+          'unikit-bridge-macros': '0.10.1',
+          'unikit-bridge-naming': '0.10.1',
         },
         rollback: RUST,
       },
@@ -142,7 +142,7 @@ test('version manifest requires exact semver pins and the three named phases', (
     () =>
       validateVersionManifest({
         schemaVersion: 1,
-        npm: { ...NPM, '@rustra/node': '^0.10.0' },
+        npm: { ...NPM, '@unikit/node': '^0.10.0' },
         phases: { baseline: RUST, candidate: RUST, rollback: RUST },
       }),
     /exact version/,
@@ -151,10 +151,10 @@ test('version manifest requires exact semver pins and the three named phases', (
 
 test('contamination scan rejects package overrides and workspace/file/git npm dependencies', () => {
   const variants = [
-    { overrides: { '@rustra/node': 'file:../node' } },
-    { dependencies: { '@rustra/node': 'workspace:*' } },
-    { dependencies: { '@rustra/node': 'file:../node' } },
-    { dependencies: { '@rustra/node': 'git+https://example.invalid/node.git' } },
+    { overrides: { '@unikit/node': 'file:../node' } },
+    { dependencies: { '@unikit/node': 'workspace:*' } },
+    { dependencies: { '@unikit/node': 'file:../node' } },
+    { dependencies: { '@unikit/node': 'git+https://example.invalid/node.git' } },
   ];
   for (const extra of variants) {
     const { root, cleanup } = scratch();
@@ -176,11 +176,11 @@ test('contamination scan accepts only the CLI-compatible caret for the requested
     writeJson(join(root, 'package.json'), {
       private: true,
       dependencies: {
-        '@rustra/node': '^0.10.0',
-        '@rustra/types': '^0.10.0',
-        '@rustra/bun': '^0.10.0',
+        '@unikit/node': '^0.10.0',
+        '@unikit/types': '^0.10.0',
+        '@unikit/bun': '^0.10.0',
       },
-      devDependencies: { '@rustra/cli': '0.10.0' },
+      devDependencies: { '@unikit/cli': '0.10.0' },
     });
     writeFileSync(
       join(root, 'Cargo.toml'),
@@ -188,7 +188,7 @@ test('contamination scan accepts only the CLI-compatible caret for the requested
     );
     assert.doesNotThrow(() => assertNoConsumerContamination(root, { expectedNpm: NPM }));
     const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-    manifest.dependencies['@rustra/node'] = '^0.10.1';
+    manifest.dependencies['@unikit/node'] = '^0.10.1';
     writeJson(join(root, 'package.json'), manifest);
     assert.throws(
       () => assertNoConsumerContamination(root, { expectedNpm: NPM }),
@@ -201,9 +201,9 @@ test('contamination scan accepts only the CLI-compatible caret for the requested
 
 test('contamination scan enforces =version pins through brace-form Cargo specs', () => {
   const cases = [
-    ['rustra = { version = "=0.10.0", features = ["tauri"] }', null],
-    ['rustra = { version = "^0.10.0", features = ["tauri"] }', /not pinned with =version/],
-    ['rustra = { features = ["tauri"] }', /declares no version pin/],
+    ['unikit = { version = "=0.10.0", features = ["tauri"] }', null],
+    ['unikit = { version = "^0.10.0", features = ["tauri"] }', /not pinned with =version/],
+    ['unikit = { features = ["tauri"] }', /declares no version pin/],
   ];
   for (const [dependency, rejection] of cases) {
     const { root, cleanup } = scratch();
@@ -223,9 +223,9 @@ test('contamination scan enforces =version pins through brace-form Cargo specs',
 
 test('contamination scan rejects Cargo patch, path and git dependencies', () => {
   for (const dependency of [
-    'rustra = { path = "../rustra" }',
-    'rustra = { git = "https://example.invalid/rustra" }',
-    '[patch.crates-io]\nrustra = { path = "../rustra" }',
+    'unikit = { path = "../unikit" }',
+    'unikit = { git = "https://example.invalid/unikit" }',
+    '[patch.crates-io]\nunikit = { path = "../unikit" }',
   ]) {
     const { root, cleanup } = scratch();
     try {
@@ -247,7 +247,7 @@ test('contamination scan permits ordinary Cargo target path keys from the real s
     writeJson(join(root, 'package.json'), { private: true, dependencies: NPM });
     writeFileSync(
       join(root, 'Cargo.toml'),
-      `[package]\nname="registry-consumer"\nversion="0.1.0"\n\n[dependencies]\nrustra = "=0.10.0"\nrustra-macros = "=0.10.0"\nrustra-naming = "=0.10.0"\n\n[[bin]]\nname = "generate"\npath = "src/bin/generate.rs"\n`,
+      `[package]\nname="registry-consumer"\nversion="0.1.0"\n\n[dependencies]\nunikit = "=0.10.0"\nunikit-bridge-macros = "=0.10.0"\nunikit-bridge-naming = "=0.10.0"\n\n[[bin]]\nname = "generate"\npath = "src/bin/generate.rs"\n`,
     );
     assert.doesNotThrow(() => assertNoConsumerContamination(root));
   } finally {
@@ -255,7 +255,7 @@ test('contamination scan permits ordinary Cargo target path keys from the real s
   }
 });
 
-test('contamination scan rejects installed Rustra package symlinks', () => {
+test('contamination scan rejects installed Unikit package symlinks', () => {
   const { root, cleanup } = scratch();
   try {
     writeJson(join(root, 'package.json'), { private: true, dependencies: NPM });
@@ -263,9 +263,9 @@ test('contamination scan rejects installed Rustra package symlinks', () => {
       join(root, 'Cargo.toml'),
       '[package]\nname="registry-consumer"\nversion="0.1.0"\n',
     );
-    mkdirSync(join(root, 'node_modules', '@rustra'), { recursive: true });
-    const external = mkdtempSync(join(tmpdir(), 'rustra-registry-external-'));
-    symlinkSync(external, join(root, 'node_modules', '@rustra', 'node'), 'dir');
+    mkdirSync(join(root, 'node_modules', '@unikit'), { recursive: true });
+    const external = mkdtempSync(join(tmpdir(), 'unikit-registry-external-'));
+    symlinkSync(external, join(root, 'node_modules', '@unikit', 'node'), 'dir');
     try {
       assert.throws(() => assertNoConsumerContamination(root), /symlink/);
     } finally {
@@ -281,9 +281,9 @@ test('npm provenance proves exact installed versions and registry tarball source
   try {
     seedNpmConsumer(root);
     const proof = assertExactNpmProvenance(root, NPM);
-    assert.equal(proof['@rustra/node'].version, '0.10.0');
-    assert.match(proof['@rustra/node'].resolved, /^https:\/\/registry\.npmjs\.org\//);
-    assert.equal(proof['@rustra/node'].integrity, 'sha512-fixture');
+    assert.equal(proof['@unikit/node'].version, '0.10.0');
+    assert.match(proof['@unikit/node'].resolved, /^https:\/\/registry\.npmjs\.org\//);
+    assert.equal(proof['@unikit/node'].integrity, 'sha512-fixture');
   } finally {
     cleanup();
   }
@@ -293,7 +293,7 @@ test('npm provenance rejects a resolved version mismatch', () => {
   const { root, cleanup } = scratch();
   try {
     seedNpmConsumer(root, { mismatchVersion: '0.9.0' });
-    assert.throws(() => assertExactNpmProvenance(root, NPM), /@rustra\/node.*0\.9\.0.*0\.10\.0/);
+    assert.throws(() => assertExactNpmProvenance(root, NPM), /@unikit\/node.*0\.9\.0.*0\.10\.0/);
   } finally {
     cleanup();
   }
@@ -303,7 +303,7 @@ test('npm provenance rejects a newer patch resolved through the allowed caret', 
   const { root, cleanup } = scratch();
   try {
     seedNpmConsumer(root, { mismatchVersion: '0.10.1' });
-    assert.throws(() => assertExactNpmProvenance(root, NPM), /@rustra\/node.*0\.10\.1.*0\.10\.0/);
+    assert.throws(() => assertExactNpmProvenance(root, NPM), /@unikit\/node.*0\.10\.1.*0\.10\.0/);
   } finally {
     cleanup();
   }
@@ -316,8 +316,8 @@ test('Cargo provenance allows only the root consumer without registry source', (
     expected: RUST,
     consumerManifestPath: '/tmp/registry-consumer/Cargo.toml',
   });
-  assert.equal(proof.rustra.version, '0.10.0');
-  assert.equal(proof.rustra.checksum, 'aaa');
+  assert.equal(proof.unikit.version, '0.10.0');
+  assert.equal(proof.unikit.checksum, 'aaa');
   assert.throws(
     () =>
       assertCargoProvenance({
@@ -371,7 +371,7 @@ test('Cargo provenance canonicalizes the root manifest path but still rejects an
 
 test('Cargo provenance rejects a custom registry even when Cargo labels it registry+', () => {
   const metadata = cargoMetadata();
-  metadata.packages.find((pkg) => pkg.name === 'rustra').source =
+  metadata.packages.find((pkg) => pkg.name === 'unikit').source =
     'registry+https://packages.example.invalid/index';
   assert.throws(
     () =>
@@ -385,15 +385,15 @@ test('Cargo provenance rejects a custom registry even when Cargo labels it regis
   );
 });
 
-test('registry fixture pins all Rustra crates and exports the cdylib native entry', () => {
+test('registry fixture pins all Unikit crates and exports the cdylib native entry', () => {
   const { root, cleanup } = scratch();
   try {
     writeJson(join(root, 'package.json'), {
       private: true,
-      dependencies: { '@rustra/node': '^0.10.0', '@rustra/types': '^0.10.0' },
-      devDependencies: { '@rustra/cli': '^0.10.0' },
+      dependencies: { '@unikit/node': '^0.10.0', '@unikit/types': '^0.10.0' },
+      devDependencies: { '@unikit/cli': '^0.10.0' },
     });
-    writeJson(join(root, 'rustra.json'), {
+    writeJson(join(root, 'unikit.json'), {
       schema: './generated/schema.json',
       output: './src/generated',
       node: {},
@@ -401,32 +401,32 @@ test('registry fixture pins all Rustra crates and exports the cdylib native entr
     mkdirSync(join(root, 'src'), { recursive: true });
     writeFileSync(
       join(root, 'Cargo.toml'),
-      `[package]\nname="registry-consumer"\nversion="0.1.0"\n\n[dependencies]\nrustra = "^0.10.0"\nrustra-macros = "^0.10.0"\n\n[[bin]]\nname="generate"\npath="src/bin/generate.rs"\n`,
+      `[package]\nname="registry-consumer"\nversion="0.1.0"\n\n[dependencies]\nunikit = "^0.10.0"\nunikit-bridge-macros = "^0.10.0"\n\n[[bin]]\nname="generate"\npath="src/bin/generate.rs"\n`,
     );
     writeFileSync(
       join(root, 'src', 'lib.rs'),
-      `use rustra::prelude::*;\n\n#[derive(serde::Serialize, serde::Deserialize, schemars::JsonSchema)]\npub struct EchoInput { pub message: String }\n#[derive(serde::Serialize, serde::Deserialize, schemars::JsonSchema)]\npub struct EchoOutput { pub message: String }\n#[rustra::command]\nfn echo(input: EchoInput) -> Result<EchoOutput> { Ok(EchoOutput { message: input.message }) }\npub fn package() -> Package { Package::builder("app.demo").command_fn(echo).build() }\n`,
+      `use unikit_bridge::prelude::*;\n\n#[derive(serde::Serialize, serde::Deserialize, schemars::JsonSchema)]\npub struct EchoInput { pub message: String }\n#[derive(serde::Serialize, serde::Deserialize, schemars::JsonSchema)]\npub struct EchoOutput { pub message: String }\n#[unikit_bridge::command]\nfn echo(input: EchoInput) -> Result<EchoOutput> { Ok(EchoOutput { message: input.message }) }\npub fn package() -> Package { Package::builder("app.demo").command_fn(echo).build() }\n`,
     );
     prepareRegistryFixture(root, {
       schemaVersion: 1,
       npm: NPM,
       phases: {
         baseline: RUST,
-        candidate: { rustra: '0.10.1', 'rustra-macros': '0.10.1', 'rustra-naming': '0.10.1' },
+        candidate: { unikit: '0.10.1', 'unikit-bridge-macros': '0.10.1', 'unikit-bridge-naming': '0.10.1' },
         rollback: RUST,
       },
     });
     const cargo = readFileSync(join(root, 'Cargo.toml'), 'utf8');
     const lib = readFileSync(join(root, 'src', 'lib.rs'), 'utf8');
-    assert.match(cargo, /rustra-naming = "=0\.10\.0"/);
+    assert.match(cargo, /unikit-bridge-naming = "=0\.10\.0"/);
     assert.match(cargo, /crate-type = \["rlib", "cdylib"\]/);
-    assert.match(lib, /rustra::native_entry!\(package\);/);
+    assert.match(lib, /unikit_bridge::native_entry!\(package\);/);
     assert.match(
       lib,
       /pub fn package\(\) -> Package \{\s*let package = Package::builder\("app\.demo"\)\.command_fn\(echo\)\.command_fn\(fail_echo\)\.build\(\);\s*package\.register_ffi\(\);\s*package\s*\}/,
     );
     assert.doesNotMatch(lib, /Package::builder\("app\.demo"\)\s*let package/);
-    assert.match(readFileSync(join(root, 'package.json'), 'utf8'), /"@rustra\/bun": "0\.10\.0"/);
+    assert.match(readFileSync(join(root, 'package.json'), 'utf8'), /"@unikit\/bun": "0\.10\.0"/);
     assert.doesNotThrow(() => assertNoConsumerContamination(root, { expectedNpm: NPM }));
   } finally {
     cleanup();
@@ -442,7 +442,7 @@ test('Cargo provenance rejects a resolved version mismatch', () => {
         expected: RUST,
         consumerManifestPath: '/tmp/registry-consumer/Cargo.toml',
       }),
-    /rustra.*0\.9\.0.*0\.10\.0/,
+    /unikit.*0\.9\.0.*0\.10\.0/,
   );
 });
 

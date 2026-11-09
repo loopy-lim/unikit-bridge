@@ -172,11 +172,11 @@ test('generated closed-struct codecs retain actual postcard tuple bytes', async 
       commandCodecSupported({ ...command, inputSchema: { ...closed, additionalProperties } }, {}),
       false,
     );
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-closed-'));
-  mkdirSync(join(dir, 'node_modules/@rustra'), { recursive: true });
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-closed-'));
+  mkdirSync(join(dir, 'node_modules/@unikit'), { recursive: true });
   symlinkSync(
     fileURLToPath(new URL('../../types', import.meta.url)),
-    join(dir, 'node_modules/@rustra/types'),
+    join(dir, 'node_modules/@unikit/types'),
     'junction',
   );
   const path = join(dir, 'codecs.ts');
@@ -198,7 +198,7 @@ test('static legacy depth boundary agrees with live postcard and preserves exist
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');
   const { fileURLToPath, pathToFileURL } = await import('node:url');
-  const { createSchemaPostcardCodec } = await import('@rustra/types');
+  const { createSchemaPostcardCodec } = await import('@unikit/types');
   const ref = (name: string) => ({ $ref: `#/definitions/${name}` });
   const definitions = {
     L1: { type: 'object', properties: { child: ref('L2') } },
@@ -229,11 +229,11 @@ test('static legacy depth boundary agrees with live postcard and preserves exist
   assert.equal(commandCodecSupported({ ...command, definitions: deeper }, deeper), false);
   const live = createSchemaPostcardCodec(1, root, root, definitions, true)!;
   assert.notEqual(live, null);
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-depth-boundary-'));
-  mkdirSync(join(dir, 'node_modules/@rustra'), { recursive: true });
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-depth-boundary-'));
+  mkdirSync(join(dir, 'node_modules/@unikit'), { recursive: true });
   symlinkSync(
     fileURLToPath(new URL('../../types', import.meta.url)),
-    join(dir, 'node_modules/@rustra/types'),
+    join(dir, 'node_modules/@unikit/types'),
     'junction',
   );
   const path = join(dir, 'codecs.ts');

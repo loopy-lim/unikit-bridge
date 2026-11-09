@@ -37,7 +37,7 @@ export class SubscriberMap {
         (listener as (payload: unknown) => void)(payload);
       } catch (error) {
         // 리스너 예외가 브릿지를 죽이지 않는다(node/RN 어댑터와 동일 정책).
-        console.error(`Rustra: event listener for "${name}" threw:`, error);
+        console.error(`Unikit: event listener for "${name}" threw:`, error);
       }
     }
   }
@@ -48,7 +48,7 @@ export function parseJsonPayload(raw: string, name: string): unknown {
     return raw === '' ? null : JSON.parse(raw);
   } catch {
     // 비 JSON 페이로드는 원본 문자열로 전달(Tauri 어댑터와 동일한 조용한 드롭 방지).
-    console.warn(`Rustra: event "${name}" payload was not valid JSON; delivering raw string`);
+    console.warn(`Unikit: event "${name}" payload was not valid JSON; delivering raw string`);
     return raw;
   }
 }

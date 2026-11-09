@@ -1,6 +1,6 @@
-name: rustra-tauri-calculator
+name: unikit-tauri-calculator
 options:
-  bundleIdPrefix: dev.rustra.calculator
+  bundleIdPrefix: dev.unikit.calculator
   deploymentTarget:
     iOS: 14.0
 fileGroups: [../../src]
@@ -10,8 +10,8 @@ configs:
 settingGroups:
   app:
     base:
-      PRODUCT_NAME: Rustra Tauri Calculator
-      PRODUCT_BUNDLE_IDENTIFIER: dev.rustra.calculator
+      PRODUCT_NAME: Unikit Tauri Calculator
+      PRODUCT_BUNDLE_IDENTIFIER: dev.unikit.calculator
 targetTemplates:
   app:
     type: application
@@ -24,20 +24,20 @@ targetTemplates:
     settings:
       groups: [app]
 targets:
-  rustra-tauri-calculator_iOS:
+  unikit-tauri-calculator_iOS:
     type: application
     platform: iOS
     sources:
       - path: Sources
       - path: Assets.xcassets
       - path: Externals
-      - path: rustra-tauri-calculator_iOS
+      - path: unikit-tauri-calculator_iOS
       - path: assets
         buildPhase: resources
         type: folder
       - path: LaunchScreen.storyboard
     info:
-      path: rustra-tauri-calculator_iOS/Info.plist
+      path: unikit-tauri-calculator_iOS/Info.plist
       properties:
         LSRequiresIPhoneOS: true
         UILaunchStoryboardName: LaunchScreen
@@ -54,7 +54,7 @@ targets:
         CFBundleShortVersionString: 0.1.0
         CFBundleVersion: '0.1.0'
     entitlements:
-      path: rustra-tauri-calculator_iOS/rustra-tauri-calculator_iOS.entitlements
+      path: unikit-tauri-calculator_iOS/unikit-tauri-calculator_iOS.entitlements
     scheme:
       environmentVariables:
         RUST_BACKTRACE: full

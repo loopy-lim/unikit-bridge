@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'bun:test';
 import { generateFrameCodecsTs } from './generate-postcard-codec.js';
-import { createComplexCodec } from '@rustra/types';
+import { createComplexCodec } from '@unikit/types';
 import type { CommandSchema } from './schema.js';
 
 const simple = (name: string, execution?: 'sync' | 'async'): CommandSchema => ({

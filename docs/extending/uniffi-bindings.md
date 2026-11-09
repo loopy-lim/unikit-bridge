@@ -4,7 +4,7 @@ English | [한국어](./uniffi-bindings.ko.md)
 
 ## 1. What is the UniFFI transport?
 
-UniFFI is rustra's fourth host surface, and it **coexists** with the existing
+UniFFI is unikit's fourth host surface, and it **coexists** with the existing
 tiers (JSI/Tauri/Bun/Node). Where the existing tiers have a TS engine round-trip
 postcard/Frame blobs, UniFFI is a **native value transfer**: bindings generated
 by Mozilla UniFFI move values across with uniffi's own RustBuffer lift/lower, and
@@ -22,28 +22,28 @@ When to choose it:
 | Tauri app — webview calling Rust                                  | The Tauri adapter ([Tauri setup](tauri-setup.md))            |
 | Node/Bun backends                                                 | Generated entries ([Getting Started](../getting-started.md)) |
 
-The contract integrity of the UniFFI surface is owned not by rustra but by
+The contract integrity of the UniFFI surface is owned not by unikit but by
 **uniffi's own checksums + contract version** (the Track A philosophy of
-ADR 0001, applied by the carrier). rustra's
+ADR 0001, applied by the carrier). unikit's
 `contract_hash`/`contract.mismatch` gate stays scoped to the blob transports
 (JSI/Tauri/Bun/Node) — the decision record is
 [ADR 0002](../adr/0002-uniffi-track-b1-carrier.md).
 
 ## 2. Architecture — the core stays uniffi-free
 
-`crates/rustra` carries no uniffi dependency. What landed in the core are two
+`crates/unikit-bridge` carries no uniffi dependency. What landed in the core are two
 plain-Rust pieces:
 
 - `Package::invoke_typed<I: Serialize, O: DeserializeOwned>(name, &input)`
-  (`crates/rustra/src/invoke_typed.rs`) — looks the command up by name,
+  (`crates/unikit-bridge/src/invoke_typed.rs`) — looks the command up by name,
   assembles a Frame request frame from commandId + postcard, and executes it
   through the **single dispatch path** of `invoke_frame`. No second JSON
   execution path is forked, so the wire the TS codec sees and the wire an
   in-Rust call sees come from the same source, byte for byte.
 - `decode_frame_response(frame)` / `decode_frame_error_parts(frame)`
-  (`crates/rustra/src/frame_error.rs`) — shared helpers that split a response
+  (`crates/unikit-bridge/src/frame_error.rs`) — shared helpers that split a response
   frame into a success body / an error `{code, message}`. Known limitation:
-  `RustraError.code` is a `&'static str`, so the dynamic code on the wire cannot
+  `UnikitError.code` is a `&'static str`, so the dynamic code on the wire cannot
   be reconstructed without allocating; the merged decoder
   (`decode_frame_response`) therefore surfaces errors as
   `internal: "<code>: <message>"` — parsers that need the exact parts use the
@@ -63,7 +63,7 @@ include!("uniffi_generated.rs");
 A default build involves no uniffi at all — only `--features uniffi` builds put
 the scaffolding onto the cdylib.
 
-## 3. Configuration — the `uniffi` section of `rustra.json`
+## 3. Configuration — the `uniffi` section of `unikit.json`
 
 ```json
 {
@@ -91,17 +91,17 @@ implementation — `examples/calculator/`):
    pin — §8).
 3. `src/bin/uniffi-bindgen.rs`:
    `fn main() { uniffi::uniffi_bindgen_main() }`.
-4. The probe binary honors the `RUSTRA_UNIFFI_OUT` environment variable and
+4. The probe binary honors the `UNIKIT_UNIFFI_OUT` environment variable and
    renders the mirror source (see
    `examples/calculator/src/bin/generate.rs`).
 5. The `#[cfg(feature = "uniffi")] include!(...)` wiring in lib.rs (§2).
 
 ## 4. Codegen flow
 
-The uniffi stage of `rustra codegen --config rustra.json` (write mode):
+The uniffi stage of `unikit codegen --config unikit.json` (write mode):
 
 1. **Schema probe** — spawns the existing probe with the
-   `RUSTRA_UNIFFI_OUT=<srcOut>` environment variable. The probe renders the
+   `UNIKIT_UNIFFI_OUT=<srcOut>` environment variable. The probe renders the
    mirror source into `uniffi_generated.rs` and writes it to srcOut (a commit
    target).
 2. **cdylib build** — `cargo build --package <pkg> --lib --features uniffi
@@ -117,7 +117,7 @@ The uniffi stage of `rustra codegen --config rustra.json` (write mode):
    successful publication removes stale files.
 
 `--check` compares only `uniffi_generated.rs` for UniFFI; this inexpensive check
-**does not prove Kotlin/Swift freshness**. Use `rustra codegen --check-bindings`
+**does not prove Kotlin/Swift freshness**. Use `unikit codegen --check-bindings`
 as the explicit full binding CI gate. It implies `--check`, builds the library,
 generates into an empty temporary directory, and compares the complete path set
 and bytes (including Swift, Kotlin, headers, module maps and extra stale files)
@@ -134,16 +134,16 @@ no silent skip).
 One top-level function is generated per command. For the calculator example
 (committed bindings: `examples/calculator/uniffi/`):
 
-Kotlin (package `uniffi.rustra_calculator_example`):
+Kotlin (package `uniffi.unikit_calculator_example`):
 
 ```kotlin
-import uniffi.rustra_calculator_example.*
+import uniffi.unikit_calculator_example.*
 
 val sum = addNumbers(AddNumbersInput(a = 2, b = 3)) // AddNumbersOutput(value = 5)
 
 try {
     divide(DivideInput(a = 10.0, b = 0.0))
-} catch (e: RustraCommandFailure.Failure) {
+} catch (e: UnikitCommandFailure.Failure) {
     println(e.code) // "math.divide_by_zero"
 }
 ```
@@ -155,7 +155,7 @@ let sum = try addNumbers(input: AddNumbersInput(a: 2, b: 3)) // AddNumbersOutput
 
 do {
     _ = try divide(input: DivideInput(a: 10, b: 0))
-} catch let failure as RustraCommandFailure {
+} catch let failure as UnikitCommandFailure {
     if case let .Failure(code, detail, retryable) = failure {
         print(code) // "math.divide_by_zero"
     }
@@ -163,8 +163,8 @@ do {
 ```
 
 **Error model** — a single-variant failure record
-`RustraCommandFailure.Failure { code, detail, retryable }` (the same shape as
-the TS `RustraCommandError`). rustra's error code space is open (unbounded
+`UnikitCommandFailure.Failure { code, detail, retryable }` (the same shape as
+the TS `UnikitCommandError`). unikit's error code space is open (unbounded
 custom codes), so a uniffi enum mapping — which would require closing it — was
 rejected.
 
@@ -175,7 +175,7 @@ Three generic functions are generated alongside:
 - `getSchema()` — the live schema (`Package::live_schema`). Unlike the TS-side
   schema it **includes the generation counter** (for hot-swap observation).
 - `contractHash()` — the same single source as the FFI
-  `rustra_ffi_contract_hash`.
+  `unikit_ffi_contract_hash`.
 
 **Loading model** — uniffi bindings bind cdylib symbols at load time. This
 surface is therefore **static/release builds only** and cannot be combined with
@@ -187,11 +187,11 @@ Generated bindings are proven on real emulator/simulator runtimes by two
 committed smoke harnesses, both wired as CI jobs (`.github/workflows/ci.yml`):
 
 - **Android** — `examples/uniffi-android-smoke`: a minimal Gradle app loading
-  the generated Kotlin bindings (`uniffi.rustra_calculator_example`, JNA-based)
+  the generated Kotlin bindings (`uniffi.unikit_calculator_example`, JNA-based)
   plus the Rust `.so` built with cargo-ndk. The app proves the happy path
   `addNumbers(20, 22) == 42` and the typed error path `divide(10, 0)` → code
   `"math.divide_by_zero"`, and only then prints the
-  `__RUSTRA_UNIFFI_OK__ addNumbers(20,22)=42` marker via `Log.w`. The
+  `__UNIKIT_UNIFFI_OK__ addNumbers(20,22)=42` marker via `Log.w`. The
   `uniffi-android` CI job boots an x86_64 emulator, installs the APK, and
   asserts the marker from the logcat.
 - **iOS** — `examples/uniffi-ios-smoke`: `build-and-run.sh` builds the

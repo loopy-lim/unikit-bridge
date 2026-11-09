@@ -32,12 +32,12 @@ async function waitFor(predicate: () => boolean): Promise<void> {
 }
 
 test('config dev preserves handwritten Rust beside manifest-owned output in src', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-dev-owned-output-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-dev-owned-output-'));
   const project = join(root, 'project');
   const bin = join(root, 'bin');
   const runs = join(root, 'runs.log');
   const source = join(project, 'src/lib.rs');
-  const configPath = join(project, 'rustra.json');
+  const configPath = join(project, 'unikit.json');
   const oldPath = process.env.PATH;
   let handle: Awaited<ReturnType<typeof runDev>> | undefined;
   for (const path of [join(project, 'src'), bin]) mkdirSync(path, { recursive: true });
@@ -76,8 +76,8 @@ test('config dev preserves handwritten Rust beside manifest-owned output in src'
     `#!${process.execPath}\nimport fs from 'node:fs';import path from 'node:path';
     if(process.argv[2]==='metadata') console.log(${JSON.stringify(JSON.stringify(metadata))});
     else { fs.appendFileSync(${JSON.stringify(runs)},fs.readFileSync(${JSON.stringify(source)},'utf8'));
-      fs.mkdirSync(process.env.RUSTRA_SCHEMA_OUT,{recursive:true});
-      fs.writeFileSync(path.join(process.env.RUSTRA_SCHEMA_OUT,'schema.json'),${JSON.stringify(JSON.stringify({ packageId: 'app.demo', commands: [] }))}); }
+      fs.mkdirSync(process.env.UNIKIT_SCHEMA_OUT,{recursive:true});
+      fs.writeFileSync(path.join(process.env.UNIKIT_SCHEMA_OUT,'schema.json'),${JSON.stringify(JSON.stringify({ packageId: 'app.demo', commands: [] }))}); }
   `,
   );
   chmodSync(cargo, 0o755);

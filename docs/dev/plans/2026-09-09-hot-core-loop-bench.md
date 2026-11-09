@@ -5,7 +5,7 @@ Status: measured (2 runs × 2 warmup + 20 measured cycles, sequential). Companio
 Harness: [`scripts/hot-core-loop-bench.mjs`](../../../scripts/hot-core-loop-bench.mjs).
 Branch snapshot measured: `feat/native-hot-core`, working tree at commit `4942a1b`
 for every component the loop executes (`packages/cli/src/dev.ts`, `dev-dylib.ts`,
-`watch.ts`, `crates/rustra/src/hot_core_watch.rs`, `hot_core*.rs`,
+`watch.ts`, `crates/unikit-bridge/src/hot_core_watch.rs`, `hot_core*.rs`,
 `examples/calculator/src/lib.rs` — none had local modifications during either run).
 Commits `307954ce`/`0de85a03` (webview swap reporting + probe scaffolding) landed
 from a parallel worker **after** the measurement; they touch none of those
@@ -40,9 +40,9 @@ dominates; swap adds a fairly constant ~0.93 s.
 | Machine         | MacBookPro18,2 (Apple M1 Max), 64 GB, arm64                                                                                                                                                                                                                                                                                              |
 | OS              | macOS 26.6.2                                                                                                                                                                                                                                                                                                                             |
 | Toolchain       | cargo/rustc 1.98.0 (797e8a9bc / 88d9e12ae), bun 1.4.0                                                                                                                                                                                                                                                                                    |
-| Cargo cache     | warm — `target/debug` pre-populated the same day; the initial `rustra dev` run reported both cargo steps at 0.1 s                                                                                                                                                                                                                        |
+| Cargo cache     | warm — `target/debug` pre-populated the same day; the initial `unikit dev` run reported both cargo steps at 0.1 s                                                                                                                                                                                                                        |
 | Ambient load    | desktop session with load average ≈ 7 (WindowServer, browsers, an Android emulator); the user's normal working condition                                                                                                                                                                                                                 |
-| Contention note | a second worker was editing `crates/rustra` and `Cargo.toml`/`Cargo.lock` in this checkout during run 1 (`tauri_support.rs` mtime 23:46:47, inside run 1's window). Run 1's outliers (cycles 6 and 13, 7.1 s cargo steps) match those dependency-invalidation events. Run 2 ran with no overlapping writes and is the settled reference. |
+| Contention note | a second worker was editing `crates/unikit-bridge` and `Cargo.toml`/`Cargo.lock` in this checkout during run 1 (`tauri_support.rs` mtime 23:46:47, inside run 1's window). Run 1's outliers (cycles 6 and 13, 7.1 s cargo steps) match those dependency-invalidation events. Run 2 ran with no overlapping writes and is the settled reference. |
 
 ## What was measured
 
@@ -54,10 +54,10 @@ One cycle = one schema-invariant Rust edit flowing through the real dylib dev lo
    toggle (two stable byte states, sha256-12 `ed21b2366173` ⇄ `35170b453dc1`),
    while schema, contract hash, and behavior (2+3=5) stay identical — the exact
    "logic-only swap" the parity gate must pass.
-2. `rustra dev --config <bench config>` (watch mode) detects the change
+2. `unikit dev --config <bench config>` (watch mode) detects the change
    (fs.watch + 300 ms debounce) → codegen (`cargo run --bin generate` + TS render)
    → `cargo build --lib` (cdylib) → parity gate → atomic publish to
-   `target/debug/librustra_calculator_example-hot-live.dylib`.
+   `target/debug/libunikit_calculator_example-hot-live.dylib`.
 3. The host watches the live artifact with the production watch primitive
    (`spawn_dylib_watch`, 300 ms sha256 polling) and reports the swap.
 
@@ -83,25 +83,25 @@ channel differs (stdout line instead of stderr/webview event).
 > **FIXED (2026-09-10, after this measurement).** `packages/cli/src/host-entries.ts`
 > now falls back to `codegen.rustManifest` for the node/bun host sections (same
 > priority as the wasm/dylib dev targets), and `cli-codegen.ts` pins the Rust
-> bin's `RUSTRA_SCHEMA_OUT` to the config-declared schema directory (previously
+> bin's `UNIKIT_SCHEMA_OUT` to the config-declared schema directory (previously
 > the bin's CWD-relative default wrote a stray `generated/schema.json` copy next
 > to the config and left `config.schemaPath` — the parity gate's input — stale).
 > `bun scripts/hot-core-loop-bench.mjs` now runs against the default
-> `rustra.hot.json`; the numbers below are unaffected (the fix changes where the
+> `unikit.hot.json`; the numbers below are unaffected (the fix changes where the
 > schema lands, not the loop's cargo/gate/poll work). Regression tests:
 > `packages/cli/src/host-entries.test.ts`.
 
-`rustra dev --config examples/tauri-calculator/rustra.hot.json` — the exact command
+`unikit dev --config examples/tauri-calculator/unikit.hot.json` — the exact command
 documented in `examples/tauri-calculator/README.md` — **fails during codegen** on
 this branch:
 
 ```
 [dev] regeneration failed: TypeScript/C++ generation failed for
-.../rustra.hot.json: Host setup found 0 Cargo packages (none).
+.../unikit.hot.json: Host setup found 0 Cargo packages (none).
 Point rustManifest at the app crate, or set the host rustPackage.
 ```
 
-Root cause: `rustra.hot.json` declares `"node": {}` / `"bun": {}`. In
+Root cause: `unikit.hot.json` declares `"node": {}` / `"bun": {}`. In
 `packages/cli/src/host-entries.ts` those sections resolve the manifest with
 `findCargoManifest(appRoot)` where `appRoot` is `examples/tauri-calculator` — that
 directory has no `Cargo.toml`, so the search walks up to the workspace root
@@ -117,15 +117,15 @@ config outside the repo, passed via `BENCH_CONFIG`:
 
 ```json
 {
-  "schema": "/Users/loopy/dev/ll3/rustra-bridge/examples/calculator/generated/schema.json",
-  "output": "/Users/loopy/dev/ll3/rustra-bridge/examples/calculator/generated",
+  "schema": "/Users/loopy/dev/ll3/unikit-bridge/examples/calculator/generated/schema.json",
+  "output": "/Users/loopy/dev/ll3/unikit-bridge/examples/calculator/generated",
   "codegen": {
-    "rustManifest": "/Users/loopy/dev/ll3/rustra-bridge/examples/calculator/Cargo.toml",
-    "rustPackage": "rustra-calculator-example",
+    "rustManifest": "/Users/loopy/dev/ll3/unikit-bridge/examples/calculator/Cargo.toml",
+    "rustPackage": "unikit-calculator-example",
     "rustBinary": "generate"
   },
-  "node": { "rustManifest": "/Users/loopy/dev/ll3/rustra-bridge/examples/calculator/Cargo.toml" },
-  "bun": { "rustManifest": "/Users/loopy/dev/ll3/rustra-bridge/examples/calculator/Cargo.toml" },
+  "node": { "rustManifest": "/Users/loopy/dev/ll3/unikit-bridge/examples/calculator/Cargo.toml" },
+  "bun": { "rustManifest": "/Users/loopy/dev/ll3/unikit-bridge/examples/calculator/Cargo.toml" },
   "tauri": {},
   "dev": { "target": "dylib" }
 }
@@ -138,7 +138,7 @@ identical — and `git status --porcelain examples/calculator` stayed empty.
 
 ## Raw data
 
-### Run 1 — with concurrent `crates/rustra` edits landing (contention window)
+### Run 1 — with concurrent `crates/unikit-bridge` edits landing (contention window)
 
 Warmup cycles 1–2 excluded from stats. `schemaGen`/`dylibBuild` are the CLI's own
 cargo step durations (`done in X.Xs` lines).
@@ -225,7 +225,7 @@ Measured swap-mechanics unit costs (independent timings on the 11 MB live artifa
 `/usr/bin/time` over 3 runs each): full-file copy ≈ 10 ms, ad-hoc
 `codesign --force --sign -` ≈ 20–30 ms, sha256 read ≈ 10 ms. Those three total
 ~50 ms, so the dominant part of a swap (~0.7 s) is `DylibCore::open` — dlopen of the
-11 MB debug cdylib plus rustra core initialization (package registration, contract
+11 MB debug cdylib plus unikit core initialization (package registration, contract
 hash binding) — plus handle swap and report. That residual was not instrumented
 internally (crates/ untouched); it is reported as an arithmetic remainder, not a
 direct measurement.
@@ -242,7 +242,7 @@ Takeaways:
    would not change the verdict.
 3. **Run-to-run outliers were external.** The two >6.5 s cargo steps in run 1
    coincide
-   with a sibling worker's `crates/rustra` edits landing (dependency invalidation);
+   with a sibling worker's `crates/unikit-bridge` edits landing (dependency invalidation);
    run 2 has zero outliers beyond +338 ms over its p50.
 
 ## Cross-iteration rationale
@@ -251,7 +251,7 @@ Takeaways:
   across 2 independent runs** (plus 4 warmups and 2 smoke cycles), sequential per
   the no-contention constraint.
 - Warmup (2 per run) absorbs cargo/feature-graph settling after the probe build
-  flips the `rustra` feature set (`hot-core` on for the probe, off for the dev
+  flips the `unikit` feature set (`hot-core` on for the probe, off for the dev
   build) and any FS cache cooling. Run 2's warmup-1 total (3 354 ms) already equals
   its measured median, so 2 warmups suffice.
 - The toggle alternates between exactly two compiled byte states (sha256-12
@@ -278,19 +278,19 @@ Takeaways:
 
 ```sh
 # one-off setup equivalent to the harness preflight
-cargo build -q -p rustra-hot-core-probe
+cargo build -q -p unikit-hot-core-probe
 bun run --cwd packages/cli build
 
 # full benchmark (2 warmup + 20 measured), ~4.5 min sequential
-BENCH_CONFIG=/tmp/rustra-hot-bench/rustra-hot-bench.json \
+BENCH_CONFIG=/tmp/unikit-hot-bench/unikit-hot-bench.json \
   bun scripts/hot-core-loop-bench.mjs
 
 # smaller sweep
-BENCH_CONFIG=/tmp/rustra-hot-bench/rustra-hot-bench.json \
+BENCH_CONFIG=/tmp/unikit-hot-bench/unikit-hot-bench.json \
   BENCH_WARMUP=2 BENCH_CYCLES=7 bun scripts/hot-core-loop-bench.mjs
 ```
 
-`BENCH_CONFIG` was needed while the `rustra.hot.json` node/bun host-entry bug above
+`BENCH_CONFIG` was needed while the `unikit.hot.json` node/bun host-entry bug above
 was live; it is fixed now (see the notice at the bug section), so plain
 `bun scripts/hot-core-loop-bench.mjs` (defaulting to
-`examples/tauri-calculator/rustra.hot.json`) suffices.
+`examples/tauri-calculator/unikit.hot.json`) suffices.

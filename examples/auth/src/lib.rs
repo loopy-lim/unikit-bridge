@@ -9,7 +9,7 @@
 //! 실서비스에서는 토큰 검증을 JSI/FFI 주입 콜백(모바일 브리지 패턴)이나
 //! 백엔드 조회로 대체한다. 여기서는 의존성 없는 데모 해시 기반.
 
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 use std::collections::BTreeMap;
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -82,7 +82,7 @@ static STARTED_AT: std::sync::LazyLock<u128> = std::sync::LazyLock::new(|| {
 fn demo_token(username: &str, role: &str) -> String {
     use sha2::{Digest, Sha256};
     let mut hasher = Sha256::new();
-    hasher.update(format!("{username}:{role}:rustra-demo-salt"));
+    hasher.update(format!("{username}:{role}:unikit-demo-salt"));
     format!("{role}-{}", hex::encode(&hasher.finalize()[..8]))
 }
 
@@ -144,7 +144,7 @@ pub fn admin_stats(input: AdminStatsInput) -> Result<AdminStatsOutput> {
             .is_some_and(|s| s.granted.iter().any(|c| c == "admin.stats"))
     };
     if !has_capability {
-        return Err(RustraError::capability_denied(
+        return Err(UnikitError::capability_denied(
             "admin.stats required — grant() 로 capability 를 부여하세요 (admin 세션만 가능)",
         ));
     }
@@ -163,5 +163,5 @@ pub fn admin_stats(input: AdminStatsInput) -> Result<AdminStatsOutput> {
 }
 
 pub fn auth_package() -> Package {
-    rustra::build!("examples.auth", sign_in, sign_out, grant, admin_stats).done()
+    unikit_bridge::build!("examples.auth", sign_in, sign_out, grant, admin_stats).done()
 }

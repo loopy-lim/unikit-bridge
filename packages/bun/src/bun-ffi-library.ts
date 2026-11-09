@@ -1,6 +1,6 @@
 import { existsSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { RustraCommandError, type FrameCodec, type FrameEngineOptions } from '@rustra/types';
+import { UnikitCommandError, type FrameCodec, type FrameEngineOptions } from '@unikit/types';
 
 /** cdylib 후보 해상에 필요한 필드 — 이벤트 구독 팩토리(bun-event-subscription)가
  * 부트스트랩과 동일한 해상을 재사용할 수 있게 분리한 하위 집합이다. */
@@ -15,7 +15,7 @@ export type BunFfiEngineOptions = Omit<FrameEngineOptions, 'frameCodecs'> & {
 } & BunLibraryOptions;
 
 export type BunFfiRuntime = {
-  engine: import('@rustra/types').FrameEngine;
+  engine: import('@unikit/types').FrameEngine;
   library: string;
   /** 작은 응답을 재사용 512B caller buffer로 전달하는지 — owned 심볼이 있어도 소형 경로는 이 버퍼로 쓰인다. */
   usesCallerBufferInto: boolean;
@@ -25,8 +25,8 @@ export type BunFfiRuntime = {
 /** 계약 검증 기각 코드(감사 A1) — 다른 코드의 실패는 후보 폴백 없이 즉시 전파. */
 const CONTRACT_REJECTION_CODES = ['contract.mismatch', 'contract.unenforceable'];
 
-function isContractRejection(error: unknown): error is RustraCommandError {
-  return error instanceof RustraCommandError && CONTRACT_REJECTION_CODES.includes(error.code);
+function isContractRejection(error: unknown): error is UnikitCommandError {
+  return error instanceof UnikitCommandError && CONTRACT_REJECTION_CODES.includes(error.code);
 }
 
 function libraryMtime(candidate: string): string {
@@ -56,7 +56,7 @@ function orderCandidatesNewestFirst(candidates: string[]): string[] {
 }
 
 export function bunLibraryCandidates(options: BunLibraryOptions): string[] {
-  const explicit = process.env.RUSTRA_BUN_LIBRARY ?? options.library;
+  const explicit = process.env.UNIKIT_BUN_LIBRARY ?? options.library;
   if (explicit) return [explicit];
   const candidates = [...(options.libraryCandidates ?? [])];
   if (options.libraryName) {
@@ -87,7 +87,7 @@ export function bunLibraryCandidates(options: BunLibraryOptions): string[] {
  * dlopen→init→엔진 생성(계약 handshake 포함)까지 수행한다. 실패 분류:
  * - plain Error(dlopen/init 실패) → probe 기각, 다음 후보 계속 스캔.
  * - contract.mismatch/unenforceable → 계약 기각, 다음 후보 폴백.
- * - 그 외 RustraCommandError → 엔진 수준 실패, 즉시 전파(폴백 대상 아님).
+ * - 그 외 UnikitCommandError → 엔진 수준 실패, 즉시 전파(폴백 대상 아님).
  * 전부 기각되면 마지막 계약 오류에 "시도한 전체 후보 경로+mtime" 보고를 붙여
  * 다시 던진다. dlopen 을 직접 모르므로 주입 attempt 로 단위 테스트한다.
  */
@@ -97,7 +97,7 @@ export async function selectVerifiedLibrary<T>(
 ): Promise<{ runtime: T; library: string } | { probeFailures: string[] }> {
   const probeFailures: string[] = [];
   const contractRejections: Array<{ candidate: string; reason: string }> = [];
-  let lastRejection: RustraCommandError | undefined;
+  let lastRejection: UnikitCommandError | undefined;
   for (const candidate of candidates) {
     try {
       const runtime = await attempt(candidate);
@@ -108,7 +108,7 @@ export async function selectVerifiedLibrary<T>(
         lastRejection = error;
         continue;
       }
-      if (error instanceof RustraCommandError) throw error;
+      if (error instanceof UnikitCommandError) throw error;
       probeFailures.push(`${candidate}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -119,7 +119,7 @@ export async function selectVerifiedLibrary<T>(
         ({ candidate, reason }) => `${candidate} (modified ${libraryMtime(candidate)}): ${reason}`,
       ),
     ].join('; ');
-    throw new RustraCommandError(
+    throw new UnikitCommandError(
       lastRejection.code,
       `${lastRejection.message} Tried ${contractRejections.length + probeFailures.length} ` +
         `cdylib candidates (newest first): ${described}.`,

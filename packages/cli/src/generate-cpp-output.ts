@@ -13,9 +13,9 @@ export { generateFrameCodecsHpp } from './generate-cpp-hpp.js';
 export function generateFrameCodecsCpp(schema: PackageSchema, schemaContent?: string): string {
   const sets = analyzeCppCommands(schema);
   const lines: string[] = [
-    generatedFileHeader('rustra-generated-codecs.cpp', 'schema → cpp codec renderer').trimEnd(),
+    generatedFileHeader('unikit-generated-codecs.cpp', 'schema → cpp codec renderer').trimEnd(),
     `// C++ postcard codec for the RN JSI fast path (B1).`,
-    `#include "rustra-generated-codecs.hpp"`,
+    `#include "unikit-generated-codecs.hpp"`,
     `#include <algorithm>`,
     `#include <array>`,
     `#include <cmath>`,
@@ -30,10 +30,10 @@ export function generateFrameCodecsCpp(schema: PackageSchema, schemaContent?: st
     ``,
     `using namespace facebook::jsi;`,
     `namespace jsi = facebook::jsi;`,
-    `namespace rc = rustra::codec;`,
+    `namespace rc = unikit_bridge::codec;`,
     // Hash the original bytes, exactly as contract.ts does. Object serialization
     // cannot recover whitespace/order from a parsed or legacy schema argument.
-    `namespace rustra::generated {`,
+    `namespace unikit_bridge::generated {`,
     `const char* compiled_contract_hash() { return ${schemaContent === undefined ? 'nullptr' : JSON.stringify(sha256(schemaContent))}; }`,
     `}`,
     ``,

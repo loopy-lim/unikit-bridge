@@ -5,7 +5,7 @@ import {
   deleteItem,
   getItem,
   listItems,
-  rustra,
+  unikit,
   updateItem,
 } from '../generated/node.js';
 
@@ -21,5 +21,5 @@ try {
   assert.equal((await deleteItem({ id: other.item.id })).deleted, true);
   console.log('[crud] PASS — generated create/read/update/list/delete share one Rust store');
 } finally {
-  rustra.dispose();
+  unikit.dispose();
 }

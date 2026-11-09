@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import process from 'node:process';
 import test from 'node:test';
-import { configure } from '@rustra/types';
+import { configure } from '@unikit/types';
 import { addNumbers } from '../generated/commands.js';
 import type { EngineClient } from '../generated/types.js';
 

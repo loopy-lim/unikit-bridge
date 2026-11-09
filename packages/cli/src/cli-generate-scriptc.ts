@@ -1,8 +1,8 @@
 /**
- * scriptc Native FFI 코드젠 — rustra 스키마에서 scriptc(0.2.x, ffi_format 7)가
+ * scriptc Native FFI 코드젠 — unikit 스키마에서 scriptc(0.2.x, ffi_format 7)가
  * 링크할 매니페스트와 선언을 렌더한다:
  *
- *   1. ffi.json   — 심볼/타입 매니페스트. libraries 는 rustra staticlib
+ *   1. ffi.json   — 심볼/타입 매니페스트. libraries 는 unikit staticlib
  *                   아카이브 경로(resolveScriptcArchivePath)를 가리키며,
  *                   scriptc 가 출력 파일 위치 기준 상대경로로 해석한다.
  *   2. scriptc-ffi.ts / .d.ts — source import / legacy ambient 선언. 구현은 아카이브가 링크 시
@@ -14,7 +14,7 @@
  *
  * 왜 ffi_format 7 인가 — scriptc.dev/docs/ffi 기준(2026-10 확인) mutable-bytes 는
  * format 6+, u64 는 format 7 이다. caller-buffer envelope 진입
- * (rustra_ffi_invoke_json_into_len)이 `string`(payload 의 `(ptr,len)` 접기) +
+ * (unikit_ffi_invoke_json_into_len)이 `string`(payload 의 `(ptr,len)` 접기) +
  * `mutable-bytes`(buf/capacity 의 쓰기 가능한 borrow) + `u64` 반환(기록 바이트 수,
  * usize)로 정확히 이 세 클래스에 걸린다. 매니페스트는 scriptc 가 검증하므로
  * 잘못된 클래스는 `scriptc build` 에서 즉시 깨진다 — 실증 게이트는
@@ -27,20 +27,20 @@
  *     node:ffi 카탈로그 세계 전용). 그래서 out 포인터에 쓰는 심볼
  *     (invoke_json_into 의 out_len, get_schema/contract_hash 의 out_len,
  *     invoke_buffer/invoke_raw 의 이중 포인터)은 전부 제외 대상이고, 그 대체로
- *     코어가 `rustra_ffi_invoke_json_into_len`(길이를 반환값으로)을 제공한다.
+ *     코어가 `unikit_ffi_invoke_json_into_len`(길이를 반환값으로)을 제공한다.
  *   - 소유 응답/out 포인터 async와 C-unwind 이벤트는 직접 노출하지 않는다.
  *     borrowed bytes channel과 plain C event sibling을 retained/foreign callback
  *     descriptor로 제공하고 identity-paired release가 closure 수명을 닫는다.
  * 두 제외 목록 모두 scriptcExcludedSymbols 에 사유와 함께 기록된다.
  *
- * 함수 목록은 스키마 커맨드별이 아니라 rustra 의 고정 C ABI(envelope dispatch —
+ * 함수 목록은 스키마 커맨드별이 아니라 unikit 의 고정 C ABI(envelope dispatch —
  * 커맨드 식별은 JSON/command_id 로 내부에서 일어난다)에서 scriptc 형태 심볼만
  * 모은 골드 데이터다. 테스트가 이 순서를 고정하며, 재배열은 소비자(scriptc
  * 아카이브 링크)에 드리프트로 보이므로 append-only 로 성장한다.
  */
 import { resolve } from 'node:path';
 import { generatedFileHeader } from './generated-header.js';
-import { RUSTRA_FFI_SYNC_SYMBOLS } from './scriptc-symbols.js';
+import { UNIKIT_FFI_SYNC_SYMBOLS } from './scriptc-symbols.js';
 import type { ScriptcFfiType, ScriptcParameter } from './scriptc-symbols.js';
 import type { PackageSchema } from './schema.js';
 
@@ -69,7 +69,7 @@ export const SCRIPTC_SOURCE_FILE = 'scriptc-ffi.ts';
 
 /** 함수 엔트리 — params 는 C 인자 순서의 (포인터, 길이) 쌍을 접은 플랫 배열이다. */
 export type ScriptcFunctionEntry = {
-  /** 매니페스트와 TS 선언이 공유하는 함수 식별자 — rustra 는 심볼명과 동일하다. */
+  /** 매니페스트와 TS 선언이 공유하는 함수 식별자 — unikit 는 심볼명과 동일하다. */
   name: string;
   symbol: string;
   params: ScriptcParameter[];
@@ -80,17 +80,17 @@ export type ScriptcFunctionEntry = {
 export type ScriptcFfiManifest = {
   ffi_format: typeof SCRIPTC_FFI_FORMAT;
   functions: ScriptcFunctionEntry[];
-  /** 정적 링크할 아카이브 경로 — rustra staticlib 산출물(resolveScriptcArchivePath). */
+  /** 정적 링크할 아카이브 경로 — unikit staticlib 산출물(resolveScriptcArchivePath). */
   libraries: string[];
-  /** 시스템 라이브러리 — rustra staticlib 는 링커 기본 의존만 가진다(빈 배열 고정). */
+  /** 시스템 라이브러리 — unikit staticlib 는 링커 기본 의존만 가진다(빈 배열 고정). */
   system_libraries: string[];
 };
 
 export { scriptcExcludedSymbols } from './scriptc-symbols.js';
 
-/** rustra FFI 심볼 테이블 → ffi_format 7 functions 엔트리 목록. */
+/** unikit FFI 심볼 테이블 → ffi_format 7 functions 엔트리 목록. */
 export function generateScriptcFunctions(): ScriptcFunctionEntry[] {
-  return RUSTRA_FFI_SYNC_SYMBOLS.map(({ symbol, params, returns }) => ({
+  return UNIKIT_FFI_SYNC_SYMBOLS.map(({ symbol, params, returns }) => ({
     name: symbol,
     symbol,
     params: params.map(([ffiType]) => structuredClone(ffiType)),
@@ -100,13 +100,13 @@ export function generateScriptcFunctions(): ScriptcFunctionEntry[] {
 
 /** 심볼 → 파라미터명 목록 — 선언의 가독성 있는 `name: type` 시그니처 근거. */
 const SCRIPTC_PARAM_NAMES: ReadonlyMap<string, readonly string[]> = new Map(
-  RUSTRA_FFI_SYNC_SYMBOLS.map(({ symbol, params }) => [symbol, params.map(([, name]) => name)]),
+  UNIKIT_FFI_SYNC_SYMBOLS.map(({ symbol, params }) => [symbol, params.map(([, name]) => name)]),
 );
 
 /**
  * staticlib 아카이브 경로 해석 — uniffi 의 expectedDylibPath 와 같은 크레이트명→
  * 파일명 규약(하이픈→밑줄)을 staticlib 에 적용한다: target/<profile>/lib<name>.a.
- * 예: rustra-calculator-example → target/release/librustra_calculator_example.a.
+ * 예: unikit-calculator-example → target/release/libunikit_calculator_example.a.
  */
 export function resolveScriptcArchivePath(
   targetDir: string,
@@ -143,7 +143,7 @@ export type ScriptcGenerateInput = {
 
 /**
  * 스키마에서 scriptc FFI 아티팩트 두 벌을 렌더한다. 커맨드별 래퍼를 만들지 않는
- * 이유: rustra FFI 는 envelope dispatch(JSON/command_id)라 와이어 진입점이
+ * 이유: unikit FFI 는 envelope dispatch(JSON/command_id)라 와이어 진입점이
  * 패키지마다 동일하다. 스키마의 역할은 packageId 근거와 빈 커맨드 fail-closed
  * 검증뿐이다. 쓰기는 오케스트레이터(cli-scriptc.ts)의 몫 — 이 모듈은 문자열만
  * 렌더해 scriptc 바이너리 없이 검증 가능하게 유지한다.
@@ -214,7 +214,7 @@ function renderDeclaration(entry: ScriptcFunctionEntry, manifest: ScriptcFfiMani
   if (!names || names.length !== entry.params.length)
     throw new Error(
       `scriptc param-name table is out of sync for ${entry.symbol} — ` +
-        `RUSTRA_FFI_SYNC_SYMBOLS is the single source for both manifest and declarations`,
+        `UNIKIT_FFI_SYNC_SYMBOLS is the single source for both manifest and declarations`,
     );
   const params = entry.params
     .flatMap((type, index) => {

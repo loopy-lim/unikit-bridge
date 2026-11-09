@@ -1,10 +1,10 @@
 /**
- * @rustra/bun 이벤트 구독 — FFI 푸시 싱크 브릿지 (+ 주입형 폴링 폴백).
+ * @unikit/bun 이벤트 구독 — FFI 푸시 싱크 브릿지 (+ 주입형 폴링 폴백).
  *
  * ### 전달 경로: FFI 푸시 (Tauri/RN의 플랫폼 푸시, Node의 폴링과 대비)
  *
  * 기본 경로는 C 콜백 푸시 싱크다. Bun FFI `JSCallback` 으로
- * `rustra_ffi_event_sink_register` 를 등록하면 Rust `Package::emit` 이
+ * `unikit_ffi_event_sink_register` 를 등록하면 Rust `Package::emit` 이
  * 버스 적재 없이 즉시 콜백을 호출한다 — 폴링 루프 없이 실시간 수신.
  * (싱크가 설치되어 있는 동안 이벤트 버스는 비어 있다 — 푸시+폴링 이중 수신
  * 방지 계약, Rust `set_event_sink` 문서 참조.)
@@ -23,7 +23,7 @@
  * FFI를 쓸 수 없거나(라이브러리 미로딩), 비동기 핸들러가 백그라운드 스레드에서
  * emit 하는 호스트는 `poll: { drainEvents }` 를 주입한다 — Node 어댑터와 같은
  * setTimeout 백오프 폴링으로 이벤트 버스를 읽는다. 구독자 0이면 폴링 정지,
- * 다수 구독자가 한 루프를 공유한다(계약은 @rustra/node 와 동일).
+ * 다수 구독자가 한 루프를 공유한다(계약은 @unikit/node 와 동일).
  *
  * 시그니처는 코드젠 `SubscribeFn` / RN·Tauri `subscribeEvent` 와 동일한
  * `(name, callback) => unsubscribe` 다.
@@ -40,7 +40,7 @@ export type BunEventDrainSource = {
 export type BunEventBridgeOptions = {
   /**
    * Rust cdylib 경로 — 브릿지가 자체 dlopen 으로 이벤트 심볼
-   * (`rustra_ffi_event_sink_register/unregister`)을 노출해 푸시 싱크를 등록한다.
+   * (`unikit_ffi_event_sink_register/unregister`)을 노출해 푸시 싱크를 등록한다.
    * `createBunFfiEngine` 런타임의 `library` 문자열을 그대로 쓰면 된다.
    */
   library?: string;
@@ -54,7 +54,7 @@ export type BunEventBridgeOptions = {
 
 export type BunEventBridge = {
   /**
-   * rustra 이벤트를 구독한다 — `(name, callback) => unsubscribe`.
+   * unikit 이벤트를 구독한다 — `(name, callback) => unsubscribe`.
    * 페이로드는 JSON 직렬화 문자열에서 한 번 파싱된 JS 값이다.
    */
   subscribeEvent(name: string, callback: (payload: never) => void): () => void;
@@ -90,7 +90,7 @@ function createPollingEventBridge(options: BunEventBridgeOptions): BunEventBridg
     try {
       draining = Promise.resolve(source.drainEvents());
     } catch (error) {
-      console.error('Rustra: drainEvents failed:', error);
+      console.error('Unikit: drainEvents failed:', error);
       timer = setTimeout(tick, intervalMs);
       return;
     }
@@ -99,7 +99,7 @@ function createPollingEventBridge(options: BunEventBridgeOptions): BunEventBridg
         for (const event of events) subscribers.dispatch(event.name, event.payload);
       })
       .catch((error) => {
-        console.error('Rustra: drainEvents failed:', error);
+        console.error('Unikit: drainEvents failed:', error);
       })
       .then(() => {
         if (disposed || subscribers.isEmpty()) {
@@ -143,7 +143,7 @@ export function createBunEventBridge(options: BunEventBridgeOptions): Promise<Bu
       return Promise.resolve(createBunFfiEventBridge(options.library));
     } catch (error) {
       if (!options.poll || options.fallbackToPolling === false) throw error;
-      console.warn('Rustra: FFI event sink registration failed; falling back to polling:', error);
+      console.warn('Unikit: FFI event sink registration failed; falling back to polling:', error);
     }
   }
   return Promise.resolve(createPollingEventBridge(options));
@@ -151,7 +151,7 @@ export function createBunEventBridge(options: BunEventBridgeOptions): Promise<Bu
 
 // ── 코드젠 SubscribeFn 정합 (컴파일 타임 고정) ─────────────────
 // 코드젠(generateEventsTs)이 생성하는 `SubscribeFn` 계약:
-//   <N extends RustraEventName>(name: N, cb: (payload: RustraEventPayloads[N]) => void)
+//   <N extends UnikitEventName>(name: N, cb: (payload: UnikitEventPayloads[N]) => void)
 //     => (() => void) | Promise<() => void>
 // 이벤트 1개('x': number)를 가진 동형 계약에 이 브릿지의 구독 시그니처가
 // 들어맞는지 tsc 로 고정한다 — 계약이 바뀌면 컴파일이 깨진다.
@@ -165,7 +165,7 @@ type GeneratedSubscribeFn = <N extends ContractName>(
   callback: (payload: ContractPayloads[N]) => void,
 ) => (() => void) | Promise<() => void>;
 
-// 브릿지 subscribeEvent 는 생성 SubscribeFn 자리(onRustraEvent 의 subscribe
+// 브릿지 subscribeEvent 는 생성 SubscribeFn 자리(onUnikitEvent 의 subscribe
 // 매개변수 등)에 그대로 쓰인다 — 이 방향의 할당 가능성만 계약이다.
 type _BridgeFitsGenerated = BunEventBridge['subscribeEvent'] extends GeneratedSubscribeFn
   ? true

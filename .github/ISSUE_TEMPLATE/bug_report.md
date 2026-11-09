@@ -10,7 +10,7 @@ labels: bug
 
 ## Environment
 
-- rustra crate version (`cargo tree | grep rustra`):
+- unikit crate version (`cargo tree | grep unikit`):
 - npm package(s) + version:
 - Host surface: [ ] Node [ ] Bun [ ] Tauri [ ] React Native
 - OS / arch:
@@ -24,7 +24,7 @@ labels: bug
 ## Logs / error
 
 ```text
-Paste the exact RustraCommandError code + message (e.g. "invoke.failed: ...").
+Paste the exact UnikitCommandError code + message (e.g. "invoke.failed: ...").
 ```
 
 ## Notes

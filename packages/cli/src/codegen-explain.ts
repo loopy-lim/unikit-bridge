@@ -54,7 +54,7 @@ export function explainCodegenSurfaces(facts: ExplainFacts): ExplainRow[] {
     rows.push({ output: entry, renderer: 'ts renderer', stage: 'host entry' });
   if (facts.hasCpp)
     rows.push({
-      output: 'rustra-generated-codecs.hpp / .cpp',
+      output: 'unikit-generated-codecs.hpp / .cpp',
       renderer: 'cpp codec renderer',
       stage: 'frame codecs (C++)',
     });
@@ -71,7 +71,7 @@ export function explainCodegenSurfaces(facts: ExplainFacts): ExplainRow[] {
       stage: 'scriptc native FFI (static link)',
     });
   rows.push({
-    output: '.rustra-generated.json',
+    output: '.unikit-generated.json',
     renderer: 'manifest',
     stage: 'freshness sidecar (codegen --check, doctor)',
   });
@@ -80,12 +80,12 @@ export function explainCodegenSurfaces(facts: ExplainFacts): ExplainRow[] {
 
 export function formatExplainText(rows: ExplainRow[]): string {
   const lines = [
-    'rustra codegen surfaces — single arrow: schema.json in, every surface rendered:',
+    'unikit codegen surfaces — single arrow: schema.json in, every surface rendered:',
     '',
     '  OUTPUT                          RENDERER             STAGE',
   ];
   for (const row of rows)
     lines.push(`  ${row.output.padEnd(31)} ${row.renderer.padEnd(20)} ${row.stage}`);
-  lines.push('', '  Regenerate everything: rustra codegen --config rustra.json');
+  lines.push('', '  Regenerate everything: unikit codegen --config unikit.json');
   return lines.join('\n');
 }

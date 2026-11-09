@@ -1,0 +1,14 @@
+{
+  "schema": "./generated/schema.json",
+  "output": "./generated",
+  "node": {
+    "rustBinary": "unikit-streaming-invoke",
+    "args": ["--serve"],
+    "persistent": true
+  },
+  "codegen": {
+    "rustManifest": "./Cargo.toml",
+    "rustPackage": "unikit-streaming-example",
+    "rustBinary": "unikit-streaming-generate"
+  }
+}

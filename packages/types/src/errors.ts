@@ -1,13 +1,13 @@
-export type RustraError = {
+export type UnikitError = {
   readonly code: string;
   readonly message: string;
-  /** Rust `RustraError::retryable` — `transport.error`/`transport.timeout` 등에서 true */
+  /** Rust `UnikitError::retryable` — `transport.error`/`transport.timeout` 등에서 true */
   readonly retryable?: boolean;
 };
 
-export class RustraCommandError extends Error {
+export class UnikitCommandError extends Error {
   readonly code: string;
-  /** 재시도 가능한 에러인지 — Rust `RustraError::is_retryable` 와이어 값을 그대로 노출 */
+  /** 재시도 가능한 에러인지 — Rust `UnikitError::is_retryable` 와이어 값을 그대로 노출 */
   readonly retryable: boolean;
   /**
    * (M3) tier 2 디코드 실패 정규화 시에만 채워지는 응답 프레임 바이트의 독립
@@ -19,7 +19,7 @@ export class RustraCommandError extends Error {
 
   constructor(code: string, message: string, retryable = false, cause?: unknown) {
     super(message, cause === undefined ? undefined : { cause });
-    this.name = 'RustraCommandError';
+    this.name = 'UnikitCommandError';
     this.code = code;
     this.retryable = retryable;
   }
@@ -30,9 +30,9 @@ export class RustraCommandError extends Error {
  * 타임아웃 분기(재시도/백오프)를 문자열 비교 없이 할 수 있다.
  * 코드 매핑은 기존 와이어 값(`transport.timeout`)을 그대로 유지한다.
  */
-export class TimeoutError extends RustraCommandError {
+export class TimeoutError extends UnikitCommandError {
   constructor(message = 'command timed out', cause?: unknown) {
-    super(RustraErrorCode.TransportTimeout, message, true, cause);
+    super(UnikitErrorCode.TransportTimeout, message, true, cause);
     this.name = 'TimeoutError';
   }
 }
@@ -41,16 +41,16 @@ export class TimeoutError extends RustraCommandError {
  * `cancelled` 전용 서브클래스 — 협력적 취소(AbortSignal 등)와 구분되는
  * catch 분기를 제공한다. 코드 매핑은 기존 와이어 값(`cancelled`) 유지.
  */
-export class CancelledError extends RustraCommandError {
+export class CancelledError extends UnikitCommandError {
   constructor(message = 'command cancelled', cause?: unknown) {
-    super(RustraErrorCode.Cancelled, message, true, cause);
+    super(UnikitErrorCode.Cancelled, message, true, cause);
     this.name = 'CancelledError';
   }
 }
 
 /**
- * Rust `RustraError::Display` 포맷(`"{code}: {message}"`)의 평탄화된 문자열을
- * [`RustraCommandError`]로 파싱한다. JSON fallback 경로(네이티브 모듈)에서 사용 —
+ * Rust `UnikitError::Display` 포맷(`"{code}: {message}"`)의 평탄화된 문자열을
+ * [`UnikitCommandError`]로 파싱한다. JSON fallback 경로(네이티브 모듈)에서 사용 —
  * Frame 경로(Node/Tauri)는 구조화된 `{code, message}` 객체를 받으므로 불필요.
  *
  * `": "` 앞이 dot-notation 코드 토큰(`command.not_found`, `internal`,
@@ -58,15 +58,15 @@ export class CancelledError extends RustraCommandError {
  * 그렇지 않으면(FFI 수준 에러: `"json decode failed: ..."`, `"payload exceeds size limit"`
  * 등) `invoke.failed` 코드에 전체 문자열을 message 로 쓴다.
  */
-export function parseRustraErrorString(error: string | undefined | null): RustraCommandError {
-  const raw = error ?? 'Rustra invoke failed';
+export function parseUnikitErrorString(error: string | undefined | null): UnikitCommandError {
+  const raw = error ?? 'Unikit invoke failed';
   if (raw.startsWith('{') && raw.endsWith('}')) {
     try {
       const parsed = JSON.parse(raw) as { code?: unknown; message?: unknown; retryable?: unknown };
       if (typeof parsed.code === 'string' && typeof parsed.message === 'string') {
         const retryable =
           typeof parsed.retryable === 'boolean' ? parsed.retryable : isRetryableCode(parsed.code);
-        return new RustraCommandError(parsed.code, parsed.message, retryable);
+        return new UnikitCommandError(parsed.code, parsed.message, retryable);
       }
     } catch {
       // Fall through to plain text splitting
@@ -76,79 +76,79 @@ export function parseRustraErrorString(error: string | undefined | null): Rustra
   if (idx > 0) {
     const code = raw.slice(0, idx);
     if (/^[a-z][a-z0-9_.]*$/.test(code)) {
-      return new RustraCommandError(code, raw.slice(idx + 2), isRetryableCode(code));
+      return new UnikitCommandError(code, raw.slice(idx + 2), isRetryableCode(code));
     }
   }
-  return new RustraCommandError(RustraErrorCode.InvokeFailed, raw);
+  return new UnikitCommandError(UnikitErrorCode.InvokeFailed, raw);
 }
 
 /**
- * Adapter/transport 경계에서 들어온 reject 값을 하나의 RustraCommandError로
+ * Adapter/transport 경계에서 들어온 reject 값을 하나의 UnikitCommandError로
  * 정규화한다. Promise rejection은 동기 throw와 달리 바깥 try/catch를 우회하므로
  * 모든 호스트가 이 helper를 `.catch()` 경로에도 사용해야 retryable 플래그가
  * JSON 와이어에서 유실되지 않는다.
  */
-export function normalizeRustraError(error: unknown): RustraCommandError {
-  if (error instanceof RustraCommandError) return error;
+export function normalizeUnikitError(error: unknown): UnikitCommandError {
+  if (error instanceof UnikitCommandError) return error;
   if (typeof error === 'object' && error !== null && 'code' in error && 'message' in error) {
     const structured = error as { code: string; message: string; retryable?: boolean };
     // 타임아웃/취소는 코드 문자열 비교 없이 instanceof로 분기할 수 있도록
     // 전용 서브클래스로 승격한다. 나머지 코드는 기존 파싱 경로를 유지한다.
-    if (structured.code === RustraErrorCode.TransportTimeout) {
+    if (structured.code === UnikitErrorCode.TransportTimeout) {
       return new TimeoutError(structured.message, error);
     }
-    if (structured.code === RustraErrorCode.Cancelled) {
+    if (structured.code === UnikitErrorCode.Cancelled) {
       return new CancelledError(structured.message, error);
     }
-    return parseRustraErrorString(JSON.stringify(error));
+    return parseUnikitErrorString(JSON.stringify(error));
   }
   if (error instanceof Error) {
-    const normalized = parseRustraErrorString(error.message);
+    const normalized = parseUnikitErrorString(error.message);
     normalized.cause = error;
     if (error.stack) normalized.stack = error.stack;
     return normalized;
   }
   if (typeof error === 'string') {
     // Plain transport strings are opaque failures, preserving the historical
-    // `unknown` adapter contract. Structured Rustra JSON and Display strings
+    // `unknown` adapter contract. Structured Unikit JSON and Display strings
     // still go through the parser so retryable metadata is not lost.
-    const parsed = parseRustraErrorString(error);
-    return parsed.code === RustraErrorCode.InvokeFailed
-      ? new RustraCommandError(RustraErrorCode.Unknown, error)
+    const parsed = parseUnikitErrorString(error);
+    return parsed.code === UnikitErrorCode.InvokeFailed
+      ? new UnikitCommandError(UnikitErrorCode.Unknown, error)
       : parsed;
   }
-  return new RustraCommandError('unknown', String(error));
+  return new UnikitCommandError('unknown', String(error));
 }
 
 /**
- * 코드 기반 retryable 추론 — Rust `RustraError` 팩토리 관례와 정합.
+ * 코드 기반 retryable 추론 — Rust `UnikitError` 팩토리 관례와 정합.
  * `transport.error`/`transport.timeout`은 Rust 생성 시점에 `retryable: true`로
  * 설정되는 코드군이며 (구조화 와이어에는 retryable 플래그가 없으므로 코드에서
- * 도출한다), `cancelled`도 Rust `RustraError::cancelled` 의 retryable:true 를
+ * 도출한다), `cancelled`도 Rust `UnikitError::cancelled` 의 retryable:true 를
  * 미러링한다 (T1 — JSON fallback 경로의 취소 에러 정합).
  */
 export function isRetryableCode(code: string): boolean {
   return (
-    code === RustraErrorCode.TransportError ||
-    code === RustraErrorCode.TransportTimeout ||
-    code === RustraErrorCode.Cancelled
+    code === UnikitErrorCode.TransportError ||
+    code === UnikitErrorCode.TransportTimeout ||
+    code === UnikitErrorCode.Cancelled
   );
 }
 
 /**
- * rustra 에러 코드의 중앙 레지스트리 — Rust `RustraError`(crates/rustra/src/error.rs)
+ * unikit 에러 코드의 중앙 레지스트리 — Rust `UnikitError`(crates/unikit-bridge/src/error.rs)
  * 와 JS 어댑터가 발행하는 전체 코드 집합. 과거엔 각 소스에 문자열 리터럴로
  * 흩어져 있어 `err.code === 'transport.timeout'` 오타가 컴파일 타임에 안 잡혔다.
  * 상수를 쓰면 자동완성+타입 체크가 둘 다 동작한다:
  *
  * ```ts
- * import { RustraErrorCode } from '@rustra/types';
- * if (err.code === RustraErrorCode.TransportTimeout) { retry(); }
+ * import { UnikitErrorCode } from '@unikit/types';
+ * if (err.code === UnikitErrorCode.TransportTimeout) { retry(); }
  * ```
  *
  * 새 코드 추가 시 여기와 Rust error.rs 를 함께 갱신한다(단일 소스 관례).
  */
-export const RustraErrorCode = {
+export const UnikitErrorCode = {
   /** 명령을 레지스트리에서 찾을 수 없음. */
   CommandNotFound: 'command.not_found',
   /** 인자 역직렬화/검증 실패. */
@@ -208,7 +208,7 @@ export const RustraErrorCode = {
   /**
    * 디바이스 역량 부재/OS 스위치 off — `platform.unavailable`(그 플랫폼용
    * 구현 자체가 없음)·`capability.denied`(호출 자격 미부여)와는 원인·복구
-   * 경로가 다른 독립 축. 발급 주체는 호스트 앱/파생 provider — rustra 코어는
+   * 경로가 다른 독립 축. 발급 주체는 호스트 앱/파생 provider — unikit 코어는
    * 게이팅을 하지 않으므로 Rust error.rs 에 대응 값이 없다.
    */
   DeviceUnavailable: 'device.unavailable',
@@ -223,7 +223,7 @@ export const RustraErrorCode = {
   ContractUnenforceable: 'contract.unenforceable',
   /**
    * 인스펙터 스냅샷 JSON이 잘렸거나 파싱 불가 (experimental).
-   * 파서 측 전용 코드 — Rust error.rs 에 대응 값이 없다(`rustra_ffi_capture_snapshot`
+   * 파서 측 전용 코드 — Rust error.rs 에 대응 값이 없다(`unikit_ffi_capture_snapshot`
    * 은 잘못된 스냅샷을 만들지 않는다. 이 코드는 TS 디코더의 loud-fail 계약).
    */
   InspectorInvalidSnapshot: 'inspector.invalid_snapshot',
@@ -239,7 +239,7 @@ export const RustraErrorCode = {
    */
   BootstrapFailed: 'bootstrap.failed',
   /**
-   * JSI 네이티브 모듈이 JS realm 에 설치되지 않음 (installRustraJSI 미호출,
+   * JSI 네이티브 모듈이 JS realm 에 설치되지 않음 (installUnikitJSI 미호출,
    * Expo Go, 네이티브 재빌드 누락) — JS 어댑터 측 전용 코드. Rust error.rs 에
    * 대응 값이 없다. JS reload 로 복구되지 않는다.
    */
@@ -248,9 +248,9 @@ export const RustraErrorCode = {
   Unknown: 'unknown',
 } as const;
 
-export type RustraErrorCodeValue = (typeof RustraErrorCode)[keyof typeof RustraErrorCode];
+export type UnikitErrorCodeValue = (typeof UnikitErrorCode)[keyof typeof UnikitErrorCode];
 
-/** 값이 알려진 rustra 에러 코드인지 검사 (타입 가드). */
-export function isRustraErrorCode(code: string): code is RustraErrorCodeValue {
-  return Object.values(RustraErrorCode).includes(code as RustraErrorCodeValue);
+/** 값이 알려진 unikit 에러 코드인지 검사 (타입 가드). */
+export function isUnikitErrorCode(code: string): code is UnikitErrorCodeValue {
+  return Object.values(UnikitErrorCode).includes(code as UnikitErrorCodeValue);
 }

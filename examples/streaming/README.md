@@ -4,7 +4,7 @@ English | [한국어](./README.ko.md)
 
 An example showing the pattern where JS consumes events published with
 `Package::emit()`. A long-running command streams progress, and the host adapter
-subscribes (`@rustra/node` `subscribeEvent`) and forwards events to the platform
+subscribes (`@unikit/node` `subscribeEvent`) and forwards events to the platform
 push channel — this daemon is a legacy line-JSON runtime, so delivery flows
 through the polling fallback (no `events:"push"` handshake).
 
@@ -22,7 +22,7 @@ streaming/
 ## Run (end-to-end)
 
 ```bash
-cargo build -p rustra-streaming-example
+cargo build -p unikit-streaming-example
 bun examples/streaming/apps/node-app.ts
 ```
 
@@ -41,7 +41,7 @@ Sample output:
 
 ```rust
 // Rust — declare the event contract on the builder chain
-rustra::build!("examples.streaming", start_job, job_status)
+unikit_bridge::build!("examples.streaming", start_job, job_status)
     .event::<JobProgress>("progress.tick")
     .event::<JobDone>("job.done")
     .done()
@@ -67,6 +67,6 @@ receive-side order verification.
 
 The `--serve` line daemon answers the `__drainEvents` polling command with the
 `events` field (`{"ok":true,"events":[...]}`) — the same contract as the
-calculator loop-stdio reference runtime, which is what `@rustra/node`'s polling
+calculator loop-stdio reference runtime, which is what `@unikit/node`'s polling
 fallback reads. For a push-mode (0xfffd frame) runtime see
 `examples/calculator/src/loop_stdio.rs`.

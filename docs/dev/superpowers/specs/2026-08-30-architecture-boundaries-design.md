@@ -6,9 +6,9 @@ Make the architecture-boundary gate pass by splitting oversized implementation f
 
 ## Current violations
 
-- `crates/rustra/src/lib.rs` is 204 lines against a 200-line facade budget.
-- `crates/rustra/src/complex_schema_ir.rs` is 449 lines and exceeds the 400-line hard ceiling.
-- `crates/rustra/src/complex_serde.rs` is 2184 lines and exceeds the 400-line hard ceiling.
+- `crates/unikit-bridge/src/lib.rs` is 204 lines against a 200-line facade budget.
+- `crates/unikit-bridge/src/complex_schema_ir.rs` is 449 lines and exceeds the 400-line hard ceiling.
+- `crates/unikit-bridge/src/complex_serde.rs` is 2184 lines and exceeds the 400-line hard ceiling.
 - `packages/types/src/schema-postcard-codec.ts` is 603 lines and exceeds the 400-line hard ceiling.
 
 ## Design

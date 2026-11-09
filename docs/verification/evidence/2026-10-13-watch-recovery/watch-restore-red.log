@@ -1,46 +1,46 @@
-Created rustra project in /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app:
-  Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+Created unikit project in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app:
+  Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
   Config host sections: node (--host)
 
 Next steps:
-  cd /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app
+  cd /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app
   bun install
   bun run start
-[rustra] Checking setup tools...
-[rustra] Generating the Rust contract and TypeScript calls...
-[rustra] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/Cargo.toml --package rustra-app --bin generate
-[rustra] ⠋ Rust schema generation (rustra-app/generate)...
-[rustra] ⠋ Rust schema generation (rustra-app/generate) still running (1s)
-[rustra] ⠙ Rust schema generation (rustra-app/generate) still running (2s)
-[rustra] ⠹ Rust schema generation (rustra-app/generate) still running (3s)
-[rustra] ⠸ Rust schema generation (rustra-app/generate) still running (4s)
-[rustra] ⠼ Rust schema generation (rustra-app/generate) still running (5s)
-[rustra] ⠴ Rust schema generation (rustra-app/generate) still running (6s)
-/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/generated/schema.json written
-[rustra] ✓ Rust schema generation (rustra-app/generate) done in 6.9s
-[rustra] TypeScript/C++: generate --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/rustra.json
-Generated TypeScript files in /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/src/generated:
+[unikit] Checking setup tools...
+[unikit] Generating the Rust contract and TypeScript calls...
+[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/Cargo.toml --package unikit-app --bin generate
+[unikit] ⠋ Rust schema generation (unikit-app/generate)...
+[unikit] ⠋ Rust schema generation (unikit-app/generate) still running (1s)
+[unikit] ⠙ Rust schema generation (unikit-app/generate) still running (2s)
+[unikit] ⠹ Rust schema generation (unikit-app/generate) still running (3s)
+[unikit] ⠸ Rust schema generation (unikit-app/generate) still running (4s)
+[unikit] ⠼ Rust schema generation (unikit-app/generate) still running (5s)
+[unikit] ⠴ Rust schema generation (unikit-app/generate) still running (6s)
+/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/generated/schema.json written
+[unikit] ✓ Rust schema generation (unikit-app/generate) done in 6.9s
+[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/unikit.json
+Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/src/generated:
   types.ts
   commands.ts
   contract.ts
   frame-codecs.ts
   frame-registry.ts
   node.ts
-[rustra] ⠋ JavaScript dependencies...
+[unikit] ⠋ JavaScript dependencies...
 bun install v1.4.3 (c6da4a4d3)
 
-+ @rustra/cli@../../../packages/cli
-+ @rustra/node@../../../packages/node
-+ @rustra/types@../../../packages/types
++ @unikit/cli@../../../packages/cli
++ @unikit/node@../../../packages/node
++ @unikit/types@../../../packages/types
 
 11 packages installed [118.00ms]
-[rustra] ✓ JavaScript dependencies done in 0.1s
-[rustra] ⠋ Rust runtime (rustra-app)...
-[rustra] ✓ Rust runtime (rustra-app) done in 0.3s
-[rustra] ⠋ First Rust call...
+[unikit] ✓ JavaScript dependencies done in 0.1s
+[unikit] ⠋ Rust runtime (unikit-app)...
+[unikit] ✓ Rust runtime (unikit-app) done in 0.3s
+[unikit] ⠋ First Rust call...
 hello from TypeScript
-[rustra] ✓ First Rust call done in 0.0s
-[rustra] Setup complete — demo succeeded.
+[unikit] ✓ First Rust call done in 0.0s
+[unikit] Setup complete — demo succeeded.
      Locking 42 packages to latest compatible versions
       Adding schemars v0.8.22 (available: v1.2.2)
    Compiling proc-macro2 v1.0.107
@@ -65,7 +65,7 @@ hello from TypeScript
    Compiling memchr v2.8.3
    Compiling cfg-if v1.0.5
    Compiling dyn-clone v1.0.20
-   Compiling rustra-naming v0.12.0 (/Users/loopy/dev/ll3/rustra-bridge/crates/rustra-naming)
+   Compiling unikit-bridge-naming v0.12.0 (/Users/loopy/dev/ll3/unikit-bridge/crates/unikit-bridge-naming)
    Compiling hex v0.4.3
    Compiling indexmap v2.14.2
    Compiling syn v3.0.7
@@ -79,129 +79,129 @@ hello from TypeScript
    Compiling schemars_derive v0.8.22
    Compiling serde_derive v1.0.229
    Compiling thiserror-impl v2.0.21
-   Compiling rustra-macros v0.12.0 (/Users/loopy/dev/ll3/rustra-bridge/crates/rustra-macros)
+   Compiling unikit-bridge-macros v0.12.0 (/Users/loopy/dev/ll3/unikit-bridge/crates/unikit-bridge-macros)
    Compiling cobs v0.3.0
    Compiling postcard v1.1.3
-   Compiling rustra v0.12.0 (/Users/loopy/dev/ll3/rustra-bridge/crates/rustra)
-   Compiling rustra-app v0.1.0 (/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app)
+   Compiling unikit v0.12.0 (/Users/loopy/dev/ll3/unikit-bridge/crates/unikit-bridge)
+   Compiling unikit-app v0.1.0 (/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app)
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.89s
-     Running `/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/cargo-target/debug/generate`
+     Running `/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/cargo-target/debug/generate`
 Saved lockfile
-   Compiling rustra-app v0.1.0 (/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app)
+   Compiling unikit-app v0.1.0 (/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app)
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.26s
 $ bun run src/index.ts
-[rustra] Checking setup tools...
-[rustra] Generating the Rust contract and TypeScript calls...
-[rustra] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/Cargo.toml --package rustra-app --bin generate
-[rustra] ⠋ Rust schema generation (rustra-app/generate)...
-/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/generated/schema.json written
-[rustra] ✓ Rust schema generation (rustra-app/generate) done in 0.1s
-[rustra] TypeScript/C++: generate --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/rustra.json
-Generated TypeScript files in /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/src/generated:
+[unikit] Checking setup tools...
+[unikit] Generating the Rust contract and TypeScript calls...
+[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/Cargo.toml --package unikit-app --bin generate
+[unikit] ⠋ Rust schema generation (unikit-app/generate)...
+/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/generated/schema.json written
+[unikit] ✓ Rust schema generation (unikit-app/generate) done in 0.1s
+[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/unikit.json
+Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/src/generated:
   types.ts (unchanged)
   commands.ts (unchanged)
   contract.ts (unchanged)
   frame-codecs.ts (unchanged)
   frame-registry.ts (unchanged)
   node.ts (unchanged)
-[rustra] ⠋ JavaScript dependencies...
+[unikit] ⠋ JavaScript dependencies...
 bun install v1.4.3 (c6da4a4d3)
 
-+ @rustra/cli@../../../packages/cli
-+ @rustra/node@../../../packages/node
-+ @rustra/types@../../../packages/types
++ @unikit/cli@../../../packages/cli
++ @unikit/node@../../../packages/node
++ @unikit/types@../../../packages/types
 
 4 packages installed [127.00ms]
-[rustra] ✓ JavaScript dependencies done in 0.1s
-[rustra] ⠋ Rust runtime (rustra-app)...
-[rustra] ✓ Rust runtime (rustra-app) done in 0.1s
-[rustra] ⠋ First Rust call...
+[unikit] ✓ JavaScript dependencies done in 0.1s
+[unikit] ⠋ Rust runtime (unikit-app)...
+[unikit] ✓ Rust runtime (unikit-app) done in 0.1s
+[unikit] ⠋ First Rust call...
 hello from TypeScript
-[rustra] ✓ First Rust call done in 0.0s
-[rustra] Setup complete — demo succeeded.
-$ rustra setup --config rustra.json --run
+[unikit] ✓ First Rust call done in 0.0s
+[unikit] Setup complete — demo succeeded.
+$ unikit setup --config unikit.json --run
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
-     Running `/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/cargo-target/debug/generate`
+     Running `/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/cargo-target/debug/generate`
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
 $ bun run src/index.ts
 
-Your node example is ready: /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app
+Your node example is ready: /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app
 Edit src/lib.rs, then run bun run start in that directory.
-[quick-start] receipt: /tmp/rustra-20261013-watch-restore-red.json.setup.json
-[dev] initial → codegen --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/rustra.json
-[rustra] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/Cargo.toml --package rustra-app --bin generate
-[rustra] ⠋ Rust schema generation (rustra-app/generate)...
+[quick-start] receipt: /tmp/unikit-20261013-watch-restore-red.json.setup.json
+[dev] initial → codegen --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/unikit.json
+[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/Cargo.toml --package unikit-app --bin generate
+[unikit] ⠋ Rust schema generation (unikit-app/generate)...
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
-     Running `/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/cargo-target/debug/generate`
-/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/generated/schema.json written
-[rustra] ✓ Rust schema generation (rustra-app/generate) done in 0.1s
-[rustra] TypeScript/C++: generate --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/rustra.json
-Generated TypeScript files in /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/src/generated:
+     Running `/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/cargo-target/debug/generate`
+/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/generated/schema.json written
+[unikit] ✓ Rust schema generation (unikit-app/generate) done in 0.1s
+[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/unikit.json
+Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/src/generated:
   types.ts (unchanged)
   commands.ts (unchanged)
   contract.ts (unchanged)
   frame-codecs.ts (unchanged)
   frame-registry.ts (unchanged)
   node.ts (unchanged)
-[rustra] ⠋ Dev runtime (rustra-app)...
+[unikit] ⠋ Dev runtime (unikit-app)...
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
-[rustra] ✓ Dev runtime (rustra-app) done in 0.1s
+[unikit] ✓ Dev runtime (unikit-app) done in 0.1s
 [dev] 1:34:16 PM regenerated
 
-[dev] watching /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app and /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/rustra.json for changes...
-[dev] Rust change → codegen --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/rustra.json
-[rustra] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/Cargo.toml --package rustra-app --bin generate
-[rustra] ⠋ Rust schema generation (rustra-app/generate)...
-   Compiling rustra-app v0.1.0 (/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app)
+[dev] watching /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app and /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/unikit.json for changes...
+[dev] Rust change → codegen --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/unikit.json
+[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/Cargo.toml --package unikit-app --bin generate
+[unikit] ⠋ Rust schema generation (unikit-app/generate)...
+   Compiling unikit-app v0.1.0 (/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app)
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.29s
-     Running `/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/cargo-target/debug/generate`
-/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/generated/schema.json written
-[rustra] ✓ Rust schema generation (rustra-app/generate) done in 0.3s
-[rustra] TypeScript/C++: generate --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/rustra.json
-Generated TypeScript files in /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/src/generated:
+     Running `/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/cargo-target/debug/generate`
+/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/generated/schema.json written
+[unikit] ✓ Rust schema generation (unikit-app/generate) done in 0.3s
+[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/unikit.json
+Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/src/generated:
   types.ts (unchanged)
   commands.ts (unchanged)
   contract.ts (unchanged)
   frame-codecs.ts (unchanged)
   frame-registry.ts (unchanged)
   node.ts (unchanged)
-[rustra] ⠋ Dev runtime (rustra-app)...
-   Compiling rustra-app v0.1.0 (/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app)
+[unikit] ⠋ Dev runtime (unikit-app)...
+   Compiling unikit-app v0.1.0 (/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app)
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.19s
-[rustra] ✓ Dev runtime (rustra-app) done in 0.2s
+[unikit] ✓ Dev runtime (unikit-app) done in 0.2s
 [dev] 1:34:18 PM regenerated
-[dev] Rust change → codegen --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/rustra.json
-[rustra] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/Cargo.toml --package rustra-app --bin generate
-[rustra] ⠋ Rust schema generation (rustra-app/generate)...
-   Compiling rustra-app v0.1.0 (/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app)
+[dev] Rust change → codegen --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/unikit.json
+[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/Cargo.toml --package unikit-app --bin generate
+[unikit] ⠋ Rust schema generation (unikit-app/generate)...
+   Compiling unikit-app v0.1.0 (/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app)
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.44s
-     Running `/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/cargo-target/debug/generate`
-/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/generated/schema.json written
-[rustra] ✓ Rust schema generation (rustra-app/generate) done in 0.5s
-[rustra] TypeScript/C++: generate --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/rustra.json
-Generated TypeScript files in /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/src/generated:
+     Running `/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/cargo-target/debug/generate`
+/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/generated/schema.json written
+[unikit] ✓ Rust schema generation (unikit-app/generate) done in 0.5s
+[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/unikit.json
+Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/src/generated:
   types.ts (updated)
   commands.ts (updated)
   contract.ts (updated)
   frame-codecs.ts (updated)
   frame-registry.ts (unchanged)
   node.ts (unchanged)
-[rustra] Note: generated code changed — rebuild the runtime binary before invoking (cargo build), or invokes may fail with contract.mismatch.
-[rustra] ⠋ Dev runtime (rustra-app)...
-   Compiling rustra-app v0.1.0 (/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app)
+[unikit] Note: generated code changed — rebuild the runtime binary before invoking (cargo build), or invokes may fail with contract.mismatch.
+[unikit] ⠋ Dev runtime (unikit-app)...
+   Compiling unikit-app v0.1.0 (/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app)
 error: onboarding watch recovery probe
   --> src/main.rs:77:1
    |
 77 | compile_error!("onboarding watch recovery probe");
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: could not compile `rustra-app` (bin "rustra-app") due to 1 previous error
-[rustra] ✗ Dev runtime (rustra-app) failed in 0.1s
+error: could not compile `unikit-app` (bin "unikit-app") due to 1 previous error
+[unikit] ✗ Dev runtime (unikit-app) failed in 0.1s
 [dev] regeneration failed: cargo exit 101
-[dev] Rust change → codegen --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/app/rustra.json
+[dev] Rust change → codegen --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/app/unikit.json
 [dev] rust inputs unchanged — skipping cargo stage (fingerprint match)
 [dev] 1:34:20 PM regenerated
-[onboarding:watch] receipt: /tmp/rustra-20261013-watch-restore-red.json
+[onboarding:watch] receipt: /tmp/unikit-20261013-watch-restore-red.json
 node:internal/modules/run_main:123
     triggerUncaughtException(
     ^
@@ -213,33 +213,33 @@ $ bun run src/index.ts
 110 |     const described = rejections
 111 |         .map(({ candidate, reason }) => `${candidate} (modified ${runtimeMtime(candidate)}): ${reason}`)
 112 |         .join('; ');
-113 |     throw new RustraCommandError(lastRejection.code, `${lastRejection.message} Tried ${rejections.length} runtime candidate${rejections.length === 1 ? '' : 's'} (newest first): ${described}.`, lastRejection.retryable, lastRejection);
+113 |     throw new UnikitCommandError(lastRejection.code, `${lastRejection.message} Tried ${rejections.length} runtime candidate${rejections.length === 1 ? '' : 's'} (newest first): ${described}.`, lastRejection.retryable, lastRejection);
                 ^
-RustraCommandError: contract hash mismatch: native="eb582ca278c8c422…" vs expected="c38315195c5f0aa6…" — generated client and native binary are out of sync; regenerate the TypeScript and native codecs, rebuild the Rust archive, then rebuild the native app Tried 1 runtime candidate (newest first): /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-PBwgMR/cargo-target/debug/rustra-app (modified 2026-10-13T04:34:18.233Z): contract.mismatch.
+UnikitCommandError: contract hash mismatch: native="eb582ca278c8c422…" vs expected="c38315195c5f0aa6…" — generated client and native binary are out of sync; regenerate the TypeScript and native codecs, rebuild the Rust archive, then rebuild the native app Tried 1 runtime candidate (newest first): /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-PBwgMR/cargo-target/debug/unikit-app (modified 2026-10-13T04:34:18.233Z): contract.mismatch.
   retryable: false,
  frameBytes: undefined,
        code: "contract.mismatch"
 
-      at selectVerifiedRuntime (/Users/loopy/dev/ll3/rustra-bridge/packages/node/dist/node-bootstrap.js:113:11)
-      at async <anonymous> (/Users/loopy/dev/ll3/rustra-bridge/packages/node/dist/node-bootstrap.js:226:33)
+      at selectVerifiedRuntime (/Users/loopy/dev/ll3/unikit-bridge/packages/node/dist/node-bootstrap.js:113:11)
+      at async <anonymous> (/Users/loopy/dev/ll3/unikit-bridge/packages/node/dist/node-bootstrap.js:226:33)
 
 78 |         return first;
 79 |     throw noNodeRuntimeError(options);
 80 | }
 81 | /** (A6) Node 계약 불일치 — Bun 구현(frame-engine-contract)과 동일한 fix 안내. */
 82 | function nodeContractMismatchError(nativeHash, expectedHash) {
-83 |     return new RustraCommandError('contract.mismatch', `contract hash mismatch: native="${nativeHash.slice(0, 16)}…" vs ` +
+83 |     return new UnikitCommandError('contract.mismatch', `contract hash mismatch: native="${nativeHash.slice(0, 16)}…" vs ` +
                 ^
-RustraCommandError: contract hash mismatch: native="eb582ca278c8c422…" vs expected="c38315195c5f0aa6…" — generated client and native binary are out of sync; regenerate the TypeScript and native codecs, rebuild the Rust archive, then rebuild the native app
+UnikitCommandError: contract hash mismatch: native="eb582ca278c8c422…" vs expected="c38315195c5f0aa6…" — generated client and native binary are out of sync; regenerate the TypeScript and native codecs, rebuild the Rust archive, then rebuild the native app
   retryable: false,
  frameBytes: undefined,
        code: "contract.mismatch"
 
-      at nodeContractMismatchError (/Users/loopy/dev/ll3/rustra-bridge/packages/node/dist/node-bootstrap.js:83:12)
-      at <anonymous> (/Users/loopy/dev/ll3/rustra-bridge/packages/node/dist/node-bootstrap.js:138:19)
-      at async <anonymous> (/Users/loopy/dev/ll3/rustra-bridge/packages/node/dist/node-bootstrap.js:182:23)
-      at async selectVerifiedRuntime (/Users/loopy/dev/ll3/rustra-bridge/packages/node/dist/node-bootstrap.js:99:35)
-      at async <anonymous> (/Users/loopy/dev/ll3/rustra-bridge/packages/node/dist/node-bootstrap.js:226:33)
+      at nodeContractMismatchError (/Users/loopy/dev/ll3/unikit-bridge/packages/node/dist/node-bootstrap.js:83:12)
+      at <anonymous> (/Users/loopy/dev/ll3/unikit-bridge/packages/node/dist/node-bootstrap.js:138:19)
+      at async <anonymous> (/Users/loopy/dev/ll3/unikit-bridge/packages/node/dist/node-bootstrap.js:182:23)
+      at async selectVerifiedRuntime (/Users/loopy/dev/ll3/unikit-bridge/packages/node/dist/node-bootstrap.js:99:35)
+      at async <anonymous> (/Users/loopy/dev/ll3/unikit-bridge/packages/node/dist/node-bootstrap.js:226:33)
 
 Bun v1.4.3 (macOS arm64)
 error: script "demo" exited with code 1
@@ -247,13 +247,13 @@ error: script "demo" exited with code 1
 
 1 !== 0
 
-    at invoke (file:///Users/loopy/dev/ll3/rustra-bridge/scripts/onboarding-watch.mjs:119:14)
-    at file:///Users/loopy/dev/ll3/rustra-bridge/scripts/onboarding-watch.mjs:135:23
-    at file:///Users/loopy/dev/ll3/rustra-bridge/packages/cli/dist/watch.js:19:103
+    at invoke (file:///Users/loopy/dev/ll3/unikit-bridge/scripts/onboarding-watch.mjs:119:14)
+    at file:///Users/loopy/dev/ll3/unikit-bridge/scripts/onboarding-watch.mjs:135:23
+    at file:///Users/loopy/dev/ll3/unikit-bridge/packages/cli/dist/watch.js:19:103
     at async Promise.allSettled (index 0)
-    at async Object.emitReload (file:///Users/loopy/dev/ll3/rustra-bridge/packages/cli/dist/watch.js:19:29)
-    at async perform (file:///Users/loopy/dev/ll3/rustra-bridge/packages/cli/dist/dev.js:288:13)
-    at async file:///Users/loopy/dev/ll3/rustra-bridge/packages/cli/dist/watch.js:62:21 {
+    at async Object.emitReload (file:///Users/loopy/dev/ll3/unikit-bridge/packages/cli/dist/watch.js:19:29)
+    at async perform (file:///Users/loopy/dev/ll3/unikit-bridge/packages/cli/dist/dev.js:288:13)
+    at async file:///Users/loopy/dev/ll3/unikit-bridge/packages/cli/dist/watch.js:62:21 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: 1,

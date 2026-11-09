@@ -12,9 +12,9 @@ status: research-complete
 
 ## 방법
 
-1. 기준선: `cargo bench -p rustra --bench {complex_route,function_dispatch,tree_route} -- --save-baseline pre-perf` (criterion 500 샘플, 로컬). 비교는 `--baseline pre-perf`로 재현한다.
+1. 기준선: `cargo bench -p unikit-bridge --bench {complex_route,function_dispatch,tree_route} -- --save-baseline pre-perf` (criterion 500 샘플, 로컬). 비교는 `--baseline pre-perf`로 재현한다.
 2. 프로파일: `sample`(macOS) 8초 채집 — 벤치 바이너리는 `CARGO_PROFILE_BENCH_DEBUG=2`로 심볼을 심어 사용한다(스트립 바이너리는 모든 프레임이 `start (dyld)`로 붕괴되어 판독 불가).
-3. 할당: `cargo run -p rustra --release --example codec_allocations` (호출당 alloc 카운트).
+3. 할당: `cargo run -p unikit-bridge --release --example codec_allocations` (호출당 alloc 카운트).
 
 ## 기준선 (요약)
 
@@ -55,9 +55,9 @@ status: research-complete
 ## 재현
 
 ```sh
-cargo bench -p rustra --bench complex_route -- --save-baseline <name>
-CARGO_PROFILE_BENCH_DEBUG=2 cargo bench -p rustra --bench complex_route --no-run
+cargo bench -p unikit-bridge --bench complex_route -- --save-baseline <name>
+CARGO_PROFILE_BENCH_DEBUG=2 cargo bench -p unikit-bridge --bench complex_route --no-run
 target/release/deps/complex_route-* --bench invoke_frame/map_keys_64 \
   --sample-size 100 --measurement-time 40 --warm-up-time 2 &   # sample <name> 8 -file out.txt
-cargo run -p rustra --release --example codec_allocations
+cargo run -p unikit-bridge --release --example codec_allocations
 ```

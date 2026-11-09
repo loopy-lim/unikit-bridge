@@ -18,12 +18,12 @@
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs:767-802` (into-handler 생성 게이트), `crates/rustra/src/complex_codec.rs` (bounded writer)
-- Test: `crates/rustra/tests/` (wire round-trip 게이트 확장)
+- Modify: `crates/unikit-bridge/src/lib.rs:767-802` (into-handler 생성 게이트), `crates/unikit-bridge/src/complex_codec.rs` (bounded writer)
+- Test: `crates/unikit-bridge/tests/` (wire round-trip 게이트 확장)
 
 **Step 1: 실패하는 테스트 작성**
 
-`crates/rustra/tests/`에 complex 커맨드의 into-handler 존재 + DirectResponse::Written 확인 테스트 추가:
+`crates/unikit-bridge/tests/`에 complex 커맨드의 into-handler 존재 + DirectResponse::Written 확인 테스트 추가:
 
 ```rust
 // complex 커맨드가 into-handler를 가져야 한다 (현재 None → Buffered 폴백)
@@ -38,7 +38,7 @@ fn complex_command_has_into_handler() {
 
 **Step 2: 테스트 실패 확인**
 
-Run: `cargo test -p rustra --test <새테스트파일> 2>&1 | tail -5`
+Run: `cargo test -p unikit-bridge --test <새테스트파일> 2>&1 | tail -5`
 Expected: FAIL (into-handler가 None)
 
 **Step 3: 구현**
@@ -49,7 +49,7 @@ Expected: FAIL (into-handler가 None)
 
 **Step 4: 테스트 통과 확인**
 
-Run: `cargo test -p rustra 2>&1 | tail -10`
+Run: `cargo test -p unikit-bridge 2>&1 | tail -10`
 Expected: PASS (기존 wire 게이트 포함 전부)
 
 **Step 5: 커밋**
@@ -83,7 +83,7 @@ Expected: FAIL (바인딩 부재)
 
 **Step 3: 구현**
 
-`packages/bun/src/index.ts`에 `rustra_ffi_invoke_rkyv_v2_into` FFI 바인딩 추가:
+`packages/bun/src/index.ts`에 `unikit_ffi_invoke_rkyv_v2_into` FFI 바인딩 추가:
 
 ```ts
 const invoke_rkyv_v2_into = new CCallableFunction(
@@ -117,26 +117,26 @@ git add -A && git commit -m "perf(bun): rkyv V2 caller-buffer 바인딩 — mall
 
 **Files:**
 
-- Modify: `crates/rustra/src/ffi.rs` (async into FFI 추가), `packages/react-native/native/cpp/RustraJSIBridge.{hpp,cpp}:1153-1209`
+- Modify: `crates/unikit-bridge/src/ffi.rs` (async into FFI 추가), `packages/react-native/native/cpp/UnikitJSIBridge.{hpp,cpp}:1153-1209`
 - Test: RN 예제 cpp 테스트 확장 또는 rust 테스트
 
 **Step 1: 실패하는 테스트**
 
-Rust 측: `rustra_ffi_invoke_rkyv_v2_async_into`의 완료 콜백이 caller 버퍼에 직접 쓰는지 검증하는 rust 테스트 추가.
+Rust 측: `unikit_ffi_invoke_rkyv_v2_async_into`의 완료 콜백이 caller 버퍼에 직접 쓰는지 검증하는 rust 테스트 추가.
 
 **Step 2: 실패 확인**
 
-Run: `cargo test -p rustra 2>&1 | tail -5`
+Run: `cargo test -p unikit-bridge 2>&1 | tail -5`
 Expected: FAIL
 
 **Step 3: 구현**
 
-1. `ffi.rs`: `rustra_ffi_invoke_rkyv_v2_async_into` — JS ArrayBuffer 포인터를 콜백 클로저가 캡처, 완료 시 Rust가 직접 write. 기존 `alloc_response` 대신 caller buffer 사용. 수명 계약: JS가 콜백까지 버퍼 유지 (기존 `invokeTypedAsync` 프라미스 구조와 동일)
-2. `RustraJSIBridge.cpp`: async 콜백에서 `std::vector frame` 복사 제거, in-place decode로 전환
+1. `ffi.rs`: `unikit_ffi_invoke_rkyv_v2_async_into` — JS ArrayBuffer 포인터를 콜백 클로저가 캡처, 완료 시 Rust가 직접 write. 기존 `alloc_response` 대신 caller buffer 사용. 수명 계약: JS가 콜백까지 버퍼 유지 (기존 `invokeTypedAsync` 프라미스 구조와 동일)
+2. `UnikitJSIBridge.cpp`: async 콜백에서 `std::vector frame` 복사 제거, in-place decode로 전환
 
 **Step 4: 통과 확인**
 
-Run: `cargo test -p rustra && (RN 예제 cpp 테스트 스크립트)`
+Run: `cargo test -p unikit-bridge && (RN 예제 cpp 테스트 스크립트)`
 Expected: PASS
 
 **Step 5: 커밋**
@@ -147,7 +147,7 @@ git add -A && git commit -m "perf(rn): async 응답 caller-buffer — std::vecto
 
 ### Task F4: 트랙 F 통합 검증
 
-**Step 1:** `cargo test -p rustra -p rustra-macros && cd packages/types && bun test`
+**Step 1:** `cargo test -p unikit-bridge -p unikit-bridge-macros && cd packages/types && bun test`
 **Step 2:** Bun bench before/after 수치 기록 → `docs/benchmarks.md` 갱신
 **Step 3:** PR 생성 (perf/base-complex-codec 기반... 아니면 main 기반) + CI green 확인
 
@@ -242,7 +242,7 @@ Expected: PASS
 
 ```bash
 # 코드젠 이중 경로 (메모리 참고: Rust bin + TS CLI 둘 다)
-cargo run -p rustra --bin ... # 또는 프로젝트 코드젠 커맨드
+cargo run -p unikit-bridge --bin ... # 또는 프로젝트 코드젠 커맨드
 bun run codegen  # 실제 커맨드 확인 후 사용
 ```
 

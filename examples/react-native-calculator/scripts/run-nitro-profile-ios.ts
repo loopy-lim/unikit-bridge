@@ -17,7 +17,7 @@ const { values } = parseArgs({
     case: { type: 'string' },
     framework: { type: 'string' },
     'embedded-run': { type: 'string' },
-    'bundle-id': { type: 'string', default: 'com.rustra.nitroparity' },
+    'bundle-id': { type: 'string', default: 'com.unikit.nitroparity' },
   },
 });
 if (!values.device || !values.output || !values.case || !values.framework)
@@ -26,7 +26,7 @@ const bundle = values['bundle-id']!;
 requireDedicatedApp(bundle);
 const device = values.device;
 const runId = values['embedded-run'] ?? `profile-${Date.now()}`;
-const url = `rustra-parity://profile?case=${encodeURIComponent(values.case)}&framework=${values.framework}&run=${runId}&ms=15000`;
+const url = `unikit-parity://profile?case=${encodeURIComponent(values.case)}&framework=${values.framework}&run=${runId}&ms=15000`;
 const plan = parseProfileURL(url);
 const output = resolve(values.output);
 await mkdir(output, { recursive: false });
@@ -60,7 +60,7 @@ const identity = {
   infoPlistSha256: await sha(join(app, 'Info.plist')),
 };
 const { fingerprint } = await computeBuildFingerprint();
-const receiptPath = join(data, 'Documents', 'rustra-benchmark-receipt.json');
+const receiptPath = join(data, 'Documents', 'unikit-benchmark-receipt.json');
 async function receipt() {
   try {
     return JSON.parse(await readFile(receiptPath, 'utf8')) as Record<string, unknown>;

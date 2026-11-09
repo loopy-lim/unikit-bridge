@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - 기존 NDJSON 프로토콜은 기본 유지 — 바이너리는 프로토콜 협상/옵트인 (구 transport 소비자 무중단)
-- Tauri `rustra_dispatch` 기존 시그니처 유지 (신규 엔트리는 추가만)
+- Tauri `unikit_dispatch` 기존 시그니처 유지 (신규 엔트리는 추가만)
 - 와이어 포맷 무변경 — 코어 핸들러 재사용
 - 벤치 영수증에 로드 평균 조건 기재
 
@@ -26,7 +26,7 @@
 **Files:**
 
 - Modify: `examples/calculator/src/bin/loop-stdio.rs` (핸드셰이크 + 바이너리 프레임 위임)
-- Test: `crates/rustra/tests/` (코어 레벨 — loop-stdio는 example bin이라 통합 스모크로 검증)
+- Test: `crates/unikit-bridge/tests/` (코어 레벨 — loop-stdio는 example bin이라 통합 스모크로 검증)
 
 **Steps:**
 
@@ -34,7 +34,7 @@
 - [ ] **Step 2: 실패 확인** — 현재 `__hello` 미지원 → FAIL
 - [ ] **Step 3: 구현** —
   - `__hello` 특수 요청 처리 (기존 `__drainEvents` 선례, `loop-stdio.rs:71+`)
-  - stdin을 `BufReader<Stdin>`의 `read_exact` 루프로: 4B len → payload → `package.invoke_rkyv_v2(&payload)` (`crates/rustra/src/invoke.rs:8`) → 응답 4B len + frame. **`invoke_rkyv_v2_into` + 재사용 출력 버퍼**로 응답 복사 1회 절감 (플러시 전까지 유지)
+  - stdin을 `BufReader<Stdin>`의 `read_exact` 루프로: 4B len → payload → `package.invoke_rkyv_v2(&payload)` (`crates/unikit-bridge/src/invoke.rs:8`) → 응답 4B len + frame. **`invoke_rkyv_v2_into` + 재사용 출력 버퍼**로 응답 복사 1회 절감 (플러시 전까지 유지)
   - 에러는 rkyv V2 에러 프레임으로 정규화 (코어가 이미 반환)
   - 이벤트 폴링(`__drainEvents`)은 JSON 라인과 동일하게 바이너리 모드에서도 유지 (커맨드 id는 frozen registry 조회로 name 해석)
 - [ ] **Step 4: 통과** — cargo test + 수동 스모크 (`echo -e ... | cargo run --bin loop-stdio`)
@@ -86,33 +86,33 @@
 
 **Steps:**
 
-- [ ] **Step 1:** 측정 개선 설계 — (a) batch 크기 1000으로 확대해 그리드를 1µs/call로 (b) `rustra_dispatch`가 `Instant::now()` 2회(진입/응답 직전)를 응답에 포함 → JS가 RTT에서 네이티브 처리 시간 차감 (c) WebKit 크로싱 비용은 RTT − 네이티브 − JS 측 마샬링으로 잔차 추정
-- [ ] **Step 2:** `rustra_dispatch`에 측정 필드 추가는 **측정 전용 뒷문**으로: 신규 커맨드 `rustra_dispatch_profiled` (tauri_support.rs) 또는 벤치 전용 플래그 — 프로덕션 경로 오염 없게
+- [ ] **Step 1:** 측정 개선 설계 — (a) batch 크기 1000으로 확대해 그리드를 1µs/call로 (b) `unikit_dispatch`가 `Instant::now()` 2회(진입/응답 직전)를 응답에 포함 → JS가 RTT에서 네이티브 처리 시간 차감 (c) WebKit 크로싱 비용은 RTT − 네이티브 − JS 측 마샬링으로 잔차 추정
+- [ ] **Step 2:** `unikit_dispatch`에 측정 필드 추가는 **측정 전용 뒷문**으로: 신규 커맨드 `unikit_dispatch_profiled` (tauri_support.rs) 또는 벤치 전용 플래그 — 프로덕션 경로 오염 없게
 - [ ] **Step 3:** 실측 실행 → receipt (`benchmark-receipts/2026-08-29-tauri-timing.json`) — 네이티브/크로싱/JS 성분 분해표
 - [ ] **Step 4:** `docs/benchmarks.md` Tauri 절 갱신 — "279µs" 표에 보정 수치 병기
 - [ ] **Step 5: 커밋** — `perf(tauri): IPC 벤치 측정 정합화 — 타이머 그리드 왜곡 제거`
 
-### Task E2: `rustra_dispatch_batch` (진짜 와이어 배치)
+### Task E2: `unikit_dispatch_batch` (진짜 와이어 배치)
 
 **Files:**
 
-- Modify: `crates/rustra/src/tauri_support.rs` (배치 커맨드), `packages/tauri/src/index.ts` (transport 배치), `packages/types/src/json-engine.ts:23-29` (`invokeBatch`가 Tauri transport에서 실제 배치 프레임 사용)
-- Test: `crates/rustra` (배치 핸들러 단위), `packages/types` 테스트
+- Modify: `crates/unikit-bridge/src/tauri_support.rs` (배치 커맨드), `packages/tauri/src/index.ts` (transport 배치), `packages/types/src/json-engine.ts:23-29` (`invokeBatch`가 Tauri transport에서 실제 배치 프레임 사용)
+- Test: `crates/unikit-bridge` (배치 핸들러 단위), `packages/types` 테스트
 
 **Steps:**
 
-- [ ] **Step 1: 실패하는 테스트** — `rustra_dispatch_batch(state, requests: Vec<BatchRequest>) -> Vec<BatchResponse>` 코어 단위 테스트 (성공/부분 실패/순서 보존). BatchRequest/Response는 기존 JSON 계약 재사용
+- [ ] **Step 1: 실패하는 테스트** — `unikit_dispatch_batch(state, requests: Vec<BatchRequest>) -> Vec<BatchResponse>` 코어 단위 테스트 (성공/부분 실패/순서 보존). BatchRequest/Response는 기존 JSON 계약 재사용
 - [ ] **Step 2: 실패 확인** — FAIL
 - [ ] **Step 3: 구현 (Rust)** — `tauri_support.rs`에 배치 커맨드 추가: 요청 배열을 순회해 `package.invoke_json` 호출, 개별 실패는 요청별 에러로 응답 (fail-fast 아님 — 기존 RN invokeBatch의 fail-fast와 차이를 문서화). `generate_handler!`에 등록
-- [ ] **Step 4: 구현 (TS)** — Tauri transport에 `invokeBatch` 구현: `{command, args}[]` → 단일 `invoke('rustra_dispatch_batch', {requests})`. `json-engine.ts`의 `invokeBatch`가 transport에 배치 위임 인터페이스 노출 (`transport.invokeBatch?` 옵트인 — 없으면 기존 `Promise.all` 폴백)
-- [ ] **Step 5: 게이트** — `cargo test -p rustra` + `bun test packages/types packages/tauri` + Tauri 예제 스모크
-- [ ] **Step 6: 벤치 + 커밋** — E1의 정합화된 측정으로 batch before/after (20호출 1 IPC vs 20 IPC) → `docs/benchmarks.md` → `perf(tauri): 와이어 배치 rustra_dispatch_batch`
+- [ ] **Step 4: 구현 (TS)** — Tauri transport에 `invokeBatch` 구현: `{command, args}[]` → 단일 `invoke('unikit_dispatch_batch', {requests})`. `json-engine.ts`의 `invokeBatch`가 transport에 배치 위임 인터페이스 노출 (`transport.invokeBatch?` 옵트인 — 없으면 기존 `Promise.all` 폴백)
+- [ ] **Step 5: 게이트** — `cargo test -p unikit-bridge` + `bun test packages/types packages/tauri` + Tauri 예제 스모크
+- [ ] **Step 6: 벤치 + 커밋** — E1의 정합화된 측정으로 batch before/after (20호출 1 IPC vs 20 IPC) → `docs/benchmarks.md` → `perf(tauri): 와이어 배치 unikit_dispatch_batch`
 
 ### Task E3: 커스텀 프로토콜 조사 스파이크 (선택, E2 이후)
 
 **Files:**
 
-- Spike: `crates/rustra/src/tauri_support.rs`에 `register_asynchronous_uri_scheme_protocol("rustra", ...)` 프로토타입 (커밋 전 제거 또는 feature-gate)
+- Spike: `crates/unikit-bridge/src/tauri_support.rs`에 `register_asynchronous_uri_scheme_protocol("unikit", ...)` 프로토타입 (커밋 전 제거 또는 feature-gate)
 - Output: 스파이크 결과를 `docs/benchmarks.md`에 기록
 
 **Steps:**

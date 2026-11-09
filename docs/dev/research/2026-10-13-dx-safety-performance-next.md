@@ -1,4 +1,4 @@
-# Rustra DX와 안전성 및 성능 현황과 후속 작업
+# Unikit DX와 안전성 및 성능 현황과 후속 작업
 
 2026-10-13 기준으로 다음 순서는 **전체 CI 복구 → 비교 가능한 성능 기준선 확보 → 배포물 DX와 네이티브 수명 검증 → 병목별 최적화**다. DX 자동화와 여러 최적화는 이미 구현돼 있다. 지금 가장 먼저 해결할 것은 전체 CI의 React Doctor 실패와 Benchmark의 비교 환경 차이다. RN 실기기 성능, 네이티브 sanitizer, 장시간 안정성은 별도 완료 조건으로 유지한다.
 
@@ -26,25 +26,25 @@
 
 | 검사      | 실행 기록                                                                          | 해석                                                                                                      |
 | --------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 전체 CI   | [10월 10일 push](https://github.com/loopy-lim/rustra/actions/runs/38056499939)     | React Doctor 92/100, `deslop/unused-file` 경고 6개로 실패                                                 |
-| 예약 CI   | [10월 12일 schedule](https://github.com/loopy-lim/rustra/actions/runs/38247198205) | `rust-audit`만 성공. 나머지 작업은 생략됐으므로 전체 CI 성공 증거가 아니다                                |
-| Miri      | [검사 성공](https://github.com/loopy-lim/rustra/actions/runs/38185899042)          | lib, frame wire, field order 검사 단계 성공                                                               |
-| Sanitizer | [검사 성공](https://github.com/loopy-lim/rustra/actions/runs/38189058035)          | Linux의 `rustra --lib`, ASan+LSan 범위                                                                    |
-| Fuzz      | [3개 타깃 성공](https://github.com/loopy-lim/rustra/actions/runs/38092426635)      | 시드 재생과 타깃별 600초, 최대 입력 1,024바이트                                                           |
-| Benchmark | [회귀 예산 실패](https://github.com/loopy-lim/rustra/actions/runs/38056499946)     | 59개 항목이 10% 예산 초과. `host` provenance 차이 경고도 발생. 결과는 `criterion-results-rejected`로 보존 |
+| 전체 CI   | [10월 10일 push](https://github.com/loopy-lim/unikit/actions/runs/38056499939)     | React Doctor 92/100, `deslop/unused-file` 경고 6개로 실패                                                 |
+| 예약 CI   | [10월 12일 schedule](https://github.com/loopy-lim/unikit/actions/runs/38247198205) | `rust-audit`만 성공. 나머지 작업은 생략됐으므로 전체 CI 성공 증거가 아니다                                |
+| Miri      | [검사 성공](https://github.com/loopy-lim/unikit/actions/runs/38185899042)          | lib, frame wire, field order 검사 단계 성공                                                               |
+| Sanitizer | [검사 성공](https://github.com/loopy-lim/unikit/actions/runs/38189058035)          | Linux의 `unikit --lib`, ASan+LSan 범위                                                                    |
+| Fuzz      | [3개 타깃 성공](https://github.com/loopy-lim/unikit/actions/runs/38092426635)      | 시드 재생과 타깃별 600초, 최대 입력 1,024바이트                                                           |
+| Benchmark | [회귀 예산 실패](https://github.com/loopy-lim/unikit/actions/runs/38056499946)     | 59개 항목이 10% 예산 초과. `host` provenance 차이 경고도 발생. 결과는 `criterion-results-rejected`로 보존 |
 
 표의 모든 실행은 기준 SHA와 일치한다. Benchmark의 `optional_string_64k`는 평균 변화 +1048.94%로 보고됐다. 다른 항목도 광범위하게 느려졌지만, 이 결과만으로 코드 회귀나 환경 문제 중 하나를 확정할 수 없다. 기존 기준선을 유지하고 동일 러너의 두 리비전 비교로 판정해야 한다.
 
-공개 npm의 `@rustra/cli@0.12.0`과 `@rustra/types@0.12.1`은 조회 시점에 모두 `gitHead=162c0002d55001ad1dd4fa48dcbb8866e994fe4f`였다. 최신 main과 출처가 다르므로 10월 3일 이후 소스의 개선을 현재 설치 제품의 기능으로 묶어 설명하면 안 된다. 이번 출처 조회는 이 두 패키지의 메타데이터 범위이며 전체 npm·crates 배포 감사는 D2에서 수행한다.
+공개 npm의 `@unikit/cli@0.12.0`과 `@unikit/types@0.12.1`은 조회 시점에 모두 `gitHead=162c0002d55001ad1dd4fa48dcbb8866e994fe4f`였다. 최신 main과 출처가 다르므로 10월 3일 이후 소스의 개선을 현재 설치 제품의 기능으로 묶어 설명하면 안 된다. 이번 출처 조회는 이 두 패키지의 메타데이터 범위이며 전체 npm·crates 배포 감사는 D2에서 수행한다.
 
 ## 이미 반영된 개선과 성능 근거
 
 ### DX와 수명 관리
 
 - `init --setup`, `setup --run`, `try:node`, `try:bun`으로 생성·설치·빌드·첫 호출을 연결했다. 실패 단계에서 재시도할 수 있고 기존 사용자 설정과 스크립트를 보존한다. [첫 호출 개선 기록](2026-10-03-easy-onboarding.md)
-- `rustra dev`는 Rust 입력 지문으로 불필요한 Cargo 실행을 줄이고, 불확실한 입력은 다시 빌드한다. 생성물 소유권, workspace/path dependency, 종료 후 발행 방지까지 다룬다. [런타임 감사](2026-10-02-dx-runtime-audit.md)
+- `unikit dev`는 Rust 입력 지문으로 불필요한 Cargo 실행을 줄이고, 불확실한 입력은 다시 빌드한다. 생성물 소유권, workspace/path dependency, 종료 후 발행 방지까지 다룬다. [런타임 감사](2026-10-02-dx-runtime-audit.md)
 - Node 실행 경로·오류, Bun 이벤트 sink 소유권, RN bootstrap/async/channel 해제, Tauri 계약 검증·명령 합성을 보강했다. 준비 상태·취소·오류가 호출자에게 전달되는 경로가 검증 대상이다. [개발 흐름 개선](2026-10-03-dx-workflow-improvements.md)
-- 소유형 async pool의 drain/join은 구현돼 있다. 운영 전역 풀의 프로세스 수명은 기존 설계다. 과거 Miri의 남은 스레드 실패를 현재 미해결 결함으로 다시 등록하지 않는다. [풀 구현](../../../crates/rustra/src/ffi_pool.rs)
+- 소유형 async pool의 drain/join은 구현돼 있다. 운영 전역 풀의 프로세스 수명은 기존 설계다. 과거 Miri의 남은 스레드 실패를 현재 미해결 결함으로 다시 등록하지 않는다. [풀 구현](../../../crates/unikit-bridge/src/ffi_pool.rs)
 
 ### 실행 속도와 할당
 
@@ -70,7 +70,7 @@ Tauri는 같은 날 실제 macOS WebView에서 30,000회 호출, 평균 368.679 
 | resident 라우트       | 큰 구조를 Rust에 두고 참조로 접근하는 가이드 존재                                                                | `todo!()` 없는 실행 예제, 초기 적재·수명·손익분기점 검증                      |
 | 측정 하네스           | 출처 기록 누락 시 비교 불가 판정, dev 전용 벤치의 release 실행 가드 구현                                         | 환경 차이는 현재 경고이므로 동일 환경 비교를 통한 실제 판정 필요              |
 
-근거: [성능 종합 평가](../../performance-evaluation.ko.md), [10월 10일 호스트 기록](../../benchmark-receipts/2026-10-10-host-gates-reverify.md), [맵 저장소 구현](../../../crates/rustra/src/complex_serde_map_scratch.rs), [측정 판정기](../../../scripts/check-criterion-regression.mjs).
+근거: [성능 종합 평가](../../performance-evaluation.ko.md), [10월 10일 호스트 기록](../../benchmark-receipts/2026-10-10-host-gates-reverify.md), [맵 저장소 구현](../../../crates/unikit-bridge/src/complex_serde_map_scratch.rs), [측정 판정기](../../../scripts/check-criterion-regression.mjs).
 
 10월 10일 호스트 기록의 소스는 `4578c851`이며 Hermes 1,412 assertion, 실패 0이다. 현재 HEAD 재실행 증거와 구분한다. oneOf의 변종 순차 탐색 제거와 맵 디코더의 키 임시 벡터 제거는 이미 계측으로 기각된 가설이므로 신규 작업에 넣지 않는다.
 
@@ -79,7 +79,7 @@ Tauri는 같은 날 실제 macOS WebView에서 30,000회 호출, 평균 368.679 
 ### D1 전체 CI와 소비자 검사 복구
 
 - [ ] **P0** React Doctor가 보고한 RN 실험 생성물 6개의 실제 사용 경로와 검사 진입점을 확인한다. 생성물 전체 제외나 경고 무시로 통과시키지 않고, 쓰는 파일은 진입점에 연결하고 불필요한 출력이면 생성기에서 바로잡는다.
-- 대상: `examples/rn-experiment/generated/{contract,frame-codecs,frame-registry,node,react-native}.ts`, `examples/rn-experiment/modules/rustra-bridge/src/index.ts`.
+- 대상: `examples/rn-experiment/generated/{contract,frame-codecs,frame-registry,node,react-native}.ts`, `examples/rn-experiment/modules/unikit-bridge/src/index.ts`.
 - 완료: CI와 동일한 React Doctor 0.9.12 검사에서 100/100·경고 0, 필요한 생성물 freshness 통과, 수정 SHA의 `ts-checks`·`consumer-smoke`·집계 `gate` 실제 성공. 기존 ESLint 경고 7개는 별도 정리 대상으로 추적한다.
 
 ### P1 Benchmark 실패 원인과 기준선 확정
@@ -91,7 +91,7 @@ Tauri는 같은 날 실제 macOS WebView에서 30,000회 호출, 평균 368.679 
 ### S1 FFI 안전 계약과 호출자 의무 정합성
 
 - [x] **P0** [안전 계약](../../safety-contract.ko.md)의 총괄 보장과 S3를 일치시킨다. 총괄은 악의적인 계약 위반도 UB가 없어야 한다고 쓰지만 S3와 실제 release free는 유효한 포인터·정확한 소유권·한 번의 해제를 호출자에게 요구한다.
-- 실제 [release free](../../../crates/rustra/src/ffi_lifecycle_entries.rs)는 debug live 추적기 없이 헤더를 읽는다. 잘못되거나 이미 해제된 포인터의 헤더 읽기 자체를 안전 보장으로 설명할 수 없다.
+- 실제 [release free](../../../crates/unikit-bridge/src/ffi_lifecycle_entries.rs)는 debug live 추적기 없이 헤더를 읽는다. 잘못되거나 이미 해제된 포인터의 헤더 읽기 자체를 안전 보장으로 설명할 수 없다.
 - 완료: 악성 **바이트 입력**의 검증과 unsafe **포인터 전제**를 구분하고, 필요 방어 범위와 비용을 결정한다. 의미가 바뀌는 계약은 기존 규칙에 따라 ADR을 추가하고 EN/KO·주석·테스트를 맞춘다. 외래 C++ 예외의 ABI별 동작도 같은 검토에 포함한다.
 
 ### P2 성능 문서와 측정 설계 정리
@@ -118,7 +118,7 @@ Node/Bun으로 실행했다. 이 과정에서 오래된 실행 파일 사용과 
 
 - [ ] **P1** 준비된 환경에서 첫 Rust 호출까지 걸린 시간, 실패 후 복구 시간, 변경 감지부터 재호출까지의 시간을 기록한다. SDK 다운로드, cold build, warm build, 순수 JS 변경, Rust 구현 변경, 계약 변경을 나눈다.
 - `pnpm`/`yarn`은 선택 로직뿐 아니라 실제 설치·재실행을 확인한다. 문서에 남아 있는 Node/Bun 15분, RN/Tauri 30분 목표는 관측 실적으로 바꾸어 쓰지 않는다.
-- 완료: 반복 측정과 단계별 로그, 설정 보존, stale artifact 오사용 없음. 외부 평가자 5명 관찰은 자동화 실행 시간과 별도로 진행한다. [기존 도입 기준](../../specs/2026-09-14-rustra-roadmap.md)
+- 완료: 반복 측정과 단계별 로그, 설정 보존, stale artifact 오사용 없음. 외부 평가자 5명 관찰은 자동화 실행 시간과 별도로 진행한다. [기존 도입 기준](../../specs/2026-09-14-unikit-roadmap.md)
 
 ### D4 큰 데이터의 실행 가능한 resident 예제
 
@@ -192,7 +192,7 @@ Node/Bun으로 실행했다. 이 과정에서 오래된 실행 파일 사용과 
 ```bash
 # 문서·측정 도구·생성물 검사
 bun run test:docs
-env -u RUSTRA_BUN_LIBRARY bun run test:bench-gate
+env -u UNIKIT_BUN_LIBRARY bun run test:bench-gate
 bun run test:codegen-fresh
 bun run test:release-tools
 
@@ -200,11 +200,11 @@ bun run test:release-tools
 bunx --bun react-doctor@0.9.12 . --yes --scope full --verbose --blocking warning
 
 # Rust FFI 일반 검사. sanitizer 검사는 Linux nightly 설정이 별도로 필요하다.
-cargo test -p rustra --test trust_baseline_ffi --test payload_robustness
-cargo test -p rustra --release --test trust_baseline_ffi --test payload_robustness
+cargo test -p unikit-bridge --test trust_baseline_ffi --test payload_robustness
+cargo test -p unikit-bridge --release --test trust_baseline_ffi --test payload_robustness
 
 # 실행 비용 수집. GUI가 필요한 Tauri 포함 여부와 출력 파일을 명시한다.
-env -u RUSTRA_BUN_LIBRARY bun scripts/host-bench.mjs --skip-tauri --output /tmp/rustra-host-next.json
+env -u UNIKIT_BUN_LIBRARY bun scripts/host-bench.mjs --skip-tauri --output /tmp/unikit-host-next.json
 ```
 
 성능 측정은 기준선과 후보의 소스·툴체인·프로파일·입력·호스트 상태를 고정하고 순차 실행한다. CI와 Benchmark를 각각 확인하며, 소스 테스트·패키지 설치·앱 실행·실기기 승인·장기 검증을 별도 완료 상태로 기록한다.

@@ -2,20 +2,20 @@
 /**
  * hot-core loop bench — dylib 핫스왑 dev 루프(수정 → 발행 → 스왑) 실측 하니스.
  *
- * 측정 대상(`rustra dev` dev.target:"dylib" + RUSTRA_HOT_CORE 호스트):
+ * 측정 대상(`unikit dev` dev.target:"dylib" + UNIKIT_HOT_CORE 호스트):
  *
  *   (a) examples/calculator/src/lib.rs 의 add_numbers 본문을 **스키마 불변**으로
  *       토글한다(`+ std::hint::black_box(0)` 추가/제거). black_box 는 상수 접기를
  *       막아 dylib 바이트가 실질 변경됨을 보장하고, 동작(2+3=5)과 스키마는 불변 —
  *       parity 게이트가 통과해야 하는 정상 경로다.
- *   (b) `rustra dev`(watch)가 codegen → cdylib 빌드 → parity 게이트 → `-hot-live`
+ *   (b) `unikit dev`(watch)가 codegen → cdylib 빌드 → parity 게이트 → `-hot-live`
  *       원자 발행까지 끝내는 시점을 live 아티팩트 inode+sha256 변화로 감지한다.
  *   (c) 호스트가 sha256 폴링(300ms)으로 스왑한 시점을 프로브의 stdout
  *       "PROBE SWAP <old> -> <new>" 라인 도착으로 감지한다.
  *
  * 호스트: examples/hot-core-probe 바이너리 `--watch` 모드. tauri-calculator 의
  * 핫 모드(tauri.conf.json visible window, 수정 금지)를 GUI 없이 대체하며, 감시
- * 스왑은 같은 프리미티브(crates/rustra hot_core_watch::spawn_dylib_watch, 300ms
+ * 스왑은 같은 프리미티브(crates/unikit-bridge hot_core_watch::spawn_dylib_watch, 300ms
  * sha256 폴링)를 공유하고 초기 코어를 live 경로로 연다(프로브 소스 계약).
  *
  * 결과는 stdout 으로만 출력한다(사이클 표 + 요약 + JSON 블록). 측정 후
@@ -43,20 +43,20 @@ const PUBLISH_TIMEOUT_MS = 240_000;
 const SWAP_TIMEOUT_MS = 90_000;
 const PROBE_WATCH_SECONDS = 900;
 
-// 기본 config 는 예제 전용 rustra.hot.json 이다(옆의 package.json 이 node/bun
+// 기본 config 는 예제 전용 unikit.hot.json 이다(옆의 package.json 이 node/bun
 // 호스트 셋업을 만족한다). 과거 "Host setup found 0 Cargo packages" 버그 우회로
 // BENCH_CONFIG 임시 config 를 건네던 시기가 있으나 버그 수정 후 기본 경로가
 // 정상 동작한다 — BENCH_CONFIG 는 측정 환경 오버라이드로만 남긴다(생성 바이트
 // 동일성은 하니스가 지문으로 검증한다).
 const configPath = resolve(
-  process.env.BENCH_CONFIG ?? join(root, 'examples/tauri-calculator/rustra.hot.json'),
+  process.env.BENCH_CONFIG ?? join(root, 'examples/tauri-calculator/unikit.hot.json'),
 );
 const cliEntry = join(root, 'packages/cli/dist/index.js');
-const probeBin = join(root, 'target/debug/rustra-hot-core-probe');
+const probeBin = join(root, 'target/debug/unikit-hot-core-probe');
 const sourcePath = join(root, 'examples/calculator/src/lib.rs');
 const generatedDir = join(root, 'examples/calculator/generated');
 const targetDebug = join(root, 'target/debug');
-const expectedLive = join(targetDebug, 'librustra_calculator_example-hot-live.dylib');
+const expectedLive = join(targetDebug, 'libunikit_calculator_example-hot-live.dylib');
 
 // ── 스키마 불변 토글 — add_numbers 본문만, 시그니처·타입·스키마 무변경 ───────
 const ORIGINAL_BLOCK = `pub fn add_numbers(input: AddNumbersInput) -> Result<AddNumbersOutput> {
@@ -160,14 +160,14 @@ function generatedFingerprint() {
 function hotSwapCopies() {
   return new Set(
     readdirSync(targetDebug).filter((name) =>
-      /^librustra_calculator_example-hot-\d+\.dylib$/.test(name),
+      /^libunikit_calculator_example-hot-\d+\.dylib$/.test(name),
     ),
   );
 }
 
 // ── 프리플라이트 ─────────────────────────────────────────────────────────────
 console.error('[bench] 1/6 preflight — build probe binary and CLI dist');
-runSync('cargo', ['build', '-q', '-p', 'rustra-hot-core-probe']);
+runSync('cargo', ['build', '-q', '-p', 'unikit-hot-core-probe']);
 // 측정되는 파이프라인 코드가 현재 소스와 일치하도록 dist 를 항상 재빌드한다.
 runSync('bun', ['run', '--cwd', 'packages/cli', 'build']);
 if (!existsSync(cliEntry) || !existsSync(probeBin) || !existsSync(configPath)) {
@@ -240,8 +240,8 @@ process.on('SIGTERM', () => shutdownForSignal(143));
 process.on('SIGHUP', () => shutdownForSignal(129));
 
 try {
-  // ── `rustra dev` 기동 (watch 모드, 초기 codegen+빌드+발행 대기) ──────────────
-  console.error('[bench] 2/6 starting `rustra dev` (dylib target) and waiting for initial publish');
+  // ── `unikit dev` 기동 (watch 모드, 초기 codegen+빌드+발행 대기) ──────────────
+  console.error('[bench] 2/6 starting `unikit dev` (dylib target) and waiting for initial publish');
   const schemaDones = [];
   const dylibDones = [];
   const devIssues = [];
@@ -267,7 +267,7 @@ try {
       return;
     }
     if (!sawPublishLine) {
-      const published = line.match(/launch the host with RUSTRA_HOT_CORE=(\S+)/);
+      const published = line.match(/launch the host with UNIKIT_HOT_CORE=(\S+)/);
       if (published) {
         sawPublishLine = true;
         livePath = published[1];
@@ -298,14 +298,14 @@ try {
   await withTimeout(
     devReady,
     PUBLISH_TIMEOUT_MS,
-    `rustra dev initial run timed out. issues: ${devIssues.join(' | ')}`,
+    `unikit dev initial run timed out. issues: ${devIssues.join(' | ')}`,
   );
   if (livePath === undefined) livePath = expectedLive;
   if (resolve(livePath) !== resolve(expectedLive)) {
     throw new Error(`live artifact path mismatch: ${livePath} != ${expectedLive}`);
   }
   if (devIssues.length > 0) {
-    throw new Error(`rustra dev reported issues during startup: ${devIssues.join(' | ')}`);
+    throw new Error(`unikit dev reported issues during startup: ${devIssues.join(' | ')}`);
   }
   // 초기 런(콜드/준콜드)의 cargo 단계 시간은 기록해두고 사이클 큐에서 배제한다.
   const initialBuild = {

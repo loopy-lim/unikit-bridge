@@ -1,6 +1,6 @@
-// 코드젠 신선도 게이트 — examples/ 아래 rustra.json 을 가진 모든 예제의 committed
+// 코드젠 신선도 게이트 — examples/ 아래 unikit.json 을 가진 모든 예제의 committed
 // generated/ 디렉터리가 실제 재생성 결과와 일치하는지 단언한다. 검사는 repo CLI
-// `codegen --config rustra.json --check` 을 고정 호출한다 — 예제 package.json 의
+// `codegen --config unikit.json --check` 을 고정 호출한다 — 예제 package.json 의
 // `codegen:check` 같은 diff 내 가변 스크립트는 신뢰 앵커가 못 된다(스크립트를
 // exit 0 으로 바꾸면 게이트가 통과해버린다). `--check` 은 임시 디렉터리에
 // 렌더링해 비교하므로 검사 자체는 기존 생성물을 더럽히지 않는다.
@@ -15,7 +15,7 @@
 //
 // 감지 범위 / known blind spots:
 // - 현재 auth, calculator, crud, react-native-bare-calculator, react-native-calculator,
-//   rn-experiment, streaming 7개를 발견한다. rustra.json 이 없는
+//   rn-experiment, streaming 7개를 발견한다. unikit.json 이 없는
 //   calculator-napi/tauri-calculator 는 범위 밖이며 설정이 생기면 자동 편입된다.
 // - 기본 --check 는 UniFFI Rust mirror 만 검사한다. --bindings 는 uniffi 설정 예제만
 //   선택해 실제 Swift/Kotlin 재생성을 검사하며 native toolchain/build 비용이 든다.
@@ -26,16 +26,16 @@ import { spawnSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const MANIFEST_FILE = '.rustra-generated.json';
+const MANIFEST_FILE = '.unikit-generated.json';
 
-/** examples/ 아래 rustra.json 을 가진 예제를 이름순으로 수집한다. */
+/** examples/ 아래 unikit.json 을 가진 예제를 이름순으로 수집한다. */
 export function discoverCodegenExamples(root) {
   const examplesDir = join(root, 'examples');
   if (!existsSync(examplesDir)) return [];
   const discovered = [];
   for (const name of readdirSync(examplesDir).sort()) {
     const dir = join(examplesDir, name);
-    const configPath = join(dir, 'rustra.json');
+    const configPath = join(dir, 'unikit.json');
     if (!existsSync(configPath)) continue;
     let config;
     try {
@@ -64,7 +64,7 @@ export function resolveCheckCommand(example, root, { bindings = false } = {}) {
       join(root, 'packages', 'cli', 'dist', 'index.js'),
       'codegen',
       '--config',
-      'rustra.json',
+      'unikit.json',
       bindings ? '--check-bindings' : '--check',
     ],
     cwd: example.dir,
@@ -103,7 +103,7 @@ export function runCodegenFreshChecks({
         {
           name: filter ? [...filter].join(', ') : '(none)',
           reason:
-            '게이트 대상 예제가 0개다 — examples/*/rustra.json 이 존재하는지 확인한다' +
+            '게이트 대상 예제가 0개다 — examples/*/unikit.json 이 존재하는지 확인한다' +
             (filter ? ' (--example 필터 오타 가능)' : ''),
           output: '',
         },

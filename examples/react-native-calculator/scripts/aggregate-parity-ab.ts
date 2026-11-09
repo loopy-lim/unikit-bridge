@@ -19,8 +19,8 @@ function loadArm(runs: number[]): Receipt[] {
 // aggregate() validates each receipt against the manifest fingerprint of the LIVE
 // tree — toggle the generated hpp per arm exactly like the protocol did.
 async function manifestFor(arm: 'C' | 'L') {
-  const hpp = 'modules/rustra-jsi/generated/rustra-generated-codecs.hpp';
-  const define = '#define RUSTRA_GENERATED_BOUND_CODEC_CONTEXT 1\n';
+  const hpp = 'modules/unikit-jsi/generated/unikit-generated-codecs.hpp';
+  const define = '#define UNIKIT_GENERATED_BOUND_CODEC_CONTEXT 1\n';
   const patched = '// legacy A/B arm: per-call by-id name ownership\n';
   const original = readFileSync(hpp, 'utf8');
   const want = arm === 'L' ? original.replace(define, patched) : original;
@@ -42,14 +42,14 @@ for (const [arm, runs] of [
 }
 writeFileSync('/tmp/parity-ab/aggregate-raw.json', JSON.stringify(out, null, 1));
 
-// Compare per case+lane: candidate/legacy ratio of rustra means.
+// Compare per case+lane: candidate/legacy ratio of unikit means.
 const cand = new Map(out[0].cases.map((c) => [`${c.lane}/${c.id}`, c]));
 const leg = new Map(out[1].cases.map((c) => [`${c.lane}/${c.id}`, c]));
 const rows: Array<{ key: string; c: number; l: number; ratio: number }> = [];
 for (const [key, c] of cand) {
   const l = leg.get(key);
   if (!l) continue;
-  rows.push({ key, c: c.rustra.mean, l: l.rustra.mean, ratio: c.rustra.mean / l.rustra.mean });
+  rows.push({ key, c: c.unikit.mean, l: l.unikit.mean, ratio: c.unikit.mean / l.unikit.mean });
 }
 rows.sort((a, b) => a.ratio - b.ratio);
 console.log('ratio  candidate/legacy   (lower=candidate faster)');
@@ -85,10 +85,10 @@ function receiptOf(n: number): Receipt {
 const pairs = pairDefs.map(([c, l]) => ({ c: receiptOf(c), l: receiptOf(l) }));
 const cRuns = pairs.map((p) => p.c);
 const lRuns = pairs.map((p) => p.l);
-// mean rustra per case per run
+// mean unikit per case per run
 function caseMean(r: Receipt, id: string, lane: string): number {
   const c = r.cases.find((v) => v.id === id && v.lane === lane)!;
-  return c.rustra.reduce((a, b) => a + b, 0) / c.rustra.length;
+  return c.unikit.reduce((a, b) => a + b, 0) / c.unikit.length;
 }
 const caseKeys = pairs[0].c.cases.map((c) => ({ id: c.id, lane: c.lane }));
 const paired = caseKeys.map(({ id, lane }) => {

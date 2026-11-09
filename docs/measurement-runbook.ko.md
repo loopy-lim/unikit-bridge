@@ -4,7 +4,7 @@
 사용한다. 이름 재사용
 채택 선례([프로토콜](dev/research/2026-09-16-nitro-call-profile.md),
 [수화물](benchmark-receipts/2026-09-18-nitro-name-reuse-ab.json), 계약
-`rustra-name-reuse-ab/v1` 형식)와 [performance-evaluation.md §7.3/§7.6](performance-evaluation.md)의
+`unikit-name-reuse-ab/v1` 형식)와 [performance-evaluation.md §7.3/§7.6](performance-evaluation.md)의
 플랜의 현재 정정을 반영한다.
 
 - **채택 판정은 이 런북의 실행으로만 내린다.** 시뮬레이터 수치
@@ -12,7 +12,7 @@
   [sim-e1](benchmark-receipts/2026-09-24-sim-e1-hermes.md), 요약은
   [performance-evaluation.md §8](performance-evaluation.md))은 참고용이다 — 경로가 종단에서
   동작함을 증명할 뿐, 채택을 결정하지 않는다.
-- 모든 `bun` 명령은 `env -u RUSTRA_BUN_LIBRARY …` 로 실행한다(루프 데몬 dylib 오염 방지 —
+- 모든 `bun` 명령은 `env -u UNIKIT_BUN_LIBRARY …` 로 실행한다(루프 데몬 dylib 오염 방지 —
   2026-09-24 전체 리시트와 동일 규칙).
 
 ## 0. 공통 프로토콜 (세 항목 공통)
@@ -24,7 +24,7 @@
 2. **계측 없는 Release 빌드.** 프로파일러 부착 없음, GC 강제 없음, 느린 표본 제외 없음.
    실패·중단된 실행은 통째로 버리거나 설치부터 재실행한다.
 3. **E1/A2 독립 실행, 실행마다 설치 교체.** 한 번에 정확히 하나의 arm만 설치한다. 전용 앱 id
-   `com.rustra.nitroparity` 는
+   `com.unikit.nitroparity` 는
    `examples/react-native-calculator/scripts/parity-app-policy.ts`(`requireDedicatedApp`)가
    강제한다.
 4. **E1/A2 실행마다 receipt 검증.** 모든 행렬 런치는 v2 전체 행렬 receipt 검증(90개 항목 = 30 id × 3
@@ -34,7 +34,7 @@
 5. **통계.** 런치 쌍의 로그비율, t(4) 명목 95% 구간, 다중 비교 보정 없음. 후보/기존 비율의
    레인별·전체 지오메단. CI가 1을 포함하는 watch 항목은 유의하지 않음으로 보고하지,
    승리로 계산하지 않는다.
-6. **E1/A2 receipt.** 실행된 각 행렬 항목은 `rustra-name-reuse-ab/v1` 형태의
+6. **E1/A2 receipt.** 실행된 각 행렬 항목은 `unikit-name-reuse-ab/v1` 형태의
    `docs/benchmark-receipts/<date>-<item>-ab.json` 을 남긴다: `contract`, `status`
    (adopted/rejected), `date`, `sourceCommit`, `candidateBaseline`, `decision`,
    `environment`(device, runtime, udid, jsEngine), `methodology`(protocol, runs,
@@ -42,7 +42,7 @@
    `binarySha256`, `bundleSha256`, `fingerprint`, launches), analysis. 원시 로그는
    `target/<item>-ab/` 에 보존한다.
 7. **호스트 Criterion은 비교 가능한 환경만 판정한다.** 측정 세션마다
-   `env -u RUSTRA_BUN_LIBRARY bun scripts/benchmark-environment.mjs target/criterion`을
+   `env -u UNIKIT_BUN_LIBRARY bun scripts/benchmark-environment.mjs target/criterion`을
    실행한다. 두 번째 호출부터 직전 환경이 기준선 기록으로 짝지어진다. 기록이 없거나
    불완전하면 exit 2다. CPU 모델·아키텍처·CPU 수·가용 병렬성·메모리 GiB 등급·
    커널 major/minor·OS 이미지 종류·툴체인·컴파일 플래그가 달라도 타이밍 판정을
@@ -58,18 +58,18 @@ cd examples/react-native-calculator
 # 설치된 arm 1회 실행: receipt를 호스트 매니페스트 대상으로 검증, 바이너리 SHA 재확인,
 # /tmp/parity-ab/run-<N>/receipt.json 기록(래퍼: label, binarySha256, bundleSha256,
 # fingerprint, launch pid, receipt)
-env -u RUSTRA_BUN_LIBRARY bun scripts/run-nitro-parity-once.ts \
+env -u UNIKIT_BUN_LIBRARY bun scripts/run-nitro-parity-once.ts \
   --device $UDID --output /tmp/parity-ab/run-1 --label C   # 또는 --label L
 
 # 10회 완료 후: 케이스별 비율, 레인별/전체 지오메단, 쌍별 t(4) 카운트
-env -u RUSTRA_BUN_LIBRARY bun scripts/aggregate-parity-ab.ts
+env -u UNIKIT_BUN_LIBRARY bun scripts/aggregate-parity-ab.ts
 # → /tmp/parity-ab/aggregate-raw.json, /tmp/parity-ab/paired-cases.json
 ```
 
 `aggregate-parity-ab.ts` 는 선례의 구현값을 하드코딩한다: 후보 런 `C_RUNS = [1,4,5,8,10]`,
 기존 런 `L_RUNS = [2,3,6,7,9]`, 페어 `(C1,L2)(C4,L3)(C5,L6)(C8,L7)(C10,L9)`. **항목마다 한
 가지 적응이 필요하다:** `manifestFor(arm)` 이
-`modules/rustra-jsi/generated/rustra-generated-codecs.hpp` 를 패치(이름 재사용 define 토글)해
+`modules/unikit-jsi/generated/unikit-generated-codecs.hpp` 를 패치(이름 재사용 define 토글)해
 arm별 빌드 지문을 재현하는 부분이다. `aggregate()` 는 receipt를 **라이브 트리** 지문 대상으로
 검증하므로, 새 항목에서는 이 토글을 해당 항목의 arm 차이(E1: 브리지/코어 E1 diff §1.1, A2:
 생성 `commands.ts` 변형 §2.2)로 교체해야 한다 — 나머지는 그대로다.
@@ -79,7 +79,7 @@ arm별 빌드 지문을 재현하는 부분이다. `aggregate()` 는 receipt를 
 | 레인                   | 기기                                                                                             | 비고                                                                                                                                             |
 | ---------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | iOS 참고 실행          | iPhone 17 시뮬레이터, iOS 26.2 (2026-09-24 리시트의 UDID `99B087B5-DEF6-4CF1-9177-81A5DE564CFC`) | 역사적 시뮬레이터 비교용이며 실기기 효과를 입증하지 않음                                                                                         |
-| iOS 채택 실행 (실기기) | 실물 iPhone, `aarch64-apple-ios`                                                                 | `RUSTRA_IOS_TARGET=aarch64-apple-ios` 로 빌드, 설치·실행·인출은 `xcrun devicectl` — 저장소에서 아직 검증된 적 없는 경로라 미검증 플럼빙으로 취급 |
+| iOS 채택 실행 (실기기) | 실물 iPhone, `aarch64-apple-ios`                                                                 | `UNIKIT_IOS_TARGET=aarch64-apple-ios` 로 빌드, 설치·실행·인출은 `xcrun devicectl` — 저장소에서 아직 검증된 적 없는 경로라 미검증 플럼빙으로 취급 |
 | Android 실행           | 실기기                                                                                           | v2 선례; 고정 후보 5회 실행이며 보존된 구집단과의 차이를 인과 A/B로 표현하지 **않는다**                                                          |
 
 ### 0.3 호스트 A/B 영수증 생산자 (CI 게이트 아님)
@@ -89,7 +89,7 @@ arm별 빌드 지문을 재현하는 부분이다. `aggregate()` 는 receipt를 
 가능 상태를 유지한다. 각 영수증은 정확한 `command` 호출과 소스·아티팩트 해시를 기록하므로
 `bun run build:cli` 뒤에 보존된 베이스라인 트리로 재실행하면 비교 형태가 재현된다:
 
-- `env -u RUSTRA_BUN_LIBRARY bun scripts/benchmark-bun-owned.mjs <bun-ffi.ts> <dylib> <receipt.json> <label>`
+- `env -u UNIKIT_BUN_LIBRARY bun scripts/benchmark-bun-owned.mjs <bun-ffi.ts> <dylib> <receipt.json> <label>`
   — Bun FFI owned 응답 A/B
   ([영수증](benchmark-receipts/2026-10-13-bun-owned-ab.json),
   [여정](dev/research/2026-10-13-bun-owned-response.md)).
@@ -99,8 +99,8 @@ arm별 빌드 지문을 재현하는 부분이다. `aggregate()` 는 receipt를 
   `-fastpath` 후보도 증거로 보존).
 - `node scripts/node-native-echo-bench.mjs <adapter-entry> <frame-registry> <runtime-binary> <receipt.json>`
   — 같은 런타임 바이너리로 파편화 프레임 end-to-end echo.
-- `env -u RUSTRA_BUN_LIBRARY bun examples/calculator/apps/bun-ffi-bench.ts` 와
-  `env -u RUSTRA_BUN_LIBRARY bun examples/calculator/apps/scriptc-bench.ts` — Bun FFI와
+- `env -u UNIKIT_BUN_LIBRARY bun examples/calculator/apps/bun-ffi-bench.ts` 와
+  `env -u UNIKIT_BUN_LIBRARY bun examples/calculator/apps/scriptc-bench.ts` — Bun FFI와
   scriptc 표면의 warm 호스트 디스패치 마이크로벤치(3형상 arm 보고; arm 구성은 2026-10-13
   리서치 로그 참조).
 
@@ -115,16 +115,16 @@ arm별 빌드 지문을 재현하는 부분이다. `aggregate()` 는 receipt를 
 - **런타임 토글은 존재하지 않는다**(sim-e1 리시트 §3-1): 심볼이 존재하면
   `invoke_frame_owned` 가 무조건 바인딩된다. 따라서 arm은 설치 단위 빌드 두 개다:
   - **후보 (C)** = 현재 main. arm 바이너리당 1회 사전 확인:
-    `nm -gU -arch arm64 <앱 바이너리> | grep rustra_ffi_invoke_frame_owned` 가 심볼(T)을
+    `nm -gU -arch arm64 <앱 바이너리> | grep unikit_ffi_invoke_frame_owned` 가 심볼(T)을
     나열해야 한다 — E1 분기 활성, probe 폴백은 도달 불가한 죽은 코드.
-  - **기존 (L)** = E1 revert 빌드: `crates/rustra/src/ffi_typed_buffer.rs` **와**
-    `packages/react-native/native/cpp/RustraJSIBridge.{hpp,cpp}` 의 E1 diff를 함께 제거한
+  - **기존 (L)** = E1 revert 빌드: `crates/unikit-bridge/src/ffi_typed_buffer.rs` **와**
+    `packages/react-native/native/cpp/UnikitJSIBridge.{hpp,cpp}` 의 E1 diff를 함께 제거한
     하나의 트리로 빌드한다. "신형 셸 + 구형 정적 코어" 링크 조합은 지원되지 않는다(Apple
     링커가 unresolved weak 참조를 거부 — performance-evaluation.md §7.5 리스크 1). probe
     경로 arm은 E1 이전의 일관된 소스 상태에서 나와야 한다.
-- 빌드: `bash modules/rustra-jsi/ios/build-rust-ios.sh`(fat release 코어) → sim-e1 리시트의
+- 빌드: `bash modules/unikit-jsi/ios/build-rust-ios.sh`(fat release 코어) → sim-e1 리시트의
   재현 런북과 동일한 `xcodebuild -configuration Release -sdk iphonesimulator`
-  (`env -u EXPO_PUBLIC_RUSTRA_DEMO` 포함) → `xcrun simctl install $UDID <앱>`. arm별
+  (`env -u EXPO_PUBLIC_UNIKIT_DEMO` 포함) → `xcrun simctl install $UDID <앱>`. arm별
   `binarySha256`/`bundleSha256` 를 기록한다(수집기가 모든 실행 래퍼에 기록한다).
 
 ### 1.2 표본 설계와 명령
@@ -137,7 +137,7 @@ arm별 빌드 지문을 재현하는 부분이다. `aggregate()` 는 receipt를 
   레인이고, 소형 응답 레인(`add`, `string`, `pair`, `*/indexed`, `*/resident-dfs`)은
   무회귀 레인이다.
 - **Android: 고정 후보, 원래 v2 5회** —
-  `env -u RUSTRA_BUN_LIBRARY bun scripts/run-nitro-parity-android.ts --device <serial>
+  `env -u UNIKIT_BUN_LIBRARY bun scripts/run-nitro-parity-android.ts --device <serial>
 --apk <candidate.apk> --manifest <manifest.json> --output <dir>` (도구는 설치하지 않는다 —
   arm APK를 먼저 `adb install`; 매니페스트 JSON은 `scripts/parity-manifest.ts` 의
   `createExperimentManifest(fingerprint)` 로 내보낸다). 보존된 pre-E1 집단과의 차이는 집단
@@ -163,9 +163,9 @@ arm별 빌드 지문을 재현하는 부분이다. `aggregate()` 는 receipt를 
 ### 1.5 롤백
 
 E1은 Rust 코어 + C++ 브리지 + 스냅샷/CHANGELOG에 걸쳐 있다. 롤백 = E1 커밋의 단일 revert(또는
-위 두 소스 그룹을 pre-E1 상태로 `git checkout`), 재빌드 후 `cargo test -p rustra`,
-`env -u RUSTRA_BUN_LIBRARY bun run test:codegen-fresh:check`,
-`env -u RUSTRA_BUN_LIBRARY bun run test:all` 재실행. §1.1의 기존 arm 빌드가 롤백 검증 빌드를
+위 두 소스 그룹을 pre-E1 상태로 `git checkout`), 재빌드 후 `cargo test -p unikit-bridge`,
+`env -u UNIKIT_BUN_LIBRARY bun run test:codegen-fresh:check`,
+`env -u UNIKIT_BUN_LIBRARY bun run test:all` 재실행. §1.1의 기존 arm 빌드가 롤백 검증 빌드를
 겸한다.
 
 ## 2. A2 — 1-필드 명령 emit의 `createGeneratedFields1` 전환
@@ -183,12 +183,12 @@ codecs/JSI가 계측 대상이고 fake Rust ABI peer를 사용한다. 사전 빌
 
 새 기기 행렬의 소스를 고정한 뒤 다음을 재확인한다:
 
-1. `bash examples/react-native-calculator/modules/rustra-jsi/ios/run-hermes-sync-tests.sh`
+1. `bash examples/react-native-calculator/modules/unikit-jsi/ios/run-hermes-sync-tests.sh`
    — 실패 0. 스크립트의 bash shebang을 따른다.
-2. `env -u RUSTRA_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs`
+2. `env -u UNIKIT_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs`
    — JS 호출 수=네이티브 경로 호출 수, name fallback 0.
-3. `env -u RUSTRA_BUN_LIBRARY bun run test:types`와
-   `env -u RUSTRA_BUN_LIBRARY bun run test:codegen-fresh:check`.
+3. `env -u UNIKIT_BUN_LIBRARY bun run test:types`와
+   `env -u UNIKIT_BUN_LIBRARY bun run test:codegen-fresh:check`.
 
 ### 2.2 arm과 토글
 
@@ -227,9 +227,9 @@ JSON과 `invokeTypedBuffer`에 호출한다. uuidV7은 정확성 예제이며 gz
 네이티브 1MiB 한도 안에 들어가도록 최대 256KiB로 제한한다. 여기서 1MiB bytes와
 JSON을 비교하면 동일한 입력 조건이 성립하지 않는다.
 
-`examples/rn-experiment`에서 iOS는 `bash modules/rustra-bridge/ios/build-rust-ios.sh`,
-Android는 `bash modules/rustra-bridge/android/build-rust-android.sh`로 빌드한다.
-실기기 iOS는 `RUSTRA_IOS_TARGET=aarch64-apple-ios`를 지정한다. 과거
+`examples/rn-experiment`에서 iOS는 `bash modules/unikit-bridge/ios/build-rust-ios.sh`,
+Android는 `bash modules/unikit-bridge/android/build-rust-android.sh`로 빌드한다.
+실기기 iOS는 `UNIKIT_IOS_TARGET=aarch64-apple-ios`를 지정한다. 과거
 [시뮬레이터 크로스컴파일](dev/research/2026-09-24-rn-experiment-ios.md)은 현재
 수집기의 앱 설치·측정 증거를 대신하지 않는다.
 
@@ -254,7 +254,7 @@ Android는 `bash modules/rustra-bridge/android/build-rust-android.sh`로 빌드�
 실제 독립 런치 5회 후 저장소 루트에서 실행한다:
 
 ```bash
-env -u RUSTRA_BUN_LIBRARY bun examples/rn-experiment/scripts/benchmark-receipts.ts \
+env -u UNIKIT_BUN_LIBRARY bun examples/rn-experiment/scripts/benchmark-receipts.ts \
   target/rn-experiment/summary.json \
   target/rn-experiment/launch-1.json target/rn-experiment/launch-2.json \
   target/rn-experiment/launch-3.json target/rn-experiment/launch-4.json \

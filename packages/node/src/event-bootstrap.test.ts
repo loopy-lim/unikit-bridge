@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configure, ensureConfigured } from '@rustra/types';
+import { configure, ensureConfigured } from '@unikit/types';
 import { createNodeBootstrap, type NodeProcessTransport } from './index.js';
 
 const processTest = process.versions.bun ? test.skip : test;
@@ -11,8 +11,8 @@ const script = String.raw`
   readline.createInterface({ input: process.stdin }).on('line', (line) => {
     const { id, command } = JSON.parse(line);
     let response;
-    if (command === '__rustra_contract') response = { result: 'valid-contract' };
-    else if (command === '__rustra_capabilities') response = { result: { events: 'polling' } };
+    if (command === '__unikit_contract') response = { result: 'valid-contract' };
+    else if (command === '__unikit_capabilities') response = { result: { events: 'polling' } };
     else if (command === '__drainEvents') response = { events: events.splice(0) };
     else {
       events.push({ name: 'tick', payload: ++count });

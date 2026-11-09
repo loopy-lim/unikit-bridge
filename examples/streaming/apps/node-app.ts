@@ -12,13 +12,13 @@
  * 2. `startJob` invoke → Rust 백그라운드 스레드가 진행률 이벤트 발행
  * 3. 폴링 폴백 루프가 이벤트를 콜백으로 전달하고, `job.done` 에 종료
  *
- * 실행: cargo build -p rustra-streaming-example && \
+ * 실행: cargo build -p unikit-streaming-example && \
  *       bun examples/streaming/apps/node-app.ts
  */
-import { rustra, startJob, subscribeEvent } from '../generated/node.js';
-import { onRustraEvent } from '../generated/events.js';
+import { unikit, startJob, subscribeEvent } from '../generated/node.js';
+import { onUnikitEvent } from '../generated/events.js';
 
-await rustra.ready();
+await unikit.ready();
 console.log('[streaming] generated runtime ready (polling event delivery)');
 
 // ── 시나리오 ───────────────────────────────────────────────────
@@ -31,12 +31,12 @@ const done = new Promise<void>((resolve) => {
 });
 const timeout = setTimeout(() => {
   console.error('[streaming] timeout waiting for job.done');
-  rustra.dispose();
+  unikit.dispose();
   process.exit(1);
 }, 10_000);
 
 let ticks = 0;
-const unsubscribeTick = await onRustraEvent(subscribeEvent, 'progress.tick', (payload) => {
+const unsubscribeTick = await onUnikitEvent(subscribeEvent, 'progress.tick', (payload) => {
   const step = Number(payload.step);
   const total = Number(payload.total);
   ticks += 1;
@@ -44,7 +44,7 @@ const unsubscribeTick = await onRustraEvent(subscribeEvent, 'progress.tick', (pa
     `[streaming] tick ${String(step).padStart(2)}/${total} ${'▓'.repeat(step)}${'░'.repeat(total - step)}`,
   );
 });
-const unsubscribeDone = await onRustraEvent(subscribeEvent, 'job.done', ({ steps }) => {
+const unsubscribeDone = await onUnikitEvent(subscribeEvent, 'job.done', ({ steps }) => {
   console.log(`[streaming] done: ${steps} steps`);
   settleDone();
 });
@@ -58,11 +58,11 @@ clearTimeout(timeout);
 if (ticks !== TOTAL) {
   unsubscribeTick();
   unsubscribeDone();
-  rustra.dispose();
+  unikit.dispose();
   throw new Error(`expected ${TOTAL} ticks, got ${ticks}`);
 }
 console.log(`[streaming] PASS — ${ticks}/${TOTAL} ticks received via subscribeEvent`);
 unsubscribeTick();
 unsubscribeDone();
-rustra.dispose();
+unikit.dispose();
 process.exit(0);

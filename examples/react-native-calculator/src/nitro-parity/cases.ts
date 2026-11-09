@@ -1,4 +1,4 @@
-import type { RustraNative } from '@rustra/types';
+import type { UnikitNative } from '@unikit/types';
 import type { NitroBench } from 'nitro-bench';
 import * as commands from '../../generated/commands';
 import { frameRegistry } from '../../generated/frame-registry';
@@ -9,16 +9,16 @@ export type Case = {
   inputBytes: number;
   byteMeaning: string;
   batch: number;
-  rustra: () => unknown;
-  rustraPublicSync: () => unknown;
+  unikit: () => unknown;
+  unikitPublicSync: () => unknown;
   nitro: () => unknown;
-  rustraAsync: () => Promise<unknown>;
+  unikitAsync: () => Promise<unknown>;
   nitroAsync: () => Promise<unknown>;
   preflight: () => Promise<void>;
 };
 import { BUFFER_LIMIT } from './contract';
 export function createCases(
-  native: RustraNative,
+  native: UnikitNative,
   nitro: NitroBench,
   bindPublicSync?: (command: string) => (input: unknown) => unknown,
 ): Case[] {
@@ -46,7 +46,7 @@ export function createCases(
     batch = 256,
     bufferBytes = 0,
   ) {
-    const rustra = bufferBytes
+    const unikit = bufferBytes
       ? () =>
           native.invokeTypedBuffer!(
             frameRegistry.get(command)!.commandId,
@@ -56,8 +56,8 @@ export function createCases(
     const publicCommand = (
       commands as unknown as Record<string, (input: unknown) => Promise<unknown>>
     )[command];
-    const rustraAsync = () => publicCommand(input);
-    const rustraPublicSync = publicSync(command, input);
+    const unikitAsync = () => publicCommand(input);
+    const unikitPublicSync = publicSync(command, input);
     const check = (out: unknown) => {
       assertSame(expected, out);
       if (bufferBytes) {
@@ -73,27 +73,27 @@ export function createCases(
       id,
       nodes: 0,
       inputBytes: bytes(command, input),
-      byteMeaning: 'encoded Rustra frame bytes (buffer payload size in case ID)',
+      byteMeaning: 'encoded Unikit frame bytes (buffer payload size in case ID)',
       batch,
-      rustra,
-      rustraPublicSync,
+      unikit,
+      unikitPublicSync,
       nitro: nitroSync,
-      rustraAsync,
+      unikitAsync,
       nitroAsync,
       preflight: async () => {
         for (const out of [
-          rustra(),
+          unikit(),
           nitroSync(),
-          await rustraAsync(),
+          await unikitAsync(),
           await nitroAsync(),
-          ...(bindPublicSync ? [rustraPublicSync()] : []),
+          ...(bindPublicSync ? [unikitPublicSync()] : []),
         ])
           check(out);
       },
     });
   }
   const a = { a: 42, b: 58 },
-    s = { value: 'Rustra ↔ Nitro: 문자열' },
+    s = { value: 'Unikit ↔ Nitro: 문자열' },
     p = { name: 'pair', value: 123.5 };
   add(
     'add',
@@ -195,30 +195,30 @@ export function createCases(
       ],
     ];
     for (const [operation, command, input, expected, nitroSync, nitroAsync] of entries) {
-      const rustra = diagnostic(command, input),
-        rustraAsync = () =>
+      const unikit = diagnostic(command, input),
+        unikitAsync = () =>
           (commands as unknown as Record<string, (v: unknown) => Promise<unknown>>)[command](input);
-      const rustraPublicSync = publicSync(command, input);
+      const unikitPublicSync = publicSync(command, input);
       result.push({
         id: `${shape}${count}/${operation}`,
         nodes: count,
         inputBytes: bytes(command, input),
-        byteMeaning: 'encoded Rustra frame bytes',
+        byteMeaning: 'encoded Unikit frame bytes',
         batch: operation === 'indexed' ? 128 : operation === 'resident-dfs' ? 16 : 1,
-        rustra,
-        rustraPublicSync,
+        unikit,
+        unikitPublicSync,
         nitro: nitroSync,
-        rustraAsync,
+        unikitAsync,
         nitroAsync,
         preflight: async () => {
           diagnostic('parityStore', tree)();
           nitro.parityStore(cast(tree));
           for (const out of [
-            rustra(),
+            unikit(),
             nitroSync(),
-            await rustraAsync(),
+            await unikitAsync(),
             await nitroAsync(),
-            ...(bindPublicSync ? [rustraPublicSync()] : []),
+            ...(bindPublicSync ? [unikitPublicSync()] : []),
           ]) {
             assertSame(expected, out);
             if (operation === 'echo') assertFreshEcho(tree, out as Tree);

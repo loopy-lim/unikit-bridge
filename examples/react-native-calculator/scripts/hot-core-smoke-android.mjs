@@ -1,16 +1,16 @@
 // Android 핫 코어 스왑 스모크(bun scripts/hot-core-smoke-android.mjs).
 //
 // 전체 흐름:
-//   (a) cargo ndk 로 스왑 유닛 cdylib 빌드 — plain(rustra-calculator-example,
-//       계약 해시 동일성 전제 유지)과 behavior 변형(rustra-hot-core-variant
+//   (a) cargo ndk 로 스왑 유닛 cdylib 빌드 — plain(unikit-calculator-example,
+//       계약 해시 동일성 전제 유지)과 behavior 변형(unikit-hot-core-variant
 //       --features behavior, addNumbers = a+b+100) 둘 다.
 //   (b) gradle assembleDebug 로 핫 분기 앱을 빌드·설치.
-//   (c) EXPO_PUBLIC_RUSTRA_DEMO=hot-core 로 서빙 중인 Metro 에서 앱 부팅 →
-//       [RustraHotCore] READY value=5 토큰 대기 → behavior cdylib 를
+//   (c) EXPO_PUBLIC_UNIKIT_DEMO=hot-core 로 서빙 중인 Metro 에서 앱 부팅 →
+//       [UnikitHotCore] READY value=5 토큰 대기 → behavior cdylib 를
 //       hot-core-push-android.mjs 로 원자 전달 → **재로드 없이** 같은 로그
 //       스트림에서 addNumbers 5→105 전환을 관측하면 통과.
 //
-// 로그 관측 계약(HotCoreApp): [RustraHotCore] READY value=<v> /
+// 로그 관측 계약(HotCoreApp): [UnikitHotCore] READY value=<v> /
 // addNumbers=<value> hash=<8자> / FAILED message=<...>
 //
 // 전달 계약 주의 — 제자리 덮어쓰기는 SIGSEGV: 스왑 유닛은 반드시 tmp 기록 후
@@ -44,10 +44,10 @@ import {
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const EXAMPLE_ROOT = resolve(SCRIPT_DIR, '..');
 const REPO_ROOT = resolve(EXAMPLE_ROOT, '..', '..');
-const LOG_PREFIX = '[RustraHotCore]';
+const LOG_PREFIX = '[UnikitHotCore]';
 const BASELINE_VALUE = 5; // addNumbers(2,3) — 정적 코어(plain) 기준값
 const SWAPPED_VALUE = 105; // behavior 변형 스왑 후 — 2+3+100
-const METRO_URL = process.env.RUSTRA_METRO_URL || 'http://127.0.0.1:8081';
+const METRO_URL = process.env.UNIKIT_METRO_URL || 'http://127.0.0.1:8081';
 
 function fail(message, detail) {
   const suffix = detail ? `\n${detail}` : '';
@@ -77,7 +77,7 @@ function run(command, args, options = {}) {
 function parseArgs(argv) {
   return {
     serial: readFlag(argv, '--serial', process.env.ADB_SERIAL || DEFAULT_SERIAL),
-    pkgOverride: readFlag(argv, '--package', process.env.RUSTRA_ANDROID_PACKAGE),
+    pkgOverride: readFlag(argv, '--package', process.env.UNIKIT_ANDROID_PACKAGE),
     skipCargo: argv.includes('--skip-cargo'),
     skipGradle: argv.includes('--skip-gradle'),
     readyTimeoutMs: Number(readFlag(argv, '--ready-timeout-ms', '240000')),
@@ -88,8 +88,8 @@ function parseArgs(argv) {
 
 // cargo-ndk 는 안드로이드 ABI 명 대신 rust 트리플 명으로 target 디렉터를 만든다.
 const CARGO_TARGET_OUT = resolve(REPO_ROOT, 'target', 'aarch64-linux-android', 'release');
-const PLAIN_SO = resolve(CARGO_TARGET_OUT, 'librustra_calculator_example.so');
-const BEHAVIOR_SO = resolve(CARGO_TARGET_OUT, 'librustra_hot_core_variant.so');
+const PLAIN_SO = resolve(CARGO_TARGET_OUT, 'libunikit_calculator_example.so');
+const BEHAVIOR_SO = resolve(CARGO_TARGET_OUT, 'libunikit_hot_core_variant.so');
 
 function buildCdylibs() {
   if (!process.env.ANDROID_NDK_HOME && !process.env.ANDROID_HOME && !process.env.ANDROID_SDK_ROOT) {
@@ -101,14 +101,14 @@ function buildCdylibs() {
   // (a-1) 미션 지정 스왑 유닛 — plain cdylib. behavior 변형과 스키마가 동일해야
   // 계약 해시가 같다(시나리오 1 전제). 수동 전달에는 parity 게이트가 없으므로
   // 이 전제는 READY value=5 관측 + 105 전환으로 스모크가 직접 증명한다.
-  console.log('  building plain rustra-calculator-example cdylib…');
+  console.log('  building plain unikit-calculator-example cdylib…');
   run(
     'cargo',
-    ['ndk', '-t', 'arm64-v8a', 'build', '--release', '-p', 'rustra-calculator-example'],
+    ['ndk', '-t', 'arm64-v8a', 'build', '--release', '-p', 'unikit-calculator-example'],
     { cwd: REPO_ROOT, timeoutMs: 600_000, stream: true },
   );
   // (a-2) 관측 가능한 스왑 유닛 — addNumbers 본문만 +100(시그니처 불변 로직 변경).
-  console.log('  building behavior rustra-hot-core-variant cdylib…');
+  console.log('  building behavior unikit-hot-core-variant cdylib…');
   run(
     'cargo',
     [
@@ -118,7 +118,7 @@ function buildCdylibs() {
       'build',
       '--release',
       '-p',
-      'rustra-hot-core-variant',
+      'unikit-hot-core-variant',
       '--features',
       'behavior',
     ],
@@ -131,10 +131,10 @@ function buildCdylibs() {
 
 function buildAndInstallApp({ adb, serial, pkg }) {
   // (b) 핫 분기 앱 빌드 — 생성된 Kotlin 모듈이 install 시 nativeConfigureHotCore
-  // (filesDir/rustra/hot)를 호출한다. universal debug APK는 4 ABI 전부 담아
+  // (filesDir/unikit/hot)를 호출한다. universal debug APK는 4 ABI 전부 담아
   // 130M+ 라 작은 /data 파티션 설치가 실패할 수 있어, 기본은 에뮬레이터 ABI
-  // (arm64-v8a)만 빌드한다 — RN 표준 gradle 속성(RUSTRA_ARCHS로 덮어쓸 수 있음).
-  const archs = process.env.RUSTRA_ARCHS ?? 'arm64-v8a';
+  // (arm64-v8a)만 빌드한다 — RN 표준 gradle 속성(UNIKIT_ARCHS로 덮어쓸 수 있음).
+  const archs = process.env.UNIKIT_ARCHS ?? 'arm64-v8a';
   const gradlew = resolve(EXAMPLE_ROOT, 'android', 'gradlew');
   run('sh', [gradlew, ':app:assembleDebug', '--no-daemon', `-PreactNativeArchitectures=${archs}`], {
     cwd: resolve(EXAMPLE_ROOT, 'android'),
@@ -186,7 +186,7 @@ async function checkMetro() {
   } catch {
     fail(
       `Metro is not reachable at ${METRO_URL}`,
-      'hint: 별도 터미널에서 bun run demo:hot-core 를 먼저 실행하세요(EXPO_PUBLIC_RUSTRA_DEMO=hot-core).',
+      'hint: 별도 터미널에서 bun run demo:hot-core 를 먼저 실행하세요(EXPO_PUBLIC_UNIKIT_DEMO=hot-core).',
     );
   }
   if (body !== 'packager-status:running') {
@@ -246,7 +246,7 @@ function waitReadyToken(logcat, timeoutMs) {
       rejectPromise(
         new Error(
           `${LOG_PREFIX} READY token not seen within ${timeoutMs}ms — ` +
-            '앱이 hot-core 분기(EXPO_PUBLIC_RUSTRA_DEMO=hot-core)로 번들링됐는지 확인하세요.',
+            '앱이 hot-core 분기(EXPO_PUBLIC_UNIKIT_DEMO=hot-core)로 번들링됐는지 확인하세요.',
         ),
       );
     }, timeoutMs);
@@ -349,7 +349,7 @@ export async function main(argv = Bun.argv.slice(2)) {
 
   console.log('[3/5] checking Metro, clearing stale live artifacts, launching the app…');
   await checkMetro();
-  // reverse 터널 포트는 METRO_URL 에서 읽는다 — 하드코딩하면 RUSTRA_METRO_URL
+  // reverse 터널 포트는 METRO_URL 에서 읽는다 — 하드코딩하면 UNIKIT_METRO_URL
   // 로 포트를 바꾼 환경에서 checkMetro 는 통과하고 앱만 8081 로 향한다.
   const metroPort = new URL(METRO_URL).port || '8081';
   run(adb, ['-s', serial, 'reverse', `tcp:${metroPort}`, `tcp:${metroPort}`], {

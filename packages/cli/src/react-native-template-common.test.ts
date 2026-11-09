@@ -12,21 +12,21 @@ import { renderModuleIndex } from './react-native-template-common.js';
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 function runGeneratedModule(consumer: string): void {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-rn-installer-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-rn-installer-'));
   try {
     mkdirSync(join(root, 'node_modules/react-native'), { recursive: true });
-    mkdirSync(join(root, 'node_modules/@rustra'), { recursive: true });
+    mkdirSync(join(root, 'node_modules/@unikit'), { recursive: true });
     writeFileSync(
       join(root, 'node_modules/react-native/package.json'),
       JSON.stringify({ type: 'module', exports: './index.js' }),
     );
     writeFileSync(
       join(root, 'node_modules/react-native/index.js'),
-      'export const NativeModules = { RustraBridge: globalThis.fixtureInstaller };',
+      'export const NativeModules = { UnikitBridge: globalThis.fixtureInstaller };',
     );
     symlinkSync(
       join(repoRoot, 'packages/react-native'),
-      join(root, 'node_modules/@rustra/react-native'),
+      join(root, 'node_modules/@unikit/react-native'),
     );
     const source = renderModuleIndex();
     writeFileSync(join(root, 'index.ts'), source);
@@ -62,7 +62,7 @@ const native = {
 };
 let nativeReads = 0;
 let installed = true;
-Object.defineProperty(globalThis, '__rustraNative', {
+Object.defineProperty(globalThis, '__unikitNative', {
   configurable: true,
   get() { nativeReads++; return installed ? native : undefined; },
 });
@@ -73,8 +73,8 @@ for (const result of ['false', 'Promise.resolve(false)']) {
     runGeneratedModule(String.raw`
 let calls = 0;
 globalThis.fixtureInstaller = { install() { calls++; return ${result}; } };
-const { installRustraJSI } = await import('./index.mjs');
-const pending = installRustraJSI();
+const { installUnikitJSI } = await import('./index.mjs');
+const pending = installUnikitJSI();
 assert.ok(pending instanceof Promise, 'the public install API remains asynchronous');
 await assert.rejects(pending, /install/i);
 assert.equal(calls, 1);
@@ -97,13 +97,13 @@ globalThis.fixtureInstaller = {
     return true;
   },
 };
-const { installRustraJSI, getRustraNative } = await import('./index.mjs');
-const pending = installRustraJSI();
+const { installUnikitJSI, getUnikitNative } = await import('./index.mjs');
+const pending = installUnikitJSI();
 assert.ok(pending instanceof Promise);
 assert.equal(await pending, undefined, 'public success resolves void');
 assert.equal(calls, 1);
 assert.equal(nativeReads, 1, 'a successful installer must verify the installed native');
-assert.equal(getRustraNative(), native);
+assert.equal(getUnikitNative(), native);
 `);
   });
 }
@@ -113,8 +113,8 @@ for (const async of [false, true]) {
     runGeneratedModule(String.raw`
 const failure = new Error('controlled native install failure');
 globalThis.fixtureInstaller = { install: ${async ? 'async' : ''} () => { throw failure; } };
-const { installRustraJSI } = await import('./index.mjs');
-await assert.rejects(installRustraJSI(), error => error === failure);
+const { installUnikitJSI } = await import('./index.mjs');
+await assert.rejects(installUnikitJSI(), error => error === failure);
 assert.equal(nativeReads, 0);
 `);
   });

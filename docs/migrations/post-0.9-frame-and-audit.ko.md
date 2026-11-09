@@ -2,7 +2,7 @@
 
 # 0.9 이후 Frame·감사 수정 마이그레이션
 
-동시 업그레이드는 [PR #69](https://github.com/loopy-lim/rustra/pull/69)에서 준비한다.
+동시 업그레이드는 [PR #69](https://github.com/loopy-lim/unikit/pull/69)에서 준비한다.
 2026-09-10 릴리스에서 Rust와 types/node/bun/cli는 이미 0.9.0을 사용했으므로
 새 버전으로 올린다. [호환 표](../compatibility-matrix.ko.md)는 릴리스 manifest를
 기준으로 하며 레지스트리 발행은 별도로 검증한다.
@@ -10,7 +10,7 @@
 버전 단계에서 변경된 JS 9개 패키지의 pre-1.0 minor bump를 적용한다.
 types/node/bun/cli 0.9.0 → 0.10.0, tauri/react-native 0.8.0 → 0.9.0,
 react 0.7.1 → 0.8.0, testing/devtools 0.6.2 → 0.7.0이다. Rust workspace는 0.10.0,
-CLI의 `rustraTemplate.cargoRange`는 ^0.10.0, RN 어댑터 범위는 ^0.9.0이다.
+CLI의 `unikitTemplate.cargoRange`는 ^0.10.0, RN 어댑터 범위는 ^0.9.0이다.
 npm 내부 의존 범위·lockfile·생성 manifest를 같은 릴리스 후보에서 갱신한다.
 독립 어댑터는 각각의 버전 번호를 유지한다.
 
@@ -24,20 +24,20 @@ Frame 전환은 공개 API와 네이티브 심볼 이름을 변경한다. 이름
 | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | `createRkyvV2Engine`, `RkyvV2Engine`, `RkyvV2Codec`, `RkyvV2Native`, `RkyvV2SchemaNative` | `createFrameEngine`, `FrameEngine`, `FrameCodec`, `FrameNative`, `FrameSchemaNative` |
 | `invokeRkyvV2`                                                                            | `invokeFrame`                                                                        |
-| `rustra_ffi_invoke_rkyv_v2{,_into,_async,_async_into}`                                    | `rustra_ffi_invoke_frame{,_into,_async,_async_into}`                                 |
+| `unikit_ffi_invoke_rkyv_v2{,_into,_async,_async_into}`                                    | `unikit_ffi_invoke_frame{,_into,_async,_async_into}`                                 |
 | `rkyv-codecs.ts`, `rkyv-registry.ts`                                                      | `frame-codecs.ts`, `frame-registry.ts`                                               |
 | `BUN_RKYV_V2_ENGINE_SUPPORTS`, `REACT_NATIVE_RKYV_V2_ENGINE_SUPPORTS`                     | `BUN_FRAME_ENGINE_SUPPORTS`, `REACT_NATIVE_FRAME_ENGINE_SUPPORTS`                    |
 | debug transport `'rkyv'`                                                                  | `'frame'`                                                                            |
 
-사용되지 않던 `RustraNative.invokeRkyv` 타입 멤버도 제거한다. 수동 import, custom FFI,
-네이티브 mock, 진단 필터를 갱신한다. 새 CLI의 `rustra codegen --config rustra.json`을
+사용되지 않던 `UnikitNative.invokeRkyv` 타입 멤버도 제거한다. 수동 import, custom FFI,
+네이티브 mock, 진단 필터를 갱신한다. 새 CLI의 `unikit codegen --config unikit.json`을
 실행하고 네이티브 셸·라이브러리·앱을 다시 빌드한다. 생성 파일과 manifest를 함께 커밋하고,
 롤백을 위해 이전 릴리스의 lockfile과 네이티브 산출물을 보관한다.
 
 ## Tauri 채널
 
 JS 채널은 발급한 물리 WebView의 IPC Channel을 사용하고 `ipc-channel-chunks-v1`을
-협상한다. `@rustra/tauri`와 Rust를 함께 다시 빌드한다. 이전 이벤트 브로드캐스트 호스트는
+협상한다. `@unikit/tauri`와 Rust를 함께 다시 빌드한다. 이전 이벤트 브로드캐스트 호스트는
 거부한다. 전역 감지에는 `core.Channel`과 콜백 정리 API가 필요하며, 직접 설정한다면
 `createIpcChannel(onMessage) => { value, dispose() }`를 제공한다. `listen`만으로는
 부족하다. 원시 조각, 네이티브 min(런타임 한도, 16 MiB) 제한(코어 기본 설정은 1 MiB),
@@ -61,7 +61,7 @@ schema·TS 출력과 겹치거나 Rust 소스 루트·Cargo manifest를 덮을 �
 생성하고 비교한다.
 
 Hot-core는 심볼 안전성을 위해 라이브러리를 보관한다.
-`rustra::hot_core::retained_library_stats()`의 `libraries`는 누적 보관 로드 수,
+`unikit_bridge::hot_core::retained_library_stats()`의 `libraries`는 누적 보관 로드 수,
 `artifact_bytes`는 파일 크기의 합이며 RSS가 아니다. `restart_recommended()`는
 32회부터 true이다. 개발 호스트를 재시작해야 이 라이브러리를 해제할 수 있다.
 

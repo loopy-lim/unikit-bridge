@@ -15,15 +15,15 @@ const REPO_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
 /**
  * 가짜 examples 트리 — api-surface.test.ts 의 makeFixture 와 같은 mkdtemp 패턴.
- * codegen:check 가 있는 예제와 없는 예제, rustra.json 이 없는 예제를 섞는다.
+ * codegen:check 가 있는 예제와 없는 예제, unikit.json 이 없는 예제를 섞는다.
  * calc 은 codegen:check 를 갖고도 게이트가 실행하지 않음을 검증하는 용도다.
  */
 function makeFixture(): string {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-codegen-fresh-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-codegen-fresh-'));
   writeExample(root, 'calc', { scripts: { codegen: 'x', 'codegen:check': 'x --check' } });
   writeExample(root, 'stream', {});
   mkdirSync(join(root, 'examples', 'plain'), { recursive: true });
-  writeFileSync(join(root, 'examples', 'plain', 'README.md'), 'rustra.json 없음\n');
+  writeFileSync(join(root, 'examples', 'plain', 'README.md'), 'unikit.json 없음\n');
   return root;
 }
 
@@ -31,7 +31,7 @@ function writeExample(root: string, name: string, packageJson: object): void {
   const dir = join(root, 'examples', name);
   mkdirSync(dir, { recursive: true });
   writeFileSync(
-    join(dir, 'rustra.json'),
+    join(dir, 'unikit.json'),
     JSON.stringify({ schema: './generated/schema.json', output: './generated' }),
   );
   writeFileSync(
@@ -40,10 +40,10 @@ function writeExample(root: string, name: string, packageJson: object): void {
   );
   const generated = join(dir, 'generated');
   mkdirSync(generated, { recursive: true });
-  writeFileSync(join(generated, '.rustra-generated.json'), '{}');
+  writeFileSync(join(generated, '.unikit-generated.json'), '{}');
 }
 
-void test('discoverCodegenExamples collects only rustra.json examples, sorted by name', () => {
+void test('discoverCodegenExamples collects only unikit.json examples, sorted by name', () => {
   const root = makeFixture();
   try {
     const examples = discoverCodegenExamples(root);
@@ -53,7 +53,7 @@ void test('discoverCodegenExamples collects only rustra.json examples, sorted by
     );
     assert.equal(
       examples[0].manifestPath,
-      join(root, 'examples', 'calc', 'generated', '.rustra-generated.json'),
+      join(root, 'examples', 'calc', 'generated', '.unikit-generated.json'),
     );
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -72,7 +72,7 @@ void test('resolveCheckCommand ignores example codegen:check scripts and always 
         join(root, 'packages', 'cli', 'dist', 'index.js'),
         'codegen',
         '--config',
-        'rustra.json',
+        'unikit.json',
         '--check',
       ],
     };
@@ -101,7 +101,7 @@ void test('real examples with codegen:check wire the same underlying command the
     if (typeof check !== 'string') continue;
     assert.match(
       check,
-      /packages[\\/]cli[\\/]src[\\/]index\.ts codegen --config rustra\.json --check$/,
+      /packages[\\/]cli[\\/]src[\\/]index\.ts codegen --config unikit\.json --check$/,
       `${example.name} 의 codegen:check 이 게이트 커맨드와 어긋난다: ${check}`,
     );
   }
@@ -164,7 +164,7 @@ void test('runCodegenFreshChecks stops at the first drift with captured diagnost
 void test('runCodegenFreshChecks fails an example whose committed manifest is missing', () => {
   const root = makeFixture();
   try {
-    rmSync(join(root, 'examples', 'calc', 'generated', '.rustra-generated.json'));
+    rmSync(join(root, 'examples', 'calc', 'generated', '.unikit-generated.json'));
     const execCalls: string[] = [];
     const { ok, failures } = runCodegenFreshChecks({
       root,
@@ -227,8 +227,8 @@ void test('default exec path works end-to-end on a trivial command', () => {
   assert.equal(result.status, 0, result.stderr);
 });
 
-void test('real repo has the seven known rustra.json examples wired for this gate', () => {
-  // 새 예제가 rustra.json 을 도입하면 이 게이트에 자동 편입된다(테스트 수정 불요).
+void test('real repo has the seven known unikit.json examples wired for this gate', () => {
+  // 새 예제가 unikit.json 을 도입하면 이 게이트에 자동 편입된다(테스트 수정 불요).
   // 아래 단언은 "최소 이 일곱 예제가 게이트 안에 있다"를 고정한다.
   const names = discoverCodegenExamples(REPO_ROOT).map((example) => example.name);
   for (const expected of [
@@ -251,7 +251,7 @@ function basename(path: string): string {
 void test('bindings mode selects only UniFFI configs and uses the independent binding gate', () => {
   const root = makeFixture();
   try {
-    const config = join(root, 'examples', 'calc', 'rustra.json');
+    const config = join(root, 'examples', 'calc', 'unikit.json');
     writeFileSync(
       config,
       JSON.stringify({ output: './generated', uniffi: { output: './uniffi' } }),

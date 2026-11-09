@@ -4,7 +4,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { suffix } from 'bun:ffi';
 import { createBunBootstrap, createBunEngine, createBunFfiEngine } from './index.js';
-import { RustraCommandError, type FrameCodec } from '@rustra/types';
+import { UnikitCommandError, type FrameCodec } from '@unikit/types';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const addNumbersCodec: FrameCodec<{ a: number; b: number }, { value: number }> = {
@@ -89,7 +89,7 @@ void test('createBunEngine applies timeoutMs and shallow abort to pending transp
 
   await assert.rejects(
     engine.invoke('slow', undefined, { timeoutMs: 10 }),
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'transport.timeout',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'transport.timeout',
   );
 
   const controller = new AbortController();
@@ -97,7 +97,7 @@ void test('createBunEngine applies timeoutMs and shallow abort to pending transp
   controller.abort();
   await assert.rejects(
     pending,
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'cancelled',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'cancelled',
   );
 });
 
@@ -111,7 +111,7 @@ void test('createBunEngine exposes Promise-based invokeBatch with stable order',
   assert.deepEqual(out, [1, 2]);
 });
 
-void test('createBunEngine wraps RustraError-shaped rejects into RustraCommandError', async () => {
+void test('createBunEngine wraps UnikitError-shaped rejects into UnikitCommandError', async () => {
   const engine = createBunEngine({
     async invoke() {
       // 객체 throw 의 정규화 계약이 검증 대상이다.
@@ -123,7 +123,7 @@ void test('createBunEngine wraps RustraError-shaped rejects into RustraCommandEr
   await assert.rejects(
     () => engine.invoke('missing'),
     (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'transport.timeout');
       assert.equal(err.message, 'request timed out');
       assert.equal(err.retryable, true);
@@ -132,7 +132,7 @@ void test('createBunEngine wraps RustraError-shaped rejects into RustraCommandEr
   );
 });
 
-void test('createBunEngine wraps unknown errors into RustraCommandError', async () => {
+void test('createBunEngine wraps unknown errors into UnikitCommandError', async () => {
   const engine = createBunEngine({
     async invoke() {
       // 문자열 throw 의 정규화 계약이 검증 대상이다.
@@ -144,7 +144,7 @@ void test('createBunEngine wraps unknown errors into RustraCommandError', async 
   await assert.rejects(
     () => engine.invoke('cmd'),
     (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'unknown');
       assert.equal(err.message, 'something broke');
       return true;
@@ -152,11 +152,11 @@ void test('createBunEngine wraps unknown errors into RustraCommandError', async 
   );
 });
 
-// ── Rust 와이어 에러 — Error.message 의 RustraError JSON/Display 복원 ──
+// ── Rust 와이어 에러 — Error.message 의 UnikitError JSON/Display 복원 ──
 
-void test('createBunEngine parses RustraError JSON message from wire Error', async () => {
-  // Rust 가 RustraError 를 JSON 직렬화해 Error 로 던지는 경우 code/retryable 을
-  // 보존한다(unknown 래핑 금지 — @rustra/node 와 동일 파이프라인).
+void test('createBunEngine parses UnikitError JSON message from wire Error', async () => {
+  // Rust 가 UnikitError 를 JSON 직렬화해 Error 로 던지는 경우 code/retryable 을
+  // 보존한다(unknown 래핑 금지 — @unikit/node 와 동일 파이프라인).
   const engine = createBunEngine({
     async invoke() {
       throw new Error('{"code":"command.not_found","message":"command not found: nope"}');
@@ -166,7 +166,7 @@ void test('createBunEngine parses RustraError JSON message from wire Error', asy
   await assert.rejects(
     () => engine.invoke('nope'),
     (err: unknown) => {
-      if (!(err instanceof RustraCommandError)) return false;
+      if (!(err instanceof UnikitCommandError)) return false;
       assert.equal(err.code, 'command.not_found');
       assert.equal(err.retryable, false);
       return true;
@@ -184,7 +184,7 @@ void test('createBunEngine parses Display-style "code: message" Error message', 
   await assert.rejects(
     () => engine.invoke('nope'),
     (err: unknown) => {
-      if (!(err instanceof RustraCommandError)) return false;
+      if (!(err instanceof UnikitCommandError)) return false;
       assert.equal(err.code, 'command.not_found');
       assert.equal(err.message, 'nope');
       return true;
@@ -192,11 +192,11 @@ void test('createBunEngine parses Display-style "code: message" Error message', 
   );
 });
 
-void test('createBunBootstrap loads the stable Rustra ABI without transport boilerplate', async () => {
+void test('createBunBootstrap loads the stable Unikit ABI without transport boilerplate', async () => {
   const bootstrap = createBunBootstrap({
     libraryCandidates: [
-      resolve(repoRoot, `target/release/librustra_calculator_example.${suffix}`),
-      resolve(repoRoot, `target/debug/librustra_calculator_example.${suffix}`),
+      resolve(repoRoot, `target/release/libunikit_calculator_example.${suffix}`),
+      resolve(repoRoot, `target/debug/libunikit_calculator_example.${suffix}`),
     ],
     frameCodecs: testRegistry,
   });
@@ -210,17 +210,17 @@ void test('createBunBootstrap loads the stable Rustra ABI without transport boil
 });
 
 void test('createBunBootstrap gives an actionable library override hint', async () => {
-  const previous = process.env.RUSTRA_BUN_LIBRARY;
-  delete process.env.RUSTRA_BUN_LIBRARY;
+  const previous = process.env.UNIKIT_BUN_LIBRARY;
+  delete process.env.UNIKIT_BUN_LIBRARY;
   const bootstrap = createBunBootstrap({
-    libraryCandidates: ['./missing-rustra-library'],
+    libraryCandidates: ['./missing-unikit-library'],
     frameCodecs: new Map(),
   });
   try {
-    await assert.rejects(bootstrap.ready(), /RUSTRA_BUN_LIBRARY/);
+    await assert.rejects(bootstrap.ready(), /UNIKIT_BUN_LIBRARY/);
   } finally {
-    if (previous === undefined) delete process.env.RUSTRA_BUN_LIBRARY;
-    else process.env.RUSTRA_BUN_LIBRARY = previous;
+    if (previous === undefined) delete process.env.UNIKIT_BUN_LIBRARY;
+    else process.env.UNIKIT_BUN_LIBRARY = previous;
   }
 });
 
@@ -229,15 +229,15 @@ void test('createBunBootstrap gives an actionable library override hint', async 
 // 실측(2026-08-31, macOS arm64 + Bun 1.4.0): bun:ffi dlopen 은 파일이 같은
 // 경로에서 교체되어도 프로세스가 닫지 않은 핸들을 하나라도 연 적 있으면 예전
 // 이미지를 돌려준다(v1 로드 → v2 로 교체 → 재 dlopen → 여전히 v1).
-// close-후-재 dlopen 은 새 바이트를 얻지만, rustra 엔진은 어댑터 외부에서도
+// close-후-재 dlopen 은 새 바이트를 얻지만, unikit 엔진은 어댑터 외부에서도
 // 핸들이 살아 있을 수 있어 진짜 이미지 스왑은 보장할 수 없다. 따라서 A1 계약은
 // "엔진 상태 재초기화 + 새 바이너리는 다음 프로세스 시작 시 적용" 경고.
 
 void test('createBunBootstrap reload re-initializes engine state and warns loudly', async () => {
   const bootstrap = createBunBootstrap({
     libraryCandidates: [
-      resolve(repoRoot, `target/release/librustra_calculator_example.${suffix}`),
-      resolve(repoRoot, `target/debug/librustra_calculator_example.${suffix}`),
+      resolve(repoRoot, `target/release/libunikit_calculator_example.${suffix}`),
+      resolve(repoRoot, `target/debug/libunikit_calculator_example.${suffix}`),
     ],
     frameCodecs: testRegistry,
   });
@@ -271,20 +271,20 @@ void test('createBunBootstrap reload re-initializes engine state and warns loudl
 
 // ── Frame caller-buffer (`_into`) 바인딩 ──────────────────────────────────
 //
-// C++ typedInvokeTail(RustraJSIBridge.cpp)과 동일한 계약: 512B 재사용 버퍼로
+// C++ typedInvokeTail(UnikitJSIBridge.cpp)과 동일한 계약: 512B 재사용 버퍼로
 // 바로 dispatch+write, 부족하면 usize::MAX 상태 + 필요 크기 → 정확한 크기로
 // 1회 재시도. Rust 는 응답을 malloc 하지 않으므로 free 짝이 필요 없다.
 
-void test('rustra_ffi_invoke_frame_into honors the caller-buffer status contract', async () => {
+void test('unikit_ffi_invoke_frame_into honors the caller-buffer status contract', async () => {
   const { dlopen, FFIType, suffix } = await import('bun:ffi');
-  const dylib = resolve(repoRoot, `target/release/librustra_calculator_example.${suffix}`);
+  const dylib = resolve(repoRoot, `target/release/libunikit_calculator_example.${suffix}`);
   const lib = dlopen(dylib, {
-    rustra_ffi_invoke_frame_into: {
+    unikit_ffi_invoke_frame_into: {
       args: [FFIType.ptr, 'usize' as const, FFIType.ptr, 'usize' as const, FFIType.ptr],
       returns: 'usize' as const,
     },
   });
-  const into = lib.symbols.rustra_ffi_invoke_frame_into;
+  const into = lib.symbols.unikit_ffi_invoke_frame_into;
   // addNumbers(cmd_id=1) 프레임 — [1,0,zigzag(20),zigzag(22)], 응답 9B.
   const request = new Uint8Array([1, 0, 40, 44]);
   const outLength = new BigUint64Array(1);
@@ -317,7 +317,7 @@ void test('rustra_ffi_invoke_frame_into honors the caller-buffer status contract
 
 void test('createBunFfiEngine dispatches Frame through caller-buffer and large-response paths', async () => {
   const runtime = await createBunFfiEngine({
-    libraryCandidates: [resolve(repoRoot, `target/release/librustra_calculator_example.${suffix}`)],
+    libraryCandidates: [resolve(repoRoot, `target/release/libunikit_calculator_example.${suffix}`)],
     frameCodecs: testRegistry,
   });
   try {
@@ -347,7 +347,7 @@ void test('createBunFfiEngine dispatches Frame through caller-buffer and large-r
 
 void test('createBunFfiEngine decodes caller-buffer responses without a copy', async () => {
   const runtime = await createBunFfiEngine({
-    libraryCandidates: [resolve(repoRoot, `target/release/librustra_calculator_example.${suffix}`)],
+    libraryCandidates: [resolve(repoRoot, `target/release/libunikit_calculator_example.${suffix}`)],
     frameCodecs: testRegistry,
   });
   try {
@@ -394,15 +394,15 @@ void test('A02: createBunEngine exposes supports matching the compatibility matr
 
 const A05_SLOT_ENGINE = {
   invoke: async <T>() => 'slot' as T,
-} as unknown as import('@rustra/types').EngineClientWithBatch;
+} as unknown as import('@unikit/types').EngineClientWithBatch;
 
 void test('A05: createBunBootstrap exposes the lifecycle state surface', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createBunBootstrap({ libraryCandidates: [], frameCodecs: testRegistry });
     assert.equal(bootstrap.state, 'initializing');
-    await assert.rejects(bootstrap.ready(), /RUSTRA_BUN_LIBRARY|No compatible/);
+    await assert.rejects(bootstrap.ready(), /UNIKIT_BUN_LIBRARY|No compatible/);
     assert.equal(bootstrap.state, 'initializing');
     bootstrap.dispose();
     assert.equal(bootstrap.state, 'disposed');
@@ -412,13 +412,13 @@ void test('A05: createBunBootstrap exposes the lifecycle state surface', async (
 });
 
 void test('A05: ready after dispose rejects loudly (bun)', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createBunBootstrap({ libraryCandidates: [], frameCodecs: testRegistry });
     bootstrap.dispose();
     await assert.rejects(bootstrap.ready(), (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.match(err.message, /disposed/);
       return true;
     });
@@ -428,7 +428,7 @@ void test('A05: ready after dispose rejects loudly (bun)', async () => {
 });
 
 void test('A05: dispose is idempotent — second dispose is a no-op (bun)', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createBunBootstrap({ libraryCandidates: [], frameCodecs: testRegistry });
@@ -444,11 +444,11 @@ void test('A05: failed reload keeps the original error and stays retryable, not 
   // I-2 회귀 — reload 내부 리셋이 state 를 'disposed' 로 만들면 재초기화 실패 시
   // bootstrap 이 벽돌이 된다. resetForReinit 은 'initializing' 을 유지하고
   // reload 는 원본 에러로 reject 해야 한다. env 전환으로 재초기화 실패를 만든다
-  // (RUSTRA_BUN_LIBRARY 는 엔진 생성마다 읽힌다).
-  const { configure } = await import('@rustra/types');
-  const previous = process.env.RUSTRA_BUN_LIBRARY;
-  delete process.env.RUSTRA_BUN_LIBRARY;
-  const realDylib = resolve(repoRoot, `target/release/librustra_calculator_example.${suffix}`);
+  // (UNIKIT_BUN_LIBRARY 는 엔진 생성마다 읽힌다).
+  const { configure } = await import('@unikit/types');
+  const previous = process.env.UNIKIT_BUN_LIBRARY;
+  delete process.env.UNIKIT_BUN_LIBRARY;
+  const realDylib = resolve(repoRoot, `target/release/libunikit_calculator_example.${suffix}`);
   configure(A05_SLOT_ENGINE);
   const bootstrap = createBunBootstrap({
     libraryCandidates: [realDylib],
@@ -457,21 +457,21 @@ void test('A05: failed reload keeps the original error and stays retryable, not 
   try {
     await bootstrap.ready();
     assert.equal(bootstrap.state, 'ready');
-    process.env.RUSTRA_BUN_LIBRARY = './missing-reloaded-library';
+    process.env.UNIKIT_BUN_LIBRARY = './missing-reloaded-library';
     await assert.rejects(
       bootstrap.reload(),
       (err: unknown) =>
-        err instanceof RustraCommandError && /RUSTRA_BUN_LIBRARY|No compatible/.test(err.message),
+        err instanceof UnikitCommandError && /UNIKIT_BUN_LIBRARY|No compatible/.test(err.message),
       'reload rejects with the ORIGINAL engine-creation error',
     );
     assert.equal(bootstrap.state, 'initializing', 'state stays retryable — never disposed');
-    if (previous === undefined) delete process.env.RUSTRA_BUN_LIBRARY;
-    else process.env.RUSTRA_BUN_LIBRARY = previous;
+    if (previous === undefined) delete process.env.UNIKIT_BUN_LIBRARY;
+    else process.env.UNIKIT_BUN_LIBRARY = previous;
     await bootstrap.ready();
     assert.equal(bootstrap.state, 'ready', 'retry succeeds once the library resolves again');
   } finally {
-    if (previous === undefined) delete process.env.RUSTRA_BUN_LIBRARY;
-    else process.env.RUSTRA_BUN_LIBRARY = previous;
+    if (previous === undefined) delete process.env.UNIKIT_BUN_LIBRARY;
+    else process.env.UNIKIT_BUN_LIBRARY = previous;
     bootstrap.dispose();
     configure(A05_SLOT_ENGINE);
   }
@@ -482,8 +482,8 @@ void test('A05: dispose during reload re-init is honored at the await boundary (
   // dispose 보다 먼저 끝나면 reload 는 정상 성공(state=ready)하고, dispose 가
   // 재초기화 완료 전에 불리면 reload 는 'ready' 기록 없이 disposed 를 유지한다.
   // 어느 쪽이든 좀비(ready() 해소 + state=disposed)는 금지된다.
-  const { configure } = await import('@rustra/types');
-  const realDylib = resolve(repoRoot, `target/release/librustra_calculator_example.${suffix}`);
+  const { configure } = await import('@unikit/types');
+  const realDylib = resolve(repoRoot, `target/release/libunikit_calculator_example.${suffix}`);
   configure(A05_SLOT_ENGINE);
   const bootstrap = createBunBootstrap({
     libraryCandidates: [realDylib],
@@ -518,7 +518,7 @@ void test('A05: dispose during reload re-init is honored at the await boundary (
 });
 
 void test('A05: concurrent ready calls share one initialization promise (bun)', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   const bootstrap = createBunBootstrap({ libraryCandidates: [], frameCodecs: testRegistry });
   // dlopen 실패라도 두 ready 는 같은 초기화 프라미스를 공유한다 — 실패가 1회
@@ -537,7 +537,7 @@ void test('A02: createBunFfiEngine exposes supports reflecting the actual FFI bi
   // 심볼은 바인딩되지 않으므로 Frame 코어의 전파/단일 횡단 조건이 도달 불가:
   // 취소는 얕은 취소, 배치는 항목별 폴백으로 관측된다.
   const runtime = await createBunFfiEngine({
-    libraryCandidates: [resolve(repoRoot, `target/release/librustra_calculator_example.${suffix}`)],
+    libraryCandidates: [resolve(repoRoot, `target/release/libunikit_calculator_example.${suffix}`)],
     frameCodecs: testRegistry,
   });
   try {

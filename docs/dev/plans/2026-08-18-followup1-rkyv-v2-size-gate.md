@@ -11,16 +11,16 @@ rkyv V2 바이너리 경로(`Package::invoke_rkyv_v2`)는 이 게이트를 우�
 
 ### 주요 발견사항
 
-- `crates/rustra/src/ffi.rs:99-109` — `DEFAULT_MAX_PAYLOAD_BYTES = 1 MiB`, `MAX_PAYLOAD_BYTES: AtomicUsize`, 판독기 `max_payload_bytes()` 는 **모듈 프라이빗**. 소비 크레이트(calculator/template)는 이 값을 읽을 방법이 없다.
-- `crates/rustra/src/lib.rs:734-770` — `Package::invoke_rkyv_v2` 는 `payload.len() < 2` / `< 8` 최소폭 검사만 있고 **크기 상한 검사가 없다**.
-- `crates/rustra/src/ffi.rs:454-456, 489-495` — JSON/postcard FFI 게이트는 초과 시 `err_response("payload exceeds size limit", ...)` 평문 문자열을 반환한다 — 구조화 코드 없음.
+- `crates/unikit-bridge/src/ffi.rs:99-109` — `DEFAULT_MAX_PAYLOAD_BYTES = 1 MiB`, `MAX_PAYLOAD_BYTES: AtomicUsize`, 판독기 `max_payload_bytes()` 는 **모듈 프라이빗**. 소비 크레이트(calculator/template)는 이 값을 읽을 방법이 없다.
+- `crates/unikit-bridge/src/lib.rs:734-770` — `Package::invoke_rkyv_v2` 는 `payload.len() < 2` / `< 8` 최소폭 검사만 있고 **크기 상한 검사가 없다**.
+- `crates/unikit-bridge/src/ffi.rs:454-456, 489-495` — JSON/postcard FFI 게이트는 초과 시 `err_response("payload exceeds size limit", ...)` 평문 문자열을 반환한다 — 구조화 코드 없음.
 - `packages/types/src/index.ts:595-605` — JS 사전검사 `payloadTooLargeError` 는 코드 `payload.too_large` + 메시지(실제 크기/한도 포함) 반환. JS 전용이다.
-- `packages/types/src/index.ts:84-85` — `parseRustraErrorString` 주석이 정확히 이 문제를 지적한다: 평문 `"payload exceeds size limit"` 은 `": "` 프리픽스가 없어 `invoke.failed` 로 강등된다.
-- 소비 크레이트 FFI: `examples/calculator/src/lib.rs:1097-1117` (`rustra_calculator_invoke_rkyv_v2`), `runner/template/backend/src/lib.rs:122-139` (`rustra_template_invoke_rkyv_v2`) — 둘 다 검사 없이 `pkg.invoke_rkyv_v2` 로 직행하므로, lib.rs 게이트 하나로 양쪽이 커버된다.
+- `packages/types/src/index.ts:84-85` — `parseUnikitErrorString` 주석이 정확히 이 문제를 지적한다: 평문 `"payload exceeds size limit"` 은 `": "` 프리픽스가 없어 `invoke.failed` 로 강등된다.
+- 소비 크레이트 FFI: `examples/calculator/src/lib.rs:1097-1117` (`unikit_calculator_invoke_rkyv_v2`), `runner/template/backend/src/lib.rs:122-139` (`unikit_template_invoke_rkyv_v2`) — 둘 다 검사 없이 `pkg.invoke_rkyv_v2` 로 직행하므로, lib.rs 게이트 하나로 양쪽이 커버된다.
 - `examples/calculator/src/lib.rs:6` — 예제 자체 `MAX_PAYLOAD_BYTES = 1 MiB` 상수 복제본 (JSON/bytes 경로에서만 사용).
-- 에러 코드 체계: `crates/rustra/src/error.rs` — `RustraError { code, message, retryable }`, 코드는 `&'static str` 팩토리 (`cancelled` 등). `payload.too_large` 팩토리 없음.
-- rkyv V2 에러 와이어: `crates/rustra/src/rkyv_codec.rs:359-371` `encode_rkyv_v2_error` — `postcard({code, message})` 프레임. JS `tier2Outcome`/`decodeTier3Response` 가 `{code, message}` 를 그대로 복원한다. **이 와이어를 쓰면 코드가 살아남는다.**
-- 연쇄 효과(현황): JS 가 `maxPayloadBytes` 미설정 + typed(tier1) 경로로 네이티브에 도달 → Rust 게이트 적중 → JSON envelope 평문 → `parseRustraErrorString` 강등 → 사용자는 `invoke.failed` 을 본다. 반면 JS 코덱 경로(tier2/tier3)는 `payload.too_large` 를 본다. **동일 원인, 코드 상이.**
+- 에러 코드 체계: `crates/unikit-bridge/src/error.rs` — `UnikitError { code, message, retryable }`, 코드는 `&'static str` 팩토리 (`cancelled` 등). `payload.too_large` 팩토리 없음.
+- rkyv V2 에러 와이어: `crates/unikit-bridge/src/rkyv_codec.rs:359-371` `encode_rkyv_v2_error` — `postcard({code, message})` 프레임. JS `tier2Outcome`/`decodeTier3Response` 가 `{code, message}` 를 그대로 복원한다. **이 와이어를 쓰면 코드가 살아남는다.**
+- 연쇄 효과(현황): JS 가 `maxPayloadBytes` 미설정 + typed(tier1) 경로로 네이티브에 도달 → Rust 게이트 적중 → JSON envelope 평문 → `parseUnikitErrorString` 강등 → 사용자는 `invoke.failed` 을 본다. 반면 JS 코덱 경로(tier2/tier3)는 `payload.too_large` 를 본다. **동일 원인, 코드 상이.**
 
 ### 왜 지금인가
 
@@ -29,24 +29,24 @@ rkyv V2 바이너리 경로(`Package::invoke_rkyv_v2`)는 이 게이트를 우�
 
 ## 목표 상태
 
-1. `Package::invoke_rkyv_v2` 진입(최소폭 검사 직후)에서 `payload.len() > max_payload_bytes()` 이면 `RustraError::payload_too_large(len, limit)` 반환 — calculator/template 양쪽 FFI가 한 번에 커버된다.
-2. `RustraError` 에 `payload.too_large` 팩토리 추가 (non-retryable, 메시지에 실제/한도 바이트 포함).
-3. ffi.rs JSON/postcard 게이트의 평문 `"payload exceeds size limit"` → `RustraError::payload_too_large(...).to_string()` (= `"payload.too_large: payload {N}B exceeds max payload {L}B"`) 통일.
+1. `Package::invoke_rkyv_v2` 진입(최소폭 검사 직후)에서 `payload.len() > max_payload_bytes()` 이면 `UnikitError::payload_too_large(len, limit)` 반환 — calculator/template 양쪽 FFI가 한 번에 커버된다.
+2. `UnikitError` 에 `payload.too_large` 팩토리 추가 (non-retryable, 메시지에 실제/한도 바이트 포함).
+3. ffi.rs JSON/postcard 게이트의 평문 `"payload exceeds size limit"` → `UnikitError::payload_too_large(...).to_string()` (= `"payload.too_large: payload {N}B exceeds max payload {L}B"`) 통일.
 4. JS `isRetryableCode` 변화 없음 (`payload.too_large` 는 non-retryable 유지 — 결정론적 클라이언트 조건).
-5. JS 측 동작 변화: JSON fallback 경로에서 크기 초과 시 `invoke.failed` 대신 `payload.too_large` 로 파싱된다 (`parseRustraErrorString` 의 `": "` 분리 규칙이 `payload.too_large` 토큰을 인식).
-6. 예제 calculator의 복제 한도 상수: JSON/bytes 경로 게이트를 `rustra::ffi::max_payload_bytes()` 공개 판독기로 교체해 네이티브 동적 한도와 정렬.
+5. JS 측 동작 변화: JSON fallback 경로에서 크기 초과 시 `invoke.failed` 대신 `payload.too_large` 로 파싱된다 (`parseUnikitErrorString` 의 `": "` 분리 규칙이 `payload.too_large` 토큰을 인식).
+6. 예제 calculator의 복제 한도 상수: JSON/bytes 경로 게이트를 `unikit_bridge::ffi::max_payload_bytes()` 공개 판독기로 교체해 네이티브 동적 한도와 정렬.
 
 ## 범위 제한 (하지 않을 것)
 
 - JS측 `maxPayloadBytes` 엔진 옵션 로직은 그대로 둔다 — 이미 tier2/tier3/전파 경로에 시행 중. RN/Lynx FastEngineOptions 전달은 **Follow-up 2** 의 범위.
 - 플랫폼 셸(C++ JSI invokeTyped / desktop/iOS/Android 셸)에는 별도 검사를 추가하지 않는다 — 모든 경로가 `Package::invoke_rkyv_v2` 를 통과하므로 Rust 게이트가 단일 지점이다.
-- `rustra_ffi_invoke_async` 워커 내 복사 최적화(진입 복사 2배 문제)는 건드리지 않는다 — 이미 문서화된 계약 (ffi.rs:647-650).
+- `unikit_ffi_invoke_async` 워커 내 복사 최적화(진입 복사 2배 문제)는 건드리지 않는다 — 이미 문서화된 계약 (ffi.rs:647-650).
 - zero-copy/ArrayBuffer 직접 공유는 별트랙 (T3 설계 트레이드오프 참조).
 - fuzz 바이너리(`rkyv_v2_fuzz.rs` 등)의 큰 페이로드 사용 여부는 구현 시 확인 — 사용한다면 해당 크레이트에서 한도를 상향해 호출 (게이트 거부가 정상 응답임은 계약상 맞지만, 라운드트립 퍼징이 죽으면 안 된다).
 
 ## 구현 접근 방식
 
-게이트 위치는 `Package::invoke_rkyv_v2` (lib.rs) — template/calculator FFI와 C++ typed fast path가 모두 이 함수를 통과하므로 단일 지점이다. `max_payload_bytes()` 를 `pub` 판독기로 승격한다 (이미 `rustra_ffi_get_max_payload` 심볼이 공개돼 있으므로 정보 노출 면에서 동일). lib.rs → ffi 는 기존 단방향 참조(ffi가 `crate::Package` 사용)라 순환 참조가 생기지 않는다. 에러 통일은 팩토리를 통해서만 이루어진다(평문 제거) — 기존 "size limit" 문자열 어설션은 새 메시지에 맞게 갱신한다.
+게이트 위치는 `Package::invoke_rkyv_v2` (lib.rs) — template/calculator FFI와 C++ typed fast path가 모두 이 함수를 통과하므로 단일 지점이다. `max_payload_bytes()` 를 `pub` 판독기로 승격한다 (이미 `unikit_ffi_get_max_payload` 심볼이 공개돼 있으므로 정보 노출 면에서 동일). lib.rs → ffi 는 기존 단방향 참조(ffi가 `crate::Package` 사용)라 순환 참조가 생기지 않는다. 에러 통일은 팩토리를 통해서만 이루어진다(평문 제거) — 기존 "size limit" 문자열 어설션은 새 메시지에 맞게 갱신한다.
 
 ## Phase 1: Rust — 게이트 + 에러 팩토리 + 테스트
 
@@ -56,13 +56,13 @@ rkyv V2 바이너리 경로(`Package::invoke_rkyv_v2`)는 이 게이트를 우�
 
 ### 필요한 변경사항:
 
-#### 1. `crates/rustra/src/error.rs` — 신규 팩토리
+#### 1. `crates/unikit-bridge/src/error.rs` — 신규 팩토리
 
-**파일**: `crates/rustra/src/error.rs`
+**파일**: `crates/unikit-bridge/src/error.rs`
 **변경사항**: 기존 팩토리들(`invalid_args` 근처)과 동일 스타일로 추가. 모듈 상단 코드 표 주석에 `payload.too_large` 행 추가.
 
 ```rust
-/// 페이로드가 동적 크기 한도를 초과함 — `rustra_ffi_set_max_payload` 로
+/// 페이로드가 동적 크기 한도를 초과함 — `unikit_ffi_set_max_payload` 로
 /// 설정된 값. Code: `payload.too_large`. Non-retryable (결정론적 조건).
 pub fn payload_too_large(len: usize, limit: usize) -> Self {
     Self {
@@ -73,39 +73,39 @@ pub fn payload_too_large(len: usize, limit: usize) -> Self {
 }
 ```
 
-#### 2. `crates/rustra/src/ffi.rs` — 판독기 공개 + 평문 통일
+#### 2. `crates/unikit-bridge/src/ffi.rs` — 판독기 공개 + 평문 통일
 
-**파일**: `crates/rustra/src/ffi.rs`
+**파일**: `crates/unikit-bridge/src/ffi.rs`
 **변경사항**:
 
 1. `fn max_payload_bytes()` → `pub fn max_payload_bytes()` + 기존 문서 코멘트 유지(공개 계약으로 보강).
-2. `rustra_ffi_invoke_json` / `rustra_ffi_invoke_postcard` 게이트(ffi.rs:454-456, 489-495)의 평문 교체:
+2. `unikit_ffi_invoke_json` / `unikit_ffi_invoke_postcard` 게이트(ffi.rs:454-456, 489-495)의 평문 교체:
 
 ```rust
 if payload_len > max_payload_bytes() {
-    let e = crate::RustraError::payload_too_large(payload_len, max_payload_bytes());
+    let e = crate::UnikitError::payload_too_large(payload_len, max_payload_bytes());
     return err_response(&e.to_string(), out_len, json_serialize);
 }
 ```
 
 (postcard 경로는 `postcard_serialize_response` 전달 — 기존 구조 유지.)
 
-#### 3. `crates/rustra/src/lib.rs` — rkyv V2 게이트
+#### 3. `crates/unikit-bridge/src/lib.rs` — rkyv V2 게이트
 
-**파일**: `crates/rustra/src/lib.rs`
+**파일**: `crates/unikit-bridge/src/lib.rs`
 **변경사항**: `invoke_rkyv_v2`(lib.rs:734-737)에 상한 검사 추가.
 
 ```rust
 pub fn invoke_rkyv_v2(&self, payload: &[u8]) -> crate::Result<Vec<u8>> {
     if payload.len() < 2 {
-        return Err(RustraError::invalid_args("rkyv v2: payload too short"));
+        return Err(UnikitError::invalid_args("rkyv v2: payload too short"));
     }
     // (T3 후속) 크기 게이트 — JSON/postcard FFI 경로와 동일한 동적 한도.
     // 소비 크레이트 FFI(calculator/template)와 C++ typed fast path 가 모두
     // 이 함수를 통과하므로 여기가 단일 검사 지점이다.
     let limit = crate::ffi::max_payload_bytes();
     if payload.len() > limit {
-        return Err(RustraError::payload_too_large(payload.len(), limit));
+        return Err(UnikitError::payload_too_large(payload.len(), limit));
     }
     let command_id = u16::from_le_bytes([payload[0], payload[1]]);
     // … 이하 기존 그대로
@@ -118,8 +118,8 @@ pub fn invoke_rkyv_v2(&self, payload: &[u8]) -> crate::Result<Vec<u8>> {
 **파일**: `examples/calculator/src/lib.rs`
 **변경사항**:
 
-- `MAX_PAYLOAD_BYTES` 상수(lib.rs:6) 제거. `rustra_calculator_invoke`(lib.rs:617)과 `rustra_calculator_invoke_bytes`(lib.rs:676)의 게이트를 `rustra::ffi::max_payload_bytes()` 로 교체하고 메시지도 `RustraError::payload_too_large(...).to_string()` 로 통일.
-- `rustra_calculator_invoke_rkyv_v2`(lib.rs:1097)는 #3 게이트를 상속하므로 코드 불변.
+- `MAX_PAYLOAD_BYTES` 상수(lib.rs:6) 제거. `unikit_calculator_invoke`(lib.rs:617)과 `unikit_calculator_invoke_bytes`(lib.rs:676)의 게이트를 `unikit_bridge::ffi::max_payload_bytes()` 로 교체하고 메시지도 `UnikitError::payload_too_large(...).to_string()` 로 통일.
+- `unikit_calculator_invoke_rkyv_v2`(lib.rs:1097)는 #3 게이트를 상속하므로 코드 불변.
 - `runner/template/backend/src/lib.rs:122` 도 마찬가지로 게이트 상속 — 코드 불변.
 
 ### 성공 기준:
@@ -136,9 +136,9 @@ pub fn invoke_rkyv_v2(&self, payload: &[u8]) -> crate::Result<Vec<u8>> {
 - [ ] `npm run test:types` (types 55) green
 - [ ] `npm run test:ts:node` (32) green
 - [ ] `npm run test:packages` (45) green
-- [ ] `npm run test -w @rustra/cli` (28) green
-- [ ] `cargo test -p rustra-calculator-example` green (게이트 상속 + 상수 제거 회귀)
-- [ ] types 테스트에 JSON fallback 파싱 회귀 가드 추가: `parseRustraErrorString("payload.too_large: payload 1048577B exceeds max payload 1048576B")` → `code === 'payload.too_large'` (기존 `invoke.failed` 강등 회귀 방지)
+- [ ] `npm run test -w @unikit/cli` (28) green
+- [ ] `cargo test -p unikit-calculator-example` green (게이트 상속 + 상수 제거 회귀)
+- [ ] types 테스트에 JSON fallback 파싱 회귀 가드 추가: `parseUnikitErrorString("payload.too_large: payload 1048577B exceeds max payload 1048576B")` → `code === 'payload.too_large'` (기존 `invoke.failed` 강등 회귀 방지)
 
 #### 수동 검증:
 
@@ -162,24 +162,24 @@ pub fn invoke_rkyv_v2(&self, payload: &[u8]) -> crate::Result<Vec<u8>> {
 
 ### 수동 테스트 단계
 
-1. `rustra_ffi_set_max_payload(1024)` 후 C++ `invokeTyped` 큰 인자 → JSError 메시지가 `payload.too_large: …` (C++ shim 테스트 또는 xcodebuild 로 대체 가능 — 구현 시 판단).
+1. `unikit_ffi_set_max_payload(1024)` 후 C++ `invokeTyped` 큰 인자 → JSError 메시지가 `payload.too_large: …` (C++ shim 테스트 또는 xcodebuild 로 대체 가능 — 구현 시 판단).
 2. `npm run test:runtime:node` smoke.
 
 ## 성능 고려사항
 
 - 게이트는 `AtomicUsize::load(Relaxed)` 1회 + 정수 비교 — rkyv V2 fast path(~µs) 대비 무시 가능.
 - 동시 set 경합 시 last-writer-wins 는 설계된 계약 (ffi.rs:647-650 문서).
-- `RustraError::to_string()` 은 `format!` 1회 — 에러 경로에서만.
+- `UnikitError::to_string()` 은 `format!` 1회 — 에러 경로에서만.
 
 ## 마이그레이션 참고사항
 
 - 와이어/ABI 변경 없음 — 에러 코드/메시지 문자열 정규화만. 구 JS가 평문 "payload exceeds size limit" 을 하드코딩 검사하는 사례는 레포 내 없음 (grep 확인).
-- `rustra_ffi_get_max_payload` / `rustra_ffi_set_max_payload` 시그니처 불변 — 컴파일된 호스트와 호환 유지.
+- `unikit_ffi_get_max_payload` / `unikit_ffi_set_max_payload` 시그니처 불변 — 컴파일된 호스트와 호환 유지.
 - 에러 문자열 어설션을 쓰는 기존 테스트 3건(`trust_baseline_ffi.rs`, `payload_robustness.rs` 2곳)은 같은 커밋에서 갱신.
 
 ## 참고 자료
 
 - 상위 설계: `docs/plans/2026-08-18-production-hardening-design.md` (트랙 3)
 - JS 사전검사 구현: `packages/types/src/index.ts:595-605`
-- rkyv V2 에러 와이어: `crates/rustra/src/rkyv_codec.rs:359-371`
+- rkyv V2 에러 와이어: `crates/unikit-bridge/src/rkyv_codec.rs:359-371`
 - 소비 크레이트 FFI: `examples/calculator/src/lib.rs:1097-1117`, `runner/template/backend/src/lib.rs:122-139`

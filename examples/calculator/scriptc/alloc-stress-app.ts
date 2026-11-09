@@ -23,8 +23,8 @@
 // 사용법(러너 경유): alloc-stress <rssMultiplier> — argv[2] 필수.
 
 import {
-  rustra_mobile_init,
-  rustra_ffi_invoke_json_into_len,
+  unikit_mobile_init,
+  unikit_ffi_invoke_json_into_len,
 } from './scriptc-ffi.js';
 
 // 러너가 생성하는 alloc-ffi.json 이 ffi.json 전체 descriptor에 추가하는
@@ -67,7 +67,7 @@ function fail(round: number, stage: string, detail: string): never {
 }
 
 function invoke(round: number, stage: string, payload: string): Envelope {
-  const written = rustra_ffi_invoke_json_into_len(payload, OUTPUT);
+  const written = unikit_ffi_invoke_json_into_len(payload, OUTPUT);
   if (written === FAILURE || written === 0n || written > BigInt(OUTPUT.length))
     fail(round, stage, `engine invoke failed (written=${written})`);
   return JSON.parse(DECODER.decode(OUTPUT.subarray(0, Number(written)))) as Envelope;
@@ -179,7 +179,7 @@ function main(): void {
   const multiplier = Number(process.argv[2]);
   if (!Number.isFinite(multiplier) || multiplier < 1)
     throw new Error(`usage: alloc-stress <rssMultiplier>=<number >=1>, received '${process.argv[2]}'`);
-  rustra_mobile_init();
+  unikit_mobile_init();
   const startRss = rssBytes(0, 'startup');
   const ceilingBytes = startRss * multiplier;
   let peakRss = startRss;

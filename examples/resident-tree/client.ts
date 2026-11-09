@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
-import { configure, createNodeEngine, createNodeLoopTransport } from '@rustra/node';
+import { configure, createNodeEngine, createNodeLoopTransport } from '@unikit/node';
 import {
   loadTree,
   findNode,
@@ -14,7 +14,7 @@ import {
 import { GENERATED_CONTRACT_HASH } from './generated/contract.js';
 import type { Node } from './generated/types.js';
 
-const executable = process.env.RUSTRA_RESIDENT_BINARY;
+const executable = process.env.UNIKIT_RESIDENT_BINARY;
 if (!executable)
   throw new Error('Run test:app:resident-tree to build and select the native executable');
 const transport = createNodeLoopTransport({ command: executable });
@@ -25,7 +25,7 @@ const tree: Node = {
   children: Array.from({ length: 1024 }, (_, i) => ({ id: i + 1, value: i + 1, children: [] })),
 };
 try {
-  assert.equal(await transport.invoke('__rustra_contract', {}), GENERATED_CONTRACT_HASH);
+  assert.equal(await transport.invoke('__unikit_contract', {}), GENERATED_CONTRACT_HASH);
   const started = performance.now();
   let handle = await loadTree({ tree });
   const loadMs = performance.now() - started;

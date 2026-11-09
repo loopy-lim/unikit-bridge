@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { findCargoManifest } from './cargo.js';
 import { readCargoMetadata, selectHostPackage } from './cargo-metadata.js';
-import type { RustraConfig } from './config.js';
+import type { UnikitConfig } from './config.js';
 import { resolveCodegenTarget, selectReactNativeCargoTarget } from './host-entries.js';
 
 export interface SetupBuild {
@@ -11,7 +11,7 @@ export interface SetupBuild {
 }
 
 /** Build each producer after generation, including hosts outside the schema crate. */
-export function resolveSetupBuilds(configPath: string, config: RustraConfig): SetupBuild[] {
+export function resolveSetupBuilds(configPath: string, config: UnikitConfig): SetupBuild[] {
   const root = dirname(configPath);
   const generator = resolveCodegenTarget(configPath, config);
   const builds: SetupBuild[] = [generator];

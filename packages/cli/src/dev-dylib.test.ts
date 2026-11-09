@@ -44,7 +44,7 @@ function hostArtifactName(libName: string): string | undefined {
 type MetadataVariant = 'default' | 'no-cdylib';
 
 /**
- * fake cargo — metadata 는 단일 패키지 x(generate bin + rustra_bridge lib)를
+ * fake cargo — metadata 는 단일 패키지 x(generate bin + unikit_bridge lib)를
  * 말하고, build 는 compiler-artifact JSON 줄을 stdout 에 낸다. 변형:
  *  - FAKE_BUILD_LOG: 빌드 인수 기록(플래그 핀 검증용)
  *  - FAKE_BUILD_FAIL: 비정상 종료(에러 래핑 검증용)
@@ -63,7 +63,7 @@ function seedFakeCargo(root: string, metadataVariant: MetadataVariant = 'default
     '  dir=$(dirname "$manifest")',
     '  printf \'{"target_directory":"%s/target","packages":[{"name":"x","manifest_path":"%s",',
     '"targets":[{"name":"generate","crate_types":["bin"],"kind":["bin"]},',
-    `{"name":"rustra_bridge","crate_types":${crateTypes},"kind":["lib"]}]}]}\\n' "$dir" "$manifest"`,
+    `{"name":"unikit_bridge","crate_types":${crateTypes},"kind":["lib"]}]}]}\\n' "$dir" "$manifest"`,
     '  exit 0',
     'fi',
     'if [ "$1" = "build" ]; then',
@@ -75,17 +75,17 @@ function seedFakeCargo(root: string, metadataVariant: MetadataVariant = 'default
     '  out="$dir/target/debug"',
     '  mkdir -p "$out"',
     '  if [ -n "$FAKE_NO_CDYLIB_MSG" ]; then',
-    '    printf \'%s\\n\' "{\\"reason\\":\\"compiler-artifact\\",\\"filenames\\":[\\"$out/librustra_bridge.rmeta\\"],\\"target\\":{\\"kind\\":[\\"lib\\"]}}"',
+    '    printf \'%s\\n\' "{\\"reason\\":\\"compiler-artifact\\",\\"filenames\\":[\\"$out/libunikit_bridge.rmeta\\"],\\"target\\":{\\"kind\\":[\\"lib\\"]}}"',
     '    exit 0',
     '  fi',
     '  if [ -n "$FAKE_TWO_MESSAGES" ]; then',
-    '    printf \'%s\\n\' "{\\"reason\\":\\"compiler-artifact\\",\\"filenames\\":[\\"$out/stale/librustra_bridge.dylib\\"],\\"target\\":{\\"kind\\":[\\"cdylib\\"]}}"',
+    '    printf \'%s\\n\' "{\\"reason\\":\\"compiler-artifact\\",\\"filenames\\":[\\"$out/stale/libunikit_bridge.dylib\\"],\\"target\\":{\\"kind\\":[\\"cdylib\\"]}}"',
     '  fi',
     "  printf 'garbage line is skipped\\n'",
-    '  printf \'%s\\n\' "{\\"reason\\":\\"compiler-artifact\\",\\"filenames\\":[\\"$out/librustra_bridge.dylib\\",\\"$out/librustra_bridge.so\\",\\"$out/rustra_bridge.dll\\"],\\"target\\":{\\"kind\\":[\\"cdylib\\"]}}"',
-    '  printf \'fake dylib core\' > "$out/librustra_bridge.dylib"',
-    '  printf \'fake dylib core\' > "$out/librustra_bridge.so"',
-    '  printf \'fake dylib core\' > "$out/rustra_bridge.dll"',
+    '  printf \'%s\\n\' "{\\"reason\\":\\"compiler-artifact\\",\\"filenames\\":[\\"$out/libunikit_bridge.dylib\\",\\"$out/libunikit_bridge.so\\",\\"$out/unikit_bridge.dll\\"],\\"target\\":{\\"kind\\":[\\"cdylib\\"]}}"',
+    '  printf \'fake dylib core\' > "$out/libunikit_bridge.dylib"',
+    '  printf \'fake dylib core\' > "$out/libunikit_bridge.so"',
+    '  printf \'fake dylib core\' > "$out/unikit_bridge.dll"',
     '  exit 0',
     'fi',
     'echo "unexpected cargo invocation: $*" >&2',
@@ -111,7 +111,7 @@ function dylibInput(project: string, rustPackage?: string): ResolvedDevDylib {
 }
 
 test('Cargo progress stays with the output owner captured at command creation', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-dylib-output-owner-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-dylib-output-owner-'));
   const originalPath = process.env.PATH;
   const originalError = console.error;
   const owner: string[] = [];
@@ -138,7 +138,7 @@ test('Cargo progress stays with the output owner captured at command creation', 
 });
 
 test('buildDylibCore returns the cdylib artifact cargo reported and pins the JSON build flags', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-'));
   const originalPath = process.env.PATH;
   try {
     const project = seedCargoProject(root);
@@ -148,7 +148,7 @@ test('buildDylibCore returns the cdylib artifact cargo reported and pins the JSO
     process.env.FAKE_BUILD_LOG = log;
     try {
       const artifact = await buildDylibCore(dylibInput(project));
-      const expected = hostArtifactName('rustra_bridge');
+      const expected = hostArtifactName('unikit_bridge');
       if (expected !== undefined) {
         assert.equal(artifact, join(project, 'target', 'debug', expected));
       } else {
@@ -182,7 +182,7 @@ test('buildDylibCore returns the cdylib artifact cargo reported and pins the JSO
 });
 
 test('buildDylibCore passes -p when rustPackage is resolved', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-p-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-p-'));
   const originalPath = process.env.PATH;
   try {
     const project = seedCargoProject(root);
@@ -240,7 +240,7 @@ test('pickCdylibArtifact prefers the freshest message over stale artifacts', () 
 });
 
 test('buildDylibCore fails loudly when no cdylib artifact message appears', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-nocdylib-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-nocdylib-'));
   const originalPath = process.env.PATH;
   try {
     const project = seedCargoProject(root);
@@ -272,7 +272,7 @@ test('buildDylibCore fails loudly when no cdylib artifact message appears', asyn
 });
 
 test('buildDylibCore wraps cargo build failures with the package and manifest', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-fail-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-fail-'));
   const originalPath = process.env.PATH;
   const originalError = console.error;
   const progress: string[] = [];
@@ -327,7 +327,7 @@ test('liveArtifactPath appends -hot-live in the artifact directory for each dyli
 });
 
 test('publishGatedArtifact publishes identical bytes and leaves no tmp behind', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-publish-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-publish-'));
   try {
     const source = join(dir, 'libhot.dylib');
     writeFileSync(source, 'gated core bytes');
@@ -347,7 +347,7 @@ test('publishGatedArtifact publishes identical bytes and leaves no tmp behind', 
 
 test('publishGatedArtifact overwrites a pre-existing live file', () => {
   // 재발행 계약 — 이전 발행물 위에 rename 으로 덮어쓴다(교체도 원자적).
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-overwrite-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-overwrite-'));
   try {
     const source = join(dir, 'libhot.dylib');
     const live = join(dir, 'libhot-hot-live.dylib');
@@ -367,7 +367,7 @@ test('publishGatedArtifact overwrites a pre-existing live file', () => {
 test('publishGatedArtifact fails loudly, cleans the tmp, and leaves the live file untouched', () => {
   // 원인(소스 부재)과 결과(라이브 미갱신 — 호스트는 기존 코어 유지)를 함께 말하고,
   // tmp 잔여물을 조용히 두지 않는다.
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-publish-fail-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-publish-fail-'));
   try {
     const live = join(dir, 'libhot-hot-live.dylib');
     writeFileSync(live, 'previous published core');
@@ -399,11 +399,11 @@ test('publishGatedArtifact fails loudly, cleans the tmp, and leaves the live fil
 // ── devDylib 설정 해석 — wasm 과 같은 우선순위 체인 ──────────────────────────
 
 test('readDevConfig fills the dylib parityGate default when the section is omitted', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-config-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-config-'));
   try {
     mkdirSync(join(dir, 'src'), { recursive: true });
     writeFileSync(join(dir, 'Cargo.toml'), '[package]\nname = "x"\nversion = "0.1.0"\n');
-    const configPath = join(dir, 'rustra.json');
+    const configPath = join(dir, 'unikit.json');
     writeFileSync(
       configPath,
       JSON.stringify({
@@ -433,11 +433,11 @@ test('readDevConfig fills the dylib parityGate default when the section is omitt
 });
 
 test('readDevConfig honors an explicit dylib parityGate false', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-gateoff-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-gateoff-'));
   try {
     mkdirSync(join(dir, 'src'), { recursive: true });
     writeFileSync(join(dir, 'Cargo.toml'), '[package]\nname = "x"\nversion = "0.1.0"\n');
-    const configPath = join(dir, 'rustra.json');
+    const configPath = join(dir, 'unikit.json');
     writeFileSync(
       configPath,
       JSON.stringify({
@@ -455,7 +455,7 @@ test('readDevConfig honors an explicit dylib parityGate false', () => {
 });
 
 test('readDevConfig resolves devDylib from reactNative first, then codegen, then the codegen manifest', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-resolve-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-resolve-'));
   try {
     mkdirSync(join(dir, 'src'), { recursive: true });
     writeFileSync(join(dir, 'Cargo.toml'), '[package]\nname = "x"\nversion = "0.1.0"\n');
@@ -520,11 +520,11 @@ test('readDevConfig leaves devDylib and the dylib section undefined for other ta
   // 절대 음성 — dylib 오케스트레이션 입력은 target=dylib 에서만 생긴다. wasm 섹션
   // 정규화(dylib 타깃에서 undefined)도 함께 핀다 — 두 대상의 resolved 섹션이 서로
   // 새지 않는다.
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-native-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-native-'));
   try {
     mkdirSync(join(dir, 'src'), { recursive: true });
     writeFileSync(join(dir, 'Cargo.toml'), '[package]\nname = "x"\nversion = "0.1.0"\n');
-    const configPath = join(dir, 'rustra.json');
+    const configPath = join(dir, 'unikit.json');
     writeFileSync(
       configPath,
       JSON.stringify({
@@ -544,11 +544,11 @@ test('readDevConfig leaves devDylib and the dylib section undefined for other ta
 
 test('readDevConfig rejects a dylib section outside the dylib target', () => {
   // L2 — dylib 섹션의 위치 실패는 wasm 섹션과 대칭이다(로드 시점에 전부 수집).
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-misplaced-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-misplaced-'));
   try {
     mkdirSync(join(dir, 'src'), { recursive: true });
     writeFileSync(join(dir, 'Cargo.toml'), '[package]\nname = "x"\nversion = "0.1.0"\n');
-    const configPath = join(dir, 'rustra.json');
+    const configPath = join(dir, 'unikit.json');
     writeFileSync(
       configPath,
       JSON.stringify({

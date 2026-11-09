@@ -6,9 +6,9 @@
       "name": "react-native-calculator",
       "dependencies": {
         "@msgpack/msgpack": "^3.1.3",
-        "@rustra/generated-react-native": "workspace:*",
-        "@rustra/react-native": "file:../../packages/react-native",
-        "@rustra/types": "file:../../packages/types",
+        "@unikit/generated-react-native": "workspace:*",
+        "@unikit/react-native": "file:../../packages/react-native",
+        "@unikit/types": "file:../../packages/types",
         "expo": "~54.0.33",
         "expo-status-bar": "~3.0.9",
         "msgpackr": "^2.0.1",
@@ -16,7 +16,7 @@
         "react": "19.1.0",
         "react-native": "0.81.5",
         "react-native-nitro-modules": "0.37.1",
-        "rustra-calculator": "workspace:*",
+        "unikit-calculator": "workspace:*",
       },
       "devDependencies": {
         "@react-native-community/cli": "20.2.0",
@@ -54,25 +54,25 @@
         "react-native-nitro-modules": "0.37.1",
       },
     },
-    "modules/rustra-calculator": {
-      "name": "rustra-calculator",
+    "modules/unikit-calculator": {
+      "name": "unikit-calculator",
       "version": "1.0.0",
       "peerDependencies": {
         "expo-modules-core": "*",
       },
     },
-    "modules/rustra-jsi": {
-      "name": "@rustra/generated-react-native",
+    "modules/unikit-jsi": {
+      "name": "@unikit/generated-react-native",
       "version": "0.0.0",
       "peerDependencies": {
-        "@rustra/react-native": "^0.9.0",
+        "@unikit/react-native": "^0.9.0",
         "react-native": ">=0.76",
       },
     },
   },
   "overrides": {
-    "@rustra/react-native": "file:../../packages/react-native",
-    "@rustra/types": "file:../../packages/types",
+    "@unikit/react-native": "file:../../packages/react-native",
+    "@unikit/types": "file:../../packages/types",
   },
   "packages": {
     "@0no-co/graphql.web": ["@0no-co/graphql.web@1.3.4", "", { "peerDependencies": { "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0" }, "optionalPeers": ["graphql"] }, "sha512-imSwulOeDQodRy/olQmVEo2PiY6ntjkZ9eiGdw6lMYylh/tay9b7MusyJBmEnkL8GiKRKr6ltr+D42mY5bd8Bg=="],
@@ -441,11 +441,11 @@
 
     "@react-native/virtualized-lists": ["@react-native/virtualized-lists@0.81.5", "", { "dependencies": { "invariant": "^2.2.4", "nullthrows": "^1.1.1" }, "peerDependencies": { "@types/react": "^19.1.0", "react": "*", "react-native": "*" }, "optionalPeers": ["@types/react"] }, "sha512-UVXgV/db25OPIvwZySeToXD/9sKKhOdkcWmmf4Jh8iBZuyfML+/5CasaZ1E7Lqg6g3uqVQq75NqIwkYmORJMPw=="],
 
-    "@rustra/generated-react-native": ["@rustra/generated-react-native@workspace:modules/rustra-jsi"],
+    "@unikit/generated-react-native": ["@unikit/generated-react-native@workspace:modules/unikit-jsi"],
 
-    "@rustra/react-native": ["@rustra/react-native@file:../../packages/react-native", { "dependencies": { "@rustra/types": "^0.10.0" }, "devDependencies": { "typescript": "^5.9.0" }, "peerDependencies": { "react-native": ">=0.76" }, "optionalPeers": ["react-native"] }],
+    "@unikit/react-native": ["@unikit/react-native@file:../../packages/react-native", { "dependencies": { "@unikit/types": "^0.10.0" }, "devDependencies": { "typescript": "^5.9.0" }, "peerDependencies": { "react-native": ">=0.76" }, "optionalPeers": ["react-native"] }],
 
-    "@rustra/types": ["@rustra/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit/types": ["@unikit/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
 
     "@sideway/address": ["@sideway/address@4.1.5", "", { "dependencies": { "@hapi/hoek": "^9.0.0" } }, "sha512-IqO/DUQHUkPeixNQ8n0JA6102hT9CmaljNTPmQ1u8MEhBo/R4Q8eKLN/vGZxuebwOroDB4cbpjheD4+/sKFK4Q=="],
 
@@ -1433,7 +1433,7 @@
 
     "run-parallel": ["run-parallel@1.2.0", "", { "dependencies": { "queue-microtask": "^1.2.2" } }, "sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA=="],
 
-    "rustra-calculator": ["rustra-calculator@workspace:modules/rustra-calculator"],
+    "unikit-calculator": ["unikit-calculator@workspace:modules/unikit-calculator"],
 
     "safe-array-concat": ["safe-array-concat@1.1.4", "", { "dependencies": { "call-bind": "^1.0.9", "call-bound": "^1.0.4", "get-intrinsic": "^1.3.0", "has-symbols": "^1.1.0", "isarray": "^2.0.5" } }, "sha512-wtZlHyOje6OZTGqAoaDKxFkgRtkF9CnHAVnCHKfuj200wAgL+bSJhdsCD2l0Qx/2ekEXjPWcyKkfGb5CPboslg=="],
 
@@ -1769,7 +1769,7 @@
 
     "@react-native/eslint-config/eslint-config-prettier": ["eslint-config-prettier@8.10.2", "", { "peerDependencies": { "eslint": ">=7.0.0" }, "bin": { "eslint-config-prettier": "bin/cli.js" } }, "sha512-/IGJ6+Dka158JnP5n5YFMOszjDWrXggGz1LaK/guZq9vZTmniaKlHcsscvkAhn9y4U+BU3JuUdYvtAMcv30y4A=="],
 
-    "@rustra/react-native/@rustra/types": ["@rustra/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit/react-native/@unikit/types": ["@unikit/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
 
     "@ts-morph/common/minimatch": ["minimatch@10.2.6", "", { "dependencies": { "brace-expansion": "^5.0.8" } }, "sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A=="],
 

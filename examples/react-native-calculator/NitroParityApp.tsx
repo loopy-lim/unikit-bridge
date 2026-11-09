@@ -15,7 +15,7 @@ export default function NitroParityApp() {
           ? runDiagnostic
           : runParity;
     run((message) => {
-      console.log(`RUSTRA_PARITY_PROGRESS=${message}`);
+      console.log(`UNIKIT_PARITY_PROGRESS=${message}`);
       setStatus(message);
     })
       .then((receipt) =>
@@ -27,7 +27,7 @@ export default function NitroParityApp() {
       )
       .catch((error) => {
         const message = String(error);
-        console.error(`RUSTRA_PARITY_FAILED=${message}`);
+        console.error(`UNIKIT_PARITY_FAILED=${message}`);
         setStatus(message);
       });
   }, []);

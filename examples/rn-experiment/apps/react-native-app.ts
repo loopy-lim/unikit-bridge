@@ -3,11 +3,11 @@
 // (examples/rn-experiment/src/lib.rs — gzip 2종 + uuidV7)을 주입 모듈로 에뮬레이션해
 // 생성 명령(gzip 왕복 바이트 일치, uuid v7 형식, 어댑터 에러 경로)을 점검한다.
 import { gzipCompress, gzipDecompress, uuidV7 } from '../generated/commands.js';
-import { RustraCommandError } from '../generated/types.js';
+import { UnikitCommandError } from '../generated/types.js';
 // Use the same public package instances as generated commands and errors.
-// Mixing src/ imports and package dist/ creates distinct RustraCommandError classes.
-import { configure } from '@rustra/types';
-import { createReactNativeEngine } from '@rustra/react-native';
+// Mixing src/ imports and package dist/ creates distinct UnikitCommandError classes.
+import { configure } from '@unikit/types';
+import { createReactNativeEngine } from '@unikit/react-native';
 import { gzipSync, gunzipSync } from 'node:zlib';
 
 const encoder = new TextEncoder();
@@ -45,7 +45,7 @@ function respond(message: unknown): ArrayBuffer {
 }
 
 // 주입 네이티브 모듈 — FfiFormat::Json 와이어({command,args} → {ok,result|error}).
-const NativeRustraModule = {
+const NativeUnikitModule = {
   invoke(payload: ArrayBuffer): ArrayBuffer {
     const request = JSON.parse(decoder.decode(payload)) as {
       command: string;
@@ -89,7 +89,7 @@ function asBytes(value: import('../generated/types.js').GzipPayload['data']): Ui
   return value instanceof ArrayBuffer ? new Uint8Array(value) : Uint8Array.from(value);
 }
 
-const engine = createReactNativeEngine(NativeRustraModule);
+const engine = createReactNativeEngine(NativeUnikitModule);
 configure(engine);
 
 // 1) gzip 왕복 — 네이티브 JSON 와이어에서 byte 필드는 number 배열로 직렬화된다.
@@ -134,8 +134,8 @@ try {
 } catch (error) {
   invalidArgsError = error;
 }
-if (!(invalidArgsError instanceof RustraCommandError)) {
-  throw new Error('expected RustraCommandError for an invalid gzip stream');
+if (!(invalidArgsError instanceof UnikitCommandError)) {
+  throw new Error('expected UnikitCommandError for an invalid gzip stream');
 }
 if (invalidArgsError.code !== 'command.invalid_args') {
   throw new Error(`expected command.invalid_args, got ${invalidArgsError.code}`);

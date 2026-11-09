@@ -1,8 +1,8 @@
 // iOS 시뮬레이터 핫 코어 스왑 유닛 전달 스크립트.
 //
 // 호스트에서 빌드한 cdylib(<stem>.dylib)를 앱 샌드박스의 핫 디렉터
-// (<data container>/Documents/rustra/hot)로 전달한다. iOS 어댑터는 설치 시
-// env RUSTRA_HOT_CORE_DIR(디렉터)을 읽고 그 안의 `*-hot-live.*` 를 폴링해
+// (<data container>/Documents/unikit/hot)로 전달한다. iOS 어댑터는 설치 시
+// env UNIKIT_HOT_CORE_DIR(디렉터)을 읽고 그 안의 `*-hot-live.*` 를 폴링해
 // dlopen 스왑한다 — 이 스크립트는 항상 tmp 파일로 기록한 뒤 동일 디렉터
 // rename 으로 원자 교체한다(push-android 와 대칭 계약).
 //
@@ -13,15 +13,15 @@
 //
 // 컨테이너 경로는 `xcrun simctl get_app_container <udid> <bundle-id> data` 로
 // 매 실행마다 다시 조회한다 — 재설치 시 컨테이너 경로가 바뀔 수 있고, 런치 시
-// SIMCTL_CHILD_RUSTRA_HOT_CORE_DIR 로 앱에 넘겨준 경로와 이 스크립트가 계산하는
+// SIMCTL_CHILD_UNIKIT_HOT_CORE_DIR 로 앱에 넘겨준 경로와 이 스크립트가 계산하는
 // 경로가 어긋나면 스왑이 영원히 관측되지 않는다.
 //
 // 사용법:
 //   bun scripts/hot-core-push-ios.mjs <cdylib.dylib 경로> [옵션]
 // 옵션:
-//   --udid <udid>       시뮬레이터 UDID (env RUSTRA_SIM_UDID, 기본 booted)
+//   --udid <udid>       시뮬레이터 UDID (env UNIKIT_SIM_UDID, 기본 booted)
 //   --bundle-id <id>    앱 bundle id (자동 감지: app.json → expo.ios.bundleIdentifier,
-//                       실패 시 env RUSTRA_IOS_BUNDLE_ID, 최후 기본값)
+//                       실패 시 env UNIKIT_IOS_BUNDLE_ID, 최후 기본값)
 //   --name <name>       기기 측 live 파일명 (기본 <입력 stem>-hot-live.dylib)
 
 import { mkdir, readFile, rename, rm, stat } from 'node:fs/promises';
@@ -126,7 +126,7 @@ export function dataContainer(udid, bundleId) {
   if (result.exitCode !== 0 || path.length === 0) {
     failWith(
       `app "${bundleId}" is not installed on ${udid}`,
-      `hint: 먼저 핫 분기 앱을 설치하세요 — bun run verify:native:ios && xcrun simctl install <udid> ios/build/rustra-derived-data/Build/Products/Debug-iphonesimulator/reactnativecalculator.app\n${
+      `hint: 먼저 핫 분기 앱을 설치하세요 — bun run verify:native:ios && xcrun simctl install <udid> ios/build/unikit-derived-data/Build/Products/Debug-iphonesimulator/reactnativecalculator.app\n${
         result.stderr.trim() || result.stdout.trim()
       }`,
     );
@@ -142,20 +142,20 @@ export async function main(argv = Bun.argv.slice(2)) {
     );
   }
   const cdylibPath = resolve(process.cwd(), cdylibArg);
-  const udidInput = readFlag(argv, '--udid', process.env.RUSTRA_SIM_UDID || DEFAULT_UDID);
-  const explicitBundleId = readFlag(argv, '--bundle-id', process.env.RUSTRA_IOS_BUNDLE_ID);
+  const udidInput = readFlag(argv, '--udid', process.env.UNIKIT_SIM_UDID || DEFAULT_UDID);
+  const explicitBundleId = readFlag(argv, '--bundle-id', process.env.UNIKIT_IOS_BUNDLE_ID);
 
   if (!/\.dylib$/i.test(cdylibPath)) {
     failWith(
       `swap unit must be a Mach-O dylib (.dylib): ${cdylibPath}`,
-      'hint: cargo build --release --target aarch64-apple-ios-sim -p rustra-hot-core-variant --features behavior',
+      'hint: cargo build --release --target aarch64-apple-ios-sim -p unikit-hot-core-variant --features behavior',
     );
   }
   const cdylibStat = await stat(cdylibPath).catch(() => undefined);
   if (!cdylibStat?.isFile()) {
     failWith(
       `cdylib not found: ${cdylibPath}`,
-      'hint: cargo build --release --target aarch64-apple-ios-sim -p rustra-hot-core-variant --features behavior',
+      'hint: cargo build --release --target aarch64-apple-ios-sim -p unikit-hot-core-variant --features behavior',
     );
   }
   const localBytes = await readFile(cdylibPath);
@@ -167,7 +167,7 @@ export async function main(argv = Bun.argv.slice(2)) {
     ? { bundleId: explicitBundleId, source: 'flag/env' }
     : await detectIosBundleId();
   const bundleId = detected.bundleId;
-  const hotDir = join(dataContainer(udid, bundleId), 'Documents', 'rustra', 'hot');
+  const hotDir = join(dataContainer(udid, bundleId), 'Documents', 'unikit', 'hot');
   const tmpPath = join(hotDir, TMP_LIVE_NAME);
   const finalPath = join(hotDir, liveName);
 
@@ -195,7 +195,7 @@ export async function main(argv = Bun.argv.slice(2)) {
     `hot-core pushed: ${basename(cdylibPath)} (${localBytes.length} bytes) -> ${bundleId}:${finalPath} on ${udid}`,
   );
   console.log(
-    `watch for the swap in the log stream: xcrun simctl spawn ${udid} log stream --style compact --predicate 'eventMessage CONTAINS "[RustraHotCore]"'`,
+    `watch for the swap in the log stream: xcrun simctl spawn ${udid} log stream --style compact --predicate 'eventMessage CONTAINS "[UnikitHotCore]"'`,
   );
 }
 

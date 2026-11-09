@@ -7,14 +7,14 @@
 - **자동 검증:** `examples/lynx-calculator/ios/verify-ios.sh` (7/7), `examples/lynx-calculator/android/verify-android.sh` (7/7)
 
 > 본 문서는 데스크톱 스파이크(`2026-08-11-tauri-lynx-desktop-spike-result.md`)에서 남겨둔
-> "모바일 확장: Android/iOS Lynx SDK 셸 + rustra rkyv NativeModule 신규 작성" 리스크의 해소 결과를 기록한다.
+> "모바일 확장: Android/iOS Lynx SDK 셸 + unikit rkyv NativeModule 신규 작성" 리스크의 해소 결과를 기록한다.
 
 ---
 
-## 결론: 단일 ReactLynx 번들 + 단일 rustra rkyv 백엔드가 iOS·Android 모두에서 구동
+## 결론: 단일 ReactLynx 번들 + 단일 unikit rkyv 백엔드가 iOS·Android 모두에서 구동
 
 동일 `index.lynx.bundle`(iOS: `app.lynx.js` 114733B / Android: `main.lynx.bundle` 동일 원본) + 동일 Rust
-`rustra_calculator_example` staticlib(`aarch64-apple-ios-sim` / `aarch64-linux-android`)이 각 플랫폼
+`unikit_calculator_example` staticlib(`aarch64-apple-ios-sim` / `aarch64-linux-android`)이 각 플랫폼
 공식 Lynx SDK 셸 안에서 rkyv V2 fast-path FFI 왕복을 수행했다. **두 플랫폼 모두 9/52/95 바이트 동일 응답 패턴**
 (성공 / typed-error / capability.denied) — 와이어 포맷이 플랫폼 중립임이 증명됐다.
 
@@ -23,7 +23,7 @@
 | 셸                | CocoaPods `pod 'Lynx'` + `pod 'LynxService'` | Maven `org.lynxsdk.lynx:lynx:4.0.1` (aar)   |
 | Rust triple       | `aarch64-apple-ios-sim`                      | `aarch64-linux-android`                     |
 | 에뮬/시뮬         | iPhone 17, iOS 26.2                          | `Medium_Phone_API_36.1`, arm64-v8a          |
-| NativeModule 언어 | Obj-C (`RustraModule<LynxModule>`)           | Kotlin (`com.lynx.jsbridge.LynxModule`)     |
+| NativeModule 언어 | Obj-C (`UnikitModule<LynxModule>`)           | Kotlin (`com.lynx.jsbridge.LynxModule`)     |
 | 번들 로드         | `loadTemplateFromURL`                        | `renderTemplateUrl("main.lynx.bundle", "")` |
 | rkyv 성공 응답    | `out bytes=9` (ok=1, value=42)               | `out bytes=9` (ok=1, value=84=0x54)         |
 | typed-error 응답  | `out bytes=52` (math.divide_by_zero)         | `out bytes=52` (math.divide_by_zero)        |
@@ -38,8 +38,8 @@
 ## Phase A — iOS ✅ (요약, 상세는 plan 문서 Phase A 결과절)
 
 - `verify-ios.sh` 7/7 PASS.
-- 결정적 로그: `loadTemplate bytes=114733` → `RustraModule registered` → `rkyv in bytes=4` → `rkyv out bytes=9`(ok=1, 42) → `rkyv out bytes=52`(divide_by_zero) → `rkyv out bytes=95`(capability.denied) → `did invokeMethod: RustraModule.invokeRkyvV2`.
-- **해결 갭 — NativeModules 클로저 변수:** ReactLynx 런타임(`lynx_core.js`)은 `globalThis.NativeModules`를 설정하지 않는다. `NativeModules`는 `@lynx-js/runtime-wrapper-webpack-plugin`이 번들 외곽 함수의 위치 인자로 주입하는 클로저 변수. 데스크톱 헤드리스 호스트는 `globalThis.NativeModules` 수동 주입으로 우회, iOS 공식 SDK는 그렇지 않다. `packages/lynx/src/index.ts`의 `getRustraNative()`를 `globalThis.NativeModules`만 보던 것에서 **bare `NativeModules`(typeof 가드) → `globalThis` 폴백** 2경로로 수정해 양쪽을 모두 지원한다.
+- 결정적 로그: `loadTemplate bytes=114733` → `UnikitModule registered` → `rkyv in bytes=4` → `rkyv out bytes=9`(ok=1, 42) → `rkyv out bytes=52`(divide_by_zero) → `rkyv out bytes=95`(capability.denied) → `did invokeMethod: UnikitModule.invokeRkyvV2`.
+- **해결 갭 — NativeModules 클로저 변수:** ReactLynx 런타임(`lynx_core.js`)은 `globalThis.NativeModules`를 설정하지 않는다. `NativeModules`는 `@lynx-js/runtime-wrapper-webpack-plugin`이 번들 외곽 함수의 위치 인자로 주입하는 클로저 변수. 데스크톱 헤드리스 호스트는 `globalThis.NativeModules` 수동 주입으로 우회, iOS 공식 SDK는 그렇지 않다. `packages/lynx/src/index.ts`의 `getUnikitNative()`를 `globalThis.NativeModules`만 보던 것에서 **bare `NativeModules`(typeof 가드) → `globalThis` 폴백** 2경로로 수정해 양쪽을 모두 지원한다.
 - 등록: per-view `LynxViewBuilder.config`(LynxConfig + `registerModule:`)로 충분. 글로벌 `LynxEnv prepareConfig:` 불필요.
 
 ---
@@ -77,13 +77,13 @@ Android 는 `renderTemplateUrl` 이전에 `LynxEnv.inst().init(this, null, null,
 `[LynxEnv sharedInstance]` 로 충분). 생략 시 `errCode 102 "LynxEnv has not been prepared successfully"`.
 
 ```kotlin
-class RustraApplication : Application() {
+class UnikitApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         LynxEnv.inst().init(this, null, null, null)
     }
 }
-// AndroidManifest.xml: <application android:name=".RustraApplication" ...>
+// AndroidManifest.xml: <application android:name=".UnikitApplication" ...>
 ```
 
 #### 갭 2 — NativeModule API: `com.lynx.jsbridge.*` (NOT `com.lynx.react.bridge.*`)
@@ -92,10 +92,10 @@ class RustraApplication : Application() {
 - 애노테이션: `@LynxMethod`(`com.lynx.jsbridge`) 로 메서드 노출.
 - JS 식별자 매핑: Kotlin 메서드명 **그대로**(reflection). iOS 의 `+methodLookup` 사전 매핑이 Android 에는 없다.
 - 타입: `ArrayBuffer ↔ ByteArray`.
-- 등록: per-view `LynxViewBuilder.registerModule("RustraModule", RustraModule::class.java)` (build 전).
+- 등록: per-view `LynxViewBuilder.registerModule("UnikitModule", UnikitModule::class.java)` (build 전).
 
 ```kotlin
-class RustraModule(context: Context) : LynxModule(context) {
+class UnikitModule(context: Context) : LynxModule(context) {
     @LynxMethod
     fun invokeRkyvV2(payload: ByteArray): ByteArray { /* JNI → Rust */ }
 }
@@ -109,12 +109,12 @@ Rust crate 는 `#[cfg(target_vendor = "apple")] mod apple_init` 으로 Mach-O `_
 
 ```cpp
 extern "C" jint JNI_OnLoad(JavaVM *, void *) {
-  rustra_calculator_init();   // 공개 심볼 — idempotent 패키지 등록
+  unikit_calculator_init();   // 공개 심볼 — idempotent 패키지 등록
   return JNI_VERSION_1_6;
 }
 ```
 
-`System.loadLibrary("rustra_lynx")` 시 1회 호출. 이후 `out=9`(ok) 로 전환.
+`System.loadLibrary("unikit_lynx")` 시 1회 호출. 이후 `out=9`(ok) 로 전환.
 
 ### 빌드 스택 & cargo-ndk 메모
 
@@ -127,7 +127,7 @@ ABI 매핑: `arm64-v8a` → `aarch64-linux-android` (Rust triple 로 파일명).
 
 ## 회귀 확인
 
-`test:packages` 24/24, `test:ts:node` 32/32 통과. Phase A 의 `getRustraNative()` 2경로(bare `NativeModules` →
+`test:packages` 24/24, `test:ts:node` 32/32 통과. Phase A 의 `getUnikitNative()` 2경로(bare `NativeModules` →
 `globalThis` 폴백) 변경이 데스크톱/Node/타 패키지에 영향 없음 — Node 테스트는 `globalThis` 경로로 통과,
 iOS·Android SDK 는 bare 클로저 경로로 동작.
 

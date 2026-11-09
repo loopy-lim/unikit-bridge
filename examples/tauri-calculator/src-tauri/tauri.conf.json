@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Rustra Tauri Calculator",
+  "productName": "Unikit Tauri Calculator",
   "version": "0.1.0",
-  "identifier": "dev.rustra.calculator",
+  "identifier": "dev.unikit.calculator",
   "build": {
     "frontendDist": "../dist"
   },
@@ -10,7 +10,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Rustra Tauri Calculator",
+        "title": "Unikit Tauri Calculator",
         "width": 480,
         "height": 320
       }

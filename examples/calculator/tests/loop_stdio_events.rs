@@ -13,7 +13,7 @@
 //! 3. capability 없는(구 클라이언트) 핸드셰이크엔 싱크를 설치하지 않는다 —
 //!    기존 폴링 사용자의 stdout 이 푸시 프레임으로 오염되지 않는다(무중단).
 
-use rustra_calculator_example::loop_stdio::{
+use unikit_calculator_example::loop_stdio::{
     PushDecision, encode_push_frame, handle_hello_with_policy, lock_stdout,
 };
 use serde_json::Value;
@@ -45,7 +45,7 @@ fn push_frame_encodes_header_and_json_body() {
 fn sink_installation_bypasses_bus_and_drain_returns_empty() {
     // 프로세스 전역 캐시 패키지(calculator_package)를 쓰지 않는다 — 테스트가
     // 병렬 실행돼도 싱크 상태가 서로 간섭하지 않게 독립 Package 를 만든다.
-    let package = rustra::Package::builder("test.push-events").build();
+    let package = unikit_bridge::Package::builder("test.push-events").build();
     let written: Arc<Mutex<Vec<u8>>> = Arc::new(Mutex::new(Vec::new()));
     let sink_writes = Arc::clone(&written);
     let seq = seq_counter();
@@ -98,7 +98,7 @@ fn sink_installation_bypasses_bus_and_drain_returns_empty() {
 fn hello_without_push_capability_keeps_polling_runtime() {
     // 구 클라이언트(`events` 요청 없음): 싱크 설치 없음 — stdout 오염 없음.
     // 독립 Package — 위 테스트와 병렬 실행돼도 싱크 상태를 공유하지 않는다.
-    let package = rustra::Package::builder("test.hello-policy").build();
+    let package = unikit_bridge::Package::builder("test.hello-policy").build();
     let decision = handle_hello_with_policy(&package, false);
     assert_eq!(
         decision,
@@ -134,7 +134,7 @@ fn background_thread_emit_races_response_writes_without_corruption() {
     use std::time::Duration;
 
     // 독립 Package — 병렬 테스트의 싱크 상태 간섭 방지(위 테스트와 동일 관례).
-    let package = rustra::Package::builder("test.push-thread-race").build();
+    let package = unikit_bridge::Package::builder("test.push-thread-race").build();
     let decision = handle_hello_with_policy(&package, true);
     assert_eq!(decision, PushDecision::Push);
 
@@ -200,7 +200,7 @@ fn background_thread_emit_races_response_writes_without_corruption() {
     // STDOUT_LOCK 응답 쓰기를 유발한다.
     for _ in 0..50 {
         let mut cursor = std::io::Cursor::new(drain_request.clone());
-        rustra_calculator_example::loop_stdio::run_binary(&package, &mut cursor, &mut out)
+        unikit_calculator_example::loop_stdio::run_binary(&package, &mut cursor, &mut out)
             .expect("run_binary must succeed");
     }
     emitter.join().expect("emitter must not deadlock");

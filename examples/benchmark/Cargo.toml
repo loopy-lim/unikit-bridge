@@ -1,13 +1,13 @@
 [package]
-name = "rustra-benchmark"
+name = "unikit-benchmark"
 edition.workspace = true
 license.workspace = true
 version.workspace = true
 publish = false
 
 [dependencies]
-rustra = { workspace = true }
-rustra-macros = { workspace = true }
+unikit-bridge = { workspace = true }
+unikit-bridge-macros = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 schemars = { workspace = true }

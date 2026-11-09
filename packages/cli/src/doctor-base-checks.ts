@@ -1,5 +1,5 @@
 import {
-  RUSTRA_MSRV,
+  UNIKIT_MSRV,
   isVersionAtLeast,
   parseRustVersion,
   type DoctorCheck,
@@ -42,7 +42,7 @@ export function collectBaseChecks(
     conditionalCheck(
       'rustc.msrv',
       true,
-      Boolean(rustc.ok && version && isVersionAtLeast(version, RUSTRA_MSRV)),
+      Boolean(rustc.ok && version && isVersionAtLeast(version, UNIKIT_MSRV)),
       version ? `Rust ${version.join('.')} satisfies MSRV 1.88` : 'Rust satisfies MSRV 1.88',
       `Rust 1.88 or newer is required${version ? ` (found ${version.join('.')})` : ''}`,
       rustc.stderr || rustc.error,

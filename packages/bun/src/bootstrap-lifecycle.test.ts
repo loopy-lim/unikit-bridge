@@ -3,10 +3,10 @@ import test from 'node:test';
 import { resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { suffix } from 'bun:ffi';
-import { configure, ensureConfigured } from '@rustra/types';
+import { configure, ensureConfigured } from '@unikit/types';
 import { createBunBootstrap, createBunFfiEngine } from './index.js';
 const options = {
-  library: resolve(import.meta.dir, `../../../target/debug/librustra_calculator_example.${suffix}`),
+  library: resolve(import.meta.dir, `../../../target/debug/libunikit_calculator_example.${suffix}`),
   frameCodecs: new Map(),
 };
 const clean = () => configure({ invoke: async <T>() => null as T });

@@ -22,27 +22,27 @@
 ### P1 — RN 앱 개발자, Rust 처음
 
 - **진입**: `docs/README.md:9-17`의 추천 경로는 Architecture(548줄)를 Getting Started 앞에 둔다. "10분 안에 첫 패키지"(getting-started.md:7)를 약속하는 문서집의 읽기 순서가 개념 문서부터 시작해 약속과 어긋난다.
-- **첫 코드 충돌**: README "Quick Example"(README.md:184-205)은 `#[bridge_type]` + `rustra::build!`를 쓰는데, getting-started §2(getting-started.md:115-130)는 수동 derive 3종만 가르치고 `bridge_type`을 한 번도 언급하지 않는다(grep 0건). P1은 같은 일을 하는 두 문법을 다른 문서에서 순서 없이 만난다.
-- **막히는 지점**: RN 절 자체(getting-started.md:756-831)와 `extending/react-native-setup.md`는 잘 되어 있다. 그러나 (1) 전제 조건( Bun 최소 버전은 react-native-setup.md:68에만, MSRV는 versioning-policy.md:70-73에만 존재)이 산재하고, (2) UI부터 만들고 싶을 때 FAQ(README.md:139-141)가 약속하는 `@rustra/testing` mock engine 사용법이 사용자 문서 어디에도 없다.
+- **첫 코드 충돌**: README "Quick Example"(README.md:184-205)은 `#[bridge_type]` + `unikit_bridge::build!`를 쓰는데, getting-started §2(getting-started.md:115-130)는 수동 derive 3종만 가르치고 `bridge_type`을 한 번도 언급하지 않는다(grep 0건). P1은 같은 일을 하는 두 문법을 다른 문서에서 순서 없이 만난다.
+- **막히는 지점**: RN 절 자체(getting-started.md:756-831)와 `extending/react-native-setup.md`는 잘 되어 있다. 그러나 (1) 전제 조건( Bun 최소 버전은 react-native-setup.md:68에만, MSRV는 versioning-policy.md:70-73에만 존재)이 산재하고, (2) UI부터 만들고 싶을 때 FAQ(README.md:139-141)가 약속하는 `@unikit/testing` mock engine 사용법이 사용자 문서 어디에도 없다.
 - **환각 위험**: getting-started.md:836-844의 RN JSON 경로 예제는 `./native-transport`에서 `customNativeTransport`를 import하는데, 이걸 어떻게 만드는지에 대한 문서가 없다.
 
 ### P2 — Tauri 데스크톱 앱 개발자
 
-- **경로 존재 여부**: 부분적으로만 존재한다. 필요한 조각은 모두 있으나 5개 문서에 분산: getting-started.md:725-753(생성 엔트리/등록), README.md:580-615(어댑터/withGlobalTauri), transport-guide.md:144-178(rustra_dispatch), platform-permissions.md:40-53(ACL/CSP), examples/tauri-calculator/README.md(전체 예).
-- **결정적 결손**: "기존 Tauri 앱에 얹기" 워크스루가 없고, `app.withGlobalTauri`를 켜는 실제 스니펫(`tauri.conf.json`)이 사용자 문서에 없다 — 실제 JSON은 오직 예제 저장소(examples/tauri-calculator/src-tauri/tauri.conf.json:10)에만 있다. P2는 문서만으로는 수정할 파일 목록(Cargo.toml feature / src-tauri/main.rs / tauri.conf.json / rustra.json / 프런트엔드 import)을 한 번에 볼 수 없다.
+- **경로 존재 여부**: 부분적으로만 존재한다. 필요한 조각은 모두 있으나 5개 문서에 분산: getting-started.md:725-753(생성 엔트리/등록), README.md:580-615(어댑터/withGlobalTauri), transport-guide.md:144-178(unikit_dispatch), platform-permissions.md:40-53(ACL/CSP), examples/tauri-calculator/README.md(전체 예).
+- **결정적 결손**: "기존 Tauri 앱에 얹기" 워크스루가 없고, `app.withGlobalTauri`를 켜는 실제 스니펫(`tauri.conf.json`)이 사용자 문서에 없다 — 실제 JSON은 오직 예제 저장소(examples/tauri-calculator/src-tauri/tauri.conf.json:10)에만 있다. P2는 문서만으로는 수정할 파일 목록(Cargo.toml feature / src-tauri/main.rs / tauri.conf.json / unikit.json / 프런트엔드 import)을 한 번에 볼 수 없다.
 
 ### P3 — Rust 개발자, 라이브러리 작성 → JS 팀에 배포
 
 - **명령 작성→스키마→코드젠** 코어 경로는 존재한다(getting-started §2, rust-api-guide §2-7). 그러나:
-  - `rustra.json`을 init 없이 만드는 방법이 명시적으로 없다(README.md:207-213은 파일이 만들어지기 전에 `--config rustra.json`을 실행하게 한다).
-  - Node 표준 런타임이 구현해야 하는 stdio 프로토콜 `{command, args} → {ok, result}` + `__rustra_contract`(getting-started.md:679-686)의 복사 가능한 구현이 메인 경로에 없고 "예제를 보라"로 끝난다(인라인 코드는 transport-guide.md:75-91에만, 그것도 "교체 가이드"라는 엉뚱한 문맥에서).
+  - `unikit.json`을 init 없이 만드는 방법이 명시적으로 없다(README.md:207-213은 파일이 만들어지기 전에 `--config unikit.json`을 실행하게 한다).
+  - Node 표준 런타임이 구현해야 하는 stdio 프로토콜 `{command, args} → {ok, result}` + `__unikit_contract`(getting-started.md:679-686)의 복사 가능한 구현이 메인 경로에 없고 "예제를 보라"로 끝난다(인라인 코드는 transport-guide.md:75-91에만, 그것도 "교체 가이드"라는 엉뚱한 문맥에서).
   - 이벤트 계약 작성법 `PackageBuilder::event::<T>()`가 rust-api-guide의 빌더 메서드 표(rust-api-guide.md:341-351)에 없다. 유일한 안내는 예제 소스 주석(examples/streaming/src/lib.rs:13)과 로드맵 한 줄(README.md:53)이다.
-  - "JS 팀에 배포" 단계(generated/ 커밋 정책, 스키마 전달, 버전 고정)를 다루는 문서가 없다. versioning-policy.md는 rustra 자체의 버전 정책이지 사용자의 배포 가이드가 아니다.
-- **무서운 함정**: transport-guide의 Bun FFI 예제(transport-guide.md:259-298)가 2026-09-03 legacy removal로 제거된 심볼 `rustra_calculator_invoke`/`rustra_calculator_free_string`을 "현재 구현"으로 가르친다(아래 결손 #9).
+  - "JS 팀에 배포" 단계(generated/ 커밋 정책, 스키마 전달, 버전 고정)를 다루는 문서가 없다. versioning-policy.md는 unikit 자체의 버전 정책이지 사용자의 배포 가이드가 아니다.
+- **무서운 함정**: transport-guide의 Bun FFI 예제(transport-guide.md:259-298)가 2026-09-03 legacy removal로 제거된 심볼 `unikit_calculator_invoke`/`unikit_calculator_free_string`을 "현재 구현"으로 가르친다(아래 결손 #9).
 
 ### P4 — 평가자(도입 검토)
 
-- **5분 평가**: README의 비교표(README.md:29-47)·FAQ(README.md:132-156)·성능표(README.md:667-674)는 충실하다. 다만 설치 버전 신호가 3개로 갈린다(아래 결손 #1): 설치 스니펫 `rustra = "0.6"`(README.md:166), 내부 TODO 주석 "발행 시 갱신: 0.7.0 라인"(README.md:162), 검증 조합 "0.8.x"(compatibility-matrix.md:58). 평가자는 "지금 무엇을 설치해야 하는가"에 대해 문서집 안에서 단일한 답을 얻지 못한다.
+- **5분 평가**: README의 비교표(README.md:29-47)·FAQ(README.md:132-156)·성능표(README.md:667-674)는 충실하다. 다만 설치 버전 신호가 3개로 갈린다(아래 결손 #1): 설치 스니펫 `unikit = "0.6"`(README.md:166), 내부 TODO 주석 "발행 시 갱신: 0.7.0 라인"(README.md:162), 검증 조합 "0.8.x"(compatibility-matrix.md:58). 평가자는 "지금 무엇을 설치해야 하는가"에 대해 문서집 안에서 단일한 답을 얻지 못한다.
 - **기능 지원 여부**: 기능×어댑터 매트릭스가 **표 2개로 중복 수록되어 서로 모순**된다(아래 결손 #2). "내 호스트에서 채널/이벤트가 되는가"라는 도입 의사결정 질문에 문서가 두 개의 반대 답을 준다.
 
 ---
@@ -67,14 +67,14 @@
 ### 4-1. 루트 README.md / README.ko.md
 
 1. **[c/d] 지금 어떤 버전을 설치해야 하나?**
-   → 답: `rustra = "0.6"`(README.md:164-169), 내부 주석 `<!-- 발행 시 갱신: 0.7.0 라인 -->`(README.md:162, 584 / README.ko.md:142, 544 / getting-started.md:42 / getting-started.ko.md:41). 한편 호환 매트릭스는 "npm 0.8.x ↔ Rust 0.8.x가 CI에서 검증된 조합"(compatibility-matrix.md:58)이라 하고 워크스페이스 실측은 0.8.0이다.
+   → 답: `unikit = "0.6"`(README.md:164-169), 내부 주석 `<!-- 발행 시 갱신: 0.7.0 라인 -->`(README.md:162, 584 / README.ko.md:142, 544 / getting-started.md:42 / getting-started.ko.md:41). 한편 호환 매트릭스는 "npm 0.8.x ↔ Rust 0.8.x가 CI에서 검증된 조합"(compatibility-matrix.md:58)이라 하고 워크스페이스 실측은 0.8.0이다.
    → 결손: 버전 신호가 3갈래(0.6 설치줄 / 0.7.0 갱신 TODO / 0.8.x 검증)이고, TODO 주석이 독자-facing 파일에 그대로 노출된다.
    → 제안: 설치 스니펫을 게시 버전으로 갱신하고 TODO 주석 제거. 설치 절에 "검증 조합 표" 한 줄(매트릭스 #58과 동일 문장)을 추가해 단일 진실 지정.
 
-2. **[a] Quick Example을 따라가다 `rustra codegen --config rustra.json`을 만났다. rustra.json은 언제 만들었지?**
-   → 답: README.md:207-213은 코드젠을 실행하게 하나, 비-RN 경로의 rustra.json 전체 생김새는 훗날 README.md:273-281에 나온다. "이 파일을 먼저 만들어라"는 단계가 없다.
+2. **[a] Quick Example을 따라가다 `unikit codegen --config unikit.json`을 만났다. unikit.json은 언제 만들었지?**
+   → 답: README.md:207-213은 코드젠을 실행하게 하나, 비-RN 경로의 unikit.json 전체 생김새는 훗날 README.md:273-281에 나온다. "이 파일을 먼저 만들어라"는 단계가 없다.
    → 결손: 첫 실행 경로에서 필요한 파일의 생성 시점이 누락(유형 a).
-   → 제안: Quick Example 바로 아래 "rustra.json 최소형"(스키마/출력/호스트 키)을 4줄 JSON으로 먼저 보여주고 코드젠 명령을 그 다음에 배치.
+   → 제안: Quick Example 바로 아래 "unikit.json 최소형"(스키마/출력/호스트 키)을 4줄 JSON으로 먼저 보여주고 코드젠 명령을 그 다음에 배치.
 
 3. **[d] README의 첫 Rust 코드와 getting-started의 첫 Rust 코드가 다르다. 어느 것이 표준인가?**
    → 답: README.md:184-205은 `#[bridge_type]`+`build!`, getting-started.md:115-181은 수동 derive+`Package::builder`/`register!`. getting-started에는 bridge_type 언급이 0회다.
@@ -86,13 +86,13 @@
    → 결손: 시맨틱 문서는 풍부하나 사용 코드가 없음(유형 a).
    → 제안: rust-api-guide 또는 신규 "런타임 시맨틱" 절에 signal/timeoutMs/invokeBatch 각 3~5줄 완전한 호출 예제 추가.
 
-5. **[e] React에서 쓰고 싶다(@rustra/react).**
-   → 답: README.md:404 구조 목록에 이름만 존재. useCommand/useMutation/useEvent/RustraProvider 사용법 문서가 docs/에 없다(예제 examples/reference-app/README.md만 존재).
+5. **[e] React에서 쓰고 싶다(@unikit/react).**
+   → 답: README.md:404 구조 목록에 이름만 존재. useCommand/useMutation/useEvent/UnikitProvider 사용법 문서가 docs/에 없다(예제 examples/reference-app/README.md만 존재).
    → 결손: 공개 패키지의 사용법 진입점 부재.
    → 제안: docs/에 "React hooks 가이드" 1페이지(또는 reference-app README로의 명시 링크 목록) 추가 후 README 패키지 표에 연결.
 
 6. **[c] CLI는 어떻게 실행하는 것이 표준인가?**
-   → 답: `bunx --bun @rustra/cli ...`(README.md:751), `rustra diff ...`(migration-guide.md:15, 전제 설명 없음), `bun run doctor`(development-hurdles.md:37, init 스크립트 전제)이 혼용된다. `bun add -d @rustra/cli` 안내는 RN 문맥에만 있다(README.md:250).
+   → 답: `bunx --bun @unikit/cli ...`(README.md:751), `unikit diff ...`(migration-guide.md:15, 전제 설명 없음), `bun run doctor`(development-hurdles.md:37, init 스크립트 전제)이 혼용된다. `bun add -d @unikit/cli` 안내는 RN 문맥에만 있다(README.md:250).
    → 결손: CLI 설치/실행 형태의 정식 안내 부재.
    → 제안: development-hurdles 상단에 "CLI 실행 3형태(전역/디펜던시/bunx)와 권장형" 3줄 정리.
 
@@ -114,14 +114,14 @@
    → 제안: docs:sync 대상을 addNumbers 관련 발췌로 좁히거나(동기화 도구가 발췌를 지원하지 않으면 예제 전체는 부록/별도 파일로 이동), 최소한 한국어 주석 번역. §3 설명(getting-started.md:580-583)은 지금대로 유지.
 
 10. **[a] init 없이 외부 프로젝트를 시작한다. Node 런타임이 구현해야 하는 stdio 계약의 코드는 어디 있나?**
-    → 답: "The standard runtime must implement the one-shot stdio protocol ... `run_invoke_stdio` in the calculator and the `rustra init` scaffold is the reference implementation"(getting-started.md:679-686) — 코드는 문서에 없고 예제/init 템플릿으로 넘긴다.
+    → 답: "The standard runtime must implement the one-shot stdio protocol ... `run_invoke_stdio` in the calculator and the `unikit init` scaffold is the reference implementation"(getting-started.md:679-686) — 코드는 문서에 없고 예제/init 템플릿으로 넘긴다.
     → 결손: 핵심 계약(이걸 못 하면 Node 경로가 아예 안 돌아감)의 실행 단계 부재.
-    → 제안: §6 "Build Pipeline" 근처에 `__rustra_contract` 포함 최소 stdio main 표준 스니펫(~25줄, transport-guide.md:75-91을 일반화)을 인라인.
+    → 제안: §6 "Build Pipeline" 근처에 `__unikit_contract` 포함 최소 stdio main 표준 스니펫(~25줄, transport-guide.md:75-91을 일반화)을 인라인.
 
 11. **[f] RN 설정의 `"positional": true`는 무엇인가?**
     → 답: getting-started.md:782에 키만 등장. 문서집 전체에서 설명이 없다(architecture.md가 "positional facade"라는 말을 한 번 사용, rust-api-guide.md:483).
     → 결손: 설정 키 미정의.
-    → 제안: 한 문장 정의("생성 헬퍼를 필드-위치 인자 형태로 발행하는 옵션 — §commands.ts")를 인접 배치, 또는 rustra.json 스키마 가이드로 링크.
+    → 제안: 한 문장 정의("생성 헬퍼를 필드-위치 인자 형태로 발행하는 옵션 — §commands.ts")를 인접 배치, 또는 unikit.json 스키마 가이드로 링크.
 
 12. **[f] RN JSON 경로의 `customNativeTransport`는 어디서 오는가?**
     → 답: getting-started.md:836-844가 `import { customNativeTransport } from './native-transport'`를 사용하나 이 모듈 작성법을 다루는 문서가 없다.
@@ -156,7 +156,7 @@
     → 제안: 사용자에게 필요한 계약 요지(스키마 조건, 빌드 타임 패닉 조건, 메모리 소유)를 본문에 두고 플랜은 근거 링크로 강등.
 
 18. **[f] `State<T>` 커맨드 파라미터가 코드에는 있고 문서에는 없다.**
-    → 답: 매크로 오류문구 자체가 "at most one input data parameter (plus optional State<T> parameters)"(crates/rustra-macros/src/macro_command.rs:80)이며 `.manage(state)`가 표에는 있으나(rust-api-guide.md:351), `#[command] fn f(input: I, state: State<T>)` 형태의 파라미터 사용법을 문서가 다루지 않는다(문서 내 State< 는 Tauri 코드 인용뿐 — architecture.md:347).
+    → 답: 매크로 오류문구 자체가 "at most one input data parameter (plus optional State<T> parameters)"(crates/unikit-bridge-macros/src/macro_command.rs:80)이며 `.manage(state)`가 표에는 있으나(rust-api-guide.md:351), `#[command] fn f(input: I, state: State<T>)` 형태의 파라미터 사용법을 문서가 다루지 않는다(문서 내 State< 는 Tauri 코드 인용뿐 — architecture.md:347).
     → 결손: 공개 시그니처 형태 미문서화(유형 f/a 경계).
     → 제안: §2에 "상태 주입: `State<T>` 추가 파라미터 + `.manage()`" 소절 추가(또는 의도적으로 비공개라면 명시).
 
@@ -173,7 +173,7 @@
     → 제안: `myCommand(input)`과 "엔진은 호스트 엔트리가 configureLazy로 설치" 문장으로 교체.
 
 21. **[d] `#[command]` 매크의 검증 규칙 서술이 사실과 다르다.**
-    → 답: "at least one parameter" / "Auto-detects scalar parameter (two or more) vs struct (one)" / 반환 "Result<O>, a bare value, or ()"(architecture.md:164-166, 540-548). 실제로는 다중 파라미터가 컴파일 에러(rust-api-guide.md:29-34, crates/rustra-macros/src/macro_command.rs:80), bare 반환도 에러(rust-api-guide.md:80-85), 0-파라미터는 허용(rust-api-guide.md:64-77).
+    → 답: "at least one parameter" / "Auto-detects scalar parameter (two or more) vs struct (one)" / 반환 "Result<O>, a bare value, or ()"(architecture.md:164-166, 540-548). 실제로는 다중 파라미터가 컴파일 에러(rust-api-guide.md:29-34, crates/unikit-bridge-macros/src/macro_command.rs:80), bare 반환도 에러(rust-api-guide.md:80-85), 0-파라미터는 허용(rust-api-guide.md:64-77).
     → 결손: 두 문서가 매크로 계약을 다르게 기술 — rust-api-guide가 실측과 일치하므로 architecture가 스테일.
     → 제안: architecture §macros와 "Compile-Time Type Safety"를 rust-api-guide §2와 동일 사실로 재작성(또는 해당 절을 rust-api-guide로 링크로 대체).
 
@@ -202,9 +202,9 @@
     → 제안: 표를 현행 기본(생성 엔트리 경로) 기준으로 갱신하고 subprocess/FFI는 "수동 조립 시 대안"으로 재명명.
 
 26. **[d] Bun FFI 예제 전체가 제거된 심볼을 사용한다.**
-    → 답: `rustra_calculator_invoke`/`rustra_calculator_free_string` 사용(transport-guide.md:99-142 RN 절, 259-299 Bun FFI 예제). 이 심볼은 2026-09-03 legacy removal로 제거되었다(benchmarks.md:223-227가 명시; 코드 잔존물은 `rustra_calculator_invoke_typed_raw`라는 다른 심볼뿐 — examples/calculator/tests/rkyv_v2_panic_guard.rs:179, 제거를 언급하는 테스트 주석 examples/calculator/ts/runtime-contract.test.ts:51).
+    → 답: `unikit_calculator_invoke`/`unikit_calculator_free_string` 사용(transport-guide.md:99-142 RN 절, 259-299 Bun FFI 예제). 이 심볼은 2026-09-03 legacy removal로 제거되었다(benchmarks.md:223-227가 명시; 코드 잔존물은 `unikit_calculator_invoke_typed_raw`라는 다른 심볼뿐 — examples/calculator/tests/rkyv_v2_panic_guard.rs:179, 제거를 언급하는 테스트 주석 examples/calculator/ts/runtime-contract.test.ts:51).
     → 결손: 가이드의 핵심 예제(Bun FFI §4)가 그대로 따라 하면 빌드되지 않는 코드다. RN 절(93-142)도 동일 심볼 기준.
-    → 제안: 코어 공개 FFI(`rustra_ffi_invoke_json` 등 — rust-api-guide.md:922-926 목록) 기준으로 예제 재작성, 또는 legacy 절로 명시적 격리.
+    → 제안: 코어 공개 FFI(`unikit_ffi_invoke_json` 등 — rust-api-guide.md:922-926 목록) 기준으로 예제 재작성, 또는 legacy 절로 명시적 격리.
 
 27. **[b] napi 예제의 경로가 틀렸다.**
     → 답: `// crates/calculator-napi/src/lib.rs`(transport-guide.md:329). 실제 위치는 `examples/calculator-napi/`(자체 Cargo.toml 존재 실측).
@@ -214,17 +214,17 @@
 ### 4-7. docs/development-hurdles.md, migration-guide.md, versioning-policy.md
 
 28. **[a/e] "UI부터 만들고 싶다"는 약속의 실체가 없다.**
-    → 답: README FAQ "use the mock engine from `@rustra/testing`. See the [development hurdles guide]"(README.md:139-141). 그러나 development-hurdles.md에는 `@rustra/testing`/mock engine 언급이 없다(grep 0건). `createMockEngine`의 사용법은 plans 문서에만 존재.
+    → 답: README FAQ "use the mock engine from `@unikit/testing`. See the [development hurdles guide]"(README.md:139-141). 그러나 development-hurdles.md에는 `@unikit/testing`/mock engine 언급이 없다(grep 0건). `createMockEngine`의 사용법은 plans 문서에만 존재.
     → 결손: FAQ가 가리키는 문서가 그 내용을 담지 않음 — 링크는 있으나 도달 불가(유형 e) + 실행 단계 부재(a).
     → 제안: development-hurdles에 "Rust 없이 시작하기: createMockEngine" 절 추가하거나 FAQ 링크를 examples(auth/ts 테스트가 mock engine 사용)로 변경.
 
 29. **[e] CI 통합 스니펫이 그대로는 실행 불가다.**
-    → 답: migration-guide.md:118-125 — GitHub Actions에서 `rustra diff`를 실행하나 CLI 설치 단계도, 과거 스키마 아티팩트 준비도 없다.
+    → 답: migration-guide.md:118-125 — GitHub Actions에서 `unikit diff`를 실행하나 CLI 설치 단계도, 과거 스키마 아티팩트 준비도 없다.
     → 결손: 반쪽짜리 실행 단계.
-    → 제안: `- run: bun i -g @rustra/cli`(또는 bunx 형태)와 `actions/checkout` fetch-depth 명시를 포함한 완전형으로 교체.
+    → 제안: `- run: bun i -g @unikit/cli`(또는 bunx 형태)와 `actions/checkout` fetch-depth 명시를 포함한 완전형으로 교체.
 
-30. **[c] `rustra diff` 버전 주의가 없다.**
-    → 답: diff는 스키마 형식에 의존하지만, 구버전 rustra(0.5 이전)가 만든 schema.json의 `inputType` 제네릭 표기 문제(rust-api-guide.md:626-629) 등 마이그레이션 창구 문서(migration-guide.md)와 버전 정책(versioning-policy.md:42-45, migrations 링크)가 상호 연결되지 않고 각자 서술한다.
+30. **[c] `unikit diff` 버전 주의가 없다.**
+    → 답: diff는 스키마 형식에 의존하지만, 구버전 unikit(0.5 이전)가 만든 schema.json의 `inputType` 제네릭 표기 문제(rust-api-guide.md:626-629) 등 마이그레이션 창구 문서(migration-guide.md)와 버전 정책(versioning-policy.md:42-45, migrations 링크)가 상호 연결되지 않고 각자 서술한다.
     → 결손: "0.5→0.6/0.3→0.4 사용자는 diff 전에 무엇을 먼저 할 것인가" 분기 안내 부재.
     → 제안: migration-guide 상단에 "당신의 버전 → 해당 마이그레이션 노트" 순서 안내 3줄 추가.
 
@@ -241,9 +241,9 @@
     → 제안: CHANGELOG.en.md 추가 또는 최소한 상단에 영어 요약 링크.
 
 33. **[c] getting-started의 표 형식 파솄 및 용어 혼용(경미).**
-    → 답: 요약표 RN 행이 백틱 없이 `generated react-native.ts`로만 표기(getting-started.md:855), 문서 제목은 `rustra-bridge`(rust-api-guide.md:3, architecture.md:3)와 `rustra`(README.md:3)가 혼용.
+    → 답: 요약표 RN 행이 백틱 없이 `generated react-native.ts`로만 표기(getting-started.md:855), 문서 제목은 `unikit-bridge`(rust-api-guide.md:3, architecture.md:3)와 `unikit`(README.md:3)가 혼용.
     → 결손: 검색/일관성 마찰.
-    → 제안: 표기 통일 + "rustra = 크레이트, rustra-bridge = 저장소" 용어 각주 1줄(또는 통일).
+    → 제안: 표기 통일 + "unikit = 크레이트, unikit-bridge = 저장소" 용어 각주 1줄(또는 통일).
 
 ---
 
@@ -254,15 +254,15 @@
 | #   | 개선안                                                                                                                                                                                                                                             | 형태                  | 근거(결손 번호)                                               |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ------------------------------------------------------------- |
 | 1   | compatibility-matrix.md 스테일 2차 표(21-30행) 삭제 + "기본 생성 엔트리 ↔ 열" 대응 문장 추가                                                                                                                                                       | 재작성(삭제)          | #23, #24                                                      |
-| 2   | 설치 버전 단일화: `rustra = "0.6"`줄 갱신, "발행 시 갱신" TODO 6곳 제거, 검증 조합(0.8.x) 문장 통일                                                                                                                                                | 재작성                | #1                                                            |
+| 2   | 설치 버전 단일화: `unikit = "0.6"`줄 갱신, "발행 시 갱신" TODO 6곳 제거, 검증 조합(0.8.x) 문장 통일                                                                                                                                                | 재작성                | #1                                                            |
 | 3   | getting-started 자기모순 수정: 요약 다이어그램의 configure() 제거(§4와 정렬), 24/27µs 각주·성능표 README 실표와 통합                                                                                                                               | 재작성                | #7, #8                                                        |
 | 4   | rust-api-guide 타입 매핑 표 i64 → `number \| bigint` 수정(architecture 표 포함)                                                                                                                                                                    | 수정                  | #14, #22                                                      |
-| 5   | transport-guide 현행화: 상태표를 생성 엔트리 기준으로, 제거된 `rustra_calculator_*` 예제를 코어 `rustra_ffi_*`로 재작성, napi 경로 수정                                                                                                            | 재작성+예제 교체      | #25, #26, #27                                                 |
-| 6   | "기존 Tauri 앱에 rustra 얹기" 단일 워크스루 신설(getting-started §Tauri 확장 또는 docs/extending/tauri-setup.md): 변경 파일 5개(Cargo.toml/src-tauri/main.rs/tauri.conf.json/rustra.json/프런트 import)를 순서대로, withGlobalTauri 실제 JSON 포함 | 새 절                 | P2 여정, #20 결손 아님(신규), getting-started.md:725-753 참조 |
+| 5   | transport-guide 현행화: 상태표를 생성 엔트리 기준으로, 제거된 `unikit_calculator_*` 예제를 코어 `unikit_ffi_*`로 재작성, napi 경로 수정                                                                                                            | 재작성+예제 교체      | #25, #26, #27                                                 |
+| 6   | "기존 Tauri 앱에 unikit 얹기" 단일 워크스루 신설(getting-started §Tauri 확장 또는 docs/extending/tauri-setup.md): 변경 파일 5개(Cargo.toml/src-tauri/main.rs/tauri.conf.json/unikit.json/프런트 import)를 순서대로, withGlobalTauri 실제 JSON 포함 | 새 절                 | P2 여정, #20 결손 아님(신규), getting-started.md:725-753 참조 |
 | 7   | 이벤트/채널 사용법 통합: `.event()`를 빌더 표에 추가 + "이벤트&채널 가이드"(Rust 선언 → 생성물 → JS subscribeEvent/unsubscribe, streaming 예제 연결)                                                                                               | 새 절+레퍼런스 보강   | #15, #4                                                       |
 | 8   | getting-started §3 types.ts 전체 덤프 축소(addNumbers 발췌 + 부록 이동), 한국어 JSDoc 잔여 정리                                                                                                                                                    | 재구성                | #9                                                            |
-| 9   | "첫 rustra.json + 표준 stdio 런타임" 인라인化: 외부 프로젝트용 rustra.json 최소형과 `__rustra_contract` 포함 stdio main 스니펫을 메인 경로에 배치                                                                                                  | 예제 추가             | #2, #10                                                       |
-| 10  | 색인 완성: docs/README.md에 wire-format/verification-checklist/migrations + 예제 갤러리 추가, CLI 실행 표준형 정리, mock engine(@rustra/testing)·React hooks 사용 가이드 또는 링크                                                                 | 색인 재구성+새 가이드 | #31, #6, #28, #5                                              |
+| 9   | "첫 unikit.json + 표준 stdio 런타임" 인라인化: 외부 프로젝트용 unikit.json 최소형과 `__unikit_contract` 포함 stdio main 스니펫을 메인 경로에 배치                                                                                                  | 예제 추가             | #2, #10                                                       |
+| 10  | 색인 완성: docs/README.md에 wire-format/verification-checklist/migrations + 예제 갤러리 추가, CLI 실행 표준형 정리, mock engine(@unikit/testing)·React hooks 사용 가이드 또는 링크                                                                 | 색인 재구성+새 가이드 | #31, #6, #28, #5                                              |
 
 ### 5-2. "사용법 중심 재구성" 목차 제안
 
@@ -271,23 +271,23 @@
 ```
 docs/
   README.md                    # 역할별 3열 진입 (앱 개발자/라이브러리 작성자/기여자) + 예제 갤러리
-  what-is-rustra.md            # 5분 평가: 하는 일/안 하는 일/비교표/성능 (P4; README 콘텐츠 흡수)
+  what-is-unikit.md            # 5분 평가: 하는 일/안 하는 일/비교표/성능 (P4; README 콘텐츠 흡수)
   requirements.md              # 전제 도구 매트릭스(러스트 1.88+/Bun 1.4+/호스트별) — #13
   quickstart/
     react-native.md            # P1: init 또는 기존 앱 → doctor → codegen → 첫 호출 → 트러블슈팅
     tauri.md                   # P2: 기존 Tauri 앱 파일별 워크스루 (신규)
     node-bun.md                # 서비스/CLI 경로
-    library-author.md          # P3: 명령 작성 → rustra.json → schema → codegen → JS 팀 전달/배포
+    library-author.md          # P3: 명령 작성 → unikit.json → schema → codegen → JS 팀 전달/배포
   reference/
     rust-api.md                # 현행 rust-api-guide (`.event()`/`State<T>` 보강 — #15, #18)
-    rustra-json.md             # 설정 키 전체(`positional` 등 정의 포함 — #11)
+    unikit-json.md             # 설정 키 전체(`positional` 등 정의 포함 — #11)
     cli.md                     # init/doctor/codegen/dev/diff/generate 표준 실행형 포함 — #6
     type-mapping.md            # 매핑 단일 진실(#14 해소), complex-codecs/wire-format 흡수 또는 링크
   guides/
     events-and-channels.md     # 신규 — #15/#4
     errors-and-semantics.md    # 에러 코드/재시도/취소·타임아웃·배치 호출 예제 — #4
-    testing.md                 # createMockEngine + @rustra/testing — #28
-    react-hooks.md             # @rustra/react — #5
+    testing.md                 # createMockEngine + @unikit/testing — #28
+    react-hooks.md             # @unikit/react — #5
   compatibility/               # matrix(단일 표)/contract/migrations/versioning — 현행 유지+정리
   internals/                   # architecture/codegen/testing/crate-structure (기여자)
   extending/                   # react-native-setup(현행 유지)/transport-guide(현행화 후)/adding-host
@@ -299,9 +299,9 @@ docs/
 
 ## 6. 부록 — 실측 근거 요약
 
-- 버전 실측: `Cargo.toml`(root) `version = "0.8.0"`, `packages/types/package.json` `"version": "0.8.0"` vs 문서 설치줄 `rustra = "0.6"`(README.md:166 등 4파일 6곳, TODO 주석 포함).
-- 매크로 규칙 실측: `crates/rustra-macros/src/macro_command.rs:80`("at most one input data parameter (plus optional State<T> parameters)"), `crates/rustra-macros/src/macro_build.rs:72`(`__RUstra_meta_` 네이밍 — rust-api-guide.md:258 서술과 일치).
-- legacy 심볼 실측: `rustra_calculator_invoke`(문자열 그대로)는 예제 테스트 주석의 "제거 후" 언급과 `rustra_calculator_invoke_typed_raw`(별개 심볼)만 남음(examples/calculator/tests/rkyv_v2_panic_guard.rs:179, examples/calculator/ts/runtime-contract.test.ts:51).
+- 버전 실측: `Cargo.toml`(root) `version = "0.8.0"`, `packages/types/package.json` `"version": "0.8.0"` vs 문서 설치줄 `unikit = "0.6"`(README.md:166 등 4파일 6곳, TODO 주석 포함).
+- 매크로 규칙 실측: `crates/unikit-bridge-macros/src/macro_command.rs:80`("at most one input data parameter (plus optional State<T> parameters)"), `crates/unikit-bridge-macros/src/macro_build.rs:72`(`__UNikit_meta_` 네이밍 — rust-api-guide.md:258 서술과 일치).
+- legacy 심볼 실측: `unikit_calculator_invoke`(문자열 그대로)는 예제 테스트 주석의 "제거 후" 언급과 `unikit_calculator_invoke_typed_raw`(별개 심볼)만 남음(examples/calculator/tests/rkyv_v2_panic_guard.rs:179, examples/calculator/ts/runtime-contract.test.ts:51).
 - ko 미러 실측: compatibility-matrix.ko.md는 표 1개(EN의 2번째 스테일 표 없음). rust-api-guide.ko.md:575(i64→number), getting-started.ko.md:1126(configure 요약), architecture.ko.md:23/525는 EN과 동일 결손.
 - 문서-예제 연결 실측: docs/README.md에서 `examples` grep 0건. examples/ 하위 10개 디렉터리 전부 README.md/README.ko.md 보유(react-native-calculator, calculator, calculator-napi, auth, tauri-calculator, streaming, crud, benchmark, react-native-bare-calculator, reference-app).
-- invokeBatch 호출 예제 grep 0건(docs+README en). `@rustra/testing`/mock engine, getting-started·development-hurdles grep 0건.
+- invokeBatch 호출 예제 grep 0건(docs+README en). `@unikit/testing`/mock engine, getting-started·development-hurdles grep 0건.

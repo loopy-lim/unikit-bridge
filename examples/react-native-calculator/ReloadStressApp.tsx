@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { configure } from '@rustra/types';
+import { configure } from '@unikit/types';
 import { createAsyncEngine, createFastEngine } from '../../packages/react-native/src';
 import { benchEchoBytes } from '../calculator/generated/commands';
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from '../calculator/generated/contract';
 import { frameRegistry } from '../calculator/generated/frame-registry';
-import { getRustraNative, installRustraJSI } from '@rustra/generated-react-native';
+import { getUnikitNative, installUnikitJSI } from '@unikit/generated-react-native';
 
-const LOG_PREFIX = '[RustraReloadStress]';
+const LOG_PREFIX = '[UnikitReloadStress]';
 
 function log(message: string): void {
   console.log(`${LOG_PREFIX} ${message}`);
@@ -30,8 +30,8 @@ export default function ReloadStressApp() {
 
     async function run(): Promise<void> {
       try {
-        await installRustraJSI();
-        const native = getRustraNative();
+        await installUnikitJSI();
+        const native = getUnikitNative();
         if (typeof native.invokeTypedPos !== 'function') {
           throw new Error('invokeTypedPos is unavailable');
         }
@@ -68,8 +68,8 @@ export default function ReloadStressApp() {
           throw new Error('direct byte probe returned different bytes');
         }
         (
-          globalThis as typeof globalThis & { __rustraReloadOwnedBuffer?: ArrayBuffer }
-        ).__rustraReloadOwnedBuffer = byteResult.data;
+          globalThis as typeof globalThis & { __unikitReloadOwnedBuffer?: ArrayBuffer }
+        ).__unikitReloadOwnedBuffer = byteResult.data;
         log(`BUFFER_READY token=${token} bytes=${byteOutput.length}`);
 
         const engine = createAsyncEngine(native, engineOptions);
@@ -106,7 +106,7 @@ export default function ReloadStressApp() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Rustra reload stress</Text>
+      <Text style={styles.title}>Unikit reload stress</Text>
       <Text selectable style={styles.status} testID="reload-stress-status">
         {status}
       </Text>

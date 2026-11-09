@@ -68,7 +68,7 @@ async function writeProvenance(
 }
 
 async function fixture(point: number, lower: number, upper: number): Promise<string> {
-  const root = await mkdtemp(join(tmpdir(), 'rustra-criterion-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-criterion-'));
   await mkdir(join(root, 'group/case/new'), { recursive: true });
   await Bun.write(join(root, 'group/case/new/estimates.json'), '{}');
   const change = join(root, 'group', 'case', 'change');
@@ -103,7 +103,7 @@ void test('parseRegressionArgs validates the budget and resolves the root', () =
 });
 
 void test('missing Criterion changes fails closed', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'rustra-criterion-empty-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-criterion-empty-'));
   try {
     const output = logger();
     const result = await checkCriterionRegression({
@@ -121,7 +121,7 @@ void test('missing Criterion changes fails closed', async () => {
 void test('a missing Criterion root fails closed without a stack trace', async () => {
   const output = logger();
   const result = await checkCriterionRegression({
-    criterionRoot: join(tmpdir(), `rustra-criterion-missing-${crypto.randomUUID()}`),
+    criterionRoot: join(tmpdir(), `unikit-criterion-missing-${crypto.randomUUID()}`),
     maxRegression: 0.1,
     logger: output,
   });
@@ -394,7 +394,7 @@ void test('JSON-shaped but incomplete provenance cannot certify a comparison', a
 void test('regression amid widespread implausible improvement flags baseline mismatch', async () => {
   // 2026-08-29 실측 사고 재현: baseline(runner A, 느림) vs 현재(runner B, 빠름)
   // — 대다수 벤치가 -40%대 '개선'을 보이는 가운데 일부가 +70%대 '회귀'.
-  const root = await mkdtemp(join(tmpdir(), 'rustra-criterion-mixed-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-criterion-mixed-'));
   try {
     for (const [name, point] of [
       ['groupA/case1', -0.44],
@@ -441,7 +441,7 @@ void test('regression amid widespread implausible improvement flags baseline mis
 });
 
 void test('a lone regression with normal improvements stays a genuine failure', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'rustra-criterion-lone-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-criterion-lone-'));
   try {
     for (const [name, point] of [
       ['groupA/case1', -0.1],
@@ -614,7 +614,7 @@ void test('fresh measurements without a matching change estimate fail closed', a
 
 void test('preparation removes restored measurements while retaining comparison baselines', async () => {
   const { prepareCriterionRun } = await import('./check-criterion-regression.mjs');
-  const root = await mkdtemp(join(tmpdir(), 'rustra-criterion-prepare-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-criterion-prepare-'));
   try {
     for (const phase of ['base', 'new', 'change']) {
       await mkdir(join(root, 'retired-route', phase), { recursive: true });

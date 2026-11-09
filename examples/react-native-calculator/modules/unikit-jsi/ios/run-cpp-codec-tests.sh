@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# run-cpp-codec-tests.sh — 생성된 C++ codec 단위/교차 테스트를 독립 빌드/실행.
+#
+# test-jsi-shim.hpp 가 namespace facebook::jsi 를 정의하므로 진짜 React jsi/jsi.h 가
+# 필요 없다. <jsi/jsi.h> 인클루드를 빈 stub 으로 치환하고 shim 을 force-include 해서
+# unikit-generated-codecs.cpp 를 단독 컴파일한다. (각 테스트 파일이 자신의 main() 을
+# 가지므로 별개의 바이너리로 빌드한다.)
+#
+# Phase 2 Task 2.5: Rust(wire_fixtures.rs) ↔ TS(cross-wire.test.ts) ↔ C++(본 스크립트)
+# 세 코너가 동일 fixture hex 를 byte-exact 로 round-trip 함을 증명한다.
+set -euo pipefail
+
+IOS_DIR="$(cd "$(dirname "$0")" && pwd)"
+MODULE_DIR="$(cd "$IOS_DIR/.." && pwd)"
+ADAPTER_CPP="$(cd "$MODULE_DIR/../../../../packages/react-native/native/cpp" && pwd)"
+GENERATED_DIR="$MODULE_DIR/generated"
+BUILD_DIR="${TMPDIR:-/tmp}/unikit-cpp-codec-build"
+STUB_DIR="$BUILD_DIR/jsi"
+CXX="${CXX:-clang++}"
+
+mkdir -p "$STUB_DIR"
+printf '#pragma once\n// stub: facebook::jsi 는 test-jsi-shim.hpp (force-included) 가 제공.\n' \
+  > "$STUB_DIR/jsi.h"
+
+COMMON_FLAGS=(-std=c++17 -O2 -Wall -Wextra -DUNIKIT_TEST_JSI_SHIM=1 -I"$IOS_DIR" -I"$ADAPTER_CPP" -I"$GENERATED_DIR" -I"$BUILD_DIR" -include test-jsi-shim.hpp)
+
+# UNIKIT_CPP_SANITIZERS — 예: "address,undefined". 설정 시 모든 바이너리가
+# sanitizer 빌드·실행된다(ASan Linux 빌드는 LSan 포함). -fno-sanitize-recover 로
+# UBSan 위반을 조용한 경고가 아니라 치명 실패로 승격하고, -fno-omit-frame-pointer
+# 로 sanitizer 스택 트레이스의 기호 해상을 보장한다. sanitizer.yml 의 cpp-codec
+# 잡이 이 경로를 사용한다.
+if [ -n "${UNIKIT_CPP_SANITIZERS:-}" ]; then
+  COMMON_FLAGS+=(
+    -fsanitize="$UNIKIT_CPP_SANITIZERS"
+    -fno-sanitize-recover=undefined
+    -fno-omit-frame-pointer
+  )
+fi
+FAIL=0
+
+run_one() {
+  local name="$1"; shift
+  local binary="$BUILD_DIR/$name"
+  echo "→ compiling $name ..."
+  "$CXX" "${COMMON_FLAGS[@]}" "$@" -o "$binary"
+  echo "→ running $name ..."
+  "$binary" || FAIL=$?
+}
+
+# (A) 생성된 codec 교차 테스트 — Task 2.5 의 본체. fixture hex 교차 검증 포함.
+run_one tgen "$IOS_DIR/test-unikit-generated-codecs.cpp" "$GENERATED_DIR/unikit-generated-codecs.cpp"
+
+# (B) 저수준 Writer/Reader 단위 테스트 (unikit-codec.hpp, 헤더-only).
+run_one tcodec "$IOS_DIR/test-unikit-codec.cpp"
+
+# Atomic sync binding selection, concurrent core publication and reentry.
+run_one tsync "$IOS_DIR/test-unikit-sync-core.cpp"
+
+if [ "$FAIL" -ne 0 ]; then
+  echo "FAILED: some C++ codec checks failed (exit $FAIL)"
+  exit "$FAIL"
+fi
+echo "OK: all C++ codec tests passed"

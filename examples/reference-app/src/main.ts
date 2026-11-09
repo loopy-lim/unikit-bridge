@@ -1,9 +1,9 @@
 /**
- * 레퍼런스 앱 — @rustra/react 훅 + crud 패키지로 만든 완결 CRUD + 이벤트 예제.
+ * 레퍼런스 앱 — @unikit/react 훅 + crud 패키지로 만든 완결 CRUD + 이벤트 예제.
  *
  * Node 위에서 서브프로세스 transport(createNodeProcessTransport)로 실 Rust
- * crud 런타임(rustra-crud-example)을 호출한다. 브라우저/네이티브가 아니어도
- * 훅(useCommand/useMutation)의 데이터 흐름을 그대로 보여준다 — RustraProvider
+ * crud 런타임(unikit-crud-example)을 호출한다. 브라우저/네이티브가 아니어도
+ * 훅(useCommand/useMutation)의 데이터 흐름을 그대로 보여준다 — UnikitProvider
  * 는 어떤 EngineClient든 받으므로, 같은 컴포넌트 트리가 RN/브라우저에서도
  * 재사용된다.
  *
@@ -14,10 +14,10 @@ import { createElement } from 'react';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { existsSync } from 'node:fs';
-import { createNodeEngine, createNodeProcessTransport } from '@rustra/node';
-import { configure } from '@rustra/types';
-import { RustraProvider, useCommand, useMutation, useEvent } from '@rustra/react';
-import type { EngineClient } from '@rustra/types';
+import { createNodeEngine, createNodeProcessTransport } from '@unikit/node';
+import { configure } from '@unikit/types';
+import { UnikitProvider, useCommand, useMutation, useEvent } from '@unikit/react';
+import type { EngineClient } from '@unikit/types';
 import { App } from './App.js';
 import { listItems, createItem } from '../../crud/generated/commands.js';
 
@@ -30,19 +30,19 @@ for (let i = 0; i < 8; i++) {
   repoRoot = dirname(repoRoot);
 }
 if (!existsSync(resolve(repoRoot, 'Cargo.toml'))) {
-  throw new Error(`rustra repo root not found from ${here}`);
+  throw new Error(`unikit repo root not found from ${here}`);
 }
 
 export function makeEngine(): EngineClient {
   const transport = createNodeProcessTransport({
-    command: resolve(repoRoot, 'target/debug/rustra-crud-example'),
+    command: resolve(repoRoot, 'target/debug/unikit-crud-example'),
     args: ['invoke'],
   });
   return createNodeEngine(transport);
 }
 
 // ── 스모크: 훅 로직을 렌더러 없이 검증 ──────────────────────
-// (App 컴포넌트는 RustraProvider + 훅 사용 예시를 담는다)
+// (App 컴포넌트는 UnikitProvider + 훅 사용 예시를 담는다)
 
 async function main() {
   const engine = makeEngine();
@@ -75,7 +75,7 @@ void createItem;
 void useCommand;
 void useMutation;
 void useEvent;
-void RustraProvider;
+void UnikitProvider;
 void createElement;
 
 // 컴파일 실행(node …/main.js)과 직접 실행(bun src/main.ts) 모두 스모크를

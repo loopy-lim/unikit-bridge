@@ -1,4 +1,4 @@
-import { RustraCommandError, RustraErrorCode } from './errors.js';
+import { UnikitCommandError, UnikitErrorCode } from './errors.js';
 import { invokeWithTimeout } from './cancel.js';
 import { ensureConfigured, isLazyConfigured } from './global-config.js';
 import { runtime } from './global-state.js';
@@ -33,9 +33,9 @@ export function invokeBatchSettled<T>(entries: BatchEntry[]): Promise<Array<Batc
   if (!engine) {
     if (isLazyConfigured()) return ensureConfigured().then(() => invokeBatchSettled<T>(entries));
     return Promise.reject(
-      new RustraCommandError(
-        RustraErrorCode.TransportUnavailable,
-        'Rustra not configured. Call configure(engine) first.',
+      new UnikitCommandError(
+        UnikitErrorCode.TransportUnavailable,
+        'Unikit not configured. Call configure(engine) first.',
       ),
     );
   }

@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createElement as h, Suspense } from 'react';
 import { renderToReadableStream } from 'react-dom/server';
-import { configure } from '@rustra/types';
-import type { EngineClient } from '@rustra/types';
+import { configure } from '@unikit/types';
+import type { EngineClient } from '@unikit/types';
 import * as hooks from './index.js';
 import { resolveSuspenseEntry } from './useSuspenseCommand.js';
 
@@ -20,7 +20,7 @@ async function render(owner?: EngineClient): Promise<string> {
   }
   const child = h(Suspense, { fallback: 'loading' }, h(View));
   const stream = await renderToReadableStream(
-    owner ? h(hooks.RustraProvider, { engine: owner }, child) : child,
+    owner ? h(hooks.UnikitProvider, { engine: owner }, child) : child,
   );
   await stream.allReady;
   return new Response(stream).text();

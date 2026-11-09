@@ -45,7 +45,7 @@ export {
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const VERSIONS_PATH = fileURLToPath(new URL('./registry-consumer/versions.json', import.meta.url));
 const PROJECT_NAME = 'registry-consumer';
-const RESULT_MARKER = '__RUSTRA_REGISTRY_RESULT__';
+const RESULT_MARKER = '__UNIKIT_REGISTRY_RESULT__';
 
 function errorText(error) {
   return error instanceof Error ? error.message : String(error);
@@ -179,14 +179,14 @@ function nativeArtifactPaths(context) {
   const executable = join(
     context.targetDir,
     'debug',
-    process.platform === 'win32' ? 'rustra-app.exe' : 'rustra-app',
+    process.platform === 'win32' ? 'unikit-app.exe' : 'unikit-app',
   );
   const libraryBase =
     process.platform === 'win32'
-      ? 'rustra_app.dll'
+      ? 'unikit_app.dll'
       : process.platform === 'darwin'
-        ? 'librustra_app.dylib'
-        : 'librustra_app.so';
+        ? 'libunikit_app.dylib'
+        : 'libunikit_app.so';
   const library = join(context.targetDir, 'debug', libraryBase);
   for (const path of [executable, library]) {
     if (!existsSync(path) || !statSync(path).isFile())
@@ -203,7 +203,7 @@ function snapshotPhaseEvidence(context, phase) {
     'Cargo.toml',
     'package-lock.json',
     'package.json',
-    'rustra.json',
+    'unikit.json',
   ]) {
     cpSync(join(context.projectDir, relativePath), join(snapshotRoot, relativePath));
   }
@@ -215,7 +215,7 @@ function snapshotPhaseEvidence(context, phase) {
     'Cargo.toml',
     'package-lock.json',
     'package.json',
-    'rustra.json',
+    'unikit.json',
     ...generatedFiles(snapshotRoot),
   ];
   return { root: snapshotRoot, files: hashFiles(snapshotRoot, files) };
@@ -345,7 +345,7 @@ async function runHostProbes(context, phase, mutated) {
   const artifacts = internalStep(context, `${phase}-native-artifact-verification`, () =>
     nativeArtifactPaths(context),
   );
-  const extra = mutated ? { RUSTRA_EXPECT_REPEAT: '3' } : {};
+  const extra = mutated ? { UNIKIT_EXPECT_REPEAT: '3' } : {};
   const nodeResult = await commandStep(
     context,
     `${phase}-bundle-generated-node-probe`,
@@ -358,21 +358,21 @@ async function runHostProbes(context, phase, mutated) {
     `${phase}-node-stdio`,
     context.projectDir,
     [process.execPath, '.registry-node-probe.mjs'],
-    { ...extra, RUSTRA_NODE_BINARY: artifacts.executable },
+    { ...extra, UNIKIT_NODE_BINARY: artifacts.executable },
   );
   const bunResult = await commandStep(
     context,
     `${phase}-bun-ffi`,
     context.projectDir,
     ['bun', 'run', 'src/bun-probe.ts'],
-    { ...extra, RUSTRA_BUN_LIBRARY: artifacts.library },
+    { ...extra, UNIKIT_BUN_LIBRARY: artifacts.library },
   );
   return internalStep(context, `${phase}-host-output-verification`, () => {
     const node = parseProbeOutput(nodeInvoke.stdout, `${phase} Node probe`);
     const bun = parseProbeOutput(bunResult.stdout, `${phase} Bun probe`);
-    if (node.host !== 'node' || node.adapter !== '@rustra/node' || node.transport !== 'stdio')
+    if (node.host !== 'node' || node.adapter !== '@unikit/node' || node.transport !== 'stdio')
       throw new Error(`${phase} Node probe reported the wrong host/adapter`);
-    if (bun.host !== 'bun' || bun.adapter !== '@rustra/bun' || bun.transport !== 'ffi')
+    if (bun.host !== 'bun' || bun.adapter !== '@unikit/bun' || bun.transport !== 'ffi')
       throw new Error(`${phase} Bun probe reported the wrong host/adapter`);
     return { node, bun };
   });
@@ -391,7 +391,7 @@ async function runRustPhase(context, phase, expectedRust, { check = false } = {}
     context.projectCli,
     'codegen',
     '--config',
-    'rustra.json',
+    'unikit.json',
   ]);
   await commandStep(context, `${phase}-rebuild`, context.projectDir, ['cargo', 'build']);
   if (check)
@@ -400,7 +400,7 @@ async function runRustPhase(context, phase, expectedRust, { check = false } = {}
       context.projectCli,
       'codegen',
       '--config',
-      'rustra.json',
+      'unikit.json',
       '--check',
     ]);
   await collectCargoMetadata(context, phase);
@@ -439,7 +439,7 @@ async function environmentEvidence(context) {
 
 async function executeRegistryCycle({ logDir }) {
   const versions = validateVersionManifest(readJson(VERSIONS_PATH));
-  const scratchRoot = mkdtempSync(join(tmpdir(), 'rustra-registry-consumer-'));
+  const scratchRoot = mkdtempSync(join(tmpdir(), 'unikit-registry-consumer-'));
   const projectDir = join(scratchRoot, PROJECT_NAME);
   const targetDir = join(scratchRoot, 'cargo-target');
   const isolatedTmp = join(scratchRoot, 'tmp');
@@ -468,9 +468,9 @@ async function executeRegistryCycle({ logDir }) {
     const runner = await runnerIdentity(context);
     internalStep(context, 'prepare-bootstrap-manifest', () => {
       writeJson(join(scratchRoot, 'package.json'), {
-        name: 'rustra-registry-bootstrap',
+        name: 'unikit-registry-bootstrap',
         private: true,
-        dependencies: { '@rustra/cli': versions.npm['@rustra/cli'] },
+        dependencies: { '@unikit/cli': versions.npm['@unikit/cli'] },
       });
       assertNoConsumerContamination(scratchRoot);
     });
@@ -482,9 +482,9 @@ async function executeRegistryCycle({ logDir }) {
       '--no-fund',
     ]);
     const bootstrapNpm = internalStep(context, 'verify-published-cli-source', () =>
-      assertExactNpmProvenance(scratchRoot, { '@rustra/cli': versions.npm['@rustra/cli'] }),
+      assertExactNpmProvenance(scratchRoot, { '@unikit/cli': versions.npm['@unikit/cli'] }),
     );
-    const bootstrapCli = join(scratchRoot, 'node_modules', '@rustra', 'cli', 'dist', 'index.js');
+    const bootstrapCli = join(scratchRoot, 'node_modules', '@unikit', 'cli', 'dist', 'index.js');
     await commandStep(context, 'published-cli-init', scratchRoot, [
       process.execPath,
       bootstrapCli,
@@ -496,9 +496,9 @@ async function executeRegistryCycle({ logDir }) {
       assertNoConsumerContamination(projectDir, { expectedNpm: versions.npm }),
     );
     const originalInstallInputs = [
-      `@rustra/cli@${versions.npm['@rustra/cli']}`,
-      `@rustra/types@${versions.npm['@rustra/types']}`,
-      `@rustra/node@${versions.npm['@rustra/node']}`,
+      `@unikit/cli@${versions.npm['@unikit/cli']}`,
+      `@unikit/types@${versions.npm['@unikit/types']}`,
+      `@unikit/node@${versions.npm['@unikit/node']}`,
     ];
     await commandStep(context, 'resolve-original-exact-npm-lock', projectDir, [
       'npm',
@@ -520,18 +520,18 @@ async function executeRegistryCycle({ logDir }) {
     const originalNpm = internalStep(context, 'verify-original-exact-npm-sources', () => {
       assertNoConsumerContamination(projectDir, { expectedNpm: versions.npm });
       return assertExactNpmProvenance(projectDir, {
-        '@rustra/cli': versions.npm['@rustra/cli'],
-        '@rustra/types': versions.npm['@rustra/types'],
-        '@rustra/node': versions.npm['@rustra/node'],
+        '@unikit/cli': versions.npm['@unikit/cli'],
+        '@unikit/types': versions.npm['@unikit/types'],
+        '@unikit/node': versions.npm['@unikit/node'],
       });
     });
-    context.projectCli = join(projectDir, 'node_modules', '@rustra', 'cli', 'dist', 'index.js');
+    context.projectCli = join(projectDir, 'node_modules', '@unikit', 'cli', 'dist', 'index.js');
     await commandStep(context, 'baseline-doctor', projectDir, [
       process.execPath,
       context.projectCli,
       'doctor',
       '--config',
-      'rustra.json',
+      'unikit.json',
     ]);
     await runRustPhase(context, 'baseline-initial', versions.phases.baseline, { check: true });
     const originalDemo = await commandStep(context, 'baseline-original-demo', projectDir, [
@@ -557,7 +557,7 @@ async function executeRegistryCycle({ logDir }) {
       evidenceSnapshot: snapshotPhaseEvidence(context, 'baseline-original'),
       demo: {
         jsRuntime: 'bun',
-        adapter: '@rustra/node',
+        adapter: '@unikit/node',
         transport: 'stdio',
         classification: 'original generated demo; not Bun FFI evidence',
       },
@@ -571,7 +571,7 @@ async function executeRegistryCycle({ logDir }) {
     );
     const extendedInstallInputs = [
       ...originalInstallInputs,
-      `@rustra/bun@${versions.npm['@rustra/bun']}`,
+      `@unikit/bun@${versions.npm['@unikit/bun']}`,
     ];
     await commandStep(context, 'resolve-extended-exact-npm-lock', projectDir, [
       'npm',
@@ -741,7 +741,7 @@ export async function runRegistryConsumerGate({ outputPath, execute = executeReg
     const result = await execute({ outputPath: absoluteOutput, logDir });
     receipt = {
       schemaVersion: 1,
-      gate: 'rustra-public-registry-consumer',
+      gate: 'unikit-public-registry-consumer',
       ok: true,
       startedAt: startedAt.toISOString(),
       completedAt: new Date().toISOString(),
@@ -757,7 +757,7 @@ export async function runRegistryConsumerGate({ outputPath, execute = executeReg
     const step = error?.step;
     receipt = {
       schemaVersion: 1,
-      gate: 'rustra-public-registry-consumer',
+      gate: 'unikit-public-registry-consumer',
       ok: false,
       startedAt: startedAt.toISOString(),
       completedAt: new Date().toISOString(),

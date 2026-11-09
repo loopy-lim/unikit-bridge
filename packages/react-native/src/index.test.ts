@@ -3,15 +3,15 @@ import test from 'node:test';
 import {
   CancelledError,
   createReactNativeEngine,
-  createRustraBootstrap,
+  createUnikitBootstrap,
   createBytesChannel,
   createChannel,
   invokeTypedSync,
-  getRustraNative,
-  RustraCommandError,
+  getUnikitNative,
+  UnikitCommandError,
 } from './index.js';
-import type { RustraJSINative } from './index.js';
-import { createSchemaPostcardCodec, decodeUtf8, encodeUtf8, exactArrayBuffer } from '@rustra/types';
+import type { UnikitJSINative } from './index.js';
+import { createSchemaPostcardCodec, decodeUtf8, encodeUtf8, exactArrayBuffer } from '@unikit/types';
 
 const encoder = new TextEncoder();
 
@@ -21,7 +21,7 @@ void test('Hermes fallback encodes and decodes Korean and emoji without WHATWG g
   Object.defineProperty(globalThis, 'TextEncoder', { configurable: true, value: undefined });
   Object.defineProperty(globalThis, 'TextDecoder', { configurable: true, value: undefined });
   try {
-    const input = '안녕하세요 Rustra 🚀';
+    const input = '안녕하세요 Unikit 🚀';
     const bytes = encodeUtf8(input);
     assert.equal(decodeUtf8(bytes), input);
     assert.deepEqual([...bytes], [...encoder.encode(input)]);
@@ -42,7 +42,7 @@ function createMockNative(returnValue: { ok: boolean; result?: unknown; error?: 
   };
 }
 
-function createSetupNative(): RustraJSINative {
+function createSetupNative(): UnikitJSINative {
   return {
     invoke: () => new ArrayBuffer(0),
     invokeFrame: () => new ArrayBuffer(0),
@@ -51,11 +51,11 @@ function createSetupNative(): RustraJSINative {
 
 void test('missing JSI module error points through native linking to the Rust ABI', () => {
   const globalRecord = globalThis as Record<string, unknown>;
-  const previous = Object.getOwnPropertyDescriptor(globalRecord, '__rustraNative');
-  Reflect.deleteProperty(globalRecord, '__rustraNative');
+  const previous = Object.getOwnPropertyDescriptor(globalRecord, '__unikitNative');
+  Reflect.deleteProperty(globalRecord, '__unikitNative');
   try {
     assert.throws(
-      () => getRustraNative(),
+      () => getUnikitNative(),
       (error: unknown) =>
         error instanceof Error &&
         // 구조화 코드 계약 — 미설치도 invoke 계열과 같은 error.code 분기를 제공.
@@ -65,14 +65,14 @@ void test('missing JSI module error points through native linking to the Rust AB
         /extern "C" FFI symbols/.test(error.message),
     );
   } finally {
-    if (previous) Object.defineProperty(globalRecord, '__rustraNative', previous);
+    if (previous) Object.defineProperty(globalRecord, '__unikitNative', previous);
   }
 });
 
 void test('React Native bootstrap installs and configures once across concurrent readiness', async () => {
   let installs = 0;
   const native = createSetupNative();
-  const bootstrap = createRustraBootstrap({
+  const bootstrap = createUnikitBootstrap({
     install: async () => {
       installs++;
       await Promise.resolve();
@@ -87,7 +87,7 @@ void test('React Native bootstrap installs and configures once across concurrent
 });
 
 void test('React Native bootstrap adds native-to-Rust remediation to install failures', async () => {
-  const bootstrap = createRustraBootstrap({
+  const bootstrap = createUnikitBootstrap({
     install: async () => {
       throw new Error('ERR_NO_BRIDGE');
     },
@@ -100,7 +100,7 @@ void test('React Native bootstrap adds native-to-Rust remediation to install fai
     (error: unknown) =>
       error instanceof Error &&
       // 설정 경계 실패도 구조화 코드로 분류된다 — invoke 오류와 같은 분기 축.
-      error instanceof RustraCommandError &&
+      error instanceof UnikitCommandError &&
       error.code === 'bootstrap.failed' &&
       error.retryable === false &&
       (error.cause as Error | undefined)?.message === 'ERR_NO_BRIDGE' &&
@@ -113,13 +113,13 @@ void test('React Native bootstrap adds native-to-Rust remediation to install fai
 for (const native of [{ invoke: () => new ArrayBuffer(0) }, { invokeFrame: 'old bridge' }, null]) {
   void test(`Frame engine reports an incompatible selected native transport (${native === null ? 'null' : typeof native.invokeFrame})`, () => {
     assert.throws(
-      () => createFastEngine(native as unknown as RustraJSINative, { frameCodecs: new Map() }),
+      () => createFastEngine(native as unknown as UnikitJSINative, { frameCodecs: new Map() }),
       (error: unknown) => {
-        assert.ok(error instanceof RustraCommandError);
+        assert.ok(error instanceof UnikitCommandError);
         assert.equal(error.code, 'native.incompatible');
         assert.match(error.message, /createFastEngine/);
         assert.match(error.message, /invokeFrame/);
-        assert.match(error.message, /rustra codegen/);
+        assert.match(error.message, /unikit codegen/);
         assert.match(error.message, /rebuild.*native app/i);
         assert.match(error.message, /JavaScript reload/);
         return true;
@@ -132,7 +132,7 @@ void test('JSON engine reports a missing selected invoke transport before the fi
   assert.throws(
     () => createReactNativeEngine({} as { invoke(payload: ArrayBuffer): ArrayBuffer }),
     (error: unknown) => {
-      assert.ok(error instanceof RustraCommandError);
+      assert.ok(error instanceof UnikitCommandError);
       assert.equal(error.code, 'native.incompatible');
       assert.match(error.message, /createReactNativeEngine/);
       assert.match(error.message, /invoke\(\)/);
@@ -158,14 +158,14 @@ void test('Frame-only legacy transport reaches the first typed command without o
       // Success header + postcard zigzag(42); independent hand-checked response.
       return new Uint8Array([1, 0, 0, 0, 0, 0, 0, 0, 84]).buffer;
     },
-  } as RustraJSINative;
+  } as UnikitJSINative;
   const engine = createFastEngine(native, { frameCodecs: new Map([['addNumbers', codec]]) });
   assert.deepEqual(await engine.invoke('addNumbers', { a: 20, b: 22 }), { value: 42 });
 });
 
 void test('RN bootstrap cannot report ready when installation lacks the selected Frame transport', async () => {
-  const native = createMockNative({ ok: true, result: null }) as RustraJSINative;
-  const bootstrap = createRustraBootstrap({
+  const native = createMockNative({ ok: true, result: null }) as UnikitJSINative;
+  const bootstrap = createUnikitBootstrap({
     install: async () => {},
     getNative: () => native,
     frameCodecs: new Map(),
@@ -174,7 +174,7 @@ void test('RN bootstrap cannot report ready when installation lacks the selected
     await assert.rejects(
       bootstrap.ready(),
       (error: unknown) =>
-        error instanceof RustraCommandError && error.code === 'native.incompatible',
+        error instanceof UnikitCommandError && error.code === 'native.incompatible',
     );
     assert.equal(bootstrap.state, 'initializing', 'failed transport setup never becomes ready');
   } finally {
@@ -183,7 +183,7 @@ void test('RN bootstrap cannot report ready when installation lacks the selected
 });
 
 void test('RN bootstrap preserves contract mismatch code and native/client diagnosis', async () => {
-  const bootstrap = createRustraBootstrap({
+  const bootstrap = createUnikitBootstrap({
     install: async () => {},
     getNative: () => ({
       invoke: () => new ArrayBuffer(0),
@@ -195,7 +195,7 @@ void test('RN bootstrap preserves contract mismatch code and native/client diagn
   });
   try {
     await assert.rejects(bootstrap.ready(), (error: unknown) => {
-      assert.ok(error instanceof RustraCommandError);
+      assert.ok(error instanceof UnikitCommandError);
       assert.equal(error.code, 'contract.mismatch');
       assert.match(error.message, /native-contract/);
       assert.match(error.message, /client-contract/);
@@ -210,10 +210,10 @@ void test('RN bootstrap preserves contract mismatch code and native/client diagn
 void test('RN bootstrap preserves structured native setup error cause and request data', async () => {
   const cause = new Error('native registration rejected');
   const failure = Object.assign(
-    new RustraCommandError('bridge.install_failed', 'install request 42 rejected', true, cause),
+    new UnikitCommandError('bridge.install_failed', 'install request 42 rejected', true, cause),
     { requestId: 42, frameBytes: new Uint8Array([1, 2, 3]) },
   );
-  const bootstrap = createRustraBootstrap({
+  const bootstrap = createUnikitBootstrap({
     install: async () => {
       throw failure;
     },
@@ -222,7 +222,7 @@ void test('RN bootstrap preserves structured native setup error cause and reques
   });
   try {
     await assert.rejects(bootstrap.ready(), (error: unknown) => {
-      assert.ok(error instanceof RustraCommandError);
+      assert.ok(error instanceof UnikitCommandError);
       assert.equal(error, failure, 'callers receive the original structured native failure');
       assert.equal(error.cause, cause);
       assert.equal(Reflect.get(error, 'requestId'), 42);
@@ -265,7 +265,7 @@ void test('includes default error message when error is missing', async () => {
     async () => engine.invoke('cmd'),
     (err: unknown) => {
       assert.ok(err instanceof Error);
-      assert.equal(err.message, 'Rustra invoke failed');
+      assert.equal(err.message, 'Unikit invoke failed');
       return true;
     },
   );
@@ -283,7 +283,7 @@ void test('JSON adapter rejects a pre-aborted call without crossing native', asy
   ac.abort();
   await assert.rejects(
     engine.invoke('cancelled', undefined, { signal: ac.signal }),
-    (error: unknown) => error instanceof RustraCommandError && error.code === 'cancelled',
+    (error: unknown) => error instanceof UnikitCommandError && error.code === 'cancelled',
   );
   assert.equal(calls, 0);
 });
@@ -308,7 +308,7 @@ void test('JSON adapter exposes Promise-based invokeBatch with stable order', as
 
 // ── Trust-test baselines (Phase 0) ──────────────────────────
 // 현재 결함을 "현재 동작"으로 고정한다. Phase 1 수정 후 각 단언이
-// 실패하며, 그때 새 동작(Promise.reject / RustraCommandError)으로 전환한다.
+// 실패하며, 그때 새 동작(Promise.reject / UnikitCommandError)으로 전환한다.
 
 void test('F3: native.invoke throw is caught by .catch() (Promise<T> honored)', async () => {
   // EngineClient 계약: invoke()는 Promise<T>를 반환해야 하므로,
@@ -332,14 +332,14 @@ void test('F3: native.invoke throw is caught by .catch() (Promise<T> honored)', 
   );
 });
 
-void test('F4: error response rejects with RustraCommandError carrying code', async () => {
+void test('F4: error response rejects with UnikitCommandError carrying code', async () => {
   const engine = createReactNativeEngine(
     createMockNative({ ok: false, error: 'command.not_found: unknown' }),
   );
   await assert.rejects(
     async () => engine.invoke('cmd', {}),
     (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError, 'must be RustraCommandError (code preserved)');
+      assert.ok(err instanceof UnikitCommandError, 'must be UnikitCommandError (code preserved)');
       assert.equal(err.code, 'command.not_found', 'RustaError "code: message" → code parsed');
       assert.match((err as Error).message, /unknown/);
       return true;
@@ -350,7 +350,7 @@ void test('F4: error response rejects with RustraCommandError carrying code', as
 // ── subscribeEvent (Rust → JS push) ─────────────────────────
 
 import { subscribeEvent } from './index.js';
-import type { RustraEventNative } from './index.js';
+import type { UnikitEventNative } from './index.js';
 
 type RecordedListener = { name: string; callback: (payloadJson: string) => void };
 
@@ -378,9 +378,9 @@ function createEventNative() {
 
 void test('subscribeEvent registers a native listener and parses the JSON payload once', () => {
   const h = createEventNative();
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = h.native;
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = h.native;
   const received: unknown[] = [];
   const payloadJson = JSON.stringify({ step: 1, total: 5 });
 
@@ -389,7 +389,7 @@ void test('subscribeEvent registers a native listener and parses the JSON payloa
       received.push(payload);
     });
   } finally {
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
 
   assert.equal(h.calls.length, 1, 'native.onEvent must be called once');
@@ -401,30 +401,30 @@ void test('subscribeEvent registers a native listener and parses the JSON payloa
 
 void test('subscribeEvent supports the canonical name-first shape used by generated events', () => {
   const h = createEventNative();
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = h.native;
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = h.native;
   const received: unknown[] = [];
   try {
     subscribeEvent('canonical.tick', (payload) => received.push(payload));
     h.emit('canonical.tick', JSON.stringify({ ok: true }));
     assert.deepEqual(received, [{ ok: true }]);
   } finally {
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
 });
 
 void test('subscribeEvent unsubscribe removes the native listener', () => {
   const h = createEventNative();
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = h.native;
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = h.native;
 
   let unsubscribe: () => void;
   try {
     unsubscribe = subscribeEvent('demo.done', () => {});
   } finally {
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
   assert.equal(h.listeners.size, 1);
   unsubscribe();
@@ -434,9 +434,9 @@ void test('subscribeEvent unsubscribe removes the native listener', () => {
 
 void test('subscribeEvent normalizes unparseable payloads to null', () => {
   const h = createEventNative();
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = h.native;
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = h.native;
   const received: unknown[] = [];
 
   try {
@@ -444,7 +444,7 @@ void test('subscribeEvent normalizes unparseable payloads to null', () => {
       received.push(payload);
     });
   } finally {
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
   h.emit('bad.json', 'not-json{');
 
@@ -452,41 +452,41 @@ void test('subscribeEvent normalizes unparseable payloads to null', () => {
 });
 
 void test('subscribeEvent fails loudly when native has no event capability', () => {
-  const legacy: RustraEventNative = {};
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = legacy;
+  const legacy: UnikitEventNative = {};
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = legacy;
   try {
     assert.throws(
       () => subscribeEvent('any.event', () => {}),
-      (error: unknown) => error instanceof RustraCommandError && error.code === 'event.unavailable',
+      (error: unknown) => error instanceof UnikitCommandError && error.code === 'event.unavailable',
     );
   } finally {
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
 });
 
 void test('subscribeEvent allows an explicit no-op fallback when native lacks events', () => {
-  const legacy: RustraEventNative = {};
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = legacy;
+  const legacy: UnikitEventNative = {};
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = legacy;
   let unsubscribe: () => void;
   try {
     unsubscribe = subscribeEvent('any.event', () => {}, {
       allowMissingNative: true,
     });
   } finally {
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
   unsubscribe(); // throw 하지 않아야 한다
 });
 
 void test('subscribeEvent coexists with multiple event names', () => {
   const h = createEventNative();
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = h.native;
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = h.native;
   const ticks: unknown[] = [];
   const dones: unknown[] = [];
 
@@ -494,7 +494,7 @@ void test('subscribeEvent coexists with multiple event names', () => {
     subscribeEvent('progress.tick', (p) => ticks.push(p));
     subscribeEvent('demo.done', (p) => dones.push(p));
   } finally {
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
   h.emit('progress.tick', JSON.stringify({ step: 2 }));
   h.emit('demo.done', JSON.stringify({ emitted: 6 }));
@@ -560,9 +560,9 @@ void test('createChannel delivers once when a user callback throws', () => {
 
 void test('event resubscription cannot revisit a listener during the same delivery', () => {
   const h = createEventNative();
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = h.native;
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = h.native;
   let unsubscribe = () => {};
   let calls = 0;
   const keepAlive = subscribeEvent('reentrant.tick', () => {});
@@ -583,15 +583,15 @@ void test('event resubscription cannot revisit a listener during the same delive
   } finally {
     unsubscribe();
     keepAlive();
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
 });
 
 void test('event delivery skips listeners removed before their turn and defers new listeners', () => {
   const h = createEventNative();
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = h.native;
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = h.native;
   const seen: string[] = [];
   let stopSecond = () => {};
   let stopThird = () => {};
@@ -614,7 +614,7 @@ void test('event delivery skips listeners removed before their turn and defers n
     stopFirst();
     stopSecond();
     stopThird();
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
 });
 
@@ -652,7 +652,7 @@ void test('invokeTypedSync returns the decoded value without a Promise hop', () 
   assert.deepEqual(result, { value: 3 }, 'sync path returns the decoded output directly');
 });
 
-void test('invokeTypedSync normalizes C++ "code: message" JSError into RustraCommandError', () => {
+void test('invokeTypedSync normalizes C++ "code: message" JSError into UnikitCommandError', () => {
   const native = {
     invokeTyped() {
       throw new Error("platform.unavailable: command 'x' is declared for platforms [macos]");
@@ -661,7 +661,7 @@ void test('invokeTypedSync normalizes C++ "code: message" JSError into RustraCom
   assert.throws(
     () => invokeTypedSync('x', {}, native),
     (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'platform.unavailable');
       return true;
     },
@@ -691,14 +691,14 @@ void test('createChannel rejects an invalid native handle instead of creating an
 // ── createAsyncEngine (P0-3 + T1 얕은 취소) ─────────────────
 
 import { createAsyncEngine, createFastEngine } from './index.js';
-import type { RustraJSIAsyncNative } from './index.js';
+import type { UnikitJSIAsyncNative } from './index.js';
 
 // ── FastEngineOptions → core 옵션 전달 (follow-up 2) ───────
-// 어댑터는 "전달됐는지"만 검증 — core 동작 상세는 @rustra/types 에서 이미 검증됨.
+// 어댑터는 "전달됐는지"만 검증 — core 동작 상세는 @unikit/types 에서 이미 검증됨.
 
 void test('createFastEngine forwards maxPayloadBytes to the core pre-check', async () => {
   // maxPayloadBytes: 8 → 인코딩 후 8B 초과면 payload.too_large 로 네이티브 호출 없이 reject.
-  const native: RustraJSINative = {
+  const native: UnikitJSINative = {
     invoke: () => new ArrayBuffer(0),
     invokeFrame: () => {
       throw new Error('native must not be called for an over-limit payload');
@@ -715,13 +715,13 @@ void test('createFastEngine forwards maxPayloadBytes to the core pre-check', asy
   });
   await assert.rejects(
     engine.invoke('big', {}),
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'payload.too_large',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'payload.too_large',
   );
 });
 
 void test('createFastEngine forwards schemaVersion/onSchemaStale (stale warning path)', () => {
   const stale: unknown[] = [];
-  const native: RustraJSINative = {
+  const native: UnikitJSINative = {
     invoke: () => new ArrayBuffer(0),
     invokeFrame: () => new ArrayBuffer(8),
     getSchema: () => encoder.encode(JSON.stringify({ schemaVersion: 1, commands: [] })).buffer,
@@ -741,7 +741,7 @@ void test('createFastEngine forwards contractVerification (warn accepts hash mis
   const originalWarn = console.warn;
   console.warn = (...args: unknown[]) => warnings.push(args);
   try {
-    const native: RustraJSINative = {
+    const native: UnikitJSINative = {
       invoke: () => new ArrayBuffer(0),
       invokeFrame: () => new ArrayBuffer(0),
       getContractHash: () => encoder.encode('native-hash-AAAA').buffer,
@@ -762,7 +762,7 @@ void test('createFastEngine forwards contractVerification (warn accepts hash mis
 
 void test('createFastEngine forwards onContractMismatch (degraded mode entry)', () => {
   const mismatches: unknown[] = [];
-  const native: RustraJSINative = {
+  const native: UnikitJSINative = {
     invoke: () => new ArrayBuffer(0),
     invokeFrame: () => new ArrayBuffer(0),
     getContractHash: () => encoder.encode('native-hash-AAAA').buffer,
@@ -789,7 +789,7 @@ function makeAsyncNative() {
     resolveNow: () => {},
     rejectNow: (_msg: string) => {},
   };
-  const native: RustraJSIAsyncNative = {
+  const native: UnikitJSIAsyncNative = {
     invoke(_payload: ArrayBuffer): ArrayBuffer {
       return new ArrayBuffer(0);
     },
@@ -829,7 +829,7 @@ void test('async engine without signal resolves via invokeTypedAsync (T1 baselin
 });
 
 void test('async engine exposes Promise-based invokeBatch with stable order', async () => {
-  const native: RustraJSIAsyncNative = {
+  const native: UnikitJSIAsyncNative = {
     invoke: () => new ArrayBuffer(0),
     invokeFrame: () => new ArrayBuffer(0),
     invokeTypedAsync(name, _args, onSuccess) {
@@ -845,7 +845,7 @@ void test('async engine exposes Promise-based invokeBatch with stable order', as
 });
 
 void test('createAsyncEngine reports when it falls back to the synchronous engine', () => {
-  const native: RustraJSIAsyncNative = {
+  const native: UnikitJSIAsyncNative = {
     invoke: () => new ArrayBuffer(0),
     invokeFrame: () => new ArrayBuffer(0),
   };
@@ -870,7 +870,7 @@ void test('async engine without signal rejects via invokeTypedAsync error callba
   const p = engine.invoke('heavy', { n: 1 });
   h.state.rejectNow('math.divide_by_zero: nope');
   await assert.rejects(p, (err: unknown) => {
-    assert.ok(err instanceof RustraCommandError);
+    assert.ok(err instanceof UnikitCommandError);
     assert.equal(err.code, 'math.divide_by_zero');
     return true;
   });
@@ -883,7 +883,7 @@ void test('pre-aborted signal rejects cancelled without calling invokeTypedAsync
   const ac = new AbortController();
   ac.abort();
   await assert.rejects(engine.invoke('heavy', { n: 1 }, { signal: ac.signal }), (err: unknown) => {
-    assert.ok(err instanceof RustraCommandError, 'must be RustraCommandError');
+    assert.ok(err instanceof UnikitCommandError, 'must be UnikitCommandError');
     assert.equal(err.code, 'cancelled');
     assert.equal(err.retryable, true, 'cancelled is retryable');
     assert.match((err as Error).message, /heavy/);
@@ -902,7 +902,7 @@ void test('abort mid-flight rejects cancelled; late native resolve is ignored (T
   ac.abort(); // 진행 중 중단
 
   await assert.rejects(p, (err: unknown) => {
-    assert.ok(err instanceof RustraCommandError);
+    assert.ok(err instanceof UnikitCommandError);
     assert.equal(err.code, 'cancelled');
     return true;
   });
@@ -912,7 +912,7 @@ void test('abort mid-flight rejects cancelled; late native resolve is ignored (T
   await new Promise<void>((r) => queueMicrotask(() => r()));
   await assert.rejects(
     p,
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'cancelled',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'cancelled',
     'promise must stay rejected (late resolve is a no-op)',
   );
   assert.equal(h.state.delivered, true, 'native callback did fire — it was just ignored');
@@ -927,7 +927,7 @@ function makePropagatingAsyncNative() {
     resolveNow: (_result: unknown) => {},
     rejectNow: (_msg: string) => {},
   };
-  const native: RustraJSIAsyncNative = {
+  const native: UnikitJSIAsyncNative = {
     invoke(_payload: ArrayBuffer): ArrayBuffer {
       return new ArrayBuffer(0);
     },
@@ -963,7 +963,7 @@ void test('abort mid-flight propagates: invokeCancel(id) is called (follow-up 3)
   ac.abort();
 
   await assert.rejects(p, (err: unknown) => {
-    assert.ok(err instanceof RustraCommandError);
+    assert.ok(err instanceof UnikitCommandError);
     assert.equal(err.code, 'cancelled');
     return true;
   });
@@ -978,7 +978,7 @@ void test('abort mid-flight propagates: invokeCancel(id) is called (follow-up 3)
   await new Promise<void>((r) => queueMicrotask(() => r()));
   await assert.rejects(
     p,
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'cancelled',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'cancelled',
     'promise must stay rejected (late resolve is a no-op)',
   );
 });
@@ -993,7 +993,7 @@ void test('abort mid-flight propagates and late native error is ignored (follow-
   h.state.rejectNow('internal: late failure');
 
   await assert.rejects(p, (err: unknown) => {
-    assert.ok(err instanceof RustraCommandError);
+    assert.ok(err instanceof UnikitCommandError);
     assert.equal(err.code, 'cancelled', 'abort wins over the late error');
     return true;
   });
@@ -1003,7 +1003,7 @@ void test('signal path without invokeCancel falls back to shallow cancel (follow
   // 구형 네이티브 — invokeCancel 미노출 (void 반환). 얕은 취소로 폴백해야 한다.
   const h = makeAsyncNative();
   let cancelCalls = 0;
-  const native: RustraJSIAsyncNative = {
+  const native: UnikitJSIAsyncNative = {
     ...h.native,
     invokeCancel: (_id: number) => {
       cancelCalls++;
@@ -1018,7 +1018,7 @@ void test('signal path without invokeCancel falls back to shallow cancel (follow
   ac.abort();
 
   await assert.rejects(p, (err: unknown) => {
-    assert.ok(err instanceof RustraCommandError);
+    assert.ok(err instanceof UnikitCommandError);
     assert.equal(err.code, 'cancelled');
     return true;
   });
@@ -1042,13 +1042,13 @@ void test('async engine applies timeoutMs and ignores a late native callback', a
   const promise = engine.invoke('slow', undefined, { timeoutMs: 10 });
   await assert.rejects(
     promise,
-    (error: unknown) => error instanceof RustraCommandError && error.code === 'transport.timeout',
+    (error: unknown) => error instanceof UnikitCommandError && error.code === 'transport.timeout',
   );
   h.state.resolveNow();
   await new Promise<void>((resolve) => queueMicrotask(resolve));
   await assert.rejects(
     promise,
-    (error: unknown) => error instanceof RustraCommandError && error.code === 'transport.timeout',
+    (error: unknown) => error instanceof UnikitCommandError && error.code === 'transport.timeout',
   );
 });
 
@@ -1061,7 +1061,7 @@ function makeByIdAsyncNative() {
     resolveNow: () => {},
     rejectNow: (_msg: string) => {},
   };
-  const native: RustraJSIAsyncNative = {
+  const native: UnikitJSIAsyncNative = {
     invoke(_payload: ArrayBuffer): ArrayBuffer {
       return new ArrayBuffer(0);
     },
@@ -1157,8 +1157,8 @@ void test('JSON adapter pre-abort rejects with CancelledError instance', async (
     (error: unknown) => {
       assert.ok(error instanceof CancelledError, 'JSON adapter pre-abort must be CancelledError');
       assert.ok(
-        error instanceof RustraCommandError,
-        'CancelledError must remain a RustraCommandError',
+        error instanceof UnikitCommandError,
+        'CancelledError must remain a UnikitCommandError',
       );
       assert.equal(error.code, 'cancelled');
       assert.equal(error.retryable, true);
@@ -1217,20 +1217,20 @@ void test('A02: createAsyncEngine exposes cooperative cancellation supports', as
   });
 });
 
-// ── A05: bootstrap 수명 상태 모델 (RN createRustraBootstrap) ────────────────
+// ── A05: bootstrap 수명 상태 모델 (RN createUnikitBootstrap) ────────────────
 // 각 테스트는 글로벌 슬롯을 configure 로 리셋한 뒤 등록한다(R08 가드 — 소비 전
 // 경쟁 등록 loud-fail 은 여기서 재검증 대상이 아니다).
 
 const A05_SLOT_ENGINE = {
   invoke: async <T>() => 'slot' as T,
-} as unknown as import('@rustra/types').EngineClientWithBatch;
+} as unknown as import('@unikit/types').EngineClientWithBatch;
 
-void test('A05: createRustraBootstrap exposes the lifecycle state surface', async () => {
-  const { configure } = await import('@rustra/types');
+void test('A05: createUnikitBootstrap exposes the lifecycle state surface', async () => {
+  const { configure } = await import('@unikit/types');
   const native = createSetupNative();
   configure(A05_SLOT_ENGINE);
   try {
-    const bootstrap = createRustraBootstrap({
+    const bootstrap = createUnikitBootstrap({
       install: async () => {
         await Promise.resolve();
       },
@@ -1248,10 +1248,10 @@ void test('A05: createRustraBootstrap exposes the lifecycle state surface', asyn
 });
 
 void test('A05: ready after dispose rejects loudly (react-native)', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   try {
-    const bootstrap = createRustraBootstrap({
+    const bootstrap = createUnikitBootstrap({
       install: async () => {},
       getNative: createSetupNative,
       frameCodecs: new Map(),
@@ -1267,10 +1267,10 @@ void test('A05: ready after dispose rejects loudly (react-native)', async () => 
 });
 
 void test('A05: dispose is idempotent — second dispose is a no-op (react-native)', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   try {
-    const bootstrap = createRustraBootstrap({
+    const bootstrap = createUnikitBootstrap({
       install: async () => {},
       getNative: createSetupNative,
       frameCodecs: new Map(),
@@ -1284,12 +1284,12 @@ void test('A05: dispose is idempotent — second dispose is a no-op (react-nativ
 });
 
 void test('A05: concurrent ready calls share one initialization promise (react-native)', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   try {
     let installs = 0;
     const native = createSetupNative();
-    const bootstrap = createRustraBootstrap({
+    const bootstrap = createUnikitBootstrap({
       install: async () => {
         installs++;
         await Promise.resolve();
@@ -1307,10 +1307,10 @@ void test('A05: concurrent ready calls share one initialization promise (react-n
 });
 
 void test('disposing an uninitialized RN bootstrap releases global lazy setup', async () => {
-  const { configure, ensureConfigured } = await import('@rustra/types');
+  const { configure, ensureConfigured } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   let installs = 0;
-  const bootstrap = createRustraBootstrap({
+  const bootstrap = createUnikitBootstrap({
     install: async () => {
       installs++;
     },
@@ -1327,13 +1327,13 @@ void test('disposing an uninitialized RN bootstrap releases global lazy setup', 
 });
 
 void test('disposing RN bootstrap during install cannot publish its engine', async () => {
-  const { configure, ensureConfigured } = await import('@rustra/types');
+  const { configure, ensureConfigured } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   let release!: () => void;
   const installing = new Promise<void>((resolve) => {
     release = resolve;
   });
-  const bootstrap = createRustraBootstrap({
+  const bootstrap = createUnikitBootstrap({
     install: () => installing,
     getNative: createSetupNative,
     frameCodecs: new Map(),
@@ -1352,13 +1352,13 @@ void test('disposing RN bootstrap during install cannot publish its engine', asy
 });
 
 void test('replaced RN bootstrap cannot claim another engine as ready', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   let release!: () => void;
   const installing = new Promise<void>((resolve) => {
     release = resolve;
   });
-  const bootstrap = createRustraBootstrap({
+  const bootstrap = createUnikitBootstrap({
     install: () => installing,
     getNative: createSetupNative,
     frameCodecs: new Map(),
@@ -1378,10 +1378,10 @@ void test('replaced RN bootstrap cannot claim another engine as ready', async ()
 });
 
 void test('captured RN engine stops every public route after bootstrap disposal', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
   let nativeCalls = 0;
-  const bootstrap = createRustraBootstrap({
+  const bootstrap = createUnikitBootstrap({
     install: async () => {},
     getNative: () => ({
       ...createSetupNative(),
@@ -1408,9 +1408,9 @@ void test('captured RN engine stops every public route after bootstrap disposal'
 });
 
 void test('captured RN engine rejects replacement and old dispose preserves the new owner', async () => {
-  const { configure, invoke } = await import('@rustra/types');
+  const { configure, invoke } = await import('@unikit/types');
   configure(A05_SLOT_ENGINE);
-  const bootstrap = createRustraBootstrap({
+  const bootstrap = createUnikitBootstrap({
     install: async () => {},
     getNative: createSetupNative,
     frameCodecs: new Map(),
@@ -1429,11 +1429,11 @@ void test('captured RN engine rejects replacement and old dispose preserves the 
 });
 
 void test('captured RN synchronous binding follows bootstrap ownership', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit/types');
   for (const retirement of ['dispose', 'replace'] as const) {
     configure(A05_SLOT_ENGINE);
     let nativeCalls = 0;
-    const bootstrap = createRustraBootstrap({
+    const bootstrap = createUnikitBootstrap({
       install: async () => {},
       getNative: () => ({
         invoke: () => {
@@ -1465,7 +1465,7 @@ void test('captured RN synchronous binding follows bootstrap ownership', async (
       const engine = await bootstrap.ready();
       const resolve = Reflect.get(
         engine,
-        Symbol.for('dev.rustra.types.v0.10.resolveSyncBinding'),
+        Symbol.for('dev.unikit.types.v0.10.resolveSyncBinding'),
       ) as (command: string) => (input: unknown) => unknown;
       const bound = resolve('ownedSync');
       assert.equal(bound({}), 42);
@@ -1481,19 +1481,19 @@ void test('captured RN synchronous binding follows bootstrap ownership', async (
 });
 
 // ── dev 핫코어 상태 표면(hotCoreStatus) ─────────────────────
-// 네이티브 HostFunction 이 구현한다 — JS 표면은 __rustraNative 슬롯 통과 계약
+// 네이티브 HostFunction 이 구현한다 — JS 표면은 __unikitNative 슬롯 통과 계약
 // (정적 모드 = null, 핫 모드 = 마지막 스왑 해시/오류)만 고정한다.
 
-void test('hotCoreStatus passes the native swap report through __rustraNative', () => {
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
+void test('hotCoreStatus passes the native swap report through __unikitNative', () => {
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
   try {
     // 정적 모드 — 네이티브가 null 을 돌려준다(스왑 표면 없음).
-    root.__rustraNative = { hotCoreStatus: () => null };
-    assert.equal(getRustraNative().hotCoreStatus?.(), null);
+    root.__unikitNative = { hotCoreStatus: () => null };
+    assert.equal(getUnikitNative().hotCoreStatus?.(), null);
 
     // 핫 모드 — 마지막 성공 스왑의 구/신 계약 해시를 관측한다.
-    root.__rustraNative = {
+    root.__unikitNative = {
       hotCoreStatus: () => ({
         enabled: true,
         swapped: true,
@@ -1502,7 +1502,7 @@ void test('hotCoreStatus passes the native swap report through __rustraNative', 
         error: '',
       }),
     };
-    const status = getRustraNative().hotCoreStatus?.();
+    const status = getUnikitNative().hotCoreStatus?.();
     assert.ok(status, 'hot mode must report a status object');
     assert.equal(status.enabled, true);
     assert.equal(status.swapped, true);
@@ -1510,16 +1510,16 @@ void test('hotCoreStatus passes the native swap report through __rustraNative', 
     assert.equal(status.newHash, 'cafebabe11111111');
     assert.equal(status.error, '');
   } finally {
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
 });
 
-void test('hotCoreStatus reports the last swap error through __rustraNative', () => {
+void test('hotCoreStatus reports the last swap error through __unikitNative', () => {
   // 실패 스왑 — CLI 게이트 reject 등으로 dlopen 이 거절된 개발자 관측 경로.
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
   try {
-    root.__rustraNative = {
+    root.__unikitNative = {
       hotCoreStatus: () => ({
         enabled: true,
         swapped: false,
@@ -1528,12 +1528,12 @@ void test('hotCoreStatus reports the last swap error through __rustraNative', ()
         error: 'dlopen failed: symbol missing in hot dylib',
       }),
     };
-    const status = getRustraNative().hotCoreStatus?.();
+    const status = getUnikitNative().hotCoreStatus?.();
     assert.ok(status, 'failed swap must stay observable');
     assert.equal(status.swapped, false);
     assert.match(status.error, /dlopen failed/);
   } finally {
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
 });
 
@@ -1563,10 +1563,10 @@ void test('subscribeEvent pollMs drains queued events from a CallInvoker-less na
   const listeners = new Map<string, (payloadJson: string) => void>();
   const queue: Array<[string, string]> = [];
 
-  // canonical (name, callback) 형태는 getRustraNative() 로 __rustraNative 를 읽는다.
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = native;
+  // canonical (name, callback) 형태는 getUnikitNative() 로 __unikitNative 를 읽는다.
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = native;
   try {
     const unsubscribe = subscribeEvent('poll.tick', (payload) => received.push(payload), {
       pollMs: 5,
@@ -1582,7 +1582,7 @@ void test('subscribeEvent pollMs drains queued events from a CallInvoker-less na
     await new Promise((resolve) => setTimeout(resolve, 25));
     assert.equal(drainCount, drainsAtStop, 'unsubscribe must stop the polling loop');
   } finally {
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
 });
 
@@ -1591,9 +1591,9 @@ void test('subscribeEvent pollMs delivers directly on onEvent hosts without wait
   const received: unknown[] = [];
   const h = createEventNative();
   (h.native as { drainEvents?: () => number }).drainEvents = () => 0;
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = h.native;
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = h.native;
   try {
     const unsubscribe = subscribeEvent('direct.tick', (payload) => received.push(payload), {
       pollMs: 5,
@@ -1602,7 +1602,7 @@ void test('subscribeEvent pollMs delivers directly on onEvent hosts without wait
     assert.deepEqual(received, [{ ok: 1 }]);
     unsubscribe();
   } finally {
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
 });
 
@@ -1610,9 +1610,9 @@ void test('subscribeEvent pollMs is ignored on natives without drainEvents', () 
   // drainEvents 미노출 — 옵션은 조용히 무시(푸시 전용 네이티브 보호).
   const h = createEventNative();
   const received: unknown[] = [];
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = h.native;
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = h.native;
   try {
     const unsubscribe = subscribeEvent('push.only', (payload) => received.push(payload), {
       pollMs: 5,
@@ -1621,7 +1621,7 @@ void test('subscribeEvent pollMs is ignored on natives without drainEvents', () 
     assert.deepEqual(received, [{ v: 1 }]);
     unsubscribe();
   } finally {
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
 });
 
@@ -1632,7 +1632,7 @@ void test('synchronous native invoke delivers mid-call emits before returning, i
   // Android 실기기 교착(동기 invoke 실행 중 Package::emit → onRustEvent 가 같은
   // JS 스레드로 재진입 → CallInvoker::invokeAsync 재진입 post 직후 JS 이벤트 루프
   // 정지 — docs/verification/evidence/2026-09-21-registry-rn-android-device.json)의
-  // 실제 수정은 C++ RustraJSIBridge.cpp 의 재진입 깊이 가드(JsNativeCallScope)와
+  // 실제 수정은 C++ UnikitJSIBridge.cpp 의 재진입 깊이 가드(JsNativeCallScope)와
   // 에필로그 drain 이 담당한다. C++ 컴파일·실기기 검증은 환경 부재로 분리 기록.
   //
   // 이 모킹 네이티브는 수정된 C++ 디스패처 계약을 JS 표면으로 재현한다 —
@@ -1673,9 +1673,9 @@ void test('synchronous native invoke delivers mid-call emits before returning, i
     },
   };
 
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = native;
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = native;
   const received: number[] = [];
   let reentered = false;
   try {
@@ -1702,7 +1702,7 @@ void test('synchronous native invoke delivers mid-call emits before returning, i
       unsubscribe();
     }
   } finally {
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
   assert.equal(depth, 0, 'mock depth must unwind to zero');
   assert.equal(queue.length, 0, 'mock epilogue queue must be fully drained');
@@ -1876,9 +1876,9 @@ void test('polling demand is shared between event subscriptions and channels on 
     },
   };
 
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = native;
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = native;
   const unsubscribe = subscribeEvent('poll.tick', () => {}, { pollMs: 5 });
   const passive = subscribeEvent('push.only', () => {}); // pollMs 없는 구독
   const channel = createChannel(() => {}, native, { pollMs: 5 });
@@ -1899,7 +1899,7 @@ void test('polling demand is shared between event subscriptions and channels on 
     unsubscribe();
     passive();
     channel.close();
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
 });
 
@@ -1970,9 +1970,9 @@ void test('unsubscribing an event with disabled polling preserves a channel poll
       dropChannel: () => true,
       drainEvents: () => 0,
     };
-    const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-    const previous = root.__rustraNative;
-    root.__rustraNative = native;
+    const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+    const previous = root.__unikitNative;
+    root.__unikitNative = native;
     const channel = createChannel(() => {}, native, { pollMs: 5 });
     const unsubscribe = subscribeEvent('disabled.tick', () => {}, { pollMs: -1 });
     try {
@@ -1983,7 +1983,7 @@ void test('unsubscribing an event with disabled polling preserves a channel poll
     } finally {
       unsubscribe();
       channel.close();
-      root.__rustraNative = previous;
+      root.__unikitNative = previous;
     }
   });
 });
@@ -2046,9 +2046,9 @@ void test('a channel replaced during drain keeps one timer and stops at its last
 
 void test('repeated old unsubscribe cannot remove a replacement subscription', () => {
   const h = createEventNative();
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
-  root.__rustraNative = h.native;
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
+  root.__unikitNative = h.native;
   const received: unknown[] = [];
   const listener = (payload: unknown) => received.push(payload);
   const oldUnsubscribe = subscribeEvent('replacement.tick', listener);
@@ -2060,17 +2060,17 @@ void test('repeated old unsubscribe cannot remove a replacement subscription', (
     assert.deepEqual(received, [{ step: 2 }]);
   } finally {
     unsubscribe();
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
 });
 
 void test('a failed native event registration can be retried and deliver events', () => {
   const h = createEventNative();
-  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-  const previous = root.__rustraNative;
+  const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+  const previous = root.__unikitNative;
   const failure = new Error('native registration failed');
   let failed = false;
-  root.__rustraNative = {
+  root.__unikitNative = {
     ...h.native,
     onEvent(name: string, callback: (payloadJson: string) => void) {
       if (!failed) {
@@ -2092,16 +2092,16 @@ void test('a failed native event registration can be retried and deliver events'
     assert.deepEqual(received, [{ ok: true }]);
   } finally {
     unsubscribe();
-    root.__rustraNative = previous;
+    root.__unikitNative = previous;
   }
 });
 
 void test('unsubscribe releases polling even when native listener removal throws', () => {
   withPollingClock((clock) => {
     const failure = new Error('native removal failed');
-    const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
-    const previous = root.__rustraNative;
-    root.__rustraNative = {
+    const root = globalThis as typeof globalThis & { __unikitNative?: unknown };
+    const previous = root.__unikitNative;
+    root.__unikitNative = {
       onEvent() {},
       offEvent() {
         throw failure;
@@ -2115,7 +2115,7 @@ void test('unsubscribe releases polling even when native listener removal throws
       assert.doesNotThrow(unsubscribe, 'unsubscribe stays idempotent after the error');
     } finally {
       unsubscribe();
-      root.__rustraNative = previous;
+      root.__unikitNative = previous;
     }
   });
 });
@@ -2123,7 +2123,7 @@ void test('unsubscribe releases polling even when native listener removal throws
 void test('channel creation rejects the native zero-handle failure sentinel', () => {
   assert.throws(
     () => createChannel(() => {}, { createChannel: () => 0, dropChannel: () => false }),
-    (error: unknown) => error instanceof RustraCommandError && error.code === 'channel.unavailable',
+    (error: unknown) => error instanceof UnikitCommandError && error.code === 'channel.unavailable',
   );
 });
 

@@ -5,11 +5,11 @@
 `bindSync<I, O>(command)`는 일반적인 동기 함수를 반환한다. 바인딩하기 전에 엔진을 구성하고 초기화를 완료한다.
 
 ```ts
-import { bindSync } from '@rustra/types';
-import { rustra } from './generated/react-native.js';
+import { bindSync } from '@unikit/types';
+import { unikit } from './generated/react-native.js';
 import type { AddNumbersInput, AddNumbersOutput } from './generated/types.js';
 
-await rustra.ready();
+await unikit.ready();
 const add = bindSync<AddNumbersInput, AddNumbersOutput>('addNumbers');
 const result = add({ a: 20, b: 22 });
 ```

@@ -1,0 +1,30 @@
+{"command":"/Users/loopy/.local/share/fnm/node-versions/v22.21.1/installation/bin/node","args":["/Users/loopy/dev/ll3/unikit-bridge/packages/cli/dist/index.js","setup","--config","/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/unikit.json","--skip-install","--run"],"cwd":"/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app"}
+[unikit] Checking setup tools...
+[unikit] Generating the Rust contract and TypeScript calls...
+[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/Cargo.toml --package unikit-app --bin generate
+[unikit] ⠋ Rust schema generation (unikit-app/generate)...
+[unikit] ⠋ Rust schema generation (unikit-app/generate) still running (1s)
+/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/generated/schema.json written
+[unikit] ✓ Rust schema generation (unikit-app/generate) done in 1.2s
+[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/unikit.json
+Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/src/generated:
+  types.ts (updated)
+  commands.ts (updated)
+  contract.ts (updated)
+  frame-codecs.ts (updated)
+  frame-registry.ts (unchanged)
+  node.ts (unchanged)
+[unikit] Note: generated code changed — rebuild the runtime binary before invoking (cargo build), or invokes may fail with contract.mismatch.
+[unikit] ⠋ Rust runtime (unikit-app)...
+[unikit] ⠋ Rust runtime (unikit-app) still running (1s)
+[unikit] ✓ Rust runtime (unikit-app) done in 1.4s
+[unikit] ⠋ First Rust call...
+{"message":"hello from TypeScript","repeat":3}
+[unikit] ✓ First Rust call done in 0.2s
+[unikit] Setup complete — demo succeeded.
+   Compiling unikit-app v0.1.0 (/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.06s
+     Running `/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/cargo-target/debug/generate`
+   Compiling unikit-app v0.1.0 (/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.25s
+$ bun run src/index.ts

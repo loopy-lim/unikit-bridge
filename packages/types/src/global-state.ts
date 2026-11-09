@@ -6,23 +6,23 @@ import type { EngineClient } from './public.js';
  * InternalEngineClient). Plumbing between this package's facade and its
  * engines; not public API.
  */
-export const resolveSyncBinding = Symbol.for('dev.rustra.types.v0.10.resolveSyncBinding');
-export const invokeByIdSync = Symbol.for('dev.rustra.types.v0.4.0.invokeByIdSync');
+export const resolveSyncBinding = Symbol.for('dev.unikit.types.v0.10.resolveSyncBinding');
+export const invokeByIdSync = Symbol.for('dev.unikit.types.v0.4.0.invokeByIdSync');
 /** @internal — dispatch protocol key, see {@link invokeByIdSync}. */
 export const invokeGeneratedFieldsSync = Symbol.for(
-  'dev.rustra.types.v0.4.0.invokeGeneratedFieldsSync',
+  'dev.unikit.types.v0.4.0.invokeGeneratedFieldsSync',
 );
 /** @internal — dispatch protocol key, see {@link invokeByIdSync}. */
 export const resolveGeneratedFieldsSync = Symbol.for(
-  'dev.rustra.types.v0.4.0.resolveGeneratedFieldsSync',
+  'dev.unikit.types.v0.4.0.resolveGeneratedFieldsSync',
 );
 /** @internal — dispatch protocol key, see {@link invokeByIdSync}. */
 export const invokeGeneratedBytesSync = Symbol.for(
-  'dev.rustra.types.v0.4.0.invokeGeneratedBytesSync',
+  'dev.unikit.types.v0.4.0.invokeGeneratedBytesSync',
 );
 /** @internal — dispatch protocol key, see {@link invokeByIdSync}. */
 export const resolveGeneratedBytesSync = Symbol.for(
-  'dev.rustra.types.v0.4.0.resolveGeneratedBytesSync',
+  'dev.unikit.types.v0.4.0.resolveGeneratedBytesSync',
 );
 /** @internal — capability bitmask consumed by the engine fast-path dispatch (see InternalEngineClient). */
 export const CODEC_TYPED = 1 << 0;
@@ -108,7 +108,7 @@ export const runtime: {
   generatedFieldsRoutes: Array<CachedGeneratedFieldsRoute | null | undefined>;
   generatedBytesRoutes: Array<CachedGeneratedBytesRoute | null | undefined>;
 } = (() => {
-  const key = Symbol.for('dev.rustra.types.v0.4.0.runtimeState');
+  const key = Symbol.for('dev.unikit.types.v0.4.0.runtimeState');
   const global = globalThis as Record<PropertyKey, unknown>;
   const existing = global[key] as typeof runtime | undefined;
   if (existing) return existing;

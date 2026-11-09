@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordedAt": "2026-09-15T19:51:07.256056+00:00",
-  "worktree": "/Users/loopy/dev/ll3/rustra-bridge/.worktrees/function-registration",
+  "worktree": "/Users/loopy/dev/ll3/unikit-bridge/.worktrees/function-registration",
   "branch": "codex/function-registration",
   "baseCommit": "1f277de2e68e2242b7a6503e6e0ab731833e60e3",
   "status": "local-uncommitted",
@@ -87,7 +87,7 @@
       "sha256": "90793af6da400239cdfdf0ba14f6636f892fab860f1b20f8f6c1e3a08f1dde0b"
     },
     {
-      "path": "examples/react-native-calculator/modules/rustra-calculator/ios/RustraCalculatorModule.swift",
+      "path": "examples/react-native-calculator/modules/unikit-calculator/ios/UnikitCalculatorModule.swift",
       "sha256": "5bada728d8761657d1510ff896e331b403697723c7427a5f0928bd2731c86ffa"
     },
     {
@@ -101,77 +101,77 @@
   ],
   "logs": [
     {
-      "path": "/tmp/rustra-functions-final-calculator-codegen.log",
+      "path": "/tmp/unikit-functions-final-calculator-codegen.log",
       "sha256": "5ead02c3a9ec51c659dc4b8c8701e2e342e5c454afdb74a7a5b0e45c2c00d04a",
       "bytes": 5278
     },
     {
-      "path": "/tmp/rustra-functions-final-rust-ios.log",
+      "path": "/tmp/unikit-functions-final-rust-ios.log",
       "sha256": "0a9e0097cfa5b36e2eeb8cee68f98ca3cfe2c5acb5013abc01f1f868ecd75163",
       "bytes": 246
     },
     {
-      "path": "/tmp/rustra-functions-final-xcodebuild.log",
+      "path": "/tmp/unikit-functions-final-xcodebuild.log",
       "sha256": "1891f443d11f3494116c9cd29d396a5e0afdf483a4f177097565198f89fd59f9",
       "bytes": 603835
     },
     {
-      "path": "/tmp/rustra-functions-final-calculator-tests.log",
+      "path": "/tmp/unikit-functions-final-calculator-tests.log",
       "sha256": "08e35aa8f34cfcc97a71858e466b7cf18c305bbf2ae6b6572157094de49238c6",
       "bytes": 4217
     },
     {
-      "path": "/tmp/rustra-frame-buffer-types.log",
+      "path": "/tmp/unikit-frame-buffer-types.log",
       "sha256": "b677beaeebf92a7a6882c6514be12b1fc12475561783f26687709634d34a0b89",
       "bytes": 24945
     },
     {
-      "path": "/tmp/rustra-facade-portable-cli-tests.log",
+      "path": "/tmp/unikit-facade-portable-cli-tests.log",
       "sha256": "19bddce8707ef6d64860fb986e7415967b1d985cef9cc7484f69cf2f8edff5f8",
       "bytes": 78752
     },
     {
-      "path": "/tmp/rustra-functions-final-app-typecheck.log",
+      "path": "/tmp/unikit-functions-final-app-typecheck.log",
       "sha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92",
       "bytes": 15
     },
     {
-      "path": "/tmp/rustra-functions-final-app-tests.log",
+      "path": "/tmp/unikit-functions-final-app-tests.log",
       "sha256": "c017c6df915e7195b3951befb0dcef35087a2f6daee8a5ff6608b863097fa64b",
       "bytes": 1760
     },
     {
-      "path": "/tmp/rustra-functions-final-cpp.log",
+      "path": "/tmp/unikit-functions-final-cpp.log",
       "sha256": "a0f0f46a2bcb3d557d4bde0db5e270f7f6122fd60b91319979e0c1339523daa9",
       "bytes": 6328
     },
     {
-      "path": "/tmp/rustra-functions-final-integration.log",
+      "path": "/tmp/unikit-functions-final-integration.log",
       "sha256": "7548f29002600c0ef7dc982dc154bb9966602801534a90556cdbc743751daf9f",
       "bytes": 599
     },
     {
-      "path": "/tmp/rustra-functions-final-calculator-ts.log",
+      "path": "/tmp/unikit-functions-final-calculator-ts.log",
       "sha256": "abe5f4be60d801360405ab06c1d1439df07a4ca2aee56cece9c6abae64d05c96",
       "bytes": 11922
     },
     {
-      "path": "/tmp/rustra-functions-final-freshness.log",
+      "path": "/tmp/unikit-functions-final-freshness.log",
       "sha256": "137b19bab15b36f724d8b9a63d771b10e5cd153251a8cfa1f91f033de3c26c94",
       "bytes": 86
     },
     {
-      "path": "/tmp/rustra-functions-final-docs.log",
+      "path": "/tmp/unikit-functions-final-docs.log",
       "sha256": "934ff889ce3b9a34d8f0c5ffda907b75944afaf909371ded9c6669464d855e34",
       "bytes": 9150
     },
     {
-      "path": "/tmp/rustra-functions-final-clippy.log",
+      "path": "/tmp/unikit-functions-final-clippy.log",
       "sha256": "b29ef350f851400debb85adad2ad930c3af0fdfb424a2b9d7e7e66d2fe3794af",
       "bytes": 2722
     },
     {
-      "path": "/tmp/rustra-functions-react-doctor.log",
+      "path": "/tmp/unikit-functions-react-doctor.log",
       "sha256": "4f7c335ff390374b6c5f004cfe66888e0139088e3cc14282c5b7f009c7ac4fac",
       "bytes": 1278
     }

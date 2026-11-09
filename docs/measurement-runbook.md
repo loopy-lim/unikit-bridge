@@ -3,7 +3,7 @@
 Runbook for three pending device measurements. E1/A2 use the matrix protocol; §3 uses its own same-operation collector. It follows the
 name-reuse adoption precedent ([protocol](dev/research/2026-09-16-nitro-call-profile.md),
 [receipt](benchmark-receipts/2026-09-18-nitro-name-reuse-ab.json), contract
-`rustra-name-reuse-ab/v1` format) and the plan fixed in
+`unikit-name-reuse-ab/v1` format) and the plan fixed in
 [performance-evaluation.md §7.3/§7.6](performance-evaluation.md).
 
 - **Adoption judgments come only from running this runbook.** Simulator numbers
@@ -11,7 +11,7 @@ name-reuse adoption precedent ([protocol](dev/research/2026-09-16-nitro-call-pro
   [sim-e1](benchmark-receipts/2026-09-24-sim-e1-hermes.md), summarized in
   [performance-evaluation.md §8](performance-evaluation.md)) are reference-only: they prove
   paths work end-to-end, they do not decide adoption.
-- Every `bun` command must run as `env -u RUSTRA_BUN_LIBRARY …` (loop-daemon dylib guard —
+- Every `bun` command must run as `env -u UNIKIT_BUN_LIBRARY …` (loop-daemon dylib guard —
   same rule as all receipts on 2026-09-24).
 
 ## 0. Common protocol (all three items)
@@ -24,7 +24,7 @@ Fixed rules carried over from the name-reuse precedent — do not renegotiate th
 2. **Instrumentation-free Release builds.** No profiler attached, no GC forcing, no slow-sample
    exclusion. A failed or interrupted run is either kept whole or rerun from install.
 3. **E1/A2 independent launches, install swapped per run.** Exactly one arm is installed at a time;
-   the dedicated app id `com.rustra.nitroparity` is enforced by
+   the dedicated app id `com.unikit.nitroparity` is enforced by
    `examples/react-native-calculator/scripts/parity-app-policy.ts` (`requireDedicatedApp`).
 4. **E1/A2 per-run receipt validation.** Every matrix launch must pass the full v2 matrix receipt
    validation (90 cases = 30 ids × 3 lanes, 31 rounds per case) against the host manifest, and
@@ -34,14 +34,14 @@ Fixed rules carried over from the name-reuse precedent — do not renegotiate th
    correction; per-lane and overall geomeans of candidate/legacy ratios. A watch case whose CI
    contains 1 is reported as not significant, never as a win.
 6. **E1/A2 receipt artifact.** Each executed matrix item writes
-   `docs/benchmark-receipts/<date>-<item>-ab.json` in the `rustra-name-reuse-ab/v1` shape:
+   `docs/benchmark-receipts/<date>-<item>-ab.json` in the `unikit-name-reuse-ab/v1` shape:
    `contract`, `status` (adopted/rejected), `date`, `sourceCommit`, `candidateBaseline`,
    `decision`, `environment` (device, runtime, udid, jsEngine), `methodology` (protocol, runs,
    launchesPerArm, suite, validation, statistics), `arms` (per-arm description, runs,
    `binarySha256`, `bundleSha256`, `fingerprint`, launches), analysis. Keep raw logs under
    `target/<item>-ab/`.
 7. **Host criterion benches carry provenance.** Run
-   `env -u RUSTRA_BUN_LIBRARY bun scripts/benchmark-environment.mjs target/criterion` before
+   `env -u UNIKIT_BUN_LIBRARY bun scripts/benchmark-environment.mjs target/criterion` before
    every measuring session — from the second call onward the previous record is paired as the
    baseline-era record. The regression gate
    (`check-criterion-regression.mjs`) treats a comparison whose baseline-era record is
@@ -60,11 +60,11 @@ cd examples/react-native-calculator
 # one launch of the installed arm: validates receipt vs host manifest, re-checks binary SHA,
 # writes /tmp/parity-ab/run-<N>/receipt.json (wrapper: label, binarySha256, bundleSha256,
 # fingerprint, launch pid, receipt)
-env -u RUSTRA_BUN_LIBRARY bun scripts/run-nitro-parity-once.ts \
+env -u UNIKIT_BUN_LIBRARY bun scripts/run-nitro-parity-once.ts \
   --device $UDID --output /tmp/parity-ab/run-1 --label C   # or --label L
 
 # after all 10 runs: per-case ratios, per-lane/overall geomeans, paired t(4) counts
-env -u RUSTRA_BUN_LIBRARY bun scripts/aggregate-parity-ab.ts
+env -u UNIKIT_BUN_LIBRARY bun scripts/aggregate-parity-ab.ts
 # → /tmp/parity-ab/aggregate-raw.json, /tmp/parity-ab/paired-cases.json
 ```
 
@@ -72,7 +72,7 @@ env -u RUSTRA_BUN_LIBRARY bun scripts/aggregate-parity-ab.ts
 `C_RUNS = [1,4,5,8,10]`, legacy runs `L_RUNS = [2,3,6,7,9]`, pairs
 `(C1,L2)(C4,L3)(C5,L6)(C8,L7)(C10,L9)`. **One adaptation is required per item:** its
 `manifestFor(arm)` reproduces each arm's build fingerprint by patching
-`modules/rustra-jsi/generated/rustra-generated-codecs.hpp` (the name-reuse define toggle).
+`modules/unikit-jsi/generated/unikit-generated-codecs.hpp` (the name-reuse define toggle).
 `aggregate()` validates receipts against the fingerprint of the _live_ tree, so for a new item
 the toggle must be replaced by that item's arm difference (E1: bridge/core E1 diff, §1.1;
 A2: generated `commands.ts` variant, §2.2) — everything else stays as-is.
@@ -82,7 +82,7 @@ A2: generated `commands.ts` variant, §2.2) — everything else stays as-is.
 | Lane                         | Device                                                                                                 | Note                                                                                                                                                  |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | iOS reference runs           | iPhone 17 Simulator, iOS 26.2 (UDID `99B087B5-DEF6-4CF1-9177-81A5DE564CFC` in the 2026-09-24 receipts) | historical simulator comparison only; this does not establish a physical-device effect                                                                |
-| iOS adoption runs (physical) | physical iPhone, `aarch64-apple-ios`                                                                   | build with `RUSTRA_IOS_TARGET=aarch64-apple-ios`; install/launch/pull via `xcrun devicectl` — not yet exercised in-repo, treat as unverified plumbing |
+| iOS adoption runs (physical) | physical iPhone, `aarch64-apple-ios`                                                                   | build with `UNIKIT_IOS_TARGET=aarch64-apple-ios`; install/launch/pull via `xcrun devicectl` — not yet exercised in-repo, treat as unverified plumbing |
 | Android runs                 | physical device                                                                                        | v2 precedent; fixed-candidate 5 runs, **never** described as a causal A/B against a preserved older cohort                                            |
 
 ### 0.3 Host A/B receipt producers (not CI gates)
@@ -93,7 +93,7 @@ committed receipts stay reproducible-as-documented. Each receipt records its exa
 `command` invocation and the source/artifact hashes, so rerunning after `bun run build:cli`
 reproduces the comparison shape against a preserved baseline tree:
 
-- `env -u RUSTRA_BUN_LIBRARY bun scripts/benchmark-bun-owned.mjs <bun-ffi.ts> <dylib> <receipt.json> <label>`
+- `env -u UNIKIT_BUN_LIBRARY bun scripts/benchmark-bun-owned.mjs <bun-ffi.ts> <dylib> <receipt.json> <label>`
   — Bun FFI owned-response A/B
   ([receipt](benchmark-receipts/2026-10-13-bun-owned-ab.json),
   [journey](dev/research/2026-10-13-bun-owned-response.md)).
@@ -103,8 +103,8 @@ reproduces the comparison shape against a preserved baseline tree:
   `-initial` and `-fastpath` candidates preserved as evidence).
 - `node scripts/node-native-echo-bench.mjs <adapter-entry> <frame-registry> <runtime-binary> <receipt.json>`
   — fragmented-frame end-to-end echo against the same runtime binary.
-- `env -u RUSTRA_BUN_LIBRARY bun examples/calculator/apps/bun-ffi-bench.ts` and
-  `env -u RUSTRA_BUN_LIBRARY bun examples/calculator/apps/scriptc-bench.ts` — warm host
+- `env -u UNIKIT_BUN_LIBRARY bun examples/calculator/apps/bun-ffi-bench.ts` and
+  `env -u UNIKIT_BUN_LIBRARY bun examples/calculator/apps/scriptc-bench.ts` — warm host
   dispatch microbenches for the Bun FFI and scriptc surfaces (3-shape arm reporting; see the
   2026-10-13 research logs for arm construction).
 
@@ -119,16 +119,16 @@ reproduces the comparison shape against a preserved baseline tree:
 - **No runtime toggle exists** (sim-e1 receipt §3-1): `invoke_frame_owned` is bound
   unconditionally when the symbol exists. Arms are therefore two per-install builds:
   - **candidate (C)** = current main. Pre-check once, per arm binary:
-    `nm -gU -arch arm64 <app binary> | grep rustra_ffi_invoke_frame_owned` must list the
+    `nm -gU -arch arm64 <app binary> | grep unikit_ffi_invoke_frame_owned` must list the
     symbol (T) — E1 branch active, probe fallback dead code.
   - **legacy (L)** = E1-reverted build: the E1 diff removed from
-    `crates/rustra/src/ffi_typed_buffer.rs` **and** `packages/react-native/native/cpp/RustraJSIBridge.{hpp,cpp}`
+    `crates/unikit-bridge/src/ffi_typed_buffer.rs` **and** `packages/react-native/native/cpp/UnikitJSIBridge.{hpp,cpp}`
     together, built as one tree. The "new shell + old static core" link combination is
     unsupported (Apple linker rejects unresolved weak refs — performance-evaluation.md §7.5
     risk 1); the probe path arms must come from a coherent pre-E1 source state.
-- Build: `bash modules/rustra-jsi/ios/build-rust-ios.sh` (fat release core) → `xcodebuild
+- Build: `bash modules/unikit-jsi/ios/build-rust-ios.sh` (fat release core) → `xcodebuild
 -configuration Release -sdk iphonesimulator` exactly as in the sim-e1 receipt's
-  reproduction runbook, with `env -u EXPO_PUBLIC_RUSTRA_DEMO`, then
+  reproduction runbook, with `env -u EXPO_PUBLIC_UNIKIT_DEMO`, then
   `xcrun simctl install $UDID <app>`. Record `binarySha256`/`bundleSha256` per arm (the
   collector records them into every run wrapper).
 
@@ -143,7 +143,7 @@ reproduces the comparison shape against a preserved baseline tree:
   sync-public/async-public) are the target lanes; small-response lanes (`add`, `string`,
   `pair`, `*/indexed`, `*/resident-dfs`) are the no-regression lanes.
 - **Android: fixed candidate, original v2 5 runs** via
-  `env -u RUSTRA_BUN_LIBRARY bun scripts/run-nitro-parity-android.ts --device <serial>
+  `env -u UNIKIT_BUN_LIBRARY bun scripts/run-nitro-parity-android.ts --device <serial>
 --apk <candidate.apk> --manifest <manifest.json> --output <dir>` (the tool never installs —
   `adb install` the arm APK first; export the manifest JSON from
   `createExperimentManifest(fingerprint)` of `scripts/parity-manifest.ts`). Differences vs the
@@ -172,8 +172,8 @@ reproduces the comparison shape against a preserved baseline tree:
 
 E1 spans Rust core + C++ bridge + snapshot/CHANGELOG. Rollback = single revert of the E1
 commits (or `git checkout` of the pre-E1 state for the two source groups above), rebuild, then
-re-run: `cargo test -p rustra`, `env -u RUSTRA_BUN_LIBRARY bun run test:codegen-fresh:check`,
-`env -u RUSTRA_BUN_LIBRARY bun run test:all`. The legacy arm build of §1.1 doubles as the
+re-run: `cargo test -p unikit-bridge`, `env -u UNIKIT_BUN_LIBRARY bun run test:codegen-fresh:check`,
+`env -u UNIKIT_BUN_LIBRARY bun run test:all`. The legacy arm build of §1.1 doubles as the
 rollback verification build.
 
 ## 2. A2 — 1-field command emit switched to `createGeneratedFields1`
@@ -191,12 +191,12 @@ rollback verification build.
   binder/generated codecs/JSI with a fake Rust ABI peer; prebuilt Hermes/RN dependencies
   and physical-device timing are outside that claim. Refresh these gates for the frozen arms:
   1. Hermes assertion suite re-run on the switched tree:
-     `bash examples/react-native-calculator/modules/rustra-jsi/ios/run-hermes-sync-tests.sh` —
+     `bash examples/react-native-calculator/modules/unikit-jsi/ios/run-hermes-sync-tests.sh` —
      0 failures required.
   2. Call-count invariance re-assertion:
-     `env -u RUSTRA_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs` — native route calls
+     `env -u UNIKIT_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs` — native route calls
      must equal JS calls, 0 name fallbacks.
-  3. `env -u RUSTRA_BUN_LIBRARY bun run test:types` + `env -u RUSTRA_BUN_LIBRARY bun run test:codegen-fresh:check`.
+  3. `env -u UNIKIT_BUN_LIBRARY bun run test:types` + `env -u UNIKIT_BUN_LIBRARY bun run test:codegen-fresh:check`.
 
 ### 2.2 Arms and toggling
 
@@ -236,9 +236,9 @@ correctness example; its latency cannot control for gzip transport cost. Default
 1, 64 and 256 KiB deterministic LCG bytes. The 256 KiB cap keeps the expanded JSON request
 inside the native 1 MiB payload limit; a 1 MiB bytes-versus-JSON lane is not valid here.
 
-Native build recipes remain `bash modules/rustra-bridge/ios/build-rust-ios.sh` and
-`bash modules/rustra-bridge/android/build-rust-android.sh` from `examples/rn-experiment`.
-Physical iOS needs `RUSTRA_IOS_TARGET=aarch64-apple-ios`. The historical simulator
+Native build recipes remain `bash modules/unikit-bridge/ios/build-rust-ios.sh` and
+`bash modules/unikit-bridge/android/build-rust-android.sh` from `examples/rn-experiment`.
+Physical iOS needs `UNIKIT_IOS_TARGET=aarch64-apple-ios`. The historical simulator
 cross-compile [receipt](dev/research/2026-09-24-rn-experiment-ios.md) is not installation or
 measurement evidence for the current collector.
 
@@ -264,7 +264,7 @@ measurement evidence for the current collector.
 After five real launches, from the repo root:
 
 ```bash
-env -u RUSTRA_BUN_LIBRARY bun examples/rn-experiment/scripts/benchmark-receipts.ts \
+env -u UNIKIT_BUN_LIBRARY bun examples/rn-experiment/scripts/benchmark-receipts.ts \
   target/rn-experiment/summary.json \
   target/rn-experiment/launch-1.json target/rn-experiment/launch-2.json \
   target/rn-experiment/launch-3.json target/rn-experiment/launch-4.json \

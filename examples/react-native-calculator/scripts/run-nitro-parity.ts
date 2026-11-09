@@ -13,7 +13,7 @@ const { values } = parseArgs({
   options: {
     device: { type: 'string' },
     output: { type: 'string' },
-    'bundle-id': { type: 'string', default: 'com.rustra.nitroparity' },
+    'bundle-id': { type: 'string', default: 'com.unikit.nitroparity' },
     launches: { type: 'string', default: '5' },
     timeout: { type: 'string', default: '600' },
   },
@@ -54,7 +54,7 @@ const receipts: Receipt[] = [],
   provenance: unknown[] = [];
 for (let i = 0; i < launches; i++) {
   simctl(['terminate', device, bundle], true);
-  const receiptPath = join(data, 'Documents', 'rustra-nitro-parity.json');
+  const receiptPath = join(data, 'Documents', 'unikit-nitro-parity.json');
   await unlink(receiptPath).catch((e: { code: string }) => {
     if (e.code !== 'ENOENT') throw e;
   });

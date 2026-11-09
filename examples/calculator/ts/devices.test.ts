@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configure, getDeviceStatus, registerDeviceStatusProvider } from '@rustra/types';
+import { configure, getDeviceStatus, registerDeviceStatusProvider } from '@unikit/types';
 import { deviceDemo } from '../generated/commands.js';
 import { DEVICE_DEMO_DEVICES } from '../generated/devices.js';
 

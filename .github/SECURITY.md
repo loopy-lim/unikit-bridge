@@ -2,8 +2,8 @@
 
 ## Supported Versions
 
-rustra is pre-1.0 — security fixes land on `main` and ship in the next
-minor release. The latest published version (`@rustra/*` on npm, `rustra`
+unikit is pre-1.0 — security fixes land on `main` and ship in the next
+minor release. The latest published version (`@unikit/*` on npm, `unikit`
 on crates.io) is the supported surface.
 
 | Version | Supported |
@@ -15,7 +15,7 @@ on crates.io) is the supported surface.
 
 **Do not open a public issue for security vulnerabilities.**
 
-Use [GitHub private vulnerability reporting](https://github.com/loopy-lim/rustra/security/advisories/new)
+Use [GitHub private vulnerability reporting](https://github.com/loopy-lim/unikit/security/advisories/new)
 (Repo → Security → Report a vulnerability). If that is unavailable, email
 the maintainer via the address on the GitHub profile.
 
@@ -32,11 +32,11 @@ in the advisory unless you prefer to stay anonymous.
 
 **In scope:**
 
-- `crates/rustra` — the FFI boundary, panic guards, buffer
+- `crates/unikit-bridge` — the FFI boundary, panic guards, buffer
   allocation/free protocol, payload size gates
 - `packages/*` — generated code injection (identifier whitelisting),
   transport framing
-- Codegen output executed by consumers (`rustra generate`)
+- Codegen output executed by consumers (`unikit generate`)
 
 **Out of scope:**
 

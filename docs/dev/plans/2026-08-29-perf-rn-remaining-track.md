@@ -26,7 +26,7 @@
 **Files:**
 
 - Modify: `packages/cli/src/generate-*.ts` 중 C++ codec emit (cachedProp 생성부 —
-  `examples/react-native-calculator/modules/rustra-jsi/generated/rustra-generated-codecs.cpp:44-56` 생성원)
+  `examples/react-native-calculator/modules/unikit-jsi/generated/unikit-generated-codecs.cpp:44-56` 생성원)
 - Test: `packages/cli/src/generate.test.ts`, C++ codec 테스트 스냅샷 재생성
 
 **Steps:**
@@ -42,7 +42,7 @@
 
 **Files:**
 
-- Modify: `packages/react-native/native/cpp/RustraJSIBridge.{hpp,cpp}:1115-1275` (async 경로), C++ 생성 코덱 emit (`encode_by_name`→`encode_by_id` 위임), `packages/react-native/src/index.ts:279-347` (createAsyncEngine)
+- Modify: `packages/react-native/native/cpp/UnikitJSIBridge.{hpp,cpp}:1115-1275` (async 경로), C++ 생성 코덱 emit (`encode_by_name`→`encode_by_id` 위임), `packages/react-native/src/index.ts:279-347` (createAsyncEngine)
 - Test: `packages/react-native/src/index.test.ts`, C++ 테스트
 
 **Steps:**
@@ -59,7 +59,7 @@
 
 **Files:**
 
-- Modify: `RustraJSIBridge.cpp:1115-1275` (make_shared/new/레지스트리 뮤텍스 → 고정 슬롯 배열 + generation)
+- Modify: `UnikitJSIBridge.cpp:1115-1275` (make_shared/new/레지스트리 뮤텍스 → 고정 슬롯 배열 + generation)
 
 **Steps:**
 
@@ -100,7 +100,7 @@
 
 **Files:**
 
-- Modify: 없음 (판단 기록) 또는 `examples/react-native-calculator` 앱에 `installRustraPositional` 설치
+- Modify: 없음 (판단 기록) 또는 `examples/react-native-calculator` 앱에 `installUnikitPositional` 설치
 - Output: `docs/benchmarks.md` 노트
 
 **Steps:**

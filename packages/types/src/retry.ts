@@ -1,4 +1,4 @@
-import { CancelledError, RustraCommandError, isRetryableCode } from './errors.js';
+import { CancelledError, UnikitCommandError, isRetryableCode } from './errors.js';
 
 /** [`withRetry`] 옵션. 모든 필드는 선택 — 기본값은 각 필드 설명 참고. */
 export type RetryOptions = {
@@ -17,7 +17,7 @@ export type RetryOptions = {
    * 완전히 대체한다(합성 아님). `attempt` 는 방금 실패한 시도(0-based).
    * 판정 함수 자체가 던진 에러는 재시도 없이 그대로 거부된다(마지막 에러 계약과 동일).
    */
-  retryIf?: (error: RustraCommandError, attempt: number) => boolean;
+  retryIf?: (error: UnikitCommandError, attempt: number) => boolean;
 };
 
 /**
@@ -25,9 +25,9 @@ export type RetryOptions = {
  *
  * 경계 계약:
  * - 마지막 에러는 **원본 그대로**(객체 동일성 보존) 재던진다 — 래핑/정규화 없음.
- *   정규화는 호출자 책임(`normalizeRustraError` 기존 관례).
- * - `RustraCommandError` 가 아닌 reject 값은 retry 판정 없이 즉시 그대로 재던진다
- *   (retryIf 의 파라미터 계약이 RustraCommandError 이므로 판정을 위임할 수 없음).
+ *   정규화는 호출자 책임(`normalizeUnikitError` 기존 관례).
+ * - `UnikitCommandError` 가 아닌 reject 값은 retry 판정 없이 즉시 그대로 재던진다
+ *   (retryIf 의 파라미터 계약이 UnikitCommandError 이므로 판정을 위임할 수 없음).
  * - signal abort 는 즉시 `CancelledError` 승격: 첫 호출 전이면 `fn` 을 호출하지 않고,
  *   백오프 sleep 중이면 남은 대기를 버리고 즉시, 시도 사이에 이미 abort 된 상태로
  *   진입해도 즉시. abort 시점에 실패한 에러가 있었다면 `cause` 로 보존한다.
@@ -66,7 +66,7 @@ export async function withRetry<T>(
       lastError = error;
       if (
         attempt >= retries ||
-        !(error instanceof RustraCommandError) ||
+        !(error instanceof UnikitCommandError) ||
         !retryIf(error, attempt)
       ) {
         throw error;

@@ -67,8 +67,8 @@ codec으로 호환성을 유지한다. direct 실패 후 fallback하는 타입�
 
 재현하려면 0.10.1과 이 패치를 별도 checkout하고 후보의 `complex_route.rs`,
 `benches/support/complex_cases.rs`, `benches/common.rs`, `examples/codec_allocations.rs`를
-기준판에도 복사한다. 각각 `cargo bench -p rustra --bench complex_route --no-run --locked`와
-`cargo build -p rustra --example codec_allocations --release --locked`로 빌드한다.
+기준판에도 복사한다. 각각 `cargo bench -p unikit-bridge --bench complex_route --no-run --locked`와
+`cargo build -p unikit-bridge --example codec_allocations --release --locked`로 빌드한다.
 `python3 scripts/benchmark-complex-ab.py --help`에 따라 두 checkout 경로, Criterion 및
 할당 계측 실행 파일, 새 artifact 디렉터리, 결과 JSON 경로를 지정한다. 측정 중에는
 대상 소스를 수정하거나 다시 빌드하지 않는다.
@@ -194,10 +194,10 @@ request 47 B, response 53 B, encode 5.678 µs, decode 5.556 µs였다. 이 수�
 로드맵의 caller-buffer 잔여 3항목(Bun 어댑터 `_into`, async 응답 caller-buffer,
 complex-route core into-handler)을 완성한 뒤 같은 머신에서 before/after를
 측정했다. 방법: 동일한 integrated release dylib(`examples/calculator`)에 대해
-(a) malloc 경로 = base 어댑터 동작(`rustra_ffi_invoke_frame` + 복사 후 free),
-(b) into 경로 = `rustra_ffi_invoke_frame_into` + 재사용 512B caller 버퍼를
+(a) malloc 경로 = base 어댑터 동작(`unikit_ffi_invoke_frame` + 복사 후 free),
+(b) into 경로 = `unikit_ffi_invoke_frame_into` + 재사용 512B caller 버퍼를
 같은 프로세스에서 번갈아 측정했다(best-of-5 rounds). base 어댑터
-(98cdb689 `@rustra/bun`)와 integrated 어댑터의 전체 왕복도 같은 dylib으로
+(98cdb689 `@unikit/bun`)와 integrated 어댑터의 전체 왕복도 같은 dylib으로
 교차 실행해 4쌍 중앙값을 냈다. 환경: macOS arm64 (Apple M-series, 10 core),
 Bun 1.4.0, Rust release. 측정 시 로드 평균 8–13으로 리프리가 아니다 —
 상대 비교 기준으로 읽는다.
@@ -258,7 +258,7 @@ Buffered 폴백으로 같은 와이어를 만들었으므로 wire 호환성은 O
 ### async 응답 caller-buffer (F3)
 
 F3은 RN C++ async 응답의 `std::vector frame` 복사를 제거하고 코어
-`rustra_ffi_invoke_frame_async_into`가 caller 버퍼에 직접 쓰게 한다.
+`unikit_ffi_invoke_frame_async_into`가 caller 버퍼에 직접 쓰게 한다.
 RN 시뮬레이터 벤치는 이 섹션에서 다루지 않는다(C++ 게이트가 CI에 없어 실측
 주체는 기기 스모크). 코어 수준에서 확인한 사실:
 
@@ -270,13 +270,13 @@ RN 시뮬레이터 벤치는 이 섹션에서 다루지 않는다(C++ 게이트�
   정확히 1회 free를 보장한다(구형 std::vector 경로의 누수 없음 특성 회복).
 - thread-local probe 재사용은 cross-thread unsafe로 판정해 single-dispatch
   owned-flag 설계로 대체했다 — probe 캐시 없이도 재시도가 exactly-once다.
-  (근거: `crates/rustra/tests/trust_baseline_ffi.rs` 320행 추가)
+  (근거: `crates/unikit-bridge/tests/trust_baseline_ffi.rs` 320행 추가)
 
 ## Track B 실측 — wide int C++ 직결 완료 범위 (2026-08-29)
 
 트랙 B(C++ bigint/Set 직결)의 이번 완료 범위는 **Set(int64/uint64 원시 요소)과
 C++ int64/uint64 네이티브 디코드 경로**다(3면 wire gate:
-`wire_fixtures.rs` ↔ `cross-wire.test.ts` ↔ C++ `test-rustra-generated-codecs.cpp`
+`wire_fixtures.rs` ↔ `cross-wire.test.ts` ↔ C++ `test-unikit-generated-codecs.cpp`
 가 `wideAgg`/`tagSet` PINNED hex 를 byte-exact 공유).
 
 ### JS codec path 실측 (bun, 본 머신)
@@ -318,7 +318,7 @@ direct-marshalling 절감 패턴(transport 격리 51%, echo64 왕복 37%)이 상
 호출한다. 모든 경로는 `42` 결과를 timing 전후에 검증하고 warm-up 뒤 3회 반복했다.
 
 ```bash
-bun run bench:hosts -- --output /tmp/rustra-host-matrix.json
+bun run bench:hosts -- --output /tmp/unikit-host-matrix.json
 ```
 
 환경은 macOS arm64, Bun 1.4.0, Node v22.21.1, Rust release다.
@@ -338,7 +338,7 @@ bun run bench:hosts -- --output /tmp/rustra-host-matrix.json
 모든 평균과 throughput은 OS 스케줄링 꼬리값을 줄이기 위해 양끝 5%를 제외한
 trimmed mean으로 계산했다. Tauri는 WKWebView의 약 1ms 타이머 정밀도를 피하기 위해
 20호출 batch의 호출당 지연으로 percentile을 계산했다. RN 행은 같은 날 최종
-fingerprint Release receipt의 Rustra add p50이며
+fingerprint Release receipt의 Unikit add p50이며
 Node/Bun/Tauri와 실행 환경이 다르므로 직접 순위를 매기지 않는다.
 
 이 표의 설계 결론은 다음과 같다.
@@ -366,7 +366,7 @@ Node/Bun/Tauri와 실행 환경이 다르므로 직접 순위를 매기지 않�
 
 ### Rust release wire benchmark
 
-`cargo run -p rustra-calculator-example --bin wire-bench --release`
+`cargo run -p unikit-calculator-example --bin wire-bench --release`
 
 명령은 동일하나, legacy 프로토콜 제거(2026-09-03) 이후 벤치가 계산기 전용 C 심볼이
 아니라 `Package` 메서드(`invoke_json` / `invoke_frame` / `invoke_frame_into`)를
@@ -401,10 +401,10 @@ xychart-beta
 | Node N-API (Buffer) |      2.0 µs |   ~500,000 ops/s |
 | Node.js subprocess  |     3.40 ms |       ~294 ops/s |
 
-→ 동일 실행에서 N-API가 subprocess보다 약 2,270배 빠르다. `rustraInvokeBuffer`
+→ 동일 실행에서 N-API가 subprocess보다 약 2,270배 빠르다. `unikitInvokeBuffer`
 (Buffer 반환 변형)는 String 왕복의 UTF-16 이중 복사를 제거하지만, 이 크기
 (47 B 요청)에서는 오히려 Buffer 래핑 비용이 커져 2.0 µs로 측정됐다 — 대형
-응답에서 이점이 있다(변형이 없으면 String이 빠른 구간). `rustraInvokeFrame`
+응답에서 이점이 있다(변형이 없으면 String이 빠른 구간). `unikitInvokeFrame`
 (2026-08-23 추가)는 postcard 프레임을 Buffer 직결로 왕복한다 — 조용한
 머신 실측 596ns(시스템 로드 평균 8+에서는 2.8µs까지 부풀므로 세션 조건을
 기재할 것). napi ABI의 진입+Buffer 고정비(~530ns)가 하한을 만든다.
@@ -419,7 +419,7 @@ xychart-beta
 | Bun FFI JSON (release)  |      1.7 µs |   ~580,000 ops/s |
 | Bun subprocess          |     5.73 ms |       ~175 ops/s |
 
-> Frame 직결 경로(2026-08-23 추가)는 코어 `rustra_ffi_invoke_frame`를
+> Frame 직결 경로(2026-08-23 추가)는 코어 `unikit_ffi_invoke_frame`를
 > 버퍼 직결로 호출한다 — JSON/UTF-16 왕복 없이 postcard 프레임만 오간다.
 > 응답의 toArrayBuffer 뷰는 Rust 메모리를 참조하므로 free 전에 값 복사로
 > materialize 한다(2차 복사 필수).
@@ -439,7 +439,7 @@ xychart-beta
 | Full bridge (serialize → FFI → parse) |     6.6 µs | ~151,000 ops/s |
 
 ¹ 2026-08-22에 계산기 전용 CString 심볼로 측정 — legacy 제거(2026-09-03)로 코어
-`rustra_ffi_invoke_json` 바이트 경로로 교체됐다. 와이어 봉투는 동일하며 Swift 모듈이
+`unikit_ffi_invoke_json` 바이트 경로로 교체됐다. 와이어 봉투는 동일하며 Swift 모듈이
 이제 C 문자열이 아닌 바이트를 다룬다.
 
 이 Swift 표는 macOS dylib과 Foundation JSON을 쓰는 C ABI 레이어 분해다. Hermes,
@@ -455,7 +455,7 @@ xychart-beta
 
 ## 2026-08-21 콜드스타트·할당 수 측정 추가 (`0.3.0` 준비 checkout)
 
-`rustra-benchmark` 에 global_allocator 카운팅(할당/해제 원자 카운터)과
+`unikit-benchmark` 에 global_allocator 카운팅(할당/해제 원자 카운터)과
 콜드스타트 구분이 추가됐다. 2026-08-22 재측정 기준:
 
 | 지표                          | 값                                 |
@@ -468,7 +468,7 @@ xychart-beta
 할당 수는 나노초보다 안정적인 비교 지표다 — caller-buffer/Arc 같은 복사 제거
 최적화의 효과를 "할당 감소"로 검증한다(Frame 경로가 JSON 대비 할당 수 절반).
 
-## Rust 코어 성능 (`cargo run --release -p rustra-benchmark`)
+## Rust 코어 성능 (`cargo run --release -p unikit-benchmark`)
 
 ### 패키지 생성
 
@@ -602,7 +602,7 @@ bun run test:runtime:node-napi
 ### React Native iOS Release 동등 연산 비교 (2026-08-24)
 
 iPhone 17 Simulator(iOS 26.2), Hermes, React Native 0.81.5 + Expo 54의 Release
-앱에서 측정했다. 각 연산은 warm-up 500회 + 10,000회이며 Nitro와 Rustra가
+앱에서 측정했다. 각 연산은 warm-up 500회 + 10,000회이며 Nitro와 Unikit가
 같은 JS 입력 모양, 같은 연산, 같은 출력 모양을 사용한다. bytes 정규화도 양쪽
 측정 구간 안에 포함한다. `nitroBench.add(a, b)` 원시 호출은 lower bound로만
 기록하고 비율에는 사용하지 않는다.
@@ -622,14 +622,14 @@ ratio는 add 1.0435x, string 1.0194x, bytes64 0.9580x, pair 1.0511x,
 성능값으로 대체하지 않으며, 배포 후보와 측정 앱의 지문, 정답, CI gate가
 일치한다는 최종 확인 증거다.
 
-정답을 timing 전에 검증하고 Nitro/Rustra/Swift FFI를 호출 단위로
+정답을 timing 전에 검증하고 Nitro/Unikit/Swift FFI를 호출 단위로
 `ABC → BCA → CAB` 순환 측정한다. 각 receipt에는 100개 paired batch의
 log-ratio t 95% CI와 생성 helper/native route 자동 진단이 포함된다. 설치된
 Release 앱의 receipt는 화면 캡처 없이 다음 명령으로 추출한다.
 
 ```bash
 bun run --cwd examples/react-native-calculator bench:ios:receipt -- \
-  --output /tmp/rustra-rn-receipt.json
+  --output /tmp/unikit-rn-receipt.json
 ```
 
 추출기는 build mode, correctness, FFI 가용성, CI 필드, 생성 시각과 앱 컨테이너
@@ -653,18 +653,18 @@ route의 진단에서는 약 5~12%의 JS 함수/필드 추출 경계가 남는�
   공개 Promise를 정확히 한 번만 생성한다. 취소/타임아웃 옵션 경로는 기존 계약을
   그대로 사용한다.
 
-> Android는 같은 `RustraJSIBridge.cpp`를 공유하지만 이번 숫자는 iOS
+> Android는 같은 `UnikitJSIBridge.cpp`를 공유하지만 이번 숫자는 iOS
 > 시뮬레이터 기준이다. Android 에뮬레이터/실기기 수치는 별도 검증이 필요하다.
 
 ### React Native direct byte-buffer 비교 (2026-08-24)
 
 `Uint8Array`/`ArrayBuffer` 입력을 전용 JSI 진입점으로 빌리고, Rust 출력
 allocation을 JSI `MutableBuffer`로 이전해 응답 `memcpy`를 제거했다. Nitro와
-Rustra 모두 fresh-output 계약을 지키며 echo 한 번당 bulk copy는 한 번이다.
-각 실행은 timing 전에 결과 바이트 동등성을 검증했고, Nitro/Rustra 순서를
+Unikit 모두 fresh-output 계약을 지키며 echo 한 번당 bulk copy는 한 번이다.
+각 실행은 timing 전에 결과 바이트 동등성을 검증했고, Nitro/Unikit 순서를
 호출 단위로 교차했다.
 
-| Release 실행 | 64 KiB Nitro | 64 KiB Rustra |       비율 | 1 MiB-wire Nitro | 1 MiB-wire Rustra |       비율 |
+| Release 실행 | 64 KiB Nitro | 64 KiB Unikit |       비율 | 1 MiB-wire Nitro | 1 MiB-wire Unikit |       비율 |
 | ------------ | -----------: | ------------: | ---------: | ---------------: | ----------------: | ---------: |
 | 1            |     8.540 us |      8.456 us |     0.990x |        87.979 us |         89.923 us |     1.022x |
 | 2            |    12.815 us |      8.792 us |     0.686x |        84.797 us |         85.894 us |     1.013x |
@@ -673,7 +673,7 @@ Rustra 모두 fresh-output 계약을 지키며 echo 한 번당 bulk copy는 한 
 
 비율 중앙값은 호출 단위 paired ratio의 세 실행 중앙값이므로 독립적인 시간
 중앙값의 단순 나눗셈과 다를 수 있다. 두 번째 64 KiB 실행은 Nitro lane만 일시적으로
-느려진 이상치였지만 Rustra는 세 실행 모두 8.456–8.792 us였다. 따라서 단일 실행값이
+느려진 이상치였지만 Unikit는 세 실행 모두 8.456–8.792 us였다. 따라서 단일 실행값이
 아니라 세 실행 paired ratio 중앙값을 대표값으로 쓴다. 64 KiB는 warm-up 50회 + 500회,
 1 MiB-wire는 분산을 줄이기 위해 warm-up 20회 + 200회로 측정한다.
 1 MiB-wire의 데이터 길이는 기본 wire limit에서 command id와 postcard 길이
@@ -742,14 +742,14 @@ JSON.parse 오버헤드(27.5µs)를 제거했고, JSI 동기 호출로 async bri
 
 이 문서에서 **삭제된 표**와 그 이유:
 
-- **iOS/Android "Rustra Direct C++ Fast-Path" 비교 표** (iOS 0.95 µs /
+- **iOS/Android "Unikit Direct C++ Fast-Path" 비교 표** (iOS 0.95 µs /
   Android 1.50 µs, Nitro 대비 우위 주장 포함)
 - **페이로드 복잡도별 확장성 표** (Tier 1/2/3에서 1.5/2.1/3.4 µs, "Nitro 대비
   12.3x 빠름" 주장)
 - **Tier별 성능 (Android Hermes) 표** (addNumbers 6.1 µs / greet 7.2 µs)
 
 이 수치들의 계보를 추적한 결과, 2026-08-11 Lynx 시절 측정으로 작성된
-`Lynx (Direct C++ Fast-Path) 0.95 µs` 표가 동일 커밋에서 "Rustra Direct C++
+`Lynx (Direct C++ Fast-Path) 0.95 µs` 표가 동일 커밋에서 "Unikit Direct C++
 Fast-Path"로 **이름만 교체**된 것이었다 (커밋 d888fc86). 이후 Lynx 제거
 (ecbe69c5)에서도 표가 유지됐다. 레포에 이 경로(순수 C++ fast-path 벤치)의
 측정 코드가 존재하지 않아, 재측정 근거 없이는 성능 주장으로 남을 수 없어
@@ -776,7 +776,7 @@ avg/stddev/min/max/p50/p95/p99를 구조화 receipt로 남긴다:
 즉 이 비교가 확실하게 답하는 질문은 하나다:
 
 > **"동일한 공개 객체 API의 엔드투엔드 지연이 Nitro급인가?"** — 답: 3회
-> 중앙값 기준 Rustra/Nitro add 1.0418x, string 1.0281x, bytes 0.9543x,
+> 중앙값 기준 Unikit/Nitro add 1.0418x, string 1.0281x, bytes 0.9543x,
 > pair 1.0535x(2026-08-24 Release 측정)다.
 
 이 비교가 **하지 않는** 것 (즉, 위 비교만으로 "full 지원 상태"를 체크했다고
@@ -792,16 +792,16 @@ avg/stddev/min/max/p50/p95/p99를 구조화 receipt로 남긴다:
   `payload.too_large` 계약으로 거부한다.
 - 기능 패리티 — 아래 매트릭스 참고. 지연 비교가 기능 지원을 대신하지 않는다.
 
-### 기능 패리티 매트릭스: rustra vs Nitro Modules
+### 기능 패리티 매트릭스: unikit vs Nitro Modules
 
-Nitro는 "JS ↔ 네이티브 객체 브릿지", rustra는 "단일 Rust 코어 × 멀티호스트
+Nitro는 "JS ↔ 네이티브 객체 브릿지", unikit는 "단일 Rust 코어 × 멀티호스트
 RPC 계약"으로 설계 목표가 다르다. 같은 문제만 겹친다(RN에서 Rust/C++ 로직
 부르기). 아래는 설치된 Nitro 0.35.10의 실제 타입 표면(`cpp/jsi/JSIConverter*`)
-과 rustra 코드젠/코덱 표면 기준.
+과 unikit 코드젠/코덱 표면 기준.
 
 #### 타입 시스템
 
-| 타입                   | Nitro 0.35.10                                  | rustra (postcard/Frame fast path)                                                                                                                         | rustra 폴백(Tier 3 JSON) |
+| 타입                   | Nitro 0.35.10                                  | unikit (postcard/Frame fast path)                                                                                                                         | unikit 폴백(Tier 3 JSON) |
 | ---------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
 | 정수/실수 프리미티브   | ✅ int/float/double + **bigint(Int64/UInt64)** | ✅ f64/f32/zigzag 정수 + **uvar(u8–u64) plain varint** + `number                                                                                          | bigint` wide-int 복원    | ✅ (serde JSON) |
 | string                 | ✅                                             | ✅                                                                                                                                                        | ✅                       |
@@ -821,12 +821,12 @@ RPC 계약"으로 설계 목표가 다르다. 같은 문제만 겹친다(RN에�
 
 #### 런타임/플랫폼
 
-| 항목                         | Nitro Modules                         | rustra                                                         |
+| 항목                         | Nitro Modules                         | unikit                                                         |
 | ---------------------------- | ------------------------------------- | -------------------------------------------------------------- |
 | 대상 호스트                  | React Native 전용                     | Node / Bun / Tauri / RN(iOS+Android) 단일 코어                 |
 | 구현 언어                    | C++/Swift/Kotlin (플랫폼별)           | Rust 단일 + 각 호스트 얇은 어댑터                              |
 | 코드젠                       | nitrogen (인터페이스→네이티브 바인딩) | 스키마→**양방향**(커맨드+이벤트+TS 클라이언트)                 |
-| 계약 게이트                  | ❌                                    | ✅ `rustra diff` + contract hash + wire round-trip 게이트      |
+| 계약 게이트                  | ❌                                    | ✅ `unikit diff` + contract hash + wire round-trip 게이트      |
 | 런타임 명령 등록             | ❌                                    | ⚠️ dev 전용(register→frozen)                                   |
 | 취소(AbortSignal)            | 직접 구현                             | ✅ RN Frame은 네이티브 전파(체크포인트)까지                    |
 | 타임아웃                     | 직접 구현                             | ✅ timeoutMs(모든 어댑터)                                      |
@@ -840,16 +840,16 @@ RPC 계약"으로 설계 목표가 다르다. 같은 문제만 겹친다(RN에�
 - **Nitro가 이기는 곳**: 원시 프리미티브 호출 지연(특화 변환기), 풍부한
   네이티브 타입(bigint/Date/ArrayBuffer/콜백), 객체 수명 관리와 UI 뷰 —
   "네이티브 모듈을 만든다"는 문제에 특화.
-- **rustra가 이기는 곳**: 단일 Rust 코어의 멀티호스트 재사용, 계약 게이트가
+- **unikit가 이기는 곳**: 단일 Rust 코어의 멀티호스트 재사용, 계약 게이트가
   붙은 양방향 코드젠, 문서화된 취소/타임아웃/배치/이벤트 시맨틱, 바이널 wire의
   페이로드 확장성, 동적 스키마 — "RPC 계약을 소유한다"는 문제에 특화.
 - 실제 선택은 RN 전용 앱에서 프리미티브 호출이 병목이면 Nitro, 여러 호스트에
-  같은 Rust 로직을 심거나 계약 관리가 필요하면 rustra. 양쪽은 공존 가능하다
-  (rustra 어댑터 안에서 Nitro 모듈을 transport로 쓰는 것도 기술적으로 가능).
+  같은 Rust 로직을 심거나 계약 관리가 필요하면 unikit. 양쪽은 공존 가능하다
+  (unikit 어댑터 안에서 Nitro 모듈을 transport로 쓰는 것도 기술적으로 가능).
 
 #### 빈칸의 의미와 로드맵
 
-매트릭스에서 rustra가 ❌인 타입은 "지원 안 됨"이 아니라 **3부류**다:
+매트릭스에서 unikit가 ❌인 타입은 "지원 안 됨"이 아니라 **3부류**다:
 
 1. **fast-path 확장** (2026-08-22 1단계 완료) — 동적 맵(원시값), 튜플,
    Vec<u8>/ArrayBuffer, u8–u64 plain varint, chrono Date(ISO string)를
@@ -870,16 +870,16 @@ RPC 계약"으로 설계 목표가 다르다. 같은 문제만 겹친다(RN에�
 3. **채널/리소스로 재정의** (2026-08-23 2단계 완료) — 콜백과 객체 참조.
    Nitro처럼 JS-first 객체 브릿지를 만드는 게 아니라, Tauri v2의
    `ipc::Channel<T>`(콜백을 직렬화 가능한 채널 핸들로)·`Resource`(객체를
-   Rust-소유 핸들 id로 노출, 메서드는 코드젠) 모델을 rustra 계약 안으로
+   Rust-소유 핸들 id로 노출, 메서드는 코드젠) 모델을 unikit 계약 안으로
    가져왔다. 구현: 코어 `channels.rs`(전역 `ChannelHost` 테이블 — u32 단조
    핸들, 재사용 없음, stale send 는 조용한 false), FFI
-   `rustra_ffi_channel_{create,send,drop}`(콜백이 자기 핸들을 회신),
+   `unikit_ffi_channel_{create,send,drop}`(콜백이 자기 핸들을 회신),
    RN JSI `createChannel(cb)`/`dropChannel(h)` + `ChannelDispatcher`
    (EventDispatcher 와 동일한 큐+CallInvoker 마샬링), calculator 예제
    `channelDemo`/`resourceOpen/Read/Write/Close`(KvResource, Mutex 상태).
    wire에 실리는 것은 정수 핸들이므로 계약 게이트·양방향 코드젠·멀티호스트
    일관성이 그대로 유지된다 — 코드젠 방향이 반대(Nitro는 TS→네이티브,
-   rustra는 Rust→TS)라는 차이도 이 방향에서는 그대로 살아있다. 시뮬레이터
+   unikit는 Rust→TS)라는 차이도 이 방향에서는 그대로 살아있다. 시뮬레이터
    E2E: 채널 3페이로드 순서 보존 + drop, 리소스 open→read→write→close 후
    `resource.not_found`.
 4. **범위 밖 확정** — HybridView(UI 네이티브 뷰). 로직 레이어 전용이라는
@@ -888,7 +888,7 @@ RPC 계약"으로 설계 목표가 다르다. 같은 문제만 겹친다(RN에�
 ## 동적 명령 (런타임 register, Tier 3) 성능
 
 동적 명령(런타임 `register` 로 등록, Frame **Tier 3 JSON-in-binary** fallback)의 성능.
-criterion 벤치마크(`crates/rustra/benches/`)로 측정.
+criterion 벤치마크(`crates/unikit-bridge/benches/`)로 측정.
 
 > **측정 환경 주의**: 동적 명령은 설계상 **dev-only**(release 빌드는 frozen → `register` 차단).
 > 따라서 본 수치는 **debug(unoptimized) 빌드**에서 측정했다. 정적 postcard 경로도 debug 에선
@@ -897,7 +897,7 @@ criterion 벤치마크(`crates/rustra/benches/`)로 측정.
 
 ### Tier 비교 — 연산 통제(echo `{"v":7}` 동일 연산, wire 만 교체) (debug, 2026-08-30)
 
-`cargo bench -p rustra --bench tier_compare --profile dev`
+`cargo bench -p unikit-bridge --bench tier_compare --profile dev`
 
 > **오독 주의 (강화)**: 기존 표(2026-08-22)는 add/greet/echo **서로 다른 연산**을
 > 서로 다른 wire 로 재서 "6.55x"를 wire 차이처럼 표기했다 — 연산 효과와 wire
@@ -926,7 +926,7 @@ postcard 488 ns — 정적 478 ns 대비 1.02x** (목표 2x 이내 달성, 격�
 
 ### 런타임 레지스트리 비용 (debug, 2026-08-22)
 
-`cargo bench -p rustra --bench dynamic_registry --profile dev`
+`cargo bench -p unikit-bridge --bench dynamic_registry --profile dev`
 
 | 연산                                | 평균     | 비고                          |
 | ----------------------------------- | -------- | ----------------------------- |
@@ -937,7 +937,7 @@ postcard 488 ns — 정적 478 ns 대비 1.02x** (목표 2x 이내 달성, 격�
 
 ### 동적 명령 payload scaling (debug, 2026-08-30)
 
-`cargo bench -p rustra --bench type_scaling --profile dev`
+`cargo bench -p unikit-bridge --bench type_scaling --profile dev`
 
 (T2-1 이후) `processPayload`(PayloadInput: Vec<Item>)는 postcard 지원
 형태라 동적 등록 시 postcard 핸들러를 받는다 — 벤치가 postcard 왕복을
@@ -958,9 +958,9 @@ postcard 488 ns — 정적 478 ns 대비 1.02x** (목표 2x 이내 달성, 격�
 
 ```bash
 # 동적/Tier 3 경로는 register 로만 도달 → debug 빌드 필수.
-cargo bench -p rustra --bench tier_compare    --profile dev
-cargo bench -p rustra --bench dynamic_registry --profile dev
-cargo bench -p rustra --bench type_scaling    --profile dev
+cargo bench -p unikit-bridge --bench tier_compare    --profile dev
+cargo bench -p unikit-bridge --bench dynamic_registry --profile dev
+cargo bench -p unikit-bridge --bench type_scaling    --profile dev
 ```
 
 원본 수치는
@@ -982,7 +982,7 @@ cargo bench -p rustra --bench type_scaling    --profile dev
 
 ```bash
 # Rust 전체 벤치마크 (Summary 차트는 실측치 기반)
-cargo run --release -p rustra-benchmark
+cargo run --release -p unikit-benchmark
 
 # Node.js 어댑터 벤치마크
 node scripts/adapter-bench.mjs

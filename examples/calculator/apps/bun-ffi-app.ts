@@ -1,4 +1,4 @@
-import { addNumbers, rustra } from '../generated/bun.js';
+import { addNumbers, unikit } from '../generated/bun.js';
 
 const result = await addNumbers({ a: 20, b: 22 });
 
@@ -7,4 +7,4 @@ if (result.value !== 42) {
 }
 
 console.log(`bun FFI zero-config result: ${result.value}`);
-rustra.dispose();
+unikit.dispose();

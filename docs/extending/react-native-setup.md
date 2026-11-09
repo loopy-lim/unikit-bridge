@@ -2,7 +2,7 @@ English | [한국어](./react-native-setup.ko.md)
 
 # React Native Setup Guide
 
-Rustra uses the same generated native package for Expo development builds and
+Unikit uses the same generated native package for Expo development builds and
 bare React Native. You do not edit the app's Podfile, Gradle settings,
 `MainApplication`, or CMake by hand.
 
@@ -17,16 +17,16 @@ crate-type = ["rlib", "staticlib"]
 ```
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 pub fn app_package() -> Package {
-    rustra::build!("app.example", add_numbers).done()
+    unikit_bridge::build!("app.example", add_numbers).done()
 }
 
-rustra::native_entry!(app_package);
+unikit_bridge::native_entry!(app_package);
 ```
 
-`native_entry!` creates the platform-neutral `rustra_mobile_init` ABI and, on
+`native_entry!` creates the platform-neutral `unikit_mobile_init` ABI and, on
 Apple platforms, registers the package automatically at library load time. You
 never copy app-specific function names into C++.
 
@@ -68,13 +68,13 @@ usually unnecessary.
 Add the dependencies with Bun 1.4 or later, then run setup:
 
 ```bash
-bun add @rustra/react-native@0.10.0 @rustra/types@0.12.1
-bun add -d @rustra/cli@0.12.0
-bunx --bun rustra setup --config rustra.json
+bun add @unikit/react-native@0.10.0 @unikit/types@0.12.1
+bun add -d @unikit/cli@0.12.0
+bunx --bun unikit setup --config unikit.json
 ```
 
 Setup generates the clients and local native module, installs dependencies, and
-builds the Rust core. It adds `rustra:ios` / `rustra:android` preparation scripts
+builds the Rust core. It adds `unikit:ios` / `unikit:android` preparation scripts
 while preserving existing app scripts. If setup fails, fix the reported error
 and rerun the printed setup command. Installation respects the project's
 `packageManager` or lockfile.
@@ -83,14 +83,14 @@ Prepare only the platform you use, then launch with the app's existing React
 Native or Expo command:
 
 ```bash
-bun run rustra:ios      # Prepare iOS Pods
-# bun run rustra:android  # Build an Android debug APK
+bun run unikit:ios      # Prepare iOS Pods
+# bun run unikit:android  # Build an Android debug APK
 ```
 
 These scripts do not install or launch the app. If an existing customized script
 conflicts, use the preparation command printed by setup. RN-only apps use setup
 without `--run`; `--run` executes a Node/Bun project's `demo` script.
-Update the JS packages and native Rustra 0.12.0 together, then rebuild the app.
+Update the JS packages and native Unikit 0.12.0 together, then rebuild the app.
 Setup success, registry publication and command results on a simulator/device
 are separate checks.
 
@@ -101,16 +101,16 @@ generated/
   react-native.ts
   commands.ts
   frame-registry.ts
-modules/rustra-bridge/
+modules/unikit-bridge/
   package.json
   react-native.config.js
-  RustraBridge.podspec
+  UnikitBridge.podspec
   ios/
   android/
   generated/
 ```
 
-If the `@rustra/generated-react-native` workspace dependency in `package.json`
+If the `@unikit/generated-react-native` workspace dependency in `package.json`
 points somewhere else, the generator fails instead of overwriting. This
 fail-closed behavior prevents accidental collisions with an existing package.
 
@@ -177,42 +177,42 @@ bun run verify:native:android
 bun run verify:native:ios
 ```
 
-CI verifies `librustra_bridge.so` in the Android Release APK and the iOS
+CI verifies `libunikit_bridge.so` in the Android Release APK and the iOS
 Release workspace link after a clean Expo prebuild. Because build/link success
 is independent of running on a real device, you should also verify generated
 command results on a simulator/device before a product release.
 
 ## Collision Avoidance Contract
 
-- JS package: `@rustra/generated-react-native`
-- native module: `RustraBridge`
-- Android namespace: `dev.rustra.bridge`
-- Android library: `rustra_bridge`
-- stable Rust initializer: `rustra_mobile_init`
+- JS package: `@unikit/generated-react-native`
+- native module: `UnikitBridge`
+- Android namespace: `dev.unikit.bridge`
+- Android library: `unikit_bridge`
+- stable Rust initializer: `unikit_mobile_init`
 
-## Calling rustra from C++ (TurboModule interop)
+## Calling unikit from C++ (TurboModule interop)
 
 Other C++ TurboModules (or any native code on the JS runtime thread) can invoke
-rustra directly with `jsi::Value` — no JS round-trip, no JSON marshalling. The
-public entry points in `RustraJSIBridge.hpp` share the exact path used by the
-JS-side `__rustraNative.invokeTyped*`:
+unikit directly with `jsi::Value` — no JS round-trip, no JSON marshalling. The
+public entry points in `UnikitJSIBridge.hpp` share the exact path used by the
+JS-side `__unikitNative.invokeTyped*`:
 
 ```cpp
-#include <RustraJSIBridge.hpp>
+#include <UnikitJSIBridge.hpp>
 
-// JS runtime thread only (same thread-affinity contract as installRustraJSI).
-// No installRustraJSI call required — only the FFI global package registration.
-rustra::TypedInvokeResult result =
-    rustra::invokeTypedById(runtime, commandId, argsValue);
+// JS runtime thread only (same thread-affinity contract as installUnikitJSI).
+// No installUnikitJSI call required — only the FFI global package registration.
+unikit_bridge::TypedInvokeResult result =
+    unikit_bridge::invokeTypedById(runtime, commandId, argsValue);
 
 switch (result.status) {
-  case rustra::TypedInvokeStatus::Ok:            // result.value — decoded output
+  case unikit_bridge::TypedInvokeStatus::Ok:            // result.value — decoded output
     break;
-  case rustra::TypedInvokeStatus::NoStaticCodec: // fall back to invokeFrame
+  case unikit_bridge::TypedInvokeStatus::NoStaticCodec: // fall back to invokeFrame
     break;
-  case rustra::TypedInvokeStatus::CommandError:  // result.value: {code, message}
+  case unikit_bridge::TypedInvokeStatus::CommandError:  // result.value: {code, message}
     break;                                       // (e.g. platform.unavailable)
-  case rustra::TypedInvokeStatus::MalformedResponse:
+  case unikit_bridge::TypedInvokeStatus::MalformedResponse:
     break;                                       // result.message has details
 }
 ```
@@ -223,7 +223,7 @@ These functions never throw; classify outcomes by `TypedInvokeStatus`.
 
 Adjacent interop surfaces:
 
-- **folly::dynamic input** — `RustraTurboInterop.hpp` adds
+- **folly::dynamic input** — `UnikitTurboInterop.hpp` adds
   `invokeTypedByNameDynamic`/`invokeTypedByIdDynamic` overloads that convert a
   `folly::dynamic` to `jsi::Value` and reuse the same path (int64 beyond 2^53
   loses precision — see the header contract).
@@ -232,19 +232,19 @@ Adjacent interop surfaces:
   JSON serialization. Same handle/close contract as JSON channels; one handle
   works on exactly one path.
 - **Synchronous invoke** — `invokeTypedSync(name, args)` (from
-  `@rustra/react-native`) calls the C++ typed fast path without a Promise hop
+  `@unikit/react-native`) calls the C++ typed fast path without a Promise hop
   for UI hot paths; loud-fails with `sync.unavailable` where unavailable.
 
 ## Troubleshooting
 
-If you see `RustraBridge was not linked`, check in this order: `bun run
+If you see `UnikitBridge was not linked`, check in this order: `bun run
 codegen`, `bun install`, `bunx --bun react-native config`; on iOS, reinstall
 Pods and rebuild the native app.
 
 Bootstrap failures are classified errors, not raw bridge text. A setup failure
 (install or native engine configuration) throws `bootstrap.failed` with the
 underlying error preserved as `cause`; a JSI module missing from the JS realm
-(`installRustraJSI()` not called, Expo Go, or a missed native rebuild) throws
+(`installUnikitJSI()` not called, Expo Go, or a missed native rebuild) throws
 `native.not_installed`. Branch on `error.code` and remediate by rebuilding the
 native app — a JavaScript reload does not repair native drift.
 

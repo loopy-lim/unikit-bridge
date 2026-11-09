@@ -2,7 +2,7 @@
 
 `Package::emit()`으로 발행한 이벤트를 JS가 소비하는 패턴을 보여주는 예시.
 장기 실행 커맨드가 진행률을 스트리밍하고, 호스트 어댑터는
-(`@rustra/node` `subscribeEvent`) 구독으로 이벤트를 받아 플랫폼 푸시 채널로
+(`@unikit/node` `subscribeEvent`) 구독으로 이벤트를 받아 플랫폼 푸시 채널로
 전달한다 — 이 데몬은 라인 JSON 프로토콜(구 런타임)이라 푸시 핸드셰이크
 (`events:"push"`)가 없고, 따라서 폴링 폴백 경로로 흐른다.
 
@@ -20,7 +20,7 @@ streaming/
 ## 실행 (end-to-end)
 
 ```bash
-cargo build -p rustra-streaming-example
+cargo build -p unikit-streaming-example
 bun examples/streaming/apps/node-app.ts
 ```
 
@@ -39,7 +39,7 @@ bun examples/streaming/apps/node-app.ts
 
 ```rust
 // Rust — 이벤트 계약 선언 (builder 체인)
-rustra::build!("examples.streaming", start_job, job_status)
+unikit_bridge::build!("examples.streaming", start_job, job_status)
     .event::<JobProgress>("progress.tick")
     .event::<JobDone>("job.done")
     .done()
@@ -64,5 +64,5 @@ const events = package.eventBus().takePendingEvents();
 
 Node 데모의 `--serve` 라인 데몬은 `__drainEvents` 폴링 명령에 `events` 필드
 (`{"ok":true,"events":[...]}`)로 답한다 — calculator loop-stdio 참조 런타임과
-같은 계약이며, `@rustra/node` 폴링 폴백이 읽는 필드다. 푸시 모드(0xfffd
+같은 계약이며, `@unikit/node` 폴링 폴백이 읽는 필드다. 푸시 모드(0xfffd
 프레임) 런타임은 `examples/calculator/src/loop_stdio.rs` 참고.

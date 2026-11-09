@@ -1,6 +1,6 @@
 # 기여 가이드
 
-rustra에 기여하는 방법을 정리한다.
+unikit에 기여하는 방법을 정리한다.
 
 ---
 
@@ -24,7 +24,7 @@ rustra에 기여하는 방법을 정리한다.
 
 일상 우산 — `test:fast`, `test`, `test:compat`, `test:local` — 는 추가 시스템
 라이브러리 없이 모든 플랫폼(Linux 포함)에서 돈다. Rust 단계가
-`rustra-tauri-calculator` 크레이트를 제외하기 때문이며, 그 Tauri/WebKit
+`unikit-tauri-calculator` 크레이트를 제외하기 때문이며, 그 Tauri/WebKit
 의존성이 문제가 되는 것은 아래 명령들뿐이다:
 
 - `cargo build/test --workspace`(전체 워크스페이스)와 `bun run
@@ -49,7 +49,7 @@ CI는 Tauri 런타임 구간(`test:runtime:tauri`)을 모든 PR에서 실행한�
 ### 초기 설정
 
 ```bash
-git clone <repo-url> && cd rustra-bridge
+git clone <repo-url> && cd unikit-bridge
 bun install                 # 워크스페이스 의존성
 
 bun run test:fast           # 웜 기준 약 15초의 첫 신호(첫 실행은 더 김): cargo check + calculator tsc + cli 유닛 테스트
@@ -91,7 +91,7 @@ Rust 코드를 변경하면:
 cargo test --workspace
 
 # 생성된 TS 갱신 (calculator 예시)
-cargo run -p rustra-calculator-example --bin generate   # 계약 프로브: schema.json
+cargo run -p unikit-calculator-example --bin generate   # 계약 프로브: schema.json
 bun run --cwd examples/calculator codegen                # TS 표면 렌더링
 
 # 빠른 개발 루프: cargo check + calculator tsc + cli 유닛 테스트
@@ -118,7 +118,7 @@ bun run test:runtime
 ```
 feat: add tuple type support in TS codegen
 
-fix: handle null args in rustra_dispatch
+fix: handle null args in unikit_dispatch
 
 docs: add debugging guide to contributing
 
@@ -163,7 +163,7 @@ PR 게이트가 통과해야 하기 때문이다. CI `ts-runtime` 잡이 모든 
 
 `test:local` 안의 온보딩 게이트는 공유 cargo 타깃 캐시에 옵트인한다
 (`test:onboarding:check` 구간에
-`RUSTRA_ONBOARDING_CARGO_TARGET_DIR=target/onboarding-shared` 주입) — 반복
+`UNIKIT_ONBOARDING_CARGO_TARGET_DIR=target/onboarding-shared` 주입) — 반복
 실행 시 콜드 스캐폴드 빌드를 건너뛴다. 변수 없이 `node scripts/onboarding-gate.mjs`
 를 직접 실행하면 기존대로 콜드(신선한 스캐폴드) 검증이 유지된다.
 
@@ -208,7 +208,7 @@ bun run test:runtime:tauri   # 위 Tauri 시스템 사전조건 필요
 
 | 파일                                                | 역할                        |
 | --------------------------------------------------- | --------------------------- |
-| `crates/rustra/tests/public_authoring_api_tests.rs` | Rust 공개 API 테스트 (48개) |
+| `crates/unikit-bridge/tests/public_authoring_api_tests.rs` | Rust 공개 API 테스트 (48개) |
 | `examples/calculator/tests/example_contract.rs`     | 종단 간 계약 테스트 (1개)   |
 | `examples/calculator/ts/generated-client.test.ts`   | TS 클라이언트 동작 (2개)    |
 | `examples/calculator/ts/adapter-compat.test.ts`     | 4개 어댑터 호환성 (5개)     |
@@ -256,13 +256,13 @@ bun run test:runtime:tauri   # 위 Tauri 시스템 사전조건 필요
 
 - 공개 API는 `prelude` 모듈에서 재export
 - `#[command]` 매크로는 시그니처 검증 + trait bound assertion만 수행 (본문은 identity passthrough)
-- 에러는 `RustraError`로 통일
+- 에러는 `UnikitError`로 통일
 
 ### TypeScript
 
 - 어댑터 패키지는 외부 의존성 없이 순수 TypeScript
 - `EngineClient` 인터페이스(`invoke<T>`)만 노출
-- Tauri만 `rustra_dispatch` 래핑, 나머지는 transport 직접 호출
+- Tauri만 `unikit_dispatch` 래핑, 나머지는 transport 직접 호출
 
 ---
 
@@ -272,7 +272,7 @@ bun run test:runtime:tauri   # 위 Tauri 시스템 사전조건 필요
 
 1. `schema.json` 확인 — schemars가 생성한 JSON Schema가 의도한 대로인지 검사
 2. `types.ts` 확인 — JSON Schema → TS 타입 매핑 규칙은 [codegen 문서](docs/dev/internal/codegen.md) 참조
-3. rustra가 생성하지 않는 조건부 JSON Schema는 `unknown`, postcard가 와이어
+3. unikit가 생성하지 않는 조건부 JSON Schema는 `unknown`, postcard가 와이어
    순서를 증명할 수 없는 data enum/중첩 collection은 명령 단위 Tier 3로 폴백됨
 
 ### Contract hash 불일치
@@ -281,7 +281,7 @@ bun run test:runtime:tauri   # 위 Tauri 시스템 사전조건 필요
 
 ```bash
 # 재생성
-cargo run -p rustra-calculator-example --bin generate   # 계약 프로브: schema.json
+cargo run -p unikit-calculator-example --bin generate   # 계약 프로브: schema.json
 bun run --cwd examples/calculator codegen                # TS 표면 렌더링
 
 # diff로 확인
@@ -312,10 +312,10 @@ const engine = createNodeEngine({
 
 ### Tauri 런타임 디버깅
 
-Tauri 앱이 `rustra_dispatch`에서 에러를 반환할 때:
+Tauri 앱이 `unikit_dispatch`에서 에러를 반환할 때:
 
-1. Rust 측: `RustraError`가 `{ code, message }` JSON으로 직렬화됨
-2. TS 측: `createTauriEngine`이 이를 `RustraCommandError`로 변환하여 throw
+1. Rust 측: `UnikitError`가 `{ code, message }` JSON으로 직렬화됨
+2. TS 측: `createTauriEngine`이 이를 `UnikitCommandError`로 변환하여 throw
 3. 콘솔에서 `e.code`, `e.message` 확인
 
 ### React Native 관련
@@ -355,7 +355,7 @@ CI 대기열을 거친 수 분 뒤가 아니라 수 초 안에 드러난다. 같
 ### 버전 관리 (changesets)
 
 - 현재 버전은 Rust workspace의 `Cargo.toml`과 각 `packages/*/package.json`을
-  기준으로 확인한다. 공개 `@rustra/*` 패키지들은 **독립 release line**이므로
+  기준으로 확인한다. 공개 `@unikit/*` 패키지들은 **독립 release line**이므로
   모두 같은 버전일 것을 가정하지 않는다.
 - `0.x` 동안 breaking change가 가능하므로, 공개 API 변경은 반드시 changeset에
   영향받는 패키지와 bump 종류를 명시한다:

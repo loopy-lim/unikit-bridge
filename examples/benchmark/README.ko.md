@@ -1,24 +1,24 @@
 # 벤치마크
 
-rustra-bridge 성능 측정: 코드 생성 속도, invoke 오버헤드, 페이로드 확장성.
+unikit-bridge 성능 측정: 코드 생성 속도, invoke 오버헤드, 페이로드 확장성.
 
 ## 빌드
 
 ```sh
-cargo build --release -p rustra-benchmark
+cargo build --release -p unikit-benchmark
 ```
 
 ## 실행
 
 ```sh
-cargo run --release -p rustra-benchmark
+cargo run --release -p unikit-benchmark
 ```
 
 최적화 반복 중에는 전체 payload 스케일링을 기다리지 않고 hot path만 빠르게
 재측정할 수 있습니다.
 
 ```sh
-cargo run --release -p rustra-benchmark -- --hot-path-only
+cargo run --release -p unikit-benchmark -- --hot-path-only
 ```
 
 ## 측정 항목

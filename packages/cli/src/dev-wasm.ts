@@ -50,7 +50,7 @@ export async function buildWasmEngine(
     throw new Error(
       `wasm engine build requires exactly one cdylib target in package ${cargoPackage.name}, found ${cdylibs.length}. ` +
         `Add crate-type = ["rlib", "cdylib"] to ${manifestPath}` +
-        (devWasm.rustPackage ? '' : `, or set reactNative.rustPackage in rustra.json`),
+        (devWasm.rustPackage ? '' : `, or set reactNative.rustPackage in unikit.json`),
     );
   }
   const artifactPath = wasmEngineArtifactPath(manifestPath, cdylibs[0]!.name, metadata);

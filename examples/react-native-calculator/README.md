@@ -2,7 +2,7 @@ English | [한국어](./README.ko.md)
 
 # React Native Calculator
 
-A performance and runtime fixture that uses the Rustra generated JSI bridge in an
+A performance and runtime fixture that uses the Unikit generated JSI bridge in an
 Expo development build, and connects the same Rust core to Nitro Modules and a
 Swift FFI comparison path as well. The production usage path does not depend on
 Expo APIs and uses the same autolinking modules as the bare RN fixture.
@@ -28,7 +28,7 @@ To install the iOS Release app and extract the measurement receipt:
 
 ```bash
 bun run ios -- --configuration Release
-bun run bench:ios:receipt -- --output /tmp/rustra-rn-receipt.json
+bun run bench:ios:receipt -- --output /tmp/unikit-rn-receipt.json
 ```
 
 ## App Code
@@ -58,7 +58,7 @@ bun run demo:functions
 
 `App.tsx` is this runnable screen; the default entry still opens `BenchmarkApp`.
 The screen checks the generated commands against the installed Rust core and
-records a separate `Documents/rustra-function-receipt.json` on iOS. Release builds
+records a separate `Documents/unikit-function-receipt.json` on iOS. Release builds
 also measure generated calls and request encoding with warmup and alternating
 batches. Rebuild native code after changing Rust; a Metro reload only updates JS.
 The Rust registrations are in `../calculator/src/ordinary_functions.rs` and append
@@ -72,7 +72,7 @@ bun run verify:functions:ios --device booted --runs 3
 
 The collector rejects stale results, source/contract mismatches and failed checks. It
 records fresh launch IDs, timestamps and installed executable/bundle hashes under a
-new `/tmp/rustra-functions-*` directory. Pass `--output <new-directory>` to choose it.
+new `/tmp/unikit-functions-*` directory. Pass `--output <new-directory>` to choose it.
 
 ### Existing command API
 
@@ -82,7 +82,7 @@ import { addNumbers } from './generated/react-native';
 const result = await addNumbers({ a: 42, b: 58 });
 ```
 
-`rustra.json` only specifies the location of the monorepo app crate. Cargo
+`unikit.json` only specifies the location of the monorepo app crate. Cargo
 package/library names, TypeScript bootstrap,
 Podspec, Gradle, CMake, and JNI are owned by the generator. The first command
 performs JSI installation, contract verification, and fast engine setup exactly once,
@@ -96,21 +96,21 @@ react-native-calculator/
   BenchmarkApp.tsx
   generated/                         generated TypeScript entry/codecs
   modules/
-    rustra-jsi/                      generated @rustra/generated-react-native
-    rustra-calculator/               Swift FFI comparator
+    unikit-jsi/                      generated @unikit/generated-react-native
+    unikit-calculator/               Swift FFI comparator
     nitro-bench/nitro-bench/         Nitro comparator
 ```
 
-The directory name `rustra-jsi` is just the fixture's existing local location, not the
+The directory name `unikit-jsi` is just the fixture's existing local location, not the
 public package/module name. The actual collision-isolated names are as follows:
 
-- package: `@rustra/generated-react-native`
-- iOS/React Native module: `RustraBridge`
-- Android namespace: `dev.rustra.bridge`
-- shared library: `rustra_bridge`
+- package: `@unikit/generated-react-native`
+- iOS/React Native module: `UnikitBridge`
+- Android namespace: `dev.unikit.bridge`
+- shared library: `unikit_bridge`
 
-The Rustra generated package uses only standard React Native autolinking. There are no
-manual Rustra patches in the Expo module config, Podfile, `settings.gradle`, or
+The Unikit generated package uses only standard React Native autolinking. There are no
+manual Unikit patches in the Expo module config, Podfile, `settings.gradle`, or
 `MainApplication`. Expo Go cannot include JSI native code, so a development build is
 required.
 
@@ -123,7 +123,7 @@ bun run doctor -- --json
 
 doctor is read-only and independently checks the following layers.
 
-- The lockfile of the current checkout combined with local `@rustra/*` packages
+- The lockfile of the current checkout combined with local `@unikit/*` packages
 - Sync between the Rust schema, TypeScript entry, C++ codec, and build fingerprint
 - iOS/Android autolinking and Pods
 - iOS static archive freshness, architecture, and required FFI symbols
@@ -150,7 +150,7 @@ unchanged) reaches the running app without a JS reload. The smoke proves it with
 
 Delivery contract — tmp + rename, never in-place:
 
-- The app watches `<filesDir>/rustra/hot` for `*-hot-live.so` (Kotlin
+- The app watches `<filesDir>/unikit/hot` for `*-hot-live.so` (Kotlin
   `nativeConfigureHotCore` is called right after `nativeInstall`; a missing file
   simply keeps the static core).
 - Overwriting the file that a process has already `dlopen`-ed in place is a
@@ -174,12 +174,12 @@ the cdylib, and a debuggable app build (`run-as` refuses release builds).
 bun run demo:hot-core
 
 # terminal 2 — full smoke: cargo ndk cdylibs → gradle assembleDebug + install
-# → boot → [RustraHotCore] READY value=5 → push → observe addNumbers 5→105
+# → boot → [UnikitHotCore] READY value=5 → push → observe addNumbers 5→105
 bun run test:hot-core:android
 
 # or deliver a prebuilt cdylib manually and watch the log
-bun run push:hot-core:android -- <path-to>/librustra_hot_core_variant.so
-adb logcat -v time | grep '[RustraHotCore]'
+bun run push:hot-core:android -- <path-to>/libunikit_hot_core_variant.so
+adb logcat -v time | grep '[UnikitHotCore]'
 ```
 
 Useful flags: `--skip-cargo` / `--skip-gradle` reuse existing artifacts and the
@@ -195,15 +195,15 @@ from the host filesystem there).
 
 Delivery contract — env-passed directory, tmp + rename, never in-place:
 
-- The iOS adapter reads the `RUSTRA_HOT_CORE_DIR` environment variable (a
+- The iOS adapter reads the `UNIKIT_HOT_CORE_DIR` environment variable (a
   directory) when the JSI module installs and polls that directory for
   `*-hot-live.*`. The smoke passes the path with the `SIMCTL_CHILD_` prefix
-  (`SIMCTL_CHILD_RUSTRA_HOT_CORE_DIR=<dir> xcrun simctl launch …`), which
+  (`SIMCTL_CHILD_UNIKIT_HOT_CORE_DIR=<dir> xcrun simctl launch …`), which
   `simctl` propagates into the app process (verified). An empty directory boots
   the static core — stale live files are removed before launch so the
   baseline (`READY value=5`) is observed from the static core.
 - The hot directory lives in the app's data container:
-  `<data container>/Documents/rustra/hot`, resolved with
+  `<data container>/Documents/unikit/hot`, resolved with
   `xcrun simctl get_app_container <udid> <bundle-id> data` at launch **and**
   push time — reinstalling the app can change the container path, and a
   mismatch between the env path and the push target would make the swap
@@ -215,7 +215,7 @@ Delivery contract — env-passed directory, tmp + rename, never in-place:
   inode preserved. The written byte count is verified before the rename.
 
 One-time prerequisites: a booted simulator (the smoke boots the default iPhone
-17 if none is running; override with `--udid` or `RUSTRA_SIM_UDID`), and Metro
+17 if none is running; override with `--udid` or `UNIKIT_SIM_UDID`), and Metro
 serving the hot-core branch.
 
 ```bash
@@ -223,13 +223,13 @@ serving the hot-core branch.
 bun run demo:hot-core
 
 # terminal 2 — full smoke: cargo ios-sim cdylibs → xcodebuild + install →
-# boot → [RustraHotCore] READY value=5 → push → observe addNumbers 5→105
+# boot → [UnikitHotCore] READY value=5 → push → observe addNumbers 5→105
 bun run test:hot-core:ios
 
 # or deliver a prebuilt cdylib manually and watch the log stream
-bun run push:hot-core:ios -- <path-to>/librustra_hot_core_variant.dylib
+bun run push:hot-core:ios -- <path-to>/libunikit_hot_core_variant.dylib
 xcrun simctl spawn booted log stream --style compact \
-  --predicate 'eventMessage CONTAINS "[RustraHotCore]"'
+  --predicate 'eventMessage CONTAINS "[UnikitHotCore]"'
 ```
 
 Useful flags: `--skip-cargo` / `--skip-xcodebuild` reuse existing artifacts and
@@ -239,12 +239,12 @@ observation windows; `--bundle-id` overrides the auto-detected bundle id
 
 ## Performance Comparison Contract
 
-Nitro, Rustra, and FFI first verify identical inputs and result shapes, then measure
+Nitro, Unikit, and FFI first verify identical inputs and result shapes, then measure
 cyclically per call. The runner records the median of 3 runs, paired 95% CI,
 p50/p95/p99, throughput, and diagnostics for the generated helper/native paths in the
 receipt.
 
-At the stored Release medians of 2026-08-24, the Rustra/Nitro ratios were add 1.0418x,
+At the stored Release medians of 2026-08-24, the Unikit/Nitro ratios were add 1.0418x,
 string 1.0281x, bytes64 0.9543x, pair 1.0535x, 64KiB 0.9338x, and exact 1MiB 1.0129x.
 These are session observations, not guarantees for all devices. The latest results and
 feature parity follow the [benchmark documentation](../../docs/benchmarks.md).

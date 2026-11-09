@@ -11,7 +11,7 @@ import {
 import { add, readRemembered, remember, reset, safeDivide } from './generated/react-native';
 import { runFunctionDemo, type FunctionDemoReceipt } from './src/function-demo';
 
-/** Select with EXPO_PUBLIC_RUSTRA_DEMO=functions in a native build. */
+/** Select with EXPO_PUBLIC_UNIKIT_DEMO=functions in a native build. */
 export default function App() {
   const [receipt, setReceipt] = useState<FunctionDemoReceipt>();
   const [status, setStatus] = useState('Rust 함수를 확인하고 있습니다…');
@@ -26,7 +26,7 @@ export default function App() {
         setStatus('준비 완료 · Rust에 저장된 값: 0');
       })
       .catch((error: unknown) => {
-        console.warn(`__RUSTRA_FUNCTIONS_FAIL__ ${String(error)}`);
+        console.warn(`__UNIKIT_FUNCTIONS_FAIL__ ${String(error)}`);
         if (active) setStatus(String(error));
       })
       .finally(() => {
@@ -61,7 +61,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.eyebrow}>RUSTRA EXAMPLE</Text>
+        <Text style={styles.eyebrow}>UNIKIT EXAMPLE</Text>
         <Text style={styles.title}>그냥 함수처럼.</Text>
         <Text style={styles.subtitle}>
           여러 인자와 반환값 없는 Rust 함수를 앱에서 바로 호출합니다.

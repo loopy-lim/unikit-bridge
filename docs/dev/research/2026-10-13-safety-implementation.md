@@ -34,11 +34,11 @@
 macOS Apple Silicon에서 실행:
 
 ```bash
-cargo test -p rustra --test ffi_process_contract --test large_payload_boundary
-cargo test -p rustra --release --test ffi_process_contract --test large_payload_boundary
-cargo test -p rustra --test ffi_scriptc
-cargo test -p rustra --release --test ffi_scriptc
-cargo clippy -p rustra --test ffi_scriptc --test ffi_process_contract \
+cargo test -p unikit-bridge --test ffi_process_contract --test large_payload_boundary
+cargo test -p unikit-bridge --release --test ffi_process_contract --test large_payload_boundary
+cargo test -p unikit-bridge --test ffi_scriptc
+cargo test -p unikit-bridge --release --test ffi_scriptc
+cargo clippy -p unikit-bridge --test ffi_scriptc --test ffi_process_contract \
   --test large_payload_boundary -- -D warnings
 SAFETY_LOG_DIR="$PWD/target/safety/local" \
   bash scripts/run-safety-check.sh foreign-exception \
@@ -83,10 +83,10 @@ source archive SHA-256:
 
 | 파일                                                  | SHA-256                                                            |
 | ----------------------------------------------------- | ------------------------------------------------------------------ |
-| `crates/rustra/src/ffi_scriptc.rs`                    | `8d33817a70edd34730666d94b05ceb1f6f7d237542df009e40f60fbaaf9371a1` |
-| `crates/rustra/tests/ffi_scriptc.rs`                  | `84460ac318246b672cbb97d63ea4e1df8db6f948d4b58acad1a02a4a8dc66894` |
-| `crates/rustra/tests/ffi_process_contract.rs`         | `eb06b985ddd5b1e3b54c59dff163b152a1fed2c6aaddcbf1bef9a3c7292f8e32` |
-| `crates/rustra/tests/support/large_boundary_cases.rs` | `9ad5f654eaab66fb6ea99226d36cfa3cc444373ef700cbd6b7f68686e5e11594` |
+| `crates/unikit-bridge/src/ffi_scriptc.rs`                    | `8d33817a70edd34730666d94b05ceb1f6f7d237542df009e40f60fbaaf9371a1` |
+| `crates/unikit-bridge/tests/ffi_scriptc.rs`                  | `84460ac318246b672cbb97d63ea4e1df8db6f948d4b58acad1a02a4a8dc66894` |
+| `crates/unikit-bridge/tests/ffi_process_contract.rs`         | `eb06b985ddd5b1e3b54c59dff163b152a1fed2c6aaddcbf1bef9a3c7292f8e32` |
+| `crates/unikit-bridge/tests/support/large_boundary_cases.rs` | `9ad5f654eaab66fb6ea99226d36cfa3cc444373ef700cbd6b7f68686e5e11594` |
 | `fuzz/fuzz_targets/invoke_large_boundary.rs`          | `b64216cc70604d8a6148581c5fd1915f2a1387babaa6139701fca1c4ef498d09` |
 | `scripts/safety/foreign-exception/host.cpp`           | `062eeee63e126d8a2ebf8483abc0954c2cb6d572a38b461bc755a081d83fffdf` |
 | `scripts/safety/run-linux-validation.sh`              | `e50bd18140660610ed8d988316c03972600cad218fc7643775de80e8f4da4b0f` |
@@ -95,7 +95,7 @@ source archive SHA-256:
 C++ harness는 별도 실행 로그로 구분하며, 서로 다른 시점의 전체 workspace를 하나의
 원격 후보 SHA 검사처럼 합쳐서 해석하지 않는다.
 
-캠페인 완료 후 이 작업이 생성한 `rustra-safety-oct13` 컨테이너는 stop 및 제거했다.
+캠페인 완료 후 이 작업이 생성한 `unikit-safety-oct13` 컨테이너는 stop 및 제거했다.
 호스트에 마운트한 원본 로그와 corpus는 보존했다. fuzz는 성능 계측이 아니며,
 동시에 수행한 안전성 검사로 처리량을 성능 수치로 해석할 수 없다.
 

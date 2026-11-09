@@ -14,7 +14,7 @@
 
 - PR #46(version packages)은 이미 머지됨 — 모든 npm 패키지 0.5.0. testing/devtools/react는 0.4.1이지만 dep은 이미 `^0.5.0` → changeset(minor) 발행으로 발표 시 0.5.0 됨.
 - 열린 PR은 Dependabot 2건(#23 napi 2→3 메이저, #20 typescript 5.9→7.0 메이저) — 본 계획과 무관, 범위 밖.
-- `__RUstra_doc_` 죽은 코드는 `crates/rustra-macros/src/lib.rs:204-207`.
+- `__UNikit_doc_` 죽은 코드는 `crates/unikit-bridge-macros/src/lib.rs:204-207`.
 - 이벤트 코드젠(`generateEventsTs`)과 Tauri/RN `subscribeEvent`, Rust `emit`/`set_event_sink`/`event_bus` 폴링은 이미 존재. **갭은 Node/Bun `subscribeEvent`와 코드젠→호스트 연결 타입 정합.**
 - Node는 `node-loop.ts`에 `__drainEvents` 특수 명령 폴링이 존재(transport.drainEvents()).
 - Bun은 FFI 기반 — 폴링 루프로 subscribeEvent를 구현해야 함.
@@ -53,23 +53,23 @@ git worktree add .claude/worktrees/events -b feat/event-surface
 
 **Step 3:** `feat/event-surface` rebase onto main → 충돌은 node/tauri index.ts 함수 영역 기준 해소 → 머지.
 
-**Step 4:** 3트랙 changeset 작성 — **`@rustra/types`는 minor** (testing/devtools/react 0.4.1→0.5.0 스큐 해소 + 트랙 T generation 계약은 신규 API). 나머지는 변경 성격에 맞게 minor/patch:
+**Step 4:** 3트랙 changeset 작성 — **`@unikit/types`는 minor** (testing/devtools/react 0.4.1→0.5.0 스큐 해소 + 트랙 T generation 계약은 신규 API). 나머지는 변경 성격에 맞게 minor/patch:
 
 ```markdown
 ---
-'@rustra/types': minor
-'@rustra/testing': minor
-'@rustra/devtools': minor
-'@rustra/react': minor
-'@rustra/cli': minor
-'@rustra/node': minor
-'@rustra/bun': minor
-'@rustra/tauri': minor
-'@rustra/react-native': minor
+'@unikit/types': minor
+'@unikit/testing': minor
+'@unikit/devtools': minor
+'@unikit/react': minor
+'@unikit/cli': minor
+'@unikit/node': minor
+'@unikit/bun': minor
+'@unikit/tauri': minor
+'@unikit/react-native': minor
 ---
 ```
 
-(rustra crates.io 크레이트는 0.4.0 — Perf가 crates를 건드리므로 minor changeset 추가)
+(unikit crates.io 크레이트는 0.4.0 — Perf가 crates를 건드리므로 minor changeset 추가)
 
 **Step 5:** 버전업 통합 — options:
 
@@ -77,7 +77,7 @@ git worktree add .claude/worktrees/events -b feat/event-surface
 - (b) 즉시 버전 확정이 필요하면 `changeset version` 로컬 실행 후 main에 커밋
 - 기본은 (a). PR 번호는 새로 발급되지만 사용자 목표("열린 PR에 통합")는 "모든 작업이 하나의 버전 PR로 통합"으로 충족.
 
-**Step 6:** 통합 게이트: `cargo test`, `bun run test:ts:node`, wire round-trip 게이트, `rustra doctor` 스모크.
+**Step 6:** 통합 게이트: `cargo test`, `bun run test:ts:node`, wire round-trip 게이트, `unikit doctor` 스모크.
 
 **Step 7:** 사용자 최종 승인 후 push/발행.
 
@@ -85,9 +85,9 @@ git worktree add .claude/worktrees/events -b feat/event-surface
 
 ## 트랙 1: DX (`feat/dx-hardening`, 워크트리 `.claude/worktrees/dx`)
 
-**소유:** `packages/cli/**`, `docs/**`, `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `packages/types/src/errors.ts`(+tests), `crates/rustra-macros/src/lib.rs`(doc 전달 부분만), `crates/rustra/src/codegen.rs`(unknown 폴백 부분만)
+**소유:** `packages/cli/**`, `docs/**`, `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `packages/types/src/errors.ts`(+tests), `crates/unikit-bridge-macros/src/lib.rs`(doc 전달 부분만), `crates/unikit-bridge/src/codegen.rs`(unknown 폴백 부분만)
 
-⚠️ `crates/` 침범 주의: DX 트랙은 **`crates/rustra-macros/src/lib.rs:204-207`와 `crates/rustra/src/codegen.rs`의 unknown 폴백 3곳만** 수정 가능(감사 항목). 그 외 crates 수정 시 이슈로 남기고 SKIP.
+⚠️ `crates/` 침범 주의: DX 트랙은 **`crates/unikit-bridge-macros/src/lib.rs:204-207`와 `crates/unikit-bridge/src/codegen.rs`의 unknown 폴백 3곳만** 수정 가능(감사 항목). 그 외 crates 수정 시 이슈로 남기고 SKIP.
 
 ### Task 1.1: CLI arg-parser 통일
 
@@ -132,9 +132,9 @@ describe('parseArgs', () => {
 
 **Step 2:** FAIL 확인.
 
-**Step 3:** 구현 — (a) config unknown 키 loud-fail+제안. (b) init: 기존 파일 존재 시 차단 + `--force` 플래그로 재생성. (c) 스캐폴드에 `.gitignore`(target/node_modules/generated/.rustra-generated.json) + `tsconfig.json` 추가. (d) codegen cargo 빌드 스피너+경과 출력. (e) help에 `dev --config` 문서화.
+**Step 3:** 구현 — (a) config unknown 키 loud-fail+제안. (b) init: 기존 파일 존재 시 차단 + `--force` 플래그로 재생성. (c) 스캐폴드에 `.gitignore`(target/node_modules/generated/.unikit-generated.json) + `tsconfig.json` 추가. (d) codegen cargo 빌드 스피너+경과 출력. (e) help에 `dev --config` 문서화.
 
-**Step 4:** `bun test packages/cli/` + 스모크: 임시 dir에서 `rustra init` 2회 실행 → 2회째는 차단 확인, `--force`로 통과.
+**Step 4:** `bun test packages/cli/` + 스모크: 임시 dir에서 `unikit init` 2회 실행 → 2회째는 차단 확인, `--force`로 통과.
 
 **Step 5:** 커밋 `feat(cli): init 덮어쓰기 차단·config 오타 loud-fail·빌드 스피너·스캐폴드 완비`
 
@@ -150,14 +150,14 @@ describe('parseArgs', () => {
 ```typescript
 test('preserves original error as cause', () => {
   const original = new Error('boom');
-  const norm = normalizeRustraError({ code: 'command.failed', message: 'wrapped' }, original);
+  const norm = normalizeUnikitError({ code: 'command.failed', message: 'wrapped' }, original);
   expect(norm.cause).toBe(original);
   expect(norm.stack).toBeDefined();
 });
 test('TimeoutError/CancelledError subclasses', () => {
-  const e = normalizeRustraError({ code: 'command.timeout', message: '' });
+  const e = normalizeUnikitError({ code: 'command.timeout', message: '' });
   expect(e).toBeInstanceOf(TimeoutError);
-  expect(e).toBeInstanceOf(RustraError);
+  expect(e).toBeInstanceOf(UnikitError);
 });
 ```
 
@@ -165,24 +165,24 @@ test('TimeoutError/CancelledError subclasses', () => {
 
 **Step 3:** 커밋 `feat(types): 에러 cause 보존 + Timeout/Cancelled 서브클래스`
 
-### Task 1.4: RUSTRA_DEBUG 와이어 덤프
+### Task 1.4: UNIKIT_DEBUG 와이어 덤프
 
 **Files:**
 
 - Modify: `packages/types/src/rkyv-engine.ts`(덤프 훅), 신규 `packages/types/src/debug.ts`
 - Test: `packages/types/src/debug.test.ts`
 
-**Step 1: 실패 테스트** — `RUSTRA_DEBUG=wire` 설정 시 invoke가 hex+파싱 결과를 stderr로 덤프. env 파싱 순수함수(`shouldDumpWire()`)로 분리해 테스트.
+**Step 1: 실패 테스트** — `UNIKIT_DEBUG=wire` 설정 시 invoke가 hex+파싱 결과를 stderr로 덤프. env 파싱 순수함수(`shouldDumpWire()`)로 분리해 테스트.
 
 **Step 2:** FAIL → 구현 — `debug.ts`: `shouldDumpWire()`, `dumpWire(direction, bytes)`; rkyv-engine의 postcard/rkyv 경로에 훅. stderr(파이프 시 폐기 안전).
 
-**Step 3:** `bun test packages/types/` → PASS, 커밋 `feat(types): RUSTRA_DEBUG=wire 와이어 덤프`
+**Step 3:** `bun test packages/types/` → PASS, 커밋 `feat(types): UNIKIT_DEBUG=wire 와이어 덤프`
 
 ### Task 1.5: 문서 HIGH 6건
 
 **Files:** `README.md:12-13`, `docs/rust-api-guide.md:424-432`+`:559-570`, `docs/getting-started.md:621-709`, `CONTRIBUTING.md:233-245`, `CHANGELOG.md`
 
-**Step 1:** README init 예제를 실제 동작 형태로 수정(예: `bunx rustra init my-app`), 문서 예제를 examples/calculator/generated 실제 코드와 대조해 교정. divide 시그니처 수정. CONTRIBUTING 릴리스 섹션을 lefthook+changesets 현행 프로세스로 재작성. CHANGELOG에 0.3→0.5 요약 추가.
+**Step 1:** README init 예제를 실제 동작 형태로 수정(예: `bunx unikit init my-app`), 문서 예제를 examples/calculator/generated 실제 코드와 대조해 교정. divide 시그니처 수정. CONTRIBUTING 릴리스 섹션을 lefthook+changesets 현행 프로세스로 재작성. CHANGELOG에 0.3→0.5 요약 추가.
 **Step 2:** 스모크: 문서의 init/codegen 명령을 임시 dir에서 실제 실행해 성공 확인.
 **Step 3:** 커밋 `docs: 실행 실패 예제 6건 교정 + CHANGELOG 0.3→0.5 요약`
 
@@ -190,17 +190,17 @@ test('TimeoutError/CancelledError subclasses', () => {
 
 **Files:**
 
-- Modify: `crates/rustra/src/codegen.rs:138,169,174` (unknown 폴백 loud), `crates/rustra-macros/src/lib.rs:204-207` (`__RUstra_doc_` → JSDoc 전달)
+- Modify: `crates/unikit-bridge/src/codegen.rs:138,169,174` (unknown 폴백 loud), `crates/unikit-bridge-macros/src/lib.rs:204-207` (`__UNikit_doc_` → JSDoc 전달)
 
-**Step 1:** 실패 테스트 — 코드젠 테스트에서 매핑 불가 타입이 unknown 폴백 대신 경고(타입명+명령명 포함)를 내는지 검증. 매크로 테스트에서 `__RUstra_doc_` 상수가 TS JSDoc으로 전달되는지 검증.
-**Step 2:** FAIL → 구현: unknown 폴백 시 `eprintln!` 대신 수집형 진단(코드젠 결과에 warnings 배열) — CLI가 이를 출력. `__RUstra_doc_`는 package_codegen.rs:225-231의 TS JSDoc 생성에서 구조체 doc과 동일하게 소비.
-**Step 3:** `cargo test -p rustra` + `cargo test -p rustra-macros` → PASS.
+**Step 1:** 실패 테스트 — 코드젠 테스트에서 매핑 불가 타입이 unknown 폴백 대신 경고(타입명+명령명 포함)를 내는지 검증. 매크로 테스트에서 `__UNikit_doc_` 상수가 TS JSDoc으로 전달되는지 검증.
+**Step 2:** FAIL → 구현: unknown 폴백 시 `eprintln!` 대신 수집형 진단(코드젠 결과에 warnings 배열) — CLI가 이를 출력. `__UNikit_doc_`는 package_codegen.rs:225-231의 TS JSDoc 생성에서 구조체 doc과 동일하게 소비.
+**Step 3:** `cargo test -p unikit-bridge` + `cargo test -p unikit-bridge-macros` → PASS.
 **Step 4:** 커밋 `feat(codegen): unknown 폴백 경고 + fn doc → TS JSDoc 전달`
 
 ### 트랙 1 게이트 (전부 통과 후 완료)
 
 - `bun test packages/cli packages/types`
-- `cargo test -p rustra -p rustra-macros`
+- `cargo test -p unikit-bridge -p unikit-bridge-macros`
 - CLI 스모크: `doctor --format json` / `codegen --help` / init 2회 차단
 - `bun run test:ts:node` (전체 TS 게이트)
 
@@ -208,7 +208,7 @@ test('TimeoutError/CancelledError subclasses', () => {
 
 ## 트랙 2: Perf (`feat/perf-five-tracks`, 워크트리 `.claude/worktrees/perf`)
 
-**소유:** `crates/rustra/**` (DX가 건드리는 2파일 제외), `packages/types/src/rkyv-engine.ts`·`complex-codec.ts`·`debug.ts` 제외, `packages/bun/**`, `packages/node/src/node-loop.ts`, `packages/tauri/src/index.ts`(dispatch)·`tauri_support.rs`, `packages/react-native/native/cpp/**`
+**소유:** `crates/unikit-bridge/**` (DX가 건드리는 2파일 제외), `packages/types/src/rkyv-engine.ts`·`complex-codec.ts`·`debug.ts` 제외, `packages/bun/**`, `packages/node/src/node-loop.ts`, `packages/tauri/src/index.ts`(dispatch)·`tauri_support.rs`, `packages/react-native/native/cpp/**`
 
 **계약:** 기존 4개 plan 문서가 상세 계획이므로 그대로 실행 (`docs/plans/2026-08-29-perf-core-codec-tracks.md` 등 4건). 요약:
 
@@ -231,11 +231,11 @@ test('TimeoutError/CancelledError subclasses', () => {
 
 ## 트랙 3: Events (`feat/event-surface`, 워크트리 `.claude/worktrees/events`)
 
-**소유:** `crates/rustra-macros`+코드젠(generateEventsTs 계열), `packages/node/src`(`subscribeEvent` 신규), `packages/bun/src`(subscribeEvent 신규), `packages/tauri/src/tauri-events.ts`, `docs/compatibility-matrix.md`, 예제 스키마의 events 섹션.
+**소유:** `crates/unikit-bridge-macros`+코드젠(generateEventsTs 계열), `packages/node/src`(`subscribeEvent` 신규), `packages/bun/src`(subscribeEvent 신규), `packages/tauri/src/tauri-events.ts`, `docs/compatibility-matrix.md`, 예제 스키마의 events 섹션.
 
 ⚠️ Perf가 node-loop.ts(transport)와 tauri dispatch를 건드림 → **Events는 Perf 머지 후 rebase하고 시작**. 시작 전 자기 base에서 Rust/코드젠 부분만 진행 가능.
 
-**참고 지상진실:** 이미 존재하는 것 — Rust `Package::emit`/`set_event_sink`/`event_bus` (`crates/rustra/src/package_events.rs`), 코드젠 `generateEventsTs`(RustraEventName/RustraEventPayloads/SubscribeFn, `packages/cli/src/generate-surface.ts:42-84`), Tauri `subscribeEvent`(`packages/tauri/src/tauri-events.ts`), RN `subscribeEvent`(`packages/react-native/src/react-native-events.ts`). 갭 = Node/Bun.
+**참고 지상진실:** 이미 존재하는 것 — Rust `Package::emit`/`set_event_sink`/`event_bus` (`crates/unikit-bridge/src/package_events.rs`), 코드젠 `generateEventsTs`(UnikitEventName/UnikitEventPayloads/SubscribeFn, `packages/cli/src/generate-surface.ts:42-84`), Tauri `subscribeEvent`(`packages/tauri/src/tauri-events.ts`), RN `subscribeEvent`(`packages/react-native/src/react-native-events.ts`). 갭 = Node/Bun.
 
 ### Task 3.1: Bun subscribeEvent (FFI 폴링 래퍼)
 
@@ -261,7 +261,7 @@ test('TimeoutError/CancelledError subclasses', () => {
 ### Task 3.3: 코드젠→호스트 연결 정합
 
 **Files:** `packages/cli/src/generate-surface.ts` (필요 시 SubscribeFn 문서 갱신), `packages/tauri/src/tauri-events.ts` (시그니처 확인)
-**Step 1:** 4호스트(node/bun/tauri/RN)의 subscribeEvent 시그니처가 `(<N extends RustraEventName>(name, cb) => unsubscribe)`로 일치하는지 테스트(타입 테스트)로 고정. 불일치 시 수렴.
+**Step 1:** 4호스트(node/bun/tauri/RN)의 subscribeEvent 시그니처가 `(<N extends UnikitEventName>(name, cb) => unsubscribe)`로 일치하는지 테스트(타입 테스트)로 고정. 불일치 시 수렴.
 **Step 4:** 커밋 `feat(events): 4호스트 subscribeEvent 시그니처 정합`
 
 ### Task 3.4: compatibility-matrix 갱신

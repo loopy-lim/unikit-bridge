@@ -8,7 +8,7 @@ import DynamicRegistryApp from './DynamicRegistryApp';
 import HotCoreApp from './HotCoreApp';
 import ReloadStressApp from './ReloadStressApp';
 
-const demo = process.env.EXPO_PUBLIC_RUSTRA_DEMO;
+const demo = process.env.EXPO_PUBLIC_UNIKIT_DEMO;
 
 const APPS: Record<string, ComponentType> = {
   'nitro-parity': NitroParityApp,

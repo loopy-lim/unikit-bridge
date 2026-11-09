@@ -14,11 +14,11 @@ mkdir -p "$SAFETY_LOG_DIR"
 export RUSTFLAGS=-Zsanitizer=address
 export ASAN_OPTIONS="detect_leaks=1:detect_stack_use_after_return=1:log_path=$SAFETY_LOG_DIR/asan"
 export RUST_TEST_THREADS=1
-bash scripts/run-safety-check.sh lib cargo test -p rustra --lib --target "$target"
+bash scripts/run-safety-check.sh lib cargo test -p unikit-bridge --lib --target "$target"
 for profile in debug release; do
   profile_args=()
   if [[ "$profile" == release ]]; then profile_args+=(--release); fi
-  bash scripts/run-safety-check.sh "ffi-$profile" cargo test -p rustra \
+  bash scripts/run-safety-check.sh "ffi-$profile" cargo test -p unikit-bridge \
     "${profile_args[@]}" --target "$target" --test trust_baseline_ffi \
     --test payload_robustness --test ffi_process_contract --test large_payload_boundary --test ffi_scriptc
 done

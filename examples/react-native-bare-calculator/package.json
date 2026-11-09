@@ -1,26 +1,26 @@
 {
-  "name": "rustra-bare-rn-calculator",
+  "name": "unikit-bare-rn-calculator",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "packageManager": "bun@1.4.0",
   "main": "index.ts",
   "workspaces": [
-    "modules/rustra-bridge"
+    "modules/unikit-bridge"
   ],
   "scripts": {
-    "codegen": "bun ../../packages/cli/src/index.ts codegen --config rustra.json",
-    "codegen:check": "bun ../../packages/cli/src/index.ts codegen --config rustra.json --check",
+    "codegen": "bun ../../packages/cli/src/index.ts codegen --config unikit.json",
+    "codegen:check": "bun ../../packages/cli/src/index.ts codegen --config unikit.json --check",
     "postinstall": "node scripts/link-live-packages.mjs",
     "test:autolink": "bun scripts/check-autolink.mjs",
     "typecheck": "tsc --noEmit",
-    "rustra:ios": "node -e \"require('@rustra/generated-react-native/scripts/prepare-native.cjs').prepare('ios')\"",
-    "rustra:android": "node -e \"require('@rustra/generated-react-native/scripts/prepare-native.cjs').prepare('android')\""
+    "unikit:ios": "node -e \"require('@unikit/generated-react-native/scripts/prepare-native.cjs').prepare('ios')\"",
+    "unikit:android": "node -e \"require('@unikit/generated-react-native/scripts/prepare-native.cjs').prepare('android')\""
   },
   "dependencies": {
-    "@rustra/generated-react-native": "workspace:*",
-    "@rustra/react-native": "file:../../packages/react-native",
-    "@rustra/types": "file:../../packages/types",
+    "@unikit/generated-react-native": "workspace:*",
+    "@unikit/react-native": "file:../../packages/react-native",
+    "@unikit/types": "file:../../packages/types",
     "react": "19.1.0",
     "react-native": "0.81.5"
   },
@@ -32,7 +32,7 @@
     "typescript": "~5.9.2"
   },
   "overrides": {
-    "@rustra/react-native": "file:../../packages/react-native",
-    "@rustra/types": "file:../../packages/types"
+    "@unikit/react-native": "file:../../packages/react-native",
+    "@unikit/types": "file:../../packages/types"
   }
 }

@@ -1,4 +1,4 @@
-import { RustraCommandError } from './errors.js';
+import { UnikitCommandError } from './errors.js';
 import { resolveSyncBinding, runtime } from './global-state.js';
 
 /**
@@ -14,7 +14,7 @@ export function bindSync<I, O>(command: string): (input: I) => O {
     const engine = runtime.engine;
     const resolver = engine?.[resolveSyncBinding];
     if (!resolver) {
-      throw new RustraCommandError(
+      throw new UnikitCommandError(
         'sync.unavailable',
         'A configured synchronous engine is required; await bootstrap.ready() before bindSync().',
       );
@@ -22,7 +22,7 @@ export function bindSync<I, O>(command: string): (input: I) => O {
     const current = runtime.engineGeneration;
     const resolved = resolver.call(engine, command);
     if (current !== runtime.engineGeneration || engine !== runtime.engine) {
-      throw new RustraCommandError(
+      throw new UnikitCommandError(
         'sync.unavailable',
         'Engine changed while binding synchronously.',
       );

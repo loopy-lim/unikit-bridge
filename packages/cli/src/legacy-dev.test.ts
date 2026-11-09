@@ -16,7 +16,7 @@ import { join } from 'node:path';
 import { runDev } from './dev.js';
 
 function fixture(nestedApp = false) {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-legacy-dev-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-legacy-dev-'));
   const backend = join(root, 'backend');
   const app = nestedApp ? join(backend, 'src/app') : join(root, 'app');
   const dependency = join(root, 'dependency');
@@ -78,7 +78,7 @@ function fixture(nestedApp = false) {
     cli,
     `import fs from 'node:fs';import {createHash} from 'node:crypto';const content='export {};';
     fs.writeFileSync(${JSON.stringify(join(app, 'generated/frame-codecs.ts'))},content);
-    fs.writeFileSync(${JSON.stringify(join(app, 'generated/.rustra-generated.json'))},JSON.stringify({schemaVersion:1,files:[{path:'frame-codecs.ts',sha256:createHash('sha256').update(content).digest('hex')}]}));`,
+    fs.writeFileSync(${JSON.stringify(join(app, 'generated/.unikit-generated.json'))},JSON.stringify({schemaVersion:1,files:[{path:'frame-codecs.ts',sha256:createHash('sha256').update(content).digest('hex')}]}));`,
   );
   return { root, backend, app, dependency, bin, runs, cli, target };
 }
@@ -133,9 +133,9 @@ test('legacy dev watches handwritten Rust adjacent to generated files', async ()
   mkdirSync(join(f.app, 'generated'), { recursive: true });
   writeFileSync(source, 'pub const VALUE: u8 = 1;\n');
   const oldPath = process.env.PATH;
-  const oldCli = process.env.RUSTRA_CLI;
+  const oldCli = process.env.UNIKIT_CLI;
   process.env.PATH = `${f.bin}:${oldPath}`;
-  process.env.RUSTRA_CLI = f.cli;
+  process.env.UNIKIT_CLI = f.cli;
   let handle: Awaited<ReturnType<typeof runDev>> | undefined;
   try {
     handle = await runDev(['--backend', f.backend, '--app', f.app]);
@@ -150,8 +150,8 @@ test('legacy dev watches handwritten Rust adjacent to generated files', async ()
   } finally {
     await handle?.dispose();
     process.env.PATH = oldPath;
-    if (oldCli === undefined) delete process.env.RUSTRA_CLI;
-    else process.env.RUSTRA_CLI = oldCli;
+    if (oldCli === undefined) delete process.env.UNIKIT_CLI;
+    else process.env.UNIKIT_CLI = oldCli;
     rmSync(f.root, { recursive: true, force: true });
   }
 });
@@ -160,9 +160,9 @@ for (const [name, edit] of edits) {
   test(`legacy dev rebuilds and reloads after ${name} changes`, async () => {
     const f = fixture();
     const oldPath = process.env.PATH;
-    const oldCli = process.env.RUSTRA_CLI;
+    const oldCli = process.env.UNIKIT_CLI;
     process.env.PATH = `${f.bin}:${oldPath}`;
-    process.env.RUSTRA_CLI = f.cli;
+    process.env.UNIKIT_CLI = f.cli;
     let handle: Awaited<ReturnType<typeof runDev>> | undefined;
     try {
       handle = await runDev(['--backend', f.backend, '--app', f.app]);
@@ -178,8 +178,8 @@ for (const [name, edit] of edits) {
     } finally {
       await handle?.dispose();
       process.env.PATH = oldPath;
-      if (oldCli === undefined) delete process.env.RUSTRA_CLI;
-      else process.env.RUSTRA_CLI = oldCli;
+      if (oldCli === undefined) delete process.env.UNIKIT_CLI;
+      else process.env.UNIKIT_CLI = oldCli;
       rmSync(f.root, { recursive: true, force: true });
     }
   });
@@ -188,9 +188,9 @@ for (const [name, edit] of edits) {
 test('legacy dev skips unchanged touches and excludes owned/custom target output', async () => {
   const f = fixture(true);
   const oldPath = process.env.PATH;
-  const oldCli = process.env.RUSTRA_CLI;
+  const oldCli = process.env.UNIKIT_CLI;
   process.env.PATH = `${f.bin}:${oldPath}`;
-  process.env.RUSTRA_CLI = f.cli;
+  process.env.UNIKIT_CLI = f.cli;
   let handle: Awaited<ReturnType<typeof runDev>> | undefined;
   try {
     handle = await runDev(['--backend', f.backend, '--app', f.app]);
@@ -205,8 +205,8 @@ test('legacy dev skips unchanged touches and excludes owned/custom target output
   } finally {
     await handle?.dispose();
     process.env.PATH = oldPath;
-    if (oldCli === undefined) delete process.env.RUSTRA_CLI;
-    else process.env.RUSTRA_CLI = oldCli;
+    if (oldCli === undefined) delete process.env.UNIKIT_CLI;
+    else process.env.UNIKIT_CLI = oldCli;
     rmSync(f.root, { recursive: true, force: true });
   }
 });
