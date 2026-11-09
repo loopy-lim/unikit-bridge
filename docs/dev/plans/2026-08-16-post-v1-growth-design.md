@@ -52,14 +52,14 @@ macOS desktop + iOS 시뮬 두 환경.
 
 ### Sprint 2 — 테스팅 프레임워크
 
-- `@unikit/testing` 패키지: `createMockEngine()` — 순수 TS, Rust 의존 없음.
+- `@unikit-bridge/testing` 패키지: `createMockEngine()` — 순수 TS, Rust 의존 없음.
   핸들러 등록(`.on(command, handler)`)으로 생성된 클라이언트를 그대로 테스트.
 - 계약 게이트: `unikit diff`로 생성 코드 vs 커밋된 schema.json 정합성 CI 추가.
 - Rust 쪽은 cargo test 이미 갖춰짐 — JS 사이드 승리 중심.
 
 ### Sprint 3 — Devtools
 
-- `@unikit/devtools`: engine 래퍼로 호출 로그·지연·에러 수집.
+- `@unikit-bridge/devtools`: engine 래퍼로 호출 로그·지연·에러 수집.
 - CLI: `unikit dev --inspect` — 명령별 p50/p95, 에러율, 슬로우 콜 타임라인.
 - `Package::emit`/EventBus 이벤트 스트림 재활용.
 

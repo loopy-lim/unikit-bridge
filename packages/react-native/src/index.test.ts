@@ -11,7 +11,12 @@ import {
   UnikitCommandError,
 } from './index.js';
 import type { UnikitJSINative } from './index.js';
-import { createSchemaPostcardCodec, decodeUtf8, encodeUtf8, exactArrayBuffer } from '@unikit/types';
+import {
+  createSchemaPostcardCodec,
+  decodeUtf8,
+  encodeUtf8,
+  exactArrayBuffer,
+} from '@unikit-bridge/types';
 
 const encoder = new TextEncoder();
 
@@ -694,7 +699,7 @@ import { createAsyncEngine, createFastEngine } from './index.js';
 import type { UnikitJSIAsyncNative } from './index.js';
 
 // ── FastEngineOptions → core 옵션 전달 (follow-up 2) ───────
-// 어댑터는 "전달됐는지"만 검증 — core 동작 상세는 @unikit/types 에서 이미 검증됨.
+// 어댑터는 "전달됐는지"만 검증 — core 동작 상세는 @unikit-bridge/types 에서 이미 검증됨.
 
 void test('createFastEngine forwards maxPayloadBytes to the core pre-check', async () => {
   // maxPayloadBytes: 8 → 인코딩 후 8B 초과면 payload.too_large 로 네이티브 호출 없이 reject.
@@ -1223,10 +1228,10 @@ void test('A02: createAsyncEngine exposes cooperative cancellation supports', as
 
 const A05_SLOT_ENGINE = {
   invoke: async <T>() => 'slot' as T,
-} as unknown as import('@unikit/types').EngineClientWithBatch;
+} as unknown as import('@unikit-bridge/types').EngineClientWithBatch;
 
 void test('A05: createUnikitBootstrap exposes the lifecycle state surface', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   const native = createSetupNative();
   configure(A05_SLOT_ENGINE);
   try {
@@ -1248,7 +1253,7 @@ void test('A05: createUnikitBootstrap exposes the lifecycle state surface', asyn
 });
 
 void test('A05: ready after dispose rejects loudly (react-native)', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createUnikitBootstrap({
@@ -1267,7 +1272,7 @@ void test('A05: ready after dispose rejects loudly (react-native)', async () => 
 });
 
 void test('A05: dispose is idempotent — second dispose is a no-op (react-native)', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createUnikitBootstrap({
@@ -1284,7 +1289,7 @@ void test('A05: dispose is idempotent — second dispose is a no-op (react-nativ
 });
 
 void test('A05: concurrent ready calls share one initialization promise (react-native)', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   try {
     let installs = 0;
@@ -1307,7 +1312,7 @@ void test('A05: concurrent ready calls share one initialization promise (react-n
 });
 
 void test('disposing an uninitialized RN bootstrap releases global lazy setup', async () => {
-  const { configure, ensureConfigured } = await import('@unikit/types');
+  const { configure, ensureConfigured } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   let installs = 0;
   const bootstrap = createUnikitBootstrap({
@@ -1327,7 +1332,7 @@ void test('disposing an uninitialized RN bootstrap releases global lazy setup', 
 });
 
 void test('disposing RN bootstrap during install cannot publish its engine', async () => {
-  const { configure, ensureConfigured } = await import('@unikit/types');
+  const { configure, ensureConfigured } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   let release!: () => void;
   const installing = new Promise<void>((resolve) => {
@@ -1352,7 +1357,7 @@ void test('disposing RN bootstrap during install cannot publish its engine', asy
 });
 
 void test('replaced RN bootstrap cannot claim another engine as ready', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   let release!: () => void;
   const installing = new Promise<void>((resolve) => {
@@ -1378,7 +1383,7 @@ void test('replaced RN bootstrap cannot claim another engine as ready', async ()
 });
 
 void test('captured RN engine stops every public route after bootstrap disposal', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   let nativeCalls = 0;
   const bootstrap = createUnikitBootstrap({
@@ -1408,7 +1413,7 @@ void test('captured RN engine stops every public route after bootstrap disposal'
 });
 
 void test('captured RN engine rejects replacement and old dispose preserves the new owner', async () => {
-  const { configure, invoke } = await import('@unikit/types');
+  const { configure, invoke } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   const bootstrap = createUnikitBootstrap({
     install: async () => {},
@@ -1429,7 +1434,7 @@ void test('captured RN engine rejects replacement and old dispose preserves the 
 });
 
 void test('captured RN synchronous binding follows bootstrap ownership', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   for (const retirement of ['dispose', 'replace'] as const) {
     configure(A05_SLOT_ENGINE);
     let nativeCalls = 0;

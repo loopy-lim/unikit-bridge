@@ -1,5 +1,5 @@
 /**
- * @unikit/node 채널 — loop-stdio 바이너리 모드의 역방향 스트림. RN/Tauri
+ * @unikit-bridge/node 채널 — loop-stdio 바이너리 모드의 역방향 스트림. RN/Tauri
  * `createChannel` 과 동형 계약 `{ handle, close() }` 이다.
  *
  * ### 와이어 (loop-stdio 0.7 채널 예약 cmd id)
@@ -52,7 +52,7 @@
  * 없으므로 누수다. close 는 구독 해지 + drop invoke, late frame 은 무시,
  * double-close 는 idempotent(false).
  */
-import { UnikitCommandError, UnikitErrorCode } from '@unikit/types';
+import { UnikitCommandError, UnikitErrorCode } from '@unikit-bridge/types';
 import type { NodeEventTransport } from './node-events.js';
 
 export type NodeChannelCallback = (payload: unknown) => void;

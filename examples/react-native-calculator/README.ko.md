@@ -92,7 +92,7 @@ react-native-calculator/
   BenchmarkApp.tsx
   generated/                         generated TypeScript entry/codecs
   modules/
-    unikit-jsi/                      generated @unikit/generated-react-native
+    unikit-jsi/                      generated @unikit-bridge/generated-react-native
     unikit-calculator/               Swift FFI comparator
     nitro-bench/nitro-bench/         Nitro comparator
 ```
@@ -100,7 +100,7 @@ react-native-calculator/
 `unikit-jsi`라는 디렉터리명은 fixture의 기존 로컬 위치일 뿐 공개 package/module
 이름이 아닙니다. 실제 충돌 격리 이름은 다음과 같습니다.
 
-- package: `@unikit/generated-react-native`
+- package: `@unikit-bridge/generated-react-native`
 - iOS/React Native module: `UnikitBridge`
 - Android namespace: `dev.unikit.bridge`
 - shared library: `unikit_bridge`
@@ -118,7 +118,7 @@ bun run doctor -- --json
 
 doctor는 읽기 전용이며 다음 층을 독립적으로 확인합니다.
 
-- 현재 checkout의 lockfile과 로컬 `@unikit/*` 패키지 조합
+- 현재 checkout의 lockfile과 로컬 `@unikit-bridge/*` 패키지 조합
 - Rust schema, TypeScript entry, C++ codec, build fingerprint 동기화
 - iOS/Android autolinking과 Pods
 - iOS static archive 최신성, architecture, 필수 FFI symbol

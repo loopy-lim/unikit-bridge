@@ -3,7 +3,7 @@
 //! 세 가지를 증명한다:
 //!
 //! 1. **공동 골든 테이블** — Rust `event_channel` 이 TS
-//!    `@unikit/tauri` `unikitEventChannel` 과 문자 그대로 동일한 input→output
+//!    `@unikit-bridge/tauri` `unikitEventChannel` 과 문자 그대로 동일한 input→output
 //!    표를 통과한다(양쪽 drift 검출 — 표는 TS 테스트와 쌍으로 유지).
 //! 2. **충돌 거부** — 서로 다른 이벤트 이름이 같은 정규화 채널로 수렴하면
 //!    (`a.b` vs `a_b`) `Package::build` 가 패닉한다(조용한 덮어쓰기 금지).

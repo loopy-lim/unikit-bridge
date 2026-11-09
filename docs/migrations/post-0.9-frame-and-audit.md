@@ -38,7 +38,7 @@ lockfiles and native artifacts if rollback is required.
 ## Tauri channels
 
 JS-issued channels now use physical-WebView-owned IPC Channels and negotiate
-`ipc-channel-chunks-v1`. Rebuild Rust together with `@unikit/tauri`; the adapter
+`ipc-channel-chunks-v1`. Rebuild Rust together with `@unikit-bridge/tauri`; the adapter
 rejects an old event-broadcast host. Global detection requires `core.Channel` and
 callback cleanup, or provide `createIpcChannel(onMessage) => { value, dispose() }`.
 `listen` alone is insufficient. See [channels](../events-and-channels.md#5-channels--js-side)

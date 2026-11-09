@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { suffix } from 'bun:ffi';
-import { configure, ensureConfigured, type FrameCodec } from '@unikit/types';
+import { configure, ensureConfigured, type FrameCodec } from '@unikit-bridge/types';
 import { createBunBootstrap } from './index.js';
 
 test('bootstrap subscriptions use the selected compatible library and receive the first event', async () => {

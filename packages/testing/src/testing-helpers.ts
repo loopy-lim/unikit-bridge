@@ -1,4 +1,4 @@
-import { UnikitCommandError, normalizeUnikitError } from '@unikit/types';
+import { UnikitCommandError, normalizeUnikitError } from '@unikit-bridge/types';
 
 export function toMockError(error: unknown): UnikitCommandError {
   if (error instanceof UnikitCommandError) return error;

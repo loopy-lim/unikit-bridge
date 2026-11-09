@@ -1,4 +1,4 @@
-# @unikit/types
+# @unikit-bridge/types
 
 unikit-bridge의 핵심 타입 패키지입니다. 모든 플랫폼 어댑터(Node, Bun, Tauri,
 React Native)가 공유하는 `EngineClient` 인터페이스, 에러 타입, Frame
@@ -8,8 +8,8 @@ React Native)가 공유하는 `EngineClient` 인터페이스, 에러 타입, Fra
 
 ```ts
 // 플랫폼별 엔진을 한 번만 설정
-import { configure } from '@unikit/types';
-import { createFrameEngine } from '@unikit/react-native';
+import { configure } from '@unikit-bridge/types';
+import { createFrameEngine } from '@unikit-bridge/react-native';
 configure(createFrameEngine(native, registry));
 
 // 어디서든 타입 안전 호출 (generated 클라이언트 내부에서 사용)
@@ -34,7 +34,7 @@ const result = await addNumbers({ a: 42, b: 58 });
   `UNIKIT_DEBUG=1|true|verbose` 면 추가로 모든 이벤트를 `[unikit:debug]` 로 로그하고
   와이어 바이트를 hex 로 stderr 에 덤프한다(`[unikit:wire]`); React Native 에서는
   `globalThis.__UNIKIT_DEBUG__ = true` 가 이벤트 로그를 켠다. 진단 이벤트는 선택
-  필드 `kind`/`reason` 을 싣는다(JSON 엔진의 `response.shape`, `@unikit/node` 의
+  필드 `kind`/`reason` 을 싣는다(JSON 엔진의 `response.shape`, `@unikit-bridge/node` 의
   `ndjson.unparsed`)
 - `UnikitCommandError` — 직렬화 가능 에러 + `parseUnikitErrorString`
 - Frame 코덱 — Rust `invoke_frame` 왕복용 pure-JS 인코더/디코더

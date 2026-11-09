@@ -68,8 +68,8 @@ usually unnecessary.
 Add the dependencies with Bun 1.4 or later, then run setup:
 
 ```bash
-bun add @unikit/react-native@0.10.0 @unikit/types@0.12.1
-bun add -d @unikit/cli@0.12.0
+bun add @unikit-bridge/react-native@0.10.0 @unikit-bridge/types@0.12.1
+bun add -d @unikit-bridge/cli@0.12.0
 bunx --bun unikit setup --config unikit.json
 ```
 
@@ -110,7 +110,7 @@ modules/unikit-bridge/
   generated/
 ```
 
-If the `@unikit/generated-react-native` workspace dependency in `package.json`
+If the `@unikit-bridge/generated-react-native` workspace dependency in `package.json`
 points somewhere else, the generator fails instead of overwriting. This
 fail-closed behavior prevents accidental collisions with an existing package.
 
@@ -184,7 +184,7 @@ command results on a simulator/device before a product release.
 
 ## Collision Avoidance Contract
 
-- JS package: `@unikit/generated-react-native`
+- JS package: `@unikit-bridge/generated-react-native`
 - native module: `UnikitBridge`
 - Android namespace: `dev.unikit.bridge`
 - Android library: `unikit_bridge`
@@ -232,7 +232,7 @@ Adjacent interop surfaces:
   JSON serialization. Same handle/close contract as JSON channels; one handle
   works on exactly one path.
 - **Synchronous invoke** — `invokeTypedSync(name, args)` (from
-  `@unikit/react-native`) calls the C++ typed fast path without a Promise hop
+  `@unikit-bridge/react-native`) calls the C++ typed fast path without a Promise hop
   for UI hot paths; loud-fails with `sync.unavailable` where unavailable.
 
 ## Troubleshooting

@@ -6,8 +6,8 @@
 // DO NOT EDIT — changes will be overwritten and fail codegen --check.
 // ────────────────────────────────────────────────────────────
 
-export type { EngineClient, UnikitError } from '@unikit/types';
-export { UnikitCommandError } from '@unikit/types';
+export type { EngineClient, UnikitError } from '@unikit-bridge/types';
+export { UnikitCommandError } from '@unikit-bridge/types';
 
 /**
  * 현재 진행 중인 작업 상태 조회 — 폴링 기반 UI 폴백용.

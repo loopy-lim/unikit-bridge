@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { configure } from '@unikit/types';
+import { configure } from '@unikit-bridge/types';
 import { createFastEngine } from '../../packages/react-native/src';
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from './generated/contract';
 import { frameRegistry } from './generated/frame-registry';
-import { getUnikitNative, installUnikitJSI } from '@unikit/generated-react-native';
+import { getUnikitNative, installUnikitJSI } from '@unikit-bridge/generated-react-native';
 
 const LOG_PREFIX = '[UnikitHotCore]';
 const ADD_NUMBERS_NAME = 'addNumbers';

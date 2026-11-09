@@ -36,10 +36,10 @@ Public packages are independently versioned. A package may keep the same
 version as another package when their API changes together, but the tooling
 must not require that coincidence.
 
-- `@unikit/types` is the protocol/runtime contract package.
+- `@unikit-bridge/types` is the protocol/runtime contract package.
 - Host adapters (`node`, `bun`, `tauri`, `react`, `react-native`, `testing`,
   `devtools`) declare semver ranges for the types contract they consume.
-- `@unikit/cli` carries an explicit Rust compatibility range for generated
+- `@unikit-bridge/cli` carries an explicit Rust compatibility range for generated
   projects. The CLI package version is not treated as the Rust crate version.
 - `unikit` and `unikit-bridge-macros` remain a tightly compatible Cargo pair, but
   their pair version is independent from npm packages and examples.

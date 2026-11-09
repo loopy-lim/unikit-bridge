@@ -109,23 +109,23 @@
       },
       "installedPackages": [
         {
-          "name": "@unikit/cli",
+          "name": "@unikit-bridge/cli",
           "version": "0.12.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-AlhD3v/app/node_modules/@unikit/cli",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-AlhD3v/app/node_modules/@unikit-bridge/cli",
           "files": 151,
           "sha256": "edf49ec09949a1de8631c77db1ca724a34f187453f047ed84f4238353ccfbf9f"
         },
         {
-          "name": "@unikit/types",
+          "name": "@unikit-bridge/types",
           "version": "0.12.1",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-AlhD3v/app/node_modules/@unikit/types",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-AlhD3v/app/node_modules/@unikit-bridge/types",
           "files": 53,
           "sha256": "7732498ce3e6466aac158bbf0487d184f49d004531707140b6893ef7d0d86bc1"
         },
         {
-          "name": "@unikit/bun",
+          "name": "@unikit-bridge/bun",
           "version": "0.11.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-AlhD3v/app/node_modules/@unikit/bun",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-AlhD3v/app/node_modules/@unikit-bridge/bun",
           "files": 19,
           "sha256": "b58b08d1a617c8849a06857803020e3bfb54fe9b40038f7b9bf68ad6914bfde2"
         }
@@ -165,23 +165,23 @@
       },
       "installedPackages": [
         {
-          "name": "@unikit/cli",
+          "name": "@unikit-bridge/cli",
           "version": "0.12.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-AlhD3v/app/node_modules/@unikit/cli",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-AlhD3v/app/node_modules/@unikit-bridge/cli",
           "files": 151,
           "sha256": "edf49ec09949a1de8631c77db1ca724a34f187453f047ed84f4238353ccfbf9f"
         },
         {
-          "name": "@unikit/types",
+          "name": "@unikit-bridge/types",
           "version": "0.12.1",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-AlhD3v/app/node_modules/@unikit/types",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-AlhD3v/app/node_modules/@unikit-bridge/types",
           "files": 53,
           "sha256": "7732498ce3e6466aac158bbf0487d184f49d004531707140b6893ef7d0d86bc1"
         },
         {
-          "name": "@unikit/bun",
+          "name": "@unikit-bridge/bun",
           "version": "0.11.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-AlhD3v/app/node_modules/@unikit/bun",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-bun-bun-AlhD3v/app/node_modules/@unikit-bridge/bun",
           "files": 19,
           "sha256": "b58b08d1a617c8849a06857803020e3bfb54fe9b40038f7b9bf68ad6914bfde2"
         }
@@ -189,14 +189,14 @@
     }
   ],
   "producerBefore": {
-    "name": "@unikit/cli",
+    "name": "@unikit-bridge/cli",
     "version": "0.12.0",
     "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/packages/cli",
     "files": 151,
     "sha256": "edf49ec09949a1de8631c77db1ca724a34f187453f047ed84f4238353ccfbf9f"
   },
   "producerAfter": {
-    "name": "@unikit/cli",
+    "name": "@unikit-bridge/cli",
     "version": "0.12.0",
     "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/packages/cli",
     "files": 151,

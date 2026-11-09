@@ -359,8 +359,8 @@ return Promise.reject(
 
 ```md
 ---
-'@unikit/cli': minor
-'@unikit/types': minor
+'@unikit-bridge/cli': minor
+'@unikit-bridge/types': minor
 ---
 
 DX 마찰 트랙: 스캐폴드 generate bin이 UNIKIT_SCHEMA_OUT 존중(codegen:check 정합),
@@ -370,7 +370,7 @@ options/async 계약 정합, 타임아웃/취소/미구성 에러 서브클래�
 capability 무음 드랍 제거.
 ```
 
-(positional facade 시그니처 제거 판정 시 `@unikit/cli`에 breaking 아닌 minor — pre-1.0 규칙 + 마이그레이션 노트 문구 포함.)
+(positional facade 시그니처 제거 판정 시 `@unikit-bridge/cli`에 breaking 아닌 minor — pre-1.0 규칙 + 마이그레이션 노트 문구 포함.)
 
 **Step 2: 전면 게이트**
 

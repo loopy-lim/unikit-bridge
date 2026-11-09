@@ -438,7 +438,7 @@ export type RkyvV2SchemaNative = {
 
 and guard `liveSchema()` with `if (!native.getSchema) throw ...`.
 
-**Step 4: Run → verify pass**: `npm test --workspace @unikit/types` (or the package's test cmd).
+**Step 4: Run → verify pass**: `npm test --workspace @unikit-bridge/types` (or the package's test cmd).
 
 **Step 5: Commit**: `git commit -m "feat(types): rkyvV2 engine Tier 3 fallback + getLiveSchema"`
 
@@ -453,7 +453,7 @@ and guard `liveSchema()` with `if (!native.getSchema) throw ...`.
 **Step 1: Implement** — add a section that uses the **rkyvV2 engine** (not JSON engine) for a dynamic command and displays the live schema:
 
 ```ts
-import { createRkyvV2Engine, getLiveSchema } from '@unikit/types';
+import { createRkyvV2Engine, getLiveSchema } from '@unikit-bridge/types';
 // ...
 // after installUnikitJSI():
 const rkyvEngine = createRkyvV2Engine(

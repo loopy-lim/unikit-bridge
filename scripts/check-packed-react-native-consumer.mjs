@@ -31,12 +31,12 @@ export function createConsumerManifest({ typesArchive, cliArchive, reactNativeAr
     private: true,
     type: 'module',
     dependencies: {
-      '@unikit/types': typesSpecifier,
-      '@unikit/cli': `file:${cliArchive}`,
-      '@unikit/react-native': `file:${reactNativeArchive}`,
+      '@unikit-bridge/types': typesSpecifier,
+      '@unikit-bridge/cli': `file:${cliArchive}`,
+      '@unikit-bridge/react-native': `file:${reactNativeArchive}`,
     },
     overrides: {
-      '@unikit/types': typesSpecifier,
+      '@unikit-bridge/types': typesSpecifier,
     },
   };
 }
@@ -64,14 +64,14 @@ async function main() {
     );
 
     const types = await import(
-      pathToFileURL(join(root, 'node_modules/@unikit/types/dist/index.js')).href,
+      pathToFileURL(join(root, 'node_modules/@unikit-bridge/types/dist/index.js')).href,
     );
     if (typeof types.createComplexCodec !== 'function') {
-      throw new Error('packed @unikit/types does not expose createComplexCodec');
+      throw new Error('packed @unikit-bridge/types does not expose createComplexCodec');
     }
 
     const { renderReactNativeModule } = await import(
-      pathToFileURL(join(root, 'node_modules/@unikit/cli/dist/index.js')).href,
+      pathToFileURL(join(root, 'node_modules/@unikit-bridge/cli/dist/index.js')).href,
     );
     const appRoot = join(root, 'app');
     const moduleDir = join(appRoot, 'modules/unikit-bridge');
@@ -86,10 +86,10 @@ async function main() {
     });
     const podspec = files['UnikitBridge.podspec'];
     const gradle = files['android/build.gradle'];
-    if (!podspec?.includes('node_modules/@unikit/react-native/native')) {
+    if (!podspec?.includes('node_modules/@unikit-bridge/react-native/native')) {
       throw new Error('packed consumer podspec did not resolve installed React Native native sources');
     }
-    if (!gradle?.includes('node_modules/@unikit/react-native/native')) {
+    if (!gradle?.includes('node_modules/@unikit-bridge/react-native/native')) {
       throw new Error('packed consumer Gradle file did not resolve installed React Native native sources');
     }
     if (podspec.includes(`${repositoryRoot}/packages/react-native`)) {

@@ -98,7 +98,7 @@ Mozilla uniffi-RN, craby 등장) 반면 unikit가 유일하게 커버하는 교�
   조용히 stale(`runner/template/codegen.sh:4-8`). `unikit dev`/Vite 플러그인 완화책은 있으나 파편화.
 - **네이티브 모듈 절벽**: RN/Lynx의 JSI C++/Swift/Kotlin 코드가 예제 전용, 패키징 없음 — 헤드라인 성능 경로가
   가장 어려운 설정을 요구. `--cpp-output` 코드젠이 메인 가이드에 문서화 안 됨.
-- **실제 앱 예제 부재**: 모든 예제가 벤치마크 하니스 또는 검증 체크리스트. `@unikit/react` 훅은 예제에서 0회 사용.
+- **실제 앱 예제 부재**: 모든 예제가 벤치마크 하니스 또는 검증 체크리스트. `@unikit-bridge/react` 훅은 예제에서 0회 사용.
 - **호환성 매트릭스 부재**: signal이 node/bun/tauri에서 조용히 드롭, invokeBatch 미지원 throw, 이벤트는 RN 전용 —
   문서에 표가 없어 사용자가 실행 때 발견.
 - **postcard 필드 순서 함정**: 알파벳 순 가정이 위반되면 런타임까지 보이지 않음(`packages/cli/src/generate.ts:187-193`).
@@ -106,7 +106,7 @@ Mozilla uniffi-RN, craby 등장) 반면 unikit가 유일하게 커버하는 교�
 
 ### 5. 가능성을 높이기 위한 행동 (우선순위)
 
-1. **"5분 온보딩" 확보 (최우선)** — Node transport를 패키지로 제공(예: `@unikit/node`에 subprocess/napi transport 번들
+1. **"5분 온보딩" 확보 (최우선)** — Node transport를 패키지로 제공(예: `@unikit-bridge/node`에 subprocess/napi transport 번들
    또는 `createNodeProcessTransport`) + getting-started를 복붙 가능한 완결 코드로. 코드젠 2단계를 `npx unikit init`이
    원스텝으로 통합. — 신규 사용자 전환율이 유일한 성장 병목.
 2. **호환성 매트릭스 문서화** — 기능(signal/batch/events) × 어댑터 지원 표를 README/docs에. 조용한 드롭을

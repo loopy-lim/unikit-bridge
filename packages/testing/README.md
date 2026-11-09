@@ -1,6 +1,6 @@
 English | [한국어](./README.ko.md)
 
-# @unikit/testing
+# @unikit-bridge/testing
 
 Provides a mock engine that runs generated TypeScript clients without a Rust backend, plus
 contract gates. Component/hook tests can verify unikit commands without the native module.
@@ -8,14 +8,14 @@ contract gates. Component/hook tests can verify unikit commands without the nati
 ## Install
 
 ```bash
-bun add -d @unikit/testing
+bun add -d @unikit-bridge/testing
 ```
 
 ## createMockEngine
 
 ```ts
-import { createMockEngine } from '@unikit/testing';
-import { configure } from '@unikit/types';
+import { createMockEngine } from '@unikit-bridge/testing';
+import { configure } from '@unikit-bridge/types';
 import { addNumbers } from './generated/commands.js';
 
 const engine = createMockEngine()
@@ -51,7 +51,7 @@ Detects drift between the command list in `schema.json` and the command list the
 exposes. Pairs with `unikit diff` (breaking changes between schema versions) in CI.
 
 ```ts
-import { expectContractCurrent } from '@unikit/testing';
+import { expectContractCurrent } from '@unikit-bridge/testing';
 import schemaJson from './generated/schema.json' with { type: 'json' };
 import * as commands from './generated/commands.js';
 

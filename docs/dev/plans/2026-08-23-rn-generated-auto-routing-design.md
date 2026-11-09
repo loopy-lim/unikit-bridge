@@ -172,6 +172,6 @@ Android performance claims.
 
 ## Versioning
 
-This release moves every public `@unikit/*` package and both Rust crates to
+This release moves every public `@unikit-bridge/*` package and both Rust crates to
 `0.4.0`. Future releases use one Changesets fixed group, so all public packages
 advance together even when only one package owns the source change.

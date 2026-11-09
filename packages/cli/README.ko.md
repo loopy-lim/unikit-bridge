@@ -1,4 +1,4 @@
-# @unikit/cli
+# @unikit-bridge/cli
 
 unikit-bridge의 TypeScript 코드 제너레이션 CLI입니다. Rust 백엔드가 내보낸
 `schema.json`으로부터 타입 안전 클라이언트(commands/types/contract/frame codec)를 생성합니다.
@@ -75,7 +75,7 @@ debug = 0 # 의존성 debuginfo 끄기 — 디스크·시간 절감이 가장 �
 CLI와 동일한 생성기를 프로그램에서 직접 사용할 수 있습니다:
 
 ```ts
-import { generateTypesTs, generateCommandsTs, diffSchemas } from '@unikit/cli';
+import { generateTypesTs, generateCommandsTs, diffSchemas } from '@unikit-bridge/cli';
 ```
 
 | 모듈              | 내용                                                     |

@@ -4,7 +4,7 @@
  * 호출측(transport 인스턴스 클로저)이 소유한다 — 라이프사이클은 transport
  * 생성/재스폰을 따르고, 스폰 없이 단위 검증한다(node-loop.test.ts).
  */
-import { debugUnikit, isUnikitDebugEnabled, type UnikitDebugEvent } from '@unikit/types';
+import { debugUnikit, isUnikitDebugEnabled, type UnikitDebugEvent } from '@unikit-bridge/types';
 
 /** 비 NDJSON 라인 링 버퍼 크기 — exit 시 대기 요청 에러에 첨부할 최근 줄 수. */
 export const UNPARSED_LINES_CAPACITY = 32;

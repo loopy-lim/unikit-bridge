@@ -34,7 +34,7 @@ function withTempDir(fn: (root: string) => void | Promise<void>): Promise<void> 
  * 선행해야 loud-fail 하지 않는다. cliManifest 의 range 를 만족하는 버전으로 심는다. */
 function seedReactNativeAdapter(project: string): void {
   const version = cliManifest.unikitTemplate.reactNativeRange.replace(/^[~^=]/, '');
-  const nativeRoot = join(project, 'node_modules', '@unikit', 'react-native', 'native');
+  const nativeRoot = join(project, 'node_modules', '@unikit-bridge', 'react-native', 'native');
   for (const file of [
     'android/unikit-jsi-jni.cpp',
     'cpp/UnikitJSIBridge.cpp',
@@ -46,8 +46,8 @@ function seedReactNativeAdapter(project: string): void {
     writeFileSync(join(nativeRoot, ...file.split('/')), 'adapter fixture');
   }
   writeFileSync(
-    join(project, 'node_modules', '@unikit', 'react-native', 'package.json'),
-    JSON.stringify({ name: '@unikit/react-native', version }),
+    join(project, 'node_modules', '@unikit-bridge', 'react-native', 'package.json'),
+    JSON.stringify({ name: '@unikit-bridge/react-native', version }),
   );
 }
 
@@ -120,7 +120,7 @@ test('generated config carries a $schema reference to the shipped schema file', 
     const config = readGeneratedConfig(project);
     assert.equal(config.$schema, INIT_CONFIG_SCHEMA_PATH);
     // 참조가 실제로 에디터에서 풀리는지 — 배포 패키지 루트의 스키마 파일과 이름이 일치해야 한다.
-    assert.match(INIT_CONFIG_SCHEMA_PATH, /@unikit\/cli\/unikit\.schema\.json$/);
+    assert.match(INIT_CONFIG_SCHEMA_PATH, /@unikit-bridge\/cli\/unikit\.schema\.json$/);
     const shippedSchema = fileURLToPath(new URL('../unikit.schema.json', import.meta.url));
     assert.ok(existsSync(shippedSchema), 'shipped unikit.schema.json must exist');
   });
@@ -150,8 +150,8 @@ test('Bun scaffold template selects the FFI host, dependency and native crate en
   const manifest = JSON.parse(files.packageJson);
   assert.deepEqual(config.bun, {});
   assert.equal(config.node, undefined);
-  assert.equal(manifest.dependencies['@unikit/bun'], cliManifest.unikitTemplate.bunRange);
-  assert.equal(manifest.dependencies['@unikit/node'], undefined);
+  assert.equal(manifest.dependencies['@unikit-bridge/bun'], cliManifest.unikitTemplate.bunRange);
+  assert.equal(manifest.dependencies['@unikit-bridge/node'], undefined);
   assert.match(files.cargoToml, /crate-type\s*=\s*\["rlib", "cdylib"\]/);
   assert.match(files.libRs, /unikit_bridge::native_entry!\(package\)/);
   assert.match(files.libRs, /OnceLock/);
@@ -308,7 +308,9 @@ test('unscoped react-native dependency is detected and node-only deps are not', 
     mkdirSync(project, { recursive: true });
     writeFileSync(
       join(project, 'package.json'),
-      JSON.stringify({ devDependencies: { 'react-native': '0.81.0', '@unikit/cli': '^0.6.0' } }),
+      JSON.stringify({
+        devDependencies: { 'react-native': '0.81.0', '@unikit-bridge/cli': '^0.6.0' },
+      }),
     );
     await runInit([project, '--force']);
     assert.ok(readGeneratedConfig(project).reactNative);
@@ -393,7 +395,7 @@ test(
       await runInit([project, '--host', 'react-native']);
       const manifest = JSON.parse(readFileSync(join(project, 'package.json'), 'utf-8'));
       assert.equal(
-        manifest.dependencies['@unikit/react-native'],
+        manifest.dependencies['@unikit-bridge/react-native'],
         cliManifest.unikitTemplate.reactNativeRange,
       );
       assert.match(
@@ -522,7 +524,7 @@ test(
       const repo = fileURLToPath(new URL('../../../', import.meta.url));
       const versions = templateVersions(
         cliManifest.version,
-        cliManifest.dependencies['@unikit/types'],
+        cliManifest.dependencies['@unikit-bridge/types'],
         cliManifest.unikitTemplate.cargoRange,
       );
       const files = renderInitProjectFiles(versions, {
@@ -559,7 +561,7 @@ test(
             .join('\n') +
           '\n',
       );
-      const adapters = join(project, 'node_modules/@unikit');
+      const adapters = join(project, 'node_modules/@unikit-bridge');
       mkdirSync(adapters, { recursive: true });
       for (const name of ['types', 'bun'])
         symlinkSync(join(repo, 'packages', name), join(adapters, name), 'dir');

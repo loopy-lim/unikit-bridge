@@ -9,7 +9,7 @@ export type UnikitDebugEvent = {
   error?: string;
   /**
    * 계약 밖 진단 어휘의 식별자 — `response.shape`(json-engine 응답 셰이프 경고),
-   * `ndjson.unparsed`(@unikit/node) 등 이벤트 종류를 식별한다. debugUnikit 는
+   * `ndjson.unparsed`(@unikit-bridge/node) 등 이벤트 종류를 식별한다. debugUnikit 는
    * 이벤트를 싱크에 그대로 spread 하므로 선택 필드 추가는 기존 이벤트에 영향을
    * 주지 않는다(non-breaking, additive).
    */

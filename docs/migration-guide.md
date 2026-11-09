@@ -23,8 +23,8 @@ symbols do change: regenerate clients and rebuild native libraries/shells togeth
 as described in the [release migration](migrations/post-0.9-frame-and-audit.md).
 Package versions are independent, so the rename belongs to
 the release, not to one version number: the Rust workspace and
-`@unikit/types`/`@unikit/node`/`@unikit/bun`/`@unikit/cli` shipped it as 0.10.0,
-while `@unikit/tauri` and `@unikit/react-native` carried the same rename in
+`@unikit-bridge/types`/`@unikit-bridge/node`/`@unikit-bridge/bun`/`@unikit-bridge/cli` shipped it as 0.10.0,
+while `@unikit-bridge/tauri` and `@unikit-bridge/react-native` carried the same rename in
 their own 0.9.0 — a 0.9.x adapter version alone therefore does not mean
 pre-rename. Update the identifiers you reference:
 
@@ -154,7 +154,7 @@ Whether a schema change is breaking is checked automatically in the PR:
   with:
     fetch-depth: 0 # unikit diff compares against the base commit
 - uses: oven-sh/setup-bun@v2
-- run: bun install -g @unikit/cli # or: bun add -d @unikit/cli + bunx --bun unikit
+- run: bun install -g @unikit-bridge/cli # or: bun add -d @unikit-bridge/cli + bunx --bun unikit
 - name: Check schema compatibility
   run: |
     git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q schema.json \

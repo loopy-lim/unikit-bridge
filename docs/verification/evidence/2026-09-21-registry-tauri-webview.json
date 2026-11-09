@@ -10,9 +10,9 @@
     "manifestPath": "/Users/loopy/dev/ll3/unikit-bridge/scripts/registry-consumer/versions.json",
     "versions": {
       "npm": {
-        "@unikit/cli": "0.11.3",
-        "@unikit/types": "0.12.0",
-        "@unikit/tauri": "0.9.3"
+        "@unikit-bridge/cli": "0.11.3",
+        "@unikit-bridge/types": "0.12.0",
+        "@unikit-bridge/tauri": "0.9.3"
       },
       "rust": {
         "unikit": "0.11.0",
@@ -41,7 +41,7 @@
     "scaffold": ["published CLI init", "exact-pin npm install (frozen lock)", "doctor"],
     "tauri": [
       "unikit =0.11.0 (tauri feature) from crates.io",
-      "@unikit/tauri + @unikit/types exact from npm",
+      "@unikit-bridge/tauri + @unikit-bridge/types exact from npm",
       "CLI codegen (tauri host entry)",
       "bun frontend bundle",
       "cargo build embedding frontend assets",
@@ -67,26 +67,26 @@
   },
   "provenance": {
     "npm": {
-      "@unikit/cli": {
+      "@unikit-bridge/cli": {
         "version": "0.11.3",
-        "resolved": "https://registry.npmjs.org/@unikit/cli/-/cli-0.11.3.tgz",
+        "resolved": "https://registry.npmjs.org/@unikit-bridge/cli/-/cli-0.11.3.tgz",
         "integrity": "sha512-UvNFy9Y/6UMRurYteAFrP8XcnTplFlQOX4+xLi2D8NnTceGF2jVH0DbNZUtwNAh55dXJEukmwwsjmBn/4WpAHg==",
         "packageJsonSha256": "a58f8452b946c6a3d61ecf3e9d365c6e56f7ce79c5b04257b0cbe38519fdf203",
-        "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-tauri-Mn5WEe/registry-tauri-consumer/node_modules/@unikit/cli"
+        "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-tauri-Mn5WEe/registry-tauri-consumer/node_modules/@unikit-bridge/cli"
       },
-      "@unikit/types": {
+      "@unikit-bridge/types": {
         "version": "0.12.0",
-        "resolved": "https://registry.npmjs.org/@unikit/types/-/types-0.12.0.tgz",
+        "resolved": "https://registry.npmjs.org/@unikit-bridge/types/-/types-0.12.0.tgz",
         "integrity": "sha512-5EYgbNrbFMuMyZ8HNO3rQKmApGANGEfq1jC3gqsbiwkf1CRYzaNQTcadUkQCEm2A5S8d/ynMP15uy50EEKIGWg==",
         "packageJsonSha256": "f805840302a87e41e43c4809e30f06090f6f1eb10645149ad13f83dccd24609a",
-        "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-tauri-Mn5WEe/registry-tauri-consumer/node_modules/@unikit/types"
+        "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-tauri-Mn5WEe/registry-tauri-consumer/node_modules/@unikit-bridge/types"
       },
-      "@unikit/tauri": {
+      "@unikit-bridge/tauri": {
         "version": "0.9.3",
-        "resolved": "https://registry.npmjs.org/@unikit/tauri/-/tauri-0.9.3.tgz",
+        "resolved": "https://registry.npmjs.org/@unikit-bridge/tauri/-/tauri-0.9.3.tgz",
         "integrity": "sha512-HCrhDwFOwSJDTaKtDQlnaDS+xlAeii4nTRv9a5Tn+c8POaGXAztKzro1jHBdSnN+3KlCHeJ0uFSClZQ0fudXAQ==",
         "packageJsonSha256": "8729bc5cb68d9138a7e11d67b687989fd0ccc20fe7d908b11beacccb764f18e0",
-        "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-tauri-Mn5WEe/registry-tauri-consumer/node_modules/@unikit/tauri"
+        "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-tauri-Mn5WEe/registry-tauri-consumer/node_modules/@unikit-bridge/tauri"
       }
     },
     "cargo": {

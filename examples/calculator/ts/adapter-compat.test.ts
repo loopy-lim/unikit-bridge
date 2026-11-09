@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configure } from '@unikit/types';
+import { configure } from '@unikit-bridge/types';
 import { createBunEngine } from '../../../packages/bun/src/index.js';
 import { createNodeEngine } from '../../../packages/node/src/index.js';
 import { createReactNativeEngine } from '../../../packages/react-native/src/index.js';

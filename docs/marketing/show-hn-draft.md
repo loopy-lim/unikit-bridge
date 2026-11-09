@@ -186,12 +186,12 @@ benchmarks:
 
 ### Status and try it
 
-Current release line: Rust crates 0.12.0, `@unikit/types` 0.12.1,
-`@unikit/cli` 0.12.0, adapters on their own version lines. MIT licensed. With
+Current release line: Rust crates 0.12.0, `@unikit-bridge/types` 0.12.1,
+`@unikit-bridge/cli` 0.12.0, adapters on their own version lines. MIT licensed. With
 Rust and Bun installed:
 
 ```bash
-bunx --bun @unikit/cli@0.12.0 init my-project --setup
+bunx --bun @unikit-bridge/cli@0.12.0 init my-project --setup
 ```
 
 scaffolds the project, generates the client, builds the Rust, and runs a demo

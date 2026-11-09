@@ -1,6 +1,6 @@
 English | [한국어](./README.ko.md)
 
-# @unikit/react-native
+# @unikit-bridge/react-native
 
 Unikit's React Native JSI adapter and shared native sources for generated modules. Expo
 and bare React Native use the same generated entry and the standard autolinking path.
@@ -37,16 +37,16 @@ Enable React Native generation in the app's `unikit.json`.
 ```
 
 ```bash
-bun add @unikit/react-native @unikit/types
-bun add -d @unikit/cli
-bunx --bun @unikit/cli doctor --config unikit.json
-bunx --bun @unikit/cli codegen --config unikit.json
+bun add @unikit-bridge/react-native @unikit-bridge/types
+bun add -d @unikit-bridge/cli
+bunx --bun @unikit-bridge/cli doctor --config unikit.json
+bunx --bun @unikit-bridge/cli codegen --config unikit.json
 bun install
 ```
 
 The generator handles the following automatically:
 
-- Generates an app-specific `@unikit/generated-react-native` package under
+- Generates an app-specific `@unikit-bridge/generated-react-native` package under
   `modules/unikit-bridge`
 - Links a Bun workspace dependency into the app `package.json` after checking for
   conflicts
@@ -92,7 +92,7 @@ Only when multiple staticlibs remain even then is `rustPackage` needed. Override
 
 Generated modules deliberately use fixed, dedicated names.
 
-- JavaScript package: `@unikit/generated-react-native`
+- JavaScript package: `@unikit-bridge/generated-react-native`
 - React Native module: `UnikitBridge`
 - Android namespace: `dev.unikit.bridge`
 - native shared library: `unikit_bridge`

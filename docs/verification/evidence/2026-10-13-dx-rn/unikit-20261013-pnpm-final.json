@@ -151,23 +151,23 @@
       },
       "installedPackages": [
         {
-          "name": "@unikit/cli",
+          "name": "@unikit-bridge/cli",
           "version": "0.12.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+cli@file+..+..+..+packages+cli/node_modules/@unikit/cli",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+cli@file+..+..+..+packages+cli/node_modules/@unikit-bridge/cli",
           "files": 151,
           "sha256": "faebdb0b84ac21c3032188b3cd677b43506a4e2912d3cd3cd28cf6f844ae64da"
         },
         {
-          "name": "@unikit/types",
+          "name": "@unikit-bridge/types",
           "version": "0.12.1",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+types@file+..+..+..+packages+types/node_modules/@unikit/types",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+types@file+..+..+..+packages+types/node_modules/@unikit-bridge/types",
           "files": 53,
           "sha256": "7732498ce3e6466aac158bbf0487d184f49d004531707140b6893ef7d0d86bc1"
         },
         {
-          "name": "@unikit/node",
+          "name": "@unikit-bridge/node",
           "version": "0.11.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+node@file+..+..+..+packages+node/node_modules/@unikit/node",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+node@file+..+..+..+packages+node/node_modules/@unikit-bridge/node",
           "files": 21,
           "sha256": "9473eba7a6bc508a754ae5696ecd8c8b74c39390bde19b962152b5bfb1e62e93"
         }
@@ -207,23 +207,23 @@
       },
       "installedPackages": [
         {
-          "name": "@unikit/cli",
+          "name": "@unikit-bridge/cli",
           "version": "0.12.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+cli@file+..+..+..+packages+cli/node_modules/@unikit/cli",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+cli@file+..+..+..+packages+cli/node_modules/@unikit-bridge/cli",
           "files": 151,
           "sha256": "faebdb0b84ac21c3032188b3cd677b43506a4e2912d3cd3cd28cf6f844ae64da"
         },
         {
-          "name": "@unikit/types",
+          "name": "@unikit-bridge/types",
           "version": "0.12.1",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+types@file+..+..+..+packages+types/node_modules/@unikit/types",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+types@file+..+..+..+packages+types/node_modules/@unikit-bridge/types",
           "files": 53,
           "sha256": "7732498ce3e6466aac158bbf0487d184f49d004531707140b6893ef7d0d86bc1"
         },
         {
-          "name": "@unikit/node",
+          "name": "@unikit-bridge/node",
           "version": "0.11.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+node@file+..+..+..+packages+node/node_modules/@unikit/node",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+node@file+..+..+..+packages+node/node_modules/@unikit-bridge/node",
           "files": 21,
           "sha256": "9473eba7a6bc508a754ae5696ecd8c8b74c39390bde19b962152b5bfb1e62e93"
         }
@@ -263,23 +263,23 @@
       },
       "installedPackages": [
         {
-          "name": "@unikit/cli",
+          "name": "@unikit-bridge/cli",
           "version": "0.12.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+cli@file+..+..+..+packages+cli/node_modules/@unikit/cli",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+cli@file+..+..+..+packages+cli/node_modules/@unikit-bridge/cli",
           "files": 151,
           "sha256": "faebdb0b84ac21c3032188b3cd677b43506a4e2912d3cd3cd28cf6f844ae64da"
         },
         {
-          "name": "@unikit/types",
+          "name": "@unikit-bridge/types",
           "version": "0.12.1",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+types@file+..+..+..+packages+types/node_modules/@unikit/types",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+types@file+..+..+..+packages+types/node_modules/@unikit-bridge/types",
           "files": 53,
           "sha256": "7732498ce3e6466aac158bbf0487d184f49d004531707140b6893ef7d0d86bc1"
         },
         {
-          "name": "@unikit/node",
+          "name": "@unikit-bridge/node",
           "version": "0.11.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+node@file+..+..+..+packages+node/node_modules/@unikit/node",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+node@file+..+..+..+packages+node/node_modules/@unikit-bridge/node",
           "files": 21,
           "sha256": "9473eba7a6bc508a754ae5696ecd8c8b74c39390bde19b962152b5bfb1e62e93"
         }
@@ -319,23 +319,23 @@
       },
       "installedPackages": [
         {
-          "name": "@unikit/cli",
+          "name": "@unikit-bridge/cli",
           "version": "0.12.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+cli@file+..+..+..+packages+cli/node_modules/@unikit/cli",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+cli@file+..+..+..+packages+cli/node_modules/@unikit-bridge/cli",
           "files": 151,
           "sha256": "faebdb0b84ac21c3032188b3cd677b43506a4e2912d3cd3cd28cf6f844ae64da"
         },
         {
-          "name": "@unikit/types",
+          "name": "@unikit-bridge/types",
           "version": "0.12.1",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+types@file+..+..+..+packages+types/node_modules/@unikit/types",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+types@file+..+..+..+packages+types/node_modules/@unikit-bridge/types",
           "files": 53,
           "sha256": "7732498ce3e6466aac158bbf0487d184f49d004531707140b6893ef7d0d86bc1"
         },
         {
-          "name": "@unikit/node",
+          "name": "@unikit-bridge/node",
           "version": "0.11.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+node@file+..+..+..+packages+node/node_modules/@unikit/node",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+node@file+..+..+..+packages+node/node_modules/@unikit-bridge/node",
           "files": 21,
           "sha256": "9473eba7a6bc508a754ae5696ecd8c8b74c39390bde19b962152b5bfb1e62e93"
         }
@@ -375,23 +375,23 @@
       },
       "installedPackages": [
         {
-          "name": "@unikit/cli",
+          "name": "@unikit-bridge/cli",
           "version": "0.12.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+cli@file+..+..+..+packages+cli/node_modules/@unikit/cli",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+cli@file+..+..+..+packages+cli/node_modules/@unikit-bridge/cli",
           "files": 151,
           "sha256": "faebdb0b84ac21c3032188b3cd677b43506a4e2912d3cd3cd28cf6f844ae64da"
         },
         {
-          "name": "@unikit/types",
+          "name": "@unikit-bridge/types",
           "version": "0.12.1",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+types@file+..+..+..+packages+types/node_modules/@unikit/types",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+types@file+..+..+..+packages+types/node_modules/@unikit-bridge/types",
           "files": 53,
           "sha256": "7732498ce3e6466aac158bbf0487d184f49d004531707140b6893ef7d0d86bc1"
         },
         {
-          "name": "@unikit/node",
+          "name": "@unikit-bridge/node",
           "version": "0.11.0",
-          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit+node@file+..+..+..+packages+node/node_modules/@unikit/node",
+          "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-pnpm-t79Bx0/app/node_modules/.pnpm/@unikit-bridge+node@file+..+..+..+packages+node/node_modules/@unikit-bridge/node",
           "files": 21,
           "sha256": "9473eba7a6bc508a754ae5696ecd8c8b74c39390bde19b962152b5bfb1e62e93"
         }
@@ -399,14 +399,14 @@
     }
   ],
   "producerBefore": {
-    "name": "@unikit/cli",
+    "name": "@unikit-bridge/cli",
     "version": "0.12.0",
     "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/packages/cli",
     "files": 151,
     "sha256": "faebdb0b84ac21c3032188b3cd677b43506a4e2912d3cd3cd28cf6f844ae64da"
   },
   "producerAfter": {
-    "name": "@unikit/cli",
+    "name": "@unikit-bridge/cli",
     "version": "0.12.0",
     "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/packages/cli",
     "files": 151,

@@ -8,7 +8,7 @@
 
 import { gzipCompressCodec, gzipDecompressCodec, uuidV7Codec } from './frame-codecs.js';
 
-export const frameRegistry = new Map<string, import('@unikit/types').FrameCodec<any, any>>([
+export const frameRegistry = new Map<string, import('@unikit-bridge/types').FrameCodec<any, any>>([
   // route: postcard
   ['gzipCompress', gzipCompressCodec],
   // route: postcard

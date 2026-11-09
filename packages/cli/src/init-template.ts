@@ -12,7 +12,7 @@ export function templateVersions(cliVersion: string, npmTypesRange: string, carg
  * 생성 config 에 심는 $schema 참조 — 배포 패키지(`files` 필드) 루트에 실리는
  * unikit.schema.json 의 상대 경로. URL fetch 없이 에디터가 node_modules 에서 풀어 쓴다.
  */
-export const INIT_CONFIG_SCHEMA_PATH = './node_modules/@unikit/cli/unikit.schema.json';
+export const INIT_CONFIG_SCHEMA_PATH = './node_modules/@unikit-bridge/cli/unikit.schema.json';
 
 /** init 이 뽑아줄 호스트 섹션 선택 — 감지(detectInitHosts) 또는 --host 로 결정된다. */
 export interface InitHosts {
@@ -69,13 +69,13 @@ export function renderInitProjectFiles(
   // write_schema_to_dir 는 현재 라인에서 발행 보장이 없어 쓰지 않는다.
   const generateRs = `use std::path::PathBuf;\n\nfn main() -> unikit_bridge::Result<()> {\n    let generated = unikit_app::package().generate_typescript()?;\n    let out = match std::env::var_os("UNIKIT_SCHEMA_OUT") {\n        Some(p) if !p.is_empty() => PathBuf::from(p).join("schema.json"),\n        _ => PathBuf::from("generated").join("schema.json"),\n    };\n    if let Some(parent) = out.parent() {\n        std::fs::create_dir_all(parent)?;\n    }\n    std::fs::write(&out, generated.schema_json)?;\n    println!("{} written", out.display());\n    Ok(())\n}\n`;
   const rnDependency = hosts.reactNative
-    ? `,\n    "@unikit/react-native": "${cliManifest.unikitTemplate.reactNativeRange}"`
+    ? `,\n    "@unikit-bridge/react-native": "${cliManifest.unikitTemplate.reactNativeRange}"`
     : '';
   const host = hosts.bun ? 'bun' : 'node';
   const hostRange = hosts.bun
     ? (hosts.bunRange ?? cliManifest.unikitTemplate.bunRange)
     : (hosts.nodeRange ?? v.npmCliCaret);
-  const packageJson = `{\n  "name": "unikit-app",\n  "private": true,\n  "packageManager": "bun@1.4.0",\n  "type": "module",\n  "scripts": {\n    "setup": "unikit setup --config unikit.json",\n    "start": "unikit setup --config unikit.json --run",\n    "doctor": "unikit doctor --config unikit.json",\n    "codegen": "unikit codegen --config unikit.json",\n    "codegen:check": "unikit codegen --config unikit.json --check",\n    "dev": "unikit dev --config unikit.json",\n    "demo": "bun run src/index.ts"\n  },\n  "dependencies": {\n    "@unikit/${host}": "${hostRange}",\n    "@unikit/types": "${v.npmTypesRange}"${rnDependency}\n  },\n  "devDependencies": {\n    "@unikit/cli": "${v.npmCliCaret}"\n  }\n}\n`;
+  const packageJson = `{\n  "name": "unikit-app",\n  "private": true,\n  "packageManager": "bun@1.4.0",\n  "type": "module",\n  "scripts": {\n    "setup": "unikit setup --config unikit.json",\n    "start": "unikit setup --config unikit.json --run",\n    "doctor": "unikit doctor --config unikit.json",\n    "codegen": "unikit codegen --config unikit.json",\n    "codegen:check": "unikit codegen --config unikit.json --check",\n    "dev": "unikit dev --config unikit.json",\n    "demo": "bun run src/index.ts"\n  },\n  "dependencies": {\n    "@unikit-bridge/${host}": "${hostRange}",\n    "@unikit-bridge/types": "${v.npmTypesRange}"${rnDependency}\n  },\n  "devDependencies": {\n    "@unikit-bridge/cli": "${v.npmCliCaret}"\n  }\n}\n`;
   // 키 순서는 $schema 먼저 — 에디터가 스키마를 즉시 묶어 자동완성을 제공하게 한다.
   const configObject: Record<string, unknown> = {
     $schema: INIT_CONFIG_SCHEMA_PATH,

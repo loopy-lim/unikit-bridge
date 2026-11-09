@@ -1,5 +1,5 @@
 {
-  "name": "@unikit/node",
+  "name": "@unikit-bridge/node",
   "version": "0.11.1",
   "description": "Type-safe Node.js client for unikit — one Rust core over a compact binary wire, with CI contracts that block breaking schema changes.",
   "license": "MIT",
@@ -31,7 +31,7 @@
     "test:node-runtime": "tsc -p tsconfig.test.json && node --test dist-test/node-binary-accumulator.test.js dist-test/index.test.js dist-test/bootstrap-lifecycle.test.js dist-test/transport-lifecycle.test.js dist-test/event-bootstrap.test.js dist-test/runtime-resolution.test.js"
   },
   "dependencies": {
-    "@unikit/types": "^0.13.0"
+    "@unikit-bridge/types": "^0.13.0"
   },
   "devDependencies": {
     "typescript": "^5.9.0"

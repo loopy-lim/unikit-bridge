@@ -1,6 +1,6 @@
 English | [한국어](./README.ko.md)
 
-# @unikit/cli
+# @unikit-bridge/cli
 
 The TypeScript code generation CLI for unikit-bridge. Generates type-safe clients
 (commands/types/contract/frame codec) from the `schema.json` exported by the Rust backend.
@@ -100,7 +100,7 @@ hot loop when nothing else needs the other artifacts.
 The same generators as the CLI can be used directly in a program:
 
 ```ts
-import { generateTypesTs, generateCommandsTs, diffSchemas } from '@unikit/cli';
+import { generateTypesTs, generateCommandsTs, diffSchemas } from '@unikit-bridge/cli';
 ```
 
 | Module            | Contents                                                             |

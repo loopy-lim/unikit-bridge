@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "npm": {
-    "@unikit/cli": "0.12.0",
-    "@unikit/types": "0.12.1",
-    "@unikit/node": "0.11.0",
-    "@unikit/bun": "0.11.0"
+    "@unikit-bridge/cli": "0.12.0",
+    "@unikit-bridge/types": "0.12.1",
+    "@unikit-bridge/node": "0.11.0",
+    "@unikit-bridge/bun": "0.11.0"
   },
   "hosts": {
-    "@unikit/tauri": "0.10.0",
-    "@unikit/react-native": "0.10.0"
+    "@unikit-bridge/tauri": "0.10.0",
+    "@unikit-bridge/react-native": "0.10.0"
   },
   "phases": {
     "baseline": {

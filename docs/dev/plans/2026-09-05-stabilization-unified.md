@@ -297,7 +297,7 @@ const unlisten = await listen(unikitEventChannel(name), (event) => {
 });
 ```
 
-`reportListenerError`는 tauri 패키지 신설 헬퍼 — `@unikit/types`의 debug 스위치(`debugUnikit`)를 재사용해 `{ kind: 'tauri.listener_error', event: name, error }`로 관측. 다른 listener 중단 정책: **예외 삼켜서 나머지 listener 계속**(브라우저 EventTarget 표준 동작과 동일) — 문서와 테스트로 고정.
+`reportListenerError`는 tauri 패키지 신설 헬퍼 — `@unikit-bridge/types`의 debug 스위치(`debugUnikit`)를 재사용해 `{ kind: 'tauri.listener_error', event: name, error }`로 관측. 다른 listener 중단 정책: **예외 삼켜서 나머지 listener 계속**(브라우저 EventTarget 표준 동작과 동일) — 문서와 테스트로 고정.
 
 **Step 1: 실패 테스트** — 기존 index.test.ts의 `subscribeEvent` 스위트에:
 
@@ -664,11 +664,11 @@ export function invokeBatchSettled<T>(entries: BatchEntry[]): Promise<Array<Batc
 
 ```md
 ---
-'@unikit/cli': minor
-'@unikit/types': minor
-'@unikit/tauri': minor
-'@unikit/node': minor
-'@unikit/bun': minor
+'@unikit-bridge/cli': minor
+'@unikit-bridge/types': minor
+'@unikit-bridge/tauri': minor
+'@unikit-bridge/node': minor
+'@unikit-bridge/bun': minor
 ---
 
 안정화 통합: generated 헤더 형식 판정(CI 근원 수정), Tauri 이벤트 콜백 경계·채널명 Unicode 통일·payload 단일 파싱,

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, type ReactNode } from 'react';
-import type { EngineClient, InvokeOptions } from '@unikit/types';
-import { getEngineRegistrationToken, invoke, UnikitCommandError } from '@unikit/types';
+import type { EngineClient, InvokeOptions } from '@unikit-bridge/types';
+import { getEngineRegistrationToken, invoke, UnikitCommandError } from '@unikit-bridge/types';
 
 const UnikitContext = createContext<EngineClient | null>(null);
 

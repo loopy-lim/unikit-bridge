@@ -21,7 +21,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parseCliArgs } from './cli-arg-parser.js';
 import { UsageError } from './cli-usage-error.js';
-import { parseSnapshot, type DumpedWire } from '@unikit/types';
+import { parseSnapshot, type DumpedWire } from '@unikit-bridge/types';
 
 /**
  * 정규화된 문자열이 정확한 hex 텍스트인지 — 비어 있거나 홀수 길이면 hex 가

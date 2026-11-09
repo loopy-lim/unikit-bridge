@@ -62,8 +62,8 @@ target 이름은 Cargo metadata에서 추론하므로 보통 `rustLibrary`는 �
 Bun 1.4 이상으로 의존성을 추가한 뒤 setup을 실행합니다.
 
 ```bash
-bun add @unikit/react-native@0.10.0 @unikit/types@0.12.1
-bun add -d @unikit/cli@0.12.0
+bun add @unikit-bridge/react-native@0.10.0 @unikit-bridge/types@0.12.1
+bun add -d @unikit-bridge/cli@0.12.0
 bunx --bun unikit setup --config unikit.json
 ```
 
@@ -101,7 +101,7 @@ modules/unikit-bridge/
   generated/
 ```
 
-생성기는 `package.json`의 `@unikit/generated-react-native` workspace dependency가 다른
+생성기는 `package.json`의 `@unikit-bridge/generated-react-native` workspace dependency가 다른
 경로를 가리키면 덮어쓰지 않고 실패합니다. 이 fail-closed 동작이 기존 패키지와의
 우발적 충돌을 막습니다.
 
@@ -172,7 +172,7 @@ Release workspace link를 확인합니다. build/link 성공은 실제 기기 �
 
 ## 충돌 방지 계약
 
-- JS package: `@unikit/generated-react-native`
+- JS package: `@unikit-bridge/generated-react-native`
 - native module: `UnikitBridge`
 - Android namespace: `dev.unikit.bridge`
 - Android library: `unikit_bridge`
@@ -218,7 +218,7 @@ switch (result.status) {
 - **바이너리 채널** — `createChannelBytes(callback)`(JS: `createBytesChannel`)
   는 채널 페이로드를 ArrayBuffer 복사본으로 전달한다 — JSON 직렬화 없이
   Frame 프레임. JSON 채널과 동일한 핸들/close 계약, 한 핸들은 한 경로.
-- **동기 invoke** — `invokeTypedSync(name, args)`(`@unikit/react-native`)는
+- **동기 invoke** — `invokeTypedSync(name, args)`(`@unikit-bridge/react-native`)는
   UI 핫패스에서 Promise 홉 없이 C++ typed fast path 를 직접 쓴다 — 미지원
   환경은 `sync.unavailable` 로 loud-fail.
 

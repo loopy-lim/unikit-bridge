@@ -44,7 +44,7 @@ transport, 기본 경로 교체 — 용이다.
 | **Node**             | one-shot Cargo binary + stdio, `__unikit_contract` 계약 검사                                                                                                                           | `main.rs` → `run_invoke_stdio()`                                                                                                                                                              | 직접 `spawnSync` stdio, `createNodeLoopTransport`(서버), napi-rs 네이티브 모듈, WASM |
 | **Bun**              | cdylib + stable C ABI + Frame (`unikit_ffi_invoke_frame`)                                                                                                                              | `lib.rs` → `unikit_bridge::native_entry!` + `register_ffi(...)`                                                                                                                                      | `bun:ffi` 직접 C FFI 호출 (§4, JSON 경로)                                            |
 | **Tauri**            | `unikit_dispatch` 멀티플렉스 (프레임워크 내장)                                                                                                                                         | `tauri_support::register[_with_events]()` (feature: `tauri`)                                                                                                                                  | 커스텀 invoke 함수를 받는 `createTauriEngine({ invoke })`                            |
-| **React Native**     | autolinked JSI + Frame (`invokeFrame`), `@unikit/generated-react-native`                                                                                                               | `unikit_bridge::native_entry!` (`unikit_mobile_init` export)                                                                                                                                         | 커스텀 JSON transport(`createReactNativeEngine`), TurboModule, Nitro Modules         |
+| **React Native**     | autolinked JSI + Frame (`invokeFrame`), `@unikit-bridge/generated-react-native`                                                                                                               | `unikit_bridge::native_entry!` (`unikit_mobile_init` export)                                                                                                                                         | 커스텀 JSON transport(`createReactNativeEngine`), TurboModule, Nitro Modules         |
 | **scriptc** (실험적) | 정적 링크 네이티브 실행 파일 — `unikit.json`에 `scriptc` 섹션이 있을 때 `unikit codegen`이 `scriptc/ffi.json` (ffi_format 7 매니페스트) + `scriptc-ffi.d.ts`/`scriptc-ffi.ts`를 렌더링 | `unikit_ffi_invoke_json_into_len` caller-buffer envelope; retained 콜백 (`unikit_ffi_invoke_json_async_channel`, `unikit_ffi_event_sink_register_scriptc`, `unikit_ffi_channel_create_bytes`) | napi 애드온·`dlopen` 미지원; 동작 게이트: `examples/calculator/scriptc/run.sh`       |
 
 ### Node — 수동 subprocess stdio
@@ -56,7 +56,7 @@ transport를 직접 조립한다면 형태는 다음과 같다:
 ```ts
 // 수동 조립 — 예시. 생성 node.ts가 이 일을 대신한다
 import { spawnSync } from 'node:child_process';
-import { createNodeEngine } from '@unikit/node';
+import { createNodeEngine } from '@unikit-bridge/node';
 
 const engine = createNodeEngine({
   invoke(command, args) {
@@ -137,7 +137,7 @@ Swift는 같은 심볼을 직접 바인딩한다:
 
 ```swift
 // 손으로 만든 JSI/모듈 브릿징 계층 (커스텀 호스트 전용 — 기본 RN 경로는
-// 생성된 @unikit/generated-react-native 패키지다)
+// 생성된 @unikit-bridge/generated-react-native 패키지다)
 @_silgen_name("unikit_mobile_init")
 func unikit_mobile_init()
 
@@ -298,8 +298,8 @@ Bun의 `FFIType.cstring`을 쓰면 안 된다. `FFIType.ptr`로 포인터를 받
 
 ```ts
 import { dlopen, FFIType, suffix, toArrayBuffer } from 'bun:ffi';
-import { createBunEngine } from '@unikit/bun';
-import { configure } from '@unikit/types';
+import { createBunEngine } from '@unikit-bridge/bun';
+import { configure } from '@unikit-bridge/types';
 import { addNumbers } from '../generated/commands.js';
 
 const outLength = new BigUint64Array(1); // usize out-param
@@ -414,7 +414,7 @@ napi build --platform --release
 ### Node transport 구현
 
 ```ts
-import { createNodeEngine } from '@unikit/node';
+import { createNodeEngine } from '@unikit-bridge/node';
 
 // napi-rs로 빌드한 네이티브 모듈 로드 (examples/calculator-napi)
 const native = require('./calculator-napi.node');

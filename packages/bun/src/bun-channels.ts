@@ -1,5 +1,5 @@
 /**
- * @unikit/bun 채널 브릿지 — `unikit_ffi_channel_create/send/drop` FFI 의 첫
+ * @unikit-bridge/bun 채널 브릿지 — `unikit_ffi_channel_create/send/drop` FFI 의 첫
  * JS 소비자다. RN JSI(`createChannel`/`dropChannel` host function)와 동일한
  * Rust 채널 코어(`channels.rs` ChannelHost)를 Bun FFI 로 소비한다.
  *
@@ -26,7 +26,7 @@
  * JS close도 마찬가지로 콜백 안에서 호출하지 않는다.
  */
 
-import { UnikitCommandError, UnikitErrorCode } from '@unikit/types';
+import { UnikitCommandError, UnikitErrorCode } from '@unikit-bridge/types';
 import type { Pointer } from 'bun:ffi';
 import { bunLibraryCandidates, type BunLibraryOptions } from './bun-ffi-library.js';
 

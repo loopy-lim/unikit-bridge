@@ -133,18 +133,18 @@ export function checkReleaseCoherence(root = process.cwd()) {
     (group) =>
       Array.isArray(group) &&
       group.length > 1 &&
-      PUBLISHED_PACKAGES.every((name) => group.includes(`@unikit/${name}`)),
+      PUBLISHED_PACKAGES.every((name) => group.includes(`@unikit-bridge/${name}`)),
   );
   if (forcedPublicGroup) {
     failures.push(
-      'Changesets must not force all published @unikit/* packages into one fixed version group',
+      'Changesets must not force all published @unikit-bridge/* packages into one fixed version group',
     );
   }
 
   const cargoRange = cli.unikitTemplate?.cargoRange;
   if (typeof cargoRange !== 'string' || !rangeContainsVersion(cargoRange, cargoVersion)) {
     failures.push(
-      `@unikit/cli unikitTemplate.cargoRange=${cargoRange} does not contain Rust ${cargoVersion}`,
+      `@unikit-bridge/cli unikitTemplate.cargoRange=${cargoRange} does not contain Rust ${cargoVersion}`,
     );
   }
 
@@ -159,7 +159,7 @@ export function checkReleaseCoherence(root = process.cwd()) {
     !rangeContainsVersion(reactNativeRange, reactNativeVersion)
   ) {
     failures.push(
-      `@unikit/cli unikitTemplate.reactNativeRange=${reactNativeRange} does not contain @unikit/react-native ${reactNativeVersion}`,
+      `@unikit-bridge/cli unikitTemplate.reactNativeRange=${reactNativeRange} does not contain @unikit-bridge/react-native ${reactNativeVersion}`,
     );
   }
 
@@ -168,7 +168,7 @@ export function checkReleaseCoherence(root = process.cwd()) {
     const hostRange = cli.unikitTemplate?.[`${host}Range`];
     if (typeof hostRange !== 'string' || !rangeContainsVersion(hostRange, hostVersion)) {
       failures.push(
-        `@unikit/cli unikitTemplate.${host}Range=${hostRange} does not contain @unikit/${host} ${hostVersion}`,
+        `@unikit-bridge/cli unikitTemplate.${host}Range=${hostRange} does not contain @unikit-bridge/${host} ${hostVersion}`,
       );
     }
   }
@@ -201,19 +201,19 @@ export function checkReleaseCoherence(root = process.cwd()) {
     }
 
     if (name !== 'types') {
-      const dependencyRange = manifest.dependencies?.['@unikit/types'];
+      const dependencyRange = manifest.dependencies?.['@unikit-bridge/types'];
       if (
         typeof dependencyRange !== 'string' ||
         !rangeContainsVersion(dependencyRange, typesVersion)
       ) {
         failures.push(
-          `${manifest.name} depends on @unikit/types ${dependencyRange}, which does not contain ${typesVersion}`,
+          `${manifest.name} depends on @unikit-bridge/types ${dependencyRange}, which does not contain ${typesVersion}`,
         );
       }
-      const lockDependencyRange = block?.match(/"@unikit\/types"\s*:\s*"([^"]+)"/)?.[1];
+      const lockDependencyRange = block?.match(/"@unikit-bridge\/types"\s*:\s*"([^"]+)"/)?.[1];
       if (lockDependencyRange !== dependencyRange) {
         failures.push(
-          `${manifest.name} lock @unikit/types=${lockDependencyRange} but manifest=${dependencyRange}`,
+          `${manifest.name} lock @unikit-bridge/types=${lockDependencyRange} but manifest=${dependencyRange}`,
         );
       }
     }

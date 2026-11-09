@@ -153,9 +153,9 @@ packages/*/CHANGELOG.md.
   libloading 의존 — 릴리스 빌드 정적 링크 경로 불변),
   `tauri_support::register_dispatch_with_swap_events`가 스왑 결과를
   `unikit://hot-core/swapped` 웹뷰 이벤트로 보고한다(구·신 컨트랙트 해시 포함).
-  `@unikit/cli`의 `unikit dev` `dev.target: "dylib"`가 코드젠→cdylib 빌드를
+  `@unikit-bridge/cli`의 `unikit dev` `dev.target: "dylib"`가 코드젠→cdylib 빌드를
   오케스트레이션하고 패리티 게이트 통과분만 `<stem>-hot-live<ext>`로 원자
-  발행한다(fail-closed). `@unikit/react-native` 어댑터 C++ 셸의 `CoreTable`
+  발행한다(fail-closed). `@unikit-bridge/react-native` 어댑터 C++ 셸의 `CoreTable`
   재지향으로 JS 재바인딩 없이 스왑된다(Android debuggable 빌드 한정 filesDir
   경로, iOS 시뮬레이터 env 경로). macOS·iOS 시뮬·Android 에뮬/실기기 앱
   도메인에서 스왑 실측 통과(문서: `docs/dev/plans/2026-09-09-native-hot-core-design.md`).
@@ -182,7 +182,7 @@ packages/*/CHANGELOG.md.
 ## 0.6.0 (2026-08)
 
 0.6은 Rust crate 라인(`unikit`/`unikit-bridge-macros` 0.5 → 0.6)의 안정화 트랙이다.
-`unikit.json`에 `$schema`·`dev`·`inspector` 선택 섹션이 추가되고, `@unikit/cli`가
+`unikit.json`에 `$schema`·`dev`·`inspector` 선택 섹션이 추가되고, `@unikit-bridge/cli`가
 배포하는 JSON Schema로 에디터 자동완성·검증을 받는다. `unikit doctor`는 멀티
 타깃 상태 매트릭스와 빌드 검증(`section.*.build`)을 갖춘다 — 깨진 Rust 설정이
 이제 exit 1이 된다(계획이 필요한 유일한 동작 변경). 와이어 포맷·contract
@@ -193,7 +193,7 @@ docs/migrations/0.5-to-0.6.md 참고.
 ## 0.3 → 0.5 요약
 
 루트 버전 태그는 0.2.0 이후 패키지별 독립 릴리스로 운영된다. 세부 내역은
-각 `packages/*/CHANGELOG.md`와 `git tag`(`@unikit/*@0.3.0` ~ `0.5.0`) 참조.
+각 `packages/*/CHANGELOG.md`와 `git tag`(`@unikit-bridge/*@0.3.0` ~ `0.5.0`) 참조.
 여기서는 0.2.0 이후 소비자가 알아야 할 최소한의 궤적만 요약한다.
 
 ### 0.3.0 — 타입 패리티 1단계 + 채널/리소스
@@ -202,7 +202,7 @@ docs/migrations/0.5-to-0.6.md 참고.
   (f36cf983).
 - 타입 패리티 2단계 — Tauri v2 `ipc::Channel`·Resource 모델 채널/리소스 지원
   (fa6bd00b). u32 핸들은 기존 uvar 와이어를 그대로 재사용한다.
-- `@unikit/testing` 계약 게이트, `@unikit/react` 훅 개선 등 성장 후속.
+- `@unikit-bridge/testing` 계약 게이트, `@unikit-bridge/react` 훅 개선 등 성장 후속.
 
 ### 0.4.0 — 멀티호스트 zero config (#42)
 
@@ -230,7 +230,7 @@ docs/migrations/0.5-to-0.6.md 참고.
 
 ### Removed
 
-- **Lynx 지원 제거** (PR #16, breaking) — `@unikit/lynx` npm 디프리케이트,
+- **Lynx 지원 제거** (PR #16, breaking) — `@unikit-bridge/lynx` npm 디프리케이트,
   Lynx 예제/runner 템플릿 삭제. unikit는 Node/Bun/Tauri/React Native 4표면에
   집중한다. rkyv V2 바이너리 fast-path는 RN JSI 어댑터와 공유라 영향 없음.
 
@@ -290,7 +290,7 @@ docs/migrations/0.5-to-0.6.md 참고.
   `unikit_event_sink_unregister()`. C 콜백 ABI 는 `extern "C-unwind"`
   (콜백 패닉이 Rust 쪽 catch_unwind 에서 가두어진다). 패키지 등록 전 싱크
   등록도 지원(지연 설치).
-- `@unikit/react-native` `subscribeEvent(native, name, cb)` → unsubscribe.
+- `@unikit-bridge/react-native` `subscribeEvent(native, name, cb)` → unsubscribe.
   RN JSI `onEvent`/`offEvent` 위의 TS 래퍼 — 페이로드는 JSON 문자열로 JSI 를
   건너고 TS 에서 `JSON.parse` 1회 복원. `UnikitNative` 타입에
   `onEvent`/`offEvent`/`drainEvents` 추가.
@@ -302,9 +302,9 @@ docs/migrations/0.5-to-0.6.md 참고.
 - `unikit dev` CLI — Rust 소스 감시 + dual-path codegen 자동 재실행
   (hot codegen). mtime 기반 stale 판정으로 Rust bin/TS CLI 스테이지 선택적 실행,
   `--inspect` 플래그로 devtools 안내
-- `@unikit/testing` 패키지 — `createMockEngine` (계약 동일 mock 엔진,
+- `@unikit-bridge/testing` 패키지 — `createMockEngine` (계약 동일 mock 엔진,
   `.on()` 체이닝 + 호출 기록) + `assertContractCurrent` 계약 게이트
-- `@unikit/devtools` 패키지 — `createInstrumentedEngine` 호출 관측성 래퍼
+- `@unikit-bridge/devtools` 패키지 — `createInstrumentedEngine` 호출 관측성 래퍼
   (명령별 count/errors/avgMs + 슬로우 콜 타임라인)
 - `windows-experiment.yml` — lynx.dll export 덤프 + MSVC 빌드 시도 CI (P1 실험)
 - `fuzz.yml` + `fuzz/` — cargo-fuzz `invoke_rkyv_v2` 디코드 경로 무작위 입력
@@ -314,7 +314,7 @@ docs/migrations/0.5-to-0.6.md 참고.
   (와이어는 vec와 호환), JSON 경로 Set replacer
 - `UnikitCommandError.retryable` — Rust `transport.error`/`transport.timeout`
   생성 에러의 재시도 가능 여부를 TypeScript에서 조회 가능
-- `createAsyncEngine` (`@unikit/react-native`) — P0-3 async offload 엔진.
+- `createAsyncEngine` (`@unikit-bridge/react-native`) — P0-3 async offload 엔진.
   네이티브 `invokeTypedAsync` 있으면 콜백 큐 경로, 없으면 동기 폴백
 - `unikit init <dir>` CLI — 프로젝트 스캐폴딩 (Cargo + echo 예제 + codegen 스크립트)
 - Windows desktop 스캐폴드 — `lynx_desktop_win.cpp` + `build.rs` 플랫폼 분기
@@ -325,14 +325,14 @@ docs/migrations/0.5-to-0.6.md 참고.
 
 ## 0.1.1 (2026-08-14)
 
-npm `@unikit/*` 7종(types/cli/node/bun/tauri/react-native/lynx)과 crates.io
+npm `@unikit-bridge/*` 7종(types/cli/node/bun/tauri/react-native/lynx)과 crates.io
 `unikit`/`unikit-bridge-macros` 첫 공개 발행.
 
 ### Added
 
 - rkyv V2 무직렬화 경로 (`invoke_rkyv_v2`) — JSON 대비 15~83× 작은 와이어포맷
 - RN JSI fast path + C++ 코덱 (`--cpp-output`) 생성
-- Lynx 어댑터 (`@unikit/lynx`) — QuickJS 런타임 지원
+- Lynx 어댑터 (`@unikit-bridge/lynx`) — QuickJS 런타임 지원
 - codegen Map/Tuple 타입 지원
 - runtime command registry / 동적 rkyv 경로
 - invokeBatch (P0-2) 배치 호출

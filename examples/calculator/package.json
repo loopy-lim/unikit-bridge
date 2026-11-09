@@ -1,5 +1,5 @@
 {
-  "name": "@unikit/example-calculator",
+  "name": "@unikit-bridge/example-calculator",
   "private": true,
   "packageManager": "bun@1.4.0",
   "type": "module",
@@ -8,12 +8,12 @@
     "codegen:check": "bun ../../packages/cli/src/index.ts codegen --config unikit.json --check"
   },
   "dependencies": {
-    "@unikit/bun": "file:../../packages/bun",
-    "@unikit/node": "file:../../packages/node",
-    "@unikit/tauri": "file:../../packages/tauri",
-    "@unikit/types": "file:../../packages/types"
+    "@unikit-bridge/bun": "file:../../packages/bun",
+    "@unikit-bridge/node": "file:../../packages/node",
+    "@unikit-bridge/tauri": "file:../../packages/tauri",
+    "@unikit-bridge/types": "file:../../packages/types"
   },
   "overrides": {
-    "@unikit/types": "file:../../packages/types"
+    "@unikit-bridge/types": "file:../../packages/types"
   }
 }

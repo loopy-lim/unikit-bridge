@@ -32,7 +32,7 @@ last_updated_by: claude
   기준 9개 체크박스가 미체크**이고 impl/결과 기록 문서가 없다.
 - **발행(publish) 준비가 진행 중**: 미커밋 변경 8개 package.json(버전 0.1.1, repository URL
   수정, publishConfig.access public, directory 필드 수정).
-  (2026-08-20 갱신: hostra 개명은 철회되어 `loopy-lim/unikit` 유지, npm 스코프도 `@unikit/*` 유지)
+  (2026-08-20 갱신: hostra 개명은 철회되어 `loopy-lim/unikit` 유지, npm 스코프도 `@unikit-bridge/*` 유지)
   발행 전 필수: cli/types README, dist 빌드(dist는 gitignore), crates.io 이름
   선점 확인, examples 우발 발행 방지.
 - **기술적 하드 블로커는 Windows P1(FML PE 심볼) 하나뿐**이고 이는 Windows 머신 의존.
@@ -56,7 +56,7 @@ Task 1~7 결과물 전부 실재 확인:
 | capability 계층 B                                                            | ✅   | `backend/src/capabilities.rs` — MobileBridge 구조체(107행), MobileRegistry(118행), FFI `unikit_template_register_mobile_registry`(171행), 테스트 6개. iOS/Android 셸이 실제 호출(`UnikitModule.m:94`, `unikit_jni.cpp:169`) |
 | NDK 핀 + Windows 문서                                                        | ✅   | `build-rust-android.sh:25` (`27.1.12297006`), `desktop/WINDOWS.md` (111줄, 3포인트 포팅 가이드)                                                                                                                             |
 | 문서 정리                                                                    | ✅   | rkyv-command-id 헤더 "구현 완료", runner-template §7 갱신, P6 해소 표시, capabilities README "구현됨", 루트 README runner/ 포함                                                                                             |
-| create-runner.sh 절대경로 재작성                                             | ✅   | `create-runner.sh:68-87` — unikit path·@unikit file: 의존성을 원본 절대경로로 재작성                                                                                                                                        |
+| create-runner.sh 절대경로 재작성                                             | ✅   | `create-runner.sh:68-87` — unikit path·@unikit-bridge file: 의존성을 원본 절대경로로 재작성                                                                                                                                        |
 
 **유일 잔존**: `docs/plans/2026-08-14-gap-closure-production-ready-design.md:235-243` 완료
 기준 9개 체크박스 전부 `- [ ]` + 헤더가 "Design + Impl Plan" + impl/결과 문서 부재
@@ -66,8 +66,8 @@ Task 1~7 결과물 전부 실재 확인:
 
 **미커밋 변경** (8개 package.json): 버전 0.1.0→0.1.1, repository URL
 (과거 일시적 hostra 개명은 철회 — 현재 `loopy-lim/unikit`) 및 directory 필드 `"packages/"` → 정확한 하위경로로
-수정, types에는 신규 추가), `@unikit/*` 7개에 `publishConfig.access: public`, 내부 의존
-`@unikit/types ^0.1.1`. 루트는 `private: true` 유지.
+수정, types에는 신규 추가), `@unikit-bridge/*` 7개에 `publishConfig.access: public`, 내부 의존
+`@unikit-bridge/types ^0.1.1`. 루트는 `private: true` 유지.
 
 \*_npm (packages/_ 7종)\*\*:
 
@@ -77,7 +77,7 @@ Task 1~7 결과물 전부 실재 확인:
 - **README 부재**: `packages/cli`(bin `unikit` + 5개 export 보유), `packages/types`.
 - changesets 도입됨(`.changeset/config.json`, access public, baseBranch main) — 단
   changeset 파일 0개, 0.1.1은 수동 범프.
-- (해소됨) 이름 불일치 — hostra 개명 철회로 `@unikit/*` 스코프와 저장소명 unikit 가 일치.
+- (해소됨) 이름 불일치 — hostra 개명 철회로 `@unikit-bridge/*` 스코프와 저장소명 unikit 가 일치.
 
 **crates.io (crates/unikit-bridge, crates/unikit-bridge-macros)**:
 
@@ -113,7 +113,7 @@ Task 1~7 결과물 전부 실재 확인:
 ### 트랙 A — 발행(publish) 파이프라인 [미커밋 변경의 자연스러운 연장선, 최고 우선]
 
 1. 미커밋 package.json 8개 커밋.
-2. (해소됨) 스코프는 `@unikit/*` 로 확정 — hostra 개명 철회.
+2. (해소됨) 스코프는 `@unikit-bridge/*` 로 확정 — hostra 개명 철회.
 3. `packages/cli/README.md`, `packages/types/README.md` 작성.
 4. crates.io `unikit` 이름 선점 확인 + `cargo publish --dry-run`.
 5. examples 6개 workspace 멤버에 `publish = false` (우발 발행 방지).
@@ -166,7 +166,7 @@ Task 1~7 결과물 전부 실재 확인:
 
 ## 미해결 질문
 
-- npm 스코프: `@unikit/*` 유지 확정 (hostra 전환은 철회됨).
+- npm 스코프: `@unikit-bridge/*` 유지 확정 (hostra 전환은 철회됨).
 - crates.io `unikit` 이름 가용성 (조회 필요).
 - RN 트랙 폐기 여부 — B1 체크리스트 24항목의 운명.
 - 런타임 verify 스크립트의 CI 통합 방식 (시뮬레이터/에뮬레이터 CI 실행 가능성).

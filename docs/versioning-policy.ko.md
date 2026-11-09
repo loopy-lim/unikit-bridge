@@ -17,7 +17,7 @@
 | FFI 심볼 시그니처 (`unikit_ffi_*` C ABI)                | 추가만 허용. 기존 심볼은 이름·파라미터 목록·호출 규약을 유지한다.                                      | 제거와 시그니처 변경은 아래 폐기 절차를 거친 뒤 메이저로. pre-1.0에서는 위 폐기 규칙이 그대로 적용된다 — 이전 릴리즈에서 deprecated된 심볼은 마이너에서 제거할 수 있다. |
 | 생성 산출물 (TypeScript / C++ / RN 생성 파일)           | 동일 설정으로 재생성하면 drop-in으로 교체된다.                                                         | 메이저 버전. pre-1.0에서는 마이그레이션 노트를 동반한 마이너.                                                                                                           |
 | 공개 Rust API (`crates/unikit-bridge`, `unikit-bridge-macros` export) | 표준 semver.                                                                                           | 메이저 버전. pre-1.0에서는 마이그레이션 노트를 동반한 마이너.                                                                                                           |
-| 공개 TypeScript API (`@unikit/*` 패키지 export)         | 표준 semver.                                                                                           | 메이저 버전. pre-1.0에서는 마이그레이션 노트를 동반한 마이너.                                                                                                           |
+| 공개 TypeScript API (`@unikit-bridge/*` 패키지 export)         | 표준 semver.                                                                                           | 메이저 버전. pre-1.0에서는 마이그레이션 노트를 동반한 마이너.                                                                                                           |
 
 어떤 보장에도 해당하지 않는 것:
 
@@ -49,20 +49,20 @@ pre-1.0 규칙: 이전 릴리즈에서 폐기되었던 항목은 마이너 릴�
 npm 라인을 따라간다). 대체재는 호스트별 어댑터 경계다 — 각 임베딩 호스트는
 공개된 채널·FFI 표면으로 자체 렌더러/이벤트를 연결한다.
 
-같은 규칙으로 0.7.0 `@unikit/tauri`·`@unikit/react-native` 패키지에서 제거된 것:
+같은 규칙으로 0.7.0 `@unikit-bridge/tauri`·`@unikit-bridge/react-native` 패키지에서 제거된 것:
 0.6.0에서 deprecated 된 레거시 `subscribeEvent(listen, name, callback)`(Tauri)과
 `subscribeEvent(native, name, callback[, options])`(React Native) 오버로드.
 `subscribeEvent(name, callback[, listen])`과 `subscribeEvent(name, callback[, options])`만
 남고, React Native는 native 모듈을 `globalThis.__unikitNative`에서 해결한다.
 
-0.9.0 라인(2026-09-10, changeset `1f99eca`)에서 발행된 것: `@unikit/cli` 0.9.0은
+0.9.0 라인(2026-09-10, changeset `1f99eca`)에서 발행된 것: `@unikit-bridge/cli` 0.9.0은
 생성 모듈에서 `reactNative.legacyBenchmarks` 설정 키와
 `UNIKIT_LEGACY_BENCHMARKS`/`UNIKIT_ENABLE_LEGACY_BENCHMARKS` 빌드 플래그를
-제거했고, `@unikit/react-native` 0.8.0은 JSI 호스트 객체에서 calculator 전용
+제거했고, `@unikit-bridge/react-native` 0.8.0은 JSI 호스트 객체에서 calculator 전용
 레거시 와이어 함수 — `invokeBytes`, `invokeMsgpack`, `invokeBincode`,
 `invokePostcard`, `invokeLegacyPostcard`, `invokeHybrid`, `invokeRaw` — 를
 떨어냈다. 같은 changeset 의 타입 절반은 반영되지 않았다: 발행된 `UnikitNative`
-(`@unikit/types`)에는 `invokeMsgpack`, `invokeBincode`, `invokePostcard`,
+(`@unikit-bridge/types`)에는 `invokeMsgpack`, `invokeBincode`, `invokePostcard`,
 `invokeHybrid`, `invokeRaw`가 여전히 선언되어 있다 — RN 호스트 객체가 더 이상
 노출하지 않아도 TS 타입 멤버는 남는다. `invokeRkyv` 만은 확실히 사라졌다:
 0.10.0 Frame 리네임이 구현이 없던 죽은 멤버를 부활 없이 제거했다. 대체재인
@@ -81,7 +81,7 @@ npm 라인을 따라간다). 대체재는 호스트별 어댑터 경계다 — �
 | `unikit_ffi_hot_reload`                            | 실험 | 이 사이클에 착수했다. replace 의미론의 핫 리로드 주입; 스킵 리포트와 에러 사다리는 릴리즈 간에 바뀔 수 있다.                                                                                                                     |
 | `hot-core` 모듈 (`DylibCore`·`HotCoreHandle`·감시) | 실험 | dev 타임 네이티브 dylib 핫스왑 프리미티브(`hot-core` cargo feature 뒤). API와 스왑 의미론은 릴리즈 간에 바뀔 수 있다. 릴리스 빌드는 영향 없음(정적 링크 경로 불변). 설계: `docs/dev/plans/2026-09-09-native-hot-core-design.md`. |
 | `unikit_ffi_capture_snapshot`                      | 실험 | B1 인스펙터 덤프. 형태 변경은 깨지는 변경이지만, 필드 **추가**는 하위호환으로 취급한다(삭제/이름변경은 breaking).                                                                                                                |
-| `@unikit/types` inspector                          | 실험 | `DumpedWire`와 `parseSnapshot`/`serializeSnapshot` 은 위 blob 계약을 함께 따른다(필드 추가 하위호환). `unikit inspect`는 이 실험 형식을 렌더링하며 상태를 함께 따른다.                                                           |
+| `@unikit-bridge/types` inspector                          | 실험 | `DumpedWire`와 `parseSnapshot`/`serializeSnapshot` 은 위 blob 계약을 함께 따른다(필드 추가 하위호환). `unikit inspect`는 이 실험 형식을 렌더링하며 상태를 함께 따른다.                                                           |
 
 ## MSRV 정책
 
@@ -96,7 +96,7 @@ MSRV bump는 마이너 릴리즈에서만 하고, 패치 릴리즈에서는 하�
 
 ## 릴리즈 번호 체계
 
-프로젝트는 0.x다. 공개된 9개 `@unikit/*` npm 패키지의 버전은 changeset으로
+프로젝트는 0.x다. 공개된 9개 `@unikit-bridge/*` npm 패키지의 버전은 changeset으로
 결정된다: main에 changeset 파일이 존재하면 `release.yml`이 version-packages
 PR(`chore: version packages`)을 열고, 이를 병합하면 버전 필드와 CHANGELOG가 일괄 갱신된다. crates.io 발행은
 수동이다 — [릴리즈 절차](release-procedure.md)가 지정한 순서대로 crate별로

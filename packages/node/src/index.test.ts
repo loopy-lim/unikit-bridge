@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createNodeBootstrap, createNodeEngine } from './index.js';
 import type { NodeProcessTransport } from './index.js';
-import { UnikitCommandError } from '@unikit/types';
-import type { EngineClientWithBatch } from '@unikit/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
+import type { EngineClientWithBatch } from '@unikit-bridge/types';
 
 void test('createNodeEngine routes invoke to transport', async () => {
   const calls: Array<{ command: string; args: unknown }> = [];
@@ -892,7 +892,7 @@ void processTest(
     // 는 모듈 레벨 메모이즈이므로 resetDebugEnvForTests 로 먼저 무효화해야 env
     // 변경이 보인다(types debug.test.ts 와 동일 순서).
     const previousDebug = process.env.UNIKIT_DEBUG;
-    const { resetDebugEnvForTests } = await import('@unikit/types');
+    const { resetDebugEnvForTests } = await import('@unikit-bridge/types');
     resetDebugEnvForTests();
     process.env.UNIKIT_DEBUG = '1';
     const { createNodeLoopTransport } = await import('./index.js');
@@ -1000,7 +1000,7 @@ void processTest(
     // drain 계약 — 비 debug 에선 stderr 를 수집하지 않는다(성능 무영향 유지).
     const previousDebug = process.env.UNIKIT_DEBUG;
     delete process.env.UNIKIT_DEBUG;
-    const { resetDebugEnvForTests } = await import('@unikit/types');
+    const { resetDebugEnvForTests } = await import('@unikit-bridge/types');
     resetDebugEnvForTests();
     const { createNodeLoopTransport } = await import('./index.js');
     const transport = createNodeLoopTransport({
@@ -1046,7 +1046,7 @@ const cleanSlotEngine = {
 } as unknown as EngineClientWithBatch;
 
 void test('R08: 소비 전 경쟁 lazy 등록은 loud-fail 하고 첫 등록이 승리한다', async () => {
-  const { configure, configureLazy, invoke } = await import('@unikit/types');
+  const { configure, configureLazy, invoke } = await import('@unikit-bridge/types');
   try {
     // 슬롯을 알려진 상태로 — configure 이후의 등록이 유일한 pending 이 된다.
     configure(cleanSlotEngine);
@@ -1082,7 +1082,7 @@ void test('R08: 소비 전 경쟁 lazy 등록은 loud-fail 하고 첫 등록이 
 });
 
 void test('R08: createNodeBootstrap 도 같은 가드를 통과한다 — pending 노드 bootstrap 위 다른 호스트 등록 거부', async () => {
-  const { configure, configureLazy } = await import('@unikit/types');
+  const { configure, configureLazy } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     // 노드 bootstrap 을 등록만 하고 ready 전에 둔다(프로세스 스폰 없음 —
@@ -1113,7 +1113,8 @@ void test('R08: createNodeBootstrap 도 같은 가드를 통과한다 — pendin
 });
 
 void test('R08: 소비가 시작된 뒤의 교체와 소비 실패 뒤의 복구 등록은 허용된다', async () => {
-  const { configure, configureLazy, ensureConfigured, invoke } = await import('@unikit/types');
+  const { configure, configureLazy, ensureConfigured, invoke } =
+    await import('@unikit-bridge/types');
   try {
     // (a) 소비 진행 중 교체 — 기존 "newer wins" 계약 보존.
     configure(cleanSlotEngine);
@@ -1155,7 +1156,7 @@ void test('R08: 소비가 시작된 뒤의 교체와 소비 실패 뒤의 복구
 });
 
 void test('R08: 같은 bootstrap 클로저의 재등록(reload 경로)은 허용된다', async () => {
-  const { configure, configureLazy, ensureConfigured } = await import('@unikit/types');
+  const { configure, configureLazy, ensureConfigured } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     // node-bootstrap.ts 의 reload 는 dispose 뒤 같은 bootstrap 클로저로
@@ -1178,7 +1179,7 @@ void processTest(
   { timeout: 15_000 },
   async () => {
     // 모듈 import 순서 시나리오는 모듈 레지스트리가 갈린 다른 프로세스에서
-    // 재현한다. 빌드된 @unikit/types dist 를 절대 URL 로 import 하는 최소
+    // 재현한다. 빌드된 @unikit-bridge/types dist 를 절대 URL 로 import 하는 최소
     // 스크립트 — 호스트 A 등록 → 호스트 B 등록 → B 는 거부되어야 한다.
     const { spawnSync } = await import('node:child_process');
     const { pathToFileURL } = await import('node:url');
@@ -1231,7 +1232,7 @@ void test('A02: createNodeEngine exposes supports matching the compatibility mat
 // no-op)하되 dispose 후 ready 는 loud-fail 한다.
 
 void test('A05: createNodeBootstrap exposes the lifecycle state surface', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     // 스폰 실패 bootstrap — 상태 전이만 검증하므로 실바이너리가 필요 없다.
@@ -1247,7 +1248,7 @@ void test('A05: createNodeBootstrap exposes the lifecycle state surface', async 
 });
 
 void test('A05: ready after dispose rejects loudly (no zombie re-resolution)', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     const bootstrap = createNodeBootstrap({ commandCandidates: ['./missing-unikit-runtime'] });
@@ -1274,7 +1275,7 @@ void test('A05: concurrent ready calls share one initialization promise (ensureC
   // 동일 초기화 프라미스 공유는 ensureConfigured 의 기존 계약 — JSON 엔진을
   // 직접 configure 하는 스파로 회귀를 고정한다(스폰 없는 node bootstrap 은
   // 만들 수 없다 — 원샷 transport 내장).
-  const { configure, configureLazy, ensureConfigured } = await import('@unikit/types');
+  const { configure, configureLazy, ensureConfigured } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     let constructions = 0;
@@ -1298,7 +1299,7 @@ void test('A05: reload duck-drains its own transport before dispose (createTrans
   // drain 한다. drain 이 있는 transport(createTransport seam 주입)만 drain 되고,
   // drain 이 없는 원샷 transport 는 즉시 진행한다. drain 시맨틱 자체는
   // NodeLoopTransport drain 테스트(실바이너리)가 담당한다.
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     const drained: Array<number | undefined> = [];
@@ -1337,7 +1338,7 @@ void test('A05: reload duck-drains its own transport before dispose (createTrans
 void test('A05: dispose during reload drain aborts the reload — no zombie ready (I-1)', async () => {
   // I-1 회귀 — drain 중 dispose 하면 reload 가 재개해 state='ready' 로 부활하고
   // ready() 가 해소하는 좀비를 만들 수 없다. await 경계마다 disposed 재검사.
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     let releaseDrain: (() => void) | undefined;
@@ -1379,7 +1380,7 @@ void test('A05: dispose during reload drain aborts the reload — no zombie read
 void test('A05: failed reload keeps the original error and restores retryable state (I-2)', async () => {
   // I-2 회귀 — 재초기화 실패는 bootstrap 을 'disposed' 로 벽돌화하지 않는다.
   // 상태는 'initializing' 으로 복원되고 다음 ready() 는 원본 에러를 다시 낸다.
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     let failNextSpawn = false;
@@ -1425,7 +1426,7 @@ void test('A05: dispose during reload re-init leaves no zombie engine in the glo
   // 클로저의 엔진이 전역 슬롯에 설치되어선 안 된다. 클로저 반환 직전 disposed
   // 재검사가 configure(engine) 기록을 막고(ensureConfigured catch 가 초기화를
   // 비움), dispose 후 글로벌 invoke() 는 disposed loud-fail 로 거부된다.
-  const { configure, invoke } = await import('@unikit/types');
+  const { configure, invoke } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     const makeTransport = () =>
@@ -1479,7 +1480,7 @@ void test('A05: dispose during reload re-init on the one-shot path leaves no Typ
   // I-NEW 회귀(RV8b) — 원샷 경로에서 dispose 가 transport 를 undefined 로 만든
   // 뒤 클로저가 엔진을 반환하면 글로벌 invoke() 가 TypeError 로 터진다. 반환 직전
   // 재검사가 이를 막는다.
-  const { configure, invoke } = await import('@unikit/types');
+  const { configure, invoke } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     const makeTransport = () =>

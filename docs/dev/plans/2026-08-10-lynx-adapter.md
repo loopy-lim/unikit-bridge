@@ -4,14 +4,14 @@
 
 **Goal:** unikit 지원 host에 Lynx(ReactLynx) 어댑터를 추가한다. rkyv V2 바이너리 fast-path를 처음부터 내장하며, iOS + Android 모바일을 타겟팅한다.
 
-**Architecture:** Rust FFI 심볼(`unikit_calculator_invoke_rkyv_v2`)과 host-neutral `createRkyvV2Engine`(`@unikit/types`)을 재사용한다. 새로 작성할 것은 (1) TS 어댑터 `packages/lynx`(RN 어댑터 복사, 글로벌만 `NativeModules.UnikitModule`로 교체), (2) Lynx Native Module(iOS Obj-C `<LynxModule>` + Android Kotlin `@LynxMethod`) 두 개뿐이다. 상세 설계는 `docs/plans/2026-08-10-lynx-adapter-design.md`를 참조.
+**Architecture:** Rust FFI 심볼(`unikit_calculator_invoke_rkyv_v2`)과 host-neutral `createRkyvV2Engine`(`@unikit-bridge/types`)을 재사용한다. 새로 작성할 것은 (1) TS 어댑터 `packages/lynx`(RN 어댑터 복사, 글로벌만 `NativeModules.UnikitModule`로 교체), (2) Lynx Native Module(iOS Obj-C `<LynxModule>` + Android Kotlin `@LynxMethod`) 두 개뿐이다. 상세 설계는 `docs/plans/2026-08-10-lynx-adapter-design.md`를 참조.
 
 **Tech Stack:** TypeScript(어댑터), Objective-C(Lynx Module iOS), Kotlin/JNI(Android), Rust staticlib(재사용), ReactLynx + rspeedy(예시).
 
 **참조 API (재사용, 변경 금지):**
 
 ```ts
-// @unikit/types
+// @unikit-bridge/types
 export type RkyvV2SchemaNative = {
   invokeRkyvV2(payload: ArrayBuffer): ArrayBuffer;
   getSchema?(): ArrayBuffer;
@@ -38,7 +38,7 @@ export function createRkyvV2Engine(
 
 ```json
 {
-  "name": "@unikit/lynx",
+  "name": "@unikit-bridge/lynx",
   "version": "0.1.0",
   "description": "Lynx (ReactLynx) adapter for unikit-bridge",
   "license": "MIT",
@@ -57,7 +57,7 @@ export function createRkyvV2Engine(
     "clean": "rm -rf dist",
     "test": "tsc --noEmit"
   },
-  "dependencies": { "@unikit/types": "^0.1.0" },
+  "dependencies": { "@unikit-bridge/types": "^0.1.0" },
   "devDependencies": { "typescript": "^5.9.0" },
   "keywords": ["unikit", "bridge", "lynx", "reactlynx", "adapter"],
   "repository": {
@@ -110,11 +110,11 @@ import type {
   EngineClient as EngineClientType,
   RkyvV2Codec,
   RkyvV2SchemaNative,
-} from '@unikit/types';
-import { UnikitCommandError, configure, invoke, createRkyvV2Engine } from '@unikit/types';
+} from '@unikit-bridge/types';
+import { UnikitCommandError, configure, invoke, createRkyvV2Engine } from '@unikit-bridge/types';
 
-export type { EngineClient, UnikitError, RkyvV2Codec, RkyvV2SchemaNative } from '@unikit/types';
-export { UnikitCommandError, configure, invoke, createRkyvV2Engine } from '@unikit/types';
+export type { EngineClient, UnikitError, RkyvV2Codec, RkyvV2SchemaNative } from '@unikit-bridge/types';
+export { UnikitCommandError, configure, invoke, createRkyvV2Engine } from '@unikit-bridge/types';
 
 export type UnikitLynxNative = RkyvV2SchemaNative;
 
@@ -183,7 +183,7 @@ Expected: `dist/` 생성
 
 ```bash
 git add packages/lynx
-git commit -m "feat(lynx): @unikit/lynx 어댑터 — rkyv V2 fast-path + JSON 폴백"
+git commit -m "feat(lynx): @unikit-bridge/lynx 어댑터 — rkyv V2 fast-path + JSON 폴백"
 ```
 
 ---

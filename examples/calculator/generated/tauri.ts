@@ -15,11 +15,11 @@
 // Changelog(M9 옵션 정합): node/bun/tauri/react-native 4개 엔트리가 동일한
 //   계약 검증 기본값('strict')과 옵션명을 명시한다. 옵션명 변경/제거는
 //   없다 — 기존 생성 엔트리 코드는 그대로 동작한다(하위 호환).
-import { createTauriBootstrap } from '@unikit/tauri';
+import { createTauriBootstrap } from '@unikit-bridge/tauri';
 import { GENERATED_CONTRACT_HASH } from './contract.js';
 
 export * from './commands.js';
-export { subscribeTauriEvent as subscribeEvent } from '@unikit/tauri';
+export { subscribeTauriEvent as subscribeEvent } from '@unikit-bridge/tauri';
 
 export const unikit = createTauriBootstrap({
   contractHash: GENERATED_CONTRACT_HASH,

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configureDebug, resetDebugEnvForTests } from '@unikit/types';
+import { configureDebug, resetDebugEnvForTests } from '@unikit-bridge/types';
 import {
   UNPARSED_LINES_CAPACITY,
   UNPARSED_LINE_MAX_CHARS,

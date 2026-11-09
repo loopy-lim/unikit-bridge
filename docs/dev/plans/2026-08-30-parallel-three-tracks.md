@@ -53,19 +53,19 @@ git worktree add .claude/worktrees/events -b feat/event-surface
 
 **Step 3:** `feat/event-surface` rebase onto main → 충돌은 node/tauri index.ts 함수 영역 기준 해소 → 머지.
 
-**Step 4:** 3트랙 changeset 작성 — **`@unikit/types`는 minor** (testing/devtools/react 0.4.1→0.5.0 스큐 해소 + 트랙 T generation 계약은 신규 API). 나머지는 변경 성격에 맞게 minor/patch:
+**Step 4:** 3트랙 changeset 작성 — **`@unikit-bridge/types`는 minor** (testing/devtools/react 0.4.1→0.5.0 스큐 해소 + 트랙 T generation 계약은 신규 API). 나머지는 변경 성격에 맞게 minor/patch:
 
 ```markdown
 ---
-'@unikit/types': minor
-'@unikit/testing': minor
-'@unikit/devtools': minor
-'@unikit/react': minor
-'@unikit/cli': minor
-'@unikit/node': minor
-'@unikit/bun': minor
-'@unikit/tauri': minor
-'@unikit/react-native': minor
+'@unikit-bridge/types': minor
+'@unikit-bridge/testing': minor
+'@unikit-bridge/devtools': minor
+'@unikit-bridge/react': minor
+'@unikit-bridge/cli': minor
+'@unikit-bridge/node': minor
+'@unikit-bridge/bun': minor
+'@unikit-bridge/tauri': minor
+'@unikit-bridge/react-native': minor
 ---
 ```
 

@@ -60,20 +60,20 @@ Rust crates (16.4k LOC)
   crates/unikit-bridge-macros  #[command] #[bridge_type] register! build! (582줄)
 
 TS packages (20.7k LOC, 9개)
-  @unikit/types          유일 leaf: EngineClient·global invoke·rkyv V2 엔진·코덱·에러
-  @unikit/{node,bun,tauri,react-native}  thin transport shim (types에만 의존)
-  @unikit/{testing,devtools,react}       게이트·관측성·훅 (react는 types만 조합)
+  @unikit-bridge/types          유일 leaf: EngineClient·global invoke·rkyv V2 엔진·코덱·에러
+  @unikit-bridge/{node,bun,tauri,react-native}  thin transport shim (types에만 의존)
+  @unikit-bridge/{testing,devtools,react}       게이트·관측성·훅 (react는 types만 조합)
 
 RN native (5.1k LOC)
   packages/react-native/native/  핸드라이튼 공유 C++ (JSI 브리지 1,373줄 + postcard hpp)
   examples/*/modules/*/generated/  앱별 생성 코덱 (100% 코드젠, 이름/라이브러리명만 앱별)
 
-CLI (@unikit/cli)
+CLI (@unikit-bridge/cli)
   Rust bin → schema.json → 순수 렌더러 → 바이트비교 쓰기 + sha256 매니페스트
 ```
 
 핵심 계약 불변식(문서 주장)은 **코드로 검증됐다**: 어댑터 `src/`에서
-`@unikit/types` 외 `@unikit/*` import가 전혀 없고, RN은 `globalThis.__unikitNative`,
+`@unikit-bridge/types` 외 `@unikit-bridge/*` import가 전혀 없고, RN은 `globalThis.__unikitNative`,
 Tauri는 `window.__TAURI__`를 구조적으로만 만난다. 생성물은 host-specific import가 없다.
 
 ### 2. Rust core — 강점
@@ -134,10 +134,10 @@ Tauri는 `window.__TAURI__`를 구조적으로만 만난다. 생성물은 host-s
   types의 "JSON transport → engine" 컴비네이터 후보.
 - **UTF-8 핸드롤 이중화**: `packages/react-native/src/utf8.ts`와
   `packages/types/src/index.ts:1053-1148`가 각자 비공개 구현.
-- **버전 스큐**: testing/devtools/react 0.4.1이 `@unikit/types ^0.5.0`에 의존
+- **버전 스큐**: testing/devtools/react 0.4.1이 `@unikit-bridge/types ^0.5.0`에 의존
   (0.x caret의 반올림 함정 — changeset 필요).
 - **이벤트 계약 분기**: tauri는 `Promise<unsubscribe>`, RN은 sync unsubscribe +
-  WeakMap fan-out. `@unikit/react`의 `useEvent`가 반환 promise를 무시하기 때문에
+  WeakMap fan-out. `@unikit-bridge/react`의 `useEvent`가 반환 promise를 무시하기 때문에
   tauri `subscribeEvent`의 rejection이 관측되지 않는다
   (`packages/react/src/useEvent.ts:30-35`).
 - 마이너: mock이 pre-abort 거부 전에 호출을 기록(`packages/testing/src/index.ts:70`),
@@ -311,7 +311,7 @@ shim 3줄 + 생성 코덱 + Rust .a뿐), 와이어는 `[cmd_id u16][postcard]` /
 ### 현재 검증 영수증
 
 - `cargo test --workspace`: 전체 workspace 통과.
-- TypeScript: `@unikit/types` 110, CLI 107, Bun 11, React 5, testing 11, Node
+- TypeScript: `@unikit-bridge/types` 110, CLI 107, Bun 11, React 5, testing 11, Node
   소스 테스트 8 통과/4개는 Bun에서 Node 전용 process transport라 skip.
 - Node 실제 런타임 테스트: compiled test 12/12 통과.
 - React Doctor: 100/100, 이슈 없음.
@@ -328,5 +328,5 @@ shim 3줄 + 생성 코덱 + Rust .a뿐), 와이어는 `[cmd_id u16][postcard]` /
   Node entry의 binary 후보 경로는 보강했지만, hash 검증은 `getContractHash`를
   노출하는 native 엔진 범위에 한정된다. stdio 프로토콜에 새 질의를 추가하는 것은
   별도 호환성 변경으로 남긴다.
-- 공개 npm registry의 기존 `@unikit/cli@0.5.0` 산출물은 이 작업 트리의 수정과
+- 공개 npm registry의 기존 `@unikit-bridge/cli@0.5.0` 산출물은 이 작업 트리의 수정과
   별개이며, registry 재발행은 버전업/배포 승인이 있을 때 처리한다.

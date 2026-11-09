@@ -10,7 +10,7 @@ type EngineClient = {
 };
 ```
 
-이것이 unikit가 TypeScript 쪽에서 요구하는 전부입니다. 생성된 명령 함수(`addNumbers` 등)는 모두 `@unikit/types`의 글로벌 `invoke`를 거치며, 이것이 `configure(engine)`로 설치한 `EngineClient`를 사용합니다:
+이것이 unikit가 TypeScript 쪽에서 요구하는 전부입니다. 생성된 명령 함수(`addNumbers` 등)는 모두 `@unikit-bridge/types`의 글로벌 `invoke`를 거치며, 이것이 `configure(engine)`로 설치한 `EngineClient`를 사용합니다:
 
 ```ts
 // examples/calculator/generated/commands.ts
@@ -314,7 +314,7 @@ builder.run(tauri::generate_context!()).expect("failed to run");
 // examples/calculator/apps/<host>-app.ts
 import { addNumbers } from '../generated/commands.js';
 import { createMyHostEngine } from '../../../packages/myhost/src/index.js';
-import { configure } from '@unikit/types';
+import { configure } from '@unikit-bridge/types';
 
 // transport 구현
 const engine = createMyHostEngine({
@@ -343,7 +343,7 @@ console.log(`<host> runtime result: ${result.value}`);
 // examples/calculator/apps/<host>-app.ts (모킹 버전)
 import { addNumbers } from '../generated/commands.js';
 import { createMyHostEngine } from '../../../packages/myhost/src/index.js';
-import { configure } from '@unikit/types';
+import { configure } from '@unikit-bridge/types';
 
 const calls: Array<{ command: string; args: unknown }> = [];
 
@@ -446,7 +446,7 @@ Electron은 Node.js 기반이므로 subprocess stdio로 시작:
 import { spawnSync } from 'node:child_process';
 import { addNumbers } from '../generated/commands.js';
 import { createElectronEngine } from '../../../packages/electron/src/index.js';
-import { configure } from '@unikit/types';
+import { configure } from '@unikit-bridge/types';
 
 const engine = createElectronEngine({
   invoke(command, args) {

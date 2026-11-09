@@ -10,7 +10,7 @@
 
 | 게이트                                    | 결과              | 비고                                                                  |
 | ----------------------------------------- | ----------------- | --------------------------------------------------------------------- |
-| `test:types`                              | 24/24 PASS        | @unikit/types                                                         |
+| `test:types`                              | 24/24 PASS        | @unikit-bridge/types                                                         |
 | `test:ts:node`                            | 32/32 PASS        | adapter/cross-wire/payload/field-order/generated-client               |
 | `test:packages`                           | 24/24 PASS        | node/bun/tauri/react-native/**lynx** (getUnikitNative 회귀 픽스 포함) |
 | `cargo test --workspace`                  | 144 PASS (0 fail) | unikit + macros + examples (trust/fuzz/concurrency)                   |

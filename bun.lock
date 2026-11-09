@@ -21,10 +21,10 @@
       },
     },
     "packages/bun": {
-      "name": "@unikit/bun",
+      "name": "@unikit-bridge/bun",
       "version": "0.11.1",
       "dependencies": {
-        "@unikit/types": "^0.13.0",
+        "@unikit-bridge/types": "^0.13.0",
       },
       "devDependencies": {
         "@types/bun": "^1.4.0",
@@ -32,13 +32,13 @@
       },
     },
     "packages/cli": {
-      "name": "@unikit/cli",
+      "name": "@unikit-bridge/cli",
       "version": "0.13.0",
       "bin": {
         "unikit": "./dist/index.js",
       },
       "dependencies": {
-        "@unikit/types": "^0.13.0",
+        "@unikit-bridge/types": "^0.13.0",
         "picomatch": "^4.0.7",
         "smol-toml": "^1.9.0",
       },
@@ -49,30 +49,30 @@
       },
     },
     "packages/devtools": {
-      "name": "@unikit/devtools",
+      "name": "@unikit-bridge/devtools",
       "version": "0.7.3",
       "dependencies": {
-        "@unikit/types": "^0.13.0",
+        "@unikit-bridge/types": "^0.13.0",
       },
       "devDependencies": {
         "typescript": "^5.9.0",
       },
     },
     "packages/node": {
-      "name": "@unikit/node",
+      "name": "@unikit-bridge/node",
       "version": "0.11.1",
       "dependencies": {
-        "@unikit/types": "^0.13.0",
+        "@unikit-bridge/types": "^0.13.0",
       },
       "devDependencies": {
         "typescript": "^5.9.0",
       },
     },
     "packages/react": {
-      "name": "@unikit/react",
+      "name": "@unikit-bridge/react",
       "version": "0.8.4",
       "dependencies": {
-        "@unikit/types": "^0.13.0",
+        "@unikit-bridge/types": "^0.13.0",
       },
       "devDependencies": {
         "@types/react": "^19.0.0",
@@ -88,10 +88,10 @@
       },
     },
     "packages/react-native": {
-      "name": "@unikit/react-native",
+      "name": "@unikit-bridge/react-native",
       "version": "0.11.0",
       "dependencies": {
-        "@unikit/types": "^0.13.0",
+        "@unikit-bridge/types": "^0.13.0",
       },
       "devDependencies": {
         "typescript": "^5.9.0",
@@ -104,27 +104,27 @@
       ],
     },
     "packages/tauri": {
-      "name": "@unikit/tauri",
+      "name": "@unikit-bridge/tauri",
       "version": "0.10.1",
       "dependencies": {
-        "@unikit/types": "^0.13.0",
+        "@unikit-bridge/types": "^0.13.0",
       },
       "devDependencies": {
         "typescript": "^5.9.0",
       },
     },
     "packages/testing": {
-      "name": "@unikit/testing",
+      "name": "@unikit-bridge/testing",
       "version": "0.7.3",
       "dependencies": {
-        "@unikit/types": "^0.13.0",
+        "@unikit-bridge/types": "^0.13.0",
       },
       "devDependencies": {
         "typescript": "^5.9.0",
       },
     },
     "packages/types": {
-      "name": "@unikit/types",
+      "name": "@unikit-bridge/types",
       "version": "0.13.0",
       "devDependencies": {
         "typescript": "^5.9.0",
@@ -212,23 +212,23 @@
 
     "@pnpm/deps.graph-sequencer": ["@pnpm/deps.graph-sequencer@1100.0.1", "", {}, "sha512-pOr5+q1fLYKwFN3LAJuGZEnfXDcQ73zqgDHMtGy+K+uIoUqyY+6MeDCWFwfu+4EFuq76I5EPFofoNAI+Bmmq4A=="],
 
-    "@unikit/bun": ["@unikit/bun@workspace:packages/bun"],
+    "@unikit-bridge/bun": ["@unikit-bridge/bun@workspace:packages/bun"],
 
-    "@unikit/cli": ["@unikit/cli@workspace:packages/cli"],
+    "@unikit-bridge/cli": ["@unikit-bridge/cli@workspace:packages/cli"],
 
-    "@unikit/devtools": ["@unikit/devtools@workspace:packages/devtools"],
+    "@unikit-bridge/devtools": ["@unikit-bridge/devtools@workspace:packages/devtools"],
 
-    "@unikit/node": ["@unikit/node@workspace:packages/node"],
+    "@unikit-bridge/node": ["@unikit-bridge/node@workspace:packages/node"],
 
-    "@unikit/react": ["@unikit/react@workspace:packages/react"],
+    "@unikit-bridge/react": ["@unikit-bridge/react@workspace:packages/react"],
 
-    "@unikit/react-native": ["@unikit/react-native@workspace:packages/react-native"],
+    "@unikit-bridge/react-native": ["@unikit-bridge/react-native@workspace:packages/react-native"],
 
-    "@unikit/tauri": ["@unikit/tauri@workspace:packages/tauri"],
+    "@unikit-bridge/tauri": ["@unikit-bridge/tauri@workspace:packages/tauri"],
 
-    "@unikit/testing": ["@unikit/testing@workspace:packages/testing"],
+    "@unikit-bridge/testing": ["@unikit-bridge/testing@workspace:packages/testing"],
 
-    "@unikit/types": ["@unikit/types@workspace:packages/types"],
+    "@unikit-bridge/types": ["@unikit-bridge/types@workspace:packages/types"],
 
     "@shikijs/engine-oniguruma": ["@shikijs/engine-oniguruma@3.23.0", "", { "dependencies": { "@shikijs/types": "3.23.0", "@shikijs/vscode-textmate": "^10.0.2" } }, "sha512-1nWINwKXxKKLqPibT5f4pAFLej9oZzQTsby8942OTlsJzOBZ0MWKiwzMsd+jhzu8YPCHAswGnnN1YtQfirL35g=="],
 

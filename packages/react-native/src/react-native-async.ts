@@ -1,10 +1,14 @@
-import type { BatchEntry, EngineClient as EngineClientType, InvokeOptions } from '@unikit/types';
+import type {
+  BatchEntry,
+  EngineClient as EngineClientType,
+  InvokeOptions,
+} from '@unikit-bridge/types';
 import {
   CancelledError,
   invokeCallbackWithAbort,
   invokeWithTimeoutHandledSignal,
   parseUnikitErrorString,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 import {
   createFastEngine,
   REACT_NATIVE_FRAME_ENGINE_SUPPORTS,

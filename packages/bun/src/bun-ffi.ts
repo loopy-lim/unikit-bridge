@@ -4,7 +4,7 @@ import {
   UnikitErrorCode,
   UnikitCommandError,
   type EngineSupports,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 import type { Pointer } from 'bun:ffi';
 import {
   bunLibraryCandidates,
@@ -47,7 +47,7 @@ export async function createBunFfiEngine(options: BunFfiEngineOptions): Promise<
   const { dlopen, FFIType, toArrayBuffer } = await import('bun:ffi').catch((cause: unknown) => {
     throw new UnikitCommandError(
       UnikitErrorCode.TransportUnavailable,
-      'Bun FFI requires the Bun runtime. Run this client with bun, or use @unikit/node for a Node.js host.',
+      'Bun FFI requires the Bun runtime. Run this client with bun, or use @unikit-bridge/node for a Node.js host.',
       false,
       cause,
     );

@@ -115,7 +115,7 @@ calculator는 생성 엔트리 경로(`apps/node-app.ts`)와 수동 경로(`apps
 
 ### 3.3 [하] 버전 파편화와 문서 내 하드코딩 버전
 
-`docs/compatibility-matrix.md:57-68`: types 0.12.0 / cli 0.11.3 / rust 0.11.0 / node·bun 0.10.2 / react-native 0.9.2 / tauri 0.9.3 / react 0.8.3 / devtools·testing 0.7.2. 어댑터 독립 릴리스 라인 자체는 정책이지만, `docs/getting-started.md:74-78`이 `bun add @unikit/node@0.10.2` 식의 하드코딩 설치 명령을 제공해 문서가 stale해질수록 구버전을 안내한다. `registry-onboarding.md`의 "compatible host pins"이 보완재지만 소비자는 매 설치마다 매트릭스 표를 대조해야 한다.
+`docs/compatibility-matrix.md:57-68`: types 0.12.0 / cli 0.11.3 / rust 0.11.0 / node·bun 0.10.2 / react-native 0.9.2 / tauri 0.9.3 / react 0.8.3 / devtools·testing 0.7.2. 어댑터 독립 릴리스 라인 자체는 정책이지만, `docs/getting-started.md:74-78`이 `bun add @unikit-bridge/node@0.10.2` 식의 하드코딩 설치 명령을 제공해 문서가 stale해질수록 구버전을 안내한다. `registry-onboarding.md`의 "compatible host pins"이 보완재지만 소비자는 매 설치마다 매트릭스 표를 대조해야 한다.
 
 ---
 

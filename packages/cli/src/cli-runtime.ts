@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 
 export interface CliManifest {
   version: string;
-  dependencies: { '@unikit/types': string };
+  dependencies: { '@unikit-bridge/types': string };
   unikitTemplate: {
     cargoRange: string;
     reactNativeRange: string;
@@ -18,10 +18,10 @@ export interface CliManifest {
 export const cliManifest = createRequire(import.meta.url)('../package.json') as CliManifest;
 export const cliVersion = cliManifest.version;
 export const hostDependencyRanges: Record<string, string> = {
-  '@unikit/types': cliManifest.dependencies['@unikit/types'],
-  '@unikit/node': cliManifest.unikitTemplate.nodeRange,
-  '@unikit/bun': cliManifest.unikitTemplate.bunRange,
-  '@unikit/tauri': cliManifest.unikitTemplate.tauriRange,
+  '@unikit-bridge/types': cliManifest.dependencies['@unikit-bridge/types'],
+  '@unikit-bridge/node': cliManifest.unikitTemplate.nodeRange,
+  '@unikit-bridge/bun': cliManifest.unikitTemplate.bunRange,
+  '@unikit-bridge/tauri': cliManifest.unikitTemplate.tauriRange,
 };
 export const CLI_COMMANDS = [
   'generate',

@@ -1,4 +1,4 @@
-# @unikit/devtools
+# @unikit-bridge/devtools
 
 unikit 호출 관측성 엔진 래퍼. 어떤 `EngineClient`든 감싸 호출 수/에러 수/누적
 지연을 기록한다.
@@ -6,15 +6,15 @@ unikit 호출 관측성 엔진 래퍼. 어떤 `EngineClient`든 감싸 호출 �
 ## 설치
 
 ```bash
-bun add @unikit/devtools
+bun add @unikit-bridge/devtools
 ```
 
 ## createInstrumentedEngine
 
 ```ts
-import { createInstrumentedEngine } from '@unikit/devtools';
-import { configure } from '@unikit/types';
-import { createNodeEngine } from '@unikit/node';
+import { createInstrumentedEngine } from '@unikit-bridge/devtools';
+import { configure } from '@unikit-bridge/types';
+import { createNodeEngine } from '@unikit-bridge/node';
 
 const engine = createInstrumentedEngine(createNodeEngine({ invoke: myTransport }));
 configure(engine);

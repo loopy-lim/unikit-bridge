@@ -136,7 +136,7 @@ fn divide(input: DivideInput) -> Result<DivideOutput> { … }
 — `UnikitErrorCode.TransportTimeout`('transport.timeout') 관례, errors.ts:155-156):
 
 ```ts
-import { UnikitCommandError } from '@unikit/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 
 const divideErrorCodes: ReadonlySet<string> = new Set(['math.divide_by_zero']);
 

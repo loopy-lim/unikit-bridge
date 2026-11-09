@@ -1,5 +1,5 @@
 {
-  "name": "@unikit/react",
+  "name": "@unikit-bridge/react",
   "version": "0.8.4",
   "description": "Type-safe React hooks for unikit clients — one Rust core generates bindings for Node, Bun, Tauri, and React Native over a compact binary wire.",
   "license": "MIT",
@@ -30,7 +30,7 @@
     "react": ">=18.0.0"
   },
   "dependencies": {
-    "@unikit/types": "^0.13.0"
+    "@unikit-bridge/types": "^0.13.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

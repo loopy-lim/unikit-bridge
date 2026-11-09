@@ -197,7 +197,7 @@ complex-route core into-handler)을 완성한 뒤 같은 머신에서 before/aft
 (a) malloc 경로 = base 어댑터 동작(`unikit_ffi_invoke_frame` + 복사 후 free),
 (b) into 경로 = `unikit_ffi_invoke_frame_into` + 재사용 512B caller 버퍼를
 같은 프로세스에서 번갈아 측정했다(best-of-5 rounds). base 어댑터
-(98cdb689 `@unikit/bun`)와 integrated 어댑터의 전체 왕복도 같은 dylib으로
+(98cdb689 `@unikit-bridge/bun`)와 integrated 어댑터의 전체 왕복도 같은 dylib으로
 교차 실행해 4쌍 중앙값을 냈다. 환경: macOS arm64 (Apple M-series, 10 core),
 Bun 1.4.0, Rust release. 측정 시 로드 평균 8–13으로 리프리가 아니다 —
 상대 비교 기준으로 읽는다.

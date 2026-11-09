@@ -76,7 +76,7 @@ export async function runInit(args: string[]): Promise<void> {
   };
   const versions = templateVersions(
     cliVersion,
-    cliManifest.dependencies['@unikit/types'],
+    cliManifest.dependencies['@unikit-bridge/types'],
     cliManifest.unikitTemplate.cargoRange,
   );
   const files = renderInitProjectFiles(versions, hosts);

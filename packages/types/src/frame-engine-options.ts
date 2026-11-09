@@ -3,7 +3,7 @@
  */
 
 /**
- * (B4) 계약 diff 원인 진단 하나 — `@unikit/cli` `diffSchemas` 의
+ * (B4) 계약 diff 원인 진단 하나 — `@unikit-bridge/cli` `diffSchemas` 의
  * `ContractDiagnosis` 유니언의 **넓어진 구조적 상위 타입**이다 (types 는 leaf
  * 패키지라 cli 를 의존하지 않는다). 모든 변형별 필드가 옵션이라 cli 진단은
  * 항상 이 타입에 대입 가능하지만(단방향), 역방향은 아니다 — 생산자는
@@ -58,7 +58,7 @@ export type FrameEngineOptions = {
    * (한계) 이 정책은 네이티브 Frame 엔진(`createFrameEngine`) 경로에만
    * 적용된다. JSON 엔진(`createJsonEngine`)은 transport 클로저만 받는 순수 JS
    * 경로라 네이티브 핸들·`getContractHash` 가 없어 계약 해시 검증 자체가 이
-   * 경로에는 존재하지 않는다 — Node JSON 부트스트랩은 `@unikit/node` 의 스폰
+   * 경로에는 존재하지 않는다 — Node JSON 부트스트랩은 `@unikit-bridge/node` 의 스폰
    * handshake(`__unikit_contract` 엔드포인트)에서 별도로 검증한다.
    */
   contractVerification?: 'strict' | 'warn' | 'off';
@@ -76,7 +76,7 @@ export type FrameEngineOptions = {
    * 없으면 degraded 모드가 무의미하다).
    *
    * (B4) `info.diagnosis.diagnoses` 는 계약 diff 원인 진단 목록이다 —
-   * `@unikit/cli` 의 `diffSchemas(old, live)` 가 만드는 `ContractDiagnosis` 가
+   * `@unikit-bridge/cli` 의 `diffSchemas(old, live)` 가 만드는 `ContractDiagnosis` 가
    * 대입되는 상위 타입(위 `ContractMismatchDiagnosis` 참조). 엔진 자체는
    * mismatch 시점에 live schema 만 있고 빌드 시점 스키마가 없어 diff 를 계산할
    * 수 없으므로 네이티브 코어는 이 필드를 채우지 않는다 (undefined). 생산자가

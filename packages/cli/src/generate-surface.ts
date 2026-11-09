@@ -1,5 +1,5 @@
 /**
- * @unikit/cli — TypeScript 코드 생성기
+ * @unikit-bridge/cli — TypeScript 코드 생성기
  *
  * unikit 패키지 스키마에서 TypeScript 타입 정의, 명령 헬퍼 함수,
  * 계약 해시 파일을 생성합니다.
@@ -51,7 +51,7 @@ export function finishGeneratedText(output: string): string {
  * 커맨드와 동일한 "한 번 정의하면 어디서든 타입 안전" 계약을 이벤트에
  * 적용한다: Rust `PackageBuilder::event::<E>("name")` 선언이 여기 페이로드
  * 타입으로 내려온다. 구독 헬퍼는 플랫폼별 구독 함수를 주입받는 형태다
- * (RN `subscribeEvent` / Tauri `@unikit/tauri` 의 `subscribeEvent`).
+ * (RN `subscribeEvent` / Tauri `@unikit-bridge/tauri` 의 `subscribeEvent`).
  *
  * 스키마에 events 섹션이 없으면 빈 문자열을 반환한다(파일 미생성).
  */
@@ -116,8 +116,8 @@ export function generateEventsTs(schema: PackageSchema): string {
  */
 export function generateTypesTs(schema: PackageSchema): string {
   let output =
-    "export type { EngineClient, UnikitError } from '@unikit/types';\n" +
-    "export { UnikitCommandError } from '@unikit/types';\n\n";
+    "export type { EngineClient, UnikitError } from '@unikit-bridge/types';\n" +
+    "export { UnikitCommandError } from '@unikit-bridge/types';\n\n";
 
   const allDefinitions: Record<string, import('./schema.js').JsonSchema> = {};
   for (const command of schema.commands) {

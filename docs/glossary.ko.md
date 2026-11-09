@@ -19,7 +19,7 @@ unikit 내부에서 여러 뜻으로 쓰이거나, 같은 이름의 외부 개�
 | 일반 함수(ordinary function) | `#[command]` 매크로 없이 `PackageBuilder::function`/`try_function` 으로 등록한 평범한 Rust `fn`      |
 | `functionArgs`               | 일반 함수의 인자 수(0~12)를 기록하는 스키마 메타데이터 — 위치 인자 TS 클라이언트 생성의 근거         |
 | 동기 바인딩(sync binding)    | 스키마 메타데이터가 `execution:"sync"` 인 명령 — RN JSI 호스트에서만 동기 호출 가능                  |
-| 레지스트리 소비자            | 발행된 `@unikit/*` 패키지를 설치하는 프로젝트 — registry consumer 게이트와 호스트 핀이 정합성을 지킴 |
+| 레지스트리 소비자            | 발행된 `@unikit-bridge/*` 패키지를 설치하는 프로젝트 — registry consumer 게이트와 호스트 핀이 정합성을 지킴 |
 | Tier 1 / 2 / 3               | 와이어 코덱 티어: 정적 postcard / complex 스키마 / JSON-in-binary 폴백                               |
 | dev tier                     | "개발 중 동적 / 릴리스 정적" 개발 장치 — 와이어 티어와 무관                                          |
 | hot-core                     | 네이티브 dylib 핫스왑 dev 메커니즘(실험)                                                             |

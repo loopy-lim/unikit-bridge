@@ -2,13 +2,13 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://raw.githubusercontent.com/loopy-lim/unikit/main/packages/cli/unikit.schema.json",
   "title": "unikit.json",
-  "description": "Configuration for the unikit CLI (@unikit/cli). Editor validation and completion via the $schema keyword.",
+  "description": "Configuration for the unikit CLI (@unikit-bridge/cli). Editor validation and completion via the $schema keyword.",
   "type": "object",
   "required": ["schema", "output"],
   "additionalProperties": false,
   "properties": {
     "$schema": {
-      "description": "JSON Schema reference for editor validation. unikit init inserts ./node_modules/@unikit/cli/unikit.schema.json; keep it pointing at the schema shipped with @unikit/cli.",
+      "description": "JSON Schema reference for editor validation. unikit init inserts ./node_modules/@unikit-bridge/cli/unikit.schema.json; keep it pointing at the schema shipped with @unikit-bridge/cli.",
       "type": "string",
       "minLength": 1
     },

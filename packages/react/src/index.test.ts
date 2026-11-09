@@ -10,7 +10,7 @@ import {
   useSuspenseCommand,
   invalidateCommands,
 } from './index.js';
-import type { EngineClient } from '@unikit/types';
+import type { EngineClient } from '@unikit-bridge/types';
 import type { UseCommandResult } from './useCommand.js';
 import type { UseMutationResult } from './useMutation.js';
 import { inputKey } from './input-key.js';

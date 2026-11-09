@@ -6,7 +6,7 @@ impl PackageBuilder {
     }
 
     /// 이벤트 이름 → Tauri 채널 이름 조각의 정규화 규칙 (R02 — TS
-    /// `@unikit/tauri` `unikitEventChannel` 과 문자 단위까지 동일한 알고리즘).
+    /// `@unikit-bridge/tauri` `unikitEventChannel` 과 문자 단위까지 동일한 알고리즘).
     ///
     /// 1. 코드포인트 순회(`chars()`).
     /// 2. `-`, `/`, `:`, `_` 와 Unicode 알파벳·숫자(`char::is_alphanumeric()` =
@@ -33,7 +33,7 @@ impl PackageBuilder {
     /// (이벤트 계약) `Package::emit` 으로 발행될 이벤트를 타입과 함께 선언한다.
     ///
     /// 선언된 이벤트는 schema.json 의 최상위 `events` 섹션에 이름/페이로드
-    /// 스키마로 기록되고, TS 코드젠(@unikit/cli)이 이벤트 타입과 구독 헬퍼를
+    /// 스키마로 기록되고, TS 코드젠(@unikit-bridge/cli)이 이벤트 타입과 구독 헬퍼를
     /// 생성한다 — 커맨드와 동일한 "한 번 정의하면 어디서든 타입 안전" 계약을
     /// 이벤트에도 적용하는 진입점이다. 선언하지 않은 이벤트도 emit 은 가능하다
     /// (하위호환) — 코드젠 산출물에 타입이 없을 뿐이다.

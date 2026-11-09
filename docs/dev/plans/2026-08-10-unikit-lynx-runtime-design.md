@@ -15,8 +15,8 @@
    컴포넌트별 renderer coupling을 조사한 뒤 분류한다(§7).
 4. **WebView semantics가 Lynx core를 오염시키지 않는다.**
    `RendererHost`는 webview-neutral이며, JS eval 등은 optional capability로 둔다.
-5. **`@unikit/api`는 Unikit 고유 API다.** Tauri API 변화에 끌려다니지 않는다.
-   Tauri 호환은 별도 adapter package(`@unikit/tauri-compat`)로 분리(§8).
+5. **`@unikit-bridge/api`는 Unikit 고유 API다.** Tauri API 변화에 끌려다니지 않는다.
+   Tauri 호환은 별도 adapter package(`@unikit-bridge/tauri-compat`)로 분리(§8).
 6. **deny-by-default.** Bundle identity 중심 security principal(§10).
 
 ---
@@ -26,7 +26,7 @@
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
 │  ReactLynx bundle (.lynx.bundle)                                │
-│    @unikit/api   invoke · listen · once · Channel<T>            │
+│    @unikit-bridge/api   invoke · listen · once · Channel<T>            │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
@@ -70,13 +70,13 @@ Lynx를 Tauri `Runtime` peer로 구현할 수 있는지(`tauri-runtime-lynx`)는
 
 | 컴포넌트               | 위치                                          | 역할                                                   | 비고                   |
 | ---------------------- | --------------------------------------------- | ------------------------------------------------------ | ---------------------- |
-| `@unikit/api`          | `packages/api/`(신규)                         | Unikit-native public API(`invoke/listen/once/Channel`) | Tauri 비종속(§8)       |
+| `@unikit-bridge/api`          | `packages/api/`(신규)                         | Unikit-native public API(`invoke/listen/once/Channel`) | Tauri 비종속(§8)       |
 | Unikit Protocol        | `crates/unikit-bridge-protocol`(신규)                | framing + codec 분리, versioning                       | §4                     |
 | Unikit Core            | `crates/unikit-bridge`(확장)                         | command authoring + app model + Authority              | Tauri 재사용 검토(§7)  |
 | `RendererHost` trait   | `crates/unikit-bridge`                               | renderer-neutral surface 추상                          | §5                     |
 | `Runtime Authority`    | `crates/unikit-bridge-authority`(신규)               | bundle identity → capability → permission → scope      | §10                    |
 | Lynx native host       | `examples/lynx-*/modules` + macOS host binary | libLynx CAPI 임베드 + extension module 등록            | headless host.cpp 진화 |
-| `@unikit/tauri-compat` | `packages/tauri-compat/`(신규, optional)      | Tauri API → Unikit API/Core adapter                    | 필요 시(§8)            |
+| `@unikit-bridge/tauri-compat` | `packages/tauri-compat/`(신규, optional)      | Tauri API → Unikit API/Core adapter                    | 필요 시(§8)            |
 
 **경계 원칙:** Unikit Protocol은 transport를 모른다(바이트 프레임만). `RendererHost`는 Tauri를 모른다(surface 연산만).
 Tauri application model 재사용은 Unikit Core **내부** 구현 디테일이며, 밖으로 새어나오지 않는다.
@@ -238,17 +238,17 @@ ReactLynx → NativeModules.UnikitModule → native/CAPI → Rust → native/CAP
 
 ---
 
-## 8. `@unikit/api` (Unikit-native) ⫫ `@unikit/tauri-compat`
+## 8. `@unikit-bridge/api` (Unikit-native) ⫫ `@unikit-bridge/tauri-compat`
 
 ```text
-공식 API:  import { invoke, listen, Channel } from "@unikit/api";   ← Unikit 고유, Tauri 비종속
+공식 API:  import { invoke, listen, Channel } from "@unikit-bridge/api";   ← Unikit 고유, Tauri 비종속
 
 Tauri 호환 필요 시:
-  Tauri API ──▶ @unikit/tauri-compat(adapter) ──▶ Unikit API/Core
+  Tauri API ──▶ @unikit-bridge/tauri-compat(adapter) ──▶ Unikit API/Core
 ```
 
-- `@unikit/api`는 Tauri API 변화에 끌려다니지 않는다.
-- 기존 `@unikit/tauri` 패키지는 `@unikit/tauri-compat` 방향으로 재정렬하거나, webview back-compat 경로(`WryHost`)로 둔다.
+- `@unikit-bridge/api`는 Tauri API 변화에 끌려다니지 않는다.
+- 기존 `@unikit-bridge/tauri` 패키지는 `@unikit-bridge/tauri-compat` 방향으로 재정렬하거나, webview back-compat 경로(`WryHost`)로 둔다.
 - `invoke/listen/once/Channel` 시그니처는 Unikit Protocol 기준으로 정의.
 
 ---

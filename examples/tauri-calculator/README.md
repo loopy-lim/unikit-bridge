@@ -53,7 +53,7 @@ UNIKIT_HOT_CORE=../../target/debug/libunikit_calculator_example-hot-live.dylib b
 A swap is reported on stderr with the old/new contract hashes. It is also
 pushed to the webview as a `unikit://hot-core/swapped` event —
 `{ oldContractHash, newContractHash }` on success, `{ error }` on failure.
-Subscribe with `subscribeHotSwap` from `@unikit/tauri` (this example renders
+Subscribe with `subscribeHotSwap` from `@unikit-bridge/tauri` (this example renders
 the swap time plus 8-char hashes in `src/app.ts`). Both hashes travel in the
 payload, so the event doubles as the JS cache resynchronization signal — no
 separate schema-generation counter. Channel and resource tables live in the

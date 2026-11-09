@@ -1,4 +1,4 @@
-/** @unikit/node — Node.js transport and generated-engine adapters. */
+/** @unikit-bridge/node — Node.js transport and generated-engine adapters. */
 export type {
   EngineClient,
   EngineSupports,
@@ -7,7 +7,7 @@ export type {
   FrameNative,
   InvokeOptions,
   EngineClientWithBatch,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 export {
   UnikitCommandError,
   configure,
@@ -16,7 +16,7 @@ export {
   ensureConfigured,
   invoke,
   createFrameEngine,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 export * from './node-core.js';
 export * from './node-bootstrap.js';
 export * from './node-loop.js';

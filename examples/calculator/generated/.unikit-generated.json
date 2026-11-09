@@ -5,11 +5,11 @@
   "files": [
     {
       "path": "bun.ts",
-      "sha256": "39ae2383fb2a4c2d070c32192df91f9bb301576e651904c7d9c84b94cc6b8d01"
+      "sha256": "0ed6529910e7844489ae4b206ededda2d691a27d7950e9ea8da0b12322cb37f7"
     },
     {
       "path": "commands.ts",
-      "sha256": "a9a7926ca49f7e0512ea83d216414a02de4b94aa4380f60b783b420ed6362375"
+      "sha256": "c6bba2bc037945e9fc5fb11f446df3c708731dc188bd2b83e8c87ca1b84f2c65"
     },
     {
       "path": "contract.ts",
@@ -21,27 +21,27 @@
     },
     {
       "path": "errors.ts",
-      "sha256": "467d4452318d204d41e12dad73309755ad1bd8023a922eddee7bc3fc46778987"
+      "sha256": "5a4a25e61346fe2884339bce29bb280342afd183a733312c764384b7a9e1b60f"
     },
     {
       "path": "frame-codecs.ts",
-      "sha256": "87be0df03ce8e5367742e388187f3fbbfefe039aa48cca4cb5e8578583daf7f5"
+      "sha256": "d9c1cb29165805ae283095be298dff450a745966526934e1535603ebcbff3da1"
     },
     {
       "path": "frame-registry.ts",
-      "sha256": "85b4461da8cd8f5a93374a8079ce9ed14392701414ecf314ef28adb802fa3fd1"
+      "sha256": "e12163a93c3b0c010c1a8ab485dd4618b833d1adbb9150f059e56b33b0702050"
     },
     {
       "path": "node.ts",
-      "sha256": "68ff8e0e9a083d75b813c38f85da954c7366d69107ab3ed35e46d445af34fa65"
+      "sha256": "1257088742d02141c33f8e8316fd4eb7f87c4a1722d5e80dfc7aa285fe16143d"
     },
     {
       "path": "tauri.ts",
-      "sha256": "20ab2c77b063a05018020b8f45501f5c75378400ea1a533469738e8b3a6eaaa7"
+      "sha256": "4b26e34d9dd9a0b5726c7c670eb78e86a63026944556a5269b8d29f7fd782043"
     },
     {
       "path": "types.ts",
-      "sha256": "97c34d196ed660078c2bdf35f2d3bb4431894807f245beed47e8f4cefae7de6f"
+      "sha256": "e152dec8767357c3abef792d4ce2e35d6a2ec61ff770b1a417c196daa0ec2b1e"
     }
   ]
 }

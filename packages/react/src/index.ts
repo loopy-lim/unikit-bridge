@@ -1,12 +1,12 @@
 /**
- * @unikit/react — React and React Native hooks for unikit-bridge.
+ * @unikit-bridge/react — React and React Native hooks for unikit-bridge.
  *
  * Provides declarative data fetching (`useCommand`), mutations (`useMutation`),
  * event subscriptions (`useEvent`), and scoped engine context (`UnikitProvider`).
  *
  * @example
  * ```tsx
- * import { UnikitProvider, useCommand, useMutation } from '@unikit/react';
+ * import { UnikitProvider, useCommand, useMutation } from '@unikit-bridge/react';
  * import { getItem, createItem } from './generated/commands.js';
  *
  * function ItemView({ id }: { id: string }) {

@@ -1,6 +1,6 @@
 English | [한국어](./README.ko.md)
 
-# @unikit/bun
+# @unikit-bridge/bun
 
 ## Events on the selected runtime
 
@@ -43,7 +43,7 @@ const result = await addNumbers({ a: 20, b: 22 });
 If the deployment layout differs, use `UNIKIT_BUN_LIBRARY=/absolute/path/to/libapp.dylib`.
 
 The FFI engine and bootstrap require the Bun runtime. Running them in Node reports
-`transport.unavailable` with guidance to launch with `bun` or use `@unikit/node`.
+`transport.unavailable` with guidance to launch with `bun` or use `@unikit-bridge/node`.
 Package imports and `createBunEngine(transport)` remain available to Node hosts.
 
 ## Public API
@@ -65,7 +65,7 @@ function createBunEngine(transport: BunInvokeTransport): BunEngineClient;
 ### subprocess-based
 
 ```ts
-import { createBunEngine } from '@unikit/bun';
+import { createBunEngine } from '@unikit-bridge/bun';
 import { spawn } from 'bun';
 
 const engine = createBunEngine({
@@ -80,7 +80,7 @@ const engine = createBunEngine({
 ### bun:ffi-based
 
 ```ts
-import { createBunEngine } from '@unikit/bun';
+import { createBunEngine } from '@unikit-bridge/bun';
 import { dlopen } from 'bun:ffi';
 
 const lib = dlopen('libmy_crate.so', {/* FFI signature */});

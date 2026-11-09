@@ -29,7 +29,7 @@ test('Node can import Bun JSON adapters and receives actionable diagnostics for 
         assert.ok(error instanceof UnikitCommandError);
         assert.equal(error.code,'transport.unavailable');
         assert.match(error.message,/Bun runtime/);
-        assert.match(error.message,/@unikit\\/node/);
+        assert.match(error.message,/@unikit-bridge\\/node/);
         assert.ok(error.cause instanceof Error);
         return true;
       };

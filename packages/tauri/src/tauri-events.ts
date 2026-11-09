@@ -1,4 +1,4 @@
-import { debugUnikit, type UnikitDebugEvent } from '@unikit/types';
+import { debugUnikit, type UnikitDebugEvent } from '@unikit-bridge/types';
 import type { TauriListen } from './index.js';
 import { requireTauriListen } from './tauri-globals.js';
 
@@ -41,7 +41,7 @@ export function unikitEventChannel(name: string): string {
  * 리스너 콜백 예외의 관측 지점(R01) — 예외는 재던지지 않고 삼킨다. Tauri 이벤트
  * 기계로 예외가 탈출하면 콜백 재호출/형제 리스너 중단이 관찰됐으므로, 브라우저
  * EventTarget 표준과 같은 정책(각 리스너 독립, 예외는 보고 후 계속)을 적용한다.
- * 진단은 `@unikit/types` 의 debug 스위치로 관측한다 — `configureDebug` 싱크에는
+ * 진단은 `@unikit-bridge/types` 의 debug 스위치로 관측한다 — `configureDebug` 싱크에는
  * 항상 도달하고, `UNIKIT_DEBUG` 가 없으면 콘솔 출력은 없다.
  */
 function reportListenerError(name: string, error: unknown): void {

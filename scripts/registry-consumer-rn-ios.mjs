@@ -382,7 +382,7 @@ fn main() -> unikit_bridge::Result<()> {
 export function renderRnIosConfigJson() {
   return `${JSON.stringify(
     {
-      $schema: './node_modules/@unikit/cli/unikit.schema.json',
+      $schema: './node_modules/@unikit-bridge/cli/unikit.schema.json',
       schema: './generated/schema.json',
       output: './generated',
       reactNative: { rustManifest: './Cargo.toml' },
@@ -400,7 +400,7 @@ export function renderAppReactNativeConfigJs() {
 
 module.exports = {
   dependencies: {
-    '@unikit/generated-react-native': {
+    '@unikit-bridge/generated-react-native': {
       root: path.resolve(__dirname, 'modules', 'unikit-bridge'),
     },
   },
@@ -1001,9 +1001,9 @@ function verifyCollectedObservations(context, label, phase, collected) {
 
 async function executeRnIosCycle({ logDir, sim }) {
   const versions = validateVersionManifest(readJson(VERSIONS_PATH));
-  const reactNativeVersion = versions.hosts?.['@unikit/react-native'];
+  const reactNativeVersion = versions.hosts?.['@unikit-bridge/react-native'];
   if (!reactNativeVersion)
-    throw new Error('versions.json hosts["@unikit/react-native"] pin is required');
+    throw new Error('versions.json hosts["@unikit-bridge/react-native"] pin is required');
   const scratchRoot = mkdtempSync(join(tmpdir(), 'unikit-registry-rn-ios-'));
   const projectDir = join(scratchRoot, APP_NAME);
   const derivedDataPath = join(scratchRoot, 'ios-dd');
@@ -1024,9 +1024,9 @@ async function executeRnIosCycle({ logDir, sim }) {
     },
   };
   const npmVersions = {
-    '@unikit/cli': versions.npm['@unikit/cli'],
-    '@unikit/types': versions.npm['@unikit/types'],
-    '@unikit/react-native': reactNativeVersion,
+    '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'],
+    '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
+    '@unikit-bridge/react-native': reactNativeVersion,
   };
   try {
     // 선점 검사가 가장 먼저 — macOS 전용 도구가 없으면 그 자체로 BLOCKED 영수증
@@ -1062,9 +1062,9 @@ async function executeRnIosCycle({ logDir, sim }) {
     internalStep(context, 'pin-npm-versions', () => {
       const packagePath = join(projectDir, 'package.json');
       const packageJson = readJson(packagePath);
-      packageJson.dependencies['@unikit/react-native'] = npmVersions['@unikit/react-native'];
-      packageJson.dependencies['@unikit/types'] = npmVersions['@unikit/types'];
-      packageJson.devDependencies['@unikit/cli'] = npmVersions['@unikit/cli'];
+      packageJson.dependencies['@unikit-bridge/react-native'] = npmVersions['@unikit-bridge/react-native'];
+      packageJson.dependencies['@unikit-bridge/types'] = npmVersions['@unikit-bridge/types'];
+      packageJson.devDependencies['@unikit-bridge/cli'] = npmVersions['@unikit-bridge/cli'];
       writeJson(packagePath, packageJson);
     });
     await runChecked(context, 'install-npm', projectDir, [
@@ -1076,13 +1076,13 @@ async function executeRnIosCycle({ logDir, sim }) {
     internalStep(context, 'verify-exact-npm-sources', () => {
       assertNoConsumerContamination(projectDir, {
         expectedNpm: npmVersions,
-        allowedWorkspacePackages: ['@unikit/generated-react-native'],
+        allowedWorkspacePackages: ['@unikit-bridge/generated-react-native'],
       });
       return assertExactNpmProvenance(projectDir, npmVersions);
     });
 
     // 3) 코드젠 — unikit-bridge 네이티브 모듈(podspec/gradle/cmake) + 생성 클라.
-    const projectCli = join(projectDir, 'node_modules', '@unikit', 'cli', 'dist', 'index.js');
+    const projectCli = join(projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js');
     await runChecked(context, 'baseline-codegen', projectDir, [
       process.execPath,
       projectCli,
@@ -1092,7 +1092,7 @@ async function executeRnIosCycle({ logDir, sim }) {
     ]);
     internalStep(context, 'install-generated-workspace', () => {
       const packageJson = readJson(join(projectDir, 'package.json'));
-      if (packageJson.dependencies['@unikit/generated-react-native'] !== 'workspace:*')
+      if (packageJson.dependencies['@unikit-bridge/generated-react-native'] !== 'workspace:*')
         throw new Error('codegen did not register the generated workspace package');
       if (!packageJson.workspaces?.includes('modules/unikit-bridge'))
         throw new Error('codegen did not register the unikit-bridge workspace');

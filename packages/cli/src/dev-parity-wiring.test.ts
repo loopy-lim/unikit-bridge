@@ -93,7 +93,7 @@ function seedProject(root: string, engineLib: EngineLibVariant = 'cdylib'): stri
   // RN 스캐폴드 경로가 실제로 돈다 — 어댑터도 설치돼 있어야 한다(감사 A11: RN
   // 코드젠은 bun install 선행이 계약). cliManifest range 를 만족하는 버전으로 심는다.
   const adapterVersion = cliManifest.unikitTemplate.reactNativeRange.replace(/^[~^=]/, '');
-  const adapterNative = join(project, 'node_modules', '@unikit', 'react-native', 'native');
+  const adapterNative = join(project, 'node_modules', '@unikit-bridge', 'react-native', 'native');
   for (const file of [
     'android/unikit-jsi-jni.cpp',
     'cpp/UnikitJSIBridge.cpp',
@@ -105,8 +105,8 @@ function seedProject(root: string, engineLib: EngineLibVariant = 'cdylib'): stri
     writeFileSync(join(adapterNative, ...file.split('/')), 'adapter fixture');
   }
   writeFileSync(
-    join(project, 'node_modules', '@unikit', 'react-native', 'package.json'),
-    JSON.stringify({ name: '@unikit/react-native', version: adapterVersion }),
+    join(project, 'node_modules', '@unikit-bridge', 'react-native', 'package.json'),
+    JSON.stringify({ name: '@unikit-bridge/react-native', version: adapterVersion }),
   );
   writeFileSync(
     join(project, 'unikit.json'),

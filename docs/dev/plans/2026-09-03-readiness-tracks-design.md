@@ -55,7 +55,7 @@ production readiness 갭 중 "미통합·미착지" 5개 부류를 한 트랙에
 - 하위호환: 기존 `(schema, clientCommands: string[])` 시그니처는 유지 —
   생성물을 못 읽는 소비자는 기존 이름만 비교로 폴백한다. 신규 API는 별도 함수
   (`assertContractFieldsCurrent` 계열)로 추가.
-- changeset: `@unikit/testing` minor.
+- changeset: `@unikit-bridge/testing` minor.
 
 ## 트랙 3: React Suspense 캐시/무효화 1차 (DX audit HIGH)
 
@@ -65,11 +65,11 @@ production readiness 갭 중 "미통합·미착지" 5개 부류를 한 트랙에
 - 무효화: 모듈 레벨 캐시에 `invalidate(commandName?)` / 전체 무효화 제공,
   `useMutation` 성공 콜백에서 쓸 수 있게 한다.
 - 진화 정책(LRU 등)은 1차 범위 밖 (YAGNI — 로드맵 0.8 "훅 2세대" 후속).
-- changeset: `@unikit/react` minor.
+- changeset: `@unikit-bridge/react` minor.
 
 ## 트랙 4: 에러/디버깅 품질 4건 (0.7 "신뢰" 잔여)
 
-1. **withRetry** — `@unikit/types`에
+1. **withRetry** — `@unikit-bridge/types`에
    `withRetry(fn, { retries, baseDelayMs, signal, retryIf })`. 지수 백오프,
    기본 판정 `isRetryableCode`(errors.ts:121-123 재사용). 테스트 포함.
 2. **NDJSON 실패 라인 보존** — `packages/node/src/node-loop.ts:270-275`의
@@ -83,7 +83,7 @@ production readiness 갭 중 "미통합·미착지" 5개 부류를 한 트랙에
    enum → TS 코드 매핑 패턴 절 신설. 실제 동작 앵커(코드젠 description→JSDoc
    경로 등)를 먼저 확인하고 문서가 거짓말하지 않게 한다.
 
-- changeset: `@unikit/types` minor (withRetry), `@unikit/node` minor
+- changeset: `@unikit-bridge/types` minor (withRetry), `@unikit-bridge/node` minor
   (NDJSON/셰이프 경고).
 
 ## 트랙 5: 문서 정직성 4건
@@ -119,7 +119,7 @@ production readiness 갭 중 "미통합·미착지" 5개 부류를 한 트랙에
   이미 달성됨). 매크로 생성 코드라 wire round-trip 게이트로 재검증.
 - **"후속" 라벨 문구 정리** — 구현 완료된 것들(ffi_sync_entries.rs:76 등)의
   라벨을 완료 서술로 정리. 열린 것(rkyv-engine-surface.ts:146 P0-2)은 유지.
-- changeset: 제거 표면에 따라 `@unikit/tauri`/`@unikit/react-native` minor
+- changeset: 제거 표면에 따라 `@unikit-bridge/tauri`/`@unikit-bridge/react-native` minor
   (pre-1.0 폐기 규칙 — versioning-policy와 정합).
 
 ## 검증 게이트

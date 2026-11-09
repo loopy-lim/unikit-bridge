@@ -13,7 +13,7 @@ export type SubscribeFn<T = unknown> = (
  *
  * @param eventName Name of the event to listen to (e.g. "progress.tick")
  * @param callback Handler called whenever the event fires
- * @param subscribe Optional subscription function (e.g., from `@unikit/react-native` `subscribeEvent`)
+ * @param subscribe Optional subscription function (e.g., from `@unikit-bridge/react-native` `subscribeEvent`)
  */
 export function useEvent<T = unknown>(
   eventName: string,

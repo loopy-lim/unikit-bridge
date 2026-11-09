@@ -9,15 +9,15 @@ A mixed version matrix and a registry source older than the candidate are valid 
 
 | Package              | Workspace | Exact  | Latest | Publication | Registry source                          | Relation  | Dist tarball                                                             |
 | -------------------- | --------- | ------ | ------ | ----------- | ---------------------------------------- | --------- | ------------------------------------------------------------------------ |
-| @unikit/bun          | 0.10.0    | 0.10.0 | 0.10.0 | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit/bun/-/bun-0.10.0.tgz                  |
-| @unikit/cli          | 0.10.0    | 0.10.0 | 0.10.0 | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit/cli/-/cli-0.10.0.tgz                  |
-| @unikit/devtools     | 0.7.0     | 0.7.0  | 0.7.0  | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit/devtools/-/devtools-0.7.0.tgz         |
-| @unikit/node         | 0.10.0    | 0.10.0 | 0.10.0 | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit/node/-/node-0.10.0.tgz                |
-| @unikit/react        | 0.8.0     | 0.8.0  | 0.8.0  | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit/react/-/react-0.8.0.tgz               |
-| @unikit/react-native | 0.9.0     | 0.9.0  | 0.9.0  | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit/react-native/-/react-native-0.9.0.tgz |
-| @unikit/tauri        | 0.9.0     | 0.9.0  | 0.9.0  | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit/tauri/-/tauri-0.9.0.tgz               |
-| @unikit/testing      | 0.7.0     | 0.7.0  | 0.7.0  | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit/testing/-/testing-0.7.0.tgz           |
-| @unikit/types        | 0.10.0    | 0.10.0 | 0.10.0 | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit/types/-/types-0.10.0.tgz              |
+| @unikit-bridge/bun          | 0.10.0    | 0.10.0 | 0.10.0 | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit-bridge/bun/-/bun-0.10.0.tgz                  |
+| @unikit-bridge/cli          | 0.10.0    | 0.10.0 | 0.10.0 | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit-bridge/cli/-/cli-0.10.0.tgz                  |
+| @unikit-bridge/devtools     | 0.7.0     | 0.7.0  | 0.7.0  | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit-bridge/devtools/-/devtools-0.7.0.tgz         |
+| @unikit-bridge/node         | 0.10.0    | 0.10.0 | 0.10.0 | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit-bridge/node/-/node-0.10.0.tgz                |
+| @unikit-bridge/react        | 0.8.0     | 0.8.0  | 0.8.0  | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit-bridge/react/-/react-0.8.0.tgz               |
+| @unikit-bridge/react-native | 0.9.0     | 0.9.0  | 0.9.0  | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit-bridge/react-native/-/react-native-0.9.0.tgz |
+| @unikit-bridge/tauri        | 0.9.0     | 0.9.0  | 0.9.0  | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit-bridge/tauri/-/tauri-0.9.0.tgz               |
+| @unikit-bridge/testing      | 0.7.0     | 0.7.0  | 0.7.0  | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit-bridge/testing/-/testing-0.7.0.tgz           |
+| @unikit-bridge/types        | 0.10.0    | 0.10.0 | 0.10.0 | published   | 30c73bd66159f4c777054527236573559c106c98 | different | https://registry.npmjs.org/@unikit-bridge/types/-/types-0.10.0.tgz              |
 
 ## crates.io crates
 

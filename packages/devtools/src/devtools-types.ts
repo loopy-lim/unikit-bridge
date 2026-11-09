@@ -1,4 +1,4 @@
-import type { EngineClient } from '@unikit/types';
+import type { EngineClient } from '@unikit-bridge/types';
 
 export interface CommandStat {
   count: number;

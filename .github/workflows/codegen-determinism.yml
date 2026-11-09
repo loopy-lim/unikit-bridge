@@ -71,7 +71,7 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Build workspace packages
         # 예제 codegen 은 bun ../../packages/cli/src/index.ts 를 실행하고 그
-        # 의존(@unikit/* exports)은 dist 를 가리킨다 — 재생성 전에 워크스페이스를
+        # 의존(@unikit-bridge/* exports)은 dist 를 가리킨다 — 재생성 전에 워크스페이스를
         # 빌드한다(ts-checks·rn-android 잡과 동일 순서 계약).
         run: bun run build
       - name: Regenerate every example

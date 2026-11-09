@@ -211,7 +211,7 @@ export type UnikitNative = {
   invokeTypedBatchById?(cmdIds: number[], args: unknown[]): unknown[];
   /**
    * Rust → JS 이벤트 푸시 리스너 등록(RN JSI). `payloadJson` 은 **JSON 문자열**로
-   * 전달된다 — TS 래퍼(`@unikit/react-native` `subscribeEvent`)가
+   * 전달된다 — TS 래퍼(`@unikit-bridge/react-native` `subscribeEvent`)가
    * `JSON.parse` 1회로 객체로 복원한다. 등록 시점에 C++ 이 FFI 싱크를
    * 설치하고, 이후 Rust `emit` 은 CallInvoker 로 JS 스레드에 마샬링되어
    * 콜백을 호출한다.

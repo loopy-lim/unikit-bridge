@@ -369,7 +369,7 @@ Debounce source changes by 300 ms. While a run is active, set `pending = true` r
 
 - [x] **Step 5: Add CLI help and inspect output for config mode.**
 
-Document `unikit dev --config unikit.json [--inspect]`. Keep the existing `--backend`/`--app` help lines and state that config mode is preferred. `--inspect` remains informational and points users to `@unikit/devtools` without claiming in-process instrumentation.
+Document `unikit dev --config unikit.json [--inspect]`. Keep the existing `--backend`/`--app` help lines and state that config mode is preferred. `--inspect` remains informational and points users to `@unikit-bridge/devtools` without claiming in-process instrumentation.
 
 - [x] **Step 6: Run focused dev tests and commit.**
 
@@ -437,7 +437,7 @@ For RN templates, print `bun run doctor`, `bun run codegen`, then the platform d
 
 - [x] **Step 3: Convert repository examples to the unified command.**
 
-Add explicit `codegen` objects to configs whose Rust package is outside the example directory. Replace duplicate scripts with `bunx --bun @unikit/cli codegen --config unikit.json` or the repository-local CLI equivalent. Keep path and workspace dependency behavior unchanged.
+Add explicit `codegen` objects to configs whose Rust package is outside the example directory. Replace duplicate scripts with `bunx --bun @unikit-bridge/cli codegen --config unikit.json` or the repository-local CLI equivalent. Keep path and workspace dependency behavior unchanged.
 
 - [x] **Step 4: Run init and example smoke checks.**
 
@@ -498,7 +498,7 @@ Include the exact first-run commands for Node/Bun and RN, and state that doctor 
 
 - [x] **Step 2: Remove stale or misleading command/version text.**
 
-Change stale `@unikit/cli@0.4.0` examples to the current CLI line, keep Cargo `unikit = "0.4"` separate, replace duplicated `cargo run && unikit generate` instructions with `unikit codegen`, and fix `unikit init --name` to `unikit init <dir>`. Do not edit historical documents whose date and past release context are intentionally preserved unless the command is presented as current guidance.
+Change stale `@unikit-bridge/cli@0.4.0` examples to the current CLI line, keep Cargo `unikit = "0.4"` separate, replace duplicated `cargo run && unikit generate` instructions with `unikit codegen`, and fix `unikit init --name` to `unikit init <dir>`. Do not edit historical documents whose date and past release context are intentionally preserved unless the command is presented as current guidance.
 
 - [x] **Step 3: Clarify native and prebuilt boundaries.**
 
@@ -514,7 +514,7 @@ Run:
 
 ```bash
 git diff --check
-rg -n "unikit init --name|@unikit/cli@0\.4\.0|cargo run --bin generate && unikit generate" README.md packages/cli/README.md docs examples --glob '*.md' --glob '*.json' --glob 'package.json'
+rg -n "unikit init --name|@unikit-bridge/cli@0\.4\.0|cargo run --bin generate && unikit generate" README.md packages/cli/README.md docs examples --glob '*.md' --glob '*.json' --glob 'package.json'
 ```
 
 Expected: no stale current-guidance matches; historical release notes may remain only when clearly labeled as historical. Then commit:

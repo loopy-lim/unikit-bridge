@@ -7,7 +7,7 @@
   },
   "npm": [
     {
-      "name": "@unikit/bun",
+      "name": "@unikit-bridge/bun",
       "workspaceVersion": "0.10.0",
       "exactVersion": "0.10.0",
       "latestVersion": "0.10.0",
@@ -17,15 +17,15 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Fbun",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Fbun",
       "dist": {
         "integrity": "sha512-opWnsSSj/vQ8eRlSxLfH6l8lmBIjYJD4U9kOMJwQsAUOpiwVNzjJxY2AjKvKnrUWHCBXzNsz3j9Br8oKmTYk2A==",
         "shasum": "1ed2a751b97fb0ec2cbdc06b8c49479c88720f9b",
-        "tarball": "https://registry.npmjs.org/@unikit/bun/-/bun-0.10.0.tgz",
+        "tarball": "https://registry.npmjs.org/@unikit-bridge/bun/-/bun-0.10.0.tgz",
         "fileCount": 52,
         "unpackedSize": 207247,
         "attestations": {
-          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit%2fbun@0.10.0",
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit-bridge%2fbun@0.10.0",
           "provenance": {
             "predicateType": "https://slsa.dev/provenance/v1"
           }
@@ -40,7 +40,7 @@
       "error": null
     },
     {
-      "name": "@unikit/cli",
+      "name": "@unikit-bridge/cli",
       "workspaceVersion": "0.10.0",
       "exactVersion": "0.10.0",
       "latestVersion": "0.10.0",
@@ -50,15 +50,15 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Fcli",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Fcli",
       "dist": {
         "integrity": "sha512-rhtcOio71wPS6sOG7Zx2bwi4iStLb6uNThAJ97LQ/NVHNwoweFzm9h7MzAxqmVR0Bc39ibiNsac7ctMb8qOjyA==",
         "shasum": "ab8e49a9598378ae9c288ae311eefd82c8c5be63",
-        "tarball": "https://registry.npmjs.org/@unikit/cli/-/cli-0.10.0.tgz",
+        "tarball": "https://registry.npmjs.org/@unikit-bridge/cli/-/cli-0.10.0.tgz",
         "fileCount": 501,
         "unpackedSize": 965852,
         "attestations": {
-          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit%2fcli@0.10.0",
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit-bridge%2fcli@0.10.0",
           "provenance": {
             "predicateType": "https://slsa.dev/provenance/v1"
           }
@@ -73,7 +73,7 @@
       "error": null
     },
     {
-      "name": "@unikit/devtools",
+      "name": "@unikit-bridge/devtools",
       "workspaceVersion": "0.7.0",
       "exactVersion": "0.7.0",
       "latestVersion": "0.7.0",
@@ -83,10 +83,10 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Fdevtools",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Fdevtools",
       "dist": {
         "shasum": "4bc05423f337a78b6c3cc4271864feded6ccab5f",
-        "tarball": "https://registry.npmjs.org/@unikit/devtools/-/devtools-0.7.0.tgz",
+        "tarball": "https://registry.npmjs.org/@unikit-bridge/devtools/-/devtools-0.7.0.tgz",
         "fileCount": 32,
         "integrity": "sha512-afySjhoZYDHDXliSGN9qiHG3fj8J2JiYKIW6k8/LBHVJr73qi7hECGlY+pfKBQzH0W5imMY7lCubAe2uXTQyzA==",
         "signatures": [
@@ -100,7 +100,7 @@
           }
         ],
         "attestations": {
-          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit%2fdevtools@0.7.0",
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit-bridge%2fdevtools@0.7.0",
           "provenance": {
             "predicateType": "https://slsa.dev/provenance/v1"
           }
@@ -110,7 +110,7 @@
       "error": null
     },
     {
-      "name": "@unikit/node",
+      "name": "@unikit-bridge/node",
       "workspaceVersion": "0.10.0",
       "exactVersion": "0.10.0",
       "latestVersion": "0.10.0",
@@ -120,15 +120,15 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Fnode",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Fnode",
       "dist": {
         "integrity": "sha512-+YsrjVvBFb+kxbvObeZ/M6KT21LkjaQO6dwS5C/D+qkwPPyh5OJhpCX6cSfrfiZ6OgK16FFuJTTmH+Bu8+V2Fg==",
         "shasum": "87744fac634e73292682310d2b4baa2ec0ed3723",
-        "tarball": "https://registry.npmjs.org/@unikit/node/-/node-0.10.0.tgz",
+        "tarball": "https://registry.npmjs.org/@unikit-bridge/node/-/node-0.10.0.tgz",
         "fileCount": 64,
         "unpackedSize": 388236,
         "attestations": {
-          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit%2fnode@0.10.0",
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit-bridge%2fnode@0.10.0",
           "provenance": {
             "predicateType": "https://slsa.dev/provenance/v1"
           }
@@ -143,7 +143,7 @@
       "error": null
     },
     {
-      "name": "@unikit/react",
+      "name": "@unikit-bridge/react",
       "workspaceVersion": "0.8.0",
       "exactVersion": "0.8.0",
       "latestVersion": "0.8.0",
@@ -153,10 +153,10 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Freact",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Freact",
       "dist": {
         "shasum": "568e0e83da3eaffc86a94689a3c3740f1e36f52c",
-        "tarball": "https://registry.npmjs.org/@unikit/react/-/react-0.8.0.tgz",
+        "tarball": "https://registry.npmjs.org/@unikit-bridge/react/-/react-0.8.0.tgz",
         "fileCount": 36,
         "integrity": "sha512-43R5lgXf6OBvGV4/1EDWVg9xRKF/RjNCNcnnv5nOpsK2ycaK0L7EbUSsy5/VS5qqbzc0zXkp7Lb5Z6mMs1zAvA==",
         "signatures": [
@@ -170,7 +170,7 @@
           }
         ],
         "attestations": {
-          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit%2freact@0.8.0",
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit-bridge%2freact@0.8.0",
           "provenance": {
             "predicateType": "https://slsa.dev/provenance/v1"
           }
@@ -180,7 +180,7 @@
       "error": null
     },
     {
-      "name": "@unikit/react-native",
+      "name": "@unikit-bridge/react-native",
       "workspaceVersion": "0.9.0",
       "exactVersion": "0.9.0",
       "latestVersion": "0.9.0",
@@ -190,10 +190,10 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Freact-native",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Freact-native",
       "dist": {
         "shasum": "3c3cb068c2de6f70f7c07feb0e2f3f4de002f30c",
-        "tarball": "https://registry.npmjs.org/@unikit/react-native/-/react-native-0.9.0.tgz",
+        "tarball": "https://registry.npmjs.org/@unikit-bridge/react-native/-/react-native-0.9.0.tgz",
         "fileCount": 30,
         "integrity": "sha512-+4v8fcIGIlM0Ksa7qjOe29d2YpEzjR4MNwnEAlO1Bt1yXm8cXqWw1Ihr4JD43zlFwN25ZmKJcIFKv9rQx66+lg==",
         "signatures": [
@@ -207,7 +207,7 @@
           }
         ],
         "attestations": {
-          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit%2freact-native@0.9.0",
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit-bridge%2freact-native@0.9.0",
           "provenance": {
             "predicateType": "https://slsa.dev/provenance/v1"
           }
@@ -217,7 +217,7 @@
       "error": null
     },
     {
-      "name": "@unikit/tauri",
+      "name": "@unikit-bridge/tauri",
       "workspaceVersion": "0.9.0",
       "exactVersion": "0.9.0",
       "latestVersion": "0.9.0",
@@ -227,15 +227,15 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Ftauri",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Ftauri",
       "dist": {
         "integrity": "sha512-ghfMgAlqXt3L7m9I1wn0ugWItZkGswyHql6AvLVxv97swQk838frcYK+7zKurrdUOHRV08saFOsSYLw4O6724A==",
         "shasum": "652009aa0e14ff2237936373acb30b574b5d4f3a",
-        "tarball": "https://registry.npmjs.org/@unikit/tauri/-/tauri-0.9.0.tgz",
+        "tarball": "https://registry.npmjs.org/@unikit-bridge/tauri/-/tauri-0.9.0.tgz",
         "fileCount": 28,
         "unpackedSize": 145326,
         "attestations": {
-          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit%2ftauri@0.9.0",
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit-bridge%2ftauri@0.9.0",
           "provenance": {
             "predicateType": "https://slsa.dev/provenance/v1"
           }
@@ -250,7 +250,7 @@
       "error": null
     },
     {
-      "name": "@unikit/testing",
+      "name": "@unikit-bridge/testing",
       "workspaceVersion": "0.7.0",
       "exactVersion": "0.7.0",
       "latestVersion": "0.7.0",
@@ -260,15 +260,15 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Ftesting",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Ftesting",
       "dist": {
         "integrity": "sha512-ar5FwBV+Vg63mkDVARrMH8PukglkUB7uJ0z35yjvCOT+tvC8xc4R8IXz1Ag0OB4sjJSL5vRxErmpu/Rc9BSPOA==",
         "shasum": "a611f93560478bebccf1efa7ba47601471ef233c",
-        "tarball": "https://registry.npmjs.org/@unikit/testing/-/testing-0.7.0.tgz",
+        "tarball": "https://registry.npmjs.org/@unikit-bridge/testing/-/testing-0.7.0.tgz",
         "fileCount": 21,
         "unpackedSize": 80909,
         "attestations": {
-          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit%2ftesting@0.7.0",
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit-bridge%2ftesting@0.7.0",
           "provenance": {
             "predicateType": "https://slsa.dev/provenance/v1"
           }
@@ -283,7 +283,7 @@
       "error": null
     },
     {
-      "name": "@unikit/types",
+      "name": "@unikit-bridge/types",
       "workspaceVersion": "0.10.0",
       "exactVersion": "0.10.0",
       "latestVersion": "0.10.0",
@@ -293,15 +293,15 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Ftypes",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Ftypes",
       "dist": {
         "integrity": "sha512-VR/SN6t9BQGJl0wpaT0e/PuOp/8G8/fwL2OclGDTgqtbkXcr2r7O2VPxFo2nSKXlNfZpI9Gz1+QrViEu2LEC0Q==",
         "shasum": "36b087bc1f99c0dd7a894796db963faf48ba9872",
-        "tarball": "https://registry.npmjs.org/@unikit/types/-/types-0.10.0.tgz",
+        "tarball": "https://registry.npmjs.org/@unikit-bridge/types/-/types-0.10.0.tgz",
         "fileCount": 192,
         "unpackedSize": 438747,
         "attestations": {
-          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit%2ftypes@0.10.0",
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@unikit-bridge%2ftypes@0.10.0",
           "provenance": {
             "predicateType": "https://slsa.dev/provenance/v1"
           }

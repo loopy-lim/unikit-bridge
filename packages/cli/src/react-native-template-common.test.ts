@@ -15,7 +15,7 @@ function runGeneratedModule(consumer: string): void {
   const root = mkdtempSync(join(tmpdir(), 'unikit-rn-installer-'));
   try {
     mkdirSync(join(root, 'node_modules/react-native'), { recursive: true });
-    mkdirSync(join(root, 'node_modules/@unikit'), { recursive: true });
+    mkdirSync(join(root, 'node_modules/@unikit-bridge'), { recursive: true });
     writeFileSync(
       join(root, 'node_modules/react-native/package.json'),
       JSON.stringify({ type: 'module', exports: './index.js' }),
@@ -26,7 +26,7 @@ function runGeneratedModule(consumer: string): void {
     );
     symlinkSync(
       join(repoRoot, 'packages/react-native'),
-      join(root, 'node_modules/@unikit/react-native'),
+      join(root, 'node_modules/@unikit-bridge/react-native'),
     );
     const source = renderModuleIndex();
     writeFileSync(join(root, 'index.ts'), source);

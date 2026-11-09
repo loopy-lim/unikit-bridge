@@ -1,5 +1,5 @@
-import type { ComplexSchema } from '@unikit/types';
-import { createSchemaPostcardCodec } from '@unikit/types';
+import type { ComplexSchema } from '@unikit-bridge/types';
+import { createSchemaPostcardCodec } from '@unikit-bridge/types';
 import type { CommandSchema, JsonSchema } from './schema.js';
 import { buildCodecIr } from './codec-ir.js';
 import {

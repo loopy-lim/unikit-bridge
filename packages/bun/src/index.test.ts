@@ -4,7 +4,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { suffix } from 'bun:ffi';
 import { createBunBootstrap, createBunEngine, createBunFfiEngine } from './index.js';
-import { UnikitCommandError, type FrameCodec } from '@unikit/types';
+import { UnikitCommandError, type FrameCodec } from '@unikit-bridge/types';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const addNumbersCodec: FrameCodec<{ a: number; b: number }, { value: number }> = {
@@ -156,7 +156,7 @@ void test('createBunEngine wraps unknown errors into UnikitCommandError', async 
 
 void test('createBunEngine parses UnikitError JSON message from wire Error', async () => {
   // Rust 가 UnikitError 를 JSON 직렬화해 Error 로 던지는 경우 code/retryable 을
-  // 보존한다(unknown 래핑 금지 — @unikit/node 와 동일 파이프라인).
+  // 보존한다(unknown 래핑 금지 — @unikit-bridge/node 와 동일 파이프라인).
   const engine = createBunEngine({
     async invoke() {
       throw new Error('{"code":"command.not_found","message":"command not found: nope"}');
@@ -394,10 +394,10 @@ void test('A02: createBunEngine exposes supports matching the compatibility matr
 
 const A05_SLOT_ENGINE = {
   invoke: async <T>() => 'slot' as T,
-} as unknown as import('@unikit/types').EngineClientWithBatch;
+} as unknown as import('@unikit-bridge/types').EngineClientWithBatch;
 
 void test('A05: createBunBootstrap exposes the lifecycle state surface', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createBunBootstrap({ libraryCandidates: [], frameCodecs: testRegistry });
@@ -412,7 +412,7 @@ void test('A05: createBunBootstrap exposes the lifecycle state surface', async (
 });
 
 void test('A05: ready after dispose rejects loudly (bun)', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createBunBootstrap({ libraryCandidates: [], frameCodecs: testRegistry });
@@ -428,7 +428,7 @@ void test('A05: ready after dispose rejects loudly (bun)', async () => {
 });
 
 void test('A05: dispose is idempotent — second dispose is a no-op (bun)', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createBunBootstrap({ libraryCandidates: [], frameCodecs: testRegistry });
@@ -445,7 +445,7 @@ void test('A05: failed reload keeps the original error and stays retryable, not 
   // bootstrap 이 벽돌이 된다. resetForReinit 은 'initializing' 을 유지하고
   // reload 는 원본 에러로 reject 해야 한다. env 전환으로 재초기화 실패를 만든다
   // (UNIKIT_BUN_LIBRARY 는 엔진 생성마다 읽힌다).
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   const previous = process.env.UNIKIT_BUN_LIBRARY;
   delete process.env.UNIKIT_BUN_LIBRARY;
   const realDylib = resolve(repoRoot, `target/release/libunikit_calculator_example.${suffix}`);
@@ -482,7 +482,7 @@ void test('A05: dispose during reload re-init is honored at the await boundary (
   // dispose 보다 먼저 끝나면 reload 는 정상 성공(state=ready)하고, dispose 가
   // 재초기화 완료 전에 불리면 reload 는 'ready' 기록 없이 disposed 를 유지한다.
   // 어느 쪽이든 좀비(ready() 해소 + state=disposed)는 금지된다.
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   const realDylib = resolve(repoRoot, `target/release/libunikit_calculator_example.${suffix}`);
   configure(A05_SLOT_ENGINE);
   const bootstrap = createBunBootstrap({
@@ -518,7 +518,7 @@ void test('A05: dispose during reload re-init is honored at the await boundary (
 });
 
 void test('A05: concurrent ready calls share one initialization promise (bun)', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   const bootstrap = createBunBootstrap({ libraryCandidates: [], frameCodecs: testRegistry });
   // dlopen 실패라도 두 ready 는 같은 초기화 프라미스를 공유한다 — 실패가 1회

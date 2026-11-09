@@ -173,10 +173,10 @@ test('generated closed-struct codecs retain actual postcard tuple bytes', async 
       false,
     );
   const dir = mkdtempSync(join(tmpdir(), 'unikit-closed-'));
-  mkdirSync(join(dir, 'node_modules/@unikit'), { recursive: true });
+  mkdirSync(join(dir, 'node_modules/@unikit-bridge'), { recursive: true });
   symlinkSync(
     fileURLToPath(new URL('../../types', import.meta.url)),
-    join(dir, 'node_modules/@unikit/types'),
+    join(dir, 'node_modules/@unikit-bridge/types'),
     'junction',
   );
   const path = join(dir, 'codecs.ts');
@@ -198,7 +198,7 @@ test('static legacy depth boundary agrees with live postcard and preserves exist
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');
   const { fileURLToPath, pathToFileURL } = await import('node:url');
-  const { createSchemaPostcardCodec } = await import('@unikit/types');
+  const { createSchemaPostcardCodec } = await import('@unikit-bridge/types');
   const ref = (name: string) => ({ $ref: `#/definitions/${name}` });
   const definitions = {
     L1: { type: 'object', properties: { child: ref('L2') } },
@@ -230,10 +230,10 @@ test('static legacy depth boundary agrees with live postcard and preserves exist
   const live = createSchemaPostcardCodec(1, root, root, definitions, true)!;
   assert.notEqual(live, null);
   const dir = mkdtempSync(join(tmpdir(), 'unikit-depth-boundary-'));
-  mkdirSync(join(dir, 'node_modules/@unikit'), { recursive: true });
+  mkdirSync(join(dir, 'node_modules/@unikit-bridge'), { recursive: true });
   symlinkSync(
     fileURLToPath(new URL('../../types', import.meta.url)),
-    join(dir, 'node_modules/@unikit/types'),
+    join(dir, 'node_modules/@unikit-bridge/types'),
     'junction',
   );
   const path = join(dir, 'codecs.ts');

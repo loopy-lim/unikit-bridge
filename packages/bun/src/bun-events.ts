@@ -1,5 +1,5 @@
 /**
- * @unikit/bun 이벤트 구독 — FFI 푸시 싱크 브릿지 (+ 주입형 폴링 폴백).
+ * @unikit-bridge/bun 이벤트 구독 — FFI 푸시 싱크 브릿지 (+ 주입형 폴링 폴백).
  *
  * ### 전달 경로: FFI 푸시 (Tauri/RN의 플랫폼 푸시, Node의 폴링과 대비)
  *
@@ -23,7 +23,7 @@
  * FFI를 쓸 수 없거나(라이브러리 미로딩), 비동기 핸들러가 백그라운드 스레드에서
  * emit 하는 호스트는 `poll: { drainEvents }` 를 주입한다 — Node 어댑터와 같은
  * setTimeout 백오프 폴링으로 이벤트 버스를 읽는다. 구독자 0이면 폴링 정지,
- * 다수 구독자가 한 루프를 공유한다(계약은 @unikit/node 와 동일).
+ * 다수 구독자가 한 루프를 공유한다(계약은 @unikit-bridge/node 와 동일).
  *
  * 시그니처는 코드젠 `SubscribeFn` / RN·Tauri `subscribeEvent` 와 동일한
  * `(name, callback) => unsubscribe` 다.

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { configure } from '@unikit/types';
+import { configure } from '@unikit-bridge/types';
 import { createAsyncEngine, createFastEngine } from '../../packages/react-native/src';
 import { benchEchoBytes } from '../calculator/generated/commands';
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from '../calculator/generated/contract';
 import { frameRegistry } from '../calculator/generated/frame-registry';
-import { getUnikitNative, installUnikitJSI } from '@unikit/generated-react-native';
+import { getUnikitNative, installUnikitJSI } from '@unikit-bridge/generated-react-native';
 
 const LOG_PREFIX = '[UnikitReloadStress]';
 

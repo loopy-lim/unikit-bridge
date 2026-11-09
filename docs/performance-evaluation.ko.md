@@ -256,7 +256,7 @@ C++ 직접 마샬링이 대체하는 JS 측 비용만 측정한다(네이티브 
 [선정 결정](dev/research/2026-09-24-optimization-decision.md),
 [A2 마이크로벤치](dev/research/2026-09-24-a2-microbench.md),
 [emit 전환 결정](dev/research/2026-09-24-emit-switch-decision.md),
-[@unikit/react-native CHANGELOG Unreleased](../packages/react-native/CHANGELOG.md).
+[@unikit-bridge/react-native CHANGELOG Unreleased](../packages/react-native/CHANGELOG.md).
 1~6절 수치(575 Rust / bun 807 마커)는 구현 이전 HEAD 기준이며, 아래 7.2의
 게이트 수치가 본 후보 반영 후의 최신 상태다.
 
@@ -428,8 +428,8 @@ emit 전환 → RN 어댑터 플로우 → 전체 회귀)의 결과다. 근거: 
   (rn-experiment 생성물은 애초에 필드 헬퍼 미사용 — emit 불변).
 - 부수: CLI 신규 검사 "generateCommandsTs emits 1-field commands via
   createGeneratedFields1 factory", changeset `.changeset/a2-fields1-emit-factory.md`
-  (`@unikit/cli` minor — 생성물이 `createGeneratedFields1` 을 import하므로 이
-  헬퍼를 포함한 `@unikit/types` 와 함께 배포 필요, 호출 표면은 소스 호환),
+  (`@unikit-bridge/cli` minor — 생성물이 `createGeneratedFields1` 을 import하므로 이
+  헬퍼를 포함한 `@unikit-bridge/types` 와 함께 배포 필요, 호출 표면은 소스 호환),
   react-native-calculator 빌드 지문 갱신.
 - 순수 JS+코드젠 변경(ABI·네이티브·capability 마커 없음) — 단일 커밋 revert 후
   재생성으로 롤백 가능(결정 문서 롤백 전략 준용).

@@ -10,7 +10,7 @@ import {
   expectContractFieldsCurrent,
   assertContractHashCurrent,
 } from './index.js';
-import { CancelledError, UnikitCommandError } from '@unikit/types';
+import { CancelledError, UnikitCommandError } from '@unikit-bridge/types';
 
 void test('mock engine invokes registered handler', async () => {
   const engine = createMockEngine();

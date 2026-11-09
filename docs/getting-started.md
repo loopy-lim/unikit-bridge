@@ -12,13 +12,13 @@ unikit is a bridge framework that automatically generates a TypeScript client �
 
 This guide aims to get a developer new to unikit building their first package and generating a TypeScript client within 10 minutes.
 
-> Terminology: **unikit** is the Rust crate and the npm scope (`@unikit/*`);
+> Terminology: **unikit** is the Rust crate and the npm scope (`@unikit-bridge/*`);
 > **unikit-bridge** is this repository. The two names refer to the same project.
 
 ## 10-Minute Summary
 
 1. Install Rust and Bun, then scaffold and run a project:
-   `bunx --bun @unikit/cli@0.13.0 init my-project --setup`.
+   `bunx --bun @unikit-bridge/cli@0.13.0 init my-project --setup`.
 2. Add Rust commands in `src/lib.rs`; expose them through the package builder.
 3. Run `bun run start` to generate the TypeScript client, build Rust, and call the demo.
 4. For platform integration, continue with [Tauri](extending/tauri-setup.md) or [React Native](extending/react-native-setup.md).
@@ -50,8 +50,8 @@ This is the fast path; the detailed sections below remain the complete reference
 With Rust and Bun 1.4+ installed, run:
 
 ```bash
-bunx --bun @unikit/cli@0.13.0 init my-project --setup
-# Bun FFI instead: bunx --bun @unikit/cli@0.13.0 init my-bun-project --host bun --setup
+bunx --bun @unikit-bridge/cli@0.13.0 init my-project --setup
+# Bun FFI instead: bunx --bun @unikit-bridge/cli@0.13.0 init my-bun-project --host bun --setup
 ```
 
 This creates the project, generates its client, installs dependencies, builds
@@ -115,10 +115,10 @@ Installation versions follow the current Rust and npm manifests. Adapters have i
 For the TypeScript adapters, install only the environment you use:
 
 ```bash
-bun add @unikit/node@0.11.1      # Node.js
-bun add @unikit/bun@0.11.1       # Bun
-bun add @unikit/tauri@0.10.1     # Tauri
-bun add @unikit/react-native@0.11.0  # React Native
+bun add @unikit-bridge/node@0.11.1      # Node.js
+bun add @unikit-bridge/bun@0.11.1       # Bun
+bun add @unikit-bridge/tauri@0.10.1     # Tauri
+bun add @unikit-bridge/react-native@0.11.0  # React Native
 ```
 
 ### Using in a Monorepo / Workspace
@@ -337,8 +337,8 @@ files `frame-codecs.ts`/`frame-registry.ts` (always emitted). Configuring `node`
 
 <!-- prettier-ignore -->
 ```ts
-export type { EngineClient, UnikitError } from '@unikit/types';
-export { UnikitCommandError } from '@unikit/types';
+export type { EngineClient, UnikitError } from '@unikit-bridge/types';
+export { UnikitCommandError } from '@unikit-bridge/types';
 
 /**
  * 커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.
@@ -756,7 +756,7 @@ export type WideAggOutput = {
 
 ```ts
 import type { AddNumbersInput, AddNumbersOutput } from './types.js';
-import { createGeneratedFields2 } from '@unikit/types';
+import { createGeneratedFields2 } from '@unikit-bridge/types';
 
 // Commands with one or two fields are generated as a const form that passes the required fields directly on each call
 // (one-field commands use `createGeneratedFields1`; the (input, options) call surface is unchanged).
@@ -900,7 +900,7 @@ The generated entry spawns this binary once per invoke with the JSON envelope on
 **Custom transports (napi-rs, etc.):**
 
 ```ts
-import { createNodeEngine } from '@unikit/node';
+import { createNodeEngine } from '@unikit-bridge/node';
 
 const engine = createNodeEngine({
   invoke(command, args) {
@@ -1011,8 +1011,8 @@ commands whose input has 0–3 fields are published as field-positional helpers
 outside that shape keep the object-input `commands.ts` path.
 
 ```bash
-bunx --bun @unikit/cli@0.13.0 doctor --config unikit.json
-bunx --bun @unikit/cli@0.13.0 codegen --config unikit.json
+bunx --bun @unikit-bridge/cli@0.13.0 doctor --config unikit.json
+bunx --bun @unikit-bridge/cli@0.13.0 codegen --config unikit.json
 ```
 
 **TypeScript-side usage:**
@@ -1028,7 +1028,7 @@ hash/schema version verification, and `frameRegistry` fast-engine setup exactly 
 even under concurrent calls. Failed installs are retried on the next call, and an engine
 explicitly `configure()`d by the app is never overwritten by a late-finishing install.
 The generator infers the Cargo package/library and builds the Podspec, Gradle/CMake/JNI,
-and shared C++ bridge into an app-specific `@unikit/generated-react-native` package.
+and shared C++ bridge into an app-specific `@unikit-bridge/generated-react-native` package.
 Both Expo development builds and bare RN use standard autolinking, leaving no
 install/configure boilerplate in app code. Expo Go is not supported.
 
@@ -1060,8 +1060,8 @@ for CI is available via `bun run doctor -- --json`.
 #### JSON (low-level transport compatibility)
 
 ```ts
-import { createReactNativeEngine } from '@unikit/react-native';
-import { configure } from '@unikit/types';
+import { createReactNativeEngine } from '@unikit-bridge/react-native';
+import { configure } from '@unikit-bridge/types';
 import { addNumbers } from '../generated/commands.js';
 import { customNativeTransport } from './native-transport';
 
@@ -1214,7 +1214,7 @@ separate script.
 
 While prototyping on a debug build you can call a Rust handler that is not in the
 generated client yet with `invokeLoose(engine, 'commandName', args?)` from
-`@unikit/types` — the dynamic development tier, its unknown-device-token wall, and the
+`@unikit-bridge/types` — the dynamic development tier, its unknown-device-token wall, and the
 release-time gates are described in [dev-tier.md](dev-tier.md).
 
 `unikit.json` names the Rust generator:
@@ -1302,11 +1302,11 @@ Error codes:
 ### TypeScript Side
 
 When a command call fails, the adapter throws. All host adapters (Node/Bun/Tauri/RN)
-normalize it to `@unikit/types`' `UnikitCommandError`, so there is exactly one
+normalize it to `@unikit-bridge/types`' `UnikitCommandError`, so there is exactly one
 `instanceof` branch:
 
 ```ts
-import { UnikitCommandError } from '@unikit/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 import { divide } from '../generated/node.js';
 
 try {

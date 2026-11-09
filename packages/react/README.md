@@ -1,11 +1,11 @@
 English | [한국어](./README.ko.md)
 
-# @unikit/react
+# @unikit-bridge/react
 
 React hooks and context bindings for Unikit command clients.
 
 ```tsx
-import { UnikitProvider, useCommand } from '@unikit/react';
+import { UnikitProvider, useCommand } from '@unikit-bridge/react';
 import { getItem } from './generated/commands.js';
 
 function Item({ id }: { id: string }) {
@@ -59,7 +59,7 @@ by itself. Engines are weakly held, and cached results also have finite retentio
 
 ```tsx
 import { Suspense } from 'react';
-import { invalidateCommands, useSuspenseCommand } from '@unikit/react';
+import { invalidateCommands, useSuspenseCommand } from '@unikit-bridge/react';
 import { getItem, saveItem } from './generated/commands.js';
 
 function Item({ id }: { id: string }) {

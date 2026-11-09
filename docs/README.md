@@ -21,10 +21,10 @@ Project plans, research, pull-request notes, internal references and Superpowers
 
 ## API Reference (TypeDoc)
 
-Every published `@unikit/*` package has a browsable, generated API reference.
+Every published `@unikit-bridge/*` package has a browsable, generated API reference.
 It is a local build output — not committed, not yet hosted — so generate it on
 demand when you need the exact surface (for example the `EngineClient`
-contract in `@unikit/types`):
+contract in `@unikit-bridge/types`):
 
 ```bash
 bun install
@@ -67,7 +67,7 @@ open docs/api/index.html
 | [Synchronous Command Bindings](synchronous-bindings.md) ([한국어](synchronous-bindings.ko.md))                                                                                              | Users        | `bindSync` eligibility, frozen registry and codec identity, lifecycle, errors and limits                                                                                                                                           |
 | [Error Codes](error-codes.md) ([한국어](error-codes.ko.md))                                                                                                                                 | All          | Complete `UnikitErrorCode` table — code, producer layer, retryable, JSON-fallback behavior, TS↔Rust sync gate                                                                                                                      |
 | [Function Registration](function-registration.md) ([한국어](function-registration.ko.md))                                                                                                   | Users        | Ordinary Rust functions via `PackageBuilder::function`/`try_function` — 0–12 args, positional TS clients, no macro, authoring-model comparison to `#[command]`                                                                     |
-| [Registry Onboarding](registry-onboarding.md) ([한국어](registry-onboarding.ko.md))                                                                                                         | Users        | Installing published `@unikit/*` packages — consumer gate, compatible host pins, CI verification                                                                                                                                   |
+| [Registry Onboarding](registry-onboarding.md) ([한국어](registry-onboarding.ko.md))                                                                                                         | Users        | Installing published `@unikit-bridge/*` packages — consumer gate, compatible host pins, CI verification                                                                                                                                   |
 | [Benchmarks](benchmarks.md)                                                                                                                                                                 | All          | Per-adapter performance comparison, overhead analysis, payload scaling                                                                                                                                                             |
 | [Performance Evaluation](performance-evaluation.md) ([한국어](performance-evaluation.ko.md))                                                                                                | Contributors | 2026-09-24 full re-measurement report — follow-up candidate status (E1/A2/rn-experiment), simulator reference results, device A/B runbook pointer                                                                                  |
 | [Measurement Runbook](measurement-runbook.md) ([한국어](measurement-runbook.ko.md))                                                                                                         | Contributors | Executable on-device A/B plans for E1 owned handoff · A2 emit switch · rn-experiment buffer — protocol, commands, artifact paths, adoption/rejection and rollback criteria                                                         |
@@ -85,7 +85,7 @@ open docs/api/index.html
 | [Architecture Decision Records](adr/)                                                                                                                                                       | Contributors | Numbered decisions that change a contract or its enforcement (ADR 0001: Track A contract mechanization, ADR 0002: UniFFI Kotlin/Swift carrier)                                                                                     |
 | [Security Policy](../.github/SECURITY.md)                                                                                                                                                   | All          | Vulnerability reporting channels, supported versions, scope                                                                                                                                                                        |
 | [Contributing Guide](../CONTRIBUTING.md)                                                                                                                                                    | Contributors | Development environment, commit rules, debugging, releases                                                                                                                                                                         |
-| [API Reference (generated)](#api-reference-typedoc)                                                                                                                                         | All          | TypeDoc HTML for every `@unikit/*` package — `bun run docs:api` → `docs/api/` (gitignored local build)                                                                                                                             |
+| [API Reference (generated)](#api-reference-typedoc)                                                                                                                                         | All          | TypeDoc HTML for every `@unikit-bridge/*` package — `bun run docs:api` → `docs/api/` (gitignored local build)                                                                                                                             |
 
 ## Example Gallery
 
@@ -103,7 +103,7 @@ Twelve runnable examples live in [`examples/`](../examples/) — each has its ow
 | [`react-native-bare-calculator`](../examples/react-native-bare-calculator/) | bare React Native without Expo — identical app code to the Expo example                                                                   |
 | [`calculator-napi`](../examples/calculator-napi/)                           | replacing the transport with napi-rs (source of the release transport benchmark)                                                          |
 | [`benchmark`](../examples/benchmark/)                                       | payload scaling and throughput measurement harness                                                                                        |
-| [`reference-app`](../examples/reference-app/)                               | `@unikit/react` hooks in a real app: useCommand/useMutation/useEvent                                                                      |
+| [`reference-app`](../examples/reference-app/)                               | `@unikit-bridge/react` hooks in a real app: useCommand/useMutation/useEvent                                                                      |
 | [`hot-core-probe`](../examples/hot-core-probe/)                             | standalone verifier for the experimental dylib hot-swap core on host/iOS sim/Android emulator                                             |
 | [`resident-tree`](../examples/resident-tree/)                               | the resident pattern: keep the large structure in Rust, send a handle + query per call — persistent store, generation-invalidated handles |
 

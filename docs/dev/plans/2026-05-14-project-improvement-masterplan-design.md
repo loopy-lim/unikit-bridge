@@ -133,7 +133,7 @@ Phase 1은 독립적으로 진행 가능하며, Phase 2-4는 Phase 1의 CI/린�
 | CRUD 예제 (3-1)                       | ✅ 완료   | examples/crud                                                      |
 | Streaming/Auth 예제 (3-1)             | ✅ 완료   | examples/streaming, examples/auth (발행된 패턴 예제)               |
 | Changesets (3-2)                      | ⚠️ 도입됨 | config 존재, 0.1.2/0.1.3은 changeset 범프로 발행                   |
-| npm 배포 (3-2)                        | ✅ 완료   | @unikit/\* 10종 0.1.3 발행                                         |
+| npm 배포 (3-2)                        | ✅ 완료   | @unikit-bridge/\* 10종 0.1.3 발행                                         |
 | crates.io 배포 (3-2)                  | ✅ 완료   | unikit / unikit-bridge-macros 0.1.3 발행                                  |
 | CLI watch (3-3)                       | ✅ 완료   | `unikit generate --watch`                                          |
 | CLI init (3-3)                        | ✅ 완료   | `unikit init <dir>` 스캐폴딩 (f48537ff)                            |

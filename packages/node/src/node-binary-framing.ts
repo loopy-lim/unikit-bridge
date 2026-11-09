@@ -7,7 +7,7 @@
  * 프로세스 의존성 없는 순수 함수·클로저만 갖는다(node-loop.test.ts 가 스폰 없이
  * 단위 검증하는 경로 그대로).
  */
-import type { FrameCodec } from '@unikit/types';
+import type { FrameCodec } from '@unikit-bridge/types';
 
 /**
  * 바이너리 모드 코덱 표면 — generated `frameRegistry` 를 그대로 넘긴다.

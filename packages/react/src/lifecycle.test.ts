@@ -1,4 +1,4 @@
-import type { EngineClient } from '@unikit/types';
+import type { EngineClient } from '@unikit-bridge/types';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import React, { createElement as h, Suspense, act } from 'react';

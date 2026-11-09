@@ -8,7 +8,7 @@
 
 import { createItemCodec, deleteItemCodec, getItemCodec, listItemsCodec, updateItemCodec } from './frame-codecs.js';
 
-export const frameRegistry = new Map<string, import('@unikit/types').FrameCodec<any, any>>([
+export const frameRegistry = new Map<string, import('@unikit-bridge/types').FrameCodec<any, any>>([
   // route: postcard
   ['createItem', createItemCodec],
   // route: postcard

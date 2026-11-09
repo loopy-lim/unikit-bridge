@@ -221,7 +221,7 @@ async function main(argv) {
     writeJson(join(scratchRoot, 'package.json'), {
       name: 'unikit-registry-diagnostics-bootstrap',
       private: true,
-      dependencies: { '@unikit/cli': versions.npm['@unikit/cli'] },
+      dependencies: { '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'] },
     });
     assertNoConsumerContamination(scratchRoot);
     let run = await runOrderedSteps({
@@ -240,7 +240,7 @@ async function main(argv) {
             cwd: scratchRoot,
             argv: [
               process.execPath,
-              join(scratchRoot, 'node_modules', '@unikit', 'cli', 'dist', 'index.js'),
+              join(scratchRoot, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js'),
               'init',
               PROJECT_NAME,
             ],
@@ -252,10 +252,10 @@ async function main(argv) {
     const packagePath = join(projectDir, 'package.json');
     const packageJson = readJson(packagePath);
     packageJson.dependencies = {
-      '@unikit/node': versions.npm['@unikit/node'],
-      '@unikit/types': versions.npm['@unikit/types'],
+      '@unikit-bridge/node': versions.npm['@unikit-bridge/node'],
+      '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
     };
-    packageJson.devDependencies = { '@unikit/cli': versions.npm['@unikit/cli'] };
+    packageJson.devDependencies = { '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'] };
     writeJson(packagePath, packageJson);
     pinCargoVersions(projectDir, versions.phases.candidate);
     run = await runOrderedSteps({
@@ -273,8 +273,8 @@ async function main(argv) {
               '--ignore-scripts',
               '--no-audit',
               '--no-fund',
-              `@unikit/types@${versions.npm['@unikit/types']}`,
-              `@unikit/node@${versions.npm['@unikit/node']}`,
+              `@unikit-bridge/types@${versions.npm['@unikit-bridge/types']}`,
+              `@unikit-bridge/node@${versions.npm['@unikit-bridge/node']}`,
             ],
           },
         },
@@ -296,7 +296,7 @@ async function main(argv) {
             cwd: projectDir,
             argv: [
               process.execPath,
-              join(projectDir, 'node_modules', '@unikit', 'cli', 'dist', 'index.js'),
+              join(projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js'),
               'codegen',
               '--config',
               'unikit.json',
@@ -307,11 +307,11 @@ async function main(argv) {
     });
     if (!run.ok) throw new Error(`consumer setup failed: ${run.error.message}`);
     assertExactNpmProvenance(projectDir, {
-      '@unikit/cli': versions.npm['@unikit/cli'],
-      '@unikit/types': versions.npm['@unikit/types'],
-      '@unikit/node': versions.npm['@unikit/node'],
+      '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'],
+      '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
+      '@unikit-bridge/node': versions.npm['@unikit-bridge/node'],
     });
-    const projectCli = join(projectDir, 'node_modules', '@unikit', 'cli', 'dist', 'index.js');
+    const projectCli = join(projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js');
     const binary = join(scratchRoot, 'cargo-target', 'debug', 'unikit-app');
     if (!existsSync(binary)) throw new Error(`native binary missing: ${binary}`);
 

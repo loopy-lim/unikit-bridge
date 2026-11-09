@@ -24,9 +24,9 @@ Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-st
 [unikit] ⠋ JavaScript dependencies...
 bun install v1.4.3 (c6da4a4d3)
 
-+ @unikit/cli@../../../packages/cli
-+ @unikit/node@../../../packages/node
-+ @unikit/types@../../../packages/types
++ @unikit-bridge/cli@../../../packages/cli
++ @unikit-bridge/node@../../../packages/node
++ @unikit-bridge/types@../../../packages/types
 
 11 packages installed [667.00ms]
 [unikit] ✓ JavaScript dependencies done in 0.7s
@@ -53,7 +53,7 @@ file:///Users/loopy/dev/ll3/unikit-bridge/scripts/onboarding-receipt.mjs:30
   if (files.length === 1) throw new Error(`built JavaScript is missing in ${directory}`);
                                 ^
 
-Error: built JavaScript is missing in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app/node_modules/@unikit/cli
+Error: built JavaScript is missing in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app/node_modules/@unikit-bridge/cli
     at onboardingPackageArtifact (file:///Users/loopy/dev/ll3/unikit-bridge/scripts/onboarding-receipt.mjs:30:33)
     at file:///Users/loopy/dev/ll3/unikit-bridge/scripts/quick-start.mjs:174:9
     at Array.map (<anonymous>)

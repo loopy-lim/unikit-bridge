@@ -48,7 +48,7 @@
 
 ## Task 3: Fix published-CLI dependency pin incompatibility
 
-Live public CLI 0.10.0 rejected an exact compatible `@unikit/types=0.10.0` manifest because it compared that string to `^0.10.0`. Its use of the CLI version for all adapters also conflicts with independent adapter versions and CLI-only patches.
+Live public CLI 0.10.0 rejected an exact compatible `@unikit-bridge/types=0.10.0` manifest because it compared that string to `^0.10.0`. Its use of the CLI version for all adapters also conflicts with independent adapter versions and CLI-only patches.
 
 **Files:** `packages/cli/src/dependencies.ts` and new tests; CLI runtime/init/generate call sites and package template metadata; `scripts/version-packages.mjs` and `scripts/check-release-coherence.mjs` with tests; CLI patch changeset.
 

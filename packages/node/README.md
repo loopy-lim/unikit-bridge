@@ -1,6 +1,6 @@
 English | [한국어](./README.ko.md)
 
-# @unikit/node
+# @unikit-bridge/node
 
 Adapter that auto-discovers the Unikit runtime in Node environments and connects it to the shared `EngineClient`.
 
@@ -68,7 +68,7 @@ function createNodeEngine(transport: NodeInvokeTransport): NodeEngineClient;
 ### subprocess-based
 
 ```ts
-import { createNodeEngine } from '@unikit/node';
+import { createNodeEngine } from '@unikit-bridge/node';
 import { spawn } from 'node:child_process';
 
 const engine = createNodeEngine({
@@ -83,7 +83,7 @@ const engine = createNodeEngine({
 ### napi-rs-based
 
 ```ts
-import { createNodeEngine } from '@unikit/node';
+import { createNodeEngine } from '@unikit-bridge/node';
 import { invoke as nativeInvoke } from 'my-crate-napi';
 
 const engine = createNodeEngine({

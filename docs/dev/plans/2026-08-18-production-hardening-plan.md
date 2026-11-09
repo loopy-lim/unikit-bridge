@@ -761,7 +761,7 @@ it('createAsyncEngine: signal abort 시 reject + invokeCancel 호출 (T1)', asyn
 
 **Step 2: Run test to verify it fails**
 
-Run: `npm run build -w @unikit/types && npm run build -w @unikit/react-native && node --test packages/react-native/dist/index.test.js 2>&1 | tail -4`
+Run: `npm run build -w @unikit-bridge/types && npm run build -w @unikit-bridge/react-native && node --test packages/react-native/dist/index.test.js 2>&1 | tail -4`
 Expected: FAIL — invoke 3번째 인자 무시됨.
 
 **Step 3: Write minimal implementation**

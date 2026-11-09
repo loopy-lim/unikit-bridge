@@ -1,5 +1,5 @@
 /**
- * @unikit/cli — doctor 디바이스 토큰 릴리스 벽 검사 (Dev Tier C절).
+ * @unikit-bridge/cli — doctor 디바이스 토큰 릴리스 벽 검사 (Dev Tier C절).
  *
  * debug 빌드(unikit)가 수용한 카탈로그 밖 디바이스 토큰을 릴리스 전에
  * 보고한다 — release 빌드는 등록 시점 패닉이므로 doctor 가 JS 쪽 벽으로

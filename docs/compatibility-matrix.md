@@ -30,7 +30,7 @@ below — it is not an `EngineClient` column.
 | Binary channels (`createBytesChannel`)    | ✅ `createNodeBytesChannel` — 0xfff9 frames (capability-gated; loud-fail `channel.unavailable` on old runtimes)                                                                       | ✅ `createBunChannelBytesBridge` — FFI `unikit_ffi_channel_create_bytes` (JS-thread send only — `threadsafe:false` contract) | ✅ `createChannelBytes` — `Channel<InvokeResponseBody>` raw byte fragments → `Uint8Array` | ✅ JSI `createChannelBytes` — ArrayBuffer copies                                          | ✅ same JSI bytes path + `{ pollMs }` fallback                                                                                              |
 | Frame binary (`createFrameEngine`)        | ✅ (requires the napi/FFI native)                                                                                                                                                     | ✅ (requires the FFI native)                                                                                                 | ✅ (`unikit_dispatch` binary path)                                                        | —                                                                                         | ✅ JSI                                                                                                                                      |
 
-† **RN event/channel push from inside a synchronous bridge call — Android JS-thread deadlock; fix complete, not yet released.** A command that runs inside a synchronous bridge invoke and calls `Package::emit` (or sends on a channel) re-enters the JS thread and schedules the dispatcher drain with `CallInvoker::invokeAsync` from inside that call; on Android the JS event loop then stops before the next macrotask. Receipted 3/3 on a physical TB710FU (RN 0.81.5, adapter 0.9.2, unikit 0.11.0): [2026-09-21-registry-rn-android-device.json](verification/evidence/2026-09-21-registry-rn-android-device.json). The `pollMs` fallback does not bypass it (the JSI sink is installed at install time), and the currently published npm line (`@unikit/react-native` 0.11.0) does not contain the fix. The fix — a `thread_local` reentrancy depth guard on the common chokepoints of the host functions that execute Rust synchronously; at depth > 0 the event drain, channel drain (bytes queues included), and immediately-failing async completions are queued to an epilogue and run inline on the JS thread just before the synchronous call returns — is complete and ships with the **next** `@unikit/react-native` release line; no published version contains it yet. Delivery semantics after the fix: payloads emitted during a synchronous call arrive just before that call returns, in emit order, instead of on the next macrotask; worker-thread and between-calls scheduling is unchanged. Two finer points of the same change: an immediately-failing async invoke (payload too large, backpressure) now completes before the caller receives the returned invocation id — the adapter's cancel guard initializes the id to -1 and ignores stale cancels, so mis-cancels cannot happen, but callbacks observing the id see -1 on this path; and in a batch invoke, emits from item i reach listeners just after item i rather than after the whole batch returns — lossless and order-preserving either way. Re-verification procedure once the fix is published: the rn-android registry journey's opt-in `--assert-events` step re-runs the reproduction (three emits inside one synchronous call) on a physical Android device and asserts the loop keeps running and delivery order is preserved; iOS gets its first event-path measurement from the rn-ios journey's event stage (both steps were added in the 2026-11-07 batch). Until those receipts exist, this matrix makes no device runtime claim for emit-during-synchronous-call.
+† **RN event/channel push from inside a synchronous bridge call — Android JS-thread deadlock; fix complete, not yet released.** A command that runs inside a synchronous bridge invoke and calls `Package::emit` (or sends on a channel) re-enters the JS thread and schedules the dispatcher drain with `CallInvoker::invokeAsync` from inside that call; on Android the JS event loop then stops before the next macrotask. Receipted 3/3 on a physical TB710FU (RN 0.81.5, adapter 0.9.2, unikit 0.11.0): [2026-09-21-registry-rn-android-device.json](verification/evidence/2026-09-21-registry-rn-android-device.json). The `pollMs` fallback does not bypass it (the JSI sink is installed at install time), and the currently published npm line (`@unikit-bridge/react-native` 0.11.0) does not contain the fix. The fix — a `thread_local` reentrancy depth guard on the common chokepoints of the host functions that execute Rust synchronously; at depth > 0 the event drain, channel drain (bytes queues included), and immediately-failing async completions are queued to an epilogue and run inline on the JS thread just before the synchronous call returns — is complete and ships with the **next** `@unikit-bridge/react-native` release line; no published version contains it yet. Delivery semantics after the fix: payloads emitted during a synchronous call arrive just before that call returns, in emit order, instead of on the next macrotask; worker-thread and between-calls scheduling is unchanged. Two finer points of the same change: an immediately-failing async invoke (payload too large, backpressure) now completes before the caller receives the returned invocation id — the adapter's cancel guard initializes the id to -1 and ignores stale cancels, so mis-cancels cannot happen, but callbacks observing the id see -1 on this path; and in a batch invoke, emits from item i reach listeners just after item i rather than after the whole batch returns — lossless and order-preserving either way. Re-verification procedure once the fix is published: the rn-android registry journey's opt-in `--assert-events` step re-runs the reproduction (three emits inside one synchronous call) on a physical Android device and asserts the loop keeps running and delivery order is preserved; iOS gets its first event-path measurement from the rn-ios journey's event stage (both steps were added in the 2026-11-07 batch). Until those receipts exist, this matrix makes no device runtime claim for emit-during-synchronous-call.
 
 ### Experimental scriptc host
 
@@ -71,15 +71,15 @@ Every host exposes the same `{ handle, close() }` contract; only the issuer (tra
 | Package                | Manifest version |
 | ---------------------- | ---------------- |
 | Rust workspace crates  | 0.13.0           |
-| `@unikit/bun`          | 0.11.1           |
-| `@unikit/cli`          | 0.13.0           |
-| `@unikit/devtools`     | 0.7.3            |
-| `@unikit/node`         | 0.11.1           |
-| `@unikit/react`        | 0.8.4            |
-| `@unikit/react-native` | 0.11.0           |
-| `@unikit/tauri`        | 0.10.1           |
-| `@unikit/testing`      | 0.7.3            |
-| `@unikit/types`        | 0.13.0           |
+| `@unikit-bridge/bun`          | 0.11.1           |
+| `@unikit-bridge/cli`          | 0.13.0           |
+| `@unikit-bridge/devtools`     | 0.7.3            |
+| `@unikit-bridge/node`         | 0.11.1           |
+| `@unikit-bridge/react`        | 0.8.4            |
+| `@unikit-bridge/react-native` | 0.11.0           |
+| `@unikit-bridge/tauri`        | 0.10.1           |
+| `@unikit-bridge/testing`      | 0.7.3            |
+| `@unikit-bridge/types`        | 0.13.0           |
 
 <!-- release:versions:end -->
 
@@ -87,7 +87,7 @@ JS-created Tauri channels use a native `Channel<InvokeResponseBody>` tied to the
 issuing physical WebView. `close()` revokes its native lease and disposes the JS
 callback; navigation, destruction, and app cleanup release owner resources. The
 `ipc-channel-chunks-v1` handshake rejects old broadcast-based native hosts: update
-`@unikit/tauri` and rebuild Rust together. Global setup needs `core.Channel` plus
+`@unikit-bridge/tauri` and rebuild Rust together. Global setup needs `core.Channel` plus
 Tauri's callback-cleanup API; without globals, pass an explicit
 `createIpcChannel(onMessage)` factory returning `{ value, dispose() }` alongside
 `invoke`. Passing `listen` alone cannot create a channel.
@@ -124,7 +124,7 @@ physical WebView teardown still needs native GUI acceptance on each target.
 
 ### Machine-readable surface: `engine.supports` (A02)
 
-Each adapter's engine factory exposes a `supports` object (`@unikit/types`
+Each adapter's engine factory exposes a `supports` object (`@unikit-bridge/types`
 `EngineSupports`) whose values are this matrix's cells transcribed 1:1 — no new
 claims. Apps can branch before any side effect, e.g.
 `engine.supports?.cancellation === 'cooperative'`. The mapping per column:
@@ -171,7 +171,7 @@ single-IPC wire batch (`unikit_dispatch_batch`) as an optimization.
 The bootstrap objects (`createNodeBootstrap`/`createBunBootstrap`/
 `createTauriBootstrap`/`createUnikitBootstrap`) expose a local
 `state: 'initializing' | 'ready' | 'disposed'` (shared as `BootstrapState` in
-`@unikit/types`; all adapters reject post-dispose `ready()` with the same
+`@unikit-bridge/types`; all adapters reject post-dispose `ready()` with the same
 `disposedBootstrapError` family). `dispose()` is idempotent (a second call is a
 no-op), and `ready()` after `dispose()` rejects loudly instead of silently
 re-resolving. `NodeBootstrap.reload()` drains the bootstrap's own transport

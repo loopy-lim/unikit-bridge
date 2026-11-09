@@ -56,8 +56,8 @@ try {
     contract: string;
   };
   const schema = parsePackageSchema(emitted.schema);
-  mkdirSync(join(scratch, 'node_modules/@unikit'), { recursive: true });
-  symlinkSync(join(root, 'packages/types'), join(scratch, 'node_modules/@unikit/types'));
+  mkdirSync(join(scratch, 'node_modules/@unikit-bridge'), { recursive: true });
+  symlinkSync(join(root, 'packages/types'), join(scratch, 'node_modules/@unikit-bridge/types'));
   writeFileSync(join(scratch, 'package.json'), '{"type":"module"}\n');
   const files = {
     'types.ts': generateTypesTs(schema),

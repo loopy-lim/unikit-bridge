@@ -5,4 +5,4 @@
 // Stage:  rust-probe schema → ts renderer
 // DO NOT EDIT — changes will be overwritten and fail codegen --check.
 // ────────────────────────────────────────────────────────────
-export { UnikitCommandError } from '@unikit/types';
+export { UnikitCommandError } from '@unikit-bridge/types';

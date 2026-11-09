@@ -22,8 +22,8 @@ API에서 **Frame**으로 이름 바꾼다. 이름 변경만 있을 뿐 와이�
 postcard 페이로드 코덱은 불변이다. API 이름과 native 심벌은 바뀌므로
 [릴리스 마이그레이션](migrations/post-0.9-frame-and-audit.ko.md)에 따라 생성물과
 native 라이브러리·셸을 함께 갱신해야 한다. 패키지 버전은 독립이라 리네임의 귀속점은 단일 버전 번호가 아니라 릴리스다: Rust 워크스페이스와
-`@unikit/types`/`@unikit/node`/`@unikit/bun`/`@unikit/cli`는 0.10.0으로,
-`@unikit/tauri`와 `@unikit/react-native`는 각자의 0.9.0에 같은 리네임을 실었다 —
+`@unikit-bridge/types`/`@unikit-bridge/node`/`@unikit-bridge/bun`/`@unikit-bridge/cli`는 0.10.0으로,
+`@unikit-bridge/tauri`와 `@unikit-bridge/react-native`는 각자의 0.9.0에 같은 리네임을 실었다 —
 0.9.x 어댑터 버전만으로 리네임 전을 뜻하지 않는다. 참조하는 식별자를 다음처럼
 갱신한다:
 
@@ -151,7 +151,7 @@ ID 경로를 모두 확인한다.
   with:
     fetch-depth: 0 # unikit diff가 베이스 커밋과 비교하므로 전체 히스토리 필요
 - uses: oven-sh/setup-bun@v2
-- run: bun install -g @unikit/cli # 또는: bun add -d @unikit/cli + bunx --bun unikit
+- run: bun install -g @unikit-bridge/cli # 또는: bun add -d @unikit-bridge/cli + bunx --bun unikit
 - name: Check schema compatibility
   run: |
     git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q schema.json \

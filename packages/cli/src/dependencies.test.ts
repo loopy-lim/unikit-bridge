@@ -7,10 +7,10 @@ import { ensureHostDependencies, ensureReactNativeDependency } from './dependenc
 import { renderInitProjectFiles, templateVersions } from './init-template.js';
 
 const ranges = {
-  '@unikit/types': '^0.10.0',
-  '@unikit/node': '^0.10.0',
-  '@unikit/bun': '^0.10.0',
-  '@unikit/tauri': '^0.9.0',
+  '@unikit-bridge/types': '^0.10.0',
+  '@unikit-bridge/node': '^0.10.0',
+  '@unikit-bridge/bun': '^0.10.0',
+  '@unikit-bridge/tauri': '^0.9.0',
 };
 const node = { targetName: 'app', targetDirectoryUrl: './target/' };
 
@@ -27,7 +27,7 @@ for (const covered of [true, false]) {
       const child = JSON.parse(await readFile(join(app, 'package.json'), 'utf8'));
       const owner = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
       assert.equal(child.workspaces, undefined);
-      assert.equal(child.dependencies['@unikit/generated-react-native'], 'workspace:*');
+      assert.equal(child.dependencies['@unikit-bridge/generated-react-native'], 'workspace:*');
       assert.deepEqual(
         owner.workspaces,
         covered ? workspaces : ['apps/*', 'apps/mobile/modules/bridge'],
@@ -94,8 +94,8 @@ for (const version of ['0.10.0', '0.10.2', '^0.10.0']) {
   test(`codegen preserves compatible ${version} pins and independent Tauri version`, async () => {
     const appRoot = await mkdtemp(join(tmpdir(), 'unikit-dependency-pin-'));
     const manifest = {
-      dependencies: { '@unikit/types': version, '@unikit/tauri': '0.9.0' },
-      devDependencies: { '@unikit/node': version },
+      dependencies: { '@unikit-bridge/types': version, '@unikit-bridge/tauri': '0.9.0' },
+      devDependencies: { '@unikit-bridge/node': version },
     };
     try {
       await writeFile(join(appRoot, 'package.json'), JSON.stringify(manifest));
@@ -109,7 +109,7 @@ for (const version of ['0.10.0', '0.10.2', '^0.10.0']) {
 for (const version of ['0.9.9', '0.11.0', '0.10.1-beta.1', '*', 'latest']) {
   test(`codegen refuses incompatible or unbounded dependency ${version} without rewriting it`, async () => {
     const appRoot = await mkdtemp(join(tmpdir(), 'unikit-dependency-reject-'));
-    const raw = JSON.stringify({ dependencies: { '@unikit/types': version } });
+    const raw = JSON.stringify({ dependencies: { '@unikit-bridge/types': version } });
     try {
       await writeFile(join(appRoot, 'package.json'), raw);
       await assert.rejects(
@@ -141,6 +141,6 @@ test('CLI patch versions do not require an unpublished Node adapter patch', () =
     nodeRange: '^0.10.0',
   });
   const manifest = JSON.parse(files.packageJson);
-  assert.equal(manifest.devDependencies['@unikit/cli'], '^0.10.1');
-  assert.equal(manifest.dependencies['@unikit/node'], '^0.10.0');
+  assert.equal(manifest.devDependencies['@unikit-bridge/cli'], '^0.10.1');
+  assert.equal(manifest.dependencies['@unikit-bridge/node'], '^0.10.0');
 });

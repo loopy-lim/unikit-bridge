@@ -11,7 +11,7 @@
 Rust 코어와 Tauri 호스트는 Unikit 0.12.0 이상을 함께 사용해야 한다.
 
 ```bash
-bunx --bun @unikit/cli@0.12.0 setup --config unikit.json
+bunx --bun @unikit-bridge/cli@0.12.0 setup --config unikit.json
 ```
 
 setup은 클라이언트 생성, 의존성 설치, 선택된 Rust 코어 빌드,
@@ -90,7 +90,7 @@ pub fn package() -> Package {
 그리고 클라이언트 표면을 생성한다:
 
 ```bash
-bunx --bun @unikit/cli@0.12.0 codegen --config unikit.json
+bunx --bun @unikit-bridge/cli@0.12.0 codegen --config unikit.json
 ```
 
 `generated/tauri.ts`가 렌더링된다(`types.ts`, `commands.ts`, `contract.ts` 포함).
@@ -181,7 +181,7 @@ Tauri의 `.invoke_handler()`는 이전 핸들러를 교체하므로 `with_app_co
 어댑터를 한 번 설치하고 생성 엔트리를 import한다:
 
 ```bash
-bun add @unikit/tauri@0.10.0 @unikit/types@0.12.1
+bun add @unikit-bridge/tauri@0.10.0 @unikit-bridge/types@0.12.1
 ```
 
 ```ts
@@ -231,7 +231,7 @@ unikit 쪽은 모바일에서 추가 작업이 없다 — 같은
 
 ## 검증과 트러블슈팅
 
-- `bunx --bun @unikit/cli doctor --config unikit.json` — 툴체인, manifest 배선,
+- `bunx --bun @unikit-bridge/cli doctor --config unikit.json` — 툴체인, manifest 배선,
   생성물 최신성을 검사한다.
 - 첫 호출 계약 실패(`contract.mismatch`): 생성 TS와 Rust 바이너리가 서로 다른
   스키마로 빌드된 것이다 — codegen을 다시 돌리고 재빌드한다.

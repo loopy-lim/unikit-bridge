@@ -154,9 +154,9 @@ as part of a verification run; this item confirms the procedure is written and
 findable.
 
 1. After the npm publish workflow completes green, install the published
-   `@unikit/*` versions in a scratch project outside this workspace.
+   `@unikit-bridge/*` versions in a scratch project outside this workspace.
 2. Generate the client from the published CLI (`unikit codegen`) against the
-   contract of the published `@unikit/types` — not the workspace sources.
+   contract of the published `@unikit-bridge/types` — not the workspace sources.
 3. Run the calculator example's generated-client test against those artifacts.
 4. Record versions used and the registry consumer output in the block below.
 

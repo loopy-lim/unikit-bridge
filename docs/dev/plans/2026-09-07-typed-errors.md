@@ -6,7 +6,7 @@
 
 **Goal:** Rust 커맨드에 "이 명령이 반환할 수 있는 도메인 에러 코드"를 선언하고(`command_errors` 빌더 + `#[command(error(...))]` 매크로), schema.json `"errors"` 필드로 흘려 `unikit codegen`이 커맨드별 리터럴 유니언 + 타입 가드(`isDivideError`)를 생성 — 경쟁 격차 #2("제네릭 `{code,message}` → string 비교 분기") 해소. **런타임 에러 계약(와이어/호스트/`UnikitCommandError`)은 무변경.**
 
-**Architecture:** platforms 필드 트랙(빌더→조건부 스키마 필드→메타 체인)과 events 섹션 트랙(선언→스키마→조건부 TS 파일)의 관례 조합. Rust는 schema.json까지만 발행(단일 화살 코드젠 — `write_schema_to_dir`, package_types.rs:150-168), TS 표면은 packages/cli가 렌더링. 에러 와이어 프레임(`[ok=0][pad][len u16][postcard{code,message}]`, rkyv_error.rs:12-17)·호스트 승격 지점·`@unikit/types` 런타임은 전부 무변경.
+**Architecture:** platforms 필드 트랙(빌더→조건부 스키마 필드→메타 체인)과 events 섹션 트랙(선언→스키마→조건부 TS 파일)의 관례 조합. Rust는 schema.json까지만 발행(단일 화살 코드젠 — `write_schema_to_dir`, package_types.rs:150-168), TS 표면은 packages/cli가 렌더링. 에러 와이어 프레임(`[ok=0][pad][len u16][postcard{code,message}]`, rkyv_error.rs:12-17)·호스트 승격 지점·`@unikit-bridge/types` 런타임은 전부 무변경.
 
 **Tech Stack:** Rust (crates/unikit-bridge, crates/unikit-bridge-macros), TypeScript (packages/cli).
 
@@ -214,7 +214,7 @@ describe('generateErrorsTs', () => {
 
 - 코드→PascalCase 키 매핑 헬퍼(`math.divide_by_zero` → `MathDivideByZero` — `UnikitErrorCode.TransportTimeout` 관례). 충돌 시 `throw`(코드젠 loud-fail, `codegen --check`/CI가 검출).
 - 커맨드당: `const {fn}ErrorCodes: ReadonlySet<string>` + `{Fn}ErrorCode` const object(각 variant에 `description`/`retryable` JSDoc) + `{Fn}ErrorCode` 타입 + `{Fn}Error = UnikitCommandError & { readonly code: {Fn}ErrorCode }` + `is{Fn}Error` 가드.
-- `import { UnikitCommandError } from '@unikit/types';` — 선언 커맨드가 있을 때만.
+- `import { UnikitCommandError } from '@unikit-bridge/types';` — 선언 커맨드가 있을 때만.
 - 가드 JSDoc에 "미선언 코드(신규 네이티브 등)는 false — 폴백은 err.code 문자열 분기" 명시(설계 E-3).
 - `cli-generate-files.ts`: `const errors = generateErrorsTs(schema); if (errors) addFile(outputPath, 'errors.ts', errors);` — `stageFor`에 `'errors.ts' → 'schema → ts error renderer'` 행 추가.
 
@@ -279,7 +279,7 @@ import { DivideErrorCode, isDivideError } from '../generated/errors.js';
 
 ```md
 ---
-'@unikit/cli': minor
+'@unikit-bridge/cli': minor
 'unikit': minor
 ---
 

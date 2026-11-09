@@ -1,6 +1,6 @@
 import { Linking, Platform } from 'react-native';
-import { configure, bindSync } from '@unikit/types';
-import { installUnikitJSI, getUnikitNative } from '@unikit/generated-react-native';
+import { configure, bindSync } from '@unikit-bridge/types';
+import { installUnikitJSI, getUnikitNative } from '@unikit-bridge/generated-react-native';
 import { NitroModules } from 'react-native-nitro-modules';
 import type { NitroBench } from 'nitro-bench';
 import UnikitCalculator from 'unikit-calculator';

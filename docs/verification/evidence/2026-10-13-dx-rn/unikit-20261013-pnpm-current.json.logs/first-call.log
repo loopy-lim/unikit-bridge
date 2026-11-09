@@ -33,11 +33,11 @@ Packages: +6
 Progress: resolved 6, reused 3, downloaded 0, added 6, done
 
 dependencies:
-+ @unikit/node file:../../../packages/node
-+ @unikit/types file:../../../packages/types
++ @unikit-bridge/node file:../../../packages/node
++ @unikit-bridge/types file:../../../packages/types
 
 devDependencies:
-+ @unikit/cli file:../../../packages/cli
++ @unikit-bridge/cli file:../../../packages/cli
 
 Done in 469ms using pnpm v12.6.0
 [unikit] ✓ JavaScript dependencies done in 0.5s

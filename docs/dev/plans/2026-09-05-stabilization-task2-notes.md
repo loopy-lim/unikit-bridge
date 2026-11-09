@@ -54,7 +54,7 @@ bunx expo prebuild --platform android --no-install   # ✔ Finished prebuild
 
 - `android/settings.gradle` 확인: 29행 `ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)` — CI rn-android 실패 지점과 동일한 주입 경계. 상단 pluginManagement는 `node --print require.resolve(...)` 형태의 node 실행 2건 포함 (5행, 13행)
 - 경계 증명: `bunx --bun react-native config` → exit 0, 출력 JSON 파싱 성공
-  - `@unikit/generated-react-native`의 `platforms.ios.podspecPath` = true, `platforms.android.sourceDir` = true (양 플랫폼 autolink 인식)
+  - `@unikit-bridge/generated-react-native`의 `platforms.ios.podspecPath` = true, `platforms.android.sourceDir` = true (양 플랫폼 autolink 인식)
   - 전체 dependencies 4개, parse error 없음 — 생성된 `package.json`(첫 줄 `{`)을 node가 정상 파싱
 - 전체 gradle 빌드는 범위 밖(과다) — CI가 재검증
 
@@ -72,5 +72,5 @@ bunx expo prebuild --platform android --no-install   # ✔ Finished prebuild
 
 ## Task 1에서 확인된 기존 결함 (CI01과 무관, be5ff260 부모 커밋에서도 재현됨)
 
-1. 온보딩 게이트가 published `@unikit/node@0.6.0` 기준 `contract.mismatch` drift 보고
+1. 온보딩 게이트가 published `@unikit-bridge/node@0.6.0` 기준 `contract.mismatch` drift 보고
 2. RN 예시들에서 `UNIKIT_SCHEMA_OUT` 기반 `codegen --check` 실패

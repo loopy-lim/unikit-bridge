@@ -72,7 +72,7 @@
   "lifecycle": "load/update/stale/release/clear pass",
   "baseCommit": "f1a96b941ed709038b6e4fe8ae3753e895ffa8a6",
   "dirtySource": true,
-  "runtime": "Bun 1.4.3, @unikit/node persistent transport",
+  "runtime": "Bun 1.4.3, @unikit-bridge/node persistent transport",
   "requestByteScope": "JSON arguments only; excludes envelope",
   "performanceClaim": "single debug functional run; not a release benchmark",
   "sources": {

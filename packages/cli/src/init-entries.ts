@@ -49,13 +49,13 @@ const TAURI_POLICY = contractPolicyNote('tauri', [
 
 export function generateReactNativeEntryTs(): string {
   const moduleLiteral = JSON.stringify(GENERATED_REACT_NATIVE_PACKAGE);
-  return `${generatedFileHeader('react-native.ts', 'schema → host entry')}${RN_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { createUnikitBootstrap } from '@unikit/react-native';
+  return `${generatedFileHeader('react-native.ts', 'schema → host entry')}${RN_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { createUnikitBootstrap } from '@unikit-bridge/react-native';
 import { installUnikitJSI, getUnikitNative } from ${moduleLiteral};
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from './contract.js';
 import { frameRegistry } from './frame-registry.js';
 
 export * from './commands.js';
-export { subscribeEvent } from '@unikit/react-native';
+export { subscribeEvent } from '@unikit-bridge/react-native';
 
 export const unikit = createUnikitBootstrap({
   install: installUnikitJSI,
@@ -111,7 +111,7 @@ export function generateNodeEntryTs(
 ): string {
   if (options?.events === true) {
     return `${generatedFileHeader('node.ts', 'schema → host entry')}${NODE_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { fileURLToPath } from 'node:url';
-import { createNodeBootstrap } from '@unikit/node';
+import { createNodeBootstrap } from '@unikit-bridge/node';
 import { GENERATED_CONTRACT_HASH } from './contract.js';
 
 export * from './commands.js';
@@ -134,7 +134,7 @@ export const unikit = createNodeBootstrap({
 ${BOOTSTRAP_EVENT_EXPORTS}`;
   }
   return `${generatedFileHeader('node.ts', 'schema → host entry')}${NODE_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { fileURLToPath } from 'node:url';
-import { createNodeBootstrap } from '@unikit/node';
+import { createNodeBootstrap } from '@unikit-bridge/node';
 import { GENERATED_CONTRACT_HASH } from './contract.js';
 
 export * from './commands.js';
@@ -162,7 +162,7 @@ export function generateBunEntryTs(
   if (options?.events === true) {
     return `${generatedFileHeader('bun.ts', 'schema → host entry')}${BUN_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { fileURLToPath } from 'node:url';
 import { suffix } from 'bun:ffi';
-import { createBunBootstrap } from '@unikit/bun';
+import { createBunBootstrap } from '@unikit-bridge/bun';
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from './contract.js';
 import { frameRegistry } from './frame-registry.js';
 
@@ -187,7 +187,7 @@ ${BOOTSTRAP_EVENT_EXPORTS}`;
   }
   return `${generatedFileHeader('bun.ts', 'schema → host entry')}${BUN_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { fileURLToPath } from 'node:url';
 import { suffix } from 'bun:ffi';
-import { createBunBootstrap } from '@unikit/bun';
+import { createBunBootstrap } from '@unikit-bridge/bun';
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from './contract.js';
 import { frameRegistry } from './frame-registry.js';
 
@@ -211,11 +211,11 @@ export const unikit = createBunBootstrap({
 }
 
 export function generateTauriEntryTs(): string {
-  return `${generatedFileHeader('tauri.ts', 'schema → host entry')}${TAURI_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { createTauriBootstrap } from '@unikit/tauri';
+  return `${generatedFileHeader('tauri.ts', 'schema → host entry')}${TAURI_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { createTauriBootstrap } from '@unikit-bridge/tauri';
 import { GENERATED_CONTRACT_HASH } from './contract.js';
 
 export * from './commands.js';
-export { subscribeTauriEvent as subscribeEvent } from '@unikit/tauri';
+export { subscribeTauriEvent as subscribeEvent } from '@unikit-bridge/tauri';
 
 export const unikit = createTauriBootstrap({
   contractHash: GENERATED_CONTRACT_HASH,

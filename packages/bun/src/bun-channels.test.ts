@@ -4,7 +4,7 @@ import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dlopen, FFIType, suffix } from 'bun:ffi';
-import { UnikitCommandError } from '@unikit/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 import { createBunChannelBridge, createBunChannelBytesBridge } from './bun-channels.js';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');

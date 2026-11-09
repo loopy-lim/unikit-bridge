@@ -7,8 +7,8 @@ import {
   createNodeEngine,
   createNodeLoopTransport,
   createNodeProcessTransport,
-} from '@unikit/node';
-import { createFrameEngine } from '@unikit/types';
+} from '@unikit-bridge/node';
+import { createFrameEngine } from '@unikit-bridge/types';
 import { addNumbers, unikit } from '../generated/node.js';
 import { frameRegistry } from '../generated/frame-registry.js';
 import { benchmarkCommand } from './performance-stats.js';

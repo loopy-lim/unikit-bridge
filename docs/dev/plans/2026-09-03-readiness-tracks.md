@@ -19,7 +19,7 @@
 1. **버전 정책 표**: `docs/versioning-policy.md:20-21` (+ko:17-18) 공개 Rust/TS API 행만 "메이저 버전." 단수 — pre-1.0 경로 부재. 나머지 4행은 "메이저. Pre-1.0: 마이너+노트" 구문 보유.
 2. **계약 게이트**: `packages/testing/src/contract-gate.ts:10-20` — 이름 집합 비교만. `GeneratedCommand`(`packages/types/src/global-state.ts:60-63`)은 필드 키를 노출하지 않는다(클로저 갇음). 코드젠 필드 키 상수는 `commands.ts`의 `createGeneratedFields2(id, 'name', "a", "b", 'name')` 호출 인자에 존재.
 3. **contract hash**: `contract.ts`의 `GENERATED_CONTRACT_HASH` = sha256(schema.json 원문) (`packages/cli/src/generate-surface.ts:156` `generateContractTs`). schema.json 자체엔 hash 필드가 없으므로 게이트는 **"schema.json을 다시 해시해 contract.ts의 상수와 대조"** 방식이 된다 — 이원화 없음(같은 입력 함수).
-4. **deprecated 도입 시점**: tauri/rn 레거시 `subscribeEvent` 오버로드 2건 모두 `69a5a2ae` (2026-08-30) 착지 → 0.6.0에 발행됨(태그 `@unikit/tauri@0.6.0` 등이 이 커밋 포함). **현재 대기 발행이 0.7.0이면 "최소 1 마이너 유지" 요건 충족 → 0.7.0에서 제거 가능.** 단 제거는 폐기 절차상 CHANGELOG 문서화 필수. `RendererHost`는 정책 문서가 "0.x 사이클 끝까지 유지" 명시 — 이번 사이클 건드리지 않는다.
+4. **deprecated 도입 시점**: tauri/rn 레거시 `subscribeEvent` 오버로드 2건 모두 `69a5a2ae` (2026-08-30) 착지 → 0.6.0에 발행됨(태그 `@unikit-bridge/tauri@0.6.0` 등이 이 커밋 포함). **현재 대기 발행이 0.7.0이면 "최소 1 마이너 유지" 요건 충족 → 0.7.0에서 제거 가능.** 단 제거는 폐기 절차상 CHANGELOG 문서화 필수. `RendererHost`는 정책 문서가 "0.x 사이클 끝까지 유지" 명시 — 이번 사이클 건드리지 않는다.
 5. **withRetry 부재**: `packages/types/src/index.ts`에 grep 0건. `isRetryableCode`(errors.ts:121)만 존재.
 6. **NDJSON 폐기**: `packages/node/src/node-loop.ts:274-276` `catch { continue; }`, `:287` `proc.stderr.on('data', () => {})`.
 7. **docs-gate 미결**: `scripts/docs-gate.mjs:63`("후속 판단 사항" 주석), `:231-238`(마커 0 통과 분기). 현재 마커 4개가 이미 채택돼 있으므로 "마커 0" 분기는 이론 경로가 됐고, fail 전환의 실제 의미는 **드리프트 리전 발견 시 exit 1 이미 존재** — 미결 부분은 strip 과잉 트레이드오프와 마커 0 분기. **소처분 = 마커 0을 fail로 바꾸는 것이 아니라** 주석의 미결 상태를 "마커 0 허용 유지(점진 채택 정책)"로 확정 기록 + gate 테스트로 고정.
@@ -288,7 +288,7 @@ export async function withRetry<T>(
 
 - `catch { continue; }` → `catch { onUnparsedLine(line); continue; }`. `onUnparsedLine`: `isUnikitDebugEnabled()`면 `debugUnikit({ kind: 'ndjson.unparsed', line })` + stderr warn 1회성, 아니면 **최근 N(=32)줄 링버퍼** 보존 — 프로세스 exit 시(기존 exit 핸들러 :289) 대기 중 요청이 있으면 보존분을 에러 메시지에 첨부.
 - `proc.stderr.on('data', () => {})` → debug 모드에서 수집해 exit 시 첨부, 비debug는 기존대로 폐기(성능 무영향).
-- `debugUnikit`/`isUnikitDebugEnabled`는 `@unikit/types`에서 import (types가 이미 의존성).
+- `debugUnikit`/`isUnikitDebugEnabled`는 `@unikit-bridge/types`에서 import (types가 이미 의존성).
 
 **Step 1: 실패 테스트** — node-loop 단위 테스트 패턴을 기존 테스트에서 확인. stdout으로 잘못된 JSON 라인 1줄 + 정상 응답을 흘려보내 ① 정상 응답은 resolve, ② debug on 시 unparsed 이벤트가 debug sink에 도달, ③ exit 시 대기 요청 에러 메시지에 최근 라인 포함.
 **Step 2: 구현 + PASS.**
@@ -377,7 +377,7 @@ cargo fmt --all -- --check
 ```
 
 - `WireFieldKind`는 사용처 확인 결과 살아있으면 **제거하지 말고 보고**.
-- changeset: `@unikit/*` npm 불가 — Rust crate는 Cargo workspace 별도 발행이므로 대신 `docs/versioning-policy` 반영 + 커밋 메시지에 crates.io 발행 시 제거 명시. (crates.io는 changeset 관리 대상이 아님 — release-procedure의 수동 bump 절차에서 처리.)
+- changeset: `@unikit-bridge/*` npm 불가 — Rust crate는 Cargo workspace 별도 발행이므로 대신 `docs/versioning-policy` 반영 + 커밋 메시지에 crates.io 발행 시 제거 명시. (crates.io는 changeset 관리 대상이 아님 — release-procedure의 수동 bump 절차에서 처리.)
 
 **10b: 레거시 subscribeEvent 오버로드 2건 제거** — 조사 확정: deprecated 도입이 `69a5a2ae`(2026-08-30, 0.6.0 발행) → 0.7.0에서 "최소 1 마이너 유지" 요건 충족. 폐기 절차에 따라 제거 + CHANGELOG 문서화:
 
@@ -404,10 +404,10 @@ cargo fmt --all -- --check
 
 ```md
 ---
-'@unikit/testing': minor
-'@unikit/react': minor
-'@unikit/types': minor
-'@unikit/node': minor
+'@unikit-bridge/testing': minor
+'@unikit-bridge/react': minor
+'@unikit-bridge/types': minor
+'@unikit-bridge/node': minor
 ---
 
 Readiness 트랙: 계약 게이트 필드 수준 강화(commands.ts 필드 키↔schema 대조 + contract hash 대조),
@@ -419,8 +419,8 @@ useSuspenseCommand 캐시/무효화 1차, withRetry 유틸, NDJSON 파싱 실패
 
 ```md
 ---
-'@unikit/tauri': minor
-'@unikit/react-native': minor
+'@unikit-bridge/tauri': minor
+'@unikit-bridge/react-native': minor
 ---
 
 레거시 subscribeEvent 오버로드 제거(0.6.0에서 deprecated 예고, 폐기 요건 충족).

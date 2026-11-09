@@ -6,7 +6,7 @@
 
 **Architecture:** T0가 계약 기반(선행 필수) → T1은 독립(병렬 가능) → T2는 T0의 generation을 소비. T2의 TS 인터프리터는 live_schema만 있으면 동작하므로 코드젠 변경 없음.
 
-**Tech Stack:** Rust (postcard, serde_json, schemars), TypeScript (@unikit/types 런타임), criterion bench.
+**Tech Stack:** Rust (postcard, serde_json, schemars), TypeScript (@unikit-bridge/types 런타임), criterion bench.
 
 **Spec:** `docs/specs/2026-08-29-perf-five-tracks-design.md` (트랙 T 절)
 

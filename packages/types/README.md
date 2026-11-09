@@ -1,6 +1,6 @@
 English | [한국어](./README.ko.md)
 
-# @unikit/types
+# @unikit-bridge/types
 
 The core types package of unikit-bridge. Provides the `EngineClient` interface shared by
 all platform adapters (Node, Bun, Tauri, React Native), error types, the Frame codec,
@@ -10,8 +10,8 @@ and Tauri-like global invoke.
 
 ```ts
 // Configure the platform engine once
-import { configure } from '@unikit/types';
-import { createFrameEngine } from '@unikit/react-native';
+import { configure } from '@unikit-bridge/types';
+import { createFrameEngine } from '@unikit-bridge/react-native';
 configure(createFrameEngine(native, registry));
 
 // Type-safe invocations from anywhere (used inside generated clients)
@@ -40,7 +40,7 @@ Key exports:
   dumps wire bytes as hex to stderr (`[unikit:wire]`); on React Native
   `globalThis.__UNIKIT_DEBUG__ = true` enables the event log. Diagnostic events carry
   optional `kind`/`reason` (`response.shape` from the JSON engine, `ndjson.unparsed`
-  from `@unikit/node`)
+  from `@unikit-bridge/node`)
 - `UnikitCommandError` — serializable error + `parseUnikitErrorString`
 - Frame codec — pure-JS encoder/decoder for the Rust `invoke_frame` round trip
 - `contractHash` verification — checks that the build-time contract matches the runtime

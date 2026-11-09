@@ -4,7 +4,7 @@ import {
   isUnikitDebugEnabled,
   parseUnikitErrorString,
   UnikitErrorCode,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 import type { HandshakeFrame, LoopResponseFrame, NodeLoopTransport } from './node-loop-contract.js';
 export type { NodeLoopTransport } from './node-loop-contract.js';
 import type { NodeLoopBinaryCodecs } from './node-binary-framing.js';

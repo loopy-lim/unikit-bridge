@@ -28,8 +28,8 @@ import test from 'node:test';
 import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CancelledError, UnikitCommandError } from '@unikit/types';
-import { createNodeEngine, createNodeLoopTransport, subscribeEvent } from '@unikit/node';
+import { CancelledError, UnikitCommandError } from '@unikit-bridge/types';
+import { createNodeEngine, createNodeLoopTransport, subscribeEvent } from '@unikit-bridge/node';
 // 같은 dist-ts 트리의 generated registry — codecs 주입으로 바이너리 모드 +
 // events:"push" 핸드셰이크가 협상된다(node 패키지 e2e와 동일 패턴).
 import { frameRegistry } from '../generated/frame-registry.js';

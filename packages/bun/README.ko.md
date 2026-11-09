@@ -1,4 +1,4 @@
-# @unikit/bun
+# @unikit-bridge/bun
 
 ## 선택된 런타임의 이벤트
 
@@ -39,7 +39,7 @@ const result = await addNumbers({ a: 20, b: 22 });
 배포 레이아웃이 다르면 `UNIKIT_BUN_LIBRARY=/absolute/path/to/libapp.dylib`를 사용합니다.
 
 FFI 엔진과 부트스트랩은 Bun 런타임이 필요합니다. Node에서 실행하면
-`transport.unavailable` 오류가 `bun`으로 실행하거나 `@unikit/node`를 사용하도록 안내합니다.
+`transport.unavailable` 오류가 `bun`으로 실행하거나 `@unikit-bridge/node`를 사용하도록 안내합니다.
 패키지 import와 `createBunEngine(transport)`는 Node에서도 사용할 수 있습니다.
 
 ## 공개 API
@@ -61,7 +61,7 @@ function createBunEngine(transport: BunInvokeTransport): BunEngineClient;
 ### subprocess 기반
 
 ```ts
-import { createBunEngine } from '@unikit/bun';
+import { createBunEngine } from '@unikit-bridge/bun';
 import { spawn } from 'bun';
 
 const engine = createBunEngine({
@@ -76,7 +76,7 @@ const engine = createBunEngine({
 ### bun:ffi 기반
 
 ```ts
-import { createBunEngine } from '@unikit/bun';
+import { createBunEngine } from '@unikit-bridge/bun';
 import { dlopen } from 'bun:ffi';
 
 const lib = dlopen('libmy_crate.so', {/* FFI 시그니처 */});

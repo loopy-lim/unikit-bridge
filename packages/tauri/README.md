@@ -1,6 +1,6 @@
 English | [한국어](./README.ko.md)
 
-# @unikit/tauri
+# @unikit-bridge/tauri
 
 Adapter that lazily detects Tauri's global IPC and connects it to the shared
 `EngineClient`.
@@ -68,7 +68,7 @@ refetching. Failures are reported, never dropped. See
 ## Usage examples
 
 ```ts
-import { createTauriEngine } from '@unikit/tauri';
+import { createTauriEngine } from '@unikit-bridge/tauri';
 import { invoke } from '@tauri-apps/api/core';
 
 const engine = createTauriEngine({ invoke });
@@ -113,7 +113,7 @@ JS-created Tauri channels use a native `Channel<InvokeResponseBody>` tied to the
 issuing physical WebView. `close()` revokes its native lease and disposes the JS
 callback; navigation, destruction, and app cleanup release owner resources. The
 `ipc-channel-chunks-v1` handshake rejects old broadcast-based native hosts: update
-`@unikit/tauri` and rebuild Rust together. Global setup needs `core.Channel` plus
+`@unikit-bridge/tauri` and rebuild Rust together. Global setup needs `core.Channel` plus
 Tauri's callback-cleanup API; without globals, pass an explicit
 `createIpcChannel(onMessage)` factory returning `{ value, dispose() }` alongside
 `invoke`. Passing `listen` alone cannot create a channel.

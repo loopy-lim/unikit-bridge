@@ -1,6 +1,6 @@
 import { existsSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { UnikitCommandError, type FrameCodec, type FrameEngineOptions } from '@unikit/types';
+import { UnikitCommandError, type FrameCodec, type FrameEngineOptions } from '@unikit-bridge/types';
 
 /** cdylib 후보 해상에 필요한 필드 — 이벤트 구독 팩토리(bun-event-subscription)가
  * 부트스트랩과 동일한 해상을 재사용할 수 있게 분리한 하위 집합이다. */
@@ -15,7 +15,7 @@ export type BunFfiEngineOptions = Omit<FrameEngineOptions, 'frameCodecs'> & {
 } & BunLibraryOptions;
 
 export type BunFfiRuntime = {
-  engine: import('@unikit/types').FrameEngine;
+  engine: import('@unikit-bridge/types').FrameEngine;
   library: string;
   /** 작은 응답을 재사용 512B caller buffer로 전달하는지 — owned 심볼이 있어도 소형 경로는 이 버퍼로 쓰인다. */
   usesCallerBufferInto: boolean;

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import { UnikitCommandError, type FrameCodec } from '@unikit/types';
+import { UnikitCommandError, type FrameCodec } from '@unikit-bridge/types';
 import { createNodeLoopTransport } from './index.js';
 
 const processTest = process.versions.bun ? test.skip : test;

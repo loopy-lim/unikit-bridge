@@ -4,9 +4,9 @@
 // 벤치마크나 frame-registry 의존성 없이 JSON 경로(createJsonEngine)만 사용한다.
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
-import { installUnikitJSI, getUnikitNative } from '@unikit/generated-react-native';
+import { installUnikitJSI, getUnikitNative } from '@unikit-bridge/generated-react-native';
 import { createJsonEngine } from './src/adapters/json-adapter';
-import { createFrameEngine, getLiveSchema } from '@unikit/types';
+import { createFrameEngine, getLiveSchema } from '@unikit-bridge/types';
 import { subscribeEvent } from '../../packages/react-native/src';
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from '../calculator/generated/contract';
 import { formatError } from './src/format-error';

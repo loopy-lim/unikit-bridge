@@ -15,7 +15,7 @@ import {
   renderReactNativeConfig,
 } from './react-native-template-common.js';
 
-export const GENERATED_REACT_NATIVE_PACKAGE = '@unikit/generated-react-native';
+export const GENERATED_REACT_NATIVE_PACKAGE = '@unikit-bridge/generated-react-native';
 const NATIVE_FILES = [
   'android/unikit-jsi-jni.cpp',
   'cpp/UnikitJSIBridge.cpp',
@@ -75,7 +75,7 @@ export function findReactNativeAdapterNative(
   let searchRoot = resolve(appRoot);
   const rejected: string[] = [];
   while (true) {
-    const packageRoot = resolve(searchRoot, 'node_modules/@unikit/react-native');
+    const packageRoot = resolve(searchRoot, 'node_modules/@unikit-bridge/react-native');
     const candidate = resolve(packageRoot, 'native');
     if (NATIVE_FILES.every((file) => existsSync(resolve(candidate, file)))) {
       try {
@@ -84,7 +84,7 @@ export function findReactNativeAdapterNative(
           version?: string;
         };
         if (
-          manifest.name === '@unikit/react-native' &&
+          manifest.name === '@unikit-bridge/react-native' &&
           manifest.version &&
           satisfiesAdapterRange(manifest.version, adapterRange)
         )
@@ -104,7 +104,7 @@ export function findReactNativeAdapterNative(
   }
   if (rejected.length > 0)
     throw new Error(
-      `Found a complete but incompatible @unikit/react-native package: ${rejected.join('; ')}. Install a version satisfying ${adapterRange} and regenerate.`,
+      `Found a complete but incompatible @unikit-bridge/react-native package: ${rejected.join('; ')}. Install a version satisfying ${adapterRange} and regenerate.`,
     );
   return undefined;
 }
@@ -115,10 +115,10 @@ function resolveReactNativeAdapterNative(appRoot: string, adapterRange: string):
   // 미설치(경로 자체가 없음)는 조용히 기본 경로를 반환하지 않는다(감사 A11) —
   // 생성된 podspec/gradle 이 존재하지 않는 경로를 가리키면 첫 loud 실패는
   // pod install 시점으로 미뤄진다. codegen 시점에 설치 안내로 실패한다.
-  const fallback = resolve(appRoot, 'node_modules/@unikit/react-native/native');
+  const fallback = resolve(appRoot, 'node_modules/@unikit-bridge/react-native/native');
   throw new Error(
-    `@unikit/react-native adapter not installed: ${fallback} was not found. ` +
-      `Run "bun install" to install @unikit/react-native@${adapterRange} first, then regenerate.`,
+    `@unikit-bridge/react-native adapter not installed: ${fallback} was not found. ` +
+      `Run "bun install" to install @unikit-bridge/react-native@${adapterRange} first, then regenerate.`,
   );
 }
 
@@ -133,7 +133,10 @@ export function renderReactNativeModule(
   // 깜빡임 — 2026-09-20 CI ts-checks 분할에서 적발). 문서화된 설치 위치는
   // 앱 자체의 node_modules다.
   resolveReactNativeAdapterNative(options.appRoot, options.adapterRange);
-  const adapterInstallRoot = resolve(options.appRoot, 'node_modules/@unikit/react-native/native');
+  const adapterInstallRoot = resolve(
+    options.appRoot,
+    'node_modules/@unikit-bridge/react-native/native',
+  );
   const adapterFromIos = portableRelative(moduleRoot, adapterInstallRoot);
   const generatedFromIos = portableRelative(moduleRoot, options.cppOutputPath);
   const adapterFromAndroid = portableRelative(resolve(moduleRoot, 'android'), adapterInstallRoot);

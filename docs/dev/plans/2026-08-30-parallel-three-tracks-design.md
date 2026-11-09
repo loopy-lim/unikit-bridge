@@ -71,7 +71,7 @@ perf 5트랙 스펙(`docs/specs/2026-08-29-perf-five-tracks-design.md`)이
 사용자 목표: "테스트와 실제 성능 테스트까지, 완료 판정 시 열려 있는 PR에 통합, 버전 불일치로 막히는 일 없이 버전업 전부 진행".
 
 1. **버전 스큐 해소**: 대기 changeset(`.changeset/quiet-bridges-check.md`)이 전부 patch라
-   testing/devtools/react 0.4.1의 `@unikit/types ^0.5.0` 의존이 해소되지 않음 → `@unikit/types`
+   testing/devtools/react 0.4.1의 `@unikit-bridge/types ^0.5.0` 의존이 해소되지 않음 → `@unikit-bridge/types`
    minor(0.5.0)로 상향한 changeset으로 교체. 3트랙 변경분을 커버하는 changeset을 패키지별로
    작성(cli/types/node/bun/testing/devtools/react/tauri/react-native + crates).
 2. **검증**: 각 트랙 테스트 게이트 + Perf는 실측 벤치 영수증(세션 조건 기재)까지.

@@ -1,4 +1,4 @@
-/** @unikit/react-native — JSI, async, event, and channel adapter surfaces. */
+/** @unikit-bridge/react-native — JSI, async, event, and channel adapter surfaces. */
 export type {
   EngineClient,
   EngineSupports,
@@ -8,7 +8,7 @@ export type {
   FrameCodec,
   FrameNative,
   FrameSchemaNative,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 export {
   CancelledError,
   UnikitCommandError,
@@ -18,7 +18,7 @@ export {
   invoke,
   createFrameEngine,
   parseUnikitErrorString,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 export {
   createReactNativeEngine,
   createUnikitBootstrap,

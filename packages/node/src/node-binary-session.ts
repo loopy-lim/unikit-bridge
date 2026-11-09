@@ -7,7 +7,7 @@
  * — 프로세스 라이프사이클과 NDJSON 경로는 transport 가 계속 소유한다.
  */
 import type { ChildProcessWithoutNullStreams } from 'node:child_process';
-import { UnikitCommandError, parseUnikitErrorString, UnikitErrorCode } from '@unikit/types';
+import { UnikitCommandError, parseUnikitErrorString, UnikitErrorCode } from '@unikit-bridge/types';
 import {
   createBinaryFrameAccumulator,
   demultiplexBinaryFrame,

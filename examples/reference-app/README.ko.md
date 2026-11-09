@@ -1,6 +1,6 @@
-# @unikit/example-reference-app
+# @unikit-bridge/example-reference-app
 
-`@unikit/react` 훅(useCommand/useMutation/useEvent/UnikitProvider)의 레퍼런스
+`@unikit-bridge/react` 훅(useCommand/useMutation/useEvent/UnikitProvider)의 레퍼런스
 앱 — CRUD + 이벤트 흐름을 어떻게 구성하는지 보여준다.
 
 ## 구조

@@ -133,12 +133,12 @@ export function checkArchitectureBoundaries({ root }) {
     const path = `packages/${adapter}/src/index.ts`;
     const source = readDirectorySources(root, `packages/${adapter}/src`);
     if (!source) continue;
-    if (!/\bcreateJsonEngine\b/.test(source) || !/@unikit\/types/.test(source)) {
+    if (!/\bcreateJsonEngine\b/.test(source) || !/@unikit-bridge\/types/.test(source)) {
       errors.push(
         error(
           RULES.sharedJsonEngine,
           path,
-          'adapter must use createJsonEngine from @unikit/types',
+          'adapter must use createJsonEngine from @unikit-bridge/types',
         ),
       );
     }

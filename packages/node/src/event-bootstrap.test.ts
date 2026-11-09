@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configure, ensureConfigured } from '@unikit/types';
+import { configure, ensureConfigured } from '@unikit-bridge/types';
 import { createNodeBootstrap, type NodeProcessTransport } from './index.js';
 
 const processTest = process.versions.bun ? test.skip : test;

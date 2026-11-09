@@ -24,7 +24,7 @@ resolves static codec fast-path → live schema commandId lookup → Tier 3 (JSO
 fallback.
 
 ```ts
-import { invokeLoose } from '@unikit/types';
+import { invokeLoose } from '@unikit-bridge/types';
 
 // The result type defaults to unknown — callers narrow it.
 const info = await invokeLoose<{ os: string }>(engine, 'platformNativeInfo');

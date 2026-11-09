@@ -355,7 +355,7 @@ CI 대기열을 거친 수 분 뒤가 아니라 수 초 안에 드러난다. 같
 ### 버전 관리 (changesets)
 
 - 현재 버전은 Rust workspace의 `Cargo.toml`과 각 `packages/*/package.json`을
-  기준으로 확인한다. 공개 `@unikit/*` 패키지들은 **독립 release line**이므로
+  기준으로 확인한다. 공개 `@unikit-bridge/*` 패키지들은 **독립 release line**이므로
   모두 같은 버전일 것을 가정하지 않는다.
 - `0.x` 동안 breaking change가 가능하므로, 공개 API 변경은 반드시 changeset에
   영향받는 패키지와 bump 종류를 명시한다:

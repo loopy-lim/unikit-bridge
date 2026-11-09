@@ -66,7 +66,7 @@ embedded JS bundle on an iPhone 17 Simulator.
   behavior, JSI installation, and benchmark output with no `Benchmark failed`,
   `No script URL`, or `FATAL EXCEPTION` marker.
 - Packed consumer: the CLI tarball explicitly includes `dist/codec-ir.*`, the
-  `@unikit/types` tarball includes `dist/complex-codec.*`, and
+  `@unikit-bridge/types` tarball includes `dist/complex-codec.*`, and
   `bun run verify:consumer:react-native` imports `createComplexCodec` from the
   packed dependency before checking native source resolution.
 - Default local iOS archive: restored to the Simulator slices after the device
@@ -108,7 +108,7 @@ modules/unikit-jsi/ios/build-rust-ios.sh` before a device-target build.
 - [ ] **Step 1: Write the failing validator fixtures**
 
 Create a temporary test fixture or test helper that changes one adapter package
-version while keeping its `@unikit/types` range valid, and assert the validator
+version while keeping its `@unikit-bridge/types` range valid, and assert the validator
 accepts it. Add a second fixture with an incompatible types range and assert a
 failure naming both packages and the invalid range.
 
@@ -185,7 +185,7 @@ when installation has not happened yet.
 
 - [ ] **Step 4: Add packed consumer verification**
 
-Pack `@unikit/react-native` and its generated module into a clean temporary
+Pack `@unikit-bridge/react-native` and its generated module into a clean temporary
 consumer, install from the archive, run codegen, and verify that native source
 paths resolve from the installed package. The script must fail if it silently
 uses a workspace source path.

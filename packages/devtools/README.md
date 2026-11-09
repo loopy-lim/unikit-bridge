@@ -1,6 +1,6 @@
 English | [한국어](./README.ko.md)
 
-# @unikit/devtools
+# @unikit-bridge/devtools
 
 An observability engine wrapper for unikit invocations. Wraps any `EngineClient` and
 records call counts, error counts, and cumulative latency.
@@ -8,15 +8,15 @@ records call counts, error counts, and cumulative latency.
 ## Install
 
 ```bash
-bun add @unikit/devtools
+bun add @unikit-bridge/devtools
 ```
 
 ## createInstrumentedEngine
 
 ```ts
-import { createInstrumentedEngine } from '@unikit/devtools';
-import { configure } from '@unikit/types';
-import { createNodeEngine } from '@unikit/node';
+import { createInstrumentedEngine } from '@unikit-bridge/devtools';
+import { configure } from '@unikit-bridge/types';
+import { createNodeEngine } from '@unikit-bridge/node';
 
 const engine = createInstrumentedEngine(createNodeEngine({ invoke: myTransport }));
 configure(engine);

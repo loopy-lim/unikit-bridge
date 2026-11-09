@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { dlopen, FFIType, suffix } from 'bun:ffi';
-import type { FrameCodec } from '@unikit/types';
+import type { FrameCodec } from '@unikit-bridge/types';
 import { createBunFfiEngine as candidateEngine } from './bun-ffi.js';
 
 // Allows the same behavioral assertions to demonstrate RED against a saved adapter.

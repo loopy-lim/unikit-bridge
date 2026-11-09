@@ -65,7 +65,7 @@ JS codec(정적 경로)가 단건 latency 의 대부분을 차지한다.
 - 잦은 단건 호출의 JSI 횡단 비용 상쇄. **단일 JSI 횡단**으로 N 개 정적 명령을 처리.
 - C++ JSI: `invokeTypedBatch(names[], args[])` — 루프하며 `encode_by_name → invoke_rkyv_v2 → decode_by_name` → 결과 JS Array 1회 반환. 첫 에러에서 throw(fail-fast).
 - 엔진: `createRkyvV2Engine` 가 `invokeBatch(entries)` 제공. **모든 항목이 정적(`hasStaticCodec`)이면** `invokeTypedBatch` 1회 호출, **동적 명령이 섞이면** 항목별 `invoke` 로 자동 폴백(typed/Tier3 분기 유지).
-- 글로벌 `invokeBatch<T>(entries)` 헬퍼(`@unikit/types`) 추가 — `invoke` 패턴과 일치.
+- 글로벌 `invokeBatch<T>(entries)` 헬퍼(`@unikit-bridge/types`) 추가 — `invoke` 패턴과 일치.
 - codegen 이 `RkyvV2Codec` dispatch 테이블(`encode_by_name`/`decode_by_name`/`has_static_codec`)을 C++ 에 노출하므로 자연스럽게 구현.
 - **in-session 검증**: 엔진 라우팅 단위 테스트 3종(단일 배치 / 혼합 폴백 / 미지원 폴백) green. C++ 루프 자체는 동일한 검증된 primitives 재사용 → 디바이스 빌드에서 링크 확인.
 

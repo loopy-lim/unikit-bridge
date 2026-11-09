@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createElement as h, Suspense } from 'react';
 import { renderToReadableStream } from 'react-dom/server';
-import { configure } from '@unikit/types';
-import type { EngineClient } from '@unikit/types';
+import { configure } from '@unikit-bridge/types';
+import type { EngineClient } from '@unikit-bridge/types';
 import * as hooks from './index.js';
 import { resolveSuspenseEntry } from './useSuspenseCommand.js';
 

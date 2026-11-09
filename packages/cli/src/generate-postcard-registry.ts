@@ -35,5 +35,5 @@ export function generateFrameRegistryTs(schema: PackageSchema): string {
     included.length === schema.commands.length
       ? ''
       : `// ${excluded.length} command(s) excluded — unsupported postcard field types (Tier 3 fallback): ${excluded.join(', ')}\n`;
-  return `${header}import { ${imports} } from './frame-codecs.js';\n\nexport const frameRegistry = new Map<string, import('@unikit/types').FrameCodec<any, any>>([\n${entries},\n]);\n`;
+  return `${header}import { ${imports} } from './frame-codecs.js';\n\nexport const frameRegistry = new Map<string, import('@unikit-bridge/types').FrameCodec<any, any>>([\n${entries},\n]);\n`;
 }

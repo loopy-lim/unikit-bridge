@@ -7,7 +7,7 @@
 막는 계약 게이트로 지켜진다.
 
 [![CI](https://github.com/loopy-lim/unikit/actions/workflows/ci.yml/badge.svg)](https://github.com/loopy-lim/unikit/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@unikit/types)](https://www.npmjs.com/package/@unikit/types)
+[![npm](https://img.shields.io/npm/v/@unikit-bridge/types)](https://www.npmjs.com/package/@unikit-bridge/types)
 [![crates.io](https://img.shields.io/crates/v/unikit.svg)](https://crates.io/crates/unikit-bridge)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -100,8 +100,8 @@ unikit의 선택: **RPC 표면 전체(정의→코드젠→와이어→검증)�
 Rust와 Bun 1.4 이상이 설치되어 있으면 다음 명령으로 프로젝트 생성부터 첫 호출까지 실행한다:
 
 ```bash
-bunx --bun @unikit/cli@0.13.0 init my-project --setup
-# Bun FFI를 쓰려면: bunx --bun @unikit/cli@0.13.0 init my-bun-project --host bun --setup
+bunx --bun @unikit-bridge/cli@0.13.0 init my-project --setup
+# Bun FFI를 쓰려면: bunx --bun @unikit-bridge/cli@0.13.0 init my-bun-project --host bun --setup
 ```
 
 `--setup`은 클라이언트 생성, 의존성 설치, Rust 빌드, 스캐폴드의 `echo` 데모 실행을
@@ -134,9 +134,9 @@ setup은 연동을 준비하고 남은 네이티브 앱 작업을 안내한다. 
 ```
 
 ```bash
-bunx --bun @unikit/cli@0.13.0 codegen --config unikit.json   # 모든 표면 렌더링
-bunx --bun @unikit/cli@0.13.0 dev --config unikit.json       # Rust 감시 + 재생성
-bunx --bun @unikit/cli@0.13.0 generate --config unikit.json --check   # CI 동기화 게이트
+bunx --bun @unikit-bridge/cli@0.13.0 codegen --config unikit.json   # 모든 표면 렌더링
+bunx --bun @unikit-bridge/cli@0.13.0 dev --config unikit.json       # Rust 감시 + 재생성
+bunx --bun @unikit-bridge/cli@0.13.0 generate --config unikit.json --check   # CI 동기화 게이트
 ```
 
 → 전체 워크스루: [시작하기 가이드](docs/getting-started.ko.md)
@@ -155,12 +155,12 @@ schemars = { version = "0.8", features = ["derive"] }
 manifest 기반 [호환 표](docs/compatibility-matrix.ko.md)를 설치 기준으로 삼는다.
 
 ```bash
-bun add @unikit/node@0.11.1          # Node.js
-bun add @unikit/bun@0.11.1           # Bun
-bun add @unikit/tauri@0.10.1         # Tauri
-bun add @unikit/react-native@0.11.0  # React Native
-bun add @unikit/testing@0.7.3        # Mock 엔진 (테스트)
-bun add @unikit/devtools@0.7.3       # 호출 관측성 (개발)
+bun add @unikit-bridge/node@0.11.1          # Node.js
+bun add @unikit-bridge/bun@0.11.1           # Bun
+bun add @unikit-bridge/tauri@0.10.1         # Tauri
+bun add @unikit-bridge/react-native@0.11.0  # React Native
+bun add @unikit-bridge/testing@0.7.3        # Mock 엔진 (테스트)
+bun add @unikit-bridge/devtools@0.7.3       # 호출 관측성 (개발)
 ```
 
 네이티브 라이브러리·JS 어댑터·생성물은 함께 갱신한다 —
@@ -233,7 +233,7 @@ Node/Bun 사용자별 읽기 경로를 제공한다.
 | [React Native 설정 가이드](docs/extending/react-native-setup.ko.md) | iOS JSI 모듈 설정, 사용법, 트러블슈팅                       |
 | [Tauri 설정 가이드](docs/extending/tauri-setup.ko.md)               | 기존 Tauri 앱에 unikit 얹기, 파일별 워크스루                |
 | [개발 허들 가이드](docs/development-hurdles.ko.md)                  | doctor, 통합 codegen, drift, native 경계, mock 엔진         |
-| [API 레퍼런스(생성)](docs/README.ko.md#api-레퍼런스typedoc)         | 모든 `@unikit/*` 패키지의 TypeDoc HTML — `bun run docs:api` |
+| [API 레퍼런스(생성)](docs/README.ko.md#api-레퍼런스typedoc)         | 모든 `@unikit-bridge/*` 패키지의 TypeDoc HTML — `bun run docs:api` |
 | [새 Host 추가 가이드](docs/extending/adding-host.ko.md)             | Electron, Deno 등 새 어댑터 추가                            |
 | [전체 문서 목록](docs/README.ko.md)                                 | 사용자 / 기여자별 읽기 경로                                 |
 

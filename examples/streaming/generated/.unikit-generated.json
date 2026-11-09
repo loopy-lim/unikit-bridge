@@ -5,7 +5,7 @@
   "files": [
     {
       "path": "commands.ts",
-      "sha256": "a2d2acb9169670933c16d3b41eae4ea94472bf2e42054e1e73eb1592e2731111"
+      "sha256": "377ad1f1537a15f30aa57432aa3f96eaec3194be6eba456753df97b25872e50a"
     },
     {
       "path": "contract.ts",
@@ -17,19 +17,19 @@
     },
     {
       "path": "frame-codecs.ts",
-      "sha256": "4a7db6e617a63c5ccbe24326214467a37108b66c65715963e2042db6bf1fa96c"
+      "sha256": "1e29b7df08165fa596759475054adcceaec28b7e841840645c1f1a6f96d207d7"
     },
     {
       "path": "frame-registry.ts",
-      "sha256": "73ffa58f4169bfae9a90d24ba1da3d739a5d151188764e802e527f97602c4c88"
+      "sha256": "5b72ed547c6fc434b2a7f8b9ada7ca7a9b7c6d7ddbeb2873d818bf0aca602e2a"
     },
     {
       "path": "node.ts",
-      "sha256": "a55b55548d1365ef85c670fd3951777795769df45f64c515e3b3affd8075bd2d"
+      "sha256": "292155ee4f39af120215ea98abea1e5ebb23e20e2dfee0b6a9f8b22be717e2e0"
     },
     {
       "path": "types.ts",
-      "sha256": "95a033086b18428898c4826dc466e8dd1b24cb175b8db2175fe39ae9a20ef3ee"
+      "sha256": "4e4211759ded38ef638738c082e814da1b9de1a3bd8170bac8e3d23fb0bbfcef"
     }
   ]
 }

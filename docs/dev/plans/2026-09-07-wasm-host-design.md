@@ -25,7 +25,7 @@
 ### 1.1 1차 목표 환경
 
 **"표준 `WebAssembly` JS API를 갖는 범용 JS 환경"** — 동일 glue로 다음 전부를
-커버하는 단일 패키지(`@unikit/wasm`)를 목표로 한다:
+커버하는 단일 패키지(`@unikit-bridge/wasm`)를 목표로 한다:
 
 | 환경                                | 위치                           | 비고                                                                                                                                                      |
 | ----------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -176,7 +176,7 @@ async fn 커맨드를 sync 엔트리로 호출하면 매크로 생성 래퍼
 
 ### 4.1 결정
 
-**wasm-bindgen/wasm-pack 도입하지 않는다.** JS glue는 `@unikit/wasm` 패키지가
+**wasm-bindgen/wasm-pack 도입하지 않는다.** JS glue는 `@unikit-bridge/wasm` 패키지가
 스파이크 프로토콜 기반으로 손수 구현한다. 근거(리서치 §4 전체):
 
 1. **경계가 JsValue가 아니라 바이너리다** — 4호스트 공통 와이어(rkyv V2/postcard)
@@ -227,11 +227,11 @@ web-sys 상호운용 표면 부재(향후 브라우저 API 연동이 필요해�
   증명 프로토콜이 단순 1단계다. Bun의 재시도 프로토콜(bun-ffi.ts:104-142)은
   참고 선례로만 남긴다.
 
-## 5. `@unikit/wasm` 패키지 — 엔진 조합
+## 5. `@unikit-bridge/wasm` 패키지 — 엔진 조합
 
 ### 5.1 구조
 
-- 신규 패키지 `packages/wasm`(`@unikit/wasm`), 의존 `@unikit/types`만.
+- 신규 패키지 `packages/wasm`(`@unikit-bridge/wasm`), 의존 `@unikit-bridge/types`만.
   배포물은 **순수 ESM JS + d.ts**(브라우저/Node/Bun/Deno 공용). `.wasm`은
   사용자 엔진 빌드 산물 — 패키지에 싣지 않는다(§8 release guard 정합).
 - 공개 표면:
@@ -318,11 +318,11 @@ export const WASM_ENGINE_SUPPORTS: EngineSupports = {
    런타임 스모크"를 1차 증거로 추가하고, 기존 "wasm spike's emulator/simulator
    runs" 문구는 RN/wasm3 스파이크 국한으로 정확화한다.
 3. `docs/extending/adding-host.md` 의사결정나무에 "브라우저/범용 JS? →
-   @unikit/wasm(WebAssembly exports + 선형 메모리 스테이징)" 가지 추가.
-4. release guard(compatibility-matrix.md:209-213): **유지**. `@unikit/wasm`은
+   @unikit-bridge/wasm(WebAssembly exports + 선형 메모리 스테이징)" 가지 추가.
+4. release guard(compatibility-matrix.md:209-213): **유지**. `@unikit-bridge/wasm`은
    JS 전용 배포물이라 `*.wasm` 배제 규칙과 무충돌 — dev-only wasm 백엔드(wasm3)
    규정은 그대로 살아있다. 버전 발행은 versioning-policy 0.x 마이너 레인 +
-   changeset(`@unikit/wasm` minor, 최초 0.8.x 진입).
+   changeset(`@unikit-bridge/wasm` minor, 최초 0.8.x 진입).
 
 ## 8. 바이너리 크기 예산과 측정 방법
 
@@ -362,7 +362,7 @@ export const WASM_ENGINE_SUPPORTS: EngineSupports = {
    cfg(target_family="wasm"). 검증: `cargo check/build --target
 wasm32-unknown-unknown` + 스파이크 백엔드 경유 Node 런타임 왕복(바이트 동일
    PINNED 게이트 선례 적용).
-2. **S2 `@unikit/wasm` 패키지** — §5 glue + `createWasmBootstrap` + WASM_ENGINE_SUPPORTS
+2. **S2 `@unikit-bridge/wasm` 패키지** — §5 glue + `createWasmBootstrap` + WASM_ENGINE_SUPPORTS
    - 계약 테스트(실 .wasm 로드, R2/R5 시나리오 포함). UnikitErrorCode 확장.
 3. **S3 코드젠·CLI 연결** — `generated/wasm.ts` 엔트리포인트(§5.1 팩토리 주입,
    bun.ts/react-native.ts와 동일 패턴) + dev.target="wasm" 산출 경로를 부트스트랩

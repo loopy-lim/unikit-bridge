@@ -76,7 +76,7 @@ fn handle(input: &str) -> unikit_bridge::Result<Vec<u8>> {
 
     if command == "__drainEvents" {
         // drain 페이로드는 `events` 필드로 돌아간다 — loop-stdio 참조 런타임과
-        // @unikit/node 폴링 폴백(`transport.drainEvents()`)이 읽는 계약 필드.
+        // @unikit-bridge/node 폴링 폴백(`transport.drainEvents()`)이 읽는 계약 필드.
         // `result` 에 넣으면 어댑터 subscribeEvent 가 이벤트를 영원히 받지 못한다.
         let events: Vec<serde_json::Value> = unikit_streaming_example::event_bus()
             .take_pending_events()

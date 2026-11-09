@@ -1,7 +1,7 @@
 // ── T2-2: 스키마→postcard 코덱 인터프리터 ────────────────────
 //
 // live_schema 의 inputSchema/outputSchema(JSON Schema 노드)로부터 런타임에
-// FrameCodec 을 생성한다 — 코드젠(@unikit/cli)이 하는 일을 스키마 인터프리터로
+// FrameCodec 을 생성한다 — 코드젠(@unikit-bridge/cli)이 하는 일을 스키마 인터프리터로
 // 재현해, **동적 명령**(register/replace)도 postcard fast-path 를 쓸 수 있게 한다.
 //
 // 와이어 패리티 계약:
@@ -9,7 +9,7 @@
 //     `_pc*` 헬퍼(postcardPrimitive/Wide/Text/FloatSource)와 동일 알고리즘이다.
 //     중복 구현이 아니라 단일 알고리즘의 두 번째 서빙 지점이며, 바이트 동일성은
 //     PINNED hex(wire_fixtures.rs 와 공유) 교차 테스트로 고정한다.
-//   - 필드 판정은 @unikit/cli classifyPostcardField 의 미러다(Rust 측
+//   - 필드 판정은 @unikit-bridge/cli classifyPostcardField 의 미러다(Rust 측
 //     js_postcard_codec_supported_with_defs 도 동일 판정). 미러 간 불일치는
 //     Tier 3 로 안전하게 실패한다 — 와이어 오염이 없다.
 //   - 미지원 노드는 null 을 반환하고, 엔진은 그 명령을 Tier 3(JSON) 로 폴백한다.

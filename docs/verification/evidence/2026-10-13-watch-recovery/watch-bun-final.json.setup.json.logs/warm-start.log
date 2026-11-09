@@ -16,9 +16,9 @@ Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-st
 [unikit] ⠋ JavaScript dependencies...
 bun install v1.4.3 (c6da4a4d3)
 
-+ @unikit/cli@../../../packages/cli
-+ @unikit/bun@../../../packages/bun
-+ @unikit/types@../../../packages/types
++ @unikit-bridge/cli@../../../packages/cli
++ @unikit-bridge/bun@../../../packages/bun
++ @unikit-bridge/types@../../../packages/types
 
 4 packages installed [189.00ms]
 [unikit] ✓ JavaScript dependencies done in 0.2s

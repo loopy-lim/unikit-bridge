@@ -6,7 +6,7 @@
 
 **Architecture:** Evolve the working headless host (`/tmp/unikit-lynx-host/host.cpp`) into the project. Prove the data plane (registration + event push + protocol + authority + RendererHost) in the headless host first, then attach a native window. No Tauri `Runtime` trait work in Phase A.
 
-**Tech Stack:** Rust staticlib (`unikit_calculator_invoke_rkyv_v2`), C++ host (libLynx CAPI, weak-napi), ReactLynx bundle (rspeedy), TypeScript (`@unikit/lynx` / new `@unikit/api`).
+**Tech Stack:** Rust staticlib (`unikit_calculator_invoke_rkyv_v2`), C++ host (libLynx CAPI, weak-napi), ReactLynx bundle (rspeedy), TypeScript (`@unikit-bridge/lynx` / new `@unikit-bridge/api`).
 
 **Design ref:** `docs/plans/2026-08-10-unikit-lynx-runtime-design.md`
 
@@ -85,7 +85,7 @@ static void OnExtRuntimeReady(lynx_extension_module_t * /*self*/,
                             InvokeRkyvV2, nullptr, &fn);
   napi_set_named_property_weak(env, exports, "invokeRkyvV2", fn);
 
-  // Primary: NativeModules.UnikitModule (what @unikit/lynx getUnikitNative reads)
+  // Primary: NativeModules.UnikitModule (what @unikit-bridge/lynx getUnikitNative reads)
   napi_value_weak nm = nullptr;
   napi_get_named_property_weak(env, global, "NativeModules", &nm);
   napi_set_named_property_weak(env, nm, "UnikitModule", exports);
@@ -111,7 +111,7 @@ lynx_env_register_extension_module("UnikitModule", UnikitExtCreator,
                                    /*is_lazy_create=*/0, nullptr);
 ```
 
-**Step 4: Verify `App.tsx` calls the real module** — read `examples/lynx-calculator/src/App.tsx`. If it has a JS mock/fallback for `addNumbers`, ensure it routes through `NativeModules.UnikitModule.invokeRkyvV2` (via `@unikit/lynx`). Remove any path that computes the result in JS.
+**Step 4: Verify `App.tsx` calls the real module** — read `examples/lynx-calculator/src/App.tsx`. If it has a JS mock/fallback for `addNumbers`, ensure it routes through `NativeModules.UnikitModule.invokeRkyvV2` (via `@unikit-bridge/lynx`). Remove any path that computes the result in JS.
 
 **Step 5: Build + run.** Expected log: `[unikit] extension-module runtime_ready: injected ...` AND `invocations > 0`.
 **Verify:** `grep invocations run.log` → value > 0. The on-screen `result: 42` now comes from real Rust.

@@ -97,13 +97,13 @@ and only when a native cancellation handle exists, does it propagate into Rust.
 ### Command Helper Usage Example
 
 Each command helper generated in `commands.ts` does not take an engine directly —
-it calls the generated paths from `@unikit/types` (`invokeGenerated*`). The default
+it calls the generated paths from `@unikit-bridge/types` (`invokeGenerated*`). The default
 platform entry point registers `configureLazy()`, and the first call installs the
 engine exactly once. Manual `configure(engine)` is an explicit override.
 
 ```ts
 // examples/calculator/generated/commands.ts (auto-generated, slightly simplified)
-import { createGeneratedFields2 } from '@unikit/types';
+import { createGeneratedFields2 } from '@unikit-bridge/types';
 
 export const addNumbers = createGeneratedFields2<AddNumbersInput, AddNumbersOutput>(
   1,
@@ -120,7 +120,7 @@ Usage example (Tauri):
 // examples/tauri-calculator/src/app.ts
 import { addNumbers } from '../../calculator/generated/commands.js';
 import { createTauriEngine } from '../../../packages/tauri/src/index.js';
-import { configure } from '@unikit/types';
+import { configure } from '@unikit-bridge/types';
 
 const engine = createTauriEngine({ invoke: window.__TAURI__.core.invoke });
 configure(engine); // installs the engine into the global invoke
@@ -388,7 +388,7 @@ pub fn invoke_json(&self, name: &str, params: Value) -> Result<Value>
  │  - subprocess stdio  (examples/calculator/src/main.rs)   │
  │  - C FFI            (examples/calculator/src/lib.rs)     │
  │  - Tauri IPC        (unikit_support::unikit_dispatch)    │
- │  - RN JSI native    (@unikit/generated-react-native)     │
+ │  - RN JSI native    (@unikit-bridge/generated-react-native)     │
 └──────────────────────────────────────────────────────────┘
 ```
 

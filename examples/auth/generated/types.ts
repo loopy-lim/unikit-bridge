@@ -6,8 +6,8 @@
 // DO NOT EDIT — changes will be overwritten and fail codegen --check.
 // ────────────────────────────────────────────────────────────
 
-export type { EngineClient, UnikitError } from '@unikit/types';
-export { UnikitCommandError } from '@unikit/types';
+export type { EngineClient, UnikitError } from '@unikit-bridge/types';
+export { UnikitCommandError } from '@unikit-bridge/types';
 
 export type AdminStatsInput = {
   token: string;

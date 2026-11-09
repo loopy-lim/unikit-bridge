@@ -18,7 +18,7 @@ detection lives in the [contract migration guide](migration-guide.md).
 | FFI symbol signatures (`unikit_ffi_*` C ABI)               | Additive only. Existing symbols keep name, parameter list, and calling convention.                 | Removals and signature changes go through the deprecation cycle below, then a major. Pre-1.0: the deprecation rule applies — a symbol deprecated in a previous release may be removed in a minor. |
 | Generated output (TypeScript / C++ / RN generated files)   | Regenerated output stays drop-in for the same configuration.                                       | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
 | Public Rust API (`crates/unikit-bridge`, `unikit-bridge-macros` exports) | Standard semver.                                                                                   | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
-| Public TypeScript API (`@unikit/*` package exports)        | Standard semver.                                                                                   | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
+| Public TypeScript API (`@unikit-bridge/*` package exports)        | Standard semver.                                                                                   | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
 
 Not covered by any guarantee:
 
@@ -52,22 +52,22 @@ deprecated as of 0.6.0 and removed under the pre-1.0 rule above — in the
 replacement is a host-specific adapter boundary — each embedding host
 bridges its own renderer/events via the published channel and FFI surfaces.
 
-Removed under the same rule in the 0.7.0 `@unikit/tauri` and
-`@unikit/react-native` packages: the legacy `subscribeEvent(listen, name, callback)`
+Removed under the same rule in the 0.7.0 `@unikit-bridge/tauri` and
+`@unikit-bridge/react-native` packages: the legacy `subscribeEvent(listen, name, callback)`
 (Tauri) and `subscribeEvent(native, name, callback[, options])` (React Native)
 overloads, deprecated in 0.6.0. Only `subscribeEvent(name, callback[, listen])` and
 `subscribeEvent(name, callback[, options])` remain; React Native resolves the native
 module from `globalThis.__unikitNative`.
 
 Shipped in the 0.9.0 release line (2026-09-10, changeset `1f99eca`):
-`@unikit/cli` 0.9.0 removed the `reactNative.legacyBenchmarks` config key
+`@unikit-bridge/cli` 0.9.0 removed the `reactNative.legacyBenchmarks` config key
 together with the `UNIKIT_LEGACY_BENCHMARKS`/`UNIKIT_ENABLE_LEGACY_BENCHMARKS`
-build flags from generated modules, and `@unikit/react-native` 0.8.0 dropped
+build flags from generated modules, and `@unikit-bridge/react-native` 0.8.0 dropped
 the calculator-only legacy wire functions from the JSI host object —
 `invokeBytes`, `invokeMsgpack`, `invokeBincode`, `invokePostcard`,
 `invokeLegacyPostcard`, `invokeHybrid`, `invokeRaw`. The type-level half of
 the same changeset was not carried through: the published `UnikitNative`
-(`@unikit/types`) still declares `invokeMsgpack`, `invokeBincode`,
+(`@unikit-bridge/types`) still declares `invokeMsgpack`, `invokeBincode`,
 `invokePostcard`, `invokeHybrid`, and `invokeRaw` — the TS type keeps the
 members even though the RN host object no longer exposes them. Only
 `invokeRkyv` is gone for good: the 0.10.0 Frame rename removed the dead
@@ -87,7 +87,7 @@ above; any later change then follows the deprecation procedure.
 | `unikit_ffi_hot_reload`                               | Experimental | Landed this cycle. Hot-reload injection with replace semantics; the skip report and error ladder may still change between releases.                                                                                                                                    |
 | `hot-core` module (`DylibCore`·`HotCoreHandle`·watch) | Experimental | Dev-time native dylib hot-swap primitive behind the `hot-core` cargo feature. API and swap semantics may change between releases. Release builds are unaffected (the static-linking path is unchanged). Design: `docs/dev/plans/2026-09-09-native-hot-core-design.md`. |
 | `unikit_ffi_capture_snapshot`                         | Experimental | B1 inspector dump. Shape changes are breaking, except additive fields, which are backward-compatible.                                                                                                                                                                  |
-| `@unikit/types` inspector                             | Experimental | `DumpedWire` + `parseSnapshot`/`serializeSnapshot` mirror the blob contract above (additive fields allowed). `unikit inspect` renders this experimental format and inherits its status.                                                                                |
+| `@unikit-bridge/types` inspector                             | Experimental | `DumpedWire` + `parseSnapshot`/`serializeSnapshot` mirror the blob contract above (additive fields allowed). `unikit inspect` renders this experimental format and inherits its status.                                                                                |
 
 ## MSRV policy
 
@@ -102,7 +102,7 @@ consumer toolchains.
 
 ## Release numbering
 
-The project is on 0.x. Versions of the 9 public `@unikit/*` npm packages are
+The project is on 0.x. Versions of the 9 public `@unikit-bridge/*` npm packages are
 driven by changesets: when changeset files exist on main, `release.yml` opens
 the version-packages PR (`chore: version packages`), and merging it updates version fields and
 CHANGELOGs in bulk. crates.io publishing is manual — `cargo publish` per

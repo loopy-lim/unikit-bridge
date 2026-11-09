@@ -12,7 +12,7 @@ type EngineClient = {
 };
 ```
 
-This is all unikit requires on the TypeScript side. The generated command functions (such as `addNumbers`) all go through the global `invoke` from `@unikit/types`, which uses the `EngineClient` installed with `configure(engine)`:
+This is all unikit requires on the TypeScript side. The generated command functions (such as `addNumbers`) all go through the global `invoke` from `@unikit-bridge/types`, which uses the `EngineClient` installed with `configure(engine)`:
 
 ```ts
 // examples/calculator/generated/commands.ts
@@ -316,7 +316,7 @@ Add an app for the new host under `examples/calculator/apps/`.
 // examples/calculator/apps/<host>-app.ts
 import { addNumbers } from '../generated/commands.js';
 import { createMyHostEngine } from '../../../packages/myhost/src/index.js';
-import { configure } from '@unikit/types';
+import { configure } from '@unikit-bridge/types';
 
 // transport implementation
 const engine = createMyHostEngine({
@@ -345,7 +345,7 @@ This test validates only the adapter logic, without a real Rust binary. The exis
 // examples/calculator/apps/<host>-app.ts (mocked version)
 import { addNumbers } from '../generated/commands.js';
 import { createMyHostEngine } from '../../../packages/myhost/src/index.js';
-import { configure } from '@unikit/types';
+import { configure } from '@unikit-bridge/types';
 
 const calls: Array<{ command: string; args: unknown }> = [];
 
@@ -448,7 +448,7 @@ Electron is Node.js-based, so start with subprocess stdio:
 import { spawnSync } from 'node:child_process';
 import { addNumbers } from '../generated/commands.js';
 import { createElectronEngine } from '../../../packages/electron/src/index.js';
-import { configure } from '@unikit/types';
+import { configure } from '@unikit-bridge/types';
 
 const engine = createElectronEngine({
   invoke(command, args) {

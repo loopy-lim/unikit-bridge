@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configure, UnikitCommandError } from '@unikit/types';
+import { configure, UnikitCommandError } from '@unikit-bridge/types';
 import { divide } from '../generated/commands.js';
 import {
   DivideErrorCode,

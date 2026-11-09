@@ -196,7 +196,7 @@ cli-generate-files.ts:99-101). 에러 코드젠은 이 관례를 그대로 따�
 | JSON 엔진 (Tauri `unikit_dispatch`) | `normalizeUnikitError` (`packages/types/src/json-engine.ts:100,104,148`; 라우팅 `packages/tauri/src/index.ts:139`, 배치 항목 `index.ts:153`)     | Display 문자열 재분할로 보존               |
 | Node loop-stdio (NDJSON)            | `waiter.reject(parseUnikitErrorString(frame.error))` (`packages/node/src/node-loop.ts:558`)                                                      | Display 재분할 보존                        |
 | RN (JSON 폴백)                      | `parseUnikitErrorString(response.error)` (`packages/react-native/src/react-native-core.ts:91`)                                                   | 동일                                       |
-| Mock 엔진 (`@unikit/testing`)       | `MockError` 유니언 → `toMockError`로 `UnikitCommandError`화 (`packages/testing/src/index.ts:32-33,108`)                                          | 보존                                       |
+| Mock 엔진 (`@unikit-bridge/testing`)       | `MockError` 유니언 → `toMockError`로 `UnikitCommandError`화 (`packages/testing/src/index.ts:32-33,108`)                                          | 보존                                       |
 
 **결론**: 어느 호스트에서도 code는 보존된다. 호스트 무변경으로 타입화 에러를
 올릴 수 있다.

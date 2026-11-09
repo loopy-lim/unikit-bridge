@@ -165,8 +165,8 @@ function _pcDecodeF64(buf: Uint8Array, offset: number): { value: number; bytesRe
 function _pcEncodeF32(n: number): Uint8Array { const buf = new ArrayBuffer(4); new DataView(buf).setFloat32(0, n, true); return new Uint8Array(buf); }
 function _pcDecodeF32(buf: Uint8Array, offset: number): { value: number; bytesRead: number } { return { value: new DataView(buf.buffer, buf.byteOffset + offset, 4).getFloat32(0, true), bytesRead: 4 }; }
 
-import { createComplexCodec } from '@unikit/types';
-import type { FrameCodec, UnikitError, ComplexSchema } from '@unikit/types';
+import { createComplexCodec } from '@unikit-bridge/types';
+import type { FrameCodec, UnikitError, ComplexSchema } from '@unikit-bridge/types';
 import type { AdminStatsInput, AdminStatsOutput, GrantInput, GrantOutput, SignInInput, SignInOutput, SignOutInput, SignOutOutput } from './types.js';
 
 export const adminStatsCodec: FrameCodec<AdminStatsInput, AdminStatsOutput> = {

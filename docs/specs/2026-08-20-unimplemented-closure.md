@@ -42,9 +42,9 @@ priority: high
 
 ### WS3 — 온보딩/DX 완결
 
-- [ ] `@unikit/node`에 `createNodeProcessTransport`(napi 또는 subprocess)가 제공되고, getting-started의 Node 퀵스타트가 사용자 구현 없이 복붙 가능한 완결 코드가 된다
+- [ ] `@unikit-bridge/node`에 `createNodeProcessTransport`(napi 또는 subprocess)가 제공되고, getting-started의 Node 퀵스타트가 사용자 구현 없이 복붙 가능한 완결 코드가 된다
 - [ ] 호환성 매트릭스 문서가 추가된다 — signal/취소/invokeBatch/이벤트 × 어댑터(node/bun/tauri/RN) 표. 조용한 드롭(node/bun의 signal 무시)은 가능하면 loud error로 전환하고, 전환 시 매트릭스에 반영
-- [ ] `@unikit/react` 훅(useCommand/useMutation/useEvent/UnikitProvider)을 사용하는 레퍼런스 앱 예제가 추가된다 (CRUD + 이벤트)
+- [ ] `@unikit-bridge/react` 훅(useCommand/useMutation/useEvent/UnikitProvider)을 사용하는 레퍼런스 앱 예제가 추가된다 (CRUD + 이벤트)
 
 ### WS4 — 취소/의미론 완성
 

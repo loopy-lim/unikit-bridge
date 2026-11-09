@@ -3,7 +3,7 @@
 # Error Codes
 
 The complete reference for the `UnikitErrorCode` registry — every error code that
-`@unikit/types` (`packages/types/src/errors.ts`) and the Rust runtime
+`@unikit-bridge/types` (`packages/types/src/errors.ts`) and the Rust runtime
 (`crates/unikit-bridge/src/error.rs`) can put on the wire. Other documents keep partial
 subsets on purpose (`docs/rust-api-guide.md` lists the Rust-factory codes only,
 `docs/architecture.md` covers `registry.*`); this page is the full table and records

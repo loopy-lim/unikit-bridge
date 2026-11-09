@@ -7,7 +7,7 @@
  * An injected polling fallback initializes asynchronously and queues subscriptions
  * until ready. Disposal prevents either path from reviving the event bridge.
  */
-import { UnikitCommandError, UnikitErrorCode } from '@unikit/types';
+import { UnikitCommandError, UnikitErrorCode } from '@unikit-bridge/types';
 import { bunLibraryCandidates, type BunFfiEngineOptions } from './bun-ffi-library.js';
 import {
   createBunEventBridge,

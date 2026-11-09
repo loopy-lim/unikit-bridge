@@ -718,10 +718,10 @@ field (on JSON paths without the flag on the wire, it is inferred from the
 ### JS call semantics: signal, timeoutMs, invokeBatch
 
 Every generated helper accepts `InvokeOptions` as its last parameter, and
-`@unikit/types` exports the same options for raw `invoke`/`invokeBatch`:
+`@unikit-bridge/types` exports the same options for raw `invoke`/`invokeBatch`:
 
 ```ts
-import { invokeBatch } from '@unikit/types';
+import { invokeBatch } from '@unikit-bridge/types';
 import { addNumbers, slowCompute } from './generated/commands.js';
 
 // cancellation — AbortSignal rejects the promise immediately (`cancelled`); on
@@ -757,7 +757,7 @@ a non-idempotent command on a retryable flag can double-charge, double-send, or
 double-insert. Before retrying on general transport failures, check the effect:
 
 ```ts
-import { withRetry } from '@unikit/types';
+import { withRetry } from '@unikit-bridge/types';
 
 // Safe: the command is a read — retrying cannot duplicate an effect.
 const user = await withRetry((attempt) => invoke('getUser', { id }), {
@@ -780,7 +780,7 @@ entry fails, but dispatched entries have run and their effects stand — there i
 all-or-nothing transaction. The per-entry fallback starts every entry concurrently,
 and the RN single-crossing batch stops at the first failing entry; the Tauri wire
 batch runs all entries and rejects afterwards. `invokeBatch` itself has no settled
-form — for partial-outcome observation use `invokeBatchSettled` (`@unikit/types`): it
+form — for partial-outcome observation use `invokeBatchSettled` (`@unikit-bridge/types`): it
 always runs entries sequentially per-entry (never the atomic wire batch), so a failed
 entry and everything after it are distinguishable — each entry settles as
 `{ status: 'fulfilled', value }`, `{ status: 'rejected', reason }`, or
@@ -919,8 +919,8 @@ export const addNumbers = createGeneratedFields2<AddNumbersInput, int64>(1, 'add
 ### Generated types.ts Example
 
 ```typescript
-export type { EngineClient, UnikitError } from '@unikit/types';
-export { UnikitCommandError } from '@unikit/types';
+export type { EngineClient, UnikitError } from '@unikit-bridge/types';
+export { UnikitCommandError } from '@unikit-bridge/types';
 
 export type AddNumbersInput = {
   a: number | bigint;
@@ -939,8 +939,8 @@ export type AddNumbersOutput = {
 <!-- prettier-ignore -->
 ```ts
 import type { AddNumbersInput, AddNumbersOutput, BenchAddInput, BenchAddOutput, BenchBytesPayload, BenchPairPayload, BenchStringPayload, ChannelDemoBytesInput, ChannelDemoBytesOutput, ChannelDemoInput, ChannelDemoOutput, ClampInput, ClampOutput, CreateItemInput, CreateItemOutput, DeviceDemoOutput, DivideInput, DivideOutput, EchoGroupsInput, EchoGroupsOutput, EmitDemoInput, EmitDemoOutput, GaugeInput, GaugeOutput, GreetInput, GreetOutput, IsEvenInput, IsEvenOutput, KindEchoInput, KindEchoOutput, MultiplyInput, MultiplyOutput, ParityFindInput, ParityQuery, ParitySearch, ParityStored, ParityTree, PlatformNativeInfoOutput, ProcessItemInput, ProcessItemOutput, RegistryDemoInput, RegistryDemoOutput, ResourceCloseInput, ResourceCloseOutput, ResourceHandleOutput, ResourceOpenInput, ResourceReadInput, ResourceReadOutput, ResourceWriteInput, ResourceWriteOutput, ScoreTotalInput, ScoreTotalOutput, SecureComputeInput, SecureComputeOutput, SizeOfInput, SizeOfOutput, SpanInput, SpanOutput, SumListInput, SumListOutput, TagSetInput, TagSetOutput, ToUpperInput, ToUpperOutput, WideAggInput, WideAggOutput } from './types.js';
-import { createGeneratedFields1, createGeneratedFields2, invokeGenerated, invokeGeneratedBytes, invokeGeneratedFields3 } from '@unikit/types';
-import type { InvokeOptions as CoreInvokeOptions } from '@unikit/types';
+import { createGeneratedFields1, createGeneratedFields2, invokeGenerated, invokeGeneratedBytes, invokeGeneratedFields3 } from '@unikit-bridge/types';
+import type { InvokeOptions as CoreInvokeOptions } from '@unikit-bridge/types';
 
 /**
  * 이 패키지 생성 명령의 호출 옵션 — 모든 생성 함수의 마지막 파라미터.
@@ -955,7 +955,7 @@ import type { InvokeOptions as CoreInvokeOptions } from '@unikit/types';
  * 시도가 반영되지 않았음을 확인한 뒤에만 하세요.
  *
  * 전체 의미론은 docs/compatibility-matrix.md "Signal semantics in detail" 및
- * 원본 타입(`InvokeOptions`(@unikit/types)) 문서를 참고하세요.
+ * 원본 타입(`InvokeOptions`(@unikit-bridge/types)) 문서를 참고하세요.
  */
 export type InvokeOptions = CoreInvokeOptions;
 
@@ -1266,7 +1266,7 @@ dispatch plus a `unikit-hot-swap` plugin that installs the reporter on the
 Tauri event sink. Unlike `register_with_events`, package events are NOT wired
 (the swap-drops-core-event-state policy is unchanged) — this function adds
 exactly one new emission, the swap outcome. On the JS side the channel is
-consumed by `subscribeHotSwap` from `@unikit/tauri` (see
+consumed by `subscribeHotSwap` from `@unikit-bridge/tauri` (see
 [events-and-channels.md](events-and-channels.md)).
 
 ### Example

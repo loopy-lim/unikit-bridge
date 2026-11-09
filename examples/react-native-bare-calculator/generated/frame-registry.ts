@@ -8,7 +8,7 @@
 
 import { addCodec, addNumbersCodec, benchAddCodec, benchEchoBytesCodec, benchEchoPairCodec, benchEchoStringCodec, channelDemoCodec, channelDemoBytesCodec, clampCodec, createItemCodec, deviceDemoCodec, divideCodec, echoGroupsComplexCodec, emitDemoCodec, gaugeCodec, greetCodec, greetPersonCodec, isEvenCodec, kindEchoComplexCodec, multiplyCodec, parityEchoCodec, parityFindCodec, parityIndexedCodec, parityResidentCodec, parityStoreCodec, platformNativeInfoCodec, processItemCodec, readRememberedCodec, rememberCodec, resetCodec, resourceCloseCodec, resourceOpenCodec, resourceReadCodec, resourceWriteCodec, safeDivideCodec, scoreTotalCodec, secureComputeCodec, sizeOfCodec, spanCodec, sumListCodec, tagSetComplexCodec, toUpperCodec, unikitRegistryDemoCodec, wideAggCodec } from './frame-codecs.js';
 
-export const frameRegistry = new Map<string, import('@unikit/types').FrameCodec<any, any>>([
+export const frameRegistry = new Map<string, import('@unikit-bridge/types').FrameCodec<any, any>>([
   // route: postcard
   ['add', addCodec],
   // route: postcard

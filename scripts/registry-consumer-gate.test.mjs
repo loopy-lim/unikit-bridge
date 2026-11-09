@@ -18,10 +18,10 @@ import {
 } from './registry-consumer-gate.mjs';
 
 const NPM = {
-  '@unikit/cli': '0.10.0',
-  '@unikit/types': '0.10.0',
-  '@unikit/node': '0.10.0',
-  '@unikit/bun': '0.10.0',
+  '@unikit-bridge/cli': '0.10.0',
+  '@unikit-bridge/types': '0.10.0',
+  '@unikit-bridge/node': '0.10.0',
+  '@unikit-bridge/bun': '0.10.0',
 };
 const RUST = {
   unikit: '0.10.0',
@@ -43,7 +43,7 @@ function seedNpmConsumer(root, { mismatchVersion } = {}) {
   writeJson(join(root, 'package.json'), { private: true, dependencies: NPM });
   const packages = { '': { dependencies: NPM } };
   for (const [name, version] of Object.entries(NPM)) {
-    const installed = mismatchVersion && name === '@unikit/node' ? mismatchVersion : version;
+    const installed = mismatchVersion && name === '@unikit-bridge/node' ? mismatchVersion : version;
     const packageDir = join(root, 'node_modules', ...name.split('/'));
     writeJson(join(packageDir, 'package.json'), { name, version: installed });
     packages[`node_modules/${name}`] = {
@@ -142,7 +142,7 @@ test('version manifest requires exact semver pins and the three named phases', (
     () =>
       validateVersionManifest({
         schemaVersion: 1,
-        npm: { ...NPM, '@unikit/node': '^0.10.0' },
+        npm: { ...NPM, '@unikit-bridge/node': '^0.10.0' },
         phases: { baseline: RUST, candidate: RUST, rollback: RUST },
       }),
     /exact version/,
@@ -151,10 +151,10 @@ test('version manifest requires exact semver pins and the three named phases', (
 
 test('contamination scan rejects package overrides and workspace/file/git npm dependencies', () => {
   const variants = [
-    { overrides: { '@unikit/node': 'file:../node' } },
-    { dependencies: { '@unikit/node': 'workspace:*' } },
-    { dependencies: { '@unikit/node': 'file:../node' } },
-    { dependencies: { '@unikit/node': 'git+https://example.invalid/node.git' } },
+    { overrides: { '@unikit-bridge/node': 'file:../node' } },
+    { dependencies: { '@unikit-bridge/node': 'workspace:*' } },
+    { dependencies: { '@unikit-bridge/node': 'file:../node' } },
+    { dependencies: { '@unikit-bridge/node': 'git+https://example.invalid/node.git' } },
   ];
   for (const extra of variants) {
     const { root, cleanup } = scratch();
@@ -176,11 +176,11 @@ test('contamination scan accepts only the CLI-compatible caret for the requested
     writeJson(join(root, 'package.json'), {
       private: true,
       dependencies: {
-        '@unikit/node': '^0.10.0',
-        '@unikit/types': '^0.10.0',
-        '@unikit/bun': '^0.10.0',
+        '@unikit-bridge/node': '^0.10.0',
+        '@unikit-bridge/types': '^0.10.0',
+        '@unikit-bridge/bun': '^0.10.0',
       },
-      devDependencies: { '@unikit/cli': '0.10.0' },
+      devDependencies: { '@unikit-bridge/cli': '0.10.0' },
     });
     writeFileSync(
       join(root, 'Cargo.toml'),
@@ -188,7 +188,7 @@ test('contamination scan accepts only the CLI-compatible caret for the requested
     );
     assert.doesNotThrow(() => assertNoConsumerContamination(root, { expectedNpm: NPM }));
     const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-    manifest.dependencies['@unikit/node'] = '^0.10.1';
+    manifest.dependencies['@unikit-bridge/node'] = '^0.10.1';
     writeJson(join(root, 'package.json'), manifest);
     assert.throws(
       () => assertNoConsumerContamination(root, { expectedNpm: NPM }),
@@ -263,9 +263,9 @@ test('contamination scan rejects installed Unikit package symlinks', () => {
       join(root, 'Cargo.toml'),
       '[package]\nname="registry-consumer"\nversion="0.1.0"\n',
     );
-    mkdirSync(join(root, 'node_modules', '@unikit'), { recursive: true });
+    mkdirSync(join(root, 'node_modules', '@unikit-bridge'), { recursive: true });
     const external = mkdtempSync(join(tmpdir(), 'unikit-registry-external-'));
-    symlinkSync(external, join(root, 'node_modules', '@unikit', 'node'), 'dir');
+    symlinkSync(external, join(root, 'node_modules', '@unikit-bridge', 'node'), 'dir');
     try {
       assert.throws(() => assertNoConsumerContamination(root), /symlink/);
     } finally {
@@ -281,9 +281,9 @@ test('npm provenance proves exact installed versions and registry tarball source
   try {
     seedNpmConsumer(root);
     const proof = assertExactNpmProvenance(root, NPM);
-    assert.equal(proof['@unikit/node'].version, '0.10.0');
-    assert.match(proof['@unikit/node'].resolved, /^https:\/\/registry\.npmjs\.org\//);
-    assert.equal(proof['@unikit/node'].integrity, 'sha512-fixture');
+    assert.equal(proof['@unikit-bridge/node'].version, '0.10.0');
+    assert.match(proof['@unikit-bridge/node'].resolved, /^https:\/\/registry\.npmjs\.org\//);
+    assert.equal(proof['@unikit-bridge/node'].integrity, 'sha512-fixture');
   } finally {
     cleanup();
   }
@@ -293,7 +293,7 @@ test('npm provenance rejects a resolved version mismatch', () => {
   const { root, cleanup } = scratch();
   try {
     seedNpmConsumer(root, { mismatchVersion: '0.9.0' });
-    assert.throws(() => assertExactNpmProvenance(root, NPM), /@unikit\/node.*0\.9\.0.*0\.10\.0/);
+    assert.throws(() => assertExactNpmProvenance(root, NPM), /@unikit-bridge\/node.*0\.9\.0.*0\.10\.0/);
   } finally {
     cleanup();
   }
@@ -303,7 +303,7 @@ test('npm provenance rejects a newer patch resolved through the allowed caret', 
   const { root, cleanup } = scratch();
   try {
     seedNpmConsumer(root, { mismatchVersion: '0.10.1' });
-    assert.throws(() => assertExactNpmProvenance(root, NPM), /@unikit\/node.*0\.10\.1.*0\.10\.0/);
+    assert.throws(() => assertExactNpmProvenance(root, NPM), /@unikit-bridge\/node.*0\.10\.1.*0\.10\.0/);
   } finally {
     cleanup();
   }
@@ -390,8 +390,8 @@ test('registry fixture pins all Unikit crates and exports the cdylib native entr
   try {
     writeJson(join(root, 'package.json'), {
       private: true,
-      dependencies: { '@unikit/node': '^0.10.0', '@unikit/types': '^0.10.0' },
-      devDependencies: { '@unikit/cli': '^0.10.0' },
+      dependencies: { '@unikit-bridge/node': '^0.10.0', '@unikit-bridge/types': '^0.10.0' },
+      devDependencies: { '@unikit-bridge/cli': '^0.10.0' },
     });
     writeJson(join(root, 'unikit.json'), {
       schema: './generated/schema.json',
@@ -426,7 +426,7 @@ test('registry fixture pins all Unikit crates and exports the cdylib native entr
       /pub fn package\(\) -> Package \{\s*let package = Package::builder\("app\.demo"\)\.command_fn\(echo\)\.command_fn\(fail_echo\)\.build\(\);\s*package\.register_ffi\(\);\s*package\s*\}/,
     );
     assert.doesNotMatch(lib, /Package::builder\("app\.demo"\)\s*let package/);
-    assert.match(readFileSync(join(root, 'package.json'), 'utf8'), /"@unikit\/bun": "0\.10\.0"/);
+    assert.match(readFileSync(join(root, 'package.json'), 'utf8'), /"@unikit-bridge\/bun": "0\.10\.0"/);
     assert.doesNotThrow(() => assertNoConsumerContamination(root, { expectedNpm: NPM }));
   } finally {
     cleanup();

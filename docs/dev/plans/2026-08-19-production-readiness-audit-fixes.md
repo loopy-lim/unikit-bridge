@@ -31,7 +31,7 @@ experimental 명시, Android 실기기 테스트는 이번엔 제외(빌드까�
   input/encoding 반환 차이(:49-54), (b) 10ms 지연 임계 초과(:24, :108), (c) `createRequire`
   `.node` 로드(:62-67).
 - **버전**: 배포 패키지 10개 전부 0.1.2(이미 발행됨), `.changeset/` 존재하나 대기 changeset
-  없음. `@unikit/react` 0.1.2는 미발행 신규. main이 origin/main보다 21 커밋 앞섬.
+  없음. `@unikit-bridge/react` 0.1.2는 미발행 신규. main이 origin/main보다 21 커밋 앞섬.
 - **CI**: ci.yml은 debug 테스트+release 빌드(+typescript 잡)만. release.yml의
   `cargo-publish` 잡이 `workflow_dispatch`에서만 돌지만 `release`(npm) 잡도
   `workflow_dispatch` 조건이 있어 수동 우회 가능.
@@ -210,10 +210,10 @@ cargo build -p unikit-calculator-example -q && bun test examples/calculator/ts/t
 
 `.changeset/`에 파일 추가. minor 버전(0.1.x → 0.1.3, semver pre-1.0 minor)로:
 
-- `@unikit/types`, `@unikit/node`, `@unikit/bun`, `@unikit/tauri`,
-  `@unikit/react-native`, `@unikit/lynx` — minor: JSI fast path 최적화 4종
-- `@unikit/react` — 신규 공개 (첫 발행)
-- `@unikit/cli`, `@unikit/testing`, `@unikit/devtools` — minor: dev/testing 트랙 내용
+- `@unikit-bridge/types`, `@unikit-bridge/node`, `@unikit-bridge/bun`, `@unikit-bridge/tauri`,
+  `@unikit-bridge/react-native`, `@unikit-bridge/lynx` — minor: JSI fast path 최적화 4종
+- `@unikit-bridge/react` — 신규 공개 (첫 발행)
+- `@unikit-bridge/cli`, `@unikit-bridge/testing`, `@unikit-bridge/devtools` — minor: dev/testing 트랙 내용
 - CHANGELOG.md "Unreleased" 섹션과 내용 정합
 
 #### 2. 버전 상태 확인
@@ -231,7 +231,7 @@ cargo build -p unikit-calculator-example -q && bun test examples/calculator/ts/t
 #### 수동 검증:
 
 - [ ] changeset 내용이 CHANGELOG.md Unreleased 및 21 커밋 log와 정합
-- [ ] @unikit/react가 첫 발행 대상에 포함됨
+- [ ] @unikit-bridge/react가 첫 발행 대상에 포함됨
 
 ---
 

@@ -96,7 +96,7 @@ Tauri는 문자열까지 이미 해석된 값을 전달한다. `'{"a":1}'` 같�
 `tauri_support::register_dispatch_with_swap_events`(hot-core dylib 모드)로 등록된 Rust
 호스트가 모든 스왑 결과를 여기로 민다 — 성공이면 `{ oldContractHash, newContractHash }`,
 실패면 `{ error }`; 정적 `register` / `register_with_events` 등록 아래에서는 이 채널이
-침묵한다. TypeScript에서는 `@unikit/tauri`의 `subscribeHotSwap`로 구독한다. 이벤트
+침묵한다. TypeScript에서는 `@unikit-bridge/tauri`의 `subscribeHotSwap`로 구독한다. 이벤트
 이름은 정규화를 그대로 통과한다(`/`는 보존 코드포인트) — 채널은 정확히
 `unikit://hot-core/swapped`다.
 
@@ -105,7 +105,7 @@ CallInvoker 없는 호스트에서는 `pollMs`를 넘겨 C++ 디스패처 큐를
 드레인 루프를 돌린다:
 
 ```ts
-import { subscribeEvent } from '@unikit/react-native';
+import { subscribeEvent } from '@unikit-bridge/react-native';
 
 const unsubscribe = subscribeEvent('progress.tick', (payload) => {
   /* ... */
@@ -120,7 +120,7 @@ one-shot invoke 바이너리는 이벤트를 전달할 수 없다 — 첫 구독
 `event.unavailable`이 throw된다:
 
 ```ts
-import { createNodeLoopTransport, subscribeEvent } from '@unikit/node';
+import { createNodeLoopTransport, subscribeEvent } from '@unikit-bridge/node';
 
 const transport = createNodeLoopTransport({ command: binaryPath, codecs });
 const unsubscribe = subscribeEvent(transport, 'progress.tick', (payload) => {
@@ -170,10 +170,10 @@ JSON 핸들이면 `false`를 돌려주는데, 호출 종료로 만료된 핸들�
 
 모든 호스트가 동일한 `{ handle, close() }` 계약을 노출한다:
 
-**Tauri** (`@unikit/tauri`, `unikit_channel_create` + native IPC Channel으로 발급):
+**Tauri** (`@unikit-bridge/tauri`, `unikit_channel_create` + native IPC Channel으로 발급):
 
 ```ts
-import { createChannel } from '@unikit/tauri';
+import { createChannel } from '@unikit-bridge/tauri';
 import { channelDemo } from './generated/commands.js';
 
 const channel = await createChannel((payload) => console.log(payload));
@@ -185,7 +185,7 @@ JS가 생성하는 Tauri 채널은 발급한 물리 WebView에 귀속된 네이�
 `Channel<InvokeResponseBody>`를 사용한다. `close()`는 네이티브 lease를 해제하고
 JS 콜백을 정리하며, 페이지 이동·파괴·앱 종료에서도 소유자의 자원을 정리한다.
 `ipc-channel-chunks-v1` handshake는 기존 브로드캐스트 네이티브를 거부하므로
-`@unikit/tauri`와 Rust를 함께 갱신하고 다시 빌드해야 한다. 전역 설정에는
+`@unikit-bridge/tauri`와 Rust를 함께 갱신하고 다시 빌드해야 한다. 전역 설정에는
 `core.Channel`과 Tauri 콜백 정리 API가 필요하다. 전역 API를 쓰지 않으면 `invoke`와
 함께 `{ value, dispose() }`를 반환하는 `createIpcChannel(onMessage)` 팩터리를
 명시한다. `listen`만 전달해서는 채널을 생성할 수 없다.
@@ -203,11 +203,11 @@ JS 콜백을 정리하며, 페이지 이동·파괴·앱 종료에서도 소유�
 소유권 프로토콜은 Mock IPC와 JS 테스트로 검사했으며, 물리 WebView 종료는 각 대상의
 네이티브 GUI 검증이 별도로 필요하다.
 
-**React Native** (`@unikit/react-native`, JSI — 진짜 유니캐스트; CallInvoker
+**React Native** (`@unikit-bridge/react-native`, JSI — 진짜 유니캐스트; CallInvoker
 없는 호스트는 `{ pollMs }`):
 
 ```ts
-import { createChannel } from '@unikit/react-native';
+import { createChannel } from '@unikit-bridge/react-native';
 
 const channel = createChannel((payload) => console.log(payload));
 await channelDemo({ channel: channel.handle, ticks: 3 });

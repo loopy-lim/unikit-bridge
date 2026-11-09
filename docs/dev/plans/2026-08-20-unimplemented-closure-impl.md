@@ -93,7 +93,7 @@ Phase 순서는 의존성 기반: 결함 수정(문서·코드젠) → 온보딩
 
 #### 자동 검증:
 
-- [x] `npm run test -w @unikit/cli` 통과 (신규 코드젠 테스트 포함)
+- [x] `npm run test -w @unikit-bridge/cli` 통과 (신규 코드젠 테스트 포함)
 - [x] `npm run test:ts:node` 통과 (crud wire round-trip 테스트 포함)
 - [x] `cargo test -p unikit-bridge` 통과 (codegen.rs 변경분)
 - [x] `npm run lint && npm run format:check` 통과
@@ -198,7 +198,7 @@ rust-api-guide를 실제 API로 재작성하고, 스테일 문서 5종을 현행
 
 ### 개요
 
-"5분 온보딩"을 끊김 없게 만든다: Node transport 제공, 호환성 매트릭스 문서, @unikit/react 레퍼런스 앱.
+"5분 온보딩"을 끊김 없게 만든다: Node transport 제공, 호환성 매트릭스 문서, @unikit-bridge/react 레퍼런스 앱.
 
 ### 필요한 변경사항:
 
@@ -212,9 +212,9 @@ rust-api-guide를 실제 API로 재작성하고, 스테일 문서 5종을 현행
 **파일**: 신규 `docs/compatibility-matrix.md`, `docs/README.md` 목록 추가
 **변경사항**: signal/취소/invokeBatch/이벤트 × node/bun/tauri/RN 표. node/bun의 signal 조용 드롭은 loud error로 전환하고 매트릭스에 반영 (node/bun `invoke` 시그니처에 options 파라미터 추가, 미지원 시 throw).
 
-#### 3. @unikit/react 레퍼런스 앱
+#### 3. @unikit-bridge/react 레퍼런스 앱
 
-**파일**: 신규 `examples/reference-app/` (React + @unikit/react 훅)
+**파일**: 신규 `examples/reference-app/` (React + @unikit-bridge/react 훅)
 **package.json**: `test:app:reference` 스크립트 추가
 **변경사항**: CRUD + 이벤트를 useCommand/useMutation/useEvent/UnikitProvider로 구현. Node transport(Phase 3-1) 사용. 타입체크+스모크 실행 포함.
 
@@ -304,7 +304,7 @@ rust-api-guide를 실제 API로 재작성하고, 스테일 문서 5종을 현행
 #### 자동 검증:
 
 - [x] `cargo test -p unikit-bridge` 통과 (caller-buffer FFI 테스트)
-- [x] `npm run test -w @unikit/cli` + `test:ts:node` 통과 (positional facade 생성 테스트)
+- [x] `npm run test -w @unikit-bridge/cli` + `test:ts:node` 통과 (positional facade 생성 테스트)
 - [x] `npm run bench` 실행 성공 (수치 기록은 문서 반영)
 
 #### 수동 검증:

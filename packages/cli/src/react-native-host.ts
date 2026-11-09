@@ -54,12 +54,12 @@ export async function ensureReactNativeAdapter(
         'Restore that generated workspace before installing, or explicitly remove its stale dependency and rerun setup. Existing files were preserved.',
     );
   }
-  if (sections.some((section) => section?.['@unikit/react-native'] !== undefined)) {
+  if (sections.some((section) => section?.['@unikit-bridge/react-native'] !== undefined)) {
     return { changedFiles: [], needsInstall };
   }
   manifest.dependencies = {
     ...(manifest.dependencies ?? {}),
-    '@unikit/react-native': options.adapterRange,
+    '@unikit-bridge/react-native': options.adapterRange,
   };
   const next = `${JSON.stringify(manifest, null, 2)}\n`;
   if (next !== raw) await writeFile(path, next);
@@ -86,7 +86,7 @@ export async function prepareReactNativeHost(
   const { path, raw, manifest } = await readManifest(options.appRoot);
   const scripts = ['ios', 'android'].map((platform) => ({
     name: `unikit:${platform}`,
-    command: `node -e "require('@unikit/generated-react-native/scripts/prepare-native.cjs').prepare('${platform}')"`,
+    command: `node -e "require('@unikit-bridge/generated-react-native/scripts/prepare-native.cjs').prepare('${platform}')"`,
   }));
   const conflicts: ReactNativeHostPreparation['conflicts'] = [];
   const current = { ...(manifest.scripts ?? {}) };

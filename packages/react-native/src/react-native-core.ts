@@ -8,7 +8,7 @@ import type {
   FrameEngineOptions,
   FrameSchemaNative,
   UnikitNative,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 import {
   CancelledError,
   configureLazy,
@@ -23,7 +23,7 @@ import {
   raceAbort,
   UnikitCommandError,
   UnikitErrorCode,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 
 export type ReactNativeEngine = EngineClientType & {
   invokeBatch<T>(entries: BatchEntry[]): Promise<T[]>;
@@ -130,7 +130,7 @@ export function createReactNativeEngine(native: {
 }
 
 export type FastEngineOptions = {
-  frameCodecs: Map<string, import('@unikit/types').FrameCodec<unknown, unknown>>;
+  frameCodecs: Map<string, import('@unikit-bridge/types').FrameCodec<unknown, unknown>>;
 } & FrameEngineOptions;
 export type UnikitBootstrapOptions = FastEngineOptions & {
   install(): Promise<void>;
@@ -138,7 +138,7 @@ export type UnikitBootstrapOptions = FastEngineOptions & {
 };
 export type UnikitBootstrap = {
   /**
-   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@unikit/types).
+   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@unikit-bridge/types).
    * dispose 는 멱등이고 dispose 후 ready 는 loud-fail 한다.
    */
   readonly state: BootstrapState;

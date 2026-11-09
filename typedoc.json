@@ -11,7 +11,7 @@
     "packages/devtools/src/index.ts"
   ],
   "out": "docs/api",
-  "name": "@unikit API Reference",
+  "name": "@unikit-bridge API Reference",
   "includeVersion": true,
   "readme": "none",
   "excludePrivate": true,

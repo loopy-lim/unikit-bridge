@@ -21,7 +21,7 @@
 
 - Rust `PackageBuilder::event::<E>("name")` → schema.json `events` 섹션 (미선언 시 섹션 부재 = 하위호환)
 - TS CLI `generateEventsTs`: 페이로드 타입 + `UnikitEventName` 유니언 + `onUnikitEvent` 타입 안전 구독 헬퍼 (dual-path)
-- `@unikit/tauri` `subscribeEvent`/`unikitEventChannel` — Rust `register_with_events`와 짝 (채널 규칙 정합)
+- `@unikit-bridge/tauri` `subscribeEvent`/`unikitEventChannel` — Rust `register_with_events`와 짝 (채널 규칙 정합)
 
 ### 비동기 스토리
 

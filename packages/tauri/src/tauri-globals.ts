@@ -1,4 +1,8 @@
-import { UnikitCommandError, UnikitErrorCode, type UnikitErrorCodeValue } from '@unikit/types';
+import {
+  UnikitCommandError,
+  UnikitErrorCode,
+  type UnikitErrorCodeValue,
+} from '@unikit-bridge/types';
 import type { TauriInvoke, TauriListen } from './index.js';
 import type { TauriIpcChannel } from './tauri-channels.js';
 

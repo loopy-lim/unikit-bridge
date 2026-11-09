@@ -1,4 +1,4 @@
-# @unikit/testing
+# @unikit-bridge/testing
 
 Rust 백엔드 없이 생성된 TypeScript 클라이언트를 구동하는 mock 엔진과 계약
 게이트를 제공한다. 컴포넌트/훅 테스트에서 네이티브 모듈 없이 unikit 명령을
@@ -7,14 +7,14 @@ Rust 백엔드 없이 생성된 TypeScript 클라이언트를 구동하는 mock 
 ## 설치
 
 ```bash
-bun add -d @unikit/testing
+bun add -d @unikit-bridge/testing
 ```
 
 ## createMockEngine
 
 ```ts
-import { createMockEngine } from '@unikit/testing';
-import { configure } from '@unikit/types';
+import { createMockEngine } from '@unikit-bridge/testing';
+import { configure } from '@unikit-bridge/types';
 import { addNumbers } from './generated/commands.js';
 
 const engine = createMockEngine()
@@ -50,7 +50,7 @@ const engine = createMockEngine().mock(addNumbers, ({ a, b }) => ({ value: a + b
 검출한다. CI에서 `unikit diff`(스키마 버전 간 breaking change)와 짝을 이룬다.
 
 ```ts
-import { expectContractCurrent } from '@unikit/testing';
+import { expectContractCurrent } from '@unikit-bridge/testing';
 import schemaJson from './generated/schema.json' with { type: 'json' };
 import * as commands from './generated/commands.js';
 

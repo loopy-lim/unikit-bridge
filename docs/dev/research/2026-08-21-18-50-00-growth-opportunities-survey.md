@@ -30,7 +30,7 @@ last_updated_by: claude
 - **결함 성격의 발견 6건** (PR #29 이후 신규 발견분):
   1. release 빌드에서 `grant_capability`가 영원히 불가능 (capability 시스템 prod 무효) — `lib.rs:1414`
   2. 루트 README 퀵스타트 예제가 컴파일 안 됨 (`add_numbers(a, b) -> i64` — 매크로 계약 위반)
-  3. `@unikit/react` useCommand가 `commandFn.name` 의존 — minify 환경에서 파손
+  3. `@unikit-bridge/react` useCommand가 `commandFn.name` 의존 — minify 환경에서 파손
   4. useCommand×Node/Bun 엔진 조합이 항상 signal을 전달해 첫 호출부터 `cancel.unsupported` throw
   5. devtools instrumented 엔진이 options(signal/timeoutMs)를 탈락시킴
   6. release.yml 하드코딩 `unikit-bridge-macros@0.1.3` 대기 루프 — 이미 무효화 (0.2.0 발행 시 no-op)

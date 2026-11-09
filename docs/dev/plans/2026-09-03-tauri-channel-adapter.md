@@ -201,7 +201,7 @@ function harness() {
 **Step 3: 구현**
 
 ```ts
-import { UnikitCommandError, UnikitErrorCode } from '@unikit/types';
+import { UnikitCommandError, UnikitErrorCode } from '@unikit-bridge/types';
 import { unikitEventChannel } from './tauri-events.js';
 
 type TauriInvoke = (cmd: string, args?: Record<string, unknown>) => Promise<packages/tauri>...
@@ -268,7 +268,7 @@ bun test packages/tauri
 
 ```md
 ---
-'@unikit/tauri': minor
+'@unikit-bridge/tauri': minor
 ---
 
 Tauri 채널 어댑터: `createChannel(callback)` ...

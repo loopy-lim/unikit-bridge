@@ -357,7 +357,7 @@ umbrella from drifting.
 ### Version Management (changesets)
 
 - The current versions are determined by the Rust workspace `Cargo.toml` and each
-  `packages/*/package.json`. The public `@unikit/*` packages are **independent
+  `packages/*/package.json`. The public `@unikit-bridge/*` packages are **independent
   release lines**, so they are not assumed to share one version.
 - Breaking changes are allowed during `0.x`, so any public API change must state
   the affected packages and the bump kind in a changeset:

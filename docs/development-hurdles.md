@@ -10,9 +10,9 @@ This guide describes the Rust 0.13.0 and CLI 0.13.0 workflow. JS packages have i
 
 | Form                                                        | When                                                 |
 | ----------------------------------------------------------- | ---------------------------------------------------- |
-| `bunx --bun @unikit/cli@0.12.0 <cmd>`                       | one-off execution with an explicit CLI version       |
-| `bun add -d @unikit/cli@0.12.0` + `bunx --bun unikit <cmd>` | projects running CLI commands as package scripts     |
-| `bun i -g @unikit/cli@0.12.0` + `unikit <cmd>`              | rarely — only for machines that need a global binary |
+| `bunx --bun @unikit-bridge/cli@0.12.0 <cmd>`                       | one-off execution with an explicit CLI version       |
+| `bun add -d @unikit-bridge/cli@0.12.0` + `bunx --bun unikit <cmd>` | projects running CLI commands as package scripts     |
+| `bun i -g @unikit-bridge/cli@0.12.0` + `unikit <cmd>`              | rarely — only for machines that need a global binary |
 
 `unikit init` scaffolds package scripts (`bun run doctor`, `bun run codegen`, …)
 that use the dependency form; CI and docs examples use the `bunx` form. All
@@ -31,18 +31,18 @@ exit code unchanged (`1` when breaking). `dev` is text-only.
 
 ## Starting without Rust: the mock engine
 
-The UI does not have to wait for a native build. `@unikit/testing`'s
+The UI does not have to wait for a native build. `@unikit-bridge/testing`'s
 `createMockEngine` is a real `EngineClient` — install it once with `configure()`
 and the generated command helpers run unchanged, no Rust toolchain involved:
 
 ```bash
-bun add @unikit/testing @unikit/types
+bun add @unikit-bridge/testing @unikit-bridge/types
 ```
 
 ```ts
 // src/mock.ts — import early while the UI is still under construction
-import { createMockEngine } from '@unikit/testing';
-import { configure } from '@unikit/types';
+import { createMockEngine } from '@unikit-bridge/testing';
+import { configure } from '@unikit-bridge/types';
 import { addNumbers } from './generated/commands.js';
 
 const engine = createMockEngine()
@@ -80,8 +80,8 @@ nothing else in app code changes.
 Start a Node project and make its first Rust call in one command:
 
 ```bash
-bunx --bun @unikit/cli@0.12.0 init my-project --setup
-# Bun FFI: bunx --bun @unikit/cli@0.12.0 init my-bun-project --host bun --setup
+bunx --bun @unikit-bridge/cli@0.12.0 init my-project --setup
+# Bun FFI: bunx --bun @unikit-bridge/cli@0.12.0 init my-bun-project --host bun --setup
 ```
 
 After editing, use `cd my-project` and `bun run start` to repeat generation,
@@ -109,9 +109,9 @@ For RN/Tauri apps, use setup without `--run` and finish the printed native app s
 `doctor` diagnoses the current host without installing anything or changing files.
 
 ```bash
-bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json
-bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json --format json
-bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json --strict
+bunx --bun @unikit-bridge/cli@0.12.0 doctor --config unikit.json
+bunx --bun @unikit-bridge/cli@0.12.0 doctor --config unikit.json --format json
+bunx --bun @unikit-bridge/cli@0.12.0 doctor --config unikit.json --strict
 ```
 
 It checks Rust MSRV 1.88+, Cargo, the configured Cargo manifest and Rust target.
@@ -179,14 +179,14 @@ Every generated file carries a self-describing header (file name, source, regen 
 
 ## Runtime diagnostics: `UNIKIT_DEBUG`
 
-Set `UNIKIT_DEBUG=1` (also `true` or `verbose`) in the process environment to turn on the opt-in diagnostics every adapter shares through `@unikit/types`. The value is read once per process at first use.
+Set `UNIKIT_DEBUG=1` (also `true` or `verbose`) in the process environment to turn on the opt-in diagnostics every adapter shares through `@unikit-bridge/types`. The value is read once per process at first use.
 
 - Every wire round trip is logged through `console.debug` as a `[unikit:debug]` event carrying `direction` (`request`/`response`/`error`), `transport` (`json`/`frame`/`typed`), `command`, a bounded hex `bytes` preview with `byteLength`, and a truncated `value` snapshot (depth 3, 32 entries, 2 KB budget). Nothing is logged unless debug is on, so secrets stay out of logs by default.
 - The raw wire bytes are additionally hex-dumped to stderr as `[unikit:wire] <direction> <hex>` (first 256 bytes).
 - The JSON engine emits a `kind: 'response.shape'` warning event when a resolved response looks like a wire-envelope anomaly — `reason` is one of `double_envelope`, `failed_without_error`, `envelope_missing_payload`, `resolved_error_envelope` — the usual symptom of a JS/native version skew. The warning never throws and never changes the result.
-- `@unikit/node` emits `kind: 'ndjson.unparsed'` for every stdout line the NDJSON loop could not parse and warns on stderr once. Without debug mode it instead keeps the last 32 unparsed lines (each cut at 4 096 characters) and attaches them to the error of requests still pending when the child process exits; in debug mode an 8 KB stderr tail is attached as well.
+- `@unikit-bridge/node` emits `kind: 'ndjson.unparsed'` for every stdout line the NDJSON loop could not parse and warns on stderr once. Without debug mode it instead keeps the last 32 unparsed lines (each cut at 4 096 characters) and attaches them to the error of requests still pending when the child process exits; in debug mode an 8 KB stderr tail is attached as well.
 
-React Native has no `process.env` — set `globalThis.__UNIKIT_DEBUG__ = true` instead (this enables the event log; the stderr hex dump is env-only). For a structured consumer, install a sink with `configureDebug(sink)` from `@unikit/types`: the sink receives every `UnikitDebugEvent` even when `UNIKIT_DEBUG` is unset, and `configureDebug(undefined)` removes it.
+React Native has no `process.env` — set `globalThis.__UNIKIT_DEBUG__ = true` instead (this enables the event log; the stderr hex dump is env-only). For a structured consumer, install a sink with `configureDebug(sink)` from `@unikit-bridge/types`: the sink receives every `UnikitDebugEvent` even when `UNIKIT_DEBUG` is unset, and `configureDebug(undefined)` removes it.
 
 ## Realistic per-platform boundaries
 
@@ -272,7 +272,7 @@ consumer's Rust FFI lifecycle.
 The 0.x API can still change, so run `doctor`, `codegen:check`, and `unikit diff` together in CI and lock the CLI/Rust/adapter versions separately. When reproducing an issue, leaving the following information behind makes diagnosis possible without descending into the source code.
 
 ```bash
-bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json --format json > unikit-doctor.json
+bunx --bun @unikit-bridge/cli@0.12.0 doctor --config unikit.json --format json > unikit-doctor.json
 bun run codegen:check
-bunx --bun @unikit/cli diff --old generated/schema.v1.json --new generated/schema.json
+bunx --bun @unikit-bridge/cli diff --old generated/schema.v1.json --new generated/schema.json
 ```

@@ -1,4 +1,4 @@
-import { parseUnikitErrorString, UnikitCommandError } from '@unikit/types';
+import { parseUnikitErrorString, UnikitCommandError } from '@unikit-bridge/types';
 import { getUnikitNative } from './react-native-core.js';
 
 export type UnikitEventNative = {

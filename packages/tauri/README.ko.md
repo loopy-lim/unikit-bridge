@@ -1,4 +1,4 @@
-# @unikit/tauri
+# @unikit-bridge/tauri
 
 Tauri의 global IPC를 lazy 감지해 공통 `EngineClient`로 연결하는 어댑터입니다.
 
@@ -62,7 +62,7 @@ function subscribeHotSwap(
 ## 사용 예시
 
 ```ts
-import { createTauriEngine } from '@unikit/tauri';
+import { createTauriEngine } from '@unikit-bridge/tauri';
 import { invoke } from '@tauri-apps/api/core';
 
 const engine = createTauriEngine({ invoke });
@@ -106,7 +106,7 @@ JS가 생성하는 Tauri 채널은 발급한 물리 WebView에 귀속된 네이�
 `Channel<InvokeResponseBody>`를 사용한다. `close()`는 네이티브 lease를 해제하고
 JS 콜백을 정리하며, 페이지 이동·파괴·앱 종료에서도 소유자의 자원을 정리한다.
 `ipc-channel-chunks-v1` handshake는 기존 브로드캐스트 네이티브를 거부하므로
-`@unikit/tauri`와 Rust를 함께 갱신하고 다시 빌드해야 한다. 전역 설정에는
+`@unikit-bridge/tauri`와 Rust를 함께 갱신하고 다시 빌드해야 한다. 전역 설정에는
 `core.Channel`과 Tauri 콜백 정리 API가 필요하다. 전역 API를 쓰지 않으면 `invoke`와
 함께 `{ value, dispose() }`를 반환하는 `createIpcChannel(onMessage)` 팩터리를
 명시한다. `listen`만 전달해서는 채널을 생성할 수 없다.

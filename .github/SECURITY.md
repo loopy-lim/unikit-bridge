@@ -3,7 +3,7 @@
 ## Supported Versions
 
 unikit is pre-1.0 — security fixes land on `main` and ship in the next
-minor release. The latest published version (`@unikit/*` on npm, `unikit`
+minor release. The latest published version (`@unikit-bridge/*` on npm, `unikit`
 on crates.io) is the supported surface.
 
 | Version | Supported |

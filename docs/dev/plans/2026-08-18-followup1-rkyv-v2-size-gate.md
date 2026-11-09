@@ -136,7 +136,7 @@ pub fn invoke_rkyv_v2(&self, payload: &[u8]) -> crate::Result<Vec<u8>> {
 - [ ] `npm run test:types` (types 55) green
 - [ ] `npm run test:ts:node` (32) green
 - [ ] `npm run test:packages` (45) green
-- [ ] `npm run test -w @unikit/cli` (28) green
+- [ ] `npm run test -w @unikit-bridge/cli` (28) green
 - [ ] `cargo test -p unikit-calculator-example` green (게이트 상속 + 상수 제거 회귀)
 - [ ] types 테스트에 JSON fallback 파싱 회귀 가드 추가: `parseUnikitErrorString("payload.too_large: payload 1048577B exceeds max payload 1048576B")` → `code === 'payload.too_large'` (기존 `invoke.failed` 강등 회귀 방지)
 

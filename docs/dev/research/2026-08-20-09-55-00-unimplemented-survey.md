@@ -30,7 +30,7 @@ last_updated_by: loopy-lim
 1. **HIGH 결함 2건**: ① CLI rkyv 코드젠이 미지원 필드(`Option<T>`/`Vec<String>`/enum/map)를 **경고 없이 삭제**해 crud 예제 등에서 와이어 프레임 붕괴(잠복 결함, CI 미커버). ② `docs/rust-api-guide.md`의 26%(27건 중 7건)가 실제 매크로 시그니처와 불일치 — 문서대로 작성하면 컴파일 실패.
 2. **의도적 유예(성능) 2건**: FFI caller-buffer fastpath(L), 코드젠 positional facade(M).
 3. **부분 구현(동작하나 제한) 6건**: 취소 전파 JS 코덱 경로 한정, tier-3 `getLiveSchema` 조용한 빈 Map, invokeTypedBatch 취소 없음, rkyv V2 Rust Tier 3 JSON 폴백, RSS 측정 macOS 한정, Node transport 부재로 "5분 온보딩" 끊김.
-4. **DX/문서 정합성 10건**: 호환성 매트릭스 문서 부재, `@unikit/react` 훅 사용 예제 0건, `--cpp-output` 미문서화, init 템플릿 버전 `^0.1.1` 고정(실제 0.1.3), compatibility-contract.md RN 서술 스테일, security-audit.md의 runner/ 참조, 마스터플랜 진척 표 스테일, docs/README.md 목록 누락, lynx dist 잔여물, RN B1 체크리스트 23항목 미폐쇄.
+4. **DX/문서 정합성 10건**: 호환성 매트릭스 문서 부재, `@unikit-bridge/react` 훅 사용 예제 0건, `--cpp-output` 미문서화, init 템플릿 버전 `^0.1.1` 고정(실제 0.1.3), compatibility-contract.md RN 서술 스테일, security-audit.md의 runner/ 참조, 마스터플랜 진척 표 스테일, docs/README.md 목록 누락, lynx dist 잔여물, RN B1 체크리스트 23항목 미폐쇄.
 5. **고아 추상/잔여물 5건**: `RendererHost` trait 참조 구현 없음(Lynx 제거 잔해), F5 `contractHash` JSI 미노출(JSI 브릿지에 getContractHash 없음 → 항상 throw), `invokeAsync(payload,onDone)` 선언만 존재, `allOf`/integer enum 코드젠 미지원, auth/streaming `generated/` 스테일.
 
 **긍정 발견**: `#[ignore]`/skip 테스트 0건, 프로덕션 `unimplemented!()` 0건, tauri feature 정상 컴파일, CLI 전 커맨드 동작, RN JSI 브릿지 핵심 메서드 전부 구현. 과거 계획(production-hardening 4트랙, follow-up 1/2/3, JSI 최적화, PR #14)은 완료노트가 성실하게 유지됨.
@@ -83,7 +83,7 @@ last_updated_by: loopy-lim
 ### 4. DX/문서 정합성
 
 - **호환성 매트릭스 문서 부재** (S): signal이 node/bun/tauri에서 조용히 드롭(node/bun `invoke`에 options 파라미터 자체 없음), `invokeBatch` rkyvV2 전용, 이벤트 RN 전용 — 어느 문서에도 표 없음. 메모리상 post-Lynx 우선순위 2순위
-- **레퍼런스 앱 예제 부재** (M~L): `@unikit/react`(useCommand/useMutation/useEvent/UnikitProvider)는 0.1.3 발행됐지만 사용 예제 0건. examples/는 전부 벤치마크/패턴 예제
+- **레퍼런스 앱 예제 부재** (M~L): `@unikit-bridge/react`(useCommand/useMutation/useEvent/UnikitProvider)는 0.1.3 발행됐지만 사용 예제 0건. examples/는 전부 벤치마크/패턴 예제
 - **`--cpp-output` 미문서화** (S): CLI 도움말(`packages/cli/src/index.ts:227-252`)에만 존재, RN 셋업 가이드·getting-started 0회 언급
 - **init 템플릿 버전 고정** (S): `packages/cli/src/index.ts:195-196`이 `^0.1.1` 고정, 실제 패키지 0.1.3
 - **compatibility-contract.md RN 서술 스테일** (S): :31, :67 "missing-native-module" — RN JSI 네이티브 모듈은 구현·실기 검증(0.95µs)·CI Release 완료 상태. 계약 문서라 낡은 내용이 해로움

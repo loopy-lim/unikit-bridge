@@ -4,7 +4,7 @@ English | [한국어](./README.ko.md)
 
 An example showing the pattern where JS consumes events published with
 `Package::emit()`. A long-running command streams progress, and the host adapter
-subscribes (`@unikit/node` `subscribeEvent`) and forwards events to the platform
+subscribes (`@unikit-bridge/node` `subscribeEvent`) and forwards events to the platform
 push channel — this daemon is a legacy line-JSON runtime, so delivery flows
 through the polling fallback (no `events:"push"` handshake).
 
@@ -67,6 +67,6 @@ receive-side order verification.
 
 The `--serve` line daemon answers the `__drainEvents` polling command with the
 `events` field (`{"ok":true,"events":[...]}`) — the same contract as the
-calculator loop-stdio reference runtime, which is what `@unikit/node`'s polling
+calculator loop-stdio reference runtime, which is what `@unikit-bridge/node`'s polling
 fallback reads. For a push-mode (0xfffd frame) runtime see
 `examples/calculator/src/loop_stdio.rs`.

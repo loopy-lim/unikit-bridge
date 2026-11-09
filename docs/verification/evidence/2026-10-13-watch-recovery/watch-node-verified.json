@@ -576,7 +576,7 @@
     "sourceFileCount": 1128
   },
   "producerBefore": {
-    "name": "@unikit/cli",
+    "name": "@unikit-bridge/cli",
     "version": "0.12.0",
     "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/packages/cli",
     "files": 151,
@@ -609,7 +609,7 @@
   },
   "sourceStable": true,
   "producerAfter": {
-    "name": "@unikit/cli",
+    "name": "@unikit-bridge/cli",
     "version": "0.12.0",
     "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/packages/cli",
     "files": 151,

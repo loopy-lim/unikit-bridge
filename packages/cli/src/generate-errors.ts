@@ -1,5 +1,5 @@
 /**
- * @unikit/cli — 커맨드별 타입화 에러 렌더러
+ * @unikit-bridge/cli — 커맨드별 타입화 에러 렌더러
  *
  * 스키마 명령 항목의 `errors` 선언에서 `errors.ts`를 생성한다 — 커맨드별
  * 에러 코드 리터럴 유니언(`{Fn}ErrorCode`) + `UnikitCommandError` 교차 타입
@@ -20,7 +20,7 @@ export function generateErrorsTs(schema: PackageSchema): string {
   const declared = schema.commands.filter((command) => (command.errors?.length ?? 0) > 0);
   if (declared.length === 0) return '';
 
-  let output = "import { UnikitCommandError } from '@unikit/types';\n";
+  let output = "import { UnikitCommandError } from '@unikit-bridge/types';\n";
   const symbols = new Set<string>();
   for (const command of declared) {
     output += `\n${renderCommandErrorSurface(command, symbols)}`;

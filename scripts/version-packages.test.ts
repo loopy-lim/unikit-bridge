@@ -22,7 +22,7 @@ void test('syncReactNativeRange rewrites only the range value and preserves form
     const manifestPath = join(root, 'package.json');
     const original = [
       '{',
-      '  "name": "@unikit/cli",',
+      '  "name": "@unikit-bridge/cli",',
       '  "unikitTemplate": {',
       '    "cargoRange": "^0.9.0",',
       '    "reactNativeRange": "^0.7.0"',
@@ -59,13 +59,13 @@ void test('syncLockWorkspaceMetadata rewrites workspace version and internal ran
       '      },',
       '    },',
       '    "packages/cli": {',
-      '      "name": "@unikit/cli",',
+      '      "name": "@unikit-bridge/cli",',
       '      "version": "0.8.0",',
       '      "bin": {',
       '        "unikit": "./dist/index.js",',
       '      },',
       '      "dependencies": {',
-      '        "@unikit/types": "^0.8.0",',
+      '        "@unikit-bridge/types": "^0.8.0",',
       '      },',
       '    },',
       '  },',
@@ -80,12 +80,12 @@ void test('syncLockWorkspaceMetadata rewrites workspace version and internal ran
     writeFileSync(lockPath, lock);
 
     const manifests = {
-      'packages/cli': { version: '0.9.0', dependencies: { '@unikit/types': '^0.9.0' } },
+      'packages/cli': { version: '0.9.0', dependencies: { '@unikit-bridge/types': '^0.9.0' } },
     };
     assert.equal(syncLockWorkspaceMetadata(lockPath, manifests), true);
     const updated = readFileSync(lockPath, 'utf8');
-    assert.match(updated, /"@unikit\/cli",\n      "version": "0\.9\.0"/);
-    assert.match(updated, /"@unikit\/types": "\^0\.9\.0"/);
+    assert.match(updated, /"@unikit-bridge\/cli",\n      "version": "0\.9\.0"/);
+    assert.match(updated, /"@unikit-bridge\/types": "\^0\.9\.0"/);
     // 레지스트리 패키지 해석 영역과 무관 workspace 블록은 그대로.
     assert.match(updated, /"typescript@5\.9\.0": \{\n      "version": "5\.9\.0"/);
     assert.doesNotMatch(updated, /"typescript": "\^0\.9\.0"/);

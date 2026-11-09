@@ -1,4 +1,4 @@
-# Lynx Host Adapter Design (`@unikit/lynx`)
+# Lynx Host Adapter Design (`@unikit-bridge/lynx`)
 
 ## Goal
 
@@ -7,8 +7,8 @@ unikit의 지원 host에 **Lynx**(ReactLynx)를 추가한다. 접근법 **B — 
 ## Constraints
 
 - **Rust FFI는 재사용한다**: 이미 존재하는 `unikit_calculator_invoke_rkyv_v2(ptr, len, out_len) → *mut u8` 심볼을 그대로 호출. Rust 코어/코드젠은 변경하지 않는다.
-- **`createRkyvV2Engine`은 이미 host-neutral**: `@unikit/types`가 제공. Lynx 네이티브 모듈이 `invokeRkyvV2(payload: ArrayBuffer): ArrayBuffer`만 노출하면 TS 어댑터는 RN 어댑터와 사실상 동일하다.
-- **호스트 독립성 계약 유지**: 어댑터는 다른 host 패키지를 import하지 않는다(계약 불변량 #2, #3). `@unikit/lynx`는 `@unikit/types`와 Lynx 런타임 글로벌(`NativeModules`)에만 의존한다.
+- **`createRkyvV2Engine`은 이미 host-neutral**: `@unikit-bridge/types`가 제공. Lynx 네이티브 모듈이 `invokeRkyvV2(payload: ArrayBuffer): ArrayBuffer`만 노출하면 TS 어댑터는 RN 어댑터와 사실상 동일하다.
+- **호스트 독립성 계약 유지**: 어댑터는 다른 host 패키지를 import하지 않는다(계약 불변량 #2, #3). `@unikit-bridge/lynx`는 `@unikit-bridge/types`와 Lynx 런타임 글로벌(`NativeModules`)에만 의존한다.
 - **iOS 우선, Android 후속** — 단계적 검증.
 - **데스크탑(Lynxtron)은 제외**: Lynxtron이 "Coming soon"이므로 이번 범위에서 빼고, 정식 출시 후 별도 확장.
 - 생성된 TypeScript(`generated/commands.ts`, `types.ts`)는 host-neutral을 유지한다. Lynx 전용 코드는 어댑터 패키지와 네이티브 모듈에만 존재한다.
@@ -20,7 +20,7 @@ ReactLynx 앱 (src/App.tsx)
   addNumbers({ a, b })                       ← generated/commands.ts (host-neutral, 그대로 import)
         │ engine.invoke / 글로벌 invoke()
         ▼
-createRkyvV2Engine(native, rkyvV2Codecs)     ← @unikit/types (재사용, RN과 동일)
+createRkyvV2Engine(native, rkyvV2Codecs)     ← @unikit-bridge/types (재사용, RN과 동일)
         │ args → rkyv V2 인코딩 → ArrayBuffer
         ▼
 NativeModules.UnikitModule.invokeRkyvV2(buf) ← Lynx Native Module (새로 작성)
@@ -63,9 +63,9 @@ pub unsafe extern "C" fn unikit_calculator_invoke_rkyv_v2(
 ```
 packages/lynx/
 ├── src/
-│   ├── index.ts        ← createLynxEngine / createFastEngine / getUnikitNative + @unikit/types re-export
+│   ├── index.ts        ← createLynxEngine / createFastEngine / getUnikitNative + @unikit-bridge/types re-export
 │   └── index.test.ts   ← 모킹 invokeRkyvV2 단위 테스트 (RN 테스트 복사)
-├── package.json        ← @unikit/lynx, @unikit/types 의존
+├── package.json        ← @unikit-bridge/lynx, @unikit-bridge/types 의존
 ├── tsconfig.json
 └── README.md
 ```
@@ -74,7 +74,7 @@ packages/lynx/
 - `getUnikitNative()` — RN은 `globalThis.__unikitNative`, **Lynx는 `NativeModules.UnikitModule`** 글로벌에서 획득. Lynx가 제공하는 `NativeModules` 객체에서 읽는 점만 다르다.
 - `createLynxEngine(native)` — JSON 폴백 경로(옵션). fast-path가 주 경로.
 
-핵심 인터페이스(`@unikit/types`에 이미 정의):
+핵심 인터페이스(`@unikit-bridge/types`에 이미 정의):
 
 ```ts
 export type RkyvV2Native = {
@@ -136,7 +136,7 @@ ReactLynx(rspeedy) 기반. Lynx Explorer로 preview.
 ```tsx
 // src/App.tsx
 import { addNumbers } from '../calculator/generated/commands.js';
-import { createFastEngine, configure, getUnikitNative } from '@unikit/lynx';
+import { createFastEngine, configure, getUnikitNative } from '@unikit-bridge/lynx';
 import { rkyvV2Registry } from '../calculator/generated/rkyv-registry.js';
 
 configure(createFastEngine(getUnikitNative(), { rkyvV2Codecs: rkyvV2Registry }));

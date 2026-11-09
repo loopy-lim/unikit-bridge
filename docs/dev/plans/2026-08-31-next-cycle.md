@@ -282,7 +282,7 @@ Expected: **바이트 동일** → 합격. 틀리거나 성능/안정성 문제�
 
 - 합격: compatibility-matrix에 기록하고 Task A1 착수
 - 불합격: 결과를 compatibility-matrix에 기록, Track A는 A0에서 종료.
-  대체 산출물: RN 경계 문서 + `@unikit/testing` 목업 가이드 (이 문서만 커밋)
+  대체 산출물: RN 경계 문서 + `@unikit-bridge/testing` 목업 가이드 (이 문서만 커밋)
 
 ### Task A1: Node/Bun/Tauri cdylib 핫스왑
 

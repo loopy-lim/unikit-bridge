@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Platform, StyleSheet, Text, View, ScrollView } from 'react-native';
 import { NitroModules } from 'react-native-nitro-modules';
 import type { NitroBench } from 'nitro-bench';
-import { configure } from '@unikit/types';
+import { configure } from '@unikit-bridge/types';
 import {
   addNumbers,
   greet,
@@ -24,7 +24,7 @@ import {
   resourceClose,
 } from '../calculator/generated/commands';
 // ── Benchmark internals (not part of user-facing API) ───────
-import { installUnikitJSI, getUnikitNative } from '@unikit/generated-react-native';
+import { installUnikitJSI, getUnikitNative } from '@unikit-bridge/generated-react-native';
 import UnikitCalculator, { invokeCommand as invokeFfiCommand } from 'unikit-calculator';
 import { createJsonEngine } from './src/adapters/json-adapter';
 import { createFrameEngine, frameRegistry } from './src/adapters/frame-adapter';
@@ -171,7 +171,7 @@ async function runBenchmarks(): Promise<string[]> {
   // ══════════════════════════════════════════════════════
   // DX example: how users would set up unikit in their app
   // ─────────────────────────────────────────────────────
-  //   import { configure } from "@unikit/types";
+  //   import { configure } from "@unikit-bridge/types";
   //   import { createFrameEngine } from "./src/adapters/frame-adapter";
   //   import { installUnikitJSI, getUnikitNative } from "./modules/unikit-jsi/src";
   //

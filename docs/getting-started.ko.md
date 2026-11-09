@@ -12,7 +12,7 @@ unikit는 Rust 패키지를 한 번 정의하면 Node, Bun, Tauri, React Native 
 
 이 가이드는 unikit를 처음 사용하는 개발자가 10분 안에 첫 패키지를 만들고 TypeScript 클라이언트를 생성하는 것을 목표로 한다.
 
-> 용어: **unikit**는 Rust 크레이트와 npm 스코프(`@unikit/*`), **unikit-bridge**는
+> 용어: **unikit**는 Rust 크레이트와 npm 스코프(`@unikit-bridge/*`), **unikit-bridge**는
 > 이 저장소를 가리킨다. 같은 프로젝트의 두 이름이다.
 
 ## 전제 조건
@@ -38,8 +38,8 @@ unikit는 Rust 패키지를 한 번 정의하면 Node, Bun, Tauri, React Native 
 Rust와 Bun 1.4 이상이 설치되어 있으면 다음 명령을 실행한다.
 
 ```bash
-bunx --bun @unikit/cli@0.13.0 init my-project --setup
-# Bun FFI를 쓰려면: bunx --bun @unikit/cli@0.13.0 init my-bun-project --host bun --setup
+bunx --bun @unikit-bridge/cli@0.13.0 init my-project --setup
+# Bun FFI를 쓰려면: bunx --bun @unikit-bridge/cli@0.13.0 init my-bun-project --host bun --setup
 ```
 
 프로젝트 생성 → 클라이언트 생성 → 의존성 설치 → Rust 빌드 → `echo` 데모 호출까지
@@ -99,10 +99,10 @@ schemars = { version = "0.8", features = ["derive"] }
 TypeScript 어댑터는 사용할 환경만 설치하면 된다:
 
 ```bash
-bun add @unikit/node@0.11.1      # Node.js
-bun add @unikit/bun@0.11.1       # Bun
-bun add @unikit/tauri@0.10.1     # Tauri
-bun add @unikit/react-native@0.11.0  # React Native
+bun add @unikit-bridge/node@0.11.1      # Node.js
+bun add @unikit-bridge/bun@0.11.1       # Bun
+bun add @unikit-bridge/tauri@0.10.1     # Tauri
+bun add @unikit-bridge/react-native@0.11.0  # React Native
 ```
 
 ### 모노레포 / workspace에서 사용
@@ -316,8 +316,8 @@ bun run --cwd examples/calculator codegen                # schema.json에서 TS 
 
 <!-- prettier-ignore -->
 ```ts
-export type { EngineClient, UnikitError } from '@unikit/types';
-export { UnikitCommandError } from '@unikit/types';
+export type { EngineClient, UnikitError } from '@unikit-bridge/types';
+export { UnikitCommandError } from '@unikit-bridge/types';
 
 /**
  * 커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.
@@ -735,7 +735,7 @@ export type WideAggOutput = {
 
 ```ts
 import type { AddNumbersInput, AddNumbersOutput } from './types.js';
-import { createGeneratedFields2 } from '@unikit/types';
+import { createGeneratedFields2 } from '@unikit-bridge/types';
 
 // 필드 1~2개 명령은 호출당 힘(required fields)을 직접 전달하는 const 형태로 생성된다
 // (1-필드 명령은 `createGeneratedFields1` 을 쓰며 (input, options) 호출 표면은 같다).
@@ -877,7 +877,7 @@ fn run_invoke_stdio() -> unikit_bridge::Result<()> {
 **커스텀 transport (napi-rs 등):**
 
 ```ts
-import { createNodeEngine } from '@unikit/node';
+import { createNodeEngine } from '@unikit-bridge/node';
 
 const engine = createNodeEngine({
   invoke(command, args) {
@@ -987,8 +987,8 @@ RN JSI `invokeTyped` 진입을 직접 호출한다. 해당 형태 밖의 명령�
 `commands.ts` 경로를 유지한다.
 
 ```bash
-bunx --bun @unikit/cli@0.13.0 doctor --config unikit.json
-bunx --bun @unikit/cli@0.13.0 codegen --config unikit.json
+bunx --bun @unikit-bridge/cli@0.13.0 doctor --config unikit.json
+bunx --bun @unikit-bridge/cli@0.13.0 codegen --config unikit.json
 ```
 
 **TypeScript 측 사용:**
@@ -1003,7 +1003,7 @@ const result = await addNumbers({ a: 20, b: 22 }); // JSI fast path
 `frameRegistry` 고속 엔진 설정을 동시 호출에도 한 번만 수행한다. 실패한 설치는 다음
 호출에서 재시도하고, 앱이 명시적으로 `configure()`한 엔진은 늦게 끝난 설치가 덮어쓰지
 않는다. 생성기는 Cargo package/library를 추론하고 앱 전용
-`@unikit/generated-react-native` package에 Podspec, Gradle/CMake/JNI와 공유 C++
+`@unikit-bridge/generated-react-native` package에 Podspec, Gradle/CMake/JNI와 공유 C++
 bridge를 만든다. Expo development build와 bare RN 모두 표준 autolinking을 쓰며,
 앱 코드에는 install/configure 보일러플레이트가 남지 않는다. Expo Go는 지원하지 않는다.
 
@@ -1033,8 +1033,8 @@ TypeScript/native codec 동기화, Expo/Pod 연결, Rust iOS target, static arch
 #### JSON (저수준 transport 호환성)
 
 ```ts
-import { createReactNativeEngine } from '@unikit/react-native';
-import { configure } from '@unikit/types';
+import { createReactNativeEngine } from '@unikit-bridge/react-native';
+import { configure } from '@unikit-bridge/types';
 import { addNumbers } from '../generated/commands.js';
 import { customNativeTransport } from './native-transport';
 
@@ -1183,7 +1183,7 @@ Node·Bun 런타임 프로듀서 재빌드가 끝난 뒤에만 보고된다 — 
 치유된다. 타입 검사만 반복하고 싶다면 `tsc --watch`를 별도 스크립트로 추가한다.
 
 debug 빌드에서 프로토타이핑하는 동안에는 생성 클라이언트에 아직 없는 Rust 핸들러를
-`@unikit/types`의 `invokeLoose(engine, 'commandName', args?)`로 호출할 수 있다 — 동적
+`@unikit-bridge/types`의 `invokeLoose(engine, 'commandName', args?)`로 호출할 수 있다 — 동적
 개발 티어와 미지 디바이스 토큰 벽, 릴리스 시점 게이트는 [dev-tier.ko.md](dev-tier.ko.md)에
 있다.
 
@@ -1270,10 +1270,10 @@ fn divide(input: DivideInput) -> Result<DivideOutput> {
 ### TypeScript 측
 
 커맨드 호출이 실패하면 어댑터가 에러를 throw한다. 모든 호스트 어댑터(Node/Bun/Tauri/RN)는
-`@unikit/types`의 `UnikitCommandError`로 정규화하므로 `instanceof` 분기가 하나뿐이다:
+`@unikit-bridge/types`의 `UnikitCommandError`로 정규화하므로 `instanceof` 분기가 하나뿐이다:
 
 ```ts
-import { UnikitCommandError } from '@unikit/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 import { divide } from '../generated/node.js';
 
 try {

@@ -110,7 +110,7 @@ capability 무음 드랍 제거, positional facade 렌더러 수정 모두 현 �
 | 아티팩트 자동 탐색           | binary 후보 release→debug + cwd 조상 탐색 (node-bootstrap.ts:25-46)                      | cdylib 후보 + ABI probe (bun-ffi-library.ts:33-45)                       | `globalThis.__TAURI__.core.invoke` (tauri/src/index.ts:93-99)                                   | autolink된 `globalThis.__unikitNative` (react-native-core.ts:171-181)                                      |
 | `unikit.json` host 섹션      | `{}`로 충분                                                                              | `{}`로 충분                                                              | `{}`로 충분                                                                                     | `{}`로 충분 (모노레포에서만 `rustManifest` 지정 — examples/react-native-bare-calculator/unikit.json 참고)  |
 | Rust 측 필요 작업            | `Package::builder().command_fn()` + main.rs stdio invoke 루프 — **전부 스캐폴드가 심음** | 좌동 + `[lib] crate-type cdylib` **수동 1줄** (init이 Bun 호스트 미지원) | `features=["tauri"]` + `tauri_support::register_with_events(pkg, Builder)` **1줄**              | `[lib] staticlib` (init `--host react-native`이 심음) + 모듈 15파일은 코드젠 생성(react-native.ts:130-146) |
-| 호스트 플랫폼 설정           | 없음                                                                                     | 없음                                                                     | `tauri.conf.json` `app.withGlobalTauri: true` **1개** (또는 `createTauriEngine({invoke})` 명시) | autolink 설정 불요(생성됨). 단 코드젠 전 `bun install`로 `@unikit/react-native` 먼저 설치 필요             |
+| 호스트 플랫폼 설정           | 없음                                                                                     | 없음                                                                     | `tauri.conf.json` `app.withGlobalTauri: true` **1개** (또는 `createTauriEngine({invoke})` 명시) | autolink 설정 불요(생성됨). 단 코드젠 전 `bun install`로 `@unikit-bridge/react-native` 먼저 설치 필요             |
 | npm 의존성                   | 코드젠이 자동 주입(cli-generate-files.ts:146-152 `ensureHostDependencies`)               | 동일                                                                     | 동일                                                                                            | `ensureReactNativeDependency`가 workspace 연결                                                             |
 | escape hatch                 | `UNIKIT_NODE_BINARY`                                                                     | `UNIKIT_BUN_LIBRARY`                                                     | `createTauriEngine({invoke})`                                                                   | custom native transport                                                                                    |
 | examples 실사용 증거         | calculator/apps/node-app.ts:1                                                            | calculator/apps/bun-ffi-app.ts:1 ("bun FFI zero-config result: 42" 재현) | tauri-calculator/src/app.ts:1                                                                   | react-native-calculator/App.tsx:3, react-native-bare-calculator/App.tsx                                    |
@@ -354,10 +354,10 @@ Unexpected EOF`. generate 경로(cli-generate-files.ts:61-76)는 경로+재생�
 - 증거: `packages/cli/src/react-native.ts:70-106`
   `resolveReactNativeAdapterNative`은 완전하나 버전 불일치인 경우만 loud
   fail하고, 미설치(경로 자체가 없음)면 검증 없이 기본 경로
-  `node_modules/@unikit/react-native/native`를 반환한다. 생성된 podspec/
+  `node_modules/@unikit-bridge/react-native/native`를 반환한다. 생성된 podspec/
   gradle이 존재하지 않는 경로를 가리키고 첫 loud 실패는 pod install/gradle
   시점 — "bun install을 먼저 하라"는 안내가 없다.
-- 개선안: 폴백 반환 전 existsSync 검사 1개 + "install @unikit/react-native
+- 개선안: 폴백 반환 전 existsSync 검사 1개 + "install @unikit-bridge/react-native
   (bun install) first" 안내.
 - 비용: **XS**.
 
@@ -379,7 +379,7 @@ Unexpected EOF`. generate 경로(cli-generate-files.ts:61-76)는 경로+재생�
   bun/RN 생성 엔트리가 이를 정적 import한다(init-entries.ts:100,134). Node/
   Tauri 엔트리(JSON 경로)는 registry를 import하지 않아 문제 없음 — 정작
   번들 크기가 가장 예민한 RN에서만 전체 코덱이 번들에 들어간다.
-  `@unikit/types`는 `sideEffects: false`지만 registry가 전체를 참조해
+  `@unikit-bridge/types`는 `sideEffects: false`지만 registry가 전체를 참조해
   트리셰이킹이 무력화된다.
 - 개선안: registry를 lazy 팩토리 Map(`Map<string, () => Codec>`)으로 렌더하거나,
   사용 명령만 등록하는 옵트인(엔트리별 서브셋 registry)을 제공. 100명령급

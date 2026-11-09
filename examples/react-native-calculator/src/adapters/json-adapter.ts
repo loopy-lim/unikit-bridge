@@ -1,4 +1,4 @@
-import type { EngineClient, UnikitNative } from '@unikit/types';
+import type { EngineClient, UnikitNative } from '@unikit-bridge/types';
 import { decodeUtf8, encodeUtf8, exactArrayBuffer } from '../utf8';
 
 export function createJsonEngine(native: UnikitNative): EngineClient {

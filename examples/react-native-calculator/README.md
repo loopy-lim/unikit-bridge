@@ -96,7 +96,7 @@ react-native-calculator/
   BenchmarkApp.tsx
   generated/                         generated TypeScript entry/codecs
   modules/
-    unikit-jsi/                      generated @unikit/generated-react-native
+    unikit-jsi/                      generated @unikit-bridge/generated-react-native
     unikit-calculator/               Swift FFI comparator
     nitro-bench/nitro-bench/         Nitro comparator
 ```
@@ -104,7 +104,7 @@ react-native-calculator/
 The directory name `unikit-jsi` is just the fixture's existing local location, not the
 public package/module name. The actual collision-isolated names are as follows:
 
-- package: `@unikit/generated-react-native`
+- package: `@unikit-bridge/generated-react-native`
 - iOS/React Native module: `UnikitBridge`
 - Android namespace: `dev.unikit.bridge`
 - shared library: `unikit_bridge`
@@ -123,7 +123,7 @@ bun run doctor -- --json
 
 doctor is read-only and independently checks the following layers.
 
-- The lockfile of the current checkout combined with local `@unikit/*` packages
+- The lockfile of the current checkout combined with local `@unikit-bridge/*` packages
 - Sync between the Rust schema, TypeScript entry, C++ codec, and build fingerprint
 - iOS/Android autolinking and Pods
 - iOS static archive freshness, architecture, and required FFI symbols

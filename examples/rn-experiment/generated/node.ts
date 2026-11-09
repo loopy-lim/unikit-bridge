@@ -17,7 +17,7 @@
 //   계약 검증 기본값('strict')과 옵션명을 명시한다. 옵션명 변경/제거는
 //   없다 — 기존 생성 엔트리 코드는 그대로 동작한다(하위 호환).
 import { fileURLToPath } from 'node:url';
-import { createNodeBootstrap } from '@unikit/node';
+import { createNodeBootstrap } from '@unikit-bridge/node';
 import { GENERATED_CONTRACT_HASH } from './contract.js';
 
 export * from './commands.js';

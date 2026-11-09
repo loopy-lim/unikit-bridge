@@ -1,4 +1,4 @@
-import type { UnikitNative } from '@unikit/types';
+import type { UnikitNative } from '@unikit-bridge/types';
 import type { NitroBench } from 'nitro-bench';
 import * as commands from '../../generated/commands';
 import { frameRegistry } from '../../generated/frame-registry';

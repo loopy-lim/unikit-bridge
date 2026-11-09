@@ -706,11 +706,11 @@ JS 측 `invoke`의 `options.timeoutMs`는 만료 시 이 `transport.timeout`(ret
 
 ### JS 호출 시맨틱: signal, timeoutMs, invokeBatch
 
-생성된 모든 헬퍼는 마지막 파라미터로 `InvokeOptions`를 받고, `@unikit/types`는
+생성된 모든 헬퍼는 마지막 파라미터로 `InvokeOptions`를 받고, `@unikit-bridge/types`는
 raw `invoke`/`invokeBatch`에도 같은 옵션을 제공한다:
 
 ```ts
-import { invokeBatch } from '@unikit/types';
+import { invokeBatch } from '@unikit-bridge/types';
 import { addNumbers, slowCompute } from './generated/commands.js';
 
 // 취소 — AbortSignal은 프라미스를 즉시 거부한다(`cancelled`).
@@ -746,7 +746,7 @@ const [sum, echo] = await invokeBatch([
 확인하라:
 
 ```ts
-import { withRetry } from '@unikit/types';
+import { withRetry } from '@unikit-bridge/types';
 
 // 안전: 읽기 커맨드 — 재시도해도 부작용이 중복되지 않는다.
 const user = await withRetry((attempt) => invoke('getUser', { id }), {
@@ -769,7 +769,7 @@ await withRetry((attempt) => invoke('chargeCard', { id, amountCents: 500 }), {
 트랜잭션이 없다. 항목별 폴백은 모든 항목을 동시에 시작하고, RN 단일 횡단 배치는
 첫 실패 항목에서 멈추며, Tauri wire 배치는 전부 실행한 뒤 거부한다. `invokeBatch`
 자체에 settled 형태는 없다 — 부분 결과를 관측하려면 `invokeBatchSettled`
-(`@unikit/types`)를 쓰라: 항상 per-entry 순차 실행(원자적 와이어 배치는 사용하지
+(`@unikit-bridge/types`)를 쓰라: 항상 per-entry 순차 실행(원자적 와이어 배치는 사용하지
 않음)이라 실패한 항목과 그 이후 항목이 구별된다 — 항목별로
 `{ status: 'fulfilled', value }`, `{ status: 'rejected', reason }`,
 `{ status: 'unexecuted' }` 중 하나로 settle 되며, `unexecuted`는 dispatch 자체가
@@ -903,8 +903,8 @@ export const addNumbers = createGeneratedFields2<AddNumbersInput, int64>(1, 'add
 ### 생성된 types.ts 예시
 
 ```typescript
-export type { EngineClient, UnikitError } from '@unikit/types';
-export { UnikitCommandError } from '@unikit/types';
+export type { EngineClient, UnikitError } from '@unikit-bridge/types';
+export { UnikitCommandError } from '@unikit-bridge/types';
 
 export type AddNumbersInput = {
   a: number | bigint;
@@ -923,8 +923,8 @@ export type AddNumbersOutput = {
 <!-- prettier-ignore -->
 ```ts
 import type { AddNumbersInput, AddNumbersOutput, BenchAddInput, BenchAddOutput, BenchBytesPayload, BenchPairPayload, BenchStringPayload, ChannelDemoBytesInput, ChannelDemoBytesOutput, ChannelDemoInput, ChannelDemoOutput, ClampInput, ClampOutput, CreateItemInput, CreateItemOutput, DeviceDemoOutput, DivideInput, DivideOutput, EchoGroupsInput, EchoGroupsOutput, EmitDemoInput, EmitDemoOutput, GaugeInput, GaugeOutput, GreetInput, GreetOutput, IsEvenInput, IsEvenOutput, KindEchoInput, KindEchoOutput, MultiplyInput, MultiplyOutput, ParityFindInput, ParityQuery, ParitySearch, ParityStored, ParityTree, PlatformNativeInfoOutput, ProcessItemInput, ProcessItemOutput, RegistryDemoInput, RegistryDemoOutput, ResourceCloseInput, ResourceCloseOutput, ResourceHandleOutput, ResourceOpenInput, ResourceReadInput, ResourceReadOutput, ResourceWriteInput, ResourceWriteOutput, ScoreTotalInput, ScoreTotalOutput, SecureComputeInput, SecureComputeOutput, SizeOfInput, SizeOfOutput, SpanInput, SpanOutput, SumListInput, SumListOutput, TagSetInput, TagSetOutput, ToUpperInput, ToUpperOutput, WideAggInput, WideAggOutput } from './types.js';
-import { createGeneratedFields1, createGeneratedFields2, invokeGenerated, invokeGeneratedBytes, invokeGeneratedFields3 } from '@unikit/types';
-import type { InvokeOptions as CoreInvokeOptions } from '@unikit/types';
+import { createGeneratedFields1, createGeneratedFields2, invokeGenerated, invokeGeneratedBytes, invokeGeneratedFields3 } from '@unikit-bridge/types';
+import type { InvokeOptions as CoreInvokeOptions } from '@unikit-bridge/types';
 
 /**
  * 이 패키지 생성 명령의 호출 옵션 — 모든 생성 함수의 마지막 파라미터.
@@ -939,7 +939,7 @@ import type { InvokeOptions as CoreInvokeOptions } from '@unikit/types';
  * 시도가 반영되지 않았음을 확인한 뒤에만 하세요.
  *
  * 전체 의미론은 docs/compatibility-matrix.md "Signal semantics in detail" 및
- * 원본 타입(`InvokeOptions`(@unikit/types)) 문서를 참고하세요.
+ * 원본 타입(`InvokeOptions`(@unikit-bridge/types)) 문서를 참고하세요.
  */
 export type InvokeOptions = CoreInvokeOptions;
 
@@ -1246,7 +1246,7 @@ feature는 `libloading` 의존을 추가할 뿐 나머지는 움직이지 않는
 `unikit-hot-swap` 플러그인을 얹어 리포터를 Tauri 이벤트 싱크에 설치한다.
 `register_with_events` 와 달리 **패키지 이벤트는 배선되지 않는다**(스왑이 코어
 내부 이벤트 싱크를 버리는 상태 소실 정책은 그대로) — 이 함수가 추가하는
-emission 은 스왑 결과 1종뿐이다. JS 쪽에서 이 채널은 `@unikit/tauri` 의
+emission 은 스왑 결과 1종뿐이다. JS 쪽에서 이 채널은 `@unikit-bridge/tauri` 의
 `subscribeHotSwap` 가 소비한다
 ([events-and-channels.ko.md](events-and-channels.ko.md) 참고).
 

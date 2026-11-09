@@ -1,4 +1,4 @@
-# @unikit/react-native
+# @unikit-bridge/react-native
 
 Unikit의 React Native JSI 어댑터와 생성 모듈용 공유 네이티브 소스입니다. Expo와
 bare React Native에서 같은 generated entry와 표준 autolinking 경로를 사용합니다.
@@ -35,16 +35,16 @@ unikit_bridge::native_entry!(package);
 ```
 
 ```bash
-bun add @unikit/react-native @unikit/types
-bun add -d @unikit/cli
-bunx --bun @unikit/cli doctor --config unikit.json
-bunx --bun @unikit/cli codegen --config unikit.json
+bun add @unikit-bridge/react-native @unikit-bridge/types
+bun add -d @unikit-bridge/cli
+bunx --bun @unikit-bridge/cli doctor --config unikit.json
+bunx --bun @unikit-bridge/cli codegen --config unikit.json
 bun install
 ```
 
 생성기는 다음을 자동으로 처리합니다.
 
-- `modules/unikit-bridge`에 앱 전용 `@unikit/generated-react-native` 패키지 생성
+- `modules/unikit-bridge`에 앱 전용 `@unikit-bridge/generated-react-native` 패키지 생성
 - 앱 `package.json`에 충돌을 확인한 뒤 Bun workspace dependency 연결
 - iOS Podspec, Android Gradle/CMake/JNI, 공유 C++ JSI bridge 생성
 - Cargo metadata에서 package와 static library 이름 추론
@@ -89,7 +89,7 @@ concurrency-safe하게 한 번만 수행합니다. 별도의 `installUnikitJSI()
 
 생성 모듈은 의도적으로 고정된 전용 이름을 사용합니다.
 
-- JavaScript package: `@unikit/generated-react-native`
+- JavaScript package: `@unikit-bridge/generated-react-native`
 - React Native module: `UnikitBridge`
 - Android namespace: `dev.unikit.bridge`
 - native shared library: `unikit_bridge`

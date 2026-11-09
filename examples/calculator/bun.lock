@@ -3,26 +3,26 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@unikit/example-calculator",
+      "name": "@unikit-bridge/example-calculator",
       "dependencies": {
-        "@unikit/bun": "file:../../packages/bun",
-        "@unikit/node": "file:../../packages/node",
-        "@unikit/tauri": "file:../../packages/tauri",
-        "@unikit/types": "file:../../packages/types",
+        "@unikit-bridge/bun": "file:../../packages/bun",
+        "@unikit-bridge/node": "file:../../packages/node",
+        "@unikit-bridge/tauri": "file:../../packages/tauri",
+        "@unikit-bridge/types": "file:../../packages/types",
       },
     },
   },
   "overrides": {
-    "@unikit/types": "file:../../packages/types",
+    "@unikit-bridge/types": "file:../../packages/types",
   },
   "packages": {
-    "@unikit/bun": ["@unikit/bun@file:../../packages/bun", { "dependencies": { "@unikit/types": "^0.10.0" }, "devDependencies": { "@types/bun": "^1.4.0", "typescript": "^5.9.0" } }],
+    "@unikit-bridge/bun": ["@unikit-bridge/bun@file:../../packages/bun", { "dependencies": { "@unikit-bridge/types": "^0.10.0" }, "devDependencies": { "@types/bun": "^1.4.0", "typescript": "^5.9.0" } }],
 
-    "@unikit/node": ["@unikit/node@file:../../packages/node", { "dependencies": { "@unikit/types": "^0.10.0" }, "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit-bridge/node": ["@unikit-bridge/node@file:../../packages/node", { "dependencies": { "@unikit-bridge/types": "^0.10.0" }, "devDependencies": { "typescript": "^5.9.0" } }],
 
-    "@unikit/tauri": ["@unikit/tauri@file:../../packages/tauri", { "dependencies": { "@unikit/types": "^0.10.0" }, "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit-bridge/tauri": ["@unikit-bridge/tauri@file:../../packages/tauri", { "dependencies": { "@unikit-bridge/types": "^0.10.0" }, "devDependencies": { "typescript": "^5.9.0" } }],
 
-    "@unikit/types": ["@unikit/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit-bridge/types": ["@unikit-bridge/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
 
     "@types/bun": ["@types/bun@1.4.0", "", { "dependencies": { "bun-types": "1.4.0" } }, "sha512-K+lZULY23vRgK/CfTjFIV+tyifaNdSMlPh9j+6mQ/cLfpOznLyAuzgV/JQysyECpkBQLVMSyvjlr2fBUSA9wFQ=="],
 
@@ -34,10 +34,10 @@
 
     "undici-types": ["undici-types@8.3.0", "", {}, "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ=="],
 
-    "@unikit/bun/@unikit/types": ["@unikit/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit-bridge/bun/@unikit-bridge/types": ["@unikit-bridge/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
 
-    "@unikit/node/@unikit/types": ["@unikit/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit-bridge/node/@unikit-bridge/types": ["@unikit-bridge/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
 
-    "@unikit/tauri/@unikit/types": ["@unikit/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit-bridge/tauri/@unikit-bridge/types": ["@unikit-bridge/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
   }
 }

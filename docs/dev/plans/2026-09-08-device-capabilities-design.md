@@ -66,7 +66,7 @@ fn scan_tags(input: ScanInput) -> Result<ScanOutput> { … }
 선언 커맨드가 1건이라도 있으면 `devices.ts` 생성, 없으면 파일 미생성:
 
 ```ts
-import type { DeviceStatusProvider } from '@unikit/types';
+import type { DeviceStatusProvider } from '@unikit-bridge/types';
 
 /** 이 패키지가 선언에 사용한 디바이스 역량 토큰 (Rust 카탈로그 기준). */
 export type UnikitDeviceCapability = 'camera' | 'bluetooth';
@@ -79,7 +79,7 @@ export const SCAN_TAGS_DEVICES: readonly UnikitDeviceCapability[] = ['camera', '
   충돌은 코드젠 loud-fail(errors 트랙의 PascalCase 충돌 판정과 동일).
 - commands.ts/types.ts/errors.ts 출력은 바이트 불변(선언 없는 패키지).
 
-### D. 호스트 조회 표면 — `@unikit/types` provider 등록 (W3C query 모델)
+### D. 호스트 조회 표면 — `@unikit-bridge/types` provider 등록 (W3C query 모델)
 
 ```ts
 export type DeviceAvailability = 'available' | 'unavailable' | 'unknown';
@@ -120,7 +120,7 @@ export function getDeviceStatus(capability: string): Promise<DeviceStatus>;
 ## 슬라이스 1 (오늘 밤 착지 범위)
 
 1. Rust 카탈로그 + 빌더/매크로/스키마(A/B절) + 테스트 — crates/**.
-2. `@unikit/types` provider 표면 + 에러 코드 2종(D/E절) + 테스트.
+2. `@unikit-bridge/types` provider 표면 + 에러 코드 2종(D/E절) + 테스트.
 3. CLI `devices.ts` 렌더러(C절) + 테스트 — packages/cli(진행 중인 DX 작업과
    파일 충돌 방지를 위해 DX 완료 후 착수).
 4. 계산기 예제: `device_demo` 커맨드(선언만 — 하드웨어 미사용, 모의 provider로

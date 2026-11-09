@@ -6,7 +6,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { suffix } from 'bun:ffi';
 import { createBunFfiEngine } from './bun-ffi.js';
-import type { FrameCodec } from '@unikit/types';
+import type { FrameCodec } from '@unikit-bridge/types';
 
 test('a subscription receives the first emission immediately after a ready FFI runtime', async () => {
   const library = resolve(

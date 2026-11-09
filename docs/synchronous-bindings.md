@@ -5,7 +5,7 @@ English | [한국어](./synchronous-bindings.ko.md)
 `bindSync<I, O>(command)` returns an ordinary synchronous function. Configure the engine and finish bootstrap before binding:
 
 ```ts
-import { bindSync } from '@unikit/types';
+import { bindSync } from '@unikit-bridge/types';
 import { unikit } from './generated/react-native.js';
 import type { AddNumbersInput, AddNumbersOutput } from './generated/types.js';
 

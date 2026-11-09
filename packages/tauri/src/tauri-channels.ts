@@ -5,7 +5,7 @@ import {
   UnikitErrorCode,
   type UnikitDebugEvent,
   type UnikitErrorCodeValue,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 import type { TauriInvoke, TauriListen } from './index.js';
 import { requireTauriInvoke, requireTauriIpcChannel } from './tauri-globals.js';
 
@@ -92,7 +92,7 @@ async function createOwnedChannel(
       await Promise.resolve(invoke('unikit_channel_drop', { handle })).catch(() => {});
       throw new UnikitCommandError(
         UnikitErrorCode.ChannelUnavailable,
-        'Native Tauri channel protocol is incompatible; rebuild Rust and update @unikit/tauri together',
+        'Native Tauri channel protocol is incompatible; rebuild Rust and update @unikit-bridge/tauri together',
       );
     }
   } catch (error) {

@@ -44,10 +44,10 @@ React Native는 런타임 게이트를 통과했다: 네이티브 JSI 모듈이 
 
 | 패키지                 | 안정 범위                                                  | 이 레이어의 범위 밖                      |
 | ---------------------- | ---------------------------------------------------------- | ---------------------------------------- |
-| `@unikit/node`         | Node 쪽 async transport를 `EngineClient`로 변환            | N-API vs 서브프로세스 vs HTTP 선택       |
-| `@unikit/bun`          | Bun 쪽 async transport를 `EngineClient`로 변환             | Bun FFI vs 서브프로세스 vs HTTP 선택     |
-| `@unikit/tauri`        | Tauri `invoke(command, args)` 함수를 `EngineClient`로 변환 | Tauri 플러그인 등록, ACL/capability 생성 |
-| `@unikit/react-native` | 생성 JSI 부트스트랩과 저수준 `EngineClient` 어댑터         | 앱 전용 커맨드 정의와 벤치마크 비교기    |
+| `@unikit-bridge/node`         | Node 쪽 async transport를 `EngineClient`로 변환            | N-API vs 서브프로세스 vs HTTP 선택       |
+| `@unikit-bridge/bun`          | Bun 쪽 async transport를 `EngineClient`로 변환             | Bun FFI vs 서브프로세스 vs HTTP 선택     |
+| `@unikit-bridge/tauri`        | Tauri `invoke(command, args)` 함수를 `EngineClient`로 변환 | Tauri 플러그인 등록, ACL/capability 생성 |
+| `@unikit-bridge/react-native` | 생성 JSI 부트스트랩과 저수준 `EngineClient` 어댑터         | 앱 전용 커맨드 정의와 벤치마크 비교기    |
 
 불변식은 모든 host에서 동일하다:
 
@@ -77,7 +77,7 @@ Node, Bun, Tauri는 생성 헬퍼나 `unikit` 패키지 디스패치를 우회�
 계산기 로직을 별도로 두어서는 안 된다.
 
 React Native는 두 fixture 모두에서 동일한 JavaScript 경로를 따르며,
-`@unikit/generated-react-native`(공유 C++ JSI 브릿지 + 생성 postcard 코덱)로
+`@unikit-bridge/generated-react-native`(공유 C++ JSI 브릿지 + 생성 postcard 코덱)로
 디스패치한다.
 
 ## 런타임 수용 게이트
@@ -86,9 +86,9 @@ host를 "실제로 동작한다"고 부르기 전의 협상 불가능한 게이�
 
 | Host         | 통과 조건                                                                                                                                                                          |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Node         | Node 앱이 생성 TypeScript 헬퍼를 호출하고, 헬퍼가 `@unikit/node`를 호출하고, 어댑터가 기대한 JSON 결과를 반환하는 Rust 프로세스를 호출한다.                                        |
-| Bun          | Bun 앱이 생성 TypeScript 헬퍼를 호출하고, 헬퍼가 `@unikit/bun`을 호출하고, 어댑터가 기대한 JSON 결과를 반환하는 Rust 프로세스를 호출한다.                                          |
-| Tauri        | Tauri 앱이 빌드·실행되고, WebView JavaScript가 `@unikit/tauri`를 통해 생성 `addNumbers` 헬퍼를 호출하며, Rust 커맨드 핸들러가 공유 `unikit` 패키지를 `Package::invoke`로 호출한다. |
+| Node         | Node 앱이 생성 TypeScript 헬퍼를 호출하고, 헬퍼가 `@unikit-bridge/node`를 호출하고, 어댑터가 기대한 JSON 결과를 반환하는 Rust 프로세스를 호출한다.                                        |
+| Bun          | Bun 앱이 생성 TypeScript 헬퍼를 호출하고, 헬퍼가 `@unikit-bridge/bun`을 호출하고, 어댑터가 기대한 JSON 결과를 반환하는 Rust 프로세스를 호출한다.                                          |
+| Tauri        | Tauri 앱이 빌드·실행되고, WebView JavaScript가 `@unikit-bridge/tauri`를 통해 생성 `addNumbers` 헬퍼를 호출하며, Rust 커맨드 핸들러가 공유 `unikit` 패키지를 `Package::invoke`로 호출한다. |
 | React Native | React Native 앱이 시뮬레이터/디바이스에서 실행되고, JavaScript가 생성 TypeScript 헬퍼를 호출하고, 네이티브 모듈이 Rust 코드를 호출하며, UI 또는 프로브가 Rust 결과를 관측한다.     |
 
 host가 통과 조건에 도달하기 전까지 문서와 스크립트는 이를 어댑터 또는 번들

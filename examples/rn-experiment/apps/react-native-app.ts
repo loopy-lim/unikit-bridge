@@ -6,8 +6,8 @@ import { gzipCompress, gzipDecompress, uuidV7 } from '../generated/commands.js';
 import { UnikitCommandError } from '../generated/types.js';
 // Use the same public package instances as generated commands and errors.
 // Mixing src/ imports and package dist/ creates distinct UnikitCommandError classes.
-import { configure } from '@unikit/types';
-import { createReactNativeEngine } from '@unikit/react-native';
+import { configure } from '@unikit-bridge/types';
+import { createReactNativeEngine } from '@unikit-bridge/react-native';
 import { gzipSync, gunzipSync } from 'node:zlib';
 
 const encoder = new TextEncoder();

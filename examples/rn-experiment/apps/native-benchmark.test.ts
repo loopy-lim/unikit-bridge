@@ -9,7 +9,7 @@ import schema from '../generated/schema.json';
 const modules: { UnikitBridge?: { install(): boolean } } = {};
 mock.module('react-native', () => ({ NativeModules: modules }));
 const bridge = await import('../modules/unikit-bridge/src/index.js');
-mock.module('@unikit/generated-react-native', () => bridge);
+mock.module('@unikit-bridge/generated-react-native', () => bridge);
 
 test('generated native installer fails clearly when autolinking or installation is missing', async () => {
   delete modules.UnikitBridge;

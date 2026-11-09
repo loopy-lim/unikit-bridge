@@ -160,7 +160,7 @@ describe('RN doctor', () => {
   test('requires one generated module to autolink on bare RN iOS and Android', () => {
     const reactNativeConfig = JSON.stringify({
       dependencies: {
-        '@unikit/generated-react-native': {
+        '@unikit-bridge/generated-react-native': {
           platforms: {
             ios: { podspecPath: '/app/modules/unikit-bridge/UnikitBridge.podspec' },
             android: { sourceDir: '/app/modules/unikit-bridge/android' },

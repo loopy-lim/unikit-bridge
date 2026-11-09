@@ -1,5 +1,5 @@
 /**
- * @unikit/testing — unikit 브릿지 테스트 유틸리티.
+ * @unikit-bridge/testing — unikit 브릿지 테스트 유틸리티.
  *
  * `createMockEngine` 은 Rust 백엔드 없이 생성된 TS 클라이언트를 그대로 구동하는
  * mock `EngineClient` 를 만든다. 핸들러 등록은 `.on(command, handler)` 체이닝으로,
@@ -7,8 +7,8 @@
  *
  * @example
  * ```ts
- * import { createMockEngine } from '@unikit/testing';
- * import { configure } from '@unikit/types';
+ * import { createMockEngine } from '@unikit-bridge/testing';
+ * import { configure } from '@unikit-bridge/types';
  * import { addNumbers } from './generated/commands.js';
  *
  * const engine = createMockEngine().on('addNumbers', ({a, b}) => a + b);
@@ -17,8 +17,8 @@
  * ```
  */
 
-import type { BatchEntry, EngineClient, InvokeOptions } from '@unikit/types';
-import { CancelledError, UnikitCommandError, resolveCommandId } from '@unikit/types';
+import type { BatchEntry, EngineClient, InvokeOptions } from '@unikit-bridge/types';
+import { CancelledError, UnikitCommandError, resolveCommandId } from '@unikit-bridge/types';
 import { editDistance, toMockError } from './testing-helpers.js';
 
 type Handler = (args: unknown) => unknown;

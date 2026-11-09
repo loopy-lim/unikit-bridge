@@ -60,13 +60,13 @@ function dependencyCheck({ packageJson, typesVersion, expoInstalled }) {
   const valid =
     expoInstalled && typesVersion === '0.4.0' && packageJson.packageManager === 'bun@1.4.0';
   return valid
-    ? pass('Bun', 'bun.dependencies', 'Bun dependencies and @unikit/types 0.4.0 are installed')
+    ? pass('Bun', 'bun.dependencies', 'Bun dependencies and @unikit-bridge/types 0.4.0 are installed')
     : fail(
         'Bun',
         'bun.dependencies',
         'Dependency installation or pinned versions are inconsistent',
-        `expo=${expoInstalled ? 'installed' : 'missing'}, @unikit/types=${typesVersion ?? 'missing'}, packageManager=${packageJson.packageManager ?? 'missing'}`,
-        'Keep `packageManager` at `bun@1.4.0`, keep all `@unikit/*` packages at 0.4.0, and run `bun install`.',
+        `expo=${expoInstalled ? 'installed' : 'missing'}, @unikit-bridge/types=${typesVersion ?? 'missing'}, packageManager=${packageJson.packageManager ?? 'missing'}`,
+        'Keep `packageManager` at `bun@1.4.0`, keep all `@unikit-bridge/*` packages at 0.4.0, and run `bun install`.',
       );
 }
 

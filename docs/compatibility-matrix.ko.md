@@ -28,7 +28,7 @@ JSON 엔진. 이벤트가 있거나 `node.persistent: true`면 같은 persistent
 | 바이너리 채널 (`createBytesChannel`) | ✅ `createNodeBytesChannel` — 0xfff9 프레임 (능력 협상 게이트; 구 런타임은 `channel.unavailable` loud-fail)                                                                           | ✅ `createBunChannelBytesBridge` — FFI `unikit_ffi_channel_create_bytes` (JS 스레드 send 만 — `threadsafe:false` 계약) | ✅ `createChannelBytes` — `Channel<InvokeResponseBody>` 바이트 조각 → `Uint8Array` | ✅ JSI `createChannelBytes` — ArrayBuffer 복사본                                      | ✅ 동일 JSI 바이트 경로 + `{ pollMs }` 폴백                                                   |
 | Frame 바이너리 (`createFrameEngine`) | ✅ (napi/FFI 네이티브 필요)                                                                                                                                                           | ✅ (FFI 네이티브 필요)                                                                                                 | ✅ (`unikit_dispatch` 바이너리 경로)                                               | —                                                                                     | ✅ JSI                                                                                        |
 
-† **동기 브릿지 호출 안에서 emit 되는 RN 이벤트·채널 푸시 — Android JS 스레드 교착; 수정 완료, 발행 대기.** 동기 bridge invoke 안에서 실행되는 명령이 `Package::emit`(또는 채널 send)을 호출하면 JS 스레드가 재진입되어 그 호출 안에서 디스패처 drain을 `CallInvoker::invokeAsync`로 예약하고, Android에서는 JS 이벤트 루프가 다음 매크로태스크 전에 정지한다. 실기기 TB710FU(RN 0.81.5, adapter 0.9.2, unikit 0.11.0)에서 3/3 재현: [2026-09-21-registry-rn-android-device.json](verification/evidence/2026-09-21-registry-rn-android-device.json). `pollMs` 폴백으로도 우회 불가(JSI 싱크는 install 시점에 설치)이며, 현재 발행된 npm 라인(`@unikit/react-native` 0.11.0)에는 수정이 없다. 수정 — 동기적으로 Rust를 실행하는 host function의 공용 초크포인트에 `thread_local` 재진입 깊이 가드를 건다. 깊이 > 0 동안 이벤트 drain·채널 drain(바이트 큐 포함)·즉시 실패하는 비동기 완료는 에필로그 큐로 가고, 깊이가 0으로 돌아올 때 JS 스레드에서 해당 동기 호출 반환 직전에 인라인 실행된다. 이 수정은 완료됐으나 아직 발행되지 않았다 — **다음** `@unikit/react-native` 발행 라인에 포함되며, 현재까지 발행된 버전 어디에도 없다. 수정 후 전달 의미: 동기 호출 중 emit 된 페이로드는 다음 매크로태스크가 아니라 해당 호출 반환 직전에 emit 순서대로 전달된다. 워커 스레드·호출 사이 스케줄링은 불변. 같은 변경의 더 세분된 두 지점: 즉시 실패하는 비동기 invoke(payload 과대·백프레셔)는 이제 호출자가 반환된 invocation id를 받기 전에 완료된다 — 어댑터의 취소 가드가 id를 -1로 초기화하고 만기 취소를 무시하므로 오취소는 불가능하지만, 이 경로에서 id를 관찰하는 콜백은 -1을 보게 된다. 배치 invoke에서는 항목 i 실행 중 emit 된 이벤트가 배치 전체 반환 뒤가 아니라 항목 i 직후 리스너에 도달한다 — 어느 쪽이든 무손실·순서 보존이다. 발행 뒤 재검증 절차: rn-android 레지스트리 여정의 옵트인 `--assert-events` 단계가 실기기 Android에서 재현 시나리오(동기 호출 1건 안에서 emit 3회)를 재실측해 루프가 계속 도는 것과 전달 순서 보존을 단언한다. iOS는 rn-ios 여정의 이벤트 단계가 이벤트 경로 첫 실측이 된다(두 단계 모두 2026-11-07 배치에 추가됐다). 해당 영수증이 생기기 전까지 이 매트릭스는 emit-during-synchronous-call 시나리오에 대한 기기 런타임 주장을 하지 않는다.
+† **동기 브릿지 호출 안에서 emit 되는 RN 이벤트·채널 푸시 — Android JS 스레드 교착; 수정 완료, 발행 대기.** 동기 bridge invoke 안에서 실행되는 명령이 `Package::emit`(또는 채널 send)을 호출하면 JS 스레드가 재진입되어 그 호출 안에서 디스패처 drain을 `CallInvoker::invokeAsync`로 예약하고, Android에서는 JS 이벤트 루프가 다음 매크로태스크 전에 정지한다. 실기기 TB710FU(RN 0.81.5, adapter 0.9.2, unikit 0.11.0)에서 3/3 재현: [2026-09-21-registry-rn-android-device.json](verification/evidence/2026-09-21-registry-rn-android-device.json). `pollMs` 폴백으로도 우회 불가(JSI 싱크는 install 시점에 설치)이며, 현재 발행된 npm 라인(`@unikit-bridge/react-native` 0.11.0)에는 수정이 없다. 수정 — 동기적으로 Rust를 실행하는 host function의 공용 초크포인트에 `thread_local` 재진입 깊이 가드를 건다. 깊이 > 0 동안 이벤트 drain·채널 drain(바이트 큐 포함)·즉시 실패하는 비동기 완료는 에필로그 큐로 가고, 깊이가 0으로 돌아올 때 JS 스레드에서 해당 동기 호출 반환 직전에 인라인 실행된다. 이 수정은 완료됐으나 아직 발행되지 않았다 — **다음** `@unikit-bridge/react-native` 발행 라인에 포함되며, 현재까지 발행된 버전 어디에도 없다. 수정 후 전달 의미: 동기 호출 중 emit 된 페이로드는 다음 매크로태스크가 아니라 해당 호출 반환 직전에 emit 순서대로 전달된다. 워커 스레드·호출 사이 스케줄링은 불변. 같은 변경의 더 세분된 두 지점: 즉시 실패하는 비동기 invoke(payload 과대·백프레셔)는 이제 호출자가 반환된 invocation id를 받기 전에 완료된다 — 어댑터의 취소 가드가 id를 -1로 초기화하고 만기 취소를 무시하므로 오취소는 불가능하지만, 이 경로에서 id를 관찰하는 콜백은 -1을 보게 된다. 배치 invoke에서는 항목 i 실행 중 emit 된 이벤트가 배치 전체 반환 뒤가 아니라 항목 i 직후 리스너에 도달한다 — 어느 쪽이든 무손실·순서 보존이다. 발행 뒤 재검증 절차: rn-android 레지스트리 여정의 옵트인 `--assert-events` 단계가 실기기 Android에서 재현 시나리오(동기 호출 1건 안에서 emit 3회)를 재실측해 루프가 계속 도는 것과 전달 순서 보존을 단언한다. iOS는 rn-ios 여정의 이벤트 단계가 이벤트 경로 첫 실측이 된다(두 단계 모두 2026-11-07 배치에 추가됐다). 해당 영수증이 생기기 전까지 이 매트릭스는 emit-during-synchronous-call 시나리오에 대한 기기 런타임 주장을 하지 않는다.
 
 ### 실험적 scriptc 호스트
 
@@ -126,15 +126,15 @@ function 으로 발급한다(진짜 유니캐스트). CallInvoker 가 있으면 
 | Package                | Manifest version |
 | ---------------------- | ---------------- |
 | Rust workspace crates  | 0.13.0           |
-| `@unikit/bun`          | 0.11.1           |
-| `@unikit/cli`          | 0.13.0           |
-| `@unikit/devtools`     | 0.7.3            |
-| `@unikit/node`         | 0.11.1           |
-| `@unikit/react`        | 0.8.4            |
-| `@unikit/react-native` | 0.11.0           |
-| `@unikit/tauri`        | 0.10.1           |
-| `@unikit/testing`      | 0.7.3            |
-| `@unikit/types`        | 0.13.0           |
+| `@unikit-bridge/bun`          | 0.11.1           |
+| `@unikit-bridge/cli`          | 0.13.0           |
+| `@unikit-bridge/devtools`     | 0.7.3            |
+| `@unikit-bridge/node`         | 0.11.1           |
+| `@unikit-bridge/react`        | 0.8.4            |
+| `@unikit-bridge/react-native` | 0.11.0           |
+| `@unikit-bridge/tauri`        | 0.10.1           |
+| `@unikit-bridge/testing`      | 0.7.3            |
+| `@unikit-bridge/types`        | 0.13.0           |
 
 <!-- release:versions:end -->
 
@@ -142,7 +142,7 @@ JS가 생성하는 Tauri 채널은 발급한 물리 WebView에 귀속된 네이�
 `Channel<InvokeResponseBody>`를 사용한다. `close()`는 네이티브 lease를 해제하고
 JS 콜백을 정리하며, 페이지 이동·파괴·앱 종료에서도 소유자의 자원을 정리한다.
 `ipc-channel-chunks-v1` handshake는 기존 브로드캐스트 네이티브를 거부하므로
-`@unikit/tauri`와 Rust를 함께 갱신하고 다시 빌드해야 한다. 전역 설정에는
+`@unikit-bridge/tauri`와 Rust를 함께 갱신하고 다시 빌드해야 한다. 전역 설정에는
 `core.Channel`과 Tauri 콜백 정리 API가 필요하다. 전역 API를 쓰지 않으면 `invoke`와
 함께 `{ value, dispose() }`를 반환하는 `createIpcChannel(onMessage)` 팩터리를
 명시한다. `listen`만 전달해서는 채널을 생성할 수 없다.
@@ -176,7 +176,7 @@ JS 콜백을 정리하며, 페이지 이동·파괴·앱 종료에서도 소유�
 
 ### 기계 판독 표면: `engine.supports` (A02)
 
-각 어댑터의 엔진 팩토리는 `supports` 객체(`@unikit/types` 의 `EngineSupports`)를
+각 어댑터의 엔진 팩토리는 `supports` 객체(`@unikit-bridge/types` 의 `EngineSupports`)를
 노출한다. 값은 이 매트릭스의 셀을 1:1 로 옮긴 것 — 새 주장이 아니다. 앱은
 부작용 이전에 분기할 수 있다(예:
 `engine.supports?.cancellation === 'cooperative'`). 열별 매핑:
@@ -218,7 +218,7 @@ RN Frame 의 `cancellation: 'cooperative'` 는 매트릭스의 "조건부 전파
 
 bootstrap 객체(`createNodeBootstrap`/`createBunBootstrap`/
 `createTauriBootstrap`/`createUnikitBootstrap`)는 로컬 상태
-`state: 'initializing' | 'ready' | 'disposed'` 를 노출한다(`@unikit/types` 의
+`state: 'initializing' | 'ready' | 'disposed'` 를 노출한다(`@unikit-bridge/types` 의
 공용 `BootstrapState`; 모든 어댑터는 dispose 뒤 `ready()` 를 같은
 `disposedBootstrapError` 계열로 거부한다). `dispose()` 는 멱등(두 번째 호출은
 no-op)이고, dispose 뒤의 `ready()` 는 조용히 재해상하는 대신 loud-fail 한다.

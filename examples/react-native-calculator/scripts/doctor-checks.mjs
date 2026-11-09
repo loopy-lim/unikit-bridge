@@ -206,7 +206,7 @@ export function analyzeInstalledBinary({ binaryMtimeMs, newestInputMtimeMs, newe
 export function analyzeAutolinking({ reactNativeConfig, podfileLock }) {
   let dependency;
   try {
-    dependency = JSON.parse(reactNativeConfig).dependencies?.['@unikit/generated-react-native'];
+    dependency = JSON.parse(reactNativeConfig).dependencies?.['@unikit-bridge/generated-react-native'];
   } catch {
     // The failure below carries the repair command.
   }
@@ -224,7 +224,7 @@ export function analyzeAutolinking({ reactNativeConfig, podfileLock }) {
           'RN/Pod',
           'native.autolinking.config',
           'React Native autolinking does not expose Unikit on both platforms',
-          'Expected @unikit/generated-react-native with an iOS Podspec and Android sourceDir.',
+          'Expected @unikit-bridge/generated-react-native with an iOS Podspec and Android sourceDir.',
           'Run `bun run codegen`, `bun install`, then `bunx --bun react-native config`.',
         ),
     missingPods.length

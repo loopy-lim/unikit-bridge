@@ -95,9 +95,9 @@
   "completedAt": "2026-09-21T05:59:12.457Z",
   "durationMs": 19898,
   "versions": {
-    "@unikit/cli": "0.11.3",
-    "@unikit/types": "0.12.0",
-    "@unikit/node": "0.10.2",
-    "@unikit/bun": "0.10.2"
+    "@unikit-bridge/cli": "0.11.3",
+    "@unikit-bridge/types": "0.12.0",
+    "@unikit-bridge/node": "0.10.2",
+    "@unikit-bridge/bun": "0.10.2"
   }
 }

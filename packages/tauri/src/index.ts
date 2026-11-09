@@ -1,5 +1,5 @@
 /**
- * @unikit/tauri — Tauri 2용 unikit 엔진 어댑터
+ * @unikit-bridge/tauri — Tauri 2용 unikit 엔진 어댑터
  *
  * Tauri 애플리케이션에서 unikit 명령을 실행할 수 있는 EngineClient 구현체를 제공합니다.
  * Rust 측의 `unikit_dispatch` Tauri 커맨드를 통해 모든 unikit 명령을 라우팅합니다.
@@ -11,7 +11,7 @@
  *
  * @example
  * ```ts
- * import { createTauriEngine } from '@unikit/tauri';
+ * import { createTauriEngine } from '@unikit-bridge/tauri';
  * import { addNumbers } from './generated/commands.js';
  *
  * const engine = createTauriEngine({
@@ -29,7 +29,7 @@ export type {
   FrameCodec,
   FrameNative,
   InvokeOptions,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 export {
   UnikitCommandError,
   configure,
@@ -37,7 +37,7 @@ export {
   ensureConfigured,
   invoke,
   createFrameEngine,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 
 import {
   configureLazy,
@@ -51,7 +51,7 @@ import {
   type BootstrapState,
   type EngineClientWithBatch,
   type EngineSupports,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 import { createTauriContractVerifier } from './tauri-contract.js';
 
 /**
@@ -212,7 +212,7 @@ function createTauriEngineDetails(options: TauriEngineOptions) {
 
 export type TauriBootstrap = {
   /**
-   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@unikit/types).
+   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@unikit-bridge/types).
    * dispose 는 멱등이고 dispose 후 ready 는 loud-fail 한다.
    */
   readonly state: BootstrapState;
@@ -297,7 +297,7 @@ export {
   type HotSwapEvent,
   type TauriEventOptions,
 } from './tauri-events.js';
-export { disposedBootstrapError, type BootstrapState } from '@unikit/types';
+export { disposedBootstrapError, type BootstrapState } from '@unikit-bridge/types';
 export {
   createChannel,
   createChannelBytes,

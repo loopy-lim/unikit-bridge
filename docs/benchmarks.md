@@ -215,7 +215,7 @@ release dylib (`examples/calculator`), (a) the malloc path = base adapter behavi
 (`unikit_ffi_invoke_frame` + copy then free) and (b) the into path =
 `unikit_ffi_invoke_frame_into` + a reused 512B caller buffer were alternated within
 the same process (best-of-5 rounds). The full round trip of the base adapter
-(98cdb689 `@unikit/bun`) and the integrated adapter was also cross-run against the
+(98cdb689 `@unikit-bridge/bun`) and the integrated adapter was also cross-run against the
 same dylib to produce 4-pair medians. Environment: macOS arm64 (Apple M-series,
 10 core), Bun 1.4.0, Rust release. The load average at measurement time was 8–13, so
 this is not a reproducible measurement — read it as a relative comparison.

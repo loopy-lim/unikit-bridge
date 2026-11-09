@@ -2,7 +2,7 @@
 
 # 에러 코드
 
-`UnikitErrorCode` 레지스트리의 완전한 레퍼런스 — `@unikit/types`
+`UnikitErrorCode` 레지스트리의 완전한 레퍼런스 — `@unikit-bridge/types`
 (`packages/types/src/errors.ts`)와 Rust 런타임(`crates/unikit-bridge/src/error.rs`)이 와이어에
 올릴 수 있는 모든 에러 코드. 다른 문서는 의도적으로 부분 집합만 담는다
 (`docs/rust-api-guide.md`는 Rust 팩토리 코드만, `docs/architecture.md`는 `registry.*`만).

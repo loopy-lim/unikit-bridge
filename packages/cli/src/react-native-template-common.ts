@@ -1,6 +1,6 @@
 export function renderModuleIndex(): string {
   return `import { NativeModules } from 'react-native';
-import { getUnikitNative as getInstalledNative } from '@unikit/react-native';
+import { getUnikitNative as getInstalledNative } from '@unikit-bridge/react-native';
 
 type Installer = { install(): boolean | Promise<boolean | void> };
 
@@ -36,7 +36,7 @@ export function getUnikitNative(): ReturnType<typeof getInstalledNative> {
 export function renderPackageJson(adapterRange: string): string {
   return `${JSON.stringify(
     {
-      name: '@unikit/generated-react-native',
+      name: '@unikit-bridge/generated-react-native',
       version: '0.0.0',
       private: true,
       // "type" 을 지정하지 않는다(=CommonJS) — RN CLI/gradle 오톬링킹이 이 패키지의
@@ -46,7 +46,7 @@ export function renderPackageJson(adapterRange: string): string {
       // 런타임 동작에는 영향이 없다.
       main: 'src/index.ts',
       'react-native': 'src/index.ts',
-      peerDependencies: { '@unikit/react-native': adapterRange, 'react-native': '>=0.76' },
+      peerDependencies: { '@unikit-bridge/react-native': adapterRange, 'react-native': '>=0.76' },
     },
     null,
     2,

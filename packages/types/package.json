@@ -1,5 +1,5 @@
 {
-  "name": "@unikit/types",
+  "name": "@unikit-bridge/types",
   "version": "0.13.0",
   "description": "Shared types and wire contracts for unikit — one Rust core generating type-safe clients for Node, Bun, Tauri, and React Native over a compact binary wire.",
   "license": "MIT",

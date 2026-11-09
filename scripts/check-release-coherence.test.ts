@@ -32,7 +32,7 @@ function makeFixture(): string {
   for (const name of published) {
     const version = name === 'bun' ? '0.4.1' : '0.4.0';
     const manifest: Record<string, unknown> = {
-      name: `@unikit/${name}`,
+      name: `@unikit-bridge/${name}`,
       version,
       files: ['LICENSE'],
     };
@@ -46,13 +46,13 @@ function makeFixture(): string {
       };
     }
     if (name !== 'types') {
-      manifest.dependencies = { '@unikit/types': '^0.4.0' };
+      manifest.dependencies = { '@unikit-bridge/types': '^0.4.0' };
     }
     mkdirSync(join(root, 'packages', name), { recursive: true });
     writeFileSync(join(root, 'packages', name, 'package.json'), JSON.stringify(manifest));
     writeFileSync(join(root, 'packages', name, 'LICENSE'), 'MIT\n');
     workspaceBlocks.push(
-      `    "packages/${name}": {\n      "name": "@unikit/${name}",\n      "version": "${version}",\n${name === 'types' ? '' : '      "dependencies": {\n        "@unikit/types": "^0.4.0",\n      },\n'}    },`,
+      `    "packages/${name}": {\n      "name": "@unikit-bridge/${name}",\n      "version": "${version}",\n${name === 'types' ? '' : '      "dependencies": {\n        "@unikit-bridge/types": "^0.4.0",\n      },\n'}    },`,
     );
   }
 
@@ -74,11 +74,11 @@ void test('reports an incompatible internal dependency range', () => {
   try {
     const manifestPath = join(root, 'packages', 'bun', 'package.json');
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
-      dependencies: { '@unikit/types': string };
+      dependencies: { '@unikit-bridge/types': string };
     };
-    manifest.dependencies['@unikit/types'] = '^0.3.0';
+    manifest.dependencies['@unikit-bridge/types'] = '^0.3.0';
     writeFileSync(manifestPath, JSON.stringify(manifest));
-    assert.match(checkReleaseCoherence(root).join('\n'), /@unikit\/bun.*@unikit\/types/);
+    assert.match(checkReleaseCoherence(root).join('\n'), /@unikit-bridge\/bun.*@unikit-bridge\/types/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -99,7 +99,7 @@ void test('rejects release files that ship the experimental wasm backend', () =>
     const failures = checkReleaseCoherence(root);
     assert.match(
       failures.join('\n'),
-      /@unikit\/react-native.*wasm/,
+      /@unikit-bridge\/react-native.*wasm/,
       'shipping wasm3 sources or .wasm engines in a published package must fail',
     );
   } finally {
@@ -139,7 +139,7 @@ void test('reports a reactNativeRange that no longer contains the adapter versio
     const failures = checkReleaseCoherence(root);
     assert.match(
       failures.join('\n'),
-      /reactNativeRange=\^0\.4\.0 does not contain @unikit\/react-native 0\.5\.0/,
+      /reactNativeRange=\^0\.4\.0 does not contain @unikit-bridge\/react-native 0\.5\.0/,
     );
   } finally {
     rmSync(root, { recursive: true, force: true });

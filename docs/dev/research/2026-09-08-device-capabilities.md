@@ -29,7 +29,7 @@ desktop은 권한과 할 수 있는 게 많다 — wifi, bluetooth, camera, batt
 3. **코드젠**: 조건부 `devices.ts` — 패키지가 사용한 역량 토큰의 리터럴 유니언 +
    커맨드별 요구 상수 + `require{Symbol}Devices()` 가드. `generateErrorsTs` 구조
    복제(`packages/cli/src/generate-errors.ts:19-29`의 조건부 방출 관례).
-4. **호스트 표면**: `@unikit/types`에 device status provider 등록 표면
+4. **호스트 표면**: `@unikit-bridge/types`에 device status provider 등록 표면
    (`registerDeviceStatusProvider` / `getDeviceStatus`) — W3C Permissions API의
    query 전용 모델(`navigator.permissions.query`)을 RN/Node/Tauri 호스트로 일반화.
    **요청(request)은 제공하지 않는다** — W3C도 `request()`를 표준에서 제거했고
@@ -344,15 +344,15 @@ export async function requireScanBarcodeDevices(): Promise<void> {
 - 리터럴 유니언은 **패키지가 실제 사용한 토큰만** — 개방 계약(임의 문자열)과
   폐쇄 타입(코드젠 시점 유니언)의 간극을 errors.ts와 같은 방식으로 메운다
   (generate-errors.ts:82-88의 가드 주석 철학).
-- `require{Symbol}Devices()` 가드는 `@unikit/types`의 `getDeviceStatus`를
-  소비 — 생성 파일이 `@unikit/types`를 이미 import하므로(generate-errors.ts:23)
+- `require{Symbol}Devices()` 가드는 `@unikit-bridge/types`의 `getDeviceStatus`를
+  소비 — 생성 파일이 `@unikit-bridge/types`를 이미 import하므로(generate-errors.ts:23)
   의존성 새로 없음. 가드가 던지는 에러는 §5.5 코드.
 - 선언 0건이면 파일 미생성 — 기존 프로젝트 재생성 유발 없음(events.ts 관례,
   cli-generate-files.ts:101-102의 주석).
 
 ### 5.4 (d) 호스트 어댑터 등록 표면 — device status provider
 
-**결정 제안**: `@unikit/types`에 전역 provider 표면(global-config.ts의
+**결정 제안**: `@unikit-bridge/types`에 전역 provider 표면(global-config.ts의
 configure 옆, packages/types/src/ 신규 파일) 추가:
 
 ```ts
@@ -380,7 +380,7 @@ export function getDeviceStatus(capability: string): Promise<DeviceStatus>;
 - **Rust 측 표면은 v1에 없다**: Rust는 디바이스 상태로 게이팅하지 않으므로(§5.0)
   상태를 FFI로 밀어넣을 이유가 없다. 이것이 표면을 JS 전역(global-fields.ts와
   같은 모듈 수명)에 두는 근거다.
-- **호스트 파생 provider는 별도 슬라이스**: `@unikit/react-native`가
+- **호스트 파생 provider는 별도 슬라이스**: `@unikit-bridge/react-native`가
   react-native-permissions 기반 provider 팩토리를 내보내는 것(예:
   `makeRnDeviceStatusProvider()`)은 네이티브 peer 의존을 끌어들이므로 v1
   이후 선택 슬라이스로 분리한다(§7).
@@ -425,7 +425,7 @@ export function getDeviceStatus(capability: string): Promise<DeviceStatus>;
 3. **fail-open 기본값**: provider 미등록·unknown 상태에서 가드 통과(§5.4 제안)가
    맞는가? 보수적 대안은 unknown 즉시 거부 — 그러나 이는 "조회만으로 게이팅"을
    사실상 자동화해 철학(§5.0)과 어긋난다. 문서로 명시할 것.
-4. **RN/Tauri 파생 provider 패키지**: `@unikit/react-native`·`@unikit/tauri`가
+4. **RN/Tauri 파생 provider 패키지**: `@unikit-bridge/react-native`·`@unikit-bridge/tauri`가
    표준 provider 구현(react-native-permissions / Tauri plugin 감지)을 내보낼
    것인가 — 네이티브 peer 의존 정책 결정 필요.
 5. **카탈로그의 공식 문서 거처**: 카탈로그 상수 목록 + OS 교차표(§2.1)는
@@ -447,15 +447,15 @@ export function getDeviceStatus(capability: string): Promise<DeviceStatus>;
 2. **CLI 코드젠**(§5.2-5.3): schema.ts에 `devices?: string[]` +
    `generateDevicesTs` + 조건부 방출 + 지문. 게이트: `bun run test:packages`,
    `--check` 드리프트.
-3. **@unikit/types provider + 에러**(§5.4-5.5): device-status 표면
+3. **@unikit-bridge/types provider + 에러**(§5.4-5.5): device-status 표면
    (register/get) + `device.unavailable`/`device.permission_denied` 상수·가드 +
    Rust error.rs 팩토리 양측 등록(레지스트리 주석 "Rust error.rs 대응 여부"
    관례 유지).
 4. **문서**: platform-permissions.md(§2 층 표에 device 행, §6-7 권한 키 교차표
    연결), rust-api-guide/getting-started 가드 사용 예 — `.ko.md` 쌍 + docs:sync
    게이트.
-5. **(선택) 표준 provider 팩토리**: @unikit/react-native(react-native-permissions
-   래핑), @unikit/tauri(플러그인 존재 감지) — 오픈 질문 4 해소 후.
+5. **(선택) 표준 provider 팩토리**: @unikit-bridge/react-native(react-native-permissions
+   래핑), @unikit-bridge/tauri(플러그인 존재 감지) — 오픈 질문 4 해소 후.
 
 ## 주요 출처 요약
 

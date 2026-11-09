@@ -13,8 +13,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { serializeSnapshot } from '@unikit/types';
-import type { DumpedWire } from '@unikit/types';
+import { serializeSnapshot } from '@unikit-bridge/types';
+import type { DumpedWire } from '@unikit-bridge/types';
 import { decodeDump, formatInspectText, runInspect } from './cli-inspect.js';
 import { printHelp } from './cli-help.js';
 

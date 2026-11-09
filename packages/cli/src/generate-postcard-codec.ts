@@ -27,8 +27,8 @@ export function generateFrameCodecsTs(schema: PackageSchema): string {
   const definitions = collectAllDefinitions(schema);
   const importTypes = [...new Set([...allTypes, ...Object.keys(definitions)])].sort();
   let output = postcardHelperSource();
-  output += "import { createComplexCodec } from '@unikit/types';\n";
-  output += "import type { FrameCodec, UnikitError, ComplexSchema } from '@unikit/types';\n";
+  output += "import { createComplexCodec } from '@unikit-bridge/types';\n";
+  output += "import type { FrameCodec, UnikitError, ComplexSchema } from '@unikit-bridge/types';\n";
   output += `import type { ${importTypes.join(', ')} } from './types.js';\n\n`;
   for (const command of schema.commands) {
     validateFunctionArgs(command);

@@ -55,7 +55,7 @@
 
 ### T1. 버전 스큐 해소 + 발행 (즉시, 저위험 고임금)
 
-- testing/devtools/react 0.4.1이 `@unikit/types ^0.5.0`에 의존하는 스큐를 changeset(minor)
+- testing/devtools/react 0.4.1이 `@unikit-bridge/types ^0.5.0`에 의존하는 스큐를 changeset(minor)
   으로 해소. 대기 중 changeset과 함께 발행 PR #51 처리.
 - 루트 CHANGELOG 0.2.0 정지분 정리 (0.3→0.6 와이어 breaking 요약).
 - 성공 기준: npm 설치 → 어댑터 조합이 peer resolution 에러 없이 통과.

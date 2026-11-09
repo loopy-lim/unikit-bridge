@@ -1,5 +1,5 @@
 /**
- * @unikit/node 이벤트 구독 — 2-모드 dispatch (push 우선, 폴링 폴백).
+ * @unikit-bridge/node 이벤트 구독 — 2-모드 dispatch (push 우선, 폴링 폴백).
  *
  * Rust `Package::emit` 은 이벤트 버스(`event_bus`)에 적재하고, Node 런타임
  * (예: loop-stdio 바이너리)은 `{"command":"__drainEvents"}` 특수 요청으로
@@ -44,7 +44,7 @@
  * 구독이 완전히 해지된다(마지막 unsubscribe 가 정지). 다음 subscribe 가 재시동
  * 한다. 능력 재판정은 transport 당 1회 — 확정 후엔 경로를 다시 바꾸지 않는다.
  */
-import { UnikitCommandError } from '@unikit/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 import type { NodeInvokeTransport } from './node-core.js';
 
 /**

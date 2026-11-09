@@ -102,7 +102,7 @@ registered with `tauri_support::register_dispatch_with_swap_events` (hot-core dy
 pushes every swap outcome here — `{ oldContractHash, newContractHash }` on success,
 `{ error }` on failure; the channel stays silent under the static `register` /
 `register_with_events` registrations. Subscribe from TypeScript with `subscribeHotSwap`
-from `@unikit/tauri`. The event name passes the sanitizer unchanged (`/` is a kept
+from `@unikit-bridge/tauri`. The event name passes the sanitizer unchanged (`/` is a kept
 code point), so the channel is exactly `unikit://hot-core/swapped`.
 
 **React Native** — the RN `subscribeEvent(name, cb, options?)` is push via the
@@ -110,7 +110,7 @@ JSI sink. On CallInvoker-less hosts, pass `pollMs` to run the client-side drain
 loop that pulls the C++ dispatcher queue:
 
 ```ts
-import { subscribeEvent } from '@unikit/react-native';
+import { subscribeEvent } from '@unikit-bridge/react-native';
 
 const unsubscribe = subscribeEvent('progress.tick', (payload) => {
   /* ... */
@@ -125,7 +125,7 @@ it falls back to `__drainEvents` polling (`UNIKIT_NODE_EVENT_POLL_MS`, default
 throws `event.unavailable`:
 
 ```ts
-import { createNodeLoopTransport, subscribeEvent } from '@unikit/node';
+import { createNodeLoopTransport, subscribeEvent } from '@unikit-bridge/node';
 
 const transport = createNodeLoopTransport({ command: binaryPath, codecs });
 const unsubscribe = subscribeEvent(transport, 'progress.tick', (payload) => {
@@ -179,10 +179,10 @@ for Rust-owned objects.
 
 Every host exposes the same `{ handle, close() }` contract:
 
-**Tauri** (`@unikit/tauri`, issued via `unikit_channel_create` + native IPC Channel):
+**Tauri** (`@unikit-bridge/tauri`, issued via `unikit_channel_create` + native IPC Channel):
 
 ```ts
-import { createChannel } from '@unikit/tauri';
+import { createChannel } from '@unikit-bridge/tauri';
 import { channelDemo } from './generated/commands.js';
 
 const channel = await createChannel((payload) => console.log(payload));
@@ -194,7 +194,7 @@ JS-created Tauri channels use a native `Channel<InvokeResponseBody>` tied to the
 issuing physical WebView. `close()` revokes its native lease and disposes the JS
 callback; navigation, destruction, and app cleanup release owner resources. The
 `ipc-channel-chunks-v1` handshake rejects old broadcast-based native hosts: update
-`@unikit/tauri` and rebuild Rust together. Global setup needs `core.Channel` plus
+`@unikit-bridge/tauri` and rebuild Rust together. Global setup needs `core.Channel` plus
 Tauri's callback-cleanup API; without globals, pass an explicit
 `createIpcChannel(onMessage)` factory returning `{ value, dispose() }` alongside
 `invoke`. Passing `listen` alone cannot create a channel.
@@ -213,11 +213,11 @@ Trusted Rust `create_channel_for`/`create_bytes_channel_for` helpers deliberatel
 retain app-wide delivery. Mock IPC and JS tests cover the ownership protocol;
 physical WebView teardown still needs native GUI acceptance on each target.
 
-**React Native** (`@unikit/react-native`, JSI — true unicast; `{ pollMs }` on
+**React Native** (`@unikit-bridge/react-native`, JSI — true unicast; `{ pollMs }` on
 CallInvoker-less hosts):
 
 ```ts
-import { createChannel } from '@unikit/react-native';
+import { createChannel } from '@unikit-bridge/react-native';
 
 const channel = createChannel((payload) => console.log(payload));
 await channelDemo({ channel: channel.handle, ticks: 3 });

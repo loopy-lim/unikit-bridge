@@ -66,7 +66,7 @@ export function runQuickStart(
   const root = mkdtempSync(join(repo, 'target', `quick-start-${options.host}-${options.manager}-`));
   const app = join(root, 'app');
   const cli = join(repo, 'packages/cli/dist/index.js');
-  // file: 로 주입된 @unikit/cli 의 .bin/unikit 심링크는 이 파일을 가리킨다 —
+  // file: 로 주입된 @unikit-bridge/cli 의 .bin/unikit 심링크는 이 파일을 가리킨다 —
   // tsc 출력은 644 라 Linux 에서 exec 하면 126 이 된다. shebang 이 있으므로
   // 실행 비트만 부여하면 모든 매니저 경로가 해소된다.
   if (existsSync(cli)) chmodSync(cli, 0o755);
@@ -171,7 +171,7 @@ export function runQuickStart(
         .filter(Boolean),
       native: benchmarkArtifact(targetDir, scaffoldNativeArtifactPath(options.host)),
       installedPackages: ['cli', 'types', options.host].map((name) =>
-        onboardingPackageArtifact(join(app, 'node_modules/@unikit', name)),
+        onboardingPackageArtifact(join(app, 'node_modules/@unikit-bridge', name)),
       ),
     });
   try {
@@ -185,10 +185,10 @@ export function runQuickStart(
         ['devDependencies', ['cli']],
       ]) {
         for (const name of names)
-          manifest[section][`@unikit/${name}`] = `file:${join(repo, 'packages', name)}`;
+          manifest[section][`@unikit-bridge/${name}`] = `file:${join(repo, 'packages', name)}`;
       }
       // The transitive types dependency must resolve to the same candidate under every manager.
-      const override = { '@unikit/types': `file:${join(repo, 'packages/types')}` };
+      const override = { '@unikit-bridge/types': `file:${join(repo, 'packages/types')}` };
       if (options.manager === 'pnpm') manifest.pnpm = { overrides: override };
       else if (options.manager === 'yarn') manifest.resolutions = override;
       else manifest.overrides = override;

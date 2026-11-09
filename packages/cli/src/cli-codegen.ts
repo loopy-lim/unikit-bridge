@@ -36,7 +36,7 @@ const hasUpdatedMarker = (files: string[]): boolean =>
  * 스테일 런타임 바이너리 힌트(감사 #3) — codegen 은 TS/C++ 만 다시 렌더하고 실제
  * invoke 를 서브하는 런타임 바이너리는 재빌드하지 않는다. drift((updated) 표기)가
  * 있으면 기존 생성물이 갱신된 것이므로 cargo build 전까지 invoke 가 contract.mismatch
- * 로 죽을 수 있다(@unikit/types 의 UnikitCommandError 코드 — 네이티브 contract hash
+ * 로 죽을 수 있다(@unikit-bridge/types 의 UnikitCommandError 코드 — 네이티브 contract hash
  * ≠ 기대 hash). JSON 계약에는 손대지 않는다(텍스트 모드 전용).
  */
 export function staleBinaryHint(files: string[]): string | null {

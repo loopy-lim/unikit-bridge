@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { InvokeOptions } from '@unikit/types';
-import { resolveCommandId } from '@unikit/types';
+import type { InvokeOptions } from '@unikit-bridge/types';
+import { resolveCommandId } from '@unikit-bridge/types';
 import { useUnikitEngine } from './context.js';
 import { inputKey } from './input-key.js';
 

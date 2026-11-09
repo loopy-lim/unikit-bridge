@@ -85,7 +85,7 @@ Tauri 여정은 실제 WKWebView 안의 JS가 생성된 엄격 계약 클라이�
 
 [이전 M0 검증 문서](2026-09-14-m0-safety-release.md)의 ‘새 Actions 실행·발행 미수행’ 문장은 당시 로컬 검증 시점의 기록이다. 이후 병합·발행 상태는 위 조회가 보완한다. 이번 M1 작업 디렉터리의 미커밋 수정은 위 원격 CI에 포함되지 않는다.
 
-공개 npm CLI와 현재 main을 비교하면 `cli-generate.ts`의 watch 재구독 제거 수정이 아직 `@unikit/cli@0.10.0`에 포함되지 않았다. 조회한 원격 main의 changeset은 비어 있었다. 이번 로컬 후보에는 정확한 의존성 핀/독립 호스트 버전 수정과 이 watch 수정의 CLI patch changeset을 준비했다. 아직 발행하지 않았으며, 이번 registry 기본 핀 검증을 최신 main 전체 발행 증거로 사용하지 않는다.
+공개 npm CLI와 현재 main을 비교하면 `cli-generate.ts`의 watch 재구독 제거 수정이 아직 `@unikit-bridge/cli@0.10.0`에 포함되지 않았다. 조회한 원격 main의 changeset은 비어 있었다. 이번 로컬 후보에는 정확한 의존성 핀/독립 호스트 버전 수정과 이 watch 수정의 CLI patch changeset을 준비했다. 아직 발행하지 않았으며, 이번 registry 기본 핀 검증을 최신 main 전체 발행 증거로 사용하지 않는다.
 
 ## 3. 이번에 구현·검증한 M1 자동 검증
 
@@ -172,7 +172,7 @@ G0–G3와 차단 결함 0개를 확인하고 공개 계약/API snapshot을 동�
 
 ### CLI 도입 결함 수정의 직접 확인
 
-공개 CLI `0.10.0`으로 실패했던 v2 소비자는 `@unikit/types`, `@unikit/node`, `@unikit/cli`의 정확한 `0.10.0` manifest를 유지했다. 수정한 로컬 CLI로 같은 소비자의 `codegen`, `codegen --check`, 기존 demo 호출(`hello from TypeScript`)이 모두 통과했다. 로그는 `exact-pin-candidate-codegen.log`, `exact-pin-candidate-check.log`, `exact-pin-candidate-call.log`다. 이 결과는 **로컬 CLI 수정 검증**이며, 아직 발행하지 않은 CLI 패치의 공개 설치 증거가 아니다.
+공개 CLI `0.10.0`으로 실패했던 v2 소비자는 `@unikit-bridge/types`, `@unikit-bridge/node`, `@unikit-bridge/cli`의 정확한 `0.10.0` manifest를 유지했다. 수정한 로컬 CLI로 같은 소비자의 `codegen`, `codegen --check`, 기존 demo 호출(`hello from TypeScript`)이 모두 통과했다. 로그는 `exact-pin-candidate-codegen.log`, `exact-pin-candidate-check.log`, `exact-pin-candidate-call.log`다. 이 결과는 **로컬 CLI 수정 검증**이며, 아직 발행하지 않은 CLI 패치의 공개 설치 증거가 아니다.
 
 codegen freshness의 최초 podspec 드리프트는 격리 작업 디렉터리에 예제별 의존성을 설치하지 않아 다른 위치의 어댑터를 찾은 환경 차이였다. 두 RN 예제의 frozen lock으로 의존성을 설치한 뒤 6개 검사 모두 통과했으며 추적된 생성물을 변경하지 않았다.
 

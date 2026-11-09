@@ -171,11 +171,11 @@ export function invokeLoose<T = unknown>(
 
 ## changeset
 
-minor 후보(@unikit/types 신규 export, cli 코드젱 입력 스키마 확장) —
+minor 후보(@unikit-bridge/types 신규 export, cli 코드젱 입력 스키마 확장) —
 **생성은 사용자 승인 게이트**(관례: 계획서에 초안만).
 
-- `@unikit/types`: minor — `invokeLoose` 추가
-- `@unikit/cli`: minor — 스키마 `deviceCapabilities` 소싱, 미지 토큰
+- `@unikit-bridge/types`: minor — `invokeLoose` 추가
+- `@unikit-bridge/cli`: minor — 스키마 `deviceCapabilities` 소싱, 미지 토큰
   렌더, doctor 검사, `test:fast`
 - `unikit`(crate): 카탈로그 스키마 기록 + debug 관대화 — crates.io
   발행은 changeset과 별개 절차(사용자 게이트).

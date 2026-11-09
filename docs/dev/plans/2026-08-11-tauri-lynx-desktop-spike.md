@@ -15,7 +15,7 @@
 - `examples/lynx-calculator/host/build.sh` — Lynx SDK 링크 빌드.
 - `examples/tauri-calculator/src-tauri/` — Tauri crate 구조.
 - `crates/unikit-bridge/src/lib.rs:131`(`tauri_support`) — 단, 본 스파이크는 JSON IPC가 아닌 rkyv 직접 FFI 경로를 쓴다.
-- `examples/lynx-calculator/src/App.tsx` — ReactLynx + `@unikit/lynx` 엔진 설정(스파이크용으로 단순화).
+- `examples/lynx-calculator/src/App.tsx` — ReactLynx + `@unikit-bridge/lynx` 엔진 설정(스파이크용으로 단순화).
 
 ---
 
@@ -102,7 +102,7 @@ git commit -m "docs(spike): Phase 0 Lynx desktop API 조사 + 경로 A/B 결정"
 
 **Files:**
 
-- Create: `examples/lynx-tauri-spike/package.json` (`@lynx-js/react`, `@lynx-js/rspeedy`, `@unikit/lynx`, `@unikit/types`, `@unikit/calculator` → `examples/calculator` generated 참조)
+- Create: `examples/lynx-tauri-spike/package.json` (`@lynx-js/react`, `@lynx-js/rspeedy`, `@unikit-bridge/lynx`, `@unikit-bridge/types`, `@unikit-bridge/calculator` → `examples/calculator` generated 참조)
 - Create: `examples/lynx-tauri-spike/lynx.config.ts` (`examples/lynx-calculator/lynx.config.ts` 복사)
 - Create: `examples/lynx-tauri-spike/src/index.tsx` (엔트리)
 - Create: `examples/lynx-tauri-spike/src/App.tsx` — `addNumbers({a:20,b:22})` 호출 + 결과 표시 + `ackResult` 왕복만 남긴 단순 버전 (`examples/lynx-calculator/src/App.tsx`에서 tick/divide/secureCompute 제거)
@@ -113,7 +113,7 @@ git commit -m "docs(spike): Phase 0 Lynx desktop API 조사 + 경로 A/B 결정"
 ```tsx
 import { useEffect, useState } from '@lynx-js/react';
 import { addNumbers } from '../../calculator/generated/commands.js';
-import { createFastEngine, configure, getUnikitNative } from '@unikit/lynx';
+import { createFastEngine, configure, getUnikitNative } from '@unikit-bridge/lynx';
 import { rkyvV2Registry } from '../../calculator/generated/rkyv-registry.js';
 
 try {

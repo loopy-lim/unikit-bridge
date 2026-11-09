@@ -31,10 +31,10 @@ export function pinOriginalScaffold(projectDir, versions) {
   const packagePath = join(projectDir, 'package.json');
   const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
   packageJson.dependencies = {
-    '@unikit/node': versions.npm['@unikit/node'],
-    '@unikit/types': versions.npm['@unikit/types'],
+    '@unikit-bridge/node': versions.npm['@unikit-bridge/node'],
+    '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
   };
-  packageJson.devDependencies = { '@unikit/cli': versions.npm['@unikit/cli'] };
+  packageJson.devDependencies = { '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'] };
   writeJson(packagePath, packageJson);
   pinCargoVersions(projectDir, versions.phases.baseline);
 }
@@ -43,11 +43,11 @@ export function prepareRegistryFixture(projectDir, versions) {
   const packagePath = join(projectDir, 'package.json');
   const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
   packageJson.dependencies = {
-    '@unikit/node': versions.npm['@unikit/node'],
-    '@unikit/bun': versions.npm['@unikit/bun'],
-    '@unikit/types': versions.npm['@unikit/types'],
+    '@unikit-bridge/node': versions.npm['@unikit-bridge/node'],
+    '@unikit-bridge/bun': versions.npm['@unikit-bridge/bun'],
+    '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
   };
-  packageJson.devDependencies = { '@unikit/cli': versions.npm['@unikit/cli'] };
+  packageJson.devDependencies = { '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'] };
   writeJson(packagePath, packageJson);
 
   const cargoPath = join(projectDir, 'Cargo.toml');
@@ -90,10 +90,10 @@ export function prepareRegistryFixture(projectDir, versions) {
 function writeProbeFiles(projectDir) {
   writeFileSync(
     join(projectDir, 'src', 'node-probe.ts'),
-    `import { echo, failEcho, unikit } from './generated/node.js';\n\nconst repeat = process.env.UNIKIT_EXPECT_REPEAT ? Number(process.env.UNIKIT_EXPECT_REPEAT) : undefined;\nconst input = repeat === undefined ? { message: 'registry-node' } : { message: 'registry-node', repeat };\ntry {\n  await unikit.ready();\n  const result = await echo(input as never);\n  let propagatedError: { code: unknown; message: string } | null = null;\n  try { await failEcho(input as never); } catch (error: any) { propagatedError = { code: error?.code ?? null, message: error?.message ?? String(error) }; }\n  if (!propagatedError || !propagatedError.message.includes('registry gate error propagation')) throw new Error('Node error did not cross stdio');\n  if (result.message !== input.message || (repeat !== undefined && (result as any).repeat !== repeat)) throw new Error('Node result mismatch: ' + JSON.stringify(result));\n  console.log('${RESULT_MARKER}' + JSON.stringify({ host: 'node', adapter: '@unikit/node', transport: 'stdio', contractVerification: 'strict-generated-entry', result, propagatedError }));\n} finally { unikit.dispose(); }\n`,
+    `import { echo, failEcho, unikit } from './generated/node.js';\n\nconst repeat = process.env.UNIKIT_EXPECT_REPEAT ? Number(process.env.UNIKIT_EXPECT_REPEAT) : undefined;\nconst input = repeat === undefined ? { message: 'registry-node' } : { message: 'registry-node', repeat };\ntry {\n  await unikit.ready();\n  const result = await echo(input as never);\n  let propagatedError: { code: unknown; message: string } | null = null;\n  try { await failEcho(input as never); } catch (error: any) { propagatedError = { code: error?.code ?? null, message: error?.message ?? String(error) }; }\n  if (!propagatedError || !propagatedError.message.includes('registry gate error propagation')) throw new Error('Node error did not cross stdio');\n  if (result.message !== input.message || (repeat !== undefined && (result as any).repeat !== repeat)) throw new Error('Node result mismatch: ' + JSON.stringify(result));\n  console.log('${RESULT_MARKER}' + JSON.stringify({ host: 'node', adapter: '@unikit-bridge/node', transport: 'stdio', contractVerification: 'strict-generated-entry', result, propagatedError }));\n} finally { unikit.dispose(); }\n`,
   );
   writeFileSync(
     join(projectDir, 'src', 'bun-probe.ts'),
-    `import { echo, failEcho, unikit } from './generated/bun.js';\n\nconst repeat = process.env.UNIKIT_EXPECT_REPEAT ? Number(process.env.UNIKIT_EXPECT_REPEAT) : undefined;\nconst input = repeat === undefined ? { message: 'registry-bun' } : { message: 'registry-bun', repeat };\ntry {\n  await unikit.ready();\n  const result = await echo(input as never);\n  let propagatedError: { code: unknown; message: string } | null = null;\n  try { await failEcho(input as never); } catch (error: any) { propagatedError = { code: error?.code ?? null, message: error?.message ?? String(error) }; }\n  if (!propagatedError || !propagatedError.message.includes('registry gate error propagation')) throw new Error('Bun error did not cross FFI');\n  if (result.message !== input.message || (repeat !== undefined && (result as any).repeat !== repeat)) throw new Error('Bun result mismatch: ' + JSON.stringify(result));\n  console.log('${RESULT_MARKER}' + JSON.stringify({ host: 'bun', adapter: '@unikit/bun', transport: 'ffi', contractVerification: 'strict-generated-entry', result, propagatedError }));\n} finally { unikit.dispose(); }\n`,
+    `import { echo, failEcho, unikit } from './generated/bun.js';\n\nconst repeat = process.env.UNIKIT_EXPECT_REPEAT ? Number(process.env.UNIKIT_EXPECT_REPEAT) : undefined;\nconst input = repeat === undefined ? { message: 'registry-bun' } : { message: 'registry-bun', repeat };\ntry {\n  await unikit.ready();\n  const result = await echo(input as never);\n  let propagatedError: { code: unknown; message: string } | null = null;\n  try { await failEcho(input as never); } catch (error: any) { propagatedError = { code: error?.code ?? null, message: error?.message ?? String(error) }; }\n  if (!propagatedError || !propagatedError.message.includes('registry gate error propagation')) throw new Error('Bun error did not cross FFI');\n  if (result.message !== input.message || (repeat !== undefined && (result as any).repeat !== repeat)) throw new Error('Bun result mismatch: ' + JSON.stringify(result));\n  console.log('${RESULT_MARKER}' + JSON.stringify({ host: 'bun', adapter: '@unikit-bridge/bun', transport: 'ffi', contractVerification: 'strict-generated-entry', result, propagatedError }));\n} finally { unikit.dispose(); }\n`,
   );
 }

@@ -14,14 +14,14 @@
     "smoke": "bun runtime-smoke.mjs"
   },
   "dependencies": {
-    "@unikit/tauri": "file:../../packages/tauri",
-    "@unikit/types": "file:../../packages/types"
+    "@unikit-bridge/tauri": "file:../../packages/tauri",
+    "@unikit-bridge/types": "file:../../packages/types"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.4",
     "typescript": "^5.9.0"
   },
   "overrides": {
-    "@unikit/types": "file:../../packages/types"
+    "@unikit-bridge/types": "file:../../packages/types"
   }
 }

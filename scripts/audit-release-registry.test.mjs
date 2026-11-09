@@ -14,7 +14,7 @@ function rootFixture() {
   mkdirSync(join(root, 'crates', 'unikit-bridge'), { recursive: true });
   writeFileSync(
     join(root, 'packages', 'node', 'package.json'),
-    JSON.stringify({ name: '@unikit/node', version: '1.2.3' }),
+    JSON.stringify({ name: '@unikit-bridge/node', version: '1.2.3' }),
   );
   writeFileSync(
     join(root, 'Cargo.toml'),
@@ -93,13 +93,13 @@ test('separates an unpublished npm exact version from a latest version with unkn
     }),
   });
   assert.deepEqual(report.npm[0], {
-    name: '@unikit/node',
+    name: '@unikit-bridge/node',
     workspaceVersion: '1.2.3',
     exactVersion: null,
     latestVersion: '1.2.4',
     publication: 'unpublished',
     source: { revision: null, relation: 'unknown', dirty: null },
-    registryUrl: 'https://registry.npmjs.org/%40unikit%2Fnode',
+    registryUrl: 'https://registry.npmjs.org/%40unikit-bridge%2Fnode',
     dist: null,
     error: null,
   });
@@ -114,7 +114,7 @@ test('reports npm exact metadata and distinguishes matching and different gitHea
     [undefined, 'unknown'],
   ]) {
     const exact = {
-      name: '@unikit/node',
+      name: '@unikit-bridge/node',
       version: '1.2.3',
       gitHead,
       dist: {
@@ -215,7 +215,7 @@ test('hashes repeated local artifacts and renders evidence limits in Markdown', 
   const markdown = renderRegistryMarkdown(report);
   assert.match(markdown, /Local artifact evidence/);
   assert.match(markdown, /do not prove registry publication or physical-device runtime/i);
-  assert.match(markdown, /@unikit\/node/);
+  assert.match(markdown, /@unikit-bridge\/node/);
 });
 
 test('rejects malformed npm metadata and exact package identity as query errors', async () => {
@@ -224,27 +224,27 @@ test('rejects malformed npm metadata and exact package identity as query errors'
     { 'dist-tags': { latest: '1.2.3' }, versions: [] },
     {
       'dist-tags': { latest: '1.2.3' },
-      versions: { '1.2.3': { name: '@unikit/other', version: '1.2.3', dist: {} } },
+      versions: { '1.2.3': { name: '@unikit-bridge/other', version: '1.2.3', dist: {} } },
     },
     {
       'dist-tags': { latest: '1.2.3' },
-      versions: { '1.2.3': { name: '@unikit/node', version: '9.9.9', dist: {} } },
+      versions: { '1.2.3': { name: '@unikit-bridge/node', version: '9.9.9', dist: {} } },
     },
     { 'dist-tags': { latest: '1.2.3' }, versions: { '1.2.3': null } },
     { 'dist-tags': { latest: '1.2.3' }, versions: { '1.2.3': false } },
     {
       'dist-tags': { latest: '1.2.3' },
-      versions: { '1.2.3': { name: '@unikit/node', version: '1.2.3', dist: [] } },
+      versions: { '1.2.3': { name: '@unikit-bridge/node', version: '1.2.3', dist: [] } },
     },
     {
       'dist-tags': { latest: '1.2.3' },
-      versions: { '1.2.3': { name: '@unikit/node', version: '1.2.3', dist: {} } },
+      versions: { '1.2.3': { name: '@unikit-bridge/node', version: '1.2.3', dist: {} } },
     },
     {
       'dist-tags': { latest: '1.2.3' },
       versions: {
         '1.2.3': {
-          name: '@unikit/node',
+          name: '@unikit-bridge/node',
           version: '1.2.3',
           dist: { tarball: 'http://npm.test/pkg.tgz', shasum: 'a'.repeat(40) },
         },
@@ -254,7 +254,7 @@ test('rejects malformed npm metadata and exact package identity as query errors'
       'dist-tags': { latest: '1.2.3' },
       versions: {
         '1.2.3': {
-          name: '@unikit/node',
+          name: '@unikit-bridge/node',
           version: '1.2.3',
           dist: { tarball: 'https://npm.test/pkg.tgz', shasum: 'not-a-sha1' },
         },

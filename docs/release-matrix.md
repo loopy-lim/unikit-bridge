@@ -35,15 +35,15 @@ Candidate `b1ed9aa422fb4e627131f02f67de9f50bdbfedf7` was dirty because the M0 wo
 
 | npm package            | Workspace / exact / latest     |
 | ---------------------- | ------------------------------ |
-| `@unikit/bun`          | `0.10.0` / `0.10.0` / `0.10.0` |
-| `@unikit/cli`          | `0.10.0` / `0.10.0` / `0.10.0` |
-| `@unikit/devtools`     | `0.7.0` / `0.7.0` / `0.7.0`    |
-| `@unikit/node`         | `0.10.0` / `0.10.0` / `0.10.0` |
-| `@unikit/react`        | `0.8.0` / `0.8.0` / `0.8.0`    |
-| `@unikit/react-native` | `0.9.0` / `0.9.0` / `0.9.0`    |
-| `@unikit/tauri`        | `0.9.0` / `0.9.0` / `0.9.0`    |
-| `@unikit/testing`      | `0.7.0` / `0.7.0` / `0.7.0`    |
-| `@unikit/types`        | `0.10.0` / `0.10.0` / `0.10.0` |
+| `@unikit-bridge/bun`          | `0.10.0` / `0.10.0` / `0.10.0` |
+| `@unikit-bridge/cli`          | `0.10.0` / `0.10.0` / `0.10.0` |
+| `@unikit-bridge/devtools`     | `0.7.0` / `0.7.0` / `0.7.0`    |
+| `@unikit-bridge/node`         | `0.10.0` / `0.10.0` / `0.10.0` |
+| `@unikit-bridge/react`        | `0.8.0` / `0.8.0` / `0.8.0`    |
+| `@unikit-bridge/react-native` | `0.9.0` / `0.9.0` / `0.9.0`    |
+| `@unikit-bridge/tauri`        | `0.9.0` / `0.9.0` / `0.9.0`    |
+| `@unikit-bridge/testing`      | `0.7.0` / `0.7.0` / `0.7.0`    |
+| `@unikit-bridge/types`        | `0.10.0` / `0.10.0` / `0.10.0` |
 
 | crate           | Workspace / exact / latest     | Exact yanked | Archive checksum |
 | --------------- | ------------------------------ | ------------ | ---------------- |

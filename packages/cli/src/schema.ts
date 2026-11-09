@@ -1,5 +1,5 @@
 /**
- * @unikit/cli — unikit CLI 코드 생성 스키마 타입
+ * @unikit-bridge/cli — unikit CLI 코드 생성 스키마 타입
  *
  * Rust에서 생성된 JSON 스키마를 TypeScript에서 파싱하고
  * 코드 생성에 사용하는 타입 정의입니다.

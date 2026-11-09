@@ -693,7 +693,7 @@ test('metadata edits remain nonbreaking', () => {
 });
 
 test('migration gate rejects schema pairs that silently reinterpret actual postcard bytes', async () => {
-  const { createSchemaPostcardCodec } = await import('@unikit/types');
+  const { createSchemaPostcardCodec } = await import('@unikit-bridge/types');
   const before = { type: 'object', properties: { value: { type: 'integer', format: 'int64' } } };
   const after = { type: 'object', properties: { value: { type: 'integer', format: 'uint64' } } };
   const encoder = createSchemaPostcardCodec(1, before, before)!;

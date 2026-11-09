@@ -33,7 +33,7 @@ export async function runLegacyDev(options: DevOptions): Promise<DevWatchHandle>
   assertDirectory(app, 'app', 'unikit dev --app <dir>');
   if (!process.env.UNIKIT_CLI && !findRepoCli(app))
     throw new Error(
-      `Could not find the Unikit CLI from ${app}. Install @unikit/cli or set UNIKIT_CLI.`,
+      `Could not find the Unikit CLI from ${app}. Install @unikit-bridge/cli or set UNIKIT_CLI.`,
     );
 
   const fallbackPaths = (): RustInputPaths => ({
@@ -146,7 +146,7 @@ export async function runLegacyDev(options: DevOptions): Promise<DevWatchHandle>
       log(`[dev] ${new Date().toLocaleTimeString()} regenerated`);
       if (options.inspect) {
         log('[dev:inspect] Wrap your engine with createInstrumentedEngine in the app process');
-        log('[dev:inspect] to expose report() via console or remote: @unikit/devtools');
+        log('[dev:inspect] to expose report() via console or remote: @unikit-bridge/devtools');
       }
       if (next.rustBin) await reload.emitReload(reason);
     } catch (error) {

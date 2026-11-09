@@ -1,8 +1,8 @@
 English | [한국어](./README.ko.md)
 
-# @unikit/example-reference-app
+# @unikit-bridge/example-reference-app
 
-The reference app for the `@unikit/react` hooks (useCommand/useMutation/useEvent/UnikitProvider) —
+The reference app for the `@unikit-bridge/react` hooks (useCommand/useMutation/useEvent/UnikitProvider) —
 shows how to compose CRUD and event flows.
 
 ## Structure

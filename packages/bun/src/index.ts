@@ -1,4 +1,4 @@
-/** @unikit/bun — Bun JSON transport and FFI adapter. */
+/** @unikit-bridge/bun — Bun JSON transport and FFI adapter. */
 export type {
   EngineClient,
   BootstrapState,
@@ -9,7 +9,7 @@ export type {
   InvokeOptions,
   FrameEngine,
   EngineSupports,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 export {
   UnikitCommandError,
   configure,
@@ -19,8 +19,8 @@ export {
   invoke,
   createFrameEngine,
   createJsonEngine,
-} from '@unikit/types';
-import { createJsonEngine } from '@unikit/types';
+} from '@unikit-bridge/types';
+import { createJsonEngine } from '@unikit-bridge/types';
 import { BUN_ENGINE_SUPPORTS } from './bun-ffi.js';
 export { BUN_ENGINE_SUPPORTS, BUN_FRAME_ENGINE_SUPPORTS } from './bun-ffi.js';
 

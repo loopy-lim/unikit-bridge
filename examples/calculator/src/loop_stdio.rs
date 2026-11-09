@@ -6,7 +6,7 @@
 //! - 요청: `[len u32 LE][cmd_id u16 LE + postcard 본문]`
 //! - 응답: `[len u32 LE][[ok u8][pad 3B][len u32 LE][body]]`
 //! - drain(0xfffe) / push(0xfffd) 는 예약 cmd id — id 부여 대상이 아니다.
-//! - 채널(0xfffb 발급 / 0xfffa 해제 / 0xfffc 푸시 프레임)도 예약 — `@unikit/node`
+//! - 채널(0xfffb 발급 / 0xfffa 해제 / 0xfffc 푸시 프레임)도 예약 — `@unikit-bridge/node`
 //!   `createNodeChannel` 계약(0.7 채널 트랙).
 
 use unikit_bridge::Package;

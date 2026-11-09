@@ -1,4 +1,4 @@
-import { UnikitCommandError } from '@unikit/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 import type { NodeBootstrapOptions, NodeProcessTransport } from './node-core.js';
 import { createNodeLoopTransport } from './node-loop.js';
 

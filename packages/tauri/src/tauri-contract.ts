@@ -1,4 +1,4 @@
-import { normalizeUnikitError, UnikitCommandError, UnikitErrorCode } from '@unikit/types';
+import { normalizeUnikitError, UnikitCommandError, UnikitErrorCode } from '@unikit-bridge/types';
 import type { TauriEngineOptions, TauriInvoke } from './index.js';
 
 /** Share one successful startup handshake; a failed attempt can be retried. */

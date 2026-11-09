@@ -94,7 +94,7 @@ dev 루프가 새 .wasm을 기기로 푸시하면 앱이 새 인스턴스를 컴
 
 - **A0 (스파이크, 최우선)**: 실기기(iOS+Android)에서 wasm3 기반 백엔드 스왑 PoC.
   합격 기준 단 하나: 앱 재시작 없이 백엔드 로직 교체 → 동일 command 응답이 native와
-  바이트 동일. 실패 시 트랙 종료, RN은 "재빌드 필요" 경계 문서화 + `@unikit/testing`
+  바이트 동일. 실패 시 트랙 종료, RN은 "재빌드 필요" 경계 문서화 + `@unikit-bridge/testing`
   목업 대체로 회귀.
 - **A1**: Node/Bun/Tauri cdylib 핫스왑 (dev 루프 연결).
 - **A2**: `unikit_ffi_hot_reload` FFI — 기존 `replace()` 경로 재사용
@@ -132,11 +132,11 @@ wasm32 단일스레드(취소·백프레셔 축소), 핸들러 fs/네트워크 I
 
 - **B1 표준 덤프 API**: 산포 FFI를 스냅샷 모델로 통일 —
   `captureSnapshot() -> { contractHash, schemaGeneration, commands[], events[],
-channels, limits, stats }`. `@unikit/types`에 DumpedWire 타입 + 스키마 주도
+channels, limits, stats }`. `@unikit-bridge/types`에 DumpedWire 타입 + 스키마 주도
   postcard→사람용 값 디코더 (TS 복잡 코덱 디코더 재사용).
 - **B2 wire 뷰어/디코더**: hex 덤프 → 스키마 주도 파싱 → 필드 트리 렌더.
   CLI `unikit inspect <dump-file>` (의존성 없이 터미널).
-- **B3 호출 타임라인 UI**: `@unikit/devtools` DevtoolsLog → 타임라인 렌더.
+- **B3 호출 타임라인 UI**: `@unikit-bridge/devtools` DevtoolsLog → 타임라인 렌더.
   1차 산출물은 정적 HTML 리포트 생성기 (프레임워크 무관). Live TUI/웹 대시보드는
   다음 사이클.
 - **B4 계약 diff 진단**: CLI schema-diff 확장 — mismatch 시 원인 지목

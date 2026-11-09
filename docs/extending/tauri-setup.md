@@ -13,7 +13,7 @@ With `unikit.json` at your frontend root and `"tauri": {}` enabled, run CLI 0.12
 Both the Rust core and Tauri host need Unikit 0.12.0 or later:
 
 ```bash
-bunx --bun @unikit/cli@0.12.0 setup --config unikit.json
+bunx --bun @unikit-bridge/cli@0.12.0 setup --config unikit.json
 ```
 
 Setup generates clients, installs dependencies, builds the selected Rust core,
@@ -95,7 +95,7 @@ layout the core is `unikit-app/`, and generated clients stay at frontend
 Then generate the client surfaces:
 
 ```bash
-bunx --bun @unikit/cli@0.12.0 codegen --config unikit.json
+bunx --bun @unikit-bridge/cli@0.12.0 codegen --config unikit.json
 ```
 
 This renders `generated/tauri.ts` (plus `types.ts`, `commands.ts`, `contract.ts`).
@@ -188,7 +188,7 @@ Apps that do not want the global API can instead pass
 Install the adapter once, then import the generated entry:
 
 ```bash
-bun add @unikit/tauri@0.10.0 @unikit/types@0.12.1
+bun add @unikit-bridge/tauri@0.10.0 @unikit-bridge/types@0.12.1
 ```
 
 ```ts
@@ -240,7 +240,7 @@ entry. (`unikit_bridge::native_entry!` is the **React Native** path's
 
 ## Verify and troubleshoot
 
-- `bunx --bun @unikit/cli doctor --config unikit.json` — checks the toolchain,
+- `bunx --bun @unikit-bridge/cli doctor --config unikit.json` — checks the toolchain,
   manifest wiring, and generated-output freshness.
 - First-call contract failure (`contract.mismatch`): the generated TS and the
   Rust binary were built from different schemas — re-run codegen and rebuild.

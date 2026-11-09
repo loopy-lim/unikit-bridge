@@ -23,7 +23,7 @@
 
 - **진입**: `docs/README.md:9-17`의 추천 경로는 Architecture(548줄)를 Getting Started 앞에 둔다. "10분 안에 첫 패키지"(getting-started.md:7)를 약속하는 문서집의 읽기 순서가 개념 문서부터 시작해 약속과 어긋난다.
 - **첫 코드 충돌**: README "Quick Example"(README.md:184-205)은 `#[bridge_type]` + `unikit_bridge::build!`를 쓰는데, getting-started §2(getting-started.md:115-130)는 수동 derive 3종만 가르치고 `bridge_type`을 한 번도 언급하지 않는다(grep 0건). P1은 같은 일을 하는 두 문법을 다른 문서에서 순서 없이 만난다.
-- **막히는 지점**: RN 절 자체(getting-started.md:756-831)와 `extending/react-native-setup.md`는 잘 되어 있다. 그러나 (1) 전제 조건( Bun 최소 버전은 react-native-setup.md:68에만, MSRV는 versioning-policy.md:70-73에만 존재)이 산재하고, (2) UI부터 만들고 싶을 때 FAQ(README.md:139-141)가 약속하는 `@unikit/testing` mock engine 사용법이 사용자 문서 어디에도 없다.
+- **막히는 지점**: RN 절 자체(getting-started.md:756-831)와 `extending/react-native-setup.md`는 잘 되어 있다. 그러나 (1) 전제 조건( Bun 최소 버전은 react-native-setup.md:68에만, MSRV는 versioning-policy.md:70-73에만 존재)이 산재하고, (2) UI부터 만들고 싶을 때 FAQ(README.md:139-141)가 약속하는 `@unikit-bridge/testing` mock engine 사용법이 사용자 문서 어디에도 없다.
 - **환각 위험**: getting-started.md:836-844의 RN JSON 경로 예제는 `./native-transport`에서 `customNativeTransport`를 import하는데, 이걸 어떻게 만드는지에 대한 문서가 없다.
 
 ### P2 — Tauri 데스크톱 앱 개발자
@@ -86,13 +86,13 @@
    → 결손: 시맨틱 문서는 풍부하나 사용 코드가 없음(유형 a).
    → 제안: rust-api-guide 또는 신규 "런타임 시맨틱" 절에 signal/timeoutMs/invokeBatch 각 3~5줄 완전한 호출 예제 추가.
 
-5. **[e] React에서 쓰고 싶다(@unikit/react).**
+5. **[e] React에서 쓰고 싶다(@unikit-bridge/react).**
    → 답: README.md:404 구조 목록에 이름만 존재. useCommand/useMutation/useEvent/UnikitProvider 사용법 문서가 docs/에 없다(예제 examples/reference-app/README.md만 존재).
    → 결손: 공개 패키지의 사용법 진입점 부재.
    → 제안: docs/에 "React hooks 가이드" 1페이지(또는 reference-app README로의 명시 링크 목록) 추가 후 README 패키지 표에 연결.
 
 6. **[c] CLI는 어떻게 실행하는 것이 표준인가?**
-   → 답: `bunx --bun @unikit/cli ...`(README.md:751), `unikit diff ...`(migration-guide.md:15, 전제 설명 없음), `bun run doctor`(development-hurdles.md:37, init 스크립트 전제)이 혼용된다. `bun add -d @unikit/cli` 안내는 RN 문맥에만 있다(README.md:250).
+   → 답: `bunx --bun @unikit-bridge/cli ...`(README.md:751), `unikit diff ...`(migration-guide.md:15, 전제 설명 없음), `bun run doctor`(development-hurdles.md:37, init 스크립트 전제)이 혼용된다. `bun add -d @unikit-bridge/cli` 안내는 RN 문맥에만 있다(README.md:250).
    → 결손: CLI 설치/실행 형태의 정식 안내 부재.
    → 제안: development-hurdles 상단에 "CLI 실행 3형태(전역/디펜던시/bunx)와 권장형" 3줄 정리.
 
@@ -214,14 +214,14 @@
 ### 4-7. docs/development-hurdles.md, migration-guide.md, versioning-policy.md
 
 28. **[a/e] "UI부터 만들고 싶다"는 약속의 실체가 없다.**
-    → 답: README FAQ "use the mock engine from `@unikit/testing`. See the [development hurdles guide]"(README.md:139-141). 그러나 development-hurdles.md에는 `@unikit/testing`/mock engine 언급이 없다(grep 0건). `createMockEngine`의 사용법은 plans 문서에만 존재.
+    → 답: README FAQ "use the mock engine from `@unikit-bridge/testing`. See the [development hurdles guide]"(README.md:139-141). 그러나 development-hurdles.md에는 `@unikit-bridge/testing`/mock engine 언급이 없다(grep 0건). `createMockEngine`의 사용법은 plans 문서에만 존재.
     → 결손: FAQ가 가리키는 문서가 그 내용을 담지 않음 — 링크는 있으나 도달 불가(유형 e) + 실행 단계 부재(a).
     → 제안: development-hurdles에 "Rust 없이 시작하기: createMockEngine" 절 추가하거나 FAQ 링크를 examples(auth/ts 테스트가 mock engine 사용)로 변경.
 
 29. **[e] CI 통합 스니펫이 그대로는 실행 불가다.**
     → 답: migration-guide.md:118-125 — GitHub Actions에서 `unikit diff`를 실행하나 CLI 설치 단계도, 과거 스키마 아티팩트 준비도 없다.
     → 결손: 반쪽짜리 실행 단계.
-    → 제안: `- run: bun i -g @unikit/cli`(또는 bunx 형태)와 `actions/checkout` fetch-depth 명시를 포함한 완전형으로 교체.
+    → 제안: `- run: bun i -g @unikit-bridge/cli`(또는 bunx 형태)와 `actions/checkout` fetch-depth 명시를 포함한 완전형으로 교체.
 
 30. **[c] `unikit diff` 버전 주의가 없다.**
     → 답: diff는 스키마 형식에 의존하지만, 구버전 unikit(0.5 이전)가 만든 schema.json의 `inputType` 제네릭 표기 문제(rust-api-guide.md:626-629) 등 마이그레이션 창구 문서(migration-guide.md)와 버전 정책(versioning-policy.md:42-45, migrations 링크)가 상호 연결되지 않고 각자 서술한다.
@@ -262,7 +262,7 @@
 | 7   | 이벤트/채널 사용법 통합: `.event()`를 빌더 표에 추가 + "이벤트&채널 가이드"(Rust 선언 → 생성물 → JS subscribeEvent/unsubscribe, streaming 예제 연결)                                                                                               | 새 절+레퍼런스 보강   | #15, #4                                                       |
 | 8   | getting-started §3 types.ts 전체 덤프 축소(addNumbers 발췌 + 부록 이동), 한국어 JSDoc 잔여 정리                                                                                                                                                    | 재구성                | #9                                                            |
 | 9   | "첫 unikit.json + 표준 stdio 런타임" 인라인化: 외부 프로젝트용 unikit.json 최소형과 `__unikit_contract` 포함 stdio main 스니펫을 메인 경로에 배치                                                                                                  | 예제 추가             | #2, #10                                                       |
-| 10  | 색인 완성: docs/README.md에 wire-format/verification-checklist/migrations + 예제 갤러리 추가, CLI 실행 표준형 정리, mock engine(@unikit/testing)·React hooks 사용 가이드 또는 링크                                                                 | 색인 재구성+새 가이드 | #31, #6, #28, #5                                              |
+| 10  | 색인 완성: docs/README.md에 wire-format/verification-checklist/migrations + 예제 갤러리 추가, CLI 실행 표준형 정리, mock engine(@unikit-bridge/testing)·React hooks 사용 가이드 또는 링크                                                                 | 색인 재구성+새 가이드 | #31, #6, #28, #5                                              |
 
 ### 5-2. "사용법 중심 재구성" 목차 제안
 
@@ -286,8 +286,8 @@ docs/
   guides/
     events-and-channels.md     # 신규 — #15/#4
     errors-and-semantics.md    # 에러 코드/재시도/취소·타임아웃·배치 호출 예제 — #4
-    testing.md                 # createMockEngine + @unikit/testing — #28
-    react-hooks.md             # @unikit/react — #5
+    testing.md                 # createMockEngine + @unikit-bridge/testing — #28
+    react-hooks.md             # @unikit-bridge/react — #5
   compatibility/               # matrix(단일 표)/contract/migrations/versioning — 현행 유지+정리
   internals/                   # architecture/codegen/testing/crate-structure (기여자)
   extending/                   # react-native-setup(현행 유지)/transport-guide(현행화 후)/adding-host
@@ -304,4 +304,4 @@ docs/
 - legacy 심볼 실측: `unikit_calculator_invoke`(문자열 그대로)는 예제 테스트 주석의 "제거 후" 언급과 `unikit_calculator_invoke_typed_raw`(별개 심볼)만 남음(examples/calculator/tests/rkyv_v2_panic_guard.rs:179, examples/calculator/ts/runtime-contract.test.ts:51).
 - ko 미러 실측: compatibility-matrix.ko.md는 표 1개(EN의 2번째 스테일 표 없음). rust-api-guide.ko.md:575(i64→number), getting-started.ko.md:1126(configure 요약), architecture.ko.md:23/525는 EN과 동일 결손.
 - 문서-예제 연결 실측: docs/README.md에서 `examples` grep 0건. examples/ 하위 10개 디렉터리 전부 README.md/README.ko.md 보유(react-native-calculator, calculator, calculator-napi, auth, tauri-calculator, streaming, crud, benchmark, react-native-bare-calculator, reference-app).
-- invokeBatch 호출 예제 grep 0건(docs+README en). `@unikit/testing`/mock engine, getting-started·development-hurdles grep 0건.
+- invokeBatch 호출 예제 grep 0건(docs+README en). `@unikit-bridge/testing`/mock engine, getting-started·development-hurdles grep 0건.

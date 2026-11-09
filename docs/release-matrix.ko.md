@@ -35,15 +35,15 @@ crates.io는 sparse index의 각 항목에 완전한 SemVer 문법을 적용하�
 
 | npm 패키지             | Workspace / exact / latest     |
 | ---------------------- | ------------------------------ |
-| `@unikit/bun`          | `0.10.0` / `0.10.0` / `0.10.0` |
-| `@unikit/cli`          | `0.10.0` / `0.10.0` / `0.10.0` |
-| `@unikit/devtools`     | `0.7.0` / `0.7.0` / `0.7.0`    |
-| `@unikit/node`         | `0.10.0` / `0.10.0` / `0.10.0` |
-| `@unikit/react`        | `0.8.0` / `0.8.0` / `0.8.0`    |
-| `@unikit/react-native` | `0.9.0` / `0.9.0` / `0.9.0`    |
-| `@unikit/tauri`        | `0.9.0` / `0.9.0` / `0.9.0`    |
-| `@unikit/testing`      | `0.7.0` / `0.7.0` / `0.7.0`    |
-| `@unikit/types`        | `0.10.0` / `0.10.0` / `0.10.0` |
+| `@unikit-bridge/bun`          | `0.10.0` / `0.10.0` / `0.10.0` |
+| `@unikit-bridge/cli`          | `0.10.0` / `0.10.0` / `0.10.0` |
+| `@unikit-bridge/devtools`     | `0.7.0` / `0.7.0` / `0.7.0`    |
+| `@unikit-bridge/node`         | `0.10.0` / `0.10.0` / `0.10.0` |
+| `@unikit-bridge/react`        | `0.8.0` / `0.8.0` / `0.8.0`    |
+| `@unikit-bridge/react-native` | `0.9.0` / `0.9.0` / `0.9.0`    |
+| `@unikit-bridge/tauri`        | `0.9.0` / `0.9.0` / `0.9.0`    |
+| `@unikit-bridge/testing`      | `0.7.0` / `0.7.0` / `0.7.0`    |
+| `@unikit-bridge/types`        | `0.10.0` / `0.10.0` / `0.10.0` |
 
 | crate           | Workspace / exact / latest     | Exact yanked | Archive checksum |
 | --------------- | ------------------------------ | ------------ | ---------------- |

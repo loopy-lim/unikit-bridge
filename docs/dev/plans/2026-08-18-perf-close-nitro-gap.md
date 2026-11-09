@@ -6,7 +6,7 @@
 
 **Architecture:** 3단계 최적화 — (1) 설치 시점에 JSI HostObject 스캔을 일반 JS 객체 프로퍼티로 평평화(호출당 22회 선형 스캔 제거), (2) cmd_id 기반 `invokeTypedById` 진입점 추가로 문자열 마샬링+비교체인 제거 + `hasStaticCodec` JS 캐시로 JSI 호출 2→1회, (3) ArrayBuffer 생성자/에러 postcard 파서 캐시. 모두 기존 typed fast path 위의 추가 최적화로, 동적 명령/Tier 3/OTA 경로는 그대로.
 
-**Tech Stack:** C++17 (JSI), TypeScript (@unikit/types, @unikit/cli codegen), 기존 테스트 인프라(node --test, run-cpp-codec-tests.sh, cargo test)
+**Tech Stack:** C++17 (JSI), TypeScript (@unikit-bridge/types, @unikit-bridge/cli codegen), 기존 테스트 인프라(node --test, run-cpp-codec-tests.sh, cargo test)
 
 **성공 기준 (측정 방법 Task 7):**
 
@@ -324,7 +324,7 @@ const dispatch = async <T>(command: string, args?: unknown): Promise<T> => {
 
 **Step 4: 테스트 통과 확인**
 
-Run: `npm run test:types && cd ../.. && npm run build -w @unikit/types`
+Run: `npm run test:types && cd ../.. && npm run build -w @unikit-bridge/types`
 Expected: PASS
 
 **Step 5: C++ invokeTypedById 추가**
@@ -410,7 +410,7 @@ decode도 동일 구조. `has_static_codec` (이름 기반)은 유지 — JS 캐
 
 ```bash
 # 코드젠 실행 (memory: codegen-dual-path-regen — Rust bin + TS CLI 둘 다 확인했으면 하나로)
-npm run codegen 2>/dev/null || npx @unikit/cli generate --schema examples/calculator/generated/schema.json --out examples/react-native-calculator/modules/unikit-jsi/ios --cpp-output .
+npm run codegen 2>/dev/null || npx @unikit-bridge/cli generate --schema examples/calculator/generated/schema.json --out examples/react-native-calculator/modules/unikit-jsi/ios --cpp-output .
 ```
 
 (정확한 명령은 `packages/cli/src/index.ts` CLI 인자 확인 후 플랜 실행 시 결정 — schema.json 경로와 out 경로가 이전과 동일한지 확인.)

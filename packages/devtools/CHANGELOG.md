@@ -1,25 +1,25 @@
-# @unikit/devtools
+# @unikit-bridge/devtools
 
 ## 0.7.3
 
 ### Patch Changes
 
 - Updated dependencies [9d9e501]
-  - @unikit/types@0.13.0
+  - @unikit-bridge/types@0.13.0
 
 ## 0.7.2
 
 ### Patch Changes
 
 - Updated dependencies [8669395]
-  - @unikit/types@0.12.0
+  - @unikit-bridge/types@0.12.0
 
 ## 0.7.1
 
 ### Patch Changes
 
 - Updated dependencies [7e2f543]
-  - @unikit/types@0.11.0
+  - @unikit-bridge/types@0.11.0
 
 ## 0.7.0
 
@@ -38,7 +38,7 @@
 ### Patch Changes
 
 - Updated dependencies [8079239]
-  - @unikit/types@0.10.0
+  - @unikit-bridge/types@0.10.0
 
 ## 0.6.2
 
@@ -48,7 +48,7 @@
 - Updated dependencies [1f99eca]
 - Updated dependencies [88fd00b]
 - Updated dependencies [88fd00b]
-  - @unikit/types@0.9.0
+  - @unikit-bridge/types@0.9.0
 
 ## 0.6.1
 
@@ -57,7 +57,7 @@
 - Updated dependencies [e420f92]
 - Updated dependencies [582d740]
 - Updated dependencies [f2c7980]
-  - @unikit/types@0.8.0
+  - @unikit-bridge/types@0.8.0
 
 ## 0.6.0
 
@@ -72,20 +72,20 @@
   experimental wasm target (cooperative cancellation only — verify natively
   before release) plus a required `wasm32-unknown-unknown` rustup target check,
   and a release-coherence rule excluding the wasm backend from release artifacts.
-  `@unikit/node` adds `NodeLoopTransport.drain(timeoutMs)` (optional member) and
+  `@unikit-bridge/node` adds `NodeLoopTransport.drain(timeoutMs)` (optional member) and
   reload support on both bootstraps (loop hosts: graceful drain; one-shot:
-  shallow cancel); `@unikit/bun` reload re-initializes engine state in-process
+  shallow cancel); `@unikit-bridge/bun` reload re-initializes engine state in-process
   with a loud dlopen-cache warning. The experimental `unikit_ffi_hot_reload` FFI
   (replace semantics, loud skip report) lands in `unikit` — Rust-only, no npm
   surface.
 
   **Inspector track:** `unikit_ffi_capture_snapshot` FFI plus
-  `parseSnapshot`/`serializeSnapshot` in `@unikit/types`, the `unikit inspect`
+  `parseSnapshot`/`serializeSnapshot` in `@unikit-bridge/types`, the `unikit inspect`
   CLI for dump files, a self-contained `renderTimelineReport` HTML generator in
-  `@unikit/devtools`, and contract-diff diagnosis in the existing
+  `@unikit-bridge/devtools`, and contract-diff diagnosis in the existing
   `onContractMismatch` info.
 
-  **Type-level breaking changes in `@unikit/cli` (pre-1.0 minor, no migration
+  **Type-level breaking changes in `@unikit-bridge/cli` (pre-1.0 minor, no migration
   action required beyond recompiling):**
 
   1. The `BreakingChange` union gains a new member `command_id_changed`.
@@ -110,7 +110,7 @@
   `unikit codegen` renders every TS/C++ surface from that single file — the dual-pass
   trap of two writers producing the same files is gone. `GeneratedPackage::write_to_dir`
   is deprecated (documentation-only; kept at least one minor per the versioning policy).
-  DX additions in `@unikit/cli`: self-describing headers on every generated file
+  DX additions in `@unikit-bridge/cli`: self-describing headers on every generated file
   (file, source, regen command, stage), a `codegen.generated_freshness` doctor check
   (manifest-based stale detection: missing manifest, schema drift, generator drift),
   `codegen --explain` surface map (text or `--format json`), and a CI onboarding gate
@@ -133,7 +133,7 @@
 
 - Updated dependencies [23c2f17]
 - Updated dependencies [a23a4d6]
-  - @unikit/types@0.7.0
+  - @unikit-bridge/types@0.7.0
 
 ## 0.5.0
 
@@ -147,21 +147,21 @@
 
   **Developer experience**: the CLI has one shared arg parser (`--help`, exit codes, `--flag=value`, "did you mean" suggestions), refuses to overwrite existing files on `init` without `--force`, fails loudly on unknown config keys, and reports codegen `unknown` fallbacks as warnings. `UNIKIT_DEBUG=wire` dumps wire bytes; errors preserve `cause` and distinguish `TimeoutError`/`CancelledError`. Six documentation examples that failed to compile or run were corrected, and the changelog covers 0.3 → 0.5.
 
-  `@unikit/types` is minor. Packages keep independent release lines: prior 0.5.x packages move to 0.6.0 and prior 0.4.x packages move to 0.5.0; adapter ranges now require `^0.6.0`.
+  `@unikit-bridge/types` is minor. Packages keep independent release lines: prior 0.5.x packages move to 0.6.0 and prior 0.4.x packages move to 0.5.0; adapter ranges now require `^0.6.0`.
 
   Rust crates (`unikit`, `unikit-bridge-macros`): schema generation contract for hot-replace sync, dynamic-command postcard handlers, Tauri `unikit_dispatch_batch`, precompiled complex-codec IR, direct serde encoding, and codegen warning collection surfaced on `GeneratedPackage.warnings`.
 
 ### Patch Changes
 
 - Updated dependencies [8266d23]
-  - @unikit/types@0.6.0
+  - @unikit-bridge/types@0.6.0
 
 ## 0.4.1
 
 ### Patch Changes
 
 - Updated dependencies [6deb659]
-  - @unikit/types@0.5.0
+  - @unikit-bridge/types@0.5.0
 
 ## 0.4.0
 
@@ -173,7 +173,7 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @unikit/types@0.4.0
+  - @unikit-bridge/types@0.4.0
 
 ## 0.3.0
 
@@ -197,7 +197,7 @@
   - Rust `PackageBuilder::event::<E>("name")` → schema.json `events` 섹션
   - TS 코드젠이 `events.ts` 생성 — 페이로드 타입 + `UnikitEventName` 유니언 +
     `onUnikitEvent` 타입 안전 구독 헬퍼 (dual-path 정합)
-  - `@unikit/tauri` `subscribeEvent`/`unikitEventChannel` — Rust
+  - `@unikit-bridge/tauri` `subscribeEvent`/`unikitEventChannel` — Rust
     `register_with_events` 와 짝 (과거 JS 구독 API 부재)
 
   **비동기·런타임**
@@ -229,12 +229,12 @@
   - `expectContractCurrent` expect-스타일 계약 게이트 (러너 무관)
   - `UnikitJSINative` 타입 3중 수동 미러링 → `RkyvV2SchemaNative` 상속 단일화
   - positional facade `invokeTypedById` 우선 진입 + options 파라미터
-  - `@unikit/testing`·`@unikit/devtools` README
+  - `@unikit-bridge/testing`·`@unikit-bridge/devtools` README
 
 ### Patch Changes
 
 - Updated dependencies [48a0b01]
-  - @unikit/types@0.3.1
+  - @unikit-bridge/types@0.3.1
 
 ## 0.2.1
 
@@ -243,33 +243,33 @@
 - f77c2b8: chore(meta): npm 패키지 메타데이터 위생 정리 — sideEffects/engines 및 배포 산출물에서 테스트 파일 제외
 - Updated dependencies [f77c2b8]
 - Updated dependencies [f77c2b8]
-  - @unikit/types@0.3.0
+  - @unikit-bridge/types@0.3.0
 
 ## 0.2.0
 
 ### Minor Changes
 
-- ecbe69c: Lynx support removed: `@unikit/lynx` is deprecated on npm and the Lynx examples/runner template are deleted from the repo. unikit now targets Node, Bun, Tauri, and React Native. The rkyv V2 binary fast-path is unaffected (shared with the React Native JSI adapter).
+- ecbe69c: Lynx support removed: `@unikit-bridge/lynx` is deprecated on npm and the Lynx examples/runner template are deleted from the repo. unikit now targets Node, Bun, Tauri, and React Native. The rkyv V2 binary fast-path is unaffected (shared with the React Native JSI adapter).
 
 ### Patch Changes
 
 - Updated dependencies [ecbe69c]
 - Updated dependencies [5935b0a]
-  - @unikit/types@0.2.0
+  - @unikit-bridge/types@0.2.0
 
 ## 0.1.3
 
 ### Patch Changes
 
 - 5002b07: #### Added
-  - `@unikit/react` — hooks 패키지 첫 공개 (`useEngine`/`useCommand`/`useEvent`).
+  - `@unikit-bridge/react` — hooks 패키지 첫 공개 (`useEngine`/`useCommand`/`useEvent`).
   - Rust → JS 이벤트 푸시: `Package::set_event_sink`/`EventSink`(즉시 콜백, 폴링 불필요),
     `tauri_support::register_with_events`(Tauri `unikit://{event}` 푸시),
     FFI `unikit_ffi_event_sink_register`(C-unwind ABI, 패닉 격리),
     RN JSI `onEvent`/`offEvent`(CallInvoker drain, 1024 drop-oldest 큐) +
-    `@unikit/react-native` `subscribeEvent` 래퍼.
-  - `@unikit/testing` — `createMockEngine`(계약 동일 mock + 호출 기록) / `assertContractCurrent`.
-  - `@unikit/devtools` — `createInstrumentedEngine` 관측성 래퍼.
+    `@unikit-bridge/react-native` `subscribeEvent` 래퍼.
+  - `@unikit-bridge/testing` — `createMockEngine`(계약 동일 mock + 호출 기록) / `assertContractCurrent`.
+  - `@unikit-bridge/devtools` — `createInstrumentedEngine` 관측성 래퍼.
   - `unikit dev` — Rust 소스 감시 hot codegen, `unikit init` — 프로젝트 스캐폴딩,
     Vite 코드젠 플러그인.
   - codegen: `Set<T>` 지원(`BTreeSet`/`HashSet` → `uniqueItems`), 스키마 doc 주석 →
@@ -290,4 +290,4 @@
     transport-bench/runtime-contract 포함).
 
 - Updated dependencies [5002b07]
-  - @unikit/types@0.1.3
+  - @unikit-bridge/types@0.1.3

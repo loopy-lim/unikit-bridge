@@ -9,7 +9,7 @@ import {
   UnikitErrorCode,
   type BootstrapState,
   type EngineClientWithBatch,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 import {
   createNodeEngine,
   createNodeProcessTransport,
@@ -150,9 +150,9 @@ export async function selectVerifiedRuntime<T>(
   );
 }
 
-export type { BootstrapState } from '@unikit/types';
+export type { BootstrapState } from '@unikit-bridge/types';
 
-/** (A05) bootstrap 수명 상태 3종 — 상태 모델 계약은 @unikit/types 참고. */
+/** (A05) bootstrap 수명 상태 3종 — 상태 모델 계약은 @unikit-bridge/types 참고. */
 
 export function createNodeBootstrap(options: NodeBootstrapOptions = {}): NodeBootstrap {
   // await 경계 재검사용 — 클로저 변수를 직접 비교하면 TS 제어 흐름 분석이

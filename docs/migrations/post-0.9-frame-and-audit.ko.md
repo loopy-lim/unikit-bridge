@@ -37,7 +37,7 @@ Frame 전환은 공개 API와 네이티브 심볼 이름을 변경한다. 이름
 ## Tauri 채널
 
 JS 채널은 발급한 물리 WebView의 IPC Channel을 사용하고 `ipc-channel-chunks-v1`을
-협상한다. `@unikit/tauri`와 Rust를 함께 다시 빌드한다. 이전 이벤트 브로드캐스트 호스트는
+협상한다. `@unikit-bridge/tauri`와 Rust를 함께 다시 빌드한다. 이전 이벤트 브로드캐스트 호스트는
 거부한다. 전역 감지에는 `core.Channel`과 콜백 정리 API가 필요하며, 직접 설정한다면
 `createIpcChannel(onMessage) => { value, dispose() }`를 제공한다. `listen`만으로는
 부족하다. 원시 조각, 네이티브 min(런타임 한도, 16 MiB) 제한(코어 기본 설정은 1 MiB),

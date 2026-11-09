@@ -99,8 +99,8 @@ bun run build → test:release-coherence → lint → format:check → audit:pro
 
 ### 검증하지 못하는 것 (기여자 여정의 사각지대)
 
-1. **저장소 기여자의 첫 빌드 경로는 검증 대상이 아니다.** 게이트는 temp dir에서 발행물 소비자 여정(`bunx @unikit/cli init`)만 재현한다. `bun install → test:fast → test:compat`가 fresh clone에서 돌아가는지는 아무 게이트도 없다. 본 감사의 1·2번 불편이 바로 이 사각지대에서 발생했다.
-2. **발행 전 우회(`patch`, :89, :47-76 `injectWorkspacePatch`)** — repo 체크아웃에서는 `.cargo/config.toml` 패치 + `node_modules/@unikit/*` 심링크로 레지스트리를 우회한다(:48-56 주석 명시). 즉 repo CI에서는 **실 레지스트리 버전 해소 흐름을 검증할 수 없다**(의도된 트레이드오프이지만, `^0.8.0` 스캐폴드 요구와 워크스페이스 `0.11.0`의 버전 스큐가 사용자 환경에서 터지는 사례는 게이트가 못 잡는다).
+1. **저장소 기여자의 첫 빌드 경로는 검증 대상이 아니다.** 게이트는 temp dir에서 발행물 소비자 여정(`bunx @unikit-bridge/cli init`)만 재현한다. `bun install → test:fast → test:compat`가 fresh clone에서 돌아가는지는 아무 게이트도 없다. 본 감사의 1·2번 불편이 바로 이 사각지대에서 발생했다.
+2. **발행 전 우회(`patch`, :89, :47-76 `injectWorkspacePatch`)** — repo 체크아웃에서는 `.cargo/config.toml` 패치 + `node_modules/@unikit-bridge/*` 심링크로 레지스트리를 우회한다(:48-56 주석 명시). 즉 repo CI에서는 **실 레지스트리 버전 해소 흐름을 검증할 수 없다**(의도된 트레이드오프이지만, `^0.8.0` 스캐폴드 요구와 워크스페이스 `0.11.0`의 버전 스큐가 사용자 환경에서 터지는 사례는 게이트가 못 잡는다).
 3. **호스트 필수 도구 부재 시나리오** — `doctor` 단계는 "경고는 통과, 필수 fail만 중단"(:10)이라 webkit2gtk 같은 시스템 라이브러리 부재를 대신 잡아주지 않는다.
 4. **E2E 시간 임계 없음** — 온보딩이 느려져도 게이트는 조용하다.
 
@@ -143,7 +143,7 @@ bun run build → test:release-coherence → lint → format:check → audit:pro
 
 5. **`doctor` 이름 4중 사용 충돌** — 위 4절 참고. `doctor.config.json`은 레포 내 참조 0건. 근거: `eslint.config.js`(미참조), `docs/research/2026-08-29-22-46-49-dx-audit.md:111`(이미 지적됨).
 
-6. **문서 내 발행 버전 하드코딩으로 인한 스큐 위험** — `docs/getting-started.ko.md:40`(`@unikit/cli@0.11.3`), `:77`(`@unikit/node@0.10.2` 등). 문서 스스로 "이 표는 발행 또는 이 브랜치의 CI 통과를 증명하지 않는다"(:88 부근)라고 고지하지만, 신규 사용자는 오래된 설치 명령을 그대로 치게 된다. (다만 이는 저장소 기여자보다 라이브러리 소비자 온보딩의 문제다.)
+6. **문서 내 발행 버전 하드코딩으로 인한 스큐 위험** — `docs/getting-started.ko.md:40`(`@unikit-bridge/cli@0.11.3`), `:77`(`@unikit-bridge/node@0.10.2` 등). 문서 스스로 "이 표는 발행 또는 이 브랜치의 CI 통과를 증명하지 않는다"(:88 부근)라고 고지하지만, 신규 사용자는 오래된 설치 명령을 그대로 치게 된다. (다만 이는 저장소 기여자보다 라이브러리 소비자 온보딩의 문제다.)
 
 7. **`cargo build --workspace` 경고만 있고 대안 제시 없음** — `CONTRIBUTING.ko.md:30-33`의 주석은 사실을 말하지만 Linux 기여자용 실행 가능한 대안(`bare cargo build` = default-members)을 코드 블록으로 주지 않는다.
 
@@ -154,7 +154,7 @@ bun run build → test:release-coherence → lint → format:check → audit:pro
 - 전제 조건의 단일 원천 표 + 저장소 전용 사항만 CONTRIBUTING에 덧붙이는 구성(`CONTRIBUTING.ko.md:9-13`, `docs/getting-started.ko.md:20-31`).
 - `prepare` 스크립트로 lefthook 자동 설치 + `stage_fixed: true` 포맷 자동 재스테이징(`CONTRIBUTING.ko.md` 릴리즈 절, `lefthook.yml`).
 - 사용자 온보딩 여정을 산문이 아닌 fail-closed 게이트로 계약한 `scripts/onboarding-gate.mjs` + 유닛 테스트(`scripts/onboarding-gate.test.ts`, `test:onboarding`으로 CI 결속).
-- Rust 없이 시작하는 mock 엔진 제공(`docs/development-hurdles.ko.md:36` `@unikit/testing` `createMockEngine`).
+- Rust 없이 시작하는 mock 엔진 제공(`docs/development-hurdles.ko.md:36` `@unikit-bridge/testing` `createMockEngine`).
 - 웜 `test:fast` ~15초라는 기대치 명시(`CONTRIBUTING.ko.md:29`).
 
 ---

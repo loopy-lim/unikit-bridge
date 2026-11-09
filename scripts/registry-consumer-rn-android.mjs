@@ -349,7 +349,7 @@ fn main() -> unikit_bridge::Result<()> {
 export function renderRnConfigJson() {
   return `${JSON.stringify(
     {
-      $schema: './node_modules/@unikit/cli/unikit.schema.json',
+      $schema: './node_modules/@unikit-bridge/cli/unikit.schema.json',
       schema: './generated/schema.json',
       output: './generated',
       reactNative: { rustManifest: './Cargo.toml' },
@@ -368,7 +368,7 @@ export function renderAppReactNativeConfigJs() {
 
 module.exports = {
   dependencies: {
-    '@unikit/generated-react-native': {
+    '@unikit-bridge/generated-react-native': {
       root: path.resolve(__dirname, 'modules', 'unikit-bridge'),
     },
   },
@@ -771,9 +771,9 @@ function collectEventEvidence(context, device) {
 
 async function executeRnAndroidCycle({ logDir, serial, assertEvents = false }) {
   const versions = validateVersionManifest(readJson(VERSIONS_PATH));
-  const reactNativeVersion = versions.hosts?.['@unikit/react-native'];
+  const reactNativeVersion = versions.hosts?.['@unikit-bridge/react-native'];
   if (!reactNativeVersion)
-    throw new Error('versions.json hosts["@unikit/react-native"] pin is required');
+    throw new Error('versions.json hosts["@unikit-bridge/react-native"] pin is required');
   const scratchRoot = mkdtempSync(join(tmpdir(), 'unikit-registry-rn-android-'));
   const projectDir = join(scratchRoot, APP_NAME);
   const repoRoot = resolve(dirname(SCRIPT_PATH), '..');
@@ -795,9 +795,9 @@ async function executeRnAndroidCycle({ logDir, serial, assertEvents = false }) {
     },
   };
   const npmVersions = {
-    '@unikit/cli': versions.npm['@unikit/cli'],
-    '@unikit/types': versions.npm['@unikit/types'],
-    '@unikit/react-native': reactNativeVersion,
+    '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'],
+    '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
+    '@unikit-bridge/react-native': reactNativeVersion,
   };
   try {
     const environment = await environmentEvidence(context);
@@ -826,9 +826,9 @@ async function executeRnAndroidCycle({ logDir, serial, assertEvents = false }) {
     internalStep(context, 'pin-npm-versions', () => {
       const packagePath = join(projectDir, 'package.json');
       const packageJson = readJson(packagePath);
-      packageJson.dependencies['@unikit/react-native'] = npmVersions['@unikit/react-native'];
-      packageJson.dependencies['@unikit/types'] = npmVersions['@unikit/types'];
-      packageJson.devDependencies['@unikit/cli'] = npmVersions['@unikit/cli'];
+      packageJson.dependencies['@unikit-bridge/react-native'] = npmVersions['@unikit-bridge/react-native'];
+      packageJson.dependencies['@unikit-bridge/types'] = npmVersions['@unikit-bridge/types'];
+      packageJson.devDependencies['@unikit-bridge/cli'] = npmVersions['@unikit-bridge/cli'];
       writeJson(packagePath, packageJson);
     });
     await runChecked(context, 'install-npm', projectDir, [
@@ -840,13 +840,13 @@ async function executeRnAndroidCycle({ logDir, serial, assertEvents = false }) {
     internalStep(context, 'verify-exact-npm-sources', () => {
       assertNoConsumerContamination(projectDir, {
         expectedNpm: npmVersions,
-        allowedWorkspacePackages: ['@unikit/generated-react-native'],
+        allowedWorkspacePackages: ['@unikit-bridge/generated-react-native'],
       });
       return assertExactNpmProvenance(projectDir, npmVersions);
     });
 
     // 3) 코드젠 — unikit-bridge 네이티브 모듈 + 생성 클라이언트.
-    const projectCli = join(projectDir, 'node_modules', '@unikit', 'cli', 'dist', 'index.js');
+    const projectCli = join(projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js');
     await runChecked(context, 'baseline-codegen', projectDir, [
       process.execPath,
       projectCli,
@@ -858,7 +858,7 @@ async function executeRnAndroidCycle({ logDir, serial, assertEvents = false }) {
       // ensureReactNativeDependency 가 package.json 에 workspace:* 를 추가한다 —
       // npm workspaces 링크를 만들고 나서 진위를 다시 검증한다.
       const packageJson = readJson(join(projectDir, 'package.json'));
-      if (packageJson.dependencies['@unikit/generated-react-native'] !== 'workspace:*')
+      if (packageJson.dependencies['@unikit-bridge/generated-react-native'] !== 'workspace:*')
         throw new Error('codegen did not register the generated workspace package');
       if (!packageJson.workspaces?.includes('modules/unikit-bridge'))
         throw new Error('codegen did not register the unikit-bridge workspace');

@@ -7,7 +7,7 @@ a compact binary wire, gated by a contract that blocks breaking schema changes
 in CI.
 
 [![CI](https://github.com/loopy-lim/unikit/actions/workflows/ci.yml/badge.svg)](https://github.com/loopy-lim/unikit/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@unikit/types)](https://www.npmjs.com/package/@unikit/types)
+[![npm](https://img.shields.io/npm/v/@unikit-bridge/types)](https://www.npmjs.com/package/@unikit-bridge/types)
 [![crates.io](https://img.shields.io/crates/v/unikit.svg)](https://crates.io/crates/unikit-bridge)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -105,8 +105,8 @@ hosts, not that the others have no codegen.
 With Rust and Bun 1.4+ installed, create a project and run its first call:
 
 ```bash
-bunx --bun @unikit/cli@0.13.0 init my-project --setup
-# Bun FFI instead: bunx --bun @unikit/cli@0.13.0 init my-bun-project --host bun --setup
+bunx --bun @unikit-bridge/cli@0.13.0 init my-project --setup
+# Bun FFI instead: bunx --bun @unikit-bridge/cli@0.13.0 init my-bun-project --host bun --setup
 ```
 
 `--setup` generates the clients, installs dependencies, builds Rust, and runs the
@@ -139,9 +139,9 @@ at the project root:
 ```
 
 ```bash
-bunx --bun @unikit/cli@0.13.0 codegen --config unikit.json   # render all surfaces
-bunx --bun @unikit/cli@0.13.0 dev --config unikit.json       # watch Rust + regen
-bunx --bun @unikit/cli@0.13.0 generate --config unikit.json --check   # CI sync gate
+bunx --bun @unikit-bridge/cli@0.13.0 codegen --config unikit.json   # render all surfaces
+bunx --bun @unikit-bridge/cli@0.13.0 dev --config unikit.json       # watch Rust + regen
+bunx --bun @unikit-bridge/cli@0.13.0 generate --config unikit.json --check   # CI sync gate
 ```
 
 → Full walkthrough: the [getting-started guide](docs/getting-started.md)
@@ -161,12 +161,12 @@ independent versions; use the manifest-derived
 [compatibility table](docs/compatibility-matrix.md) for installation.
 
 ```bash
-bun add @unikit/node@0.11.1          # Node.js
-bun add @unikit/bun@0.11.1           # Bun
-bun add @unikit/tauri@0.10.1         # Tauri
-bun add @unikit/react-native@0.11.0  # React Native
-bun add @unikit/testing@0.7.3        # Mock engine (tests)
-bun add @unikit/devtools@0.7.3       # Invocation observability (dev)
+bun add @unikit-bridge/node@0.11.1          # Node.js
+bun add @unikit-bridge/bun@0.11.1           # Bun
+bun add @unikit-bridge/tauri@0.10.1         # Tauri
+bun add @unikit-bridge/react-native@0.11.0  # React Native
+bun add @unikit-bridge/testing@0.7.3        # Mock engine (tests)
+bun add @unikit-bridge/devtools@0.7.3       # Invocation observability (dev)
 ```
 
 Upgrade native libraries, JS adapters, and generated output together — see the
@@ -239,7 +239,7 @@ paths for Tauri, React Native, and Node/Bun users.
 | [React Native setup guide](docs/extending/react-native-setup.md)  | iOS JSI module setup, usage, troubleshooting                              |
 | [Tauri setup guide](docs/extending/tauri-setup.md)                | Adding unikit to an existing Tauri app, file by file                      |
 | [Development hurdles guide](docs/development-hurdles.md)          | doctor, integrated codegen, drift, native boundary, mock engine           |
-| [API reference (generated)](docs/README.md#api-reference-typedoc) | Browsable TypeDoc HTML for every `@unikit/*` package — `bun run docs:api` |
+| [API reference (generated)](docs/README.md#api-reference-typedoc) | Browsable TypeDoc HTML for every `@unikit-bridge/*` package — `bun run docs:api` |
 | [Adding a new host guide](docs/extending/adding-host.md)          | Adding new adapters like Electron, Deno                                   |
 | [Full doc index](docs/README.md)                                  | Reading paths for users / contributors                                    |
 

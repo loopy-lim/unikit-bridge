@@ -1,8 +1,8 @@
 impl Package {
     fn generate_types_ts(state: &RegistryState) -> String {
         let mut output = String::from(
-            "export type { EngineClient, UnikitError } from '@unikit/types';\n\
-             export { UnikitCommandError } from '@unikit/types';\n\n",
+            "export type { EngineClient, UnikitError } from '@unikit-bridge/types';\n\
+             export { UnikitCommandError } from '@unikit-bridge/types';\n\n",
         );
 
         let mut all_definitions = serde_json::Map::new();

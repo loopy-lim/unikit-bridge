@@ -41,10 +41,10 @@ export async function ensureReactNativeDependency(
   }
   dependencies[GENERATED_REACT_NATIVE_PACKAGE] = expectedModule;
   if (
-    dependencies['@unikit/react-native'] === undefined &&
-    manifest.devDependencies?.['@unikit/react-native'] === undefined
+    dependencies['@unikit-bridge/react-native'] === undefined &&
+    manifest.devDependencies?.['@unikit-bridge/react-native'] === undefined
   ) {
-    dependencies['@unikit/react-native'] = adapterRange;
+    dependencies['@unikit-bridge/react-native'] = adapterRange;
   }
   manifest.dependencies = Object.fromEntries(
     Object.entries(dependencies).sort(([a], [b]) => a.localeCompare(b)),
@@ -112,10 +112,10 @@ export async function ensureHostDependencies(
   };
   const dependencies = { ...(manifest.dependencies ?? {}) };
   const required = [
-    '@unikit/types',
-    ...(hosts.node ? ['@unikit/node'] : []),
-    ...(hosts.bun ? ['@unikit/bun'] : []),
-    ...(hosts.tauri ? ['@unikit/tauri'] : []),
+    '@unikit-bridge/types',
+    ...(hosts.node ? ['@unikit-bridge/node'] : []),
+    ...(hosts.bun ? ['@unikit-bridge/bun'] : []),
+    ...(hosts.tauri ? ['@unikit-bridge/tauri'] : []),
   ];
   for (const name of required) {
     const expected = ranges[name];

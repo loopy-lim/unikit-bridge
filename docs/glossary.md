@@ -30,7 +30,7 @@ hash`) is not transliterated.
 | ordinary function       | a plain Rust `fn` registered via `PackageBuilder::function`/`try_function` (no `#[command]` macro)        |
 | `functionArgs`          | schema metadata recording an ordinary function's arity (0–12) — drives positional TS clients              |
 | sync binding            | a command whose schema metadata says `execution:"sync"` — synchronously callable only on the RN JSI host  |
-| registry consumer       | a project installing published `@unikit/*` packages — guarded by the registry consumer gate and host pins |
+| registry consumer       | a project installing published `@unikit-bridge/*` packages — guarded by the registry consumer gate and host pins |
 | snapshot                | four senses: API snapshot / inspector dump / debug-log value / changeset canary                           |
 | gate (standalone)       | overloaded: profiles, capability, drift, release, acceptance, api-surface, scripts                        |
 | codec / Codec IR        | payload serializer / the shared schema IR behind complex codecs                                           |

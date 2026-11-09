@@ -96,13 +96,13 @@ Promise 기반 `invokeBatch`도 보장한다. 진행 중 `AbortSignal`은 JSON/�
 ### command helper 사용 예시
 
 `commands.ts`에 생성된 각 command helper는 엔진을 직접 받지 않는다 —
-`@unikit/types`의 생성 경로(`invokeGenerated*`)를 호출한다. 기본 플랫폼 진입점은
+`@unikit-bridge/types`의 생성 경로(`invokeGenerated*`)를 호출한다. 기본 플랫폼 진입점은
 `configureLazy()`를 등록하고 첫 호출이 엔진을 한 번만 설치한다. 수동
 `configure(engine)`는 명시적 override다.
 
 ```ts
 // examples/calculator/generated/commands.ts (자동 생성됨, 일부 단순화)
-import { createGeneratedFields2 } from '@unikit/types';
+import { createGeneratedFields2 } from '@unikit-bridge/types';
 
 export const addNumbers = createGeneratedFields2<AddNumbersInput, AddNumbersOutput>(
   1,
@@ -119,7 +119,7 @@ export const addNumbers = createGeneratedFields2<AddNumbersInput, AddNumbersOutp
 // examples/tauri-calculator/src/app.ts
 import { addNumbers } from '../../calculator/generated/commands.js';
 import { createTauriEngine } from '../../../packages/tauri/src/index.js';
-import { configure } from '@unikit/types';
+import { configure } from '@unikit-bridge/types';
 
 const engine = createTauriEngine({ invoke: window.__TAURI__.core.invoke });
 configure(engine); // 글로벌 invoke 에 엔진 설치
@@ -386,7 +386,7 @@ pub fn invoke_json(&self, name: &str, params: Value) -> Result<Value>
  │  - subprocess stdio  (examples/calculator/src/main.rs)   │
  │  - C FFI            (examples/calculator/src/lib.rs)     │
  │  - Tauri IPC        (unikit_support::unikit_dispatch)    │
- │  - RN JSI native    (@unikit/generated-react-native)     │
+ │  - RN JSI native    (@unikit-bridge/generated-react-native)     │
 └──────────────────────────────────────────────────────────┘
 ```
 

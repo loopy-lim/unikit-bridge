@@ -61,7 +61,7 @@
 
 5. `getSchema` → `unikit_ffi_get_schema` 노출 (`makeInvoke` 패턴, ArrayBuffer 반환).
 
-### 3.3 TS (`@unikit/types`)
+### 3.3 TS (`@unikit-bridge/types`)
 
 6. **`getLiveSchema(native)`**
    - `native.getSchema()` → JSON parse → `Map<name, { commandId, inputSchema, outputSchema }>` (lazy 캐시, refresh 가능).

@@ -15,12 +15,12 @@ function fixture() {
     mkdirSync(join(root, 'packages', name), { recursive: true });
     writeFileSync(
       join(root, 'packages', name, 'package.json'),
-      JSON.stringify({ name: `@unikit/${name}`, version }),
+      JSON.stringify({ name: `@unikit-bridge/${name}`, version }),
     );
   }
   writeFileSync(
     join(root, 'README.md'),
-    'unikit = "0.8"\nbun add @unikit/types@0.9.0 @unikit/tauri@0.8.0\n',
+    'unikit = "0.8"\nbun add @unikit-bridge/types@0.9.0 @unikit-bridge/tauri@0.8.0\n',
   );
   return root;
 }
@@ -42,10 +42,10 @@ void test('wrong Rust installation version fails then manifest-aligned docs pass
 void test('unversioned npm install and wrong independent adapter version fail', () => {
   const root = fixture();
   try {
-    writeFileSync(join(root, 'README.md'), 'bun add @unikit/types @unikit/tauri@0.9.0\n');
+    writeFileSync(join(root, 'README.md'), 'bun add @unikit-bridge/types @unikit-bridge/tauri@0.9.0\n');
     const result = verifyReleaseDocs(root, { docs: ['README.md'], tables: [] });
     assert.equal(result.failures.length, 2);
-    assert.match(result.failures.join('\n'), /@unikit\/tauri@0\.8\.0/);
+    assert.match(result.failures.join('\n'), /@unikit-bridge\/tauri@0\.8\.0/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -56,7 +56,7 @@ void test('compatibility table is derived from manifests and cannot disappear or
   try {
     const doc = join(root, 'matrix.md');
     const table = renderVersionTable(root);
-    assert.match(table, /@unikit\/tauri` \| 0\.8\.0/);
+    assert.match(table, /@unikit-bridge\/tauri` \| 0\.8\.0/);
     writeFileSync(doc, table);
     assert.equal(verifyReleaseDocs(root, { docs: [], tables: ['matrix.md'] }).ok, true);
     writeFileSync(doc, table.replace('0.8.0', '0.9.0'));

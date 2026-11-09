@@ -3,12 +3,12 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@unikit/example-rn-experiment",
+      "name": "@unikit-bridge/example-rn-experiment",
       "dependencies": {
-        "@unikit/generated-react-native": "workspace:*",
-        "@unikit/node": "file:../../packages/node",
-        "@unikit/react-native": "file:../../packages/react-native",
-        "@unikit/types": "file:../../packages/types",
+        "@unikit-bridge/generated-react-native": "workspace:*",
+        "@unikit-bridge/node": "file:../../packages/node",
+        "@unikit-bridge/react-native": "file:../../packages/react-native",
+        "@unikit-bridge/types": "file:../../packages/types",
       },
       "devDependencies": {
         "react-native": "0.81.5",
@@ -18,17 +18,17 @@
       },
     },
     "modules/unikit-bridge": {
-      "name": "@unikit/generated-react-native",
+      "name": "@unikit-bridge/generated-react-native",
       "version": "0.0.0",
       "peerDependencies": {
-        "@unikit/react-native": "^0.10.0",
+        "@unikit-bridge/react-native": "^0.10.0",
         "react-native": ">=0.76",
       },
     },
   },
   "overrides": {
-    "@unikit/react-native": "file:../../packages/react-native",
-    "@unikit/types": "file:../../packages/types",
+    "@unikit-bridge/react-native": "file:../../packages/react-native",
+    "@unikit-bridge/types": "file:../../packages/types",
   },
   "packages": {
     "@babel/code-frame": ["@babel/code-frame@7.29.7", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.29.7", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw=="],
@@ -145,13 +145,13 @@
 
     "@react-native/virtualized-lists": ["@react-native/virtualized-lists@0.81.5", "", { "dependencies": { "invariant": "^2.2.4", "nullthrows": "^1.1.1" }, "peerDependencies": { "@types/react": "^19.1.0", "react": "*", "react-native": "*" }, "optionalPeers": ["@types/react"] }, "sha512-UVXgV/db25OPIvwZySeToXD/9sKKhOdkcWmmf4Jh8iBZuyfML+/5CasaZ1E7Lqg6g3uqVQq75NqIwkYmORJMPw=="],
 
-    "@unikit/generated-react-native": ["@unikit/generated-react-native@workspace:modules/unikit-bridge"],
+    "@unikit-bridge/generated-react-native": ["@unikit-bridge/generated-react-native@workspace:modules/unikit-bridge"],
 
-    "@unikit/node": ["@unikit/node@file:../../packages/node", { "dependencies": { "@unikit/types": "^0.12.1" }, "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit-bridge/node": ["@unikit-bridge/node@file:../../packages/node", { "dependencies": { "@unikit-bridge/types": "^0.12.1" }, "devDependencies": { "typescript": "^5.9.0" } }],
 
-    "@unikit/react-native": ["@unikit/react-native@file:../../packages/react-native", { "dependencies": { "@unikit/types": "^0.12.1" }, "devDependencies": { "typescript": "^5.9.0" }, "peerDependencies": { "react-native": ">=0.76" }, "optionalPeers": ["react-native"] }],
+    "@unikit-bridge/react-native": ["@unikit-bridge/react-native@file:../../packages/react-native", { "dependencies": { "@unikit-bridge/types": "^0.12.1" }, "devDependencies": { "typescript": "^5.9.0" }, "peerDependencies": { "react-native": ">=0.76" }, "optionalPeers": ["react-native"] }],
 
-    "@unikit/types": ["@unikit/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit-bridge/types": ["@unikit-bridge/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
 
     "@sinclair/typebox": ["@sinclair/typebox@0.27.12", "", {}, "sha512-hhyNJ+nbR6ZR7pToHvllEFun9TL0sbL+tk/ON75lo+Xas054uez98qRbsuNt7MBCyZKK4+8Yli/OAGZhmfBZ/g=="],
 
@@ -593,9 +593,9 @@
 
     "@istanbuljs/load-nyc-config/camelcase": ["camelcase@5.3.1", "", {}, "sha512-L28STB170nwWS63UjtlEOE3dldQApaJXZkOI1uMFfzf3rRuPegHaHesyee+YxQ+W6SvRDQV6UrdOdRiR153wJg=="],
 
-    "@unikit/node/@unikit/types": ["@unikit/types@file:../../packages/types", {}],
+    "@unikit-bridge/node/@unikit-bridge/types": ["@unikit-bridge/types@file:../../packages/types", {}],
 
-    "@unikit/react-native/@unikit/types": ["@unikit/types@file:../../packages/types", {}],
+    "@unikit-bridge/react-native/@unikit-bridge/types": ["@unikit-bridge/types@file:../../packages/types", {}],
 
     "chalk/ansi-styles": ["ansi-styles@4.3.0", "", { "dependencies": { "color-convert": "^2.0.1" } }, "sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg=="],
 

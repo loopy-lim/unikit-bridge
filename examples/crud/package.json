@@ -1,5 +1,5 @@
 {
-  "name": "@unikit/example-crud",
+  "name": "@unikit-bridge/example-crud",
   "private": true,
   "packageManager": "bun@1.4.0",
   "type": "module",
@@ -8,10 +8,10 @@
     "codegen:check": "bun ../../packages/cli/src/index.ts codegen --config unikit.json --check"
   },
   "dependencies": {
-    "@unikit/node": "file:../../packages/node",
-    "@unikit/types": "file:../../packages/types"
+    "@unikit-bridge/node": "file:../../packages/node",
+    "@unikit-bridge/types": "file:../../packages/types"
   },
   "overrides": {
-    "@unikit/types": "file:../../packages/types"
+    "@unikit-bridge/types": "file:../../packages/types"
   }
 }

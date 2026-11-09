@@ -1,5 +1,5 @@
 /**
- * @unikit/cli — 커맨드별 디바이스 역량 렌더러
+ * @unikit-bridge/cli — 커맨드별 디바이스 역량 렌더러
  *
  * 스키마 명령 항목의 `devices` 선언에서 `devices.ts`를 생성한다 — 패키지가
  * 선언에 사용한 토큰의 리터럴 유니언(`UnikitDeviceCapability`) + 커맨드별

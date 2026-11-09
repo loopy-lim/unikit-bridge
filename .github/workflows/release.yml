@@ -105,8 +105,8 @@ jobs:
         run: bun run audit:prod
 
       # ci.yml 과 동일 — workspace 병렬 빌드 전
-      # @unikit/types 를 먼저 빌드한다 (다른 패키지가 dist 타입을 import 함).
-      - name: Build @unikit/types first
+      # @unikit-bridge/types 를 먼저 빌드한다 (다른 패키지가 dist 타입을 import 함).
+      - name: Build @unikit-bridge/types first
         run: bun run --cwd packages/types build
 
       - name: Build packages

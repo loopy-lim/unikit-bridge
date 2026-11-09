@@ -162,7 +162,7 @@ text 출력은 사람이 읽기 쉽게, `--format json`은 IDE/CI가 소비하�
 
 ```text
 [unikit] Rust schema: cargo run --manifest-path ... --bin generate
-[unikit] TypeScript/C++: @unikit/cli generate --config ...
+[unikit] TypeScript/C++: @unikit-bridge/cli generate --config ...
 [unikit] generated: 8 files, contract hash <short hash>
 ```
 

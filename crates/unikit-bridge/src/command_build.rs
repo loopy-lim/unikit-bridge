@@ -56,7 +56,7 @@ where
     // Wrap handler in Arc so both JSON and binary paths can use it
     let handler = Arc::new(handler);
 
-    // (Tier 3 정합) JS 코드젠(@unikit/cli)이 postcard 코덱을 생성하는 타입 집합과
+    // (Tier 3 정합) JS 코드젠(@unikit-bridge/cli)이 postcard 코덱을 생성하는 타입 집합과
     // 정합한다 — JS 쪽에서 미지원으로 레지스트리에서 제외된 명령(map 필드 등)은
     // 엔진이 Tier 3(JSON-in-binary) 로 라우팅한다. Rust 가 typed postcard 핸들러를
     // 그대로 켜두면 와이어가 어긋난다(JS 는 JSON 바이트를 보내고 Rust 는 postcard

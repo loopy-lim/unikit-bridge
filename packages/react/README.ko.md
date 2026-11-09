@@ -1,6 +1,6 @@
 [English](./README.md) | 한국어
 
-# @unikit/react
+# @unikit-bridge/react
 
 Unikit 명령 클라이언트를 위한 React 훅과 컨텍스트다. `UnikitProvider`,
 `useUnikitEngine`, `useCommand`, `useMutation`, `useEvent`, `useSuspenseCommand`,
@@ -8,7 +8,7 @@ Unikit 명령 클라이언트를 위한 React 훅과 컨텍스트다. `UnikitPro
 Provider를 렌더링하기 전에 플랫폼별 엔진을 설정한다.
 
 ```tsx
-import { UnikitProvider, useCommand } from '@unikit/react';
+import { UnikitProvider, useCommand } from '@unikit-bridge/react';
 import { getItem } from './generated/commands.js';
 
 function Item({ id }: { id: string }) {
@@ -52,7 +52,7 @@ Suspense 재시도를 위해 유지한다. 모든 슬롯이 대기 중이면 새
 
 ```tsx
 import { Suspense } from 'react';
-import { invalidateCommands, useSuspenseCommand } from '@unikit/react';
+import { invalidateCommands, useSuspenseCommand } from '@unikit-bridge/react';
 import { getItem, saveItem } from './generated/commands.js';
 
 function Item({ id }: { id: string }) {

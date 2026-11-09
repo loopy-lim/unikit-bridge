@@ -14,7 +14,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { suffix } from 'bun:ffi';
-import { UnikitCommandError } from '@unikit/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 import { bunLibraryCandidates, selectVerifiedLibrary } from './bun-ffi-library.js';
 import { createBunFfiEngine } from './bun-ffi.js';
 

@@ -27,7 +27,7 @@ export function readReleaseVersions(root) {
     const path = join(root, 'packages', name, 'package.json');
     if (!existsSync(path)) continue;
     const manifest = JSON.parse(readFileSync(path, 'utf8'));
-    if (manifest.private || !manifest.name?.startsWith('@unikit/')) continue;
+    if (manifest.private || !manifest.name?.startsWith('@unikit-bridge/')) continue;
     if (typeof manifest.version !== 'string') throw new Error(`${path}: missing version`);
     npm[manifest.name] = manifest.version;
   }
@@ -63,7 +63,7 @@ export function verifyReleaseDocs(root, { docs = INSTALL_DOCS, tables = TABLE_DO
         );
       if (!/^\s*(?:bun add|npm (?:install|i|exec)|pnpm add|yarn add|bunx|npx)\b/.test(line))
         continue;
-      for (const match of line.split('#')[0].matchAll(/(@unikit\/[a-z-]+)(?:@([^\s`]+))?/g)) {
+      for (const match of line.split('#')[0].matchAll(/(@unikit-bridge\/[a-z-]+)(?:@([^\s`]+))?/g)) {
         const expected = npm[match[1]];
         if (!expected || match[2] !== expected)
           failures.push(

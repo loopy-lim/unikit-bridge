@@ -134,7 +134,7 @@ Rust `#[command]` 로직을 고치면 호스트별로 전부 정체 상태가 �
   - `HotSwapReporter`: 감시 스레드의 스왑 결과(성공/실패 모두)가
     `unikit://hot-core/swapped` 예약 채널로 웹뷰에 push 된다(싱크는 코어 바깥
     호스트 측에 살아 스왑을 생존 — 상태 소실 정책과 무충돌). JS 측은
-    `@unikit/tauri` 의 `subscribeHotSwap`. 페이로드에 구·신 컨트랙트 해시를
+    `@unikit-bridge/tauri` 의 `subscribeHotSwap`. 페이로드에 구·신 컨트랙트 해시를
     함께 실으므로 **JS 캐시 재동기화 신호를 이벤트가 대행**한다 —
     `unikit_ffi_schema_generation` 카운터는 도입하지 않기로 확정(수신 측이 해시
     비교로 재호출 여부를 판단).

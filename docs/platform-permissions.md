@@ -140,7 +140,7 @@ contract hash) — intended evolution, caught by `unikit diff`.
 **Query (TypeScript)** — one registered provider answers for the whole app:
 
 ```ts
-import { registerDeviceStatusProvider, getDeviceStatus } from '@unikit/types';
+import { registerDeviceStatusProvider, getDeviceStatus } from '@unikit-bridge/types';
 
 registerDeviceStatusProvider(async (capability) => {
   if (capability === 'camera') return { availability: 'available', permission: 'granted' };

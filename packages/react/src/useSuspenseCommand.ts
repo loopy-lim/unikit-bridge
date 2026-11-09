@@ -1,5 +1,5 @@
-import type { InvokeOptions } from '@unikit/types';
-import { resolveCommandId } from '@unikit/types';
+import type { InvokeOptions } from '@unikit-bridge/types';
+import { resolveCommandId } from '@unikit-bridge/types';
 import { useUnikitEngine } from './context.js';
 import type { CommandFn, VoidCommandFn } from './useCommand.js';
 import { inputKey } from './input-key.js';

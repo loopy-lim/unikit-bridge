@@ -25,10 +25,10 @@ function fixture(manifest: Record<string, unknown> = {}) {
     writeFileSync(path, content);
   };
   write(join(appRoot, 'package.json'), JSON.stringify({ private: true, ...manifest }));
-  const adapter = join(appRoot, 'node_modules/@unikit/react-native');
+  const adapter = join(appRoot, 'node_modules/@unikit-bridge/react-native');
   write(
     join(adapter, 'package.json'),
-    JSON.stringify({ name: '@unikit/react-native', version: '0.9.0' }),
+    JSON.stringify({ name: '@unikit-bridge/react-native', version: '0.9.0' }),
   );
   for (const path of [
     'android/unikit-jsi-jni.cpp',
@@ -219,7 +219,10 @@ test('RN bootstrap declares only the missing adapter before initial installation
     const result = await ensureReactNativeAdapter(f);
     const manifest = JSON.parse(readFileSync(join(f.appRoot, 'package.json'), 'utf8'));
     assert.equal(result.needsInstall, true);
-    assert.deepEqual(manifest.dependencies, { react: '19.1.0', '@unikit/react-native': '^0.9.0' });
+    assert.deepEqual(manifest.dependencies, {
+      react: '19.1.0',
+      '@unikit-bridge/react-native': '^0.9.0',
+    });
     assert.equal(manifest.scripts.postinstall, 'user install');
     assert.equal(manifest.workspaces, undefined);
   } finally {
@@ -229,7 +232,7 @@ test('RN bootstrap declares only the missing adapter before initial installation
 
 test('RN bootstrap preserves local adapter dependency and skips already complete installation', async () => {
   const { ensureReactNativeAdapter } = await import('./react-native-host.js');
-  const f = fixture({ dependencies: { '@unikit/react-native': 'file:../custom-adapter' } });
+  const f = fixture({ dependencies: { '@unikit-bridge/react-native': 'file:../custom-adapter' } });
   try {
     const raw = readFileSync(join(f.appRoot, 'package.json'), 'utf8');
     assert.equal((await ensureReactNativeAdapter(f)).needsInstall, false);
@@ -241,7 +244,7 @@ test('RN bootstrap preserves local adapter dependency and skips already complete
 
 test('RN bootstrap refuses stale missing generated workspace before any manifest rewrite', async () => {
   const { ensureReactNativeAdapter } = await import('./react-native-host.js');
-  const f = fixture({ dependencies: { '@unikit/generated-react-native': 'workspace:*' } });
+  const f = fixture({ dependencies: { '@unikit-bridge/generated-react-native': 'workspace:*' } });
   try {
     rmSync(join(f.appRoot, 'node_modules'), { recursive: true });
     const raw = readFileSync(join(f.appRoot, 'package.json'), 'utf8');
@@ -258,7 +261,7 @@ test('RN preparation runs through its installed generated package script', async
   const f = fixture();
   try {
     f.generate();
-    symlinkSync(f.moduleDir, join(f.appRoot, 'node_modules/@unikit/generated-react-native'));
+    symlinkSync(f.moduleDir, join(f.appRoot, 'node_modules/@unikit-bridge/generated-react-native'));
     f.write(join(f.appRoot, 'ios/Podfile'), '# user Podfile');
     f.executable(join(f.appRoot, 'bin/pod'));
     await prepareReactNativeHost(f);
@@ -309,11 +312,11 @@ test('RN bootstrap rejects malformed dependency objects before rewriting package
 
 test('RN bootstrap rejects an installed incompatible adapter without altering declared dependencies', async () => {
   const { ensureReactNativeAdapter } = await import('./react-native-host.js');
-  const f = fixture({ dependencies: { '@unikit/react-native': '^0.8.0' } });
+  const f = fixture({ dependencies: { '@unikit-bridge/react-native': '^0.8.0' } });
   try {
     f.write(
-      join(f.appRoot, 'node_modules/@unikit/react-native/package.json'),
-      JSON.stringify({ name: '@unikit/react-native', version: '0.8.0' }),
+      join(f.appRoot, 'node_modules/@unikit-bridge/react-native/package.json'),
+      JSON.stringify({ name: '@unikit-bridge/react-native', version: '0.8.0' }),
     );
     const raw = readFileSync(join(f.appRoot, 'package.json'), 'utf8');
     await assert.rejects(ensureReactNativeAdapter(f), /incompatible.*expected \^0\.9\.0/);

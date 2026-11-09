@@ -22,7 +22,7 @@ unikit의 계약은 릴리스 시점에 얼어붙는다 — schema.json, 생성 
 Tier 3(JSON) 폴백 체인을 이미 판정한다.
 
 ```ts
-import { invokeLoose } from '@unikit/types';
+import { invokeLoose } from '@unikit-bridge/types';
 
 // 반환 타입 기본값은 unknown — 호출자가 좁힌다.
 const info = await invokeLoose<{ os: string }>(engine, 'platformNativeInfo');

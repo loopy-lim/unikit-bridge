@@ -7,7 +7,7 @@
   },
   "npm": [
     {
-      "name": "@unikit/bun",
+      "name": "@unikit-bridge/bun",
       "workspaceVersion": "0.10.0",
       "exactVersion": "0.10.0",
       "latestVersion": "0.10.0",
@@ -17,11 +17,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Fbun",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Fbun",
       "error": null
     },
     {
-      "name": "@unikit/cli",
+      "name": "@unikit-bridge/cli",
       "workspaceVersion": "0.10.0",
       "exactVersion": "0.10.0",
       "latestVersion": "0.10.0",
@@ -31,11 +31,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Fcli",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Fcli",
       "error": null
     },
     {
-      "name": "@unikit/devtools",
+      "name": "@unikit-bridge/devtools",
       "workspaceVersion": "0.7.0",
       "exactVersion": "0.7.0",
       "latestVersion": "0.7.0",
@@ -45,11 +45,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Fdevtools",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Fdevtools",
       "error": null
     },
     {
-      "name": "@unikit/node",
+      "name": "@unikit-bridge/node",
       "workspaceVersion": "0.10.0",
       "exactVersion": "0.10.0",
       "latestVersion": "0.10.0",
@@ -59,11 +59,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Fnode",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Fnode",
       "error": null
     },
     {
-      "name": "@unikit/react",
+      "name": "@unikit-bridge/react",
       "workspaceVersion": "0.8.0",
       "exactVersion": "0.8.0",
       "latestVersion": "0.8.0",
@@ -73,11 +73,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Freact",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Freact",
       "error": null
     },
     {
-      "name": "@unikit/react-native",
+      "name": "@unikit-bridge/react-native",
       "workspaceVersion": "0.9.0",
       "exactVersion": "0.9.0",
       "latestVersion": "0.9.0",
@@ -87,11 +87,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Freact-native",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Freact-native",
       "error": null
     },
     {
-      "name": "@unikit/tauri",
+      "name": "@unikit-bridge/tauri",
       "workspaceVersion": "0.9.0",
       "exactVersion": "0.9.0",
       "latestVersion": "0.9.0",
@@ -101,11 +101,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Ftauri",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Ftauri",
       "error": null
     },
     {
-      "name": "@unikit/testing",
+      "name": "@unikit-bridge/testing",
       "workspaceVersion": "0.7.0",
       "exactVersion": "0.7.0",
       "latestVersion": "0.7.0",
@@ -115,11 +115,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Ftesting",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Ftesting",
       "error": null
     },
     {
-      "name": "@unikit/types",
+      "name": "@unikit-bridge/types",
       "workspaceVersion": "0.10.0",
       "exactVersion": "0.10.0",
       "latestVersion": "0.10.0",
@@ -129,7 +129,7 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40unikit%2Ftypes",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Ftypes",
       "error": null
     }
   ],

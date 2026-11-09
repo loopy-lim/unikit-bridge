@@ -16,9 +16,9 @@
 | `test-unikit-codec.cpp` (순수 postcard Reader/Writer)         | ✅ Rust `postcard` 와 바이트-동일 known-value + round-trip             |
 | `test-unikit-generated-codecs.cpp` (생성 코덱, 최소 JSI shim) | ✅ encode 바이트 동일 + decode 값 보존 + `unikitRegistryDemo` 필드순서 |
 | `cargo test --workspace`                                      | ✅ 전 pass (clippy/fmt clean)                                          |
-| `@unikit/types` 단위 테스트 (B1 + invokeBatch 라우팅)         | ✅ 14/14                                                               |
-| `@unikit/cli` 코드젠 테스트                                   | ✅ 16/16                                                               |
-| `@unikit/react-native` + 패키지 테스트                        | ✅ 3/3, 21/21                                                          |
+| `@unikit-bridge/types` 단위 테스트 (B1 + invokeBatch 라우팅)         | ✅ 14/14                                                               |
+| `@unikit-bridge/cli` 코드젠 테스트                                   | ✅ 16/16                                                               |
+| `@unikit-bridge/react-native` + 패키지 테스트                        | ✅ 3/3, 21/21                                                          |
 | RN 예제 `tsc --noEmit`                                        | ✅ clean                                                               |
 
 ---
@@ -91,7 +91,7 @@
 ## 7. 회귀 / 호환성
 
 - [x] 기존 raw `invokeRkyvV2(ArrayBuffer)` 경로(레거시/벤치마크)가 여전히 동작.
-- [x] Node/Bun/Tauri 어댑터(`@unikit/node`, `@unikit/bun`, `@unikit/tauri`) —
+- [x] Node/Bun/Tauri 어댑터(`@unikit-bridge/node`, `@unikit-bridge/bun`, `@unikit-bridge/tauri`) —
       `invokeTyped` 미지원 → JS codec/Tier3 경로 유지, 기존 동작 무영향 확인.
 
 ---

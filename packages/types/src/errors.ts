@@ -142,7 +142,7 @@ export function isRetryableCode(code: string): boolean {
  * 상수를 쓰면 자동완성+타입 체크가 둘 다 동작한다:
  *
  * ```ts
- * import { UnikitErrorCode } from '@unikit/types';
+ * import { UnikitErrorCode } from '@unikit-bridge/types';
  * if (err.code === UnikitErrorCode.TransportTimeout) { retry(); }
  * ```
  *

@@ -83,7 +83,7 @@ export function parseDevArgs(args: string[]): DevOptions {
 
 function inspectHint(): void {
   console.log('[dev:inspect] Wrap your engine with createInstrumentedEngine in the app process');
-  console.log('[dev:inspect] to expose report() via console or remote: @unikit/devtools');
+  console.log('[dev:inspect] to expose report() via console or remote: @unikit-bridge/devtools');
 }
 
 export async function runDev(args: string[]): Promise<DevWatchHandle> {

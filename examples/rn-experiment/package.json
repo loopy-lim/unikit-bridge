@@ -1,5 +1,5 @@
 {
-  "name": "@unikit/example-rn-experiment",
+  "name": "@unikit-bridge/example-rn-experiment",
   "private": true,
   "packageManager": "bun@1.4.0",
   "type": "module",
@@ -14,14 +14,14 @@
     "typecheck:native": "tsc --noEmit -p tsconfig.native.json"
   },
   "dependencies": {
-    "@unikit/generated-react-native": "workspace:*",
-    "@unikit/node": "file:../../packages/node",
-    "@unikit/react-native": "file:../../packages/react-native",
-    "@unikit/types": "file:../../packages/types"
+    "@unikit-bridge/generated-react-native": "workspace:*",
+    "@unikit-bridge/node": "file:../../packages/node",
+    "@unikit-bridge/react-native": "file:../../packages/react-native",
+    "@unikit-bridge/types": "file:../../packages/types"
   },
   "overrides": {
-    "@unikit/types": "file:../../packages/types",
-    "@unikit/react-native": "file:../../packages/react-native"
+    "@unikit-bridge/types": "file:../../packages/types",
+    "@unikit-bridge/react-native": "file:../../packages/react-native"
   },
   "peerDependencies": {
     "react-native": ">=0.76"

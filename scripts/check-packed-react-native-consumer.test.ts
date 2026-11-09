@@ -9,6 +9,6 @@ void test('pins the local types tarball for transitive 0.4.1 dependencies', () =
     reactNativeArchive: '/tmp/unikit-react-native-0.4.1.tgz',
   });
 
-  assert.equal(manifest.dependencies['@unikit/types'], 'file:/tmp/unikit-types-0.4.1.tgz');
-  assert.equal(manifest.overrides['@unikit/types'], 'file:/tmp/unikit-types-0.4.1.tgz');
+  assert.equal(manifest.dependencies['@unikit-bridge/types'], 'file:/tmp/unikit-types-0.4.1.tgz');
+  assert.equal(manifest.overrides['@unikit-bridge/types'], 'file:/tmp/unikit-types-0.4.1.tgz');
 });

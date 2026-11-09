@@ -286,7 +286,7 @@ return Promise.all(entries.map((e) => this.invoke<T>(e.command, e.args, e.option
 
 - [ ] `npm run build` + `npm run test:packages` green — 위 신규 테스트 포함
 - [ ] `npm run test:types` green — 기존 배치 테스트 5종(index.test.ts:337,367,391,485,500) 회귀 포함
-- [ ] `npm run test:ts:node` / `npm run test -w @unikit/cli` green (전체 게이트)
+- [ ] `npm run test:ts:node` / `npm run test -w @unikit-bridge/cli` green (전체 게이트)
 - [ ] `npm run lint` 0 warn
 - [ ] `npm run test:app:react-native` (예제 앱 타입체크) 통과
 

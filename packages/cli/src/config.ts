@@ -86,7 +86,7 @@ export function readConfigSync(configPath: string): UnikitConfig {
     assertKnownKeys(rn, REACT_NATIVE_CONFIG_KEYS, 'config reactNative');
     if ('nativeModule' in rn) {
       throw new Error(
-        'Config reactNative.nativeModule was removed. Use the generated @unikit/generated-react-native module.',
+        'Config reactNative.nativeModule was removed. Use the generated @unikit-bridge/generated-react-native module.',
       );
     }
     if (

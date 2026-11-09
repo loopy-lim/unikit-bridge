@@ -34,7 +34,7 @@ on_unimplemented 구현(readiness Task 9a와 문서 문단 경합 — 9a 착지 
 - 단계별 소요 시간 게이트 출력에 기록(로드맵 보조 지표 1 "온보딩 게이트 E2E 시간"의
   측정 기반). **임계값 게이트는 1차 범위 밖** (YAGNI).
 - 적대적 재검증: regen이 반영 못 하는 변형 주입 → red 확인 → 원복.
-- changeset: `@unikit/cli` minor (스캐폴드 수정을 동반하므로).
+- changeset: `@unikit-bridge/cli` minor (스캐폴드 수정을 동반하므로).
 
 ## 컴포넌트 B: 감사 확정 마찰 즉시 수정 (HIGH 7건 + MEDIUM 2그룹)
 

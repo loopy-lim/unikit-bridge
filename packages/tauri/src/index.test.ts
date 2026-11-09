@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createTauriBootstrap, createTauriEngine, subscribeTauriEvent } from './index.js';
-import { UnikitCommandError, configureDebug, type UnikitDebugEvent } from '@unikit/types';
+import { UnikitCommandError, configureDebug, type UnikitDebugEvent } from '@unikit-bridge/types';
 
 void test('createTauriEngine routes invoke through unikit_dispatch', async () => {
   const calls: Array<{ command: string; args: unknown }> = [];
@@ -227,7 +227,7 @@ void test('Tauri warn permits old transports with one warning and off skips the 
 });
 
 void test('Tauri bootstrap ready waits for strict native contract verification', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   try {
     let calls = 0;
@@ -251,7 +251,7 @@ void test('Tauri bootstrap ready waits for strict native contract verification',
 });
 
 void test('disposing Tauri during its native handshake cannot publish or return the stale engine', async () => {
-  const { configure, invoke } = await import('@unikit/types');
+  const { configure, invoke } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   let started!: () => void;
   const handshaking = new Promise<void>((resolve) => {
@@ -391,7 +391,7 @@ void test('createTauriEngine wraps non-Error throws as unknown, Error messages v
 
 void test('createTauriEngine parses UnikitError JSON message from wire Error', async () => {
   // Rust 가 UnikitError 를 JSON 직렬화해 Error 로 던지는 경우 code/retryable 을
-  // 보존한다(unknown 래핑 금지 — @unikit/node 와 동일 파이프라인).
+  // 보존한다(unknown 래핑 금지 — @unikit-bridge/node 와 동일 파이프라인).
   const engine = createTauriEngine({
     async invoke() {
       throw new Error('{"code":"command.not_found","message":"command not found: nope"}');
@@ -923,10 +923,10 @@ void test('A02: createTauriEngine exposes supports matching the compatibility ma
 
 const A05_SLOT_ENGINE = {
   invoke: async <T>() => 'slot' as T,
-} as unknown as import('@unikit/types').EngineClientWithBatch;
+} as unknown as import('@unikit-bridge/types').EngineClientWithBatch;
 
 void test('A05: createTauriBootstrap exposes the lifecycle state surface', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createTauriBootstrap({ invoke: () => ({}) });
@@ -941,7 +941,7 @@ void test('A05: createTauriBootstrap exposes the lifecycle state surface', async
 });
 
 void test('A05: ready after dispose rejects loudly (tauri)', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createTauriBootstrap({ invoke: () => ({}) });
@@ -957,7 +957,7 @@ void test('A05: ready after dispose rejects loudly (tauri)', async () => {
 });
 
 void test('A05: dispose is idempotent — second dispose is a no-op (tauri)', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createTauriBootstrap({ invoke: () => ({}) });
@@ -972,7 +972,7 @@ void test('A05: dispose is idempotent — second dispose is a no-op (tauri)', as
 });
 
 void test('A05: concurrent ready calls share one initialization promise (tauri)', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createTauriBootstrap({ invoke: () => ({}) });
@@ -985,7 +985,7 @@ void test('A05: concurrent ready calls share one initialization promise (tauri)'
 });
 
 void test('disposing an uninitialized Tauri bootstrap releases its generated command registration', async () => {
-  const { configure, invoke } = await import('@unikit/types');
+  const { configure, invoke } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   let calls = 0;
   try {
@@ -1006,7 +1006,7 @@ void test('disposing an uninitialized Tauri bootstrap releases its generated com
 });
 
 void test('disposing a ready Tauri bootstrap releases its generated command registration', async () => {
-  const { configure, invoke } = await import('@unikit/types');
+  const { configure, invoke } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createTauriBootstrap({ invoke: () => 'alive' });
@@ -1023,7 +1023,7 @@ void test('disposing a ready Tauri bootstrap releases its generated command regi
 });
 
 void test('a captured Tauri bootstrap engine rejects new calls after disposal', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   let calls = 0;
   try {
@@ -1039,7 +1039,7 @@ void test('a captured Tauri bootstrap engine rejects new calls after disposal', 
 });
 
 void test('Tauri bootstrap ready rejects when another registration takes ownership', async () => {
-  const { configure } = await import('@unikit/types');
+  const { configure } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createTauriBootstrap({ invoke: () => 'old' });
@@ -1055,7 +1055,7 @@ void test('Tauri bootstrap ready rejects when another registration takes ownersh
 });
 
 void test('disposing an older Tauri bootstrap preserves a newer engine registration', async () => {
-  const { configure, invoke } = await import('@unikit/types');
+  const { configure, invoke } = await import('@unikit-bridge/types');
   configure(A05_SLOT_ENGINE);
   try {
     const bootstrap = createTauriBootstrap({ invoke: () => 'old' });

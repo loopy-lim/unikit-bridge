@@ -5,14 +5,14 @@ import {
   UnikitCommandError,
   type BootstrapState,
   type FrameEngine,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 import { createBunFfiEngine } from './bun-ffi.js';
 import type { BunFfiEngineOptions, BunFfiRuntime } from './bun-ffi-library.js';
 import { createBunEventSubscription, type BunEventSubscription } from './bun-event-subscription.js';
 
 export type BunBootstrap = {
   /**
-   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@unikit/types).
+   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@unikit-bridge/types).
    * dispose 는 멱등이고 dispose 후 ready 는 loud-fail 한다.
    */
   readonly state: BootstrapState;

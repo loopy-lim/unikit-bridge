@@ -601,7 +601,7 @@ git commit --no-verify -m "docs: reflect legacy benchmark removal and correct __
 
 ```markdown
 ---
-'@unikit/types': minor
+'@unikit-bridge/types': minor
 ---
 
 UnikitNative shrinks to the supported surface: `invokeMsgpack`, `invokeBincode`,
@@ -615,7 +615,7 @@ wire formats should use `invokeRkyvV2` codecs or the generic `invoke`.
 
 ```markdown
 ---
-'@unikit/cli': minor
+'@unikit-bridge/cli': minor
 ---
 
 The `reactNative.legacyBenchmarks` config key is removed, along with the
@@ -629,7 +629,7 @@ TS surfaces from Rust.
 
 ```markdown
 ---
-'@unikit/react-native': minor
+'@unikit-bridge/react-native': minor
 ---
 
 The JSI host object drops the calculator-only legacy benchmark functions

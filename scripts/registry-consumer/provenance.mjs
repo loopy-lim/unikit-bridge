@@ -63,7 +63,7 @@ export function assertExactVersion(value, label) {
 export function validateVersionManifest(manifest) {
   if (!manifest || manifest.schemaVersion !== 1)
     throw new Error('version manifest schemaVersion must be 1');
-  const npmNames = ['@unikit/cli', '@unikit/types', '@unikit/node', '@unikit/bun'];
+  const npmNames = ['@unikit-bridge/cli', '@unikit-bridge/types', '@unikit-bridge/node', '@unikit-bridge/bun'];
   const rustNames = ['unikit', 'unikit-bridge-macros', 'unikit-bridge-naming'];
   if (
     !manifest.npm ||
@@ -91,7 +91,7 @@ export function validateVersionManifest(manifest) {
   }
   // hosts — GUI/모바일 여정(tauri, react-native)이 쓰는 선택 정확 핀. Node/Bun CLI
   // 게이트는 이 섹션 없이도 그대로 통과해야 한다(키 검사는 엄격 유지).
-  const hostNames = ['@unikit/tauri', '@unikit/react-native'];
+  const hostNames = ['@unikit-bridge/tauri', '@unikit-bridge/react-native'];
   if (manifest.hosts !== undefined) {
     if (!manifest.hosts || typeof manifest.hosts !== 'object' || Array.isArray(manifest.hosts))
       throw new Error('version manifest hosts must be an object when present');
@@ -144,7 +144,7 @@ export function assertNoConsumerContamination(
           spec === 'workspace:*' && allowedWorkspacePackages.includes(name);
         if (!isGeneratedWorkspace) violations.push(`${name} uses forbidden dependency source ${spec}`);
       }
-      if (name.startsWith('@unikit/')) {
+      if (name.startsWith('@unikit-bridge/')) {
         const canonicalCliRange = expectedNpm?.[name] ? `^${expectedNpm[name]}` : null;
         if (!EXACT_SEMVER.test(spec) && spec !== canonicalCliRange && spec !== 'workspace:*')
           violations.push(`${name} uses unsupported version spec ${spec}`);
@@ -176,7 +176,7 @@ export function assertNoConsumerContamination(
     }
   }
   for (const name of ['cli', 'types', 'node', 'bun']) {
-    const path = join(projectDir, 'node_modules', '@unikit', name);
+    const path = join(projectDir, 'node_modules', '@unikit-bridge', name);
     if (existsSync(path) && lstatSync(path).isSymbolicLink())
       violations.push(`${path} is a symlink`);
   }

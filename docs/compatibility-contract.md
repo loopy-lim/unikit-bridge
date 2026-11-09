@@ -40,10 +40,10 @@ Each adapter package has a deliberately small stable range.
 
 | Package                | Stable range                                                         | Out of scope for this layer                                |
 | ---------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `@unikit/node`         | Convert a Node-side async transport into `EngineClient`              | Choosing N-API vs subprocess vs HTTP                       |
-| `@unikit/bun`          | Convert a Bun-side async transport into `EngineClient`               | Choosing Bun FFI vs subprocess vs HTTP                     |
-| `@unikit/tauri`        | Convert a Tauri `invoke(command, args)` function into `EngineClient` | Tauri plugin registration, ACL/capability generation       |
-| `@unikit/react-native` | Generated JSI bootstrap and low-level `EngineClient` adapters        | App-specific command definitions and benchmark comparators |
+| `@unikit-bridge/node`         | Convert a Node-side async transport into `EngineClient`              | Choosing N-API vs subprocess vs HTTP                       |
+| `@unikit-bridge/bun`          | Convert a Bun-side async transport into `EngineClient`               | Choosing Bun FFI vs subprocess vs HTTP                     |
+| `@unikit-bridge/tauri`        | Convert a Tauri `invoke(command, args)` function into `EngineClient` | Tauri plugin registration, ACL/capability generation       |
+| `@unikit-bridge/react-native` | Generated JSI bootstrap and low-level `EngineClient` adapters        | App-specific command definitions and benchmark comparators |
 
 The invariant is the same for every host:
 
@@ -67,7 +67,7 @@ Host examples must use the same command surface:
 For the calculator example, the shared path is `addNumbers({ a, b })`. The generated platform entry owns lazy engine installation; manual `configure(engine)` is an explicit override only. Node, Bun, and Tauri must not keep separate app-local calculator logic that bypasses the generated helper or `unikit` package dispatch.
 
 React Native follows the same JavaScript path in both fixtures, dispatching through
-`@unikit/generated-react-native` (shared C++ JSI bridge + generated postcard codecs).
+`@unikit-bridge/generated-react-native` (shared C++ JSI bridge + generated postcard codecs).
 
 ## Runtime Acceptance Gates
 
@@ -75,9 +75,9 @@ These are the non-negotiable gates before calling a host "actually working":
 
 | Host         | Pass condition                                                                                                                                                                                           |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Node         | A Node app calls the generated TypeScript helper, the helper calls `@unikit/node`, and the adapter invokes a Rust process that returns the expected JSON result.                                         |
-| Bun          | A Bun app calls the generated TypeScript helper, the helper calls `@unikit/bun`, and the adapter invokes a Rust process that returns the expected JSON result.                                           |
-| Tauri        | A Tauri app builds, launches, WebView JavaScript calls the generated `addNumbers` helper through `@unikit/tauri`, and the Rust command handler calls the shared `unikit` package with `Package::invoke`. |
+| Node         | A Node app calls the generated TypeScript helper, the helper calls `@unikit-bridge/node`, and the adapter invokes a Rust process that returns the expected JSON result.                                         |
+| Bun          | A Bun app calls the generated TypeScript helper, the helper calls `@unikit-bridge/bun`, and the adapter invokes a Rust process that returns the expected JSON result.                                           |
+| Tauri        | A Tauri app builds, launches, WebView JavaScript calls the generated `addNumbers` helper through `@unikit-bridge/tauri`, and the Rust command handler calls the shared `unikit` package with `Package::invoke`. |
 | React Native | A React Native app launches on simulator/device, JavaScript calls the generated TypeScript helper, the native module calls Rust code, and the UI or probe observes the Rust result.                      |
 
 Until a host reaches its pass condition, docs and scripts must call it an adapter or bundle check, not a runtime pass.

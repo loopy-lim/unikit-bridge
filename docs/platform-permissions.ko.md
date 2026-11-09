@@ -141,7 +141,7 @@ OS/플러그인/라이브러리 교차표는
 **조회 (TypeScript)** — 앱 전체에서 등록된 provider 1개가 응답한다:
 
 ```ts
-import { registerDeviceStatusProvider, getDeviceStatus } from '@unikit/types';
+import { registerDeviceStatusProvider, getDeviceStatus } from '@unikit-bridge/types';
 
 registerDeviceStatusProvider(async (capability) => {
   if (capability === 'camera') return { availability: 'available', permission: 'granted' };

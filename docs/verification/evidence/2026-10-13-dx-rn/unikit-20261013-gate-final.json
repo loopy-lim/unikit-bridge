@@ -115,14 +115,14 @@
     }
   ],
   "producerBefore": {
-    "name": "@unikit/cli",
+    "name": "@unikit-bridge/cli",
     "version": "0.12.0",
     "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/packages/cli",
     "files": 151,
     "sha256": "faebdb0b84ac21c3032188b3cd677b43506a4e2912d3cd3cd28cf6f844ae64da"
   },
   "producerAfter": {
-    "name": "@unikit/cli",
+    "name": "@unikit-bridge/cli",
     "version": "0.12.0",
     "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/packages/cli",
     "files": 151,

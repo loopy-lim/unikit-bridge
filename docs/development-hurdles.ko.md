@@ -14,9 +14,9 @@ manifest를 함께 확인해야 합니다. setup 완료와 registry 발행·실�
 
 | 형태                                                        | 언제                                         |
 | ----------------------------------------------------------- | -------------------------------------------- |
-| `bunx --bun @unikit/cli@0.12.0 <cmd>`                       | 명시한 CLI 버전으로 일회성 실행              |
-| `bun add -d @unikit/cli@0.12.0` + `bunx --bun unikit <cmd>` | 패키지 스크립트로 CLI 명령을 돌리는 프로젝트 |
-| `bun i -g @unikit/cli@0.12.0` + `unikit <cmd>`              | 드물게 — 전역 바이너리가 필요한 머신만       |
+| `bunx --bun @unikit-bridge/cli@0.12.0 <cmd>`                       | 명시한 CLI 버전으로 일회성 실행              |
+| `bun add -d @unikit-bridge/cli@0.12.0` + `bunx --bun unikit <cmd>` | 패키지 스크립트로 CLI 명령을 돌리는 프로젝트 |
+| `bun i -g @unikit-bridge/cli@0.12.0` + `unikit <cmd>`              | 드물게 — 전역 바이너리가 필요한 머신만       |
 
 `unikit init`이 만드는 패키지 스크립트(`bun run doctor`, `bun run codegen`, …)는
 디펜던시 형태를 쓰고, CI와 문서 예제는 `bunx` 형태를 쓴다. 모든 명령은
@@ -35,18 +35,18 @@ manifest를 함께 확인해야 합니다. setup 완료와 registry 발행·실�
 
 ## Rust 없이 시작하기: mock 엔진
 
-UI가 네이티브 빌드를 기다릴 필요는 없다. `@unikit/testing`의
+UI가 네이티브 빌드를 기다릴 필요는 없다. `@unikit-bridge/testing`의
 `createMockEngine`은 실제 `EngineClient`다 — `configure()`로 한 번 설치하면 생성된
 커맨드 헬퍼가 그대로 동작하고 Rust 툴체인이 필요 없다:
 
 ```bash
-bun add @unikit/testing @unikit/types
+bun add @unikit-bridge/testing @unikit-bridge/types
 ```
 
 ```ts
 // src/mock.ts — UI를 만드는 동안 일찍 import한다
-import { createMockEngine } from '@unikit/testing';
-import { configure } from '@unikit/types';
+import { createMockEngine } from '@unikit-bridge/testing';
+import { configure } from '@unikit-bridge/types';
 import { addNumbers } from './generated/commands.js';
 
 const engine = createMockEngine()
@@ -84,8 +84,8 @@ mock은 비정상 경로도 커버한다:
 새 Node 프로젝트는 한 명령으로 첫 Rust 호출까지 실행합니다.
 
 ```bash
-bunx --bun @unikit/cli@0.12.0 init my-project --setup
-# Bun FFI: bunx --bun @unikit/cli@0.12.0 init my-bun-project --host bun --setup
+bunx --bun @unikit-bridge/cli@0.12.0 init my-project --setup
+# Bun FFI: bunx --bun @unikit-bridge/cli@0.12.0 init my-bun-project --host bun --setup
 ```
 
 수정 후에는 `cd my-project`와 `bun run start`로 생성·설치·빌드·데모를 반복합니다.
@@ -112,9 +112,9 @@ RN/Tauri 앱은 `--run` 없이 setup을 실행하고 안내된 네이티브 작�
 `doctor`는 설치나 파일 변경 없이 현재 호스트를 진단합니다.
 
 ```bash
-bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json
-bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json --format json
-bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json --strict
+bunx --bun @unikit-bridge/cli@0.12.0 doctor --config unikit.json
+bunx --bun @unikit-bridge/cli@0.12.0 doctor --config unikit.json --format json
+bunx --bun @unikit-bridge/cli@0.12.0 doctor --config unikit.json --strict
 ```
 
 Rust MSRV 1.88+, Cargo, 설정된 Cargo manifest와 Rust target을 확인합니다.
@@ -225,7 +225,7 @@ JSON에 주석 문법이 없기 때문 — 그래서 `.unikit-generated.json`이
 ## 런타임 진단: `UNIKIT_DEBUG`
 
 프로세스 환경에 `UNIKIT_DEBUG=1`(`true`, `verbose`도 가능)을 설정하면 모든 어댑터가
-`@unikit/types`를 통해 공유하는 opt-in 진단이 켜집니다. 값은 프로세스당 첫 사용 시 한 번
+`@unikit-bridge/types`를 통해 공유하는 opt-in 진단이 켜집니다. 값은 프로세스당 첫 사용 시 한 번
 읽습니다.
 
 - 모든 와이어 왕복이 `console.debug`로 `[unikit:debug]` 이벤트로 기록됩니다 —
@@ -239,14 +239,14 @@ JSON에 주석 문법이 없기 때문 — 그래서 `.unikit-generated.json`이
   이벤트를 냅니다 — `reason`은 `double_envelope`, `failed_without_error`,
   `envelope_missing_payload`, `resolved_error_envelope` 중 하나로, JS/native 버전
   스큐의 전형적 증상입니다. 이 경고는 던지지도, 결과를 바꾸지도 않습니다.
-- `@unikit/node`는 NDJSON 루프가 파싱하지 못한 stdout 줄마다 `kind: 'ndjson.unparsed'`를
+- `@unikit-bridge/node`는 NDJSON 루프가 파싱하지 못한 stdout 줄마다 `kind: 'ndjson.unparsed'`를
   내고 stderr에 최초 1회만 경고합니다. debug 모드가 아니면 대신 최근 32줄(각 4 096자에서
   절단)을 보존해 자식 프로세스가 종료될 때 대기 중 요청의 에러에 첨부하고, debug 모드에서는
   8 KB stderr 꼬리도 함께 첨부합니다.
 
 React Native에는 `process.env`가 없으므로 대신 `globalThis.__UNIKIT_DEBUG__ = true`를
 설정합니다(이벤트 로그가 켜지며 stderr hex 덤프는 env 전용). 구조화된 소비자가 필요하면
-`@unikit/types`의 `configureDebug(sink)`로 싱크를 설치하세요: 싱크는 `UNIKIT_DEBUG`가
+`@unikit-bridge/types`의 `configureDebug(sink)`로 싱크를 설치하세요: 싱크는 `UNIKIT_DEBUG`가
 없어도 모든 `UnikitDebugEvent`를 받고, `configureDebug(undefined)`가 제거합니다.
 
 ## 플랫폼별 현실적인 경계
@@ -354,7 +354,7 @@ Android/iOS 앱 시작, native 이벤트 스케줄링, 실제 소비자의 Rust 
 정보를 함께 남기면 소스 코드까지 내려가지 않고도 진단할 수 있습니다.
 
 ```bash
-bunx --bun @unikit/cli@0.12.0 doctor --config unikit.json --format json > unikit-doctor.json
+bunx --bun @unikit-bridge/cli@0.12.0 doctor --config unikit.json --format json > unikit-doctor.json
 bun run codegen:check
-bunx --bun @unikit/cli diff --old generated/schema.v1.json --new generated/schema.json
+bunx --bun @unikit-bridge/cli diff --old generated/schema.v1.json --new generated/schema.json
 ```

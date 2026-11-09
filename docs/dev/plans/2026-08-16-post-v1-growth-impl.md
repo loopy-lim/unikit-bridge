@@ -2,9 +2,9 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** 메인 트랙 3스프린트(hot-reload `unikit dev`, `@unikit/testing`, `@unikit/devtools`) + 백그라운드 트랙(Windows CI 실험, FFI 퍼징)을 구현한다.
+**Goal:** 메인 트랙 3스프린트(hot-reload `unikit dev`, `@unikit-bridge/testing`, `@unikit-bridge/devtools`) + 백그라운드 트랙(Windows CI 실험, FFI 퍼징)을 구현한다.
 
-**Architecture:** hot-reload는 기존 자산 3종(debug 런타임 레지스트리 `Package::register/replace`, `unikit generate --watch`, dual-path `codegen.sh`)을 하나의 `unikit dev` CLI로 묶되, **실행 중 프로세스 무중단 주입은 scope-out**하고 "재빌드+재생성+게이트 재실행" 루프로 증명한다(레지스트리 주입 경로는 별트랙). 테스팅/devtools는 각각 독립 npm 패키지(`packages/testing`, `packages/devtools`)로, 핵심 타입(`EngineClient`, `UnikitCommandError`)은 `@unikit/types`를 재사용한다. 백그라운드 트랙은 독립 CI 워크플로 2종(`windows-experiment.yml`, `fuzz.yml`)로 본 머신을 점유하지 않게 한다.
+**Architecture:** hot-reload는 기존 자산 3종(debug 런타임 레지스트리 `Package::register/replace`, `unikit generate --watch`, dual-path `codegen.sh`)을 하나의 `unikit dev` CLI로 묶되, **실행 중 프로세스 무중단 주입은 scope-out**하고 "재빌드+재생성+게이트 재실행" 루프로 증명한다(레지스트리 주입 경로는 별트랙). 테스팅/devtools는 각각 독립 npm 패키지(`packages/testing`, `packages/devtools`)로, 핵심 타입(`EngineClient`, `UnikitCommandError`)은 `@unikit-bridge/types`를 재사용한다. 백그라운드 트랙은 독립 CI 워크플로 2종(`windows-experiment.yml`, `fuzz.yml`)로 본 머신을 점유하지 않게 한다.
 
 **Tech Stack:** TypeScript 5.9 (NodeNext), node:test, Rust 1.95 (unikit crate), cargo-fuzz, GitHub Actions (windows-latest).
 
@@ -429,7 +429,7 @@ git commit -m "docs: runner 템플릿 unikit dev 워크플로"
 
 ---
 
-## Sprint 2 — `@unikit/testing` 패키지
+## Sprint 2 — `@unikit-bridge/testing` 패키지
 
 ### 배경 지식
 
@@ -450,7 +450,7 @@ git commit -m "docs: runner 템플릿 unikit dev 워크플로"
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createMockEngine } from './index.js';
-import { UnikitCommandError } from '@unikit/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 
 test('mock engine invokes registered handler', async () => {
   const engine = createMockEngine();
@@ -487,7 +487,7 @@ test('on returns engine for chaining', () => {
 
 **Step 2: 패키지 스캐폴드**
 
-`packages/testing/package.json` (`packages/tauri/package.json` 참고해 작성, name `@unikit/testing`, description "Testing utilities for unikit-bridge", test 스크립트 `tsc -p tsconfig.test.json && node --test dist-test/index.test.js`):
+`packages/testing/package.json` (`packages/tauri/package.json` 참고해 작성, name `@unikit-bridge/testing`, description "Testing utilities for unikit-bridge", test 스크립트 `tsc -p tsconfig.test.json && node --test dist-test/index.test.js`):
 
 `packages/testing/tsconfig.json`:
 
@@ -513,8 +513,8 @@ Expected: FAIL — `createMockEngine` 없음
 **Step 4: 구현 — `packages/testing/src/index.ts`**
 
 ```ts
-import type { EngineClient, UnikitCommandError as _E } from '@unikit/types';
-import { UnikitCommandError } from '@unikit/types';
+import type { EngineClient, UnikitCommandError as _E } from '@unikit-bridge/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 
 type Handler = (args: unknown) => unknown;
 
@@ -584,7 +584,7 @@ Expected: PASS (기존 24 + 신규 4)
 
 ```bash
 git add packages/testing package.json package-lock.json
-git commit -m "feat(testing): @unikit/testing createMockEngine — 계약 동일 mock 엔진"
+git commit -m "feat(testing): @unikit-bridge/testing createMockEngine — 계약 동일 mock 엔진"
 ```
 
 ### Task 6: 계약 게이트 — schema.json 대비 생성 코드 정합성 검사
@@ -649,7 +649,7 @@ git commit -m "feat(testing): 계약 게이트 — schema.json 대비 클라이�
 
 ---
 
-## Sprint 3 — `@unikit/devtools` 패키지
+## Sprint 3 — `@unikit-bridge/devtools` 패키지
 
 ### 배경 지식
 
@@ -690,12 +690,12 @@ test('instrumented engine records calls, durations, errors', async () => {
 });
 ```
 
-**Step 2: 스캐폴드 + 실패 확인** — Task 5와 동일 패턴(`@unikit/devtools`).
+**Step 2: 스캐폴드 + 실패 확인** — Task 5와 동일 패턴(`@unikit-bridge/devtools`).
 
 **Step 3: 구현 — `packages/devtools/src/index.ts`**
 
 ```ts
-import type { EngineClient } from '@unikit/types';
+import type { EngineClient } from '@unikit-bridge/types';
 
 interface CommandStat {
   count: number;
@@ -763,7 +763,7 @@ export function createInstrumentedEngine(inner: EngineClient): InstrumentedEngin
 
 ```bash
 git add packages/devtools package.json package-lock.json
-git commit -m "feat(devtools): @unikit/devtools createInstrumentedEngine — 호출 관측성"
+git commit -m "feat(devtools): @unikit-bridge/devtools createInstrumentedEngine — 호출 관측성"
 ```
 
 ### Task 8: `unikit dev --inspect` 연결점
@@ -772,14 +772,14 @@ git commit -m "feat(devtools): @unikit/devtools createInstrumentedEngine — 호
 
 - Modify: `packages/cli/src/dev.ts`
 
-**Step 1: 구현** — `runDev`가 `--inspect` 플래그를 받으면, codegen tick 후 `InstrumentedEngine` 사용을 안내하는 주석과 함께 app 측 `@unikit/devtools` 로드 가이드를 로그로 출력 (JS 프로세스가 CLI와 다르므로 in-process 연결은 불가 — 로그 기반 안내가 정직한 범위):
+**Step 1: 구현** — `runDev`가 `--inspect` 플래그를 받으면, codegen tick 후 `InstrumentedEngine` 사용을 안내하는 주석과 함께 app 측 `@unikit-bridge/devtools` 로드 가이드를 로그로 출력 (JS 프로세스가 CLI와 다르므로 in-process 연결은 불가 — 로그 기반 안내가 정직한 범위):
 
 ```ts
 // parseDevArgs 에 inspect?: boolean 추가 (--inspect 플래그)
 // tick 성공 후:
 if (opts.inspect) {
   console.log('[dev:inspect] 앱 프로세스에서 createInstrumentedEngine 로 감싸면');
-  console.log('[dev:inspect] report() 를 콘솔/원격으로 노출할 수 있습니다: @unikit/devtools');
+  console.log('[dev:inspect] report() 를 콘솔/원격으로 노출할 수 있습니다: @unikit-bridge/devtools');
 }
 ```
 
@@ -1022,7 +1022,7 @@ git commit -m "ci: cargo-fuzz invoke_rkyv_v2 — rkyv 디코드 경로 무작위
 
 **Step 2: 전체 회귀**
 
-Run: `cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all -- --check && npm run build && npm run test:packages && npm run test:ts:node && npm run test -w @unikit/cli`
+Run: `cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all -- --check && npm run build && npm run test:packages && npm run test:ts:node && npm run test -w @unikit-bridge/cli`
 Expected: 전부 green
 
 **Step 3: Commit + push**

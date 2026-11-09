@@ -6,7 +6,7 @@ import {
   type BootstrapState,
   type EngineClientWithBatch,
   type EngineSupports,
-} from '@unikit/types';
+} from '@unikit-bridge/types';
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 
 /**
@@ -171,7 +171,7 @@ export type NodeBootstrapOptions = {
   readinessTimeoutMs?: number;
   contractHash?: string;
   /**
-   * (A2) 계약 검증 정책 — frame 엔진의 `contractVerification`(@unikit/types)과
+   * (A2) 계약 검증 정책 — frame 엔진의 `contractVerification`(@unikit-bridge/types)과
    * 같은 3모드. `contractHash` 미설정 시 검증 자체가 없으므로 정책도 무의미하다.
    * - `'strict'`(미설정 포함 기본): 후보 선택과 채택 모두에서 불일치는 기각/
    *   throw (`contract.mismatch`).
@@ -189,7 +189,7 @@ export type NodeBootstrapOptions = {
 };
 export type NodeBootstrap = {
   /**
-   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@unikit/types).
+   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@unikit-bridge/types).
    * dispose 는 멱등이고 dispose 후 ready 는 loud-fail 한다.
    */
   readonly state: BootstrapState;

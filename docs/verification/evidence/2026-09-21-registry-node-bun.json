@@ -11,10 +11,10 @@
     "versions": {
       "schemaVersion": 1,
       "npm": {
-        "@unikit/cli": "0.11.3",
-        "@unikit/types": "0.12.0",
-        "@unikit/node": "0.10.2",
-        "@unikit/bun": "0.10.2"
+        "@unikit-bridge/cli": "0.11.3",
+        "@unikit-bridge/types": "0.12.0",
+        "@unikit-bridge/node": "0.10.2",
+        "@unikit-bridge/bun": "0.10.2"
       },
       "phases": {
         "baseline": {
@@ -874,51 +874,51 @@
     }
   ],
   "bootstrapNpm": {
-    "@unikit/cli": {
+    "@unikit-bridge/cli": {
       "version": "0.11.3",
-      "resolved": "https://registry.npmjs.org/@unikit/cli/-/cli-0.11.3.tgz",
+      "resolved": "https://registry.npmjs.org/@unikit-bridge/cli/-/cli-0.11.3.tgz",
       "integrity": "sha512-UvNFy9Y/6UMRurYteAFrP8XcnTplFlQOX4+xLi2D8NnTceGF2jVH0DbNZUtwNAh55dXJEukmwwsjmBn/4WpAHg==",
       "packageJsonSha256": "a58f8452b946c6a3d61ecf3e9d365c6e56f7ce79c5b04257b0cbe38519fdf203",
-      "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/node_modules/@unikit/cli"
+      "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/node_modules/@unikit-bridge/cli"
     }
   },
   "npmInstalled": {
-    "@unikit/cli": {
+    "@unikit-bridge/cli": {
       "version": "0.11.3",
-      "resolved": "https://registry.npmjs.org/@unikit/cli/-/cli-0.11.3.tgz",
+      "resolved": "https://registry.npmjs.org/@unikit-bridge/cli/-/cli-0.11.3.tgz",
       "integrity": "sha512-UvNFy9Y/6UMRurYteAFrP8XcnTplFlQOX4+xLi2D8NnTceGF2jVH0DbNZUtwNAh55dXJEukmwwsjmBn/4WpAHg==",
       "packageJsonSha256": "a58f8452b946c6a3d61ecf3e9d365c6e56f7ce79c5b04257b0cbe38519fdf203",
-      "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/cli"
+      "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/cli"
     },
-    "@unikit/types": {
+    "@unikit-bridge/types": {
       "version": "0.12.0",
-      "resolved": "https://registry.npmjs.org/@unikit/types/-/types-0.12.0.tgz",
+      "resolved": "https://registry.npmjs.org/@unikit-bridge/types/-/types-0.12.0.tgz",
       "integrity": "sha512-5EYgbNrbFMuMyZ8HNO3rQKmApGANGEfq1jC3gqsbiwkf1CRYzaNQTcadUkQCEm2A5S8d/ynMP15uy50EEKIGWg==",
       "packageJsonSha256": "f805840302a87e41e43c4809e30f06090f6f1eb10645149ad13f83dccd24609a",
-      "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/types"
+      "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/types"
     },
-    "@unikit/node": {
+    "@unikit-bridge/node": {
       "version": "0.10.2",
-      "resolved": "https://registry.npmjs.org/@unikit/node/-/node-0.10.2.tgz",
+      "resolved": "https://registry.npmjs.org/@unikit-bridge/node/-/node-0.10.2.tgz",
       "integrity": "sha512-LYi2DDYPwCF23B8pTNoBanpTx4Krfu0h32uvtP/sRWrxYYJBGu4iofySzqLwQ/2j604vNF5jXesYt8pr6jO01g==",
       "packageJsonSha256": "300ed3cc5d0a5f1ccd985def015f1460234942d7cedb163ffbf828d7ce593579",
-      "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/node"
+      "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/node"
     },
-    "@unikit/bun": {
+    "@unikit-bridge/bun": {
       "version": "0.10.2",
-      "resolved": "https://registry.npmjs.org/@unikit/bun/-/bun-0.10.2.tgz",
+      "resolved": "https://registry.npmjs.org/@unikit-bridge/bun/-/bun-0.10.2.tgz",
       "integrity": "sha512-QdICp5yQ4ZO4W0u5uWKA6Zn50U/TPMv+uJe1hl+FgmOwGyEQdWWcy8Rc+hdAZfmW2b+3q4Tnz2TiXGXaO2KXRw==",
       "packageJsonSha256": "f93f22e79904296e392252ebcea4d960f8adaf7bfcb216b36af436bcf30b825a",
-      "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/bun"
+      "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/bun"
     }
   },
   "pinningStrategy": {
     "npmManifest": "published CLI-compatible canonical caret ranges for runtime adapters",
     "exactInstallInputs": [
-      "@unikit/cli@0.11.3",
-      "@unikit/types@0.12.0",
-      "@unikit/node@0.10.2",
-      "@unikit/bun@0.10.2"
+      "@unikit-bridge/cli@0.11.3",
+      "@unikit-bridge/types@0.12.0",
+      "@unikit-bridge/node@0.10.2",
+      "@unikit-bridge/bun@0.10.2"
     ],
     "frozenInstall": "npm ci from the generated package-lock.json",
     "enforcement": "every phase rejects lock or installed versions that differ from the requested exact four versions"
@@ -926,26 +926,26 @@
   "originalScaffoldEvidence": {
     "installed": {
       "npm": {
-        "@unikit/cli": {
+        "@unikit-bridge/cli": {
           "version": "0.11.3",
-          "resolved": "https://registry.npmjs.org/@unikit/cli/-/cli-0.11.3.tgz",
+          "resolved": "https://registry.npmjs.org/@unikit-bridge/cli/-/cli-0.11.3.tgz",
           "integrity": "sha512-UvNFy9Y/6UMRurYteAFrP8XcnTplFlQOX4+xLi2D8NnTceGF2jVH0DbNZUtwNAh55dXJEukmwwsjmBn/4WpAHg==",
           "packageJsonSha256": "a58f8452b946c6a3d61ecf3e9d365c6e56f7ce79c5b04257b0cbe38519fdf203",
-          "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/cli"
+          "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/cli"
         },
-        "@unikit/types": {
+        "@unikit-bridge/types": {
           "version": "0.12.0",
-          "resolved": "https://registry.npmjs.org/@unikit/types/-/types-0.12.0.tgz",
+          "resolved": "https://registry.npmjs.org/@unikit-bridge/types/-/types-0.12.0.tgz",
           "integrity": "sha512-5EYgbNrbFMuMyZ8HNO3rQKmApGANGEfq1jC3gqsbiwkf1CRYzaNQTcadUkQCEm2A5S8d/ynMP15uy50EEKIGWg==",
           "packageJsonSha256": "f805840302a87e41e43c4809e30f06090f6f1eb10645149ad13f83dccd24609a",
-          "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/types"
+          "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/types"
         },
-        "@unikit/node": {
+        "@unikit-bridge/node": {
           "version": "0.10.2",
-          "resolved": "https://registry.npmjs.org/@unikit/node/-/node-0.10.2.tgz",
+          "resolved": "https://registry.npmjs.org/@unikit-bridge/node/-/node-0.10.2.tgz",
           "integrity": "sha512-LYi2DDYPwCF23B8pTNoBanpTx4Krfu0h32uvtP/sRWrxYYJBGu4iofySzqLwQ/2j604vNF5jXesYt8pr6jO01g==",
           "packageJsonSha256": "300ed3cc5d0a5f1ccd985def015f1460234942d7cedb163ffbf828d7ce593579",
-          "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/node"
+          "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/node"
         }
       },
       "cargo": {
@@ -992,7 +992,7 @@
     },
     "demo": {
       "jsRuntime": "bun",
-      "adapter": "@unikit/node",
+      "adapter": "@unikit-bridge/node",
       "transport": "stdio",
       "classification": "original generated demo; not Bun FFI evidence"
     }
@@ -1032,7 +1032,7 @@
   "initialHostEvidence": {
     "node": {
       "host": "node",
-      "adapter": "@unikit/node",
+      "adapter": "@unikit-bridge/node",
       "transport": "stdio",
       "contractVerification": "strict-generated-entry",
       "result": {
@@ -1045,7 +1045,7 @@
     },
     "bun": {
       "host": "bun",
-      "adapter": "@unikit/bun",
+      "adapter": "@unikit-bridge/bun",
       "transport": "ffi",
       "contractVerification": "strict-generated-entry",
       "result": {
@@ -1063,10 +1063,10 @@
       "transition": "initial-install",
       "expectedVersions": {
         "npm": {
-          "@unikit/cli": "0.11.3",
-          "@unikit/types": "0.12.0",
-          "@unikit/node": "0.10.2",
-          "@unikit/bun": "0.10.2"
+          "@unikit-bridge/cli": "0.11.3",
+          "@unikit-bridge/types": "0.12.0",
+          "@unikit-bridge/node": "0.10.2",
+          "@unikit-bridge/bun": "0.10.2"
         },
         "rust": {
           "unikit": "0.10.2",
@@ -1076,33 +1076,33 @@
       },
       "installed": {
         "npm": {
-          "@unikit/cli": {
+          "@unikit-bridge/cli": {
             "version": "0.11.3",
-            "resolved": "https://registry.npmjs.org/@unikit/cli/-/cli-0.11.3.tgz",
+            "resolved": "https://registry.npmjs.org/@unikit-bridge/cli/-/cli-0.11.3.tgz",
             "integrity": "sha512-UvNFy9Y/6UMRurYteAFrP8XcnTplFlQOX4+xLi2D8NnTceGF2jVH0DbNZUtwNAh55dXJEukmwwsjmBn/4WpAHg==",
             "packageJsonSha256": "a58f8452b946c6a3d61ecf3e9d365c6e56f7ce79c5b04257b0cbe38519fdf203",
-            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/cli"
+            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/cli"
           },
-          "@unikit/types": {
+          "@unikit-bridge/types": {
             "version": "0.12.0",
-            "resolved": "https://registry.npmjs.org/@unikit/types/-/types-0.12.0.tgz",
+            "resolved": "https://registry.npmjs.org/@unikit-bridge/types/-/types-0.12.0.tgz",
             "integrity": "sha512-5EYgbNrbFMuMyZ8HNO3rQKmApGANGEfq1jC3gqsbiwkf1CRYzaNQTcadUkQCEm2A5S8d/ynMP15uy50EEKIGWg==",
             "packageJsonSha256": "f805840302a87e41e43c4809e30f06090f6f1eb10645149ad13f83dccd24609a",
-            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/types"
+            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/types"
           },
-          "@unikit/node": {
+          "@unikit-bridge/node": {
             "version": "0.10.2",
-            "resolved": "https://registry.npmjs.org/@unikit/node/-/node-0.10.2.tgz",
+            "resolved": "https://registry.npmjs.org/@unikit-bridge/node/-/node-0.10.2.tgz",
             "integrity": "sha512-LYi2DDYPwCF23B8pTNoBanpTx4Krfu0h32uvtP/sRWrxYYJBGu4iofySzqLwQ/2j604vNF5jXesYt8pr6jO01g==",
             "packageJsonSha256": "300ed3cc5d0a5f1ccd985def015f1460234942d7cedb163ffbf828d7ce593579",
-            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/node"
+            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/node"
           },
-          "@unikit/bun": {
+          "@unikit-bridge/bun": {
             "version": "0.10.2",
-            "resolved": "https://registry.npmjs.org/@unikit/bun/-/bun-0.10.2.tgz",
+            "resolved": "https://registry.npmjs.org/@unikit-bridge/bun/-/bun-0.10.2.tgz",
             "integrity": "sha512-QdICp5yQ4ZO4W0u5uWKA6Zn50U/TPMv+uJe1hl+FgmOwGyEQdWWcy8Rc+hdAZfmW2b+3q4Tnz2TiXGXaO2KXRw==",
             "packageJsonSha256": "f93f22e79904296e392252ebcea4d960f8adaf7bfcb216b36af436bcf30b825a",
-            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/bun"
+            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/bun"
           }
         },
         "cargo": {
@@ -1186,7 +1186,7 @@
       "hosts": {
         "node": {
           "host": "node",
-          "adapter": "@unikit/node",
+          "adapter": "@unikit-bridge/node",
           "transport": "stdio",
           "contractVerification": "strict-generated-entry",
           "result": {
@@ -1200,7 +1200,7 @@
         },
         "bun": {
           "host": "bun",
-          "adapter": "@unikit/bun",
+          "adapter": "@unikit-bridge/bun",
           "transport": "ffi",
           "contractVerification": "strict-generated-entry",
           "result": {
@@ -1219,10 +1219,10 @@
       "transition": "rust-only-patch",
       "expectedVersions": {
         "npm": {
-          "@unikit/cli": "0.11.3",
-          "@unikit/types": "0.12.0",
-          "@unikit/node": "0.10.2",
-          "@unikit/bun": "0.10.2"
+          "@unikit-bridge/cli": "0.11.3",
+          "@unikit-bridge/types": "0.12.0",
+          "@unikit-bridge/node": "0.10.2",
+          "@unikit-bridge/bun": "0.10.2"
         },
         "rust": {
           "unikit": "0.11.0",
@@ -1232,33 +1232,33 @@
       },
       "installed": {
         "npm": {
-          "@unikit/cli": {
+          "@unikit-bridge/cli": {
             "version": "0.11.3",
-            "resolved": "https://registry.npmjs.org/@unikit/cli/-/cli-0.11.3.tgz",
+            "resolved": "https://registry.npmjs.org/@unikit-bridge/cli/-/cli-0.11.3.tgz",
             "integrity": "sha512-UvNFy9Y/6UMRurYteAFrP8XcnTplFlQOX4+xLi2D8NnTceGF2jVH0DbNZUtwNAh55dXJEukmwwsjmBn/4WpAHg==",
             "packageJsonSha256": "a58f8452b946c6a3d61ecf3e9d365c6e56f7ce79c5b04257b0cbe38519fdf203",
-            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/cli"
+            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/cli"
           },
-          "@unikit/types": {
+          "@unikit-bridge/types": {
             "version": "0.12.0",
-            "resolved": "https://registry.npmjs.org/@unikit/types/-/types-0.12.0.tgz",
+            "resolved": "https://registry.npmjs.org/@unikit-bridge/types/-/types-0.12.0.tgz",
             "integrity": "sha512-5EYgbNrbFMuMyZ8HNO3rQKmApGANGEfq1jC3gqsbiwkf1CRYzaNQTcadUkQCEm2A5S8d/ynMP15uy50EEKIGWg==",
             "packageJsonSha256": "f805840302a87e41e43c4809e30f06090f6f1eb10645149ad13f83dccd24609a",
-            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/types"
+            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/types"
           },
-          "@unikit/node": {
+          "@unikit-bridge/node": {
             "version": "0.10.2",
-            "resolved": "https://registry.npmjs.org/@unikit/node/-/node-0.10.2.tgz",
+            "resolved": "https://registry.npmjs.org/@unikit-bridge/node/-/node-0.10.2.tgz",
             "integrity": "sha512-LYi2DDYPwCF23B8pTNoBanpTx4Krfu0h32uvtP/sRWrxYYJBGu4iofySzqLwQ/2j604vNF5jXesYt8pr6jO01g==",
             "packageJsonSha256": "300ed3cc5d0a5f1ccd985def015f1460234942d7cedb163ffbf828d7ce593579",
-            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/node"
+            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/node"
           },
-          "@unikit/bun": {
+          "@unikit-bridge/bun": {
             "version": "0.10.2",
-            "resolved": "https://registry.npmjs.org/@unikit/bun/-/bun-0.10.2.tgz",
+            "resolved": "https://registry.npmjs.org/@unikit-bridge/bun/-/bun-0.10.2.tgz",
             "integrity": "sha512-QdICp5yQ4ZO4W0u5uWKA6Zn50U/TPMv+uJe1hl+FgmOwGyEQdWWcy8Rc+hdAZfmW2b+3q4Tnz2TiXGXaO2KXRw==",
             "packageJsonSha256": "f93f22e79904296e392252ebcea4d960f8adaf7bfcb216b36af436bcf30b825a",
-            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/bun"
+            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/bun"
           }
         },
         "cargo": {
@@ -1342,7 +1342,7 @@
       "hosts": {
         "node": {
           "host": "node",
-          "adapter": "@unikit/node",
+          "adapter": "@unikit-bridge/node",
           "transport": "stdio",
           "contractVerification": "strict-generated-entry",
           "result": {
@@ -1356,7 +1356,7 @@
         },
         "bun": {
           "host": "bun",
-          "adapter": "@unikit/bun",
+          "adapter": "@unikit-bridge/bun",
           "transport": "ffi",
           "contractVerification": "strict-generated-entry",
           "result": {
@@ -1375,10 +1375,10 @@
       "transition": "rust-only-patch",
       "expectedVersions": {
         "npm": {
-          "@unikit/cli": "0.11.3",
-          "@unikit/types": "0.12.0",
-          "@unikit/node": "0.10.2",
-          "@unikit/bun": "0.10.2"
+          "@unikit-bridge/cli": "0.11.3",
+          "@unikit-bridge/types": "0.12.0",
+          "@unikit-bridge/node": "0.10.2",
+          "@unikit-bridge/bun": "0.10.2"
         },
         "rust": {
           "unikit": "0.10.2",
@@ -1388,33 +1388,33 @@
       },
       "installed": {
         "npm": {
-          "@unikit/cli": {
+          "@unikit-bridge/cli": {
             "version": "0.11.3",
-            "resolved": "https://registry.npmjs.org/@unikit/cli/-/cli-0.11.3.tgz",
+            "resolved": "https://registry.npmjs.org/@unikit-bridge/cli/-/cli-0.11.3.tgz",
             "integrity": "sha512-UvNFy9Y/6UMRurYteAFrP8XcnTplFlQOX4+xLi2D8NnTceGF2jVH0DbNZUtwNAh55dXJEukmwwsjmBn/4WpAHg==",
             "packageJsonSha256": "a58f8452b946c6a3d61ecf3e9d365c6e56f7ce79c5b04257b0cbe38519fdf203",
-            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/cli"
+            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/cli"
           },
-          "@unikit/types": {
+          "@unikit-bridge/types": {
             "version": "0.12.0",
-            "resolved": "https://registry.npmjs.org/@unikit/types/-/types-0.12.0.tgz",
+            "resolved": "https://registry.npmjs.org/@unikit-bridge/types/-/types-0.12.0.tgz",
             "integrity": "sha512-5EYgbNrbFMuMyZ8HNO3rQKmApGANGEfq1jC3gqsbiwkf1CRYzaNQTcadUkQCEm2A5S8d/ynMP15uy50EEKIGWg==",
             "packageJsonSha256": "f805840302a87e41e43c4809e30f06090f6f1eb10645149ad13f83dccd24609a",
-            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/types"
+            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/types"
           },
-          "@unikit/node": {
+          "@unikit-bridge/node": {
             "version": "0.10.2",
-            "resolved": "https://registry.npmjs.org/@unikit/node/-/node-0.10.2.tgz",
+            "resolved": "https://registry.npmjs.org/@unikit-bridge/node/-/node-0.10.2.tgz",
             "integrity": "sha512-LYi2DDYPwCF23B8pTNoBanpTx4Krfu0h32uvtP/sRWrxYYJBGu4iofySzqLwQ/2j604vNF5jXesYt8pr6jO01g==",
             "packageJsonSha256": "300ed3cc5d0a5f1ccd985def015f1460234942d7cedb163ffbf828d7ce593579",
-            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/node"
+            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/node"
           },
-          "@unikit/bun": {
+          "@unikit-bridge/bun": {
             "version": "0.10.2",
-            "resolved": "https://registry.npmjs.org/@unikit/bun/-/bun-0.10.2.tgz",
+            "resolved": "https://registry.npmjs.org/@unikit-bridge/bun/-/bun-0.10.2.tgz",
             "integrity": "sha512-QdICp5yQ4ZO4W0u5uWKA6Zn50U/TPMv+uJe1hl+FgmOwGyEQdWWcy8Rc+hdAZfmW2b+3q4Tnz2TiXGXaO2KXRw==",
             "packageJsonSha256": "f93f22e79904296e392252ebcea4d960f8adaf7bfcb216b36af436bcf30b825a",
-            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit/bun"
+            "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-consumer-PuNGcT/registry-consumer/node_modules/@unikit-bridge/bun"
           }
         },
         "cargo": {
@@ -1498,7 +1498,7 @@
       "hosts": {
         "node": {
           "host": "node",
-          "adapter": "@unikit/node",
+          "adapter": "@unikit-bridge/node",
           "transport": "stdio",
           "contractVerification": "strict-generated-entry",
           "result": {
@@ -1512,7 +1512,7 @@
         },
         "bun": {
           "host": "bun",
-          "adapter": "@unikit/bun",
+          "adapter": "@unikit-bridge/bun",
           "transport": "ffi",
           "contractVerification": "strict-generated-entry",
           "result": {

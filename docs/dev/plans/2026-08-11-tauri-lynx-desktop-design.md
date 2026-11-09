@@ -19,7 +19,7 @@ unikit-bridge는 이미 Rust `#[command]` → TS 클라이언트 자동 생성 �
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | UI                  | 단일 ReactLynx 코드베이스 1벌 (Lynx everywhere)                                                                           |
 | 백엔드              | 단일 Rust `#[command]` 셋 (unikit), 4플랫폼 공유                                                                          |
-| 백엔드 호출 경로    | `@unikit/lynx` rkyv V2 fast-path 단일 경로 (모든 플랫폼)                                                                  |
+| 백엔드 호출 경로    | `@unikit-bridge/lynx` rkyv V2 fast-path 단일 경로 (모든 플랫폼)                                                                  |
 | Desktop 셸          | **Tauri** (macOS + Windows). Linux 제외                                                                                   |
 | Mobile 셸           | **Lynx 자체 SDK** (Android + iOS). Tauri mobile 미사용                                                                    |
 | 네이티브 capability | unikit capability 추상 command → 플랫폼별 구현체(Desktop=Tauri plugin, Mobile=Lynx NativeModule). plugin 형태로 추가/제거 |
@@ -40,7 +40,7 @@ unikit-bridge는 이미 Rust `#[command]` → TS 클라이언트 자동 생성 �
 │  단일 ReactLynx App  (src/App.tsx — 4플랫폼 공유, 1벌)        │
 │  addNumbers()  ·  readFile()  ·  notify()  ·  …             │
 └──────────────────────────┬──────────────────────────────────┘
-                           │  @unikit/lynx (rkyv V2 fast-path, 단일 경로)
+                           │  @unikit-bridge/lynx (rkyv V2 fast-path, 단일 경로)
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  unikit #[command]  (단일 Rust 백엔드, 4플랫폼 공유)           │
@@ -63,7 +63,7 @@ unikit-bridge는 이미 Rust `#[command]` → TS 클라이언트 자동 생성 �
 **핵심 원칙 4가지:**
 
 1. **단일 UI**: ReactLynx `App.tsx` 한 벌, 플랫폼 분기 코드 없음.
-2. **단일 백엔드 경로**: 모든 플랫폼이 `@unikit/lynx` rkyv V2 fast-path. `@unikit/tauri`(JSON IPC)는 데스크톱 capability 내부 구현용 옵션만.
+2. **단일 백엔드 경로**: 모든 플랫폼이 `@unikit-bridge/lynx` rkyv V2 fast-path. `@unikit-bridge/tauri`(JSON IPC)는 데스크톱 capability 내부 구현용 옵션만.
 3. **capability 추상**: unikit가 `trait Capability`(`FileCap`, `NotifyCap` 등) 정의. command 핸들러는 trait 메서드만 호출, 구현체는 플랫폼별(Desktop=Tauri 공식 plugin 감싸기, Mobile=Lynx NativeModule). 새 capability 추가 = trait 메서드 + 플랫폼 구현체, ReactLynx 영향 없음.
 4. **Desktop 셸=Tauri, Mobile 셸=Lynx SDK**: Tauri는 윈도우·배포·capability 생태계, 모바일은 Lynx 자체 셸.
 

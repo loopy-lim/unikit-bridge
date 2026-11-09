@@ -24,7 +24,7 @@ const result = await addNumbers({ a: 20, b: 22 });
 
 [`App.tsx`](App.tsx) is a complete screen example that goes from Button → generated command
 → React state update without Expo imports or manual native installation. Real apps use
-the same `@unikit/generated-react-native` autolink package.
+the same `@unikit-bridge/generated-react-native` autolink package.
 
 This fixture verifies the autolinking contract and does not substitute for simulator/device
 runtime evidence. Real native build/link is covered by the iOS/Android CI of the Expo

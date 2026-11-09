@@ -58,7 +58,7 @@
   ```
   tier2Outcome(throwingCodec, buf) → error name: Error | code: undefined | message: varint out of bounds
   ```
-- **왜 불편한가**: (1) `error.code` 로 분기하는 소비자 코드(`@unikit/types` errors.ts의 코드 계약)가 `undefined` 를 받는다 — 디코드 버그와 핸들러 실패를 구분할 수 없다. (2) 어느 명령/어느 필드에서 터졌는지 메시지에 없다(호출 지점 dispatch 는 `command` 를 알고 있는데 버린다 — `packages/types/src/frame-engine-dispatch.ts:37-43`). (3) 와이어 단서(바이트 길이, hex)도 없고, 존재하는 진단 채널인 `UNIKIT_DEBUG=1` 와이어 덤프(`packages/types/src/debug.ts:96-110`)를 에러 메시지가 안내하지 않는다. 반면 동일 계층의 JSON 경로는 `invalid json: {detail}`(`packages/types/src/json-wire.ts:80`), inspector 는 `invalid snapshot: … at byte 42`(`packages/types/src/inspector.ts:141-152`)처럼 위치 정보를 주는 데 비해 tier 2 경로만 낙후됐다.
+- **왜 불편한가**: (1) `error.code` 로 분기하는 소비자 코드(`@unikit-bridge/types` errors.ts의 코드 계약)가 `undefined` 를 받는다 — 디코드 버그와 핸들러 실패를 구분할 수 없다. (2) 어느 명령/어느 필드에서 터졌는지 메시지에 없다(호출 지점 dispatch 는 `command` 를 알고 있는데 버린다 — `packages/types/src/frame-engine-dispatch.ts:37-43`). (3) 와이어 단서(바이트 길이, hex)도 없고, 존재하는 진단 채널인 `UNIKIT_DEBUG=1` 와이어 덤프(`packages/types/src/debug.ts:96-110`)를 에러 메시지가 안내하지 않는다. 반면 동일 계층의 JSON 경로는 `invalid json: {detail}`(`packages/types/src/json-wire.ts:80`), inspector 는 `invalid snapshot: … at byte 42`(`packages/types/src/inspector.ts:141-152`)처럼 위치 정보를 주는 데 비해 tier 2 경로만 낙후됐다.
 - **제안**: `tier2Outcome` 이 command 이름을 받도록 서명을 넓혀 `UnikitCommandError('invoke.malformed', "decode failed for 'addNumbers' at offset N: … — set UNIKIT_DEBUG=1 to dump wire bytes")` 로 정규화하거나, 최소한 `error.code` 를 부여할 것.
 
 ### 2.2 [중] 디코드 실패 시 devtools 의 와이어 레벨 지원 부재
@@ -100,7 +100,7 @@
 
 ### 2.7 [하] `parsePackageSchema` 라이브러리 소비 경로에 파일 컨텍스트 없음
 
-- **근거(소스)**: `packages/cli/src/schema-validation.ts:84-87` — `Invalid schema: missing or invalid "packageId"` 는 경로/파일명 없음. CLI 내부에서는 `cli-generate-files.ts:88-97`, `cli-diff.ts:34-44` 가 경로+cargo run 힌트로 감싸지만, `@unikit/cli` 패키지 export(`packages/cli/src/index.ts:15`)로 직접 쓰는 프로그래밍 소비자(커스텀 파이프라인)는 날 메시지를 받는다.
+- **근거(소스)**: `packages/cli/src/schema-validation.ts:84-87` — `Invalid schema: missing or invalid "packageId"` 는 경로/파일명 없음. CLI 내부에서는 `cli-generate-files.ts:88-97`, `cli-diff.ts:34-44` 가 경로+cargo run 힌트로 감싸지만, `@unikit-bridge/cli` 패키지 export(`packages/cli/src/index.ts:15`)로 직접 쓰는 프로그래밍 소비자(커스텀 파이프라인)는 날 메시지를 받는다.
 - **왜 불편한가**: 라이브러리 호출자는 어떤 파일이 잘못됐는지 자체 컨텍스트로 재조립해야 한다. CLI 유저에게는 이미 불문명 → 하.
 
 ---

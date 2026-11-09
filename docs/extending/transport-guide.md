@@ -46,7 +46,7 @@ assembly** — custom hosts, custom transports, or replacing the default.
 | **Node**                   | one-shot Cargo binary + stdio, contract check via `__unikit_contract`                                                                                                                           | `main.rs` → `run_invoke_stdio()`                                                                                                                                                                   | your own `spawnSync` stdio, `createNodeLoopTransport` (servers), napi-rs native module, WASM |
 | **Bun**                    | cdylib + stable C ABI + Frame (`unikit_ffi_invoke_frame`)                                                                                                                                       | `lib.rs` → `unikit_bridge::native_entry!` + `register_ffi(...)`                                                                                                                                           | `bun:ffi` direct C FFI call (§4, JSON path)                                                  |
 | **Tauri**                  | `unikit_dispatch` multiplexing (framework built-in)                                                                                                                                             | `tauri_support::register[_with_events]()` (feature: `tauri`)                                                                                                                                       | `createTauriEngine({ invoke })` with a custom invoke function                                |
-| **React Native**           | autolinked JSI + Frame (`invokeFrame`) via `@unikit/generated-react-native`                                                                                                                     | `unikit_bridge::native_entry!` (exports `unikit_mobile_init`)                                                                                                                                             | custom JSON transport (`createReactNativeEngine`), TurboModule, Nitro Modules                |
+| **React Native**           | autolinked JSI + Frame (`invokeFrame`) via `@unikit-bridge/generated-react-native`                                                                                                                     | `unikit_bridge::native_entry!` (exports `unikit_mobile_init`)                                                                                                                                             | custom JSON transport (`createReactNativeEngine`), TurboModule, Nitro Modules                |
 | **scriptc** (experimental) | statically linked native executable — `scriptc/ffi.json` (ffi_format 7 manifest) + `scriptc-ffi.d.ts`/`scriptc-ffi.ts`, rendered by `unikit codegen` when `unikit.json` has a `scriptc` section | `unikit_ffi_invoke_json_into_len` caller-buffer envelope; retained callbacks (`unikit_ffi_invoke_json_async_channel`, `unikit_ffi_event_sink_register_scriptc`, `unikit_ffi_channel_create_bytes`) | no napi add-ons or `dlopen`; working gate: `examples/calculator/scriptc/run.sh`              |
 
 ### Node — manual subprocess stdio
@@ -58,7 +58,7 @@ probe). If you assemble the process transport yourself, the shape is:
 ```ts
 // manual assembly — illustrative; the generated node.ts does this for you
 import { spawnSync } from 'node:child_process';
-import { createNodeEngine } from '@unikit/node';
+import { createNodeEngine } from '@unikit-bridge/node';
 
 const engine = createNodeEngine({
   invoke(command, args) {
@@ -139,7 +139,7 @@ Swift binds the same symbols directly:
 
 ```swift
 // a hand-rolled JSI/module bridging layer (custom hosts only — the default RN
-// path is the generated @unikit/generated-react-native package)
+// path is the generated @unikit-bridge/generated-react-native package)
 @_silgen_name("unikit_mobile_init")
 func unikit_mobile_init()
 
@@ -304,8 +304,8 @@ pair:
 
 ```ts
 import { dlopen, FFIType, suffix, toArrayBuffer } from 'bun:ffi';
-import { createBunEngine } from '@unikit/bun';
-import { configure } from '@unikit/types';
+import { createBunEngine } from '@unikit-bridge/bun';
+import { configure } from '@unikit-bridge/types';
 import { addNumbers } from '../generated/commands.js';
 
 const outLength = new BigUint64Array(1); // usize out-param
@@ -420,7 +420,7 @@ napi build --platform --release
 ### Node transport implementation
 
 ```ts
-import { createNodeEngine } from '@unikit/node';
+import { createNodeEngine } from '@unikit-bridge/node';
 
 // load the native module built with napi-rs (examples/calculator-napi)
 const native = require('./calculator-napi.node');

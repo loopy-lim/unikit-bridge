@@ -1,4 +1,4 @@
-# @unikit/node
+# @unikit-bridge/node
 
 ## 상태를 유지하는 호출과 이벤트
 
@@ -61,7 +61,7 @@ function createNodeEngine(transport: NodeInvokeTransport): NodeEngineClient;
 ### subprocess 기반
 
 ```ts
-import { createNodeEngine } from '@unikit/node';
+import { createNodeEngine } from '@unikit-bridge/node';
 import { spawn } from 'node:child_process';
 
 const engine = createNodeEngine({
@@ -76,7 +76,7 @@ const engine = createNodeEngine({
 ### napi-rs 기반
 
 ```ts
-import { createNodeEngine } from '@unikit/node';
+import { createNodeEngine } from '@unikit-bridge/node';
 import { invoke as nativeInvoke } from 'my-crate-napi';
 
 const engine = createNodeEngine({

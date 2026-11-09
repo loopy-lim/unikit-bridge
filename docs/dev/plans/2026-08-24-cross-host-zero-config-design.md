@@ -20,7 +20,7 @@
 - generated client는 host adapter를 직접 섞지 않는다. 앱은 하나의 플랫폼 진입점만
   import한다.
 - CLI는 기존 dependency가 다른 release line을 가리키면 덮어쓰지 않고 실패한다.
-- `@unikit/types` runtime state는 `0.4.0` versioned global symbol을 사용해 동일 버전의
+- `@unikit-bridge/types` runtime state는 `0.4.0` versioned global symbol을 사용해 동일 버전의
   중복 설치만 공유한다.
 - adapter가 등록한 lazy initializer보다 이후의 명시적 `configure()`가 우선한다.
 - Tauri는 `@tauri-apps/api`를 강제 dependency로 넣지 않아 앱의 Tauri 버전과 충돌하지

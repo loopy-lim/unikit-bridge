@@ -210,19 +210,19 @@ Expected: 모두 PASS (문서 이동은 코드에 영향 없음)
 
    ```ts
    // Node (subprocess)
-   import { createNodeEngine } from '@unikit/node';
+   import { createNodeEngine } from '@unikit-bridge/node';
    const engine = createNodeEngine({ invoke: myTransport });
 
    // Bun (subprocess 또는 FFI)
-   import { createBunEngine } from '@unikit/bun';
+   import { createBunEngine } from '@unikit-bridge/bun';
    const engine = createBunEngine({ invoke: myTransport });
 
    // Tauri
-   import { createTauriEngine } from '@unikit/tauri';
+   import { createTauriEngine } from '@unikit-bridge/tauri';
    const engine = createTauriEngine({ invoke: window.__TAURI__.core.invoke });
 
    // React Native
-   import { createReactNativeEngine } from '@unikit/react-native';
+   import { createReactNativeEngine } from '@unikit-bridge/react-native';
    const engine = createReactNativeEngine(NativeModule);
    ```
 

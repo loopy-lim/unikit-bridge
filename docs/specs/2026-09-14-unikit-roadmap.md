@@ -53,14 +53,14 @@ Unikit의 다음 목표는 **개발자가 Rust 계약 하나를 기존 앱에 �
 | 배포물                                | 레지스트리 버전 |
 | ------------------------------------- | --------------- |
 | Rust `unikit`                         | 0.10.0          |
-| `@unikit/types`, `cli`, `node`, `bun` | 0.10.0          |
-| `@unikit/tauri`, `react-native`       | 0.9.0           |
-| `@unikit/react`                       | 0.8.0           |
-| `@unikit/testing`, `devtools`         | 0.7.0           |
+| `@unikit-bridge/types`, `cli`, `node`, `bun` | 0.10.0          |
+| `@unikit-bridge/tauri`, `react-native`       | 0.9.0           |
+| `@unikit-bridge/react`                       | 0.8.0           |
+| `@unikit-bridge/testing`, `devtools`         | 0.7.0           |
 
 npm 9개 패키지의 `gitHead`는 모두 `30c73bd66159f4c777054527236573559c106c98`이다. 현재 main에는 그 이후 watch 변경 유실 수정, UniFFI 렌더러 식별자 검증, 문서 및 예제 산출물 정리가 추가돼 있다. 따라서 **현재 main의 수정이 npm 최신 패키지에 모두 포함됐다고 말할 수 없다.** Rust 0.10.0은 레지스트리 존재를 확인했으며, 이 조회만으로 crate와 현재 main의 소스 일치를 인증하지 않는다.
 
-출처: [npm types 메타데이터](https://registry.npmjs.org/@unikit%2ftypes/latest), [npm CLI 메타데이터](https://registry.npmjs.org/@unikit%2fcli/latest), [crates.io unikit](https://crates.io/api/v1/crates/unikit-bridge), [배포 커밋 이후 변경](https://github.com/loopy-lim/unikit/compare/30c73bd66159f4c777054527236573559c106c98...b1ed9aa422fb4e627131f02f67de9f50bdbfedf7). 레지스트리의 `latest`는 가변 주소이며 위 표는 조회일의 스냅샷이다.
+출처: [npm types 메타데이터](https://registry.npmjs.org/@unikit-bridge%2ftypes/latest), [npm CLI 메타데이터](https://registry.npmjs.org/@unikit-bridge%2fcli/latest), [crates.io unikit](https://crates.io/api/v1/crates/unikit-bridge), [배포 커밋 이후 변경](https://github.com/loopy-lim/unikit/compare/30c73bd66159f4c777054527236573559c106c98...b1ed9aa422fb4e627131f02f67de9f50bdbfedf7). 레지스트리의 `latest`는 가변 주소이며 위 표는 조회일의 스냅샷이다.
 
 ### 2.2 현재 검증 상태
 

@@ -14,13 +14,13 @@
     "postinstall": "node scripts/link-live-packages.mjs",
     "test:autolink": "bun scripts/check-autolink.mjs",
     "typecheck": "tsc --noEmit",
-    "unikit:ios": "node -e \"require('@unikit/generated-react-native/scripts/prepare-native.cjs').prepare('ios')\"",
-    "unikit:android": "node -e \"require('@unikit/generated-react-native/scripts/prepare-native.cjs').prepare('android')\""
+    "unikit:ios": "node -e \"require('@unikit-bridge/generated-react-native/scripts/prepare-native.cjs').prepare('ios')\"",
+    "unikit:android": "node -e \"require('@unikit-bridge/generated-react-native/scripts/prepare-native.cjs').prepare('android')\""
   },
   "dependencies": {
-    "@unikit/generated-react-native": "workspace:*",
-    "@unikit/react-native": "file:../../packages/react-native",
-    "@unikit/types": "file:../../packages/types",
+    "@unikit-bridge/generated-react-native": "workspace:*",
+    "@unikit-bridge/react-native": "file:../../packages/react-native",
+    "@unikit-bridge/types": "file:../../packages/types",
     "react": "19.1.0",
     "react-native": "0.81.5"
   },
@@ -32,7 +32,7 @@
     "typescript": "~5.9.2"
   },
   "overrides": {
-    "@unikit/react-native": "file:../../packages/react-native",
-    "@unikit/types": "file:../../packages/types"
+    "@unikit-bridge/react-native": "file:../../packages/react-native",
+    "@unikit-bridge/types": "file:../../packages/types"
   }
 }

@@ -4,7 +4,7 @@
 
 **Goal:** 프로덕션 준비성 감사에서 확인된 결함 4건 + 조건부 항목 7건을 수정해 unikit-bridge를 프로덕션 준비 완료 상태로 만든다.
 
-**Architecture:** 수정은 4개 레이어에 걸친다 — (1) RN JSI C++ 브릿지(버퍼 해제 짝·입력 클램프), (2) calculator FFI(panic guard), (3) TS 엔진 레이어(`@unikit/types` timeout·코드젠 살균·버전 주입), (4) 저장소 운영(CI 게이트·메타데이터·브랜치 보호). 각 수정은 기존 테스트 컨벤션(Rust 통합테스트 / `node --test` / CLI 유닛테스트)을 따르는 실패-테스트 우선으로 진행한다.
+**Architecture:** 수정은 4개 레이어에 걸친다 — (1) RN JSI C++ 브릿지(버퍼 해제 짝·입력 클램프), (2) calculator FFI(panic guard), (3) TS 엔진 레이어(`@unikit-bridge/types` timeout·코드젠 살균·버전 주입), (4) 저장소 운영(CI 게이트·메타데이터·브랜치 보호). 각 수정은 기존 테스트 컨벤션(Rust 통합테스트 / `node --test` / CLI 유닛테스트)을 따르는 실패-테스트 우선으로 진행한다.
 
 **Tech Stack:** Rust (edition 2024, catch_unwind/scope guard), C++17 (JSI, iOS/Android 공유), TypeScript ESM (node --test), npm workspaces + changesets, GitHub Actions.
 
@@ -12,7 +12,7 @@
 
 ## 배경 지식 (zero-context engineer용)
 
-- **저장소 구조**: Rust 워크스페이스(루트 `Cargo.toml`, `crates/unikit-bridge` 코어 + `crates/unikit-bridge-macros`) + npm 워크스페이스(`packages/*`, @unikit 스코프 9개). 전부 버전 0.2.0 (루트 package.json만 0.1.3, private).
+- **저장소 구조**: Rust 워크스페이스(루트 `Cargo.toml`, `crates/unikit-bridge` 코어 + `crates/unikit-bridge-macros`) + npm 워크스페이스(`packages/*`, @unikit-bridge 스코프 9개). 전부 버전 0.2.0 (루트 package.json만 0.1.3, private).
 - **와이어 프로토콜**: JS↔Rust 호출은 3계층 — JSON(디버그), postcard V1(범용), rkyv V2(바이너리 fast-path, RN 전용). rkyv V2 요청은 `[cmd_id: u16 LE][본문]`.
 - **FFI 버퍼 소유권 규칙 (핵심!)**: 응답 버퍼를 **할당한 쪽의 전용 free 함수**로만 해제해야 한다.
   - `crates/unikit-bridge/src/ffi.rs`의 `alloc_response`(ffi.rs:118)는 8바이트 magic 헤더(`"RUST"` + len u32)를 앞에 붙인 `Box<[u8]>`를 반환 → **반드시 `unikit_ffi_free`로 해제** (magic 불일치 시 free 거부 → 누수).
@@ -640,7 +640,7 @@ test('invoke timeout races with late success — late result ignored, no unhandl
 
 **Step 2: 테스트 실행 — 실패 확인**
 
-Run: `npm run build -w @unikit/types && node --test packages/types/dist/index.test.js 2>&1 | tail -5`
+Run: `npm run build -w @unikit-bridge/types && node --test packages/types/dist/index.test.js 2>&1 | tail -5`
 Expected: FAIL — `invokeWithTimeout is not defined` (함수 미구현).
 
 **Step 3: 구현**
@@ -754,7 +754,7 @@ return invokeWithTimeout(_engine, command, args, options) as Promise<T>;
 
 **Step 4: 테스트 통과 확인**
 
-Run: `npm run build -w @unikit/types && node --test packages/types/dist/index.test.js 2>&1 | tail -3`
+Run: `npm run build -w @unikit-bridge/types && node --test packages/types/dist/index.test.js 2>&1 | tail -3`
 Expected: PASS (기존 67 + 신규 2).
 
 **Step 5: 문서 갱신**
@@ -825,7 +825,7 @@ CLI 테스트 러너가 `tsx` 등으로 src를 직접 실행하는지 `packages/
 
 **Step 2: 테스트 실패 확인**
 
-Run: `npm run test -w @unikit/cli 2>&1 | tail -5`
+Run: `npm run test -w @unikit-bridge/cli 2>&1 | tail -5`
 Expected: FAIL — 현재는 악의적 식별자를 그대로 통과시킴.
 
 **Step 3: 구현**
@@ -863,7 +863,7 @@ if (cmd.definitions) {
 
 **Step 4: 테스트 통과 + 전체 회귀**
 
-Run: `npm run test -w @unikit/cli 2>&1 | tail -3`
+Run: `npm run test -w @unikit-bridge/cli 2>&1 | tail -3`
 Expected: PASS.
 
 Run: `npm run test:ts:node 2>&1 | tail -3` (기존 생성 클라이언트 회귀)
@@ -909,8 +909,8 @@ unikit-bridge = "^${cliMajorVersion}"
 unikit-bridge-macros = "^${cliMajorVersion}"
 // 여기서 cliMajorVersion = cliVersion.split('.').slice(0, 2).join('.')  // "0.2"
 // package.json 템플릿 devDependencies 내:
-"@unikit/cli": `^${cliVersion}`,
-"@unikit/types": `^${cliVersion}`,
+"@unikit-bridge/cli": `^${cliVersion}`,
+"@unikit-bridge/types": `^${cliVersion}`,
 ```
 
 crates.io/npm 동시 범프 관례(워크스페이스 0.2.0 = npm 0.2.0)가 이미 성립하므로 CLI 버전에서 파생하면 다음 범프에서 자동 따라온다.
@@ -930,7 +930,7 @@ test('init template versions derive from CLI package version', async () => {
   const cliPkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
   const minor = cliPkg.version.split('.').slice(0, 2).join('.');
   assert.match(cargo, new RegExp(`unikit = "\\^?${minor}`));
-  assert.equal(pkg.devDependencies['@unikit/types'], `^${cliPkg.version}`);
+  assert.equal(pkg.devDependencies['@unikit-bridge/types'], `^${cliPkg.version}`);
 });
 ```
 
@@ -950,12 +950,12 @@ sed보다 Edit 도구로 정확히 3곳만 교체 (getting-started.md:47, 407의
 
 - `package.json`(루트) version `0.1.3` → `0.2.0` (private이라 발행 무영향, 혼란 제거)
 - `examples/reference-app/package.json`: version 0.1.3→0.2.0, 의존성 `^0.1.3` → `^0.2.0` (4곳)
-- `examples/reference-app` 이 루트 README examples/ 목록에 미등록이면 한 줄 추가: `reference-app/          @unikit/react 훅 레퍼런스 앱 (useCommand/useMutation/useEvent)`
+- `examples/reference-app` 이 루트 README examples/ 목록에 미등록이면 한 줄 추가: `reference-app/          @unikit-bridge/react 훅 레퍼런스 앱 (useCommand/useMutation/useEvent)`
 
 **Step 5: 전체 검증**
 
 ```bash
-npm run test -w @unikit/cli 2>&1 | tail -3
+npm run test -w @unikit-bridge/cli 2>&1 | tail -3
 npm run test:ts:node 2>&1 | tail -3   # reference-app typecheck 포함 여부 확인
 grep -rn 'unikit = "0.1"' README.md docs/getting-started.md  # 기대: 0 hits
 grep -n "0\.1\.3" packages/cli/src/index.ts  # 기대: 0 hits
@@ -1044,7 +1044,7 @@ assert.throws(
 
 ```rust
 /// UnikitError → napi Error: 코드/retryable 이 유실되지 않도록 JSON 문자열로
-/// 직렬화해 reason 에 심는다. JS 측 parseUnikitErrorString(@unikit/types)이
+/// 직렬화해 reason 에 심는다. JS 측 parseUnikitErrorString(@unikit-bridge/types)이
 /// { code, message, retryable } 을 복원한다 — plain Display(to_string)는
 /// retryable 을 버린다.
 fn napi_error(e: unikit_bridge::UnikitError) -> Error {
@@ -1072,7 +1072,7 @@ fn napi_error(e: unikit_bridge::UnikitError) -> Error {
       }
 ```
 
-`parseUnikitErrorString`을 `@unikit/types`에서 import (이미 재수출 확인 — types index.ts export 목록).
+`parseUnikitErrorString`을 `@unikit-bridge/types`에서 import (이미 재수출 확인 — types index.ts export 목록).
 
 **Step 5: 게이트 실행**
 
@@ -1416,7 +1416,7 @@ rust-version.workspace = true
   "sideEffects": false,
 ```
 
-`@unikit/node`와 `@unikit/cli`에:
+`@unikit-bridge/node`와 `@unikit-bridge/cli`에:
 
 ```json
   "engines": { "node": ">=18" },
@@ -1437,7 +1437,7 @@ rust-version.workspace = true
   ]
 ```
 
-(`@unikit/types`는 단일 진입점 — index만 있음. `@unikit/react`도 확인: hooks 등 다수 파일이면 `dist/*.js`/`dist/*.d.ts` 글로브 + `!dist/*.test.*` 는 npm files 지원 안 하므로 개별 열거. 파일 수가 많으면 대안: tsconfig `exclude: ["src/**/*.test.ts"]`로 아예 컴파일에서 제외 + 테스트 실행은 `test:types`에서 `tsc -p tsconfig.test.json` 별도 구성. **후자 권장** — 아래 Step 4.)
+(`@unikit-bridge/types`는 단일 진입점 — index만 있음. `@unikit-bridge/react`도 확인: hooks 등 다수 파일이면 `dist/*.js`/`dist/*.d.ts` 글로브 + `!dist/*.test.*` 는 npm files 지원 안 하므로 개별 열거. 파일 수가 많으면 대안: tsconfig `exclude: ["src/**/*.test.ts"]`로 아예 컴파일에서 제외 + 테스트 실행은 `test:types`에서 `tsc -p tsconfig.test.json` 별도 구성. **후자 권장** — 아래 Step 4.)
 
 **Step 4: (권장) tsconfig 테스트 분리 — types/react**
 
@@ -1466,7 +1466,7 @@ Create: `packages/types/tsconfig.test.json`:
     "test:types": "tsc -p packages/types/tsconfig.test.json && node --test packages/types/dist/index.test.js",
 ```
 
-(기존이 `npm run build -w @unikit/types && node --test ...` — build(발행용, 테스트 제외)와 test-compile(테스트 포함)을 분리. `test:packages`의 다른 패키지(node/bun/tauri/react-native/testing/devtools)도 같은 누수가 있는지 `npm pack --dry-run`으로 점검 후 동일 적용 — react만 3.5kB 누수 확인됨, types도 d.ts/map 포함.)
+(기존이 `npm run build -w @unikit-bridge/types && node --test ...` — build(발행용, 테스트 제외)와 test-compile(테스트 포함)을 분리. `test:packages`의 다른 패키지(node/bun/tauri/react-native/testing/devtools)도 같은 누수가 있는지 `npm pack --dry-run`으로 점검 후 동일 적용 — react만 3.5kB 누수 확인됨, types도 d.ts/map 포함.)
 
 `npm run build`(발행)은 테스트 제외로 줄고, `npm pack --dry-run`에서 test 파일이 사라지는지 검증:
 
@@ -1481,15 +1481,15 @@ cd packages/react && npm pack --dry-run 2>&1 | grep -c "test" ; cd ../..
 
 ```md
 ---
-'@unikit/types': patch
-'@unikit/react': patch
-'@unikit/node': patch
-'@unikit/cli': patch
-'@unikit/bun': patch
-'@unikit/tauri': patch
-'@unikit/react-native': patch
-'@unikit/testing': patch
-'@unikit/devtools': patch
+'@unikit-bridge/types': patch
+'@unikit-bridge/react': patch
+'@unikit-bridge/node': patch
+'@unikit-bridge/cli': patch
+'@unikit-bridge/bun': patch
+'@unikit-bridge/tauri': patch
+'@unikit-bridge/react-native': patch
+'@unikit-bridge/testing': patch
+'@unikit-bridge/devtools': patch
 ---
 
 chore: 패키지 메타데이터 위생 — sideEffects/engines 선언, 발행 dist에서 테스트 파일 제외
@@ -1590,9 +1590,9 @@ npm run audit:prod
 
 ```md
 ---
-'@unikit/types': minor
-'@unikit/node': patch
-'@unikit/cli': patch
+'@unikit-bridge/types': minor
+'@unikit-bridge/node': patch
+'@unikit-bridge/cli': patch
 ---
 
 feat: InvokeOptions.timeoutMs — transport.timeout(retryable) 타임아웃 레이스. hang(네이티브 무응답)의 JS 측 탈출구. 스키마 식별자 화이트리스트로 생성 코드 주입 방어. napi 경로 에러 code/retryable JSON 보존.
