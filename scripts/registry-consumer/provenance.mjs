@@ -64,7 +64,7 @@ export function validateVersionManifest(manifest) {
   if (!manifest || manifest.schemaVersion !== 1)
     throw new Error('version manifest schemaVersion must be 1');
   const npmNames = ['@unikit-bridge/cli', '@unikit-bridge/types', '@unikit-bridge/node', '@unikit-bridge/bun'];
-  const rustNames = ['unikit', 'unikit-bridge-macros', 'unikit-bridge-naming'];
+  const rustNames = ['unikit-bridge', 'unikit-bridge-macros', 'unikit-bridge-naming'];
   if (
     !manifest.npm ||
     Object.keys(manifest.npm).sort().join('\n') !== [...npmNames].sort().join('\n')
@@ -158,9 +158,9 @@ export function assertNoConsumerContamination(
     if (/^\s*\[replace\]/m.test(cargo)) violations.push('Cargo.toml contains [replace]');
     if (cargoDependencyBlocks(cargo).some((block) => /\b(?:path|git)\s*=/.test(block)))
       violations.push('Cargo.toml contains a path/git dependency');
-    for (const name of ['unikit', 'unikit-bridge-macros', 'unikit-bridge-naming']) {
+    for (const name of ['unikit-bridge', 'unikit-bridge-macros', 'unikit-bridge-naming']) {
       const escaped = name.replaceAll('-', '\\-');
-      // 두 표기 모두 잡는다 — `unikit = "x"` 와 `unikit = { version = "x", … }`.
+      // 두 표기 모두 잡는다 — `unikit-bridge = "x"` 와 `unikit-bridge = { version = "x", … }`.
       // brace 형태를 파싱하지 않으면 features 지정 소비자가 핀 없이 통과하고,
       // version 키 자체가 없으면(워크스페이스 상속 등) 최신 해석으로 뜬다.
       const stringMatch = cargo.match(new RegExp(`^${escaped}\\s*=\\s*"([^"]+)"`, 'm'));

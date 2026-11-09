@@ -12,17 +12,17 @@
   },
   "phases": {
     "baseline": {
-      "unikit": "0.11.0",
+      "unikit-bridge": "0.11.0",
       "unikit-bridge-macros": "0.11.0",
       "unikit-bridge-naming": "0.11.0"
     },
     "candidate": {
-      "unikit": "0.12.0",
+      "unikit-bridge": "0.12.0",
       "unikit-bridge-macros": "0.12.0",
       "unikit-bridge-naming": "0.12.0"
     },
     "rollback": {
-      "unikit": "0.11.0",
+      "unikit-bridge": "0.11.0",
       "unikit-bridge-macros": "0.11.0",
       "unikit-bridge-naming": "0.11.0"
     }

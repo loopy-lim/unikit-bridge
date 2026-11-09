@@ -10,7 +10,7 @@ function writeJson(path, value) {
 export function pinCargoVersions(projectDir, versions) {
   const path = join(projectDir, 'Cargo.toml');
   let cargo = readFileSync(path, 'utf8');
-  for (const name of ['unikit', 'unikit-bridge-macros', 'unikit-bridge-naming']) {
+  for (const name of ['unikit-bridge', 'unikit-bridge-macros', 'unikit-bridge-naming']) {
     const next = `${name} = "=${versions[name]}"`;
     const pattern = new RegExp(`^${name.replaceAll('-', '\\-')}\\s*=\\s*"[^"]+"`, 'm');
     if (pattern.test(cargo)) cargo = cargo.replace(pattern, next);

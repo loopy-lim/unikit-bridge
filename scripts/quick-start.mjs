@@ -196,7 +196,7 @@ export function runQuickStart(
       mkdirSync(join(app, '.cargo'), { recursive: true });
       writeFileSync(
         join(app, '.cargo/config.toml'),
-        `[build]\ntarget-dir = ${JSON.stringify(targetDir)}\n\n[patch.crates-io]\n${['unikit', 'unikit-bridge-macros', 'unikit-bridge-naming'].map((name) => `${name} = { path = ${JSON.stringify(join(repo, 'crates', name))} }`).join('\n')}\n`,
+        `[build]\ntarget-dir = ${JSON.stringify(targetDir)}\n\n[patch.crates-io]\n${['unikit-bridge', 'unikit-bridge-macros', 'unikit-bridge-naming'].map((name) => `${name} = { path = ${JSON.stringify(join(repo, 'crates', name))} }`).join('\n')}\n`,
       );
     });
     const manifestBefore = JSON.parse(readFileSync(join(app, 'package.json'), 'utf8'));

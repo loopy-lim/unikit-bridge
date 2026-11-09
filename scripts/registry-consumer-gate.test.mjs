@@ -24,7 +24,7 @@ const NPM = {
   '@unikit-bridge/bun': '0.10.0',
 };
 const RUST = {
-  unikit: '0.10.0',
+  'unikit-bridge': '0.10.0',
   'unikit-bridge-macros': '0.10.0',
   'unikit-bridge-naming': '0.10.0',
 };
@@ -70,9 +70,9 @@ function cargoMetadata({ mismatch = false, pathDependency = false } = {}) {
       },
       ...Object.entries(RUST).map(([name, version]) => ({
         name,
-        version: mismatch && name === 'unikit' ? '0.9.0' : version,
+        version: mismatch && name === 'unikit-bridge' ? '0.9.0' : version,
         source:
-          pathDependency && name === 'unikit'
+          pathDependency && name === 'unikit-bridge'
             ? null
             : 'registry+https://github.com/rust-lang/crates.io-index',
         manifest_path: pathDependency
@@ -130,7 +130,7 @@ test('version manifest requires exact semver pins and the three named phases', (
         baseline: RUST,
         candidate: {
           ...RUST,
-          unikit: '0.10.1',
+          'unikit-bridge': '0.10.1',
           'unikit-bridge-macros': '0.10.1',
           'unikit-bridge-naming': '0.10.1',
         },
@@ -201,9 +201,9 @@ test('contamination scan accepts only the CLI-compatible caret for the requested
 
 test('contamination scan enforces =version pins through brace-form Cargo specs', () => {
   const cases = [
-    ['unikit = { version = "=0.10.0", features = ["tauri"] }', null],
-    ['unikit = { version = "^0.10.0", features = ["tauri"] }', /not pinned with =version/],
-    ['unikit = { features = ["tauri"] }', /declares no version pin/],
+    ['unikit-bridge = { version = "=0.10.0", features = ["tauri"] }', null],
+    ['unikit-bridge = { version = "^0.10.0", features = ["tauri"] }', /not pinned with =version/],
+    ['unikit-bridge = { features = ["tauri"] }', /declares no version pin/],
   ];
   for (const [dependency, rejection] of cases) {
     const { root, cleanup } = scratch();
@@ -223,9 +223,9 @@ test('contamination scan enforces =version pins through brace-form Cargo specs',
 
 test('contamination scan rejects Cargo patch, path and git dependencies', () => {
   for (const dependency of [
-    'unikit = { path = "../unikit" }',
-    'unikit = { git = "https://example.invalid/unikit" }',
-    '[patch.crates-io]\nunikit = { path = "../unikit" }',
+    'unikit-bridge = { path = "../unikit-bridge" }',
+    'unikit-bridge = { git = "https://example.invalid/unikit-bridge" }',
+    '[patch.crates-io]\nunikit-bridge = { path = "../unikit-bridge" }',
   ]) {
     const { root, cleanup } = scratch();
     try {
@@ -316,8 +316,8 @@ test('Cargo provenance allows only the root consumer without registry source', (
     expected: RUST,
     consumerManifestPath: '/tmp/registry-consumer/Cargo.toml',
   });
-  assert.equal(proof.unikit.version, '0.10.0');
-  assert.equal(proof.unikit.checksum, 'aaa');
+  assert.equal(proof['unikit-bridge'].version, '0.10.0');
+  assert.equal(proof['unikit-bridge'].checksum, 'aaa');
   assert.throws(
     () =>
       assertCargoProvenance({
@@ -371,7 +371,7 @@ test('Cargo provenance canonicalizes the root manifest path but still rejects an
 
 test('Cargo provenance rejects a custom registry even when Cargo labels it registry+', () => {
   const metadata = cargoMetadata();
-  metadata.packages.find((pkg) => pkg.name === 'unikit').source =
+  metadata.packages.find((pkg) => pkg.name === 'unikit-bridge').source =
     'registry+https://packages.example.invalid/index';
   assert.throws(
     () =>
@@ -412,7 +412,7 @@ test('registry fixture pins all Unikit crates and exports the cdylib native entr
       npm: NPM,
       phases: {
         baseline: RUST,
-        candidate: { unikit: '0.10.1', 'unikit-bridge-macros': '0.10.1', 'unikit-bridge-naming': '0.10.1' },
+        candidate: { 'unikit-bridge': '0.10.1', 'unikit-bridge-macros': '0.10.1', 'unikit-bridge-naming': '0.10.1' },
         rollback: RUST,
       },
     });

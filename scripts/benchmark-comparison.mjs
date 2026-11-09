@@ -144,7 +144,7 @@ export async function prepareComparison(repository, request, env = process.env) 
         const args = [
           'bench',
           '-p',
-          'unikit',
+          'unikit-bridge',
           ...(profile === 'dev' ? ['--profile', 'dev'] : []),
           '--no-run',
         ];
