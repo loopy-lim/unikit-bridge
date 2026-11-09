@@ -15,8 +15,8 @@
 //
 // 감지 범위 / known blind spots:
 // - 현재 auth, calculator, crud, react-native-bare-calculator, react-native-calculator,
-//   streaming 6개를 발견한다. rustra.json 이 없는 calculator-napi/tauri-calculator 는
-//   범위 밖이며 설정이 생기면 자동 편입된다.
+//   rn-experiment, streaming 7개를 발견한다. rustra.json 이 없는
+//   calculator-napi/tauri-calculator 는 범위 밖이며 설정이 생기면 자동 편입된다.
 // - 기본 --check 는 UniFFI Rust mirror 만 검사한다. --bindings 는 uniffi 설정 예제만
 //   선택해 실제 Swift/Kotlin 재생성을 검사하며 native toolchain/build 비용이 든다.
 // - react-native-calculator 의 `codegen` 은 build:fingerprint 도 돌리지만 고정

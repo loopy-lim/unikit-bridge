@@ -141,11 +141,14 @@ function _utf8Decode(bytes: Uint8Array, start: number, end: number): string {
   if (end > bytes.length) throw new Error('rustra: string out of bounds (offset ' + end + ')');
   let s = ''; let i = start;
   while (i < end) {
-    const b = bytes[i];
+    // 리드 바이트는 i < end <= bytes.length 로 항상 존재한다(함수 머리의
+    // bounds 검사). 연속 바이트는 잘린 시퀀스에서 undefined 일 수 있어
+    // ?? 0 으로 기존 강제 변환(undefined & 0x3f === 0)과 동일하게 읽는다.
+    const b = bytes[i]!;
     if (b < 0x80) { s += String.fromCharCode(b); i += 1; }
-    else if ((b & 0xe0) === 0xc0) { s += String.fromCharCode(((b & 0x1f) << 6) | (bytes[i + 1] & 0x3f)); i += 2; }
-    else if ((b & 0xf0) === 0xe0) { s += String.fromCharCode(((b & 0x0f) << 12) | ((bytes[i + 1] & 0x3f) << 6) | (bytes[i + 2] & 0x3f)); i += 3; }
-    else if ((b & 0xf8) === 0xf0) { const cp = ((b & 0x07) << 18) | ((bytes[i + 1] & 0x3f) << 12) | ((bytes[i + 2] & 0x3f) << 6) | (bytes[i + 3] & 0x3f); const adj = cp - 0x10000; s += String.fromCharCode(0xd800 + (adj >> 10), 0xdc00 + (adj & 0x3ff)); i += 4; }
+    else if ((b & 0xe0) === 0xc0) { s += String.fromCharCode(((b & 0x1f) << 6) | ((bytes[i + 1] ?? 0) & 0x3f)); i += 2; }
+    else if ((b & 0xf0) === 0xe0) { s += String.fromCharCode(((b & 0x0f) << 12) | (((bytes[i + 1] ?? 0) & 0x3f) << 6) | ((bytes[i + 2] ?? 0) & 0x3f)); i += 3; }
+    else if ((b & 0xf8) === 0xf0) { const cp = ((b & 0x07) << 18) | (((bytes[i + 1] ?? 0) & 0x3f) << 12) | (((bytes[i + 2] ?? 0) & 0x3f) << 6) | ((bytes[i + 3] ?? 0) & 0x3f); const adj = cp - 0x10000; s += String.fromCharCode(0xd800 + (adj >> 10), 0xdc00 + (adj & 0x3ff)); i += 4; }
     else i += 1;
   }
   return s;
@@ -193,8 +196,8 @@ export const addCodec: FrameCodec<Tuple_of_int32_and_int32, int32> = {
     };
     ensure(2);
     out[w++] = 39; out[w++] = 0;
-    { const _z = args[0] >= 0 ? args[0] * 2 : -args[0] * 2 - 1; let _v = _z; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; }
-    { const _z = args[1] >= 0 ? args[1] * 2 : -args[1] * 2 - 1; let _v = _z; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; }
+    { const _z = args[0] >= 0 ? args[0] * 2 : -args[0] * 2 - 1; let _v = _z; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; }
+    { const _z = args[1] >= 0 ? args[1] * 2 : -args[1] * 2 - 1; let _v = _z; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; }
     return out.subarray(0, w);
   },
 
@@ -264,8 +267,8 @@ export const addNumbersCodec: FrameCodec<AddNumbersInput, AddNumbersOutput> = {
     };
     ensure(2);
     out[w++] = 1; out[w++] = 0;
-    { let _x = BigInt(args.a); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] &= 0x7f; }
-    { let _x = BigInt(args.b); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] &= 0x7f; }
+    { let _x = BigInt(args.a); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] = out[w - 1]! & 0x7f; }
+    { let _x = BigInt(args.b); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] = out[w - 1]! & 0x7f; }
     return out.subarray(0, w);
   },
 
@@ -335,8 +338,8 @@ export const benchAddCodec: FrameCodec<BenchAddInput, BenchAddOutput> = {
     };
     ensure(2);
     out[w++] = 23; out[w++] = 0;
-    { ensure(8); _dvScratch.setFloat64(0, args.a, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]; }
-    { ensure(8); _dvScratch.setFloat64(0, args.b, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]; }
+    { ensure(8); _dvScratch.setFloat64(0, args.a, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]!; }
+    { ensure(8); _dvScratch.setFloat64(0, args.b, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]!; }
     return out.subarray(0, w);
   },
 
@@ -411,7 +414,7 @@ export const benchEchoBytesCodec: FrameCodec<BenchBytesPayload, BenchBytesPayloa
     };
     ensure(2);
     out[w++] = 25; out[w++] = 0;
-    { const _b = args.data; const _u = typeof _b === 'string' ? _utf8Encode(_b) : _b instanceof Uint8Array ? _b : new Uint8Array(_b); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
+    { const _b = args.data; const _u = typeof _b === 'string' ? _utf8Encode(_b) : _b instanceof Uint8Array ? _b : new Uint8Array(_b); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
     return out.subarray(0, w);
   },
 
@@ -482,8 +485,8 @@ export const benchEchoPairCodec: FrameCodec<BenchPairPayload, BenchPairPayload> 
     };
     ensure(2);
     out[w++] = 26; out[w++] = 0;
-    { const _s = args.name; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
-    { ensure(8); _dvScratch.setFloat64(0, args.value, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]; }
+    { const _s = args.name; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
+    { ensure(8); _dvScratch.setFloat64(0, args.value, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]!; }
     return out.subarray(0, w);
   },
 
@@ -557,7 +560,7 @@ export const benchEchoStringCodec: FrameCodec<BenchStringPayload, BenchStringPay
     };
     ensure(2);
     out[w++] = 24; out[w++] = 0;
-    { const _s = args.value; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
+    { const _s = args.value; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
     return out.subarray(0, w);
   },
 
@@ -627,8 +630,8 @@ export const channelDemoCodec: FrameCodec<ChannelDemoInput, ChannelDemoOutput> =
     };
     ensure(2);
     out[w++] = 18; out[w++] = 0;
-    { let _v = args.channel; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; }
-    { const _z = args.ticks >= 0 ? args.ticks * 2 : -args.ticks * 2 - 1; let _v = _z; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; }
+    { let _v = args.channel; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; }
+    { const _z = args.ticks >= 0 ? args.ticks * 2 : -args.ticks * 2 - 1; let _v = _z; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; }
     return out.subarray(0, w);
   },
 
@@ -701,8 +704,8 @@ export const channelDemoBytesCodec: FrameCodec<ChannelDemoBytesInput, ChannelDem
     };
     ensure(2);
     out[w++] = 31; out[w++] = 0;
-    { let _v = args.channel; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; }
-    { const _z = args.ticks >= 0 ? args.ticks * 2 : -args.ticks * 2 - 1; let _v = _z; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; }
+    { let _v = args.channel; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; }
+    { const _z = args.ticks >= 0 ? args.ticks * 2 : -args.ticks * 2 - 1; let _v = _z; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; }
     return out.subarray(0, w);
   },
 
@@ -778,9 +781,9 @@ export const clampCodec: FrameCodec<ClampInput, ClampOutput> = {
     };
     ensure(2);
     out[w++] = 4; out[w++] = 0;
-    { ensure(8); _dvScratch.setFloat64(0, args.max, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]; }
-    { ensure(8); _dvScratch.setFloat64(0, args.min, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]; }
-    { ensure(8); _dvScratch.setFloat64(0, args.value, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]; }
+    { ensure(8); _dvScratch.setFloat64(0, args.max, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]!; }
+    { ensure(8); _dvScratch.setFloat64(0, args.min, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]!; }
+    { ensure(8); _dvScratch.setFloat64(0, args.value, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]!; }
     return out.subarray(0, w);
   },
 
@@ -850,8 +853,8 @@ export const createItemCodec: FrameCodec<CreateItemInput, CreateItemOutput> = {
     };
     ensure(2);
     out[w++] = 8; out[w++] = 0;
-    { const _s = args.name; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
-    { let _x = BigInt(args.value); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] &= 0x7f; }
+    { const _s = args.name; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
+    { let _x = BigInt(args.value); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] = out[w - 1]! & 0x7f; }
     return out.subarray(0, w);
   },
 
@@ -999,8 +1002,8 @@ export const divideCodec: FrameCodec<DivideInput, DivideOutput> = {
     };
     ensure(2);
     out[w++] = 10; out[w++] = 0;
-    { let _x = BigInt(args.a); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] &= 0x7f; }
-    { let _x = BigInt(args.b); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] &= 0x7f; }
+    { let _x = BigInt(args.a); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] = out[w - 1]! & 0x7f; }
+    { let _x = BigInt(args.b); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] = out[w - 1]! & 0x7f; }
     return out.subarray(0, w);
   },
 
@@ -1080,8 +1083,8 @@ export const emitDemoCodec: FrameCodec<EmitDemoInput, EmitDemoOutput> = {
     };
     ensure(2);
     out[w++] = 11; out[w++] = 0;
-    { let _x = BigInt(args.ticks); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] &= 0x7f; }
-    { let _x = BigInt(args.stepDelayMs); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] &= 0x7f; }
+    { let _x = BigInt(args.ticks); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] = out[w - 1]! & 0x7f; }
+    { let _x = BigInt(args.stepDelayMs); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] = out[w - 1]! & 0x7f; }
     return out.subarray(0, w);
   },
 
@@ -1151,8 +1154,8 @@ export const gaugeCodec: FrameCodec<GaugeInput, GaugeOutput> = {
     };
     ensure(2);
     out[w++] = 17; out[w++] = 0;
-    { const _v = args.limit; if (typeof _v === 'number' && Number.isSafeInteger(_v) && _v >= 0) { let _x = _v; do { ensure(1); out[w++] = (_x % 128) | 0x80; _x = Math.floor(_x / 128); } while (_x > 0); out[w - 1] &= 0x7f; } else { const _b = BigInt(_v); if (_b < 0n) throw new Error('varint must be non-negative: ' + _b.toString()); if (_b > 0xffffffffffffffffn) throw new Error('varint exceeds u64 range: ' + _b.toString()); let _x = _b; do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] &= 0x7f; } }
-    { let _v = args.offset; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; }
+    { const _v = args.limit; if (typeof _v === 'number' && Number.isSafeInteger(_v) && _v >= 0) { let _x = _v; do { ensure(1); out[w++] = (_x % 128) | 0x80; _x = Math.floor(_x / 128); } while (_x > 0); out[w - 1] = out[w - 1]! & 0x7f; } else { const _b = BigInt(_v); if (_b < 0n) throw new Error('varint must be non-negative: ' + _b.toString()); if (_b > 0xffffffffffffffffn) throw new Error('varint exceeds u64 range: ' + _b.toString()); let _x = _b; do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] = out[w - 1]! & 0x7f; } }
+    { let _v = args.offset; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; }
     return out.subarray(0, w);
   },
 
@@ -1221,7 +1224,7 @@ export const greetCodec: FrameCodec<GreetInput, GreetOutput> = {
     };
     ensure(2);
     out[w++] = 5; out[w++] = 0;
-    { const _s = args.name; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
+    { const _s = args.name; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
     return out.subarray(0, w);
   },
 
@@ -1290,7 +1293,7 @@ export const greetPersonCodec: FrameCodec<Tuple_of_String, String> = {
     };
     ensure(2);
     out[w++] = 40; out[w++] = 0;
-    { const _s = args[0]; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
+    { const _s = args[0]; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
     return out.subarray(0, w);
   },
 
@@ -1359,7 +1362,7 @@ export const isEvenCodec: FrameCodec<IsEvenInput, IsEvenOutput> = {
     };
     ensure(2);
     out[w++] = 3; out[w++] = 0;
-    { let _x = BigInt(args.n); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] &= 0x7f; }
+    { let _x = BigInt(args.n); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] = out[w - 1]! & 0x7f; }
     return out.subarray(0, w);
   },
 
@@ -1438,8 +1441,8 @@ export const multiplyCodec: FrameCodec<MultiplyInput, MultiplyOutput> = {
     };
     ensure(2);
     out[w++] = 2; out[w++] = 0;
-    { ensure(8); _dvScratch.setFloat64(0, args.a, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]; }
-    { ensure(8); _dvScratch.setFloat64(0, args.b, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]; }
+    { ensure(8); _dvScratch.setFloat64(0, args.a, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]!; }
+    { ensure(8); _dvScratch.setFloat64(0, args.b, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]!; }
     return out.subarray(0, w);
   },
 
@@ -1496,11 +1499,11 @@ export const parityEchoCodec: FrameCodec<ParityTree, ParityTree> = {
       const _arr = args.nodes;
       parts.push(_pcEncodeVarint(_arr.length));
       for (let _i = 0; _i < _arr.length; _i++) {
-        parts.push(_pcEncodeF64(args.nodes[_i].id));
-        parts.push(_pcEncodeString(args.nodes[_i].name));
-        parts.push(_pcEncodeString(args.nodes[_i].tag));
+        parts.push(_pcEncodeF64(args.nodes[_i]!.id));
+        parts.push(_pcEncodeString(args.nodes[_i]!.name));
+        parts.push(_pcEncodeString(args.nodes[_i]!.tag));
         {
-          const _opt = args.nodes[_i].note;
+          const _opt = args.nodes[_i]!.note;
           if (_opt === null || _opt === undefined) {
             parts.push(new Uint8Array([0]));
           } else {
@@ -1509,20 +1512,20 @@ export const parityEchoCodec: FrameCodec<ParityTree, ParityTree> = {
           }
         }
         {
-          const _map = args.nodes[_i].metadata;
+          const _map = args.nodes[_i]!.metadata;
           const _keys = Object.keys(_map).sort();
           parts.push(_pcEncodeVarint(_keys.length));
           for (const _k of _keys) {
-            const _v = _map[_k];
+            const _v = _map[_k]!;
             parts.push(_pcEncodeString(_k));
             parts.push(_pcEncodeString(_v));
           }
         }
         {
-          const _arr = args.nodes[_i].children;
+          const _arr = args.nodes[_i]!.children;
           parts.push(_pcEncodeVarint(_arr.length));
           for (let _i = 0; _i < _arr.length; _i++) {
-            parts.push(_pcEncodeF64(_arr[_i]));
+            parts.push(_pcEncodeF64(_arr[_i]!));
           }
         }
       }
@@ -1640,11 +1643,11 @@ export const parityFindCodec: FrameCodec<ParityFindInput, ParitySearch> = {
       const _arr = args.tree.nodes;
       parts.push(_pcEncodeVarint(_arr.length));
       for (let _i = 0; _i < _arr.length; _i++) {
-        parts.push(_pcEncodeF64(args.tree.nodes[_i].id));
-        parts.push(_pcEncodeString(args.tree.nodes[_i].name));
-        parts.push(_pcEncodeString(args.tree.nodes[_i].tag));
+        parts.push(_pcEncodeF64(args.tree.nodes[_i]!.id));
+        parts.push(_pcEncodeString(args.tree.nodes[_i]!.name));
+        parts.push(_pcEncodeString(args.tree.nodes[_i]!.tag));
         {
-          const _opt = args.tree.nodes[_i].note;
+          const _opt = args.tree.nodes[_i]!.note;
           if (_opt === null || _opt === undefined) {
             parts.push(new Uint8Array([0]));
           } else {
@@ -1653,20 +1656,20 @@ export const parityFindCodec: FrameCodec<ParityFindInput, ParitySearch> = {
           }
         }
         {
-          const _map = args.tree.nodes[_i].metadata;
+          const _map = args.tree.nodes[_i]!.metadata;
           const _keys = Object.keys(_map).sort();
           parts.push(_pcEncodeVarint(_keys.length));
           for (const _k of _keys) {
-            const _v = _map[_k];
+            const _v = _map[_k]!;
             parts.push(_pcEncodeString(_k));
             parts.push(_pcEncodeString(_v));
           }
         }
         {
-          const _arr = args.tree.nodes[_i].children;
+          const _arr = args.tree.nodes[_i]!.children;
           parts.push(_pcEncodeVarint(_arr.length));
           for (let _i = 0; _i < _arr.length; _i++) {
-            parts.push(_pcEncodeF64(_arr[_i]));
+            parts.push(_pcEncodeF64(_arr[_i]!));
           }
         }
       }
@@ -1754,7 +1757,7 @@ export const parityIndexedCodec: FrameCodec<ParityQuery, ParitySearch> = {
     };
     ensure(2);
     out[w++] = 38; out[w++] = 0;
-    { ensure(8); _dvScratch.setFloat64(0, args.id, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]; }
+    { ensure(8); _dvScratch.setFloat64(0, args.id, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]!; }
     return out.subarray(0, w);
   },
 
@@ -1837,7 +1840,7 @@ export const parityResidentCodec: FrameCodec<ParityQuery, ParitySearch> = {
     };
     ensure(2);
     out[w++] = 37; out[w++] = 0;
-    { ensure(8); _dvScratch.setFloat64(0, args.id, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]; }
+    { ensure(8); _dvScratch.setFloat64(0, args.id, true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]!; }
     return out.subarray(0, w);
   },
 
@@ -1908,11 +1911,11 @@ export const parityStoreCodec: FrameCodec<ParityTree, ParityStored> = {
       const _arr = args.nodes;
       parts.push(_pcEncodeVarint(_arr.length));
       for (let _i = 0; _i < _arr.length; _i++) {
-        parts.push(_pcEncodeF64(args.nodes[_i].id));
-        parts.push(_pcEncodeString(args.nodes[_i].name));
-        parts.push(_pcEncodeString(args.nodes[_i].tag));
+        parts.push(_pcEncodeF64(args.nodes[_i]!.id));
+        parts.push(_pcEncodeString(args.nodes[_i]!.name));
+        parts.push(_pcEncodeString(args.nodes[_i]!.tag));
         {
-          const _opt = args.nodes[_i].note;
+          const _opt = args.nodes[_i]!.note;
           if (_opt === null || _opt === undefined) {
             parts.push(new Uint8Array([0]));
           } else {
@@ -1921,20 +1924,20 @@ export const parityStoreCodec: FrameCodec<ParityTree, ParityStored> = {
           }
         }
         {
-          const _map = args.nodes[_i].metadata;
+          const _map = args.nodes[_i]!.metadata;
           const _keys = Object.keys(_map).sort();
           parts.push(_pcEncodeVarint(_keys.length));
           for (const _k of _keys) {
-            const _v = _map[_k];
+            const _v = _map[_k]!;
             parts.push(_pcEncodeString(_k));
             parts.push(_pcEncodeString(_v));
           }
         }
         {
-          const _arr = args.nodes[_i].children;
+          const _arr = args.nodes[_i]!.children;
           parts.push(_pcEncodeVarint(_arr.length));
           for (let _i = 0; _i < _arr.length; _i++) {
-            parts.push(_pcEncodeF64(_arr[_i]));
+            parts.push(_pcEncodeF64(_arr[_i]!));
           }
         }
       }
@@ -2214,7 +2217,7 @@ export const rememberCodec: FrameCodec<Tuple_of_int32, void> = {
     };
     ensure(2);
     out[w++] = 42; out[w++] = 0;
-    { const _z = args[0] >= 0 ? args[0] * 2 : -args[0] * 2 - 1; let _v = _z; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; }
+    { const _z = args[0] >= 0 ? args[0] * 2 : -args[0] * 2 - 1; let _v = _z; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; }
     return out.subarray(0, w);
   },
 
@@ -2332,7 +2335,7 @@ export const resourceCloseCodec: FrameCodec<ResourceCloseInput, ResourceCloseOut
     };
     ensure(2);
     out[w++] = 22; out[w++] = 0;
-    { let _v = args.handle; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; }
+    { let _v = args.handle; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; }
     return out.subarray(0, w);
   },
 
@@ -2389,7 +2392,7 @@ export const resourceOpenCodec: FrameCodec<ResourceOpenInput, ResourceHandleOutp
       const _keys = Object.keys(_map).sort();
       parts.push(_pcEncodeVarint(_keys.length));
       for (const _k of _keys) {
-        const _v = _map[_k];
+        const _v = _map[_k]!;
         parts.push(_pcEncodeString(_k));
         parts.push(_pcEncodeString(_v));
       }
@@ -2463,8 +2466,8 @@ export const resourceReadCodec: FrameCodec<ResourceReadInput, ResourceReadOutput
     };
     ensure(2);
     out[w++] = 20; out[w++] = 0;
-    { let _v = args.handle; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; }
-    { const _s = args.key; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
+    { let _v = args.handle; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; }
+    { const _s = args.key; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
     return out.subarray(0, w);
   },
 
@@ -2547,9 +2550,9 @@ export const resourceWriteCodec: FrameCodec<ResourceWriteInput, ResourceWriteOut
     };
     ensure(2);
     out[w++] = 21; out[w++] = 0;
-    { let _v = args.handle; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; }
-    { const _s = args.key; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
-    { const _s = args.value; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
+    { let _v = args.handle; do { ensure(1); out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; }
+    { const _s = args.key; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
+    { const _s = args.value; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
     return out.subarray(0, w);
   },
 
@@ -2618,7 +2621,7 @@ export const rustraRegistryDemoCodec: FrameCodec<RegistryDemoInput, RegistryDemo
     };
     ensure(2);
     out[w++] = 12; out[w++] = 0;
-    { const _s = args.op; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
+    { const _s = args.op; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
     return out.subarray(0, w);
   },
 
@@ -2696,8 +2699,8 @@ export const safeDivideCodec: FrameCodec<Tuple_of_double_and_double, double> = {
     };
     ensure(2);
     out[w++] = 41; out[w++] = 0;
-    { ensure(8); _dvScratch.setFloat64(0, args[0], true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]; }
-    { ensure(8); _dvScratch.setFloat64(0, args[1], true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]; }
+    { ensure(8); _dvScratch.setFloat64(0, args[0], true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]!; }
+    { ensure(8); _dvScratch.setFloat64(0, args[1], true); for (let _i = 0; _i < 8; _i++) out[w++] = _dvScratchU8[_i]!; }
     return out.subarray(0, w);
   },
 
@@ -2755,7 +2758,7 @@ export const scoreTotalCodec: FrameCodec<ScoreTotalInput, ScoreTotalOutput> = {
       const _keys = Object.keys(_map).sort();
       parts.push(_pcEncodeVarint(_keys.length));
       for (const _k of _keys) {
-        const _v = _map[_k];
+        const _v = _map[_k]!;
         parts.push(_pcEncodeString(_k));
         parts.push(_pcEncodeZigzag64(_v));
       }
@@ -2834,8 +2837,8 @@ export const secureComputeCodec: FrameCodec<SecureComputeInput, SecureComputeOut
     };
     ensure(2);
     out[w++] = 13; out[w++] = 0;
-    { let _x = BigInt(args.a); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] &= 0x7f; }
-    { let _x = BigInt(args.b); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] &= 0x7f; }
+    { let _x = BigInt(args.a); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] = out[w - 1]! & 0x7f; }
+    { let _x = BigInt(args.b); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] = out[w - 1]! & 0x7f; }
     return out.subarray(0, w);
   },
 
@@ -2910,7 +2913,7 @@ export const sizeOfCodec: FrameCodec<SizeOfInput, SizeOfOutput> = {
     };
     ensure(2);
     out[w++] = 14; out[w++] = 0;
-    { const _b = args.data; const _u = typeof _b === 'string' ? _utf8Encode(_b) : _b instanceof Uint8Array ? _b : new Uint8Array(_b); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
+    { const _b = args.data; const _u = typeof _b === 'string' ? _utf8Encode(_b) : _b instanceof Uint8Array ? _b : new Uint8Array(_b); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
     return out.subarray(0, w);
   },
 
@@ -3033,7 +3036,7 @@ export const sumListCodec: FrameCodec<SumListInput, SumListOutput> = {
       const _arr = args.numbers;
       parts.push(_pcEncodeVarint(_arr.length));
       for (let _i = 0; _i < _arr.length; _i++) {
-        parts.push(_pcEncodeZigzag64(_arr[_i]));
+        parts.push(_pcEncodeZigzag64(_arr[_i]!));
       }
     }
     return _pcConcatUint8Arrays(parts).buffer as ArrayBuffer;
@@ -3119,7 +3122,7 @@ export const toUpperCodec: FrameCodec<ToUpperInput, ToUpperOutput> = {
     };
     ensure(2);
     out[w++] = 7; out[w++] = 0;
-    { const _s = args.s; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
+    { const _s = args.s; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
     return out.subarray(0, w);
   },
 
@@ -3175,7 +3178,7 @@ export const wideAggCodec: FrameCodec<WideAggInput, WideAggOutput> = {
       const _arr = args.samples;
       parts.push(_pcEncodeVarint(_arr.length));
       for (let _i = 0; _i < _arr.length; _i++) {
-        parts.push(_pcEncodeVarint64(_arr[_i]));
+        parts.push(_pcEncodeVarint64(_arr[_i]!));
       }
     }
     {

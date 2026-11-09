@@ -130,7 +130,7 @@ export function cppFieldDecodeExpr(
     case 'option_string':
     case 'option_struct':
     case 'option_bytes': {
-      const inner: PostcardField = { ...field, kind: OPTION_INNER_KIND[field.kind] };
+      const inner: PostcardField = { ...field, kind: OPTION_INNER_KIND[field.kind]! };
       const decoded = cppFieldDecodeExpr(inner, objExpr, definitions, '', property);
       return `${indent}{ auto _tag = r.read_u8(); if (_tag == 0) { ${objExpr}.setProperty(rt, ${property(field.name)}, jsi::Value::null()); } else { ${decoded} } }`;
     }

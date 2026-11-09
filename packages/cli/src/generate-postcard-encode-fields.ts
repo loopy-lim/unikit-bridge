@@ -13,6 +13,10 @@ const MAP_VALUE_ENCODER: Record<string, string> = {
   map_string: '_pcEncodeString(_v)',
 };
 
+// 생성물은 noUncheckedIndexedAccess 하에서 컴파일된다 — 루프 변수/키로 접근하는
+// 원소는 상한 검사(루프 조건, Object.keys) 직후에 읽으므로 항상 존재하고,
+// 그 계약을 생성 코드의 ! 로 표현한다.
+
 // `loopVar` names the element variable for the vec_* loop emitted at this
 // level. Nested vec_struct levels must receive a fresh, longer name so the
 // inner loop never shadows an outer one: element paths are baked into the
@@ -88,7 +92,7 @@ export function generateFieldEncodeExpr(
         `${indent}  const _arr = ${valueExpr};\n` +
         `${indent}  parts.push(_pcEncodeVarint(_arr.length));\n` +
         `${indent}  for (let ${loopVar} = 0; ${loopVar} < _arr.length; ${loopVar}++) {\n` +
-        `${indent}    parts.push(_pcEncodeString(_arr[${loopVar}]));\n` +
+        `${indent}    parts.push(_pcEncodeString(_arr[${loopVar}]!));\n` +
         `${indent}  }\n` +
         `${indent}}`
       );
@@ -106,7 +110,7 @@ export function generateFieldEncodeExpr(
         lines.push(
           generateFieldEncodeExpr(
             subField,
-            `${valueExpr}[${loopVar}].${subField.name}`,
+            `${valueExpr}[${loopVar}]!.${subField.name}`,
             definitions,
             `${indent}    `,
             `${loopVar}i`,
@@ -130,7 +134,7 @@ export function generateFieldEncodeExpr(
         `${indent}  const _keys = Object.keys(_map).sort();\n` +
         `${indent}  parts.push(_pcEncodeVarint(_keys.length));\n` +
         `${indent}  for (const _k of _keys) {\n` +
-        `${indent}    const _v = _map[_k];\n` +
+        `${indent}    const _v = _map[_k]!;\n` +
         `${indent}    parts.push(_pcEncodeString(_k));\n` +
         `${indent}    parts.push(${valueEncoder});\n` +
         `${indent}  }\n` +
@@ -157,7 +161,7 @@ export function generateFieldEncodeExpr(
     case 'option_string':
     case 'option_struct':
     case 'option_bytes': {
-      const innerField: PostcardField = { ...field, kind: OPTION_INNER_KIND[field.kind] };
+      const innerField: PostcardField = { ...field, kind: OPTION_INNER_KIND[field.kind]! };
       return `${indent}{\n${indent}  const _opt = ${valueExpr};\n${indent}  if (_opt === null || _opt === undefined) {\n${indent}    parts.push(new Uint8Array([0]));\n${indent}  } else {\n${indent}    parts.push(new Uint8Array([1]));\n${generateFieldEncodeExpr(innerField, '_opt', definitions, `${indent}    `)}\n${indent}  }\n${indent}}`;
     }
     case 'enum_str': {

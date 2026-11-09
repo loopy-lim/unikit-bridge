@@ -49,7 +49,8 @@ export function bufferCommandField(
   definitions: Record<string, import('./schema.js').JsonSchema>,
 ): PostcardField | null {
   const fields = generatedFieldRoute(command, definitions);
-  if (fields?.length !== 1 || fields[0].kind !== 'bytes') return null;
+  const field = fields?.[0];
+  if (fields?.length !== 1 || field?.kind !== 'bytes') return null;
   const properties = command.inputSchema.properties;
   const required = command.inputSchema.required;
   if (
@@ -57,11 +58,11 @@ export function bufferCommandField(
     Object.keys(properties).length !== 1 ||
     !Array.isArray(required) ||
     required.length !== 1 ||
-    required[0] !== fields[0].name
+    required[0] !== field.name
   ) {
     return null;
   }
-  return fields[0];
+  return field;
 }
 
 /** Direct raw-byte ABI requires one byte field on both sides of the command. */

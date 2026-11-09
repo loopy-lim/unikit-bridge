@@ -1,14 +1,16 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
     "jsx": "react",
-    "strict": true,
-    "outDir": "dist",
     "rootDir": "../../",
-    "skipLibCheck": true,
-    "types": ["node"]
+    "outDir": "dist",
+    "types": ["node"],
+    // dist/ 는 커밋된 산출물이다 — base 상속이 켜는 declaration/sourceMap 을
+    // 끄지 않으면 재생성 시 .d.ts/.map 과 sourceMappingURL 이 산출물에 끼어
+    // 기존 아티팩트와 바이트가 달라진다. 정적 강화 플래그는 그대로 상속한다.
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"]

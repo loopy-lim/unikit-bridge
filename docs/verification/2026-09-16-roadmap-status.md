@@ -1,10 +1,44 @@
 # Rustra 완료 기준과 후속 실행 현황
 
-- 확인일: 2026-09-16 (KST) · 2026-09-21 레지스트리 여정 라운드 추가 갱신
+- 확인일: 2026-09-16 (KST) · 2026-09-21 레지스트리 여정 라운드 추가 갱신 · 2026-11-07 0.12/0.13 라인·M2 착수 라운드 추가 갱신
 - 제품 기준: [2026-09-14 로드맵 SPEC](../specs/2026-09-14-rustra-roadmap.md)
 - 현재 원격 main: `1f277de2e68e2242b7a6503e6e0ab731833e60e3`
 - 이번 구현: `codex/m1-registry-onboarding`, [실행 PLAN](../dev/plans/2026-09-16-m1-registry-onboarding.md)
 - 최종 목표: **검증된 Node/Bun/Tauri/RN 범위에 대한 1.0**. 현재는 M0 구현·발행 완료, M1의 Node/Bun 공개 패키지 자동 여정 구현·검증 완료이며 전체 M1·1.0은 미완료다.
+
+## 2026-11-07 라운드 — 0.12/0.13 발행 라인 완료 항목 반영·M2 착수 준비
+
+이 날짜까지 발행된 라인(공개 패키지 기준: `cli`/`types 0.13.0`, `node`/`bun 0.11.1`, `react-native 0.11.0`, `react 0.8.4`, `tauri 0.10.1`, Rust 워크스페이스 `0.13.0`)을 **완료된 작업 항목 기준**으로 정리한다. npm 패키지는 독립 버전 정책이므로 버전 숫자의 나열이 아니라 무엇이 끝났는지로 읽는다(2절 관례). 안전성 강화 항목의 실행 계획·검증 근거는 [11/1 안전성 강화 계획](../dev/plans/2026-11-01-nitro-parity-safety-hardening.md)(T1~T12 전부 완료), 이번 라운드의 실행 배치는 [11/7 다음 스텝 계획](../dev/plans/2026-11-07-next-steps-batch.md)에 있다.
+
+### 완료된 작업 항목 (0.12/0.13 라인)
+
+| 영역 | 항목 | 근거 |
+| --- | --- | --- |
+| 기능 | 함수 등록 — 매크로 없는 function path로 계약 명령 등록 | [계획](../dev/plans/2026-09-16-function-registration.md) |
+| 기능 | `bindSync` — 검증된 동기 바인딩과 invoke·코덱 최적화(nitro 호출 프로파일에서 도출) | [동기 바인딩 문서](../synchronous-bindings.ko.md) |
+| 성능 | nitro 동일 조건 비교·후속 시도 — 맵 인코더 spill 예약 고정, Bun owned 프레임 수신, Node 파편화 프레임 결합, resident-tree 예제, criterion provenance 게이트·dev-profile 가드 | [성능 평가](../performance-evaluation.ko.md), [SPEC §10](../specs/2026-09-14-rustra-roadmap.md) |
+| 통합·DX | scriptc 네이티브 FFI 코드젠 단계·retained 콜백 ABI, watch 재생성 복구·프로듀서 재빌드 게이트, RN 번들링 실험(rn-experiment) 확장 | [10/13 구현 계획](../dev/plans/2026-10-13-dx-safety-performance-implementation.md) |
+| 안전성 | fuzz `invoke_frame` panic 가드 — 정규화 오류의 libfuzzer 크래시 승격 | 11/1 T1 |
+| 안전성 | 생성 코덱 디코드 오류의 `rustra:` 접두사·`offset N` 고정 형식화 | 11/1 T2 |
+| 안전성 | RN 부트스트랩·네이티브 미설치 오류의 구조화 코드(`bootstrap.failed`·`native.not_installed`) | 11/1 T3 |
+| 안전성 | Rust workspace lints — unwrap·expect·unsafe를 빌드 시간에 차단 | 11/1 T4 |
+| 안전성 | TS 정적 강화 — `noUncheckedIndexedAccess` 등 5종 플래그 전 패키지 적용 + eslint type-checked `--max-warnings 0` | 11/1 T5 |
+| 안전성 | gate 잡 actionlint 배선(v1.7.12 핀) + 의존성 wildcard 정책 `deny` 승격 | 11/1 T6 |
+| 안전성 | TSan 주간 트랙·릴리스 게이트 신설 | 11/1 T7 |
+| 안전성 | 생성 C++ 코덱 3바이너리의 ASan+LSan+UBSan CI 잡(`RustraJSIBridge.cpp`는 folly/JSI 헤더 의존으로 수동 영역에 분리 기록) | 11/1 T8 |
+| 안전성 | `@ts-expect-error` 생성물 정적 경계 부정 픽스처 | 11/1 T9 |
+| 안전성 | miri·sanitizer·fuzz의 PR 게이트 승격 — ci-gate 집계 15→18잡, docs 전용 PR의 설계된 skip 유지 | 11/1 T10 |
+| 문서 | 작성자 규칙 문서(EN/KO), 위협 모델·게이트맵·릴리스 절차(npm OIDC 전환 절차 문서화 포함)·호환성 매트릭스 정합 | 11/1 T11·T12 |
+| 유지보수 | 보안 의존성 범프(tokio 1.54.1 AsyncFd unsound 해소, shell-quote critical 어드바이저리), 레지스트리 소비 여정 핀을 현재 공개 라인으로 갱신 | 커밋 `3f2340bf`·`0a2f5558`·`68976ec0` |
+
+### 잔여 항목 상태 전환 (0절 기준)
+
+1. **RN/Android 이벤트 푸시 교착(0절 결함 3) — 미수선 → 수정 구현 완료(발행 대기).** 동기 Rust 실행 중 `Package::emit`의 JS 스레드 재진입에서 `CallInvoker::invokeAsync`를 우회하도록 `thread_local` 깊이 스코프를 동기 HostFunction 공용 초크포인트 3곳(+비동기 즉시 실패 경로)에 부착하고, 이벤트·채널·즉시 실패 완료를 통합 에필로그 큐로 스코프 이탈 시 drain하는 수정을 `RustraJSIBridge.cpp`·`RustraSyncBinding.inc`에 구현했다(11/7 배치 T1-1, working tree — **미발행**). 로컬 정적 검토·TS 대리 회귀는 통과(react-native 90·types 311 pass). C++ 컴파일·실기기 재검증은 환경 부재로 BLOCKED이며, 발행 라인 반영 뒤 rn-android 여정 `--assert-events` 옵트인(추가 완료, T1-3 — 플래그 부재 시 기존 동작 불변 실증)으로 재검증을 연결한다. 공개 `react-native 0.11.0`은 아직 이 수정을 포함하지 않는다 — 발행 전까지 RN 다리의 a3Events 주장은 하지 않는다(0절 관례 유지).
+2. **RN/iOS 자동 여정 — 없음 → 스크립트 추가 완료(실행 BLOCKED·macOS 수동).** `scripts/registry-consumer-rn-ios.mjs`(+유닛 테스트)와 문서(EN/KO)를 추가했다(11/7 배치 T2-1). scaffold→정확 핀→codegen→`pod install`→`xcodebuild`(시뮬레이터)→`simctl` 실행→a2/a3(+이벤트 시도) 단계를 정의한다. Linux/Windows에서는 preflight가 BLOCKED 영수증으로 loud-fail 한다. 이벤트 푸시는 iOS 푸시 경로의 첫 실측으로 시도 후 정직 기록한다 — 발행 어댑터에 교착 결함이 남아 있으면 `rn-ios-event-push-freeze-suspected` finding과 함께 실패로 종료한다(은폐 없음). macOS 수동 실행 절차는 [공개 레지스트리 도입 검증](../registry-onboarding.ko.md)의 RN/iOS 섹션에 있다. `package.json` 배선(`verify:consumer:rn-ios`·테스트 체인 편입)은 반영 완료다(여정 유닛 체인 59/59).
+3. **M2 실사용 — 미착수 → 착수 문서 준비 완료(소비자 앱 선정은 사용자 결정 대기).** [M2 착수 문서](../dev/plans/2026-11-07-m2-kickoff.md)에 소비자 앱 선정 기준(비계산기·목적 상이·최소 1개 동일 계약 2호스트), A5 업그레이드/롤백 프로토콜(기존 앱 Tauri 1+RN 1), A6 외부 평가자 프로토콜(모집 채널=사용자 결정·미선정), 기록 양식(사용 기록 최소 열·생명주기 100회·2시간 부하 레시피)을 확정했다. 소비자 앱 2개 선정 전까지 M2/G2는 미착수다.
+4. **병행 진행(11/7 배치).** 예제 tsconfig 상속·렌더러 플래그 정리(T5-1) 완료, JS 대규모 할당 스트레스 러너(T5-2) 완료(`test:local` 체인 편입·3/3 PASS), Windows 코드젠 결정론 워크플로(T5-3)는 구현·actionlint(v1.7.12) 검증 완료(Windows 러너 실제 실행은 푸시 후 확인 — BLOCKED). dependabot 7건은 2026-11-07 재확인(#101~#106·#111)·로컬 검증·병합 권고 산출까지 완료 — 병합 4건(#101·#103·#106·#111)·close 2건(#102·#104)·napi 패밀리 조정 범프는 사용자 승인 대기(11/7 계획 설계 T3 표). 5절의 2026-09-16 조회 PR(#65~#68)은 이후 정리되어 현재 열린 dependabot PR은 위 7건이다.
+
+A5(기존 앱 업그레이드)·A6(외부 평가자)·소비자 앱 선정·실기기 접근은 여전히 사용자 결정 사항이다(4절). 이 라운드는 문서·상태 정리 라운드며 새 발행을 수반하지 않는다 — working tree 수정(RN 교착 수정 포함)의 커밋·발행은 사용자 승인 대기다.
 
 ## 0. 2026-09-21 레지스트리 여정 라운드 (M1 보강)
 

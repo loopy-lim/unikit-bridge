@@ -92,7 +92,7 @@ test('formatDiffJson renders the schemaVersion:1 report shape for a clean diff',
 
 test('formatDiffJson carries breaking changes verbatim with a clean:false flag', () => {
   const next = structuredClone(baseSchema);
-  next.commands[0].inputSchema = {
+  next.commands[0]!.inputSchema = {
     type: 'object',
     properties: { a: { type: 'string' } },
     required: ['a'],
@@ -148,7 +148,7 @@ test('formatDiffJson never leaks diagnoses into the schemaVersion:1 shape', () =
   // 계약 — JSON 표면은 breaking/clean 만 운반한다(diagnoses 는 텍스트 렌더러
   // 전용). shape 드리프트를 이 테스트가 고정한다.
   const next = structuredClone(baseSchema);
-  next.commands[0].inputSchema = {
+  next.commands[0]!.inputSchema = {
     type: 'object',
     properties: { a: { type: 'string' } },
     required: ['a'],

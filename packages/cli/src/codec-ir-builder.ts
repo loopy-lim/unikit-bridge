@@ -32,7 +32,7 @@ export function buildIr(
 
   if (schema.allOf) {
     if (schema.allOf.length !== 1) return { ok: false, reason: 'multi-entry allOf is unsupported' };
-    return buildIr(schema.allOf[0], definitions, refs, depth + 1);
+    return buildIr(schema.allOf[0]!, definitions, refs, depth + 1);
   }
 
   const inner = optionalInner(schema);

@@ -972,7 +972,7 @@ test('int64/uint64 fields join the postcard fast path with 64-bit helpers', () =
 
 test('generateFrameCodecsTs encodes Option fields (no silent drop)', () => {
   const codecs = generateFrameCodecsTs(richSchema);
-  const update = codecs.split('updateItemCodec')[1];
+  const update = codecs.split('updateItemCodec')[1]!;
   assert.ok(update.includes('args.name'), 'Option<string> name must be encoded');
   assert.ok(update.includes('args.value'), 'Option<i64> value must be encoded');
   // Option 태그 바이트(0/1) 분기 생성 확인
@@ -982,10 +982,10 @@ test('generateFrameCodecsTs encodes Option fields (no silent drop)', () => {
 
 test('generateFrameCodecsTs encodes Vec<String> and Vec<Struct>', () => {
   const codecs = generateFrameCodecsTs(richSchema);
-  const list = codecs.split('listItemsCodec')[1].split('export const')[0];
+  const list = codecs.split('listItemsCodec')[1]!.split('export const')[0]!;
   assert.ok(list.includes('args.tags'), 'Vec<String> tags must be encoded');
   assert.ok(
-    list.includes('_pcEncodeString(_arr[_i])'),
+    list.includes('_pcEncodeString(_arr[_i]!)'),
     'Vec<String> elements must be string-encoded',
   );
   assert.ok(list.includes('result.items'), 'Vec<Struct> items must be decoded');
@@ -993,7 +993,7 @@ test('generateFrameCodecsTs encodes Vec<String> and Vec<Struct>', () => {
 
 test('generateFrameCodecsTs encodes string enums as variant index', () => {
   const codecs = generateFrameCodecsTs(richSchema);
-  const sort = codecs.split('sortByCodec')[1].split('export const')[0];
+  const sort = codecs.split('sortByCodec')[1]!.split('export const')[0]!;
   assert.ok(sort.includes('["asc","desc"]'), 'enum variants must be embedded');
   assert.ok(sort.includes('_variants.indexOf'), 'enum index lookup must be generated');
 });
@@ -1032,7 +1032,7 @@ test('generateFrameCodecsTs decodes string enums as literal unions', () => {
 
 test('generateFrameCodecsTs encodes primitive-valued dynamic maps deterministically', () => {
   const codecs = generateFrameCodecsTs(richSchema);
-  const map = codecs.split('mapScoresCodec')[1].split('export const')[0];
+  const map = codecs.split('mapScoresCodec')[1]!.split('export const')[0]!;
   assert.ok(map.includes('const _map = args.scores'));
   assert.ok(map.includes('Object.keys(_map).sort()'));
   assert.ok(map.includes('_pcEncodeString(_k)'));
@@ -3058,7 +3058,7 @@ test('generated composite 64-bit codecs (vec_u64/map_i64/option_i64) encode and 
 
   const codecs = generateFrameCodecsTs(schema);
   // 분류 확인: 원소/값/옵션 레벨 64-bit 헬퍼.
-  assert.match(codecs, /_pcEncodeVarint64\(_arr\[_i\]\)/, 'vec_u64 element encode');
+  assert.match(codecs, /_pcEncodeVarint64\(_arr\[_i\]!\)/, 'vec_u64 element encode');
   assert.match(codecs, /_pcEncodeZigzag64\(_v\)/, 'map_i64 value encode');
   assert.match(codecs, /_pcEncodeZigzag64\(_opt\)/, 'option_zigzag64 encode');
 
@@ -3248,7 +3248,7 @@ test('generated C++ oneOf variants commit only on their exact inline enum tag', 
     cases.map(([key]) => key),
   );
   for (const [index, [key, tag, wrapper]] of cases.entries()) {
-    const variant: CodecIrVariant = result.node.variants[index];
+    const variant: CodecIrVariant = result.node.variants[index]!;
     assert.equal(variant.wrapper, wrapper, key);
     assert.deepEqual(variant.discriminator, { key: 't', value: tag }, key);
     const predicate = cppComplexVariantPredicate(variant, 'value');

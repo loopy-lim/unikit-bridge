@@ -13,7 +13,7 @@ export function unwrapOptionSchema(schema: JsonSchema): JsonSchema | null {
   if (Array.isArray(schema.anyOf) && schema.anyOf.length === 2) {
     const nonNull = schema.anyOf.filter((item) => item.type !== 'null' && !('anyOf' in item));
     return nonNull.length === 1 && schema.anyOf.some((item) => item.type === 'null')
-      ? nonNull[0]
+      ? nonNull[0]!
       : null;
   }
   return null;
@@ -27,7 +27,7 @@ export function postcardField(
 ): PostcardField | null {
   if (depth > 8) return null;
   if (source.allOf?.length === 1)
-    return postcardField(name, source.allOf[0], definitions, depth + 1);
+    return postcardField(name, source.allOf[0]!, definitions, depth + 1);
   if (source.$ref) {
     const resolved = definitions[refTypeName(source.$ref)];
     if (!resolved) return null;

@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <functional>
 #include <jsi/jsi.h>
 #include <limits>
 #include <memory>
@@ -304,6 +305,94 @@ private:
   const CoreTable* core_ = nullptr;
 };
 
+// ── (T1) JS 네이티브 호출 깊이 가드 + 재진입 에필로그 큐 ────────────────
+//
+// 결함(2026-09-21 Android 실기기 3/3 — docs/verification/evidence/
+// 2026-09-21-registry-rn-android-device.json): 동기 invoke HostFunction 실행
+// 중 Rust 명령이 Package::emit 을 호출하면 EventDispatcher::onRustEvent 가
+// 같은 JS 스레드에서 재진입되고, scheduleDrainLocked 의
+// CallInvoker::invokeAsync 가 다음 매크로태스크 전에 JS 이벤트 루프를
+// 정지시킨다(pollMs 폴링도 같은 싱크를 공유해 우회 불가).
+//
+// 수정: 동기적으로 Rust 코드를 실행하는 HostFunction 전체를 걸치는 공용
+// 초크포인트(makeInvoke 람다 · typedInvokeTail · .inc raw/buffer 코어 테일
+// · 비동기 디스패치 HostFunction)에 JsNativeCallScope RAII 를 부착한다.
+// 깊이 > 0 동안 FFI 싱크 콜백(onRustEvent / onChannelPayload*)과 비동기
+// 즉시 실패 완료는 invokeAsync 대신 이 스레드의 에필로그 큐에 callable 을
+// 적재하고, 깊이 0 복귀(가장 바깥 스코프 소멸 = HostFunction 반환 직전)에
+// 적재 순서(FIFO = emit 순)대로 같은 JS 스레드에서 인라인 실행한다 —
+// invokeAsync 가 한 틱 뒤에 하려던 일을 교착 없는 안전한 시점에 수행한다.
+// drainEvents() HostFunction 이 JS 스레드에서 직접 drain 하던 것과 같은
+// 스레드 계약이다.
+//
+// 스레드 의미론: 깊이 카운터와 큐 모두 thread_local 이다. Rust 워커
+// 스레드의 깊이는 항상 0이라 워커 완료·백그라운드 emit 의 invokeAsync
+// 경로는 불변이고, JS 스레드도 동기 네이티브 호출 사이(깊이 0)는 불변이다.
+//
+// 동작 변화(계약): 동기 호출 중 emit 된 이벤트·채널 페이로드·즉시 실패
+// 비동기 완료는 "다음 매크로태스크"가 아니라 해당 동기 호출 반환 직전에
+// 전달되며 순서는 emit 순서를 보존한다(교착을 즉시 전달로 치환).
+namespace {
+
+/// 재진입 깊이 — 초크포인트의 JsNativeCallScope 만 증감한다.
+uint32_t& jsNativeCallDepthRef() {
+  static thread_local uint32_t depth = 0;
+  return depth;
+}
+
+/// 현재 스레드의 깊이 — 디스패처/완료 게시 경로의 라우팅 판정에 쓴다.
+uint32_t jsNativeCallDepth() { return jsNativeCallDepthRef(); }
+
+/// 깊이 > 0 구간에 지연된 drain/완료 callable — pump 가 take-and-run 로 소비.
+std::vector<std::function<void(Runtime&)>>& reentryEpilogueQueue() {
+  static thread_local std::vector<std::function<void(Runtime&)>> queue;
+  return queue;
+}
+
+void enqueueReentryEpilogue(std::function<void(Runtime&)> callable) {
+  reentryEpilogueQueue().push_back(std::move(callable));
+}
+
+/// 깊이 0 복귀 시점의 에필로그 pump. 항목별 catch-all 로 HostFunction 밖
+/// 예외 전파를 차단한다(호출부가 이미 예외 언와인딩 중일 수 있어 여기서
+/// 던지면 예외 치환/terminate 가 된다). drain 내부의 리스너 JSError 격리는
+/// 기존 per-callback try/catch 가 담당하고, 여기는 그 외 잔여 경로의
+/// 최후 방어다.
+void pumpReentryEpilogue(Runtime& rt) {
+  // take-and-run: 큐를 통째로 꺼낸 뒤 실행한다. 실행 중(리스너의 동기
+  // 재호출 등) 새로 적재된 항목은 그 재호출의 스코프 에필로그가 별도로
+  // 소비한다 — 재진입 pump 끼리 교차 오염이 없다.
+  std::vector<std::function<void(Runtime&)>> pending = std::move(reentryEpilogueQueue());
+  reentryEpilogueQueue().clear();
+  for (auto& callable : pending) {
+    try {
+      callable(rt);
+    } catch (...) {
+      // 전파 금지 — 남은 항목도 계속 실행한다(무손실 계약).
+      // drain 의 리스너 JSError 격리와 같은 수준의 관측성을 유지한다.
+      fprintf(stderr, "RustraJSI: reentry epilogue item threw (suppressed)\n");
+    }
+  }
+}
+
+/// 초크포인트 RAII 가드 — 생성 시 깊이 +1, 소멸 시 -1 하고 깊이 0 복귀에서
+/// 에필로그 큐를 실행한다. pump 가 예외를 밖으로 던지지 않으므로 소멸이
+/// 언와인딩 중(동기 호출 자체의 throw 포함)에 일어나도 안전하다.
+class JsNativeCallScope {
+public:
+  explicit JsNativeCallScope(Runtime& rt) : rt_(rt) { ++jsNativeCallDepthRef(); }
+  ~JsNativeCallScope() {
+    if (--jsNativeCallDepthRef() == 0) pumpReentryEpilogue(rt_);
+  }
+  JsNativeCallScope(const JsNativeCallScope&) = delete;
+  JsNativeCallScope& operator=(const JsNativeCallScope&) = delete;
+
+private:
+  Runtime& rt_;
+};
+
+} // namespace
+
 // ── typed invoke 공통 tail ──────────────────────────────────
 // invokeTyped / invokeTypedById / invokeTypedBatch(ById) 의 FFI 이후 꼬리:
 // dispatch → 헤더 분기(null / empty / ok=0 에러 / malformed) → (성공 시)
@@ -330,6 +419,12 @@ static Value typedInvokeTail(Runtime& rt, const uint8_t* reqData, size_t reqSize
                              const char* tailSuffix, Decode decode,
                              const std::string* batchItemName = nullptr,
                              const CoreTable* core = core::currentCoreTable()) {
+  // (T1) 동기 Rust 실행 가드 — dispatch 중 emit 되는 이벤트·채널 페이로드는
+  // invokeAsync 재진입 대신 이 테일 반환 직전의 에필로그에서 drain 한다.
+  // typed 동기 5종(invokeTyped·ById·Pos·Batch·BatchById 의 HostFunction 과
+  // TurboModule 공개 진입점 invokeTypedByName/ById 포함)이 모두 이 테일을
+  // 지나므로 한 곳 부착으로 전수 커버된다.
+  JsNativeCallScope nativeScope(rt);
   // (Tier 1) 고정 스택 버퍼 — 대부분의 응답(숫자/작은 객체)이 여기에 들어온다.
   // 부족하면 아래 폴백 경로가 처리하므로 안전하다.
   constexpr size_t kStackCap = 512;
@@ -487,6 +582,11 @@ TypedInvokeResult invokeTypedById(
 // CallInvoker 가 없으면(테스트/폴백) JS 가 drainEvents() 를 폴링 호출해
 // 동일한 drain 을 수동으로 실행한다. 두 경로는 같은 drain_scheduled_ 플래그로
 // 중복 실행을 막는다.
+//
+// (T1) 재진입 3경로 — 같은 JS 스레드가 동기 Rust 호출(깊이 > 0) 중에 emit
+// 하면 invokeAsync 대신 (T1) 가드의 에필로그 큐로 보내고, 호출 반환 직전
+// 같은 스레드가 인라인 drain 한다(위 파일 상단 (T1) 블록 참조). 워커/다른
+// 스레드 emit(깊이 0)은 위 invokeAsync 다이어그램 그대로다.
 
 /// 전역 디스패처 — installRustraJSI 가 생성, 프로세스당 하나.
 /// HostObject 와 별개로 살아있어야 FFI 콜백(HostObject 생명주기 밖) 이
@@ -585,15 +685,29 @@ void EventDispatcher::scheduleDrainLocked() {
   auto self = shared_from_this();
   std::shared_ptr<void> invoker = callInvoker_;
   auto weak = std::weak_ptr<EventDispatcher>(self);
+  const auto generation = invokerGeneration_.load(std::memory_order_acquire);
+  std::function<void(facebook::jsi::Runtime&)> deliver =
+      [weak, generation](facebook::jsi::Runtime& rt) {
+        if (auto dispatcher = weak.lock()) {
+          if (dispatcher->invokerGeneration_.load(std::memory_order_acquire) != generation) return;
+          dispatcher->drain(rt);
+        }
+      };
+  // (T1) 재진입 라우팅 — 동기 Rust 실행 중(JS 네이티브 호출 깊이 > 0,
+  // CallInvoker 호스트)의 emit 은 같은 JS 스레드에서 invokeAsync 를
+  // 재진입 호출하지 않는다. Android 실기기에서 이 재진입 post 직후 JS
+  // 이벤트 루프가 다음 매크로태스크 전에 정지한다(2026-09-21 실측 3/3).
+  // 대신 drain callable 을 에필로그 큐에 적재하고 가장 바깥 스코프
+  // 소멸(HostFunction 반환 직전)에 같은 JS 스레드가 인라인 실행한다.
+  // 순서는 emit 순(큐 FIFO) 보존. CallInvoker 없는 폴링 호스트는 위
+  // early-return 이 그대로 덮는다(drainEvents 폴링 계약 불변).
+  if (jsNativeCallDepth() > 0) {
+    enqueueReentryEpilogue(std::move(deliver));
+    return;
+  }
 #if defined(__APPLE__) || defined(__ANDROID__)
   auto* nativeInvoker = static_cast<facebook::react::CallInvoker*>(invoker.get());
-  const auto generation = invokerGeneration_.load(std::memory_order_acquire);
-  nativeInvoker->invokeAsync([weak, generation](facebook::jsi::Runtime& rt) {
-    if (auto dispatcher = weak.lock()) {
-      if (dispatcher->invokerGeneration_.load(std::memory_order_acquire) != generation) return;
-      dispatcher->drain(rt);
-    }
-  });
+  nativeInvoker->invokeAsync(std::move(deliver));
 #endif
 }
 
@@ -840,15 +954,28 @@ void ChannelDispatcher::scheduleDrainLocked() {
   auto self = shared_from_this();
   std::shared_ptr<void> invoker = callInvoker_;
   auto weak = std::weak_ptr<ChannelDispatcher>(self);
+  const auto generation = invokerGeneration_.load(std::memory_order_acquire);
+  std::function<void(facebook::jsi::Runtime&)> deliver =
+      [weak, generation](facebook::jsi::Runtime& rt) {
+        if (auto dispatcher = weak.lock()) {
+          if (dispatcher->invokerGeneration_.load(std::memory_order_acquire) != generation) return;
+          dispatcher->drain(rt);
+        }
+      };
+  // (T1) EventDispatcher 와 동일한 재진입 라우팅 — 동기 명령의
+  // ChannelHandle::send → ChannelHost::send(호출 스레드에서 sink 동기 실행)
+  // → onChannelPayload 도 JS 스레드 재진입이므로, 깊이 > 0 이면
+  // invokeAsync 대신 에필로그 큐에 drain callable 을 적재해 호출 반환
+  // 직전 인라인 실행한다(일반/바이트 큐 모두 이 경로). 드롭-올리스트
+  // 정책·invokerGeneration_ 재로드 무효화 계약은 위 deliver 가 그대로
+  // 유지한다. CallInvoker 없는 폴링 호스트는 위 early-return 이 덮는다.
+  if (jsNativeCallDepth() > 0) {
+    enqueueReentryEpilogue(std::move(deliver));
+    return;
+  }
 #if defined(__APPLE__) || defined(__ANDROID__)
   auto* nativeInvoker = static_cast<facebook::react::CallInvoker*>(invoker.get());
-  const auto generation = invokerGeneration_.load(std::memory_order_acquire);
-  nativeInvoker->invokeAsync([weak, generation](facebook::jsi::Runtime& rt) {
-    if (auto dispatcher = weak.lock()) {
-      if (dispatcher->invokerGeneration_.load(std::memory_order_acquire) != generation) return;
-      dispatcher->drain(rt);
-    }
-  });
+  nativeInvoker->invokeAsync(std::move(deliver));
 #endif
 }
 
@@ -1047,6 +1174,10 @@ RustraHostObject::RustraHostObject(Runtime& rt) {
     auto hostFn = Function::createFromHostFunction(
       rt, propNameId, 1,
       [fnMember, err](Runtime& rt, const Value&, const Value* args, size_t count) -> Value {
+        // (T1) 동기 Rust 실행 가드 — FFI(invoke·invokeJson·invokePostcardFFI·
+        // invokeFrame 4변형) 실행 중 emit 되는 푸시는 invokeAsync 재진입
+        // 대신 이 HostFunction 반환 직전의 에필로그에서 drain 한다.
+        JsNativeCallScope nativeScope(rt);
         if (count < 1) {
           throw JSError(rt, std::string("RustraJSI: requires 1 argument — ") + err);
         }
@@ -1537,6 +1668,12 @@ RustraHostObject::RustraHostObject(Runtime& rt) {
     auto hostFn = Function::createFromHostFunction(
       rt, propNameId, 4,
       [](Runtime& rt, const Value&, const Value* args, size_t count) -> Value {
+        // (T1) 비동기 디스패치도 스코프로 감싼다 — 크기 게이트·백프레셔
+        // 실패는 완료 콜백을 호출(JS) 스레드에서 즉시 실행하므로(ffi_typed_
+        // async.rs), 그 완료의 invokeAsync 게시가 아래 세 동기 초크포인트를
+        // 지나지 않는 재진입이 되지 않게 한다. 워커 완료는 별도 스레드
+        // (깊이 0)라 기존 경로를 쓴다.
+        JsNativeCallScope nativeScope(rt);
         if (count != 4) {
           throw JSError(rt, "RustraJSI: invokeTypedAsync requires (name, args, onSuccess, onError)");
         }
@@ -1625,9 +1762,7 @@ RustraHostObject::RustraHostObject(Runtime& rt) {
               unregisterAsyncContext(ctx);
               return;
             }
-            auto* nativeInvoker =
-              static_cast<facebook::react::CallInvoker*>(invoker.get());
-            nativeInvoker->invokeAsync(
+            std::function<void(facebook::jsi::Runtime&)> deliverCompletion =
               [ctx, resp, resp_len, owned, ownedFrame](facebook::jsi::Runtime& rt) {
               std::optional<facebook::jsi::Function> onSuccess;
               std::optional<facebook::jsi::Function> onError;
@@ -1685,7 +1820,20 @@ RustraHostObject::RustraHostObject(Runtime& rt) {
                   // JSError 만 받으면 async 콜백 스레드에서 미포착 → terminate.
                   onError->call(rt, e.what());
                 }
-              });
+              };
+            // (T1) 즉시 실패 완료(크기 게이트·백프레셔 — ffi_typed_async.rs 가
+            // 호출 스레드에서 완료)는 위 invokeTypedAsync 스코프 내부(깊이 > 0,
+            // JS 스레드)에서 도착한다. invokeAsync 재진입 게시 대신 에필로그
+            // 큐에 적재해 HostFunction 반환 직전 인라인 실행한다(onSuccess/
+            // onError 호출은 JS 스레드 마이크로태스크 예약이라 안전). 워커
+            // 완료는 별도 스레드(깊이 0)라 기존 invokeAsync 경로를 그대로 쓴다.
+            if (jsNativeCallDepth() > 0) {
+              enqueueReentryEpilogue(std::move(deliverCompletion));
+            } else {
+              auto* nativeInvoker =
+                static_cast<facebook::react::CallInvoker*>(invoker.get());
+              nativeInvoker->invokeAsync(std::move(deliverCompletion));
+            }
           },
           &invocationId);
 
@@ -1711,6 +1859,9 @@ RustraHostObject::RustraHostObject(Runtime& rt) {
     auto hostFn = Function::createFromHostFunction(
       rt, propNameId, 4,
       [](Runtime& rt, const Value&, const Value* args, size_t count) -> Value {
+        // (T1) invokeTypedAsync 와 동일한 재진입 가드 — 즉시 실패 완료의
+        // invokeAsync 게시를 에필로그 큐로 라우팅하기 위한 스코프.
+        JsNativeCallScope nativeScope(rt);
         if (count != 4) {
           throw JSError(rt, "RustraJSI: invokeTypedAsyncById requires (cmdId, args, onSuccess, onError)");
         }
@@ -1778,9 +1929,7 @@ RustraHostObject::RustraHostObject(Runtime& rt) {
               unregisterAsyncContext(ctx);
               return;
             }
-            auto* nativeInvoker =
-              static_cast<facebook::react::CallInvoker*>(invoker.get());
-            nativeInvoker->invokeAsync(
+            std::function<void(facebook::jsi::Runtime&)> deliverCompletion =
               [ctx, resp, resp_len, owned, ownedFrame](facebook::jsi::Runtime& rt) {
               std::optional<facebook::jsi::Function> onSuccess;
               std::optional<facebook::jsi::Function> onError;
@@ -1826,7 +1975,17 @@ RustraHostObject::RustraHostObject(Runtime& rt) {
                 } catch (const std::exception& e) {
                   onError->call(rt, e.what());
                 }
-              });
+              };
+            // (T1) invokeTypedAsync 와 동일한 에필로그 라우팅 — 즉시 실패
+            // 완료(호출 스레드 = JS 스레드, 깊이 > 0)만 큐로, 워커 완료는
+            // 기존 invokeAsync 경로.
+            if (jsNativeCallDepth() > 0) {
+              enqueueReentryEpilogue(std::move(deliverCompletion));
+            } else {
+              auto* nativeInvoker =
+                static_cast<facebook::react::CallInvoker*>(invoker.get());
+              nativeInvoker->invokeAsync(std::move(deliverCompletion));
+            }
           },
           &invocationId);
 

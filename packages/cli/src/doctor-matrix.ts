@@ -235,7 +235,7 @@ export function buildMatrix(checks: DoctorCheck[], config: DoctorConfig): Doctor
       { cell: contract.cell, note: contract.note },
       { cell: runtime.cell, note: runtime.note },
     ];
-    let worst = columns[0];
+    let worst = columns[0]!;
     for (const column of columns) {
       if (column.cell !== '—' && CELL_RANK[column.cell] > CELL_RANK[worst.cell]) worst = column;
     }

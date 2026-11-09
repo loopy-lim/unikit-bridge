@@ -137,7 +137,7 @@ export function cppEncodeWithGetter(
     case 'option_string':
     case 'option_struct':
     case 'option_bytes': {
-      const inner: PostcardField = { ...field, kind: OPTION_INNER_KIND[field.kind] };
+      const inner: PostcardField = { ...field, kind: OPTION_INNER_KIND[field.kind]! };
       return `${indent}{ auto _option_value = ${get}; if (_option_value.isNull() || _option_value.isUndefined()) { w.push_u8(0); } else { w.push_u8(1); ${cppEncodeWithGetter(inner, '_option_value', definitions, '', property)} } }`;
     }
     case 'enum_str': {

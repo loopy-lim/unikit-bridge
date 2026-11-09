@@ -64,6 +64,11 @@ static uint32_t validateSyncCore(Runtime& rt, const CoreTable* core, uint16_t id
 template<typename Decode>
 static Value invokeRawOnCoreWithDecode(Runtime& rt, const CoreTable* core, uint16_t id,
                                       const Value* values, size_t count, Decode&& decode) {
+  // (T1) 동기 Rust 실행 가드 — raw handler 실행 중 emit 되는 이벤트·채널
+  // 페이로드는 invokeAsync 재진입 대신 이 테일 반환 직전의 에필로그에서
+  // drain 한다(invokeTypedRaw·bindSyncCommand 생성 바인딩 경유 진입 포함).
+  // 일반·바운드 두 invokeRawOnCore 변형이 모두 이 템플릿을 공유한다.
+  JsNativeCallScope nativeScope(rt);
   if (count > 8) throw JSError(rt, "sync.unavailable: too many scalar fields");
   uint64_t slots[8] = {}, output = 0;
   gen::encode_raw_slots(rt, id, values, count, slots);
@@ -87,6 +92,11 @@ static Value invokeRawOnCore(Runtime& rt, const CoreTable* core, uint16_t id,
 template<typename Decode>
 static Value invokeBufferOnCoreWithDecode(Runtime& rt, const CoreTable* core, uint16_t id,
                                          const Value& value, Decode&& decode) {
+  // (T1) 동기 Rust 실행 가드 — buffer handler 실행 중 emit 되는 푸시는
+  // invokeAsync 재진입 대신 이 테일 반환 직전의 에필로그에서 drain 한다
+  // (invokeTypedBuffer·bindSyncCommand 생성 바인딩 경유 진입 포함).
+  // 일반·바운드 두 invokeBufferOnCore 변형이 모두 이 템플릿을 공유한다.
+  JsNativeCallScope nativeScope(rt);
   auto [data, size] = extractByteBuffer(rt, value);
   uint8_t* output = nullptr; size_t outputSize = 0;
   auto status = core->invoke_buffer(id, data, size, &output, &outputSize);

@@ -141,11 +141,14 @@ function _utf8Decode(bytes: Uint8Array, start: number, end: number): string {
   if (end > bytes.length) throw new Error('rustra: string out of bounds (offset ' + end + ')');
   let s = ''; let i = start;
   while (i < end) {
-    const b = bytes[i];
+    // 리드 바이트는 i < end <= bytes.length 로 항상 존재한다(함수 머리의
+    // bounds 검사). 연속 바이트는 잘린 시퀀스에서 undefined 일 수 있어
+    // ?? 0 으로 기존 강제 변환(undefined & 0x3f === 0)과 동일하게 읽는다.
+    const b = bytes[i]!;
     if (b < 0x80) { s += String.fromCharCode(b); i += 1; }
-    else if ((b & 0xe0) === 0xc0) { s += String.fromCharCode(((b & 0x1f) << 6) | (bytes[i + 1] & 0x3f)); i += 2; }
-    else if ((b & 0xf0) === 0xe0) { s += String.fromCharCode(((b & 0x0f) << 12) | ((bytes[i + 1] & 0x3f) << 6) | (bytes[i + 2] & 0x3f)); i += 3; }
-    else if ((b & 0xf8) === 0xf0) { const cp = ((b & 0x07) << 18) | ((bytes[i + 1] & 0x3f) << 12) | ((bytes[i + 2] & 0x3f) << 6) | (bytes[i + 3] & 0x3f); const adj = cp - 0x10000; s += String.fromCharCode(0xd800 + (adj >> 10), 0xdc00 + (adj & 0x3ff)); i += 4; }
+    else if ((b & 0xe0) === 0xc0) { s += String.fromCharCode(((b & 0x1f) << 6) | ((bytes[i + 1] ?? 0) & 0x3f)); i += 2; }
+    else if ((b & 0xf0) === 0xe0) { s += String.fromCharCode(((b & 0x0f) << 12) | (((bytes[i + 1] ?? 0) & 0x3f) << 6) | ((bytes[i + 2] ?? 0) & 0x3f)); i += 3; }
+    else if ((b & 0xf8) === 0xf0) { const cp = ((b & 0x07) << 18) | (((bytes[i + 1] ?? 0) & 0x3f) << 12) | (((bytes[i + 2] ?? 0) & 0x3f) << 6) | ((bytes[i + 3] ?? 0) & 0x3f); const adj = cp - 0x10000; s += String.fromCharCode(0xd800 + (adj >> 10), 0xdc00 + (adj & 0x3ff)); i += 4; }
     else i += 1;
   }
   return s;
@@ -193,8 +196,8 @@ export const createItemCodec: FrameCodec<CreateItemInput, CreateItemOutput> = {
     };
     ensure(2);
     out[w++] = 1; out[w++] = 0;
-    { const _s = args.name; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
-    { let _x = BigInt(args.value); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] &= 0x7f; }
+    { const _s = args.name; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
+    { let _x = BigInt(args.value); if (_x < _pcI64Min || _x > _pcI64Max) throw new Error('zigzag64 input outside i64 range: ' + _x.toString()); _x = (_x << 1n) ^ (_x >> 63n); do { ensure(1); out[w++] = Number(_x & 0x7fn) | 0x80; _x >>= 7n; } while (_x !== 0n); out[w - 1] = out[w - 1]! & 0x7f; }
     return out.subarray(0, w);
   },
 
@@ -277,7 +280,7 @@ export const deleteItemCodec: FrameCodec<DeleteItemInput, DeleteItemOutput> = {
     };
     ensure(2);
     out[w++] = 5; out[w++] = 0;
-    { const _s = args.id; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
+    { const _s = args.id; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
     return out.subarray(0, w);
   },
 
@@ -345,7 +348,7 @@ export const getItemCodec: FrameCodec<GetItemInput, GetItemOutput> = {
     };
     ensure(2);
     out[w++] = 2; out[w++] = 0;
-    { const _s = args.id; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] &= 0x7f; out.set(_u, w); w += _u.length; }
+    { const _s = args.id; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
     return out.subarray(0, w);
   },
 

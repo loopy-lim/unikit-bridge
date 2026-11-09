@@ -34,7 +34,7 @@ test('detects removed command', () => {
   const newSchema: PackageSchema = { packageId: 'test', commands: [] };
   const result = diffSchemas(baseSchema, newSchema);
   assert.equal(result.breaking.length, 1);
-  assert.equal(result.breaking[0].type, 'command_removed');
+  assert.equal(result.breaking[0]!.type, 'command_removed');
 });
 
 test('detects removed field', () => {
@@ -114,8 +114,8 @@ test('detects required field added', () => {
 test('detects an existing optional field becoming required', () => {
   const oldSchema = structuredClone(baseSchema) as PackageSchema;
   const next = structuredClone(baseSchema) as PackageSchema;
-  oldSchema.commands[0].inputSchema.required = ['a'];
-  next.commands[0].inputSchema.required = ['a', 'b'];
+  oldSchema.commands[0]!.inputSchema.required = ['a'];
+  next.commands[0]!.inputSchema.required = ['a', 'b'];
   const result = diffSchemas(oldSchema, next);
   assert.ok(result.breaking.some((change) => change.type === 'field_became_required'));
 });
@@ -123,7 +123,7 @@ test('detects an existing optional field becoming required', () => {
 test('detects nested referenced schema changes', () => {
   const oldSchema = structuredClone(baseSchema) as PackageSchema;
   const nextSchema = structuredClone(baseSchema) as PackageSchema;
-  oldSchema.commands[0].inputSchema = {
+  oldSchema.commands[0]!.inputSchema = {
     type: 'object',
     properties: { payload: { $ref: '#/definitions/Payload' } },
     required: ['payload'],
@@ -131,7 +131,7 @@ test('detects nested referenced schema changes', () => {
       Payload: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
     },
   };
-  nextSchema.commands[0].inputSchema = {
+  nextSchema.commands[0]!.inputSchema = {
     type: 'object',
     properties: { payload: { $ref: '#/definitions/Payload' } },
     required: ['payload'],
@@ -146,13 +146,13 @@ test('detects nested referenced schema changes', () => {
 test('resolves command-level nested refs instead of treating them as opaque', () => {
   const oldSchema = structuredClone(baseSchema) as PackageSchema;
   const nextSchema = structuredClone(baseSchema) as PackageSchema;
-  oldSchema.commands[0].inputSchema = {
+  oldSchema.commands[0]!.inputSchema = {
     type: 'object',
     properties: { payload: { $ref: '#/$defs/Payload' } },
     required: ['payload'],
   };
-  nextSchema.commands[0].inputSchema = structuredClone(oldSchema.commands[0].inputSchema);
-  oldSchema.commands[0].definitions = {
+  nextSchema.commands[0]!.inputSchema = structuredClone(oldSchema.commands[0]!.inputSchema);
+  oldSchema.commands[0]!.definitions = {
     Payload: {
       type: 'object',
       properties: { child: { $ref: '#/$defs/Child' } },
@@ -160,7 +160,7 @@ test('resolves command-level nested refs instead of treating them as opaque', ()
     },
     Child: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
   };
-  nextSchema.commands[0].definitions = {
+  nextSchema.commands[0]!.definitions = {
     Payload: {
       type: 'object',
       properties: { child: { $ref: '#/$defs/Child' } },
@@ -206,7 +206,7 @@ test('diagnoses command id displacement: same name, changed id', () => {
     inputSchema: { type: 'object', properties: {}, required: [] },
     outputSchema: { type: 'object', properties: {}, required: [] },
   });
-  nextSchema.commands[1].commandId = 2;
+  nextSchema.commands[1]!.commandId = 2;
   const result = diffSchemas(oldSchema, nextSchema);
   assert.ok(result.breaking.some((c) => c.type === 'command_id_changed'));
   const diagnosis = result.diagnoses?.find((d) => d.code === 'command_id_displaced');
@@ -236,7 +236,7 @@ test('renders the command_id_changed bullet with matching header count', () => {
     inputSchema: { type: 'object', properties: {}, required: [] },
     outputSchema: { type: 'object', properties: {}, required: [] },
   });
-  nextSchema.commands[1].commandId = 2;
+  nextSchema.commands[1]!.commandId = 2;
   const formatted = formatDiffResult(diffSchemas(oldSchema, nextSchema));
   assert.ok(
     formatted.includes('Breaking changes (1):'),
@@ -253,7 +253,7 @@ test('skips id-displacement diagnosis for schemas without ids on either side', (
   const oldSchema = structuredClone(baseSchema) as PackageSchema;
   const nextSchema = structuredClone(baseSchema) as PackageSchema;
   delete (oldSchema.commands[0] as { commandId?: number }).commandId;
-  nextSchema.commands[0].inputSchema = {
+  nextSchema.commands[0]!.inputSchema = {
     type: 'object',
     properties: { a: { type: 'string' }, b: { type: 'integer' } },
     required: ['a', 'b'],
@@ -293,7 +293,7 @@ test('insertion displacing the id fires both displaced and alias_missing diagnos
   // 변위는 신규 byId 호출자의 문제, alias 누락은 구 byId 호출자의 문제.
   const oldSchema = structuredClone(baseSchema) as PackageSchema;
   const nextSchema = structuredClone(baseSchema) as PackageSchema;
-  nextSchema.commands[0].commandId = 2;
+  nextSchema.commands[0]!.commandId = 2;
   nextSchema.commands.unshift({
     name: 'ping',
     commandId: 1,
@@ -327,7 +327,7 @@ test('diagnoses missing alias: old id is consumed by a different command', () =>
   // 신규 명령이 구 id 1 을 점유하고 add 는 fresh id 로 밀렸다 — 네이티브에
   // alias_command_id("add", 1) 선언이 없으면 구 클라이언트의 id 1 호출이
   // ping 으로 라우팅된다.
-  nextSchema.commands[0].commandId = 2;
+  nextSchema.commands[0]!.commandId = 2;
   nextSchema.commands.unshift({
     name: 'ping',
     commandId: 1,
@@ -492,12 +492,12 @@ test('payload definition removal folds to event_payload_changed', () => {
 test('diagnoses wire-incompatible type change with cause sentence', () => {
   const oldSchema = structuredClone(baseSchema) as PackageSchema;
   const nextSchema = structuredClone(baseSchema) as PackageSchema;
-  oldSchema.commands[0].inputSchema = {
+  oldSchema.commands[0]!.inputSchema = {
     type: 'object',
     properties: { a: { type: 'integer' }, b: { type: 'integer' } },
     required: ['a', 'b'],
   };
-  nextSchema.commands[0].inputSchema = {
+  nextSchema.commands[0]!.inputSchema = {
     type: 'object',
     properties: { a: { type: 'string' }, b: { type: 'integer' } },
     required: ['a', 'b'],
@@ -667,7 +667,7 @@ test('recursive references terminate while changes are reported at both sibling 
   });
   assert.equal(diffSchemas(before, structuredClone(before)).breaking.length, 0);
   const after = structuredClone(before);
-  after.commands[0].inputSchema.$defs = {
+  after.commands[0]!.inputSchema.$defs = {
     Node: {
       ...node,
       properties: {
@@ -710,9 +710,9 @@ test('migration gate rejects schema pairs that silently reinterpret actual postc
 test('removed command-level ref targets are breaking even when the ref object is reused', () => {
   const shared: JsonSchema = { $ref: '#/definitions/Detail' };
   const before = payloadPackage(shared);
-  before.commands[0].definitions = { Detail: { type: 'string' } };
+  before.commands[0]!.definitions = { Detail: { type: 'string' } };
   const after = payloadPackage(shared);
-  after.commands[0].definitions = {};
+  after.commands[0]!.definitions = {};
   assert.ok(
     diffSchemas(before, after).breaking.some((change) => change.type === 'definition_removed'),
   );
@@ -734,9 +734,9 @@ test('oneOf fallback titles are discriminator keys rather than inert metadata', 
     ],
   });
   const after = structuredClone(before);
-  after.commands[0].inputSchema.oneOf![0].title = 'Z';
+  after.commands[0]!.inputSchema.oneOf![0]!.title = 'Z';
   assert.ok(diffSchemas(before, after).breaking.length > 0);
-  before.commands[0].inputSchema['x-rustra-variant-order'] = ['first', 'second'];
-  after.commands[0].inputSchema['x-rustra-variant-order'] = ['first', 'second'];
+  before.commands[0]!.inputSchema['x-rustra-variant-order'] = ['first', 'second'];
+  after.commands[0]!.inputSchema['x-rustra-variant-order'] = ['first', 'second'];
   assert.equal(diffSchemas(before, after).breaking.length, 0);
 });

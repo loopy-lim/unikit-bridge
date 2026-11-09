@@ -227,9 +227,9 @@ void test('default exec path works end-to-end on a trivial command', () => {
   assert.equal(result.status, 0, result.stderr);
 });
 
-void test('real repo has the six known rustra.json examples wired for this gate', () => {
+void test('real repo has the seven known rustra.json examples wired for this gate', () => {
   // 새 예제가 rustra.json 을 도입하면 이 게이트에 자동 편입된다(테스트 수정 불요).
-  // 아래 단언은 "최소 이 여섯 예제가 게이트 안에 있다"를 고정한다.
+  // 아래 단언은 "최소 이 일곱 예제가 게이트 안에 있다"를 고정한다.
   const names = discoverCodegenExamples(REPO_ROOT).map((example) => example.name);
   for (const expected of [
     'calculator',
@@ -237,6 +237,7 @@ void test('real repo has the six known rustra.json examples wired for this gate'
     'crud',
     'react-native-bare-calculator',
     'react-native-calculator',
+    'rn-experiment',
     'streaming',
   ]) {
     assert.ok(names.includes(expected), `${expected} 이 게이트 대상에 없다: ${names.join(', ')}`);

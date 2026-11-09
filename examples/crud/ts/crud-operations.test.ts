@@ -41,7 +41,7 @@ void test('listItems returns filtered items', async () => {
   configure(mockEngine(responses));
   const result = await listItems({ minValue: 5 });
   assert.equal(result.items.length, 1);
-  assert.equal(result.items[0].name, 'A');
+  assert.equal(result.items[0]!.name, 'A');
 });
 
 void test('updateItem patches name and value', async () => {

@@ -13,6 +13,13 @@
 // 전파, 이벤트 구독/해제(JSI 푸시), 계약 필드 변경 후 재생성·재빌드·재실행.
 // G1 전체(Tauri·기존 앱·평가자)나 G2 를 닫지 않는다. 기기 증거 수준은 이 영수증에
 // 표기한다(실기기 vs 에뮬레이터).
+//
+// --assert-events (옵트인): a3 이벤트 푸시 재실측 다리. 동기 Rust 호출 1회 실행 중
+// Package::emit 3회(2026-09-21 교착 재현 조건) 후 마커로 (a) JS 이벤트 루프 생존
+// (매크로태스크+다음 명령 완료 마커), (b) 이벤트 3건 emit 순서 무손실 도착을
+// 단언한다. 교착 수정(깊이 가드+통합 에필로그 큐)이 발행 라인에 반영된 뒤 Android
+// 실기기+adb 환경에서 실행한다 — 수정 전 발행 라인에서는 이 다리가 타임아웃으로
+// 크게 실패한다(실패 은폐 없음). 플래그 부재 시 a3Events 비주장 기존 동작 불변.
 
 import { spawnSync } from 'node:child_process';
 import {
@@ -48,19 +55,45 @@ const APP_PACKAGE = 'dev.rustra.registryrn';
 const ERROR_SENTINEL = 'registry rn journey error propagation';
 const JOURNEY_MARKER = '__RUSTRA_RN_JOURNEY__';
 const EVIDENCE_WAIT_MS = 180_000;
+// --assert-events 다리 계약 — 앱 마커·수집기·단언·findings 가 공유한다.
+export const EVENT_MARKER_PHASE = 'events';
+export const EVENT_TICKS = 3;
+export const EVENT_COLLECT_STEP = 'baseline-events-collect-evidence';
+export const EVENT_VERIFY_STEP = 'baseline-events-verification';
 
 function errorText(error) {
   return error instanceof Error ? error.message : String(error);
 }
 
-function parseCliArgs(argv) {
-  const options = { outputPath: null, serial: null };
+export const USAGE = `usage: registry-consumer-rn-android.mjs --output <absolute-path> --serial <adb-serial> [--assert-events]
+
+options:
+  --output <absolute-path>  journey receipt path (required)
+  --serial <adb-serial>     target device serial (required)
+  --assert-events           opt in to the a3 event push re-measurement:
+                            subscribeEvent('calc.tick') then emitTicks({ticks:3}) —
+                            three Package::emit calls inside ONE synchronous Rust
+                            invoke (the 2026-09-21 deadlock reproduction condition) —
+                            then assert via logcat markers that (a) the JS event loop
+                            survives to a later macrotask and next command and (b) all
+                            3 events arrive in emit order without loss.
+                            Run this on an Android device with adb AFTER the
+                            reentrancy deadlock fix (depth guard + unified epilogue
+                            queue) is on the published adapter line — on unfixed
+                            published lines this leg times out and fails the journey
+                            loudly by design. Without the flag, a3Events stays
+                            'not asserted on this leg' (unchanged behavior).`;
+
+export function parseCliArgs(argv) {
+  const options = { outputPath: null, serial: null, assertEvents: false };
   for (let index = 0; index < argv.length; index += 1) {
     const option = argv[index];
     if (option === '--output') {
       options.outputPath = argv[++index];
     } else if (option === '--serial') {
       options.serial = argv[++index];
+    } else if (option === '--assert-events') {
+      options.assertEvents = true;
     } else {
       throw new Error(`unknown option: ${option}`);
     }
@@ -164,16 +197,70 @@ export function mutateRnLibRs(libRs) {
   return mutated;
 }
 
-export function renderRnAppTsx() {
-  return `import { useEffect, useState } from 'react';
-import { SafeAreaView, Text } from 'react-native';
-import { echo, failEcho, rustra } from './generated/react-native.js';
-import { INPUT } from './journey-input.js';
-
-// 이 앱은 이벤트를 구독·발행하지 않는다 — RN/Android 실기기에서 명령 안의
+export function renderRnAppTsx({ assertEvents = false } = {}) {
+  const generatedImports = assertEvents
+    ? 'echo, emitTicks, failEcho, rustra, subscribeEvent'
+    : 'echo, failEcho, rustra';
+  const appComment = assertEvents
+    ? `// 이 앱은 --assert-events 다리에서 이벤트를 구독·발행한다 — 동기 Rust 호출
+// 1회 실행 중 Package::emit 3회(2026-09-21 교착 재현 조건) 후 마커로 (a) JS
+// 이벤트 루프 생존(매크로태스크 + 다음 명령 완료), (b) 3건 emit 순서 무손실
+// 도착을 단언한다. 교착 수정 전 발행 라인에서는 complete 마커가 도달하지
+// 않고 여정이 타임아웃으로 크게 실패한다(실패 은폐 없음).`
+    : `// 이 앱은 이벤트를 구독·발행하지 않는다 — RN/Android 실기기에서 명령 안의
 // Package::emit 이 JSI 싱크 배달 중 JS 스레드를 교착시키는 결함(2026-09-21
 // 발견, 재현 100%) 때문이다. A3 이벤트 증거는 Tauri 실제 WebView 여정이
-// 담당하고, 이 결함은 영수증의 findings 로 기록된다.
+// 담당하고, 이 결함은 영수증의 findings 로 기록된다.`;
+  // 베이스라인 다리에서만 실행한다(mutated 다리는 계약 필드 변경 증명 전용) —
+  // 단계별 마커는 모두 phase '${EVENT_MARKER_PHASE}' 로 발행하고 complete 가
+  // 마지막이므로 parseLogcatMarker 가 complete 를 고른다.
+  const eventsBlock = assertEvents
+    ? `
+
+        // --assert-events leg — three Package::emit calls inside ONE synchronous
+        // Rust invoke (the original deadlock reproduction condition), then prove
+        // loop survival and lossless in-order delivery via logcat markers.
+        if (INPUT.phase === 'baseline') {
+          const arrivals: number[] = [];
+          const unsubscribe = subscribeEvent('calc.tick', (payload: unknown) => {
+            const value = (payload as { value: number } | null)?.value;
+            arrivals.push(Number(value));
+            console.log('${JOURNEY_MARKER}' + JSON.stringify({ phase: '${EVENT_MARKER_PHASE}', stage: 'arrival', value: value ?? null, arrivalsSoFar: arrivals.length }));
+          });
+          console.log('${JOURNEY_MARKER}' + JSON.stringify({ phase: '${EVENT_MARKER_PHASE}', stage: 'subscribed' }));
+          const emitResult: any = await emitTicks({ ticks: ${EVENT_TICKS} });
+          const arrivalsAtReturn = arrivals.length;
+          console.log('${JOURNEY_MARKER}' + JSON.stringify({ phase: '${EVENT_MARKER_PHASE}', stage: 'emit-returned', emitted: emitResult?.emitted ?? null, arrivalsAtReturn }));
+          setTimeout(() => {
+            const arrivalsAtMacrotask = arrivals.length;
+            let postMacrotaskEchoMessage: string | null = null;
+            let postMacrotaskEchoError: string | null = null;
+            echo({ message: 'after-events' } as never)
+              .then((result: any) => { postMacrotaskEchoMessage = String(result?.message ?? null); })
+              .catch((error: any) => { postMacrotaskEchoError = String(error?.message ?? error); })
+              .finally(() => {
+                unsubscribe();
+                console.log('${JOURNEY_MARKER}' + JSON.stringify({
+                  phase: '${EVENT_MARKER_PHASE}',
+                  stage: 'complete',
+                  emitted: emitResult?.emitted ?? null,
+                  arrivalsAtReturn,
+                  arrivalsAtMacrotask,
+                  eventValues: arrivals.slice(),
+                  macrotaskReached: true,
+                  postMacrotaskEchoMessage,
+                  postMacrotaskEchoError,
+                }));
+              });
+          }, 500);
+        }`
+    : '';
+  return `import { useEffect, useState } from 'react';
+import { SafeAreaView, Text } from 'react-native';
+import { ${generatedImports} } from './generated/react-native.js';
+import { INPUT } from './journey-input.js';
+
+${appComment}
 export default function App() {
   const [status, setStatus] = useState('booting');
   useEffect(() => {
@@ -191,7 +278,7 @@ export default function App() {
           phase: INPUT.phase,
           echoResult,
           failEchoError,
-        }));
+        }));${eventsBlock}
         setStatus('journey-complete');
       } catch (error) {
         console.log('${JOURNEY_MARKER}' + JSON.stringify({ phase: INPUT.phase, journeyError: String(error) }));
@@ -206,7 +293,6 @@ export default function App() {
   );
 }
 `;
-
 }
 
 export function renderJourneyInputTs(input) {
@@ -357,6 +443,89 @@ export function assertMutatedObservation(observations) {
   return true;
 }
 
+// ── --assert-events 다리 — 증거 판정·영수증 렌더(순수 함수) ───────────────
+//
+// 앱은 phase 'events' 로 단계별 마커를 남긴다: subscribed → arrival×N →
+// emit-returned → complete(매크로태스크 안에서만 발행). 교착이 살아 있으면
+// complete 가 도달하지 않으므로 수집기가 타임아웃으로 크게 실패한다.
+
+export function isEventEvidenceComplete(report) {
+  return report?.stage === 'complete' && report.macrotaskReached === true;
+}
+
+// (a) JS 이벤트 루프 생존 — complete 마커(매크로태스크) 도달 + 다음 명령 완료.
+// (b) 무손실·순서 보존 — eventValues 가 정확히 [1..EVENT_TICKS] (emit 값 = index+1).
+// arrivalsAtReturn(반환 직전 도착 수, 에필로그 drain 수정의 기대 동작)은 단언이
+// 아니라 증거로 기록한다 — 핵심 수용은 교착 부재·무손실·순서다.
+export function assertEventObservation(eventEvidence) {
+  if (!isEventEvidenceComplete(eventEvidence))
+    throw new Error(
+      `events leg never reached the macrotask completion marker: ${JSON.stringify(eventEvidence)}`,
+    );
+  if (eventEvidence.emitted !== EVENT_TICKS)
+    throw new Error(
+      `emitTicks did not report emitted=${EVENT_TICKS}: ${JSON.stringify(eventEvidence)}`,
+    );
+  const values = eventEvidence.eventValues;
+  if (!Array.isArray(values) || values.length !== EVENT_TICKS)
+    throw new Error(
+      `event delivery was lossy or duplicated (expected ${EVENT_TICKS} arrivals): ${JSON.stringify(values)}`,
+    );
+  for (let index = 0; index < values.length; index += 1) {
+    if (values[index] !== index + 1)
+      throw new Error(
+        `event order violated at index ${index} (emit order is value=index+1): ${JSON.stringify(values)}`,
+      );
+  }
+  if (eventEvidence.postMacrotaskEchoMessage !== 'after-events')
+    throw new Error(
+      `follow-up command after the event storm did not complete: ${JSON.stringify(
+        eventEvidence.postMacrotaskEchoError ?? eventEvidence.postMacrotaskEchoMessage ?? null,
+      )}`,
+    );
+  return true;
+}
+
+export function renderA3EventsEntry({ assertEvents = false, eventEvidence = null } = {}) {
+  if (!assertEvents)
+    return 'not asserted on this leg — see findings rn-android-event-push-deadlock; covered by the Tauri real-WebView journey';
+  const atReturn = eventEvidence?.arrivalsAtReturn ?? null;
+  return `calc.tick push asserted via --assert-events: ${EVENT_TICKS}/${EVENT_TICKS} events delivered in emit order without loss during one synchronous invoke, ${atReturn}/${EVENT_TICKS} before the invoke returned, JS loop reached the next macrotask and completed a follow-up command`;
+}
+
+export function renderJourneyFindings({ assertEvents = false, eventEvidence = null } = {}) {
+  const deadlockFinding = {
+    id: 'rn-android-event-push-deadlock',
+    summary:
+      'emitting from a command over the bridge deadlocked the JS thread on a physical Android device: the invoke returns, then the JS event loop stops before the next macrotask',
+    reproduction:
+      'subscribeEvent (push, and pollMs too — the JSI sink is installed at install time) followed by any Package::emit; breadcrumbs sub-emit-ok -> freeze, repro 3/3 on TB710FU / RN 0.81.5 / adapter 0.9.2 / rustra 0.11.0',
+    consequence: assertEvents
+      ? 're-measured on this leg via --assert-events — see rn-android-event-push-reverified; pre-fix device evidence lives in docs/verification/evidence/2026-09-21-registry-rn-android-device.json'
+      : 'a3Events for this leg is intentionally not asserted; the Tauri real-WebView journey covers event subscribe/unsubscribe on its push path',
+  };
+  if (!assertEvents) return [deadlockFinding];
+  return [
+    {
+      id: 'rn-android-event-push-reverified',
+      summary: `event push re-measured with --assert-events after the reentrancy fix (depth guard + unified epilogue queue): ${EVENT_TICKS}/${EVENT_TICKS} calc.tick events delivered in emit order without loss while ${eventEvidence?.arrivalsAtReturn ?? '?'}/${EVENT_TICKS} arrived before the invoke returned, and the JS event loop reached the next macrotask and completed a follow-up command`,
+      reproduction:
+        "subscribeEvent('calc.tick') then emitTicks({ticks:3}) — three Package::emit calls inside ONE synchronous Rust invoke (the original deadlock reproduction condition); staged markers collected from logcat (subscribed → arrival → emit-returned → complete)",
+      consequence:
+        'a3Events is asserted on this leg when --assert-events is passed; on unfixed published lines the complete marker never arrives and this leg fails the journey loudly instead of recording a silent pass',
+      evidence: {
+        emitted: eventEvidence?.emitted ?? null,
+        arrivalsAtReturn: eventEvidence?.arrivalsAtReturn ?? null,
+        arrivalsAtMacrotask: eventEvidence?.arrivalsAtMacrotask ?? null,
+        eventValues: eventEvidence?.eventValues ?? null,
+        macrotaskReached: eventEvidence?.macrotaskReached ?? null,
+        postMacrotaskEchoMessage: eventEvidence?.postMacrotaskEchoMessage ?? null,
+      },
+    },
+    deadlockFinding,
+  ];
+}
+
 // ── 여정 실행 ─────────────────────────────────────────────────────────────
 
 async function runChecked(context, name, cwd, argv, extraEnv = {}) {
@@ -485,9 +654,9 @@ function writeRustCore(context) {
   });
 }
 
-function writeAppTsx(context) {
+function writeAppTsx(context, assertEvents) {
   internalStep(context, 'write-app-tsx', () => {
-    writeFileSync(join(context.projectDir, 'App.tsx'), renderRnAppTsx());
+    writeFileSync(join(context.projectDir, 'App.tsx'), renderRnAppTsx({ assertEvents }));
   });
 }
 
@@ -570,7 +739,37 @@ async function environmentEvidence(context) {
   return environment;
 }
 
-async function executeRnAndroidCycle({ logDir, serial }) {
+// --assert-events 다리 증거 수집 — baseline 런치와 같은 logcat 세션에서 phase
+// 'events' 마커를 폴링한다. complete 마커는 이벤트 폭풍 이후 매크로태스크
+// 안에서만 발행되므로, 교착이 살아 있으면 이 단계가 타임아웃으로 크게 실패한다.
+// 실패 시에도 로그캣 덤프를 남겨 마지막 관측 단계(subscribed/arrival/emit-returned)
+// 를 진단 가능하게 한다 — 실패를 은폐하지 않는다.
+function collectEventEvidence(context, device) {
+  const logPath = join(context.logDir, 'baseline-events-logcat.log');
+  const startedAt = Date.now();
+  return internalStep(context, EVENT_COLLECT_STEP, () => {
+    for (;;) {
+      const dump = spawnSync('adb', ['-s', device, 'logcat', '-d', '-s', 'ReactNativeJS:I'], {
+        encoding: 'utf8',
+        maxBuffer: 32 * 1024 * 1024,
+      });
+      const report = parseLogcatMarker(dump.stdout ?? '', EVENT_MARKER_PHASE);
+      if (isEventEvidenceComplete(report)) {
+        writeFileSync(logPath, dump.stdout ?? '');
+        return report;
+      }
+      if (Date.now() - startedAt > EVIDENCE_WAIT_MS) {
+        writeFileSync(logPath, dump.stdout ?? '');
+        throw new Error(
+          `--assert-events evidence never completed in logcat (last observed stage: ${report?.stage ?? 'none'} — JS event loop stall, event loss, or order violation; dump: ${logPath})`,
+        );
+      }
+      spawnSync('sleep', ['2']);
+    }
+  });
+}
+
+async function executeRnAndroidCycle({ logDir, serial, assertEvents = false }) {
   const versions = validateVersionManifest(readJson(VERSIONS_PATH));
   const reactNativeVersion = versions.hosts?.['@rustra/react-native'];
   if (!reactNativeVersion)
@@ -623,7 +822,7 @@ async function executeRnAndroidCycle({ logDir, serial }) {
 
     // 2) 발행 패키지 정확 핀 설치 + Rust 코어·설정 작성.
     writeRustCore(context);
-    writeAppTsx(context);
+    writeAppTsx(context, assertEvents);
     internalStep(context, 'pin-npm-versions', () => {
       const packagePath = join(projectDir, 'package.json');
       const packageJson = readJson(packagePath);
@@ -781,6 +980,13 @@ async function executeRnAndroidCycle({ logDir, serial }) {
     internalStep(context, 'baseline-observation-verification', () =>
       assertJourneyObservation(baselineObservations),
     );
+    // 5b) --assert-events 옵트인 — 같은 baseline 런치의 logcat 에서 이벤트 다리
+    // 증거를 회수해 (a) 루프 생존 (b) emit 순서 무손실 도착을 단언한다.
+    // 플래그 부재 시 이 두 단계는 존재하지 않는다(기존 동작 불변).
+    const eventEvidence = assertEvents ? await collectEventEvidence(context, device) : null;
+    if (assertEvents) {
+      internalStep(context, EVENT_VERIFY_STEP, () => assertEventObservation(eventEvidence));
+    }
     const baselineSnapshot = snapshotEvidence(context, 'baseline');
 
     // 6) 계약 변형 → 재생성 → 재번들·재빌드 → 실기기 재실행.
@@ -858,6 +1064,7 @@ async function executeRnAndroidCycle({ logDir, serial }) {
           reactNativeTemplate: '0.81.5',
           communityCli: '20.2.0',
         },
+        ...(assertEvents ? { assertEvents: true } : {}),
       },
       environment: { ...environment, device: deviceInfo },
       runner: { gitHead: runner.stdout.trim() },
@@ -869,25 +1076,20 @@ async function executeRnAndroidCycle({ logDir, serial }) {
           'cargo-ndk staticlib + gradle assembleDebug',
           'standalone JS bundle (no metro at runtime)',
           'physical-device launch via adb',
+          ...(assertEvents
+            ? [
+                `opt-in event leg (--assert-events): subscribeEvent('calc.tick') + ${EVENT_TICKS}x Package::emit inside one synchronous invoke + macrotask marker`,
+              ]
+            : []),
         ],
         verified: {
           a2FirstCall: 'echo through generated strict-contract entry on a real Android device',
           a3FieldChange: 'repeat field added → regen → rebuild → repeat=3 returned on device',
           a3DomainError: 'failEcho invalid_args message crossed the JSI bridge intact',
-          a3Events:
-            'not asserted on this leg — see findings rn-android-event-push-deadlock; covered by the Tauri real-WebView journey',
+          a3Events: renderA3EventsEntry({ assertEvents, eventEvidence }),
           a1Combination: `RN/Android ${deviceInfo.evidenceLevel} receipt (${deviceInfo.model}, SDK ${deviceInfo.androidSdk})`,
         },
-        findings: [
-          {
-            id: 'rn-android-event-push-deadlock',
-            summary:
-              'emitting from a command over the bridge deadlocks the JS thread on a physical Android device: the invoke returns, then the JS event loop stops before the next macrotask',
-            reproduction:
-              'subscribeEvent (push, and pollMs too — the JSI sink is installed at install time) followed by any Package::emit; breadcrumbs sub-emit-ok -> freeze, repro 3/3 on TB710FU / RN 0.81.5 / adapter 0.9.2 / rustra 0.11.0',
-            consequence: 'a3Events for this leg is intentionally not asserted; the Tauri real-WebView journey covers event subscribe/unsubscribe on its push path',
-          },
-        ],
+        findings: renderJourneyFindings({ assertEvents, eventEvidence }),
         excluded: [
           {
             segment: 'RN/iOS and existing-app integration',
@@ -901,7 +1103,11 @@ async function executeRnAndroidCycle({ logDir, serial }) {
       },
       provenance,
       contractHashes: { baseline: baselineContractHash, mutated: mutatedContractHash },
-      observations: { baseline: baselineObservations, mutated: mutatedObservations },
+      observations: {
+        baseline: baselineObservations,
+        mutated: mutatedObservations,
+        ...(assertEvents ? { events: eventEvidence } : {}),
+      },
       snapshots: { baseline: baselineSnapshot, mutated: mutatedSnapshot },
       scratchRoot,
       steps: context.steps,
@@ -916,7 +1122,12 @@ async function executeRnAndroidCycle({ logDir, serial }) {
   }
 }
 
-export async function runRnAndroidRegistryJourney({ outputPath, serial, execute }) {
+export async function runRnAndroidRegistryJourney({
+  outputPath,
+  serial,
+  assertEvents = false,
+  execute,
+}) {
   const absoluteOutput = resolve(outputPath);
   const logDir = join(dirname(absoluteOutput), 'registry-rn-android-logs');
   rmSync(logDir, { recursive: true, force: true });
@@ -924,7 +1135,7 @@ export async function runRnAndroidRegistryJourney({ outputPath, serial, execute 
   const startedAt = new Date();
   let receipt;
   try {
-    const result = await (execute ?? executeRnAndroidCycle)({ logDir, serial });
+    const result = await (execute ?? executeRnAndroidCycle)({ logDir, serial, assertEvents });
     receipt = {
       schemaVersion: 1,
       ok: true,
@@ -965,6 +1176,10 @@ export async function runRnAndroidRegistryJourney({ outputPath, serial, execute 
 }
 
 async function main(argv) {
+  if (argv.includes('--help') || argv.includes('-h')) {
+    console.log(USAGE);
+    return;
+  }
   let options;
   try {
     options = parseCliArgs(argv);

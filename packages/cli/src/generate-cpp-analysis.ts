@@ -1,4 +1,5 @@
 import type { PackageSchema } from './schema.js';
+import type { JsonSchema } from './schema.js';
 import type { CommandSchema } from './schema.js';
 import { buildCodecIr } from './codec-ir.js';
 import { collectAllDefinitions, hasFixedArray } from './generate-postcard-ir.js';
@@ -15,10 +16,12 @@ export function analyzeCppCommands(schema: PackageSchema): CppCommandSets {
     command.functionArgs === undefined &&
     !hasFixedArray(command.inputSchema, definitions) &&
     !hasFixedArray(command.outputSchema, definitions) &&
-    [
-      [command.inputType, command.inputSchema],
-      [command.outputType, command.outputSchema],
-    ].every(
+    (
+      [
+        [command.inputType, command.inputSchema],
+        [command.outputType, command.outputSchema],
+      ] as [string, JsonSchema][]
+    ).every(
       ([type, root]) =>
         type === '()' ||
         (typeof root !== 'string' && root.type === 'object' && !root.additionalProperties),

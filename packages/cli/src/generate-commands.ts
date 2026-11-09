@@ -196,7 +196,7 @@ export function generateCommandsTs(schema: PackageSchema): string {
       const fields = generatedFieldRoute(command, definitions);
       if (fields) {
         if (fields.length === 1) {
-          const fieldKey = JSON.stringify(fields[0].name);
+          const fieldKey = JSON.stringify(fields[0]!.name);
           output +=
             `export const ${fnName} = createGeneratedFields1<${inType}, ${outType}>` +
             `(${command.commandId}, '${command.name}', ${fieldKey}, '${fnName}');\n\n`;

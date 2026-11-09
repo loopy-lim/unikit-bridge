@@ -1625,6 +1625,89 @@ void test('subscribeEvent pollMs is ignored on natives without drainEvents', () 
   }
 });
 
+// ── T1 교착 수정의 JS 대리(서로게이트) — 동기 invoke 중 emit 전달 계약 ──────
+
+void test('synchronous native invoke delivers mid-call emits before returning, in emit order', () => {
+  // 범위 고지: 이 케이스는 네이티브 런타임 증거가 아니라 JS 계약 고정(대리)이다.
+  // Android 실기기 교착(동기 invoke 실행 중 Package::emit → onRustEvent 가 같은
+  // JS 스레드로 재진입 → CallInvoker::invokeAsync 재진입 post 직후 JS 이벤트 루프
+  // 정지 — docs/verification/evidence/2026-09-21-registry-rn-android-device.json)의
+  // 실제 수정은 C++ RustraJSIBridge.cpp 의 재진입 깊이 가드(JsNativeCallScope)와
+  // 에필로그 drain 이 담당한다. C++ 컴파일·실기기 검증은 환경 부재로 분리 기록.
+  //
+  // 이 모킹 네이티브는 수정된 C++ 디스패처 계약을 JS 표면으로 재현한다 —
+  // 동기 invoke 실행 중 emit 은 큐에 적재만 하고(invokeAsync 를 부르지 않는다),
+  // 호출 반환 직전(에필로그) 같은 스레드에서 FIFO(emit 순)로 drain 한다.
+  // subscribeEvent 의 JS 팬아웃이 그 계약 아래 무손실·순서 보존·동기 재진입
+  // 안전임을 고정한다.
+  const listeners = new Map<string, (payloadJson: string) => void>();
+  const queue: Array<[string, string]> = [];
+  let depth = 0; // C++ JsNativeCallScope 깊이 카운터 모사.
+  const native = {
+    onEvent(name: string, callback: (payloadJson: string) => void) {
+      listeners.set(name, callback);
+    },
+    offEvent(name: string) {
+      listeners.delete(name);
+    },
+    drainEvents() {
+      return 0; // CallInvoker 호스트 — 폴링 수요 없음(푸시 경로만 사용).
+    },
+    invoke(payload: ArrayBuffer): ArrayBuffer {
+      depth += 1; // 스코프 진입 — 동기 Rust 실행 구간.
+      try {
+        // "Rust 핸들러" 본체 — 실행 중 Package::emit(onRustEvent 재진입).
+        // 페이로드 바이트가 emit 할 step 목록이다. 깊이 > 0 이므로 수정된
+        // 디스패처는 invokeAsync 를 재진입 호출하지 않고 큐에만 적재한다.
+        const steps = Array.from(new Uint8Array(payload));
+        for (const step of steps) queue.push(['sync.emit', JSON.stringify({ step })]);
+        return encoder.encode(JSON.stringify({ ok: true, result: null })).buffer;
+      } finally {
+        depth -= 1;
+        if (depth === 0) {
+          // HostFunction 에필로그 — 큐를 통째로 꺼내 FIFO 인라인 drain.
+          const pending = queue.splice(0);
+          for (const [name, json] of pending) listeners.get(name)?.(json);
+        }
+      }
+    },
+  };
+
+  const root = globalThis as typeof globalThis & { __rustraNative?: unknown };
+  const previous = root.__rustraNative;
+  root.__rustraNative = native;
+  const received: number[] = [];
+  let reentered = false;
+  try {
+    const unsubscribe = subscribeEvent('sync.emit', (payload) => {
+      received.push((payload as { step: number }).step);
+      // drain 중 동기 재진입(가드 내 가드 대리): step 2 수신 시 네이티브
+      // invoke 를 다시 동기 호출한다. 중첩 호출의 emit 은 그 호출 반환 직전에
+      // 먼저 전달되고, 바깥 drain 은 스냅숏 나머지를 순서대로 마저 전달한다.
+      if (!reentered && (payload as { step: number }).step === 2) {
+        reentered = true;
+        native.invoke(new Uint8Array([99]).buffer); // 중첩 emit — step 99.
+      }
+    });
+    try {
+      native.invoke(new Uint8Array([1, 2, 3]).buffer);
+      // 다음 매크로태스크가 아니라 동기 호출 반환 시점에 이미 전부 수신한다
+      // (await/타이머 없음). 순서는 emit 순서 보존 + 중첩 호출 우선 완료.
+      assert.deepEqual(
+        received,
+        [1, 2, 99, 3],
+        'all mid-call emits must arrive before invoke returns, in emit order',
+      );
+    } finally {
+      unsubscribe();
+    }
+  } finally {
+    root.__rustraNative = previous;
+  }
+  assert.equal(depth, 0, 'mock depth must unwind to zero');
+  assert.equal(queue.length, 0, 'mock epilogue queue must be fully drained');
+});
+
 // ── 채널 pollMs — CallInvoker 없는 호스트의 채널 큐 폴링 drain ─────────────
 
 void test('createChannel pollMs drains queued frames from a CallInvoker-less native', async () => {

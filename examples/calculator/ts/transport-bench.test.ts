@@ -38,8 +38,8 @@ function bench(label: string, fn: () => void, iterations = ITERATIONS) {
   }
   times.sort((a, b) => a - b);
   const avg = times.reduce((s, t) => s + t, 0) / times.length;
-  const p50 = times[Math.floor(times.length * 0.5)];
-  const p99 = times[Math.floor(times.length * 0.99)];
+  const p50 = times[Math.floor(times.length * 0.5)]!;
+  const p99 = times[Math.floor(times.length * 0.99)]!;
   return { label, avg, p50, p99 };
 }
 

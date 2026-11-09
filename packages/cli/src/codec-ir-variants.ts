@@ -33,7 +33,7 @@ export function variantNode(
   const exactTag = tag ?? singleEnumTag(schema);
   const properties = schema.properties;
   if (properties && Object.keys(properties).length === 1) {
-    const [property, propertySchema] = Object.entries(properties)[0];
+    const [property, propertySchema] = Object.entries(properties)[0]!;
     const child = buildIr(propertySchema, definitions, refs, depth + 1);
     if (!child.ok) return child;
     return {

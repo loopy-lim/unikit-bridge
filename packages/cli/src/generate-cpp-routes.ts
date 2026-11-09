@@ -11,16 +11,17 @@ export function bufferCommandResultField(
 ): PostcardField | null {
   if (!bufferCommandField(command, definitions)) return null;
   const { fields } = collectPostcardFields(command.outputSchema, definitions);
+  const field = fields[0];
   const properties = command.outputSchema.properties;
   const required = command.outputSchema.required;
   return fields.length === 1 &&
-    fields[0].kind === 'bytes' &&
+    field?.kind === 'bytes' &&
     properties &&
     Object.keys(properties).length === 1 &&
     Array.isArray(required) &&
     required.length === 1 &&
-    required[0] === fields[0].name
-    ? fields[0]
+    required[0] === field.name
+    ? field
     : null;
 }
 
@@ -41,7 +42,7 @@ export function rawCommandShape(
   const { fields: outputFields } = collectPostcardFields(command.outputSchema, definitions);
   if (outputFields.length > 1) return null;
   if (outputFields.length === 0 && command.outputType !== '()') return null;
-  if (outputFields.length === 1 && !rawKinds.has(outputFields[0].kind)) return null;
+  if (outputFields.length === 1 && !rawKinds.has(outputFields[0]!.kind)) return null;
   return { inputFields, outputField: outputFields[0] };
 }
 

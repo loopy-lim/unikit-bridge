@@ -13,7 +13,7 @@
     },
     {
       "path": "frame-codecs.ts",
-      "sha256": "c681344b53d99f2635d557e9e3f39d779601a81e573cf19ac4b9555db9d3faf8"
+      "sha256": "3db2287e436b5dbac326852b7fb09f45ed09a5442aa81019cb32eff671df2ec1"
     },
     {
       "path": "frame-registry.ts",

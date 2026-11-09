@@ -167,15 +167,13 @@ function finish(): void {
   if (lateCalls !== 0 || eventApplications !== 0)
     throw new Error('disposed consumer received an effect');
   for (let index = 0; index < saved.length; index += 1) {
-    if (saved[index][0] !== Math.floor(index / 3) || saved[index][2] !== 128)
+    const entry = saved[index]!;
+    if (entry[0] !== Math.floor(index / 3) || entry[2] !== 128)
       throw new Error('retained callback bytes changed after later deliveries');
   }
   for (let index = 0; index < ids.length; index += 1) {
-    if (
-      ids[index] === 0n ||
-      rustra_ffi_cancellation_status(ids[index]) !== 0 ||
-      rustra_ffi_invoke_cancel(ids[index])
-    )
+    const id = ids[index]!;
+    if (id === 0n || rustra_ffi_cancellation_status(id) !== 0 || rustra_ffi_invoke_cancel(id))
       throw new Error('completed cancellation ID stayed live');
   }
   console.log(

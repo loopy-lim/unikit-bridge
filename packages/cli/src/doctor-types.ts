@@ -111,7 +111,7 @@ export function isVersionAtLeast(
   minimum: [number, number, number],
 ): boolean {
   for (let index = 0; index < minimum.length; index += 1) {
-    if (candidate[index] !== minimum[index]) return candidate[index] > minimum[index];
+    if (candidate[index] !== minimum[index]) return candidate[index]! > minimum[index]!;
   }
   return true;
 }
