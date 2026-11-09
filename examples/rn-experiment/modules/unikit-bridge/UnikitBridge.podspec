@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
   s.version = '0.0.0'
   s.summary = 'Generated Unikit JSI bridge'
   s.author = 'Unikit contributors'
-  s.homepage = 'https://github.com/loopy-lim/unikit'
+  s.homepage = 'https://github.com/loopy-lim/unikit-bridge'
   s.license = 'MIT'
   s.platforms = { :ios => '15.1' }
   s.source = { :path => '.' }

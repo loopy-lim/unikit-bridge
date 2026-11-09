@@ -65,7 +65,7 @@
     },
     {
       "path": "../modules/unikit-bridge/UnikitBridge.podspec",
-      "sha256": "99531cc91d6db5b6871144cdee77c6339aabf647ed7b1a1319643bb50831dc53"
+      "sha256": "2520d50e83758a029ff17ee96b71312ceb540e2504792fa6b13ecb0312d3266f"
     },
     {
       "path": "commands.ts",
