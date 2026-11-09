@@ -71,7 +71,7 @@ const PROJECT_NAME = 'onboarding-probe';
 function injectWorkspacePatch(projectDir, repoRoot) {
   const repo = repoRoot ?? join(projectDir, '..', '..');
   const cratesRoot = resolve(repo, 'crates');
-  if (!existsSync(join(cratesRoot, 'unikit', 'Cargo.toml'))) return false;
+  if (!existsSync(join(cratesRoot, 'unikit-bridge', 'Cargo.toml'))) return false;
   const posix = (p) => p.split('\\').join('/');
   const patchDir = join(projectDir, '.cargo');
   mkdirSync(patchDir, { recursive: true });
@@ -81,7 +81,7 @@ function injectWorkspacePatch(projectDir, repoRoot) {
       '# [onboarding-gate] 발행 전 검증용 — repo 워크스페이스 크레이트로 우회한다.',
       '# 신규 사용자 환경(크레이트 소스 없음)에는 생성되지 않는다.',
       '[patch.crates-io]',
-      `unikit = { path = "${posix(join(cratesRoot, 'unikit'))}" }`,
+      `unikit-bridge = { path = "${posix(join(cratesRoot, 'unikit-bridge'))}" }`,
       `unikit-bridge-macros = { path = "${posix(join(cratesRoot, 'unikit-bridge-macros'))}" }`,
       `unikit-bridge-naming = { path = "${posix(join(cratesRoot, 'unikit-bridge-naming'))}" }`,
       '',

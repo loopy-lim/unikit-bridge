@@ -48,7 +48,7 @@ const hex = (buffer: ArrayBuffer | ArrayBufferView): string =>
 const buffer = (value: string): ArrayBuffer => Uint8Array.from(Buffer.from(value, 'hex')).buffer;
 
 try {
-  run('cargo', ['build', '--locked', '-p', 'unikit', '--example', 'function_fixture']);
+  run('cargo', ['build', '--locked', '-p', 'unikit-bridge', '--example', 'function_fixture']);
   run('bun', ['run', '--cwd', 'packages/types', 'build']);
   const emitted = JSON.parse(run(fixture, ['schema'])) as {
     schema: string;

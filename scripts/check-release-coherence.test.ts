@@ -20,7 +20,7 @@ const published = [
 function makeFixture(): string {
   const root = mkdtempSync(join(tmpdir(), 'unikit-release-coherence-'));
   mkdirSync(join(root, 'packages'), { recursive: true });
-  mkdirSync(join(root, 'crates', 'unikit'), { recursive: true });
+  mkdirSync(join(root, 'crates', 'unikit-bridge'), { recursive: true });
   mkdirSync(join(root, 'crates', 'unikit-bridge-macros'), { recursive: true });
   mkdirSync(join(root, '.changeset'), { recursive: true });
 

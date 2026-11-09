@@ -70,7 +70,7 @@ export function unikitDependencyLine(
     );
   delete value.optional;
   value.features = [...new Set([...((value.features as string[] | undefined) ?? []), 'tauri'])];
-  return `unikit = { ${Object.entries(value)
+  return `unikit-bridge = { ${Object.entries(value)
     .map(
       ([key, item]) =>
         `${/^[A-Za-z_][A-Za-z0-9_-]*$/.test(key) ? key : JSON.stringify(key)} = ${JSON.stringify(item)}`,

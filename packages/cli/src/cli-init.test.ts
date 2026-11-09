@@ -477,7 +477,7 @@ test(
         manifest,
         readFileSync(manifest, 'utf8') +
           '\n[patch.crates-io]\n' +
-          ['unikit', 'unikit-bridge-macros', 'unikit-bridge-naming']
+          ['unikit-bridge', 'unikit-bridge-macros', 'unikit-bridge-naming']
             .map(
               (name) =>
                 `${name} = { path = ${JSON.stringify(join(repo, 'crates', name).replaceAll('\\', '/'))} }`,
@@ -551,7 +551,7 @@ test(
         manifest,
         readFileSync(manifest, 'utf8') +
           '\n[patch.crates-io]\n' +
-          ['unikit', 'unikit-bridge-macros', 'unikit-bridge-naming']
+          ['unikit-bridge', 'unikit-bridge-macros', 'unikit-bridge-naming']
             .map(
               (name) =>
                 `${name} = { path = ${JSON.stringify(join(repo, 'crates', name).replaceAll('\\', '/'))} }`,

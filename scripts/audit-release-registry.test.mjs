@@ -11,7 +11,7 @@ import { auditRegistry, renderRegistryMarkdown } from './audit-release-registry.
 function rootFixture() {
   const root = mkdtempSync(join(tmpdir(), 'unikit-registry-audit-'));
   mkdirSync(join(root, 'packages', 'node'), { recursive: true });
-  mkdirSync(join(root, 'crates', 'unikit'), { recursive: true });
+  mkdirSync(join(root, 'crates', 'unikit-bridge'), { recursive: true });
   writeFileSync(
     join(root, 'packages', 'node', 'package.json'),
     JSON.stringify({ name: '@unikit/node', version: '1.2.3' }),
@@ -21,7 +21,7 @@ function rootFixture() {
     '[workspace]\nmembers = ["crates/unikit-bridge"]\n[workspace.package]\nversion = "2.3.4"\n',
   );
   writeFileSync(
-    join(root, 'crates', 'unikit', 'Cargo.toml'),
+    join(root, 'crates', 'unikit-bridge', 'Cargo.toml'),
     '[package]\nname = "unikit-bridge"\nversion.workspace = true\n',
   );
   return root;

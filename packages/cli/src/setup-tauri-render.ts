@@ -43,7 +43,7 @@ export function packageFactories(source: string): string[] {
   let depth = 0;
   let scanned = 0;
   for (const match of code.matchAll(
-    /\bpub\s+fn\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*\)\s*->\s*(?:(?:unikit|crate)::)?Package\b/g,
+    /\bpub\s+fn\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*\)\s*->\s*(?:(?:unikit_bridge|unikit|crate)::)?Package\b/g,
   )) {
     for (; scanned < match.index; scanned++) {
       if (code[scanned] === '{') depth++;

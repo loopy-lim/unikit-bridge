@@ -172,8 +172,8 @@ void test('gate aborts when hidden workspace patch preparation fails on disk', a
   const projectDir = join(projectRoot, 'onboarding-probe');
   const ran: string[] = [];
   try {
-    mkdirSync(join(repoRoot, 'crates', 'unikit'), { recursive: true });
-    writeFileSync(join(repoRoot, 'crates', 'unikit', 'Cargo.toml'), '[package]\nname="unikit"\n');
+    mkdirSync(join(repoRoot, 'crates', 'unikit-bridge'), { recursive: true });
+    writeFileSync(join(repoRoot, 'crates', 'unikit-bridge', 'Cargo.toml'), '[package]\nname="unikit-bridge"\n');
     mkdirSync(projectDir, { recursive: true });
     writeFileSync(join(projectDir, '.cargo'), 'blocks mkdir');
     const report = await runOnboardingSteps({

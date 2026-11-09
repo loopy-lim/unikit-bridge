@@ -16,7 +16,7 @@ function run(command, args, capture = false, env = process.env) {
     throw result.error ?? new Error(`${command} exited ${result.status}`);
   return result.stdout;
 }
-run('cargo', ['build', '-p', 'unikit', '--example', 'resident_tree']);
+run('cargo', ['build', '-p', 'unikit-bridge', '--example', 'resident_tree']);
 const metadata = JSON.parse(run('cargo', ['metadata', '--no-deps', '--format-version', '1'], true));
 const executable = join(
   metadata.target_directory,

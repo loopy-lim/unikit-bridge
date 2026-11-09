@@ -79,11 +79,11 @@ export async function setupTauriIntegration(
       );
     }
   }
-  const unikit = cargoDependency(nativeManifest, 'unikit');
+  const unikit = cargoDependency(nativeManifest, 'unikit-bridge');
   if (unikit === undefined)
     cargoLines.push(
       unikitDependencyLine(
-        cargoDependency(pkg.manifest_path, 'unikit'),
+        cargoDependency(pkg.manifest_path, 'unikit-bridge'),
         nativeRoot,
         cliManifest.unikitTemplate.cargoRange,
       ),

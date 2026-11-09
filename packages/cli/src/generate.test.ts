@@ -1819,7 +1819,7 @@ test('templateVersions permits independent CLI, types, and Cargo versions', () =
 
 test('init scaffold has a real shared package and executable codegen bin', () => {
   const files = renderInitProjectFiles(templateVersions('0.5.0', '^0.4.0', '^0.4.0'));
-  assert.match(files.cargoToml, /unikit = "\^0\.4\.0"/);
+  assert.match(files.cargoToml, /unikit-bridge = "\^0\.4\.0"/);
   assert.match(files.packageJson, /"@unikit\/cli": "\^0\.5\.0"/);
   assert.match(files.packageJson, /"@unikit\/types": "\^0\.4\.0"/);
   assert.match(files.packageJson, /"@unikit\/node": "\^0\.5\.0"/);
