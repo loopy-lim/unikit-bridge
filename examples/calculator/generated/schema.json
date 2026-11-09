@@ -1517,46 +1517,6 @@
       }
     },
     {
-      "name": "unikitRegistryDemo",
-      "commandId": 12,
-      "inputType": "RegistryDemoInput",
-      "outputType": "RegistryDemoOutput",
-      "inputSchema": {
-        "title": "RegistryDemoInput",
-        "type": "object",
-        "required": [
-          "op"
-        ],
-        "properties": {
-          "op": {
-            "type": "string"
-          }
-        }
-      },
-      "outputSchema": {
-        "title": "RegistryDemoOutput",
-        "type": "object",
-        "required": [
-          "frozen",
-          "message",
-          "ok"
-        ],
-        "properties": {
-          "ok": {
-            "type": "boolean"
-          },
-          "frozen": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      },
-      "execution": "sync",
-      "description": "런타임 registry 제어 명령. op:\n`register` / `unregister` / `replacePing` / `replaceAdd` / `restoreAdd` / `freeze` / `state`."
-    },
-    {
       "name": "safeDivide",
       "commandId": 41,
       "inputType": "Tuple_of_double_and_double",
@@ -1868,6 +1828,46 @@
         }
       },
       "execution": "sync"
+    },
+    {
+      "name": "unikitRegistryDemo",
+      "commandId": 12,
+      "inputType": "RegistryDemoInput",
+      "outputType": "RegistryDemoOutput",
+      "inputSchema": {
+        "title": "RegistryDemoInput",
+        "type": "object",
+        "required": [
+          "op"
+        ],
+        "properties": {
+          "op": {
+            "type": "string"
+          }
+        }
+      },
+      "outputSchema": {
+        "title": "RegistryDemoOutput",
+        "type": "object",
+        "required": [
+          "frozen",
+          "message",
+          "ok"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "frozen": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "execution": "sync",
+      "description": "런타임 registry 제어 명령. op:\n`register` / `unregister` / `replacePing` / `replaceAdd` / `restoreAdd` / `freeze` / `state`."
     },
     {
       "name": "wideAgg",

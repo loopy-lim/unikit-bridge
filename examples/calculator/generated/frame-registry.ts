@@ -6,7 +6,7 @@
 // DO NOT EDIT — changes will be overwritten and fail codegen --check.
 // ────────────────────────────────────────────────────────────
 
-import { addCodec, addNumbersCodec, benchAddCodec, benchEchoBytesCodec, benchEchoPairCodec, benchEchoStringCodec, channelDemoCodec, channelDemoBytesCodec, clampCodec, createItemCodec, deviceDemoCodec, divideCodec, echoGroupsComplexCodec, emitDemoCodec, gaugeCodec, greetCodec, greetPersonCodec, isEvenCodec, kindEchoComplexCodec, multiplyCodec, parityEchoCodec, parityFindCodec, parityIndexedCodec, parityResidentCodec, parityStoreCodec, platformNativeInfoCodec, processItemCodec, readRememberedCodec, rememberCodec, resetCodec, resourceCloseCodec, resourceOpenCodec, resourceReadCodec, resourceWriteCodec, unikitRegistryDemoCodec, safeDivideCodec, scoreTotalCodec, secureComputeCodec, sizeOfCodec, spanCodec, sumListCodec, tagSetComplexCodec, toUpperCodec, wideAggCodec } from './frame-codecs.js';
+import { addCodec, addNumbersCodec, benchAddCodec, benchEchoBytesCodec, benchEchoPairCodec, benchEchoStringCodec, channelDemoCodec, channelDemoBytesCodec, clampCodec, createItemCodec, deviceDemoCodec, divideCodec, echoGroupsComplexCodec, emitDemoCodec, gaugeCodec, greetCodec, greetPersonCodec, isEvenCodec, kindEchoComplexCodec, multiplyCodec, parityEchoCodec, parityFindCodec, parityIndexedCodec, parityResidentCodec, parityStoreCodec, platformNativeInfoCodec, processItemCodec, readRememberedCodec, rememberCodec, resetCodec, resourceCloseCodec, resourceOpenCodec, resourceReadCodec, resourceWriteCodec, safeDivideCodec, scoreTotalCodec, secureComputeCodec, sizeOfCodec, spanCodec, sumListCodec, tagSetComplexCodec, toUpperCodec, unikitRegistryDemoCodec, wideAggCodec } from './frame-codecs.js';
 
 export const frameRegistry = new Map<string, import('@unikit/types').FrameCodec<any, any>>([
   // route: postcard
@@ -78,8 +78,6 @@ export const frameRegistry = new Map<string, import('@unikit/types').FrameCodec<
   // route: postcard
   ['resourceWrite', resourceWriteCodec],
   // route: postcard
-  ['unikitRegistryDemo', unikitRegistryDemoCodec],
-  // route: postcard
   ['safeDivide', safeDivideCodec],
   // route: postcard
   ['scoreTotal', scoreTotalCodec],
@@ -95,6 +93,8 @@ export const frameRegistry = new Map<string, import('@unikit/types').FrameCodec<
   ['tagSet', tagSetComplexCodec],
   // route: postcard
   ['toUpper', toUpperCodec],
+  // route: postcard
+  ['unikitRegistryDemo', unikitRegistryDemoCodec],
   // route: postcard
   ['wideAgg', wideAggCodec],
 ]);

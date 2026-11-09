@@ -5,95 +5,95 @@
   "files": [
     {
       "path": "../modules/unikit-bridge/android/build-rust-android.sh",
-      "sha256": "a4aa8dcada7e51be4ac1dce4009eeb36318a8d85c37af62b2b017cb9eef79fa4"
+      "sha256": "fc620bff4b431e15cac831a28e9891abb3ed79e9f1b52829fcce58e96af9fdab"
     },
     {
       "path": "../modules/unikit-bridge/android/build.gradle",
-      "sha256": "7b2c13327b3f9c7d7e2ac68e3a18973ce009699dc4b1b37f846c951e9add0adb"
+      "sha256": "a96fc4e1cdcca6214310bf16a869c01583f56d00e307850c0319552e547a5b6a"
     },
     {
       "path": "../modules/unikit-bridge/android/CMakeLists.txt",
-      "sha256": "9ca4eccc6db13c1d584551c4901847c84188eb7e7d74765e7884770b51501656"
+      "sha256": "321c09d99314f5e9aa1c26fd2e3e3d6d9c31169c264d2631539c7910d0e59bae"
     },
     {
       "path": "../modules/unikit-bridge/android/src/main/AndroidManifest.xml",
-      "sha256": "29a5250621c15524c26a69d3f3f62199b1a2946cce7a0b738acf299f9ca6e547"
+      "sha256": "9003e7eb1ae6222acd05555a4a0908b46dd338fd4efb4df918cc51ee68275453"
     },
     {
       "path": "../modules/unikit-bridge/android/src/main/java/dev/unikit/bridge/UnikitBridgeModule.kt",
-      "sha256": "35ffd61a882a8e2de8c94dd91ee4a8b1080c5a95b94111d6d19b179f11938fce"
+      "sha256": "70b089bac707f3698e888b3ce729095679608f848f5deb12fda5401add7ef759"
     },
     {
       "path": "../modules/unikit-bridge/android/src/main/java/dev/unikit/bridge/UnikitBridgePackage.kt",
-      "sha256": "92feda53ca4718d0e2980440003af58b43d22262e72d2e883cce713f232e8e07"
+      "sha256": "7abff16ea4608936ae903725fb19fe21c83a5087db536b7715dc29c7462d0e4d"
     },
     {
       "path": "../modules/unikit-bridge/generated/unikit-generated-codecs.cpp",
-      "sha256": "43733ccfb90093e41c90c44b0bb534c50172014aa869e05feef5fd0946604795"
+      "sha256": "d46158c0e5b3437c6827562be97035f653ec01aeb4a5141492f0b7c0b58c02da"
     },
     {
       "path": "../modules/unikit-bridge/generated/unikit-generated-codecs.hpp",
-      "sha256": "50b5a8ffdb0751a5a0b8c5151ffcb9c5bed293075a21cea3d4dfa686a242819d"
+      "sha256": "e0231cbc3e463f6111b37522d6728c16e7fd2b5dead46e6cd71eae5aa0b1d4dd"
     },
     {
       "path": "../modules/unikit-bridge/ios/build-rust-ios.sh",
-      "sha256": "8afeb32147fbb866e67444b3c28379bc7d45e6de706918dc27b3c3d24ebc1767"
+      "sha256": "c872155bb2f831dbbac3c32b98f0331c8cf9b6331b3373bb0b5341b779c5f410"
     },
     {
       "path": "../modules/unikit-bridge/ios/UnikitBridge.cpp",
-      "sha256": "c1976b169699047ba51a3777bb16ddda2c52279220af72ee6f24e48b10893798"
+      "sha256": "2ea3b59d8bd2fe5b55a86dda40201e13d7b2534d797defff47d6b71c8a450268"
     },
     {
       "path": "../modules/unikit-bridge/ios/UnikitBridgeModule.mm",
-      "sha256": "f19d84598dbdfdce63845af9ec3076df61e84a577ab34fb1a8f6ef7ac163d785"
+      "sha256": "f44519620de06f240018060fd39e9a4a62c0b705e21e25d852c7e5c26e4f7aeb"
     },
     {
       "path": "../modules/unikit-bridge/package.json",
-      "sha256": "1afb5170a456e2cd3d17d35c398888f7b38ef275044742eaa5015d3df2e27781"
+      "sha256": "512bc3d8a40a777005c3077eb0152ab3655beeee401632e38c96a5089c8c6e0f"
     },
     {
       "path": "../modules/unikit-bridge/react-native.config.js",
-      "sha256": "d86b7c9c1a00caea8b0b06d07e719d790c83212a285303a730d9b6805cec8d3b"
-    },
-    {
-      "path": "../modules/unikit-bridge/UnikitBridge.podspec",
-      "sha256": "2ece750f21324a26f0f24df0afa82d77e32e7575432956fc822a0a6460925982"
+      "sha256": "feddfa8fed0e40d7e2e9bb70386b06be2ce8f52b41937d3e6361b6fab8c60f01"
     },
     {
       "path": "../modules/unikit-bridge/scripts/prepare-native.cjs",
-      "sha256": "28705d1d555796b41fe31f7172e1468477332ba03008fa56fe45a88574bcd700"
+      "sha256": "c0ef1ff6370feca9f23bfc63e8b441b9c4c1ef42de2b3057abbe92fb8a562f4f"
     },
     {
       "path": "../modules/unikit-bridge/src/index.ts",
-      "sha256": "6159334c0710e6ab19715b520cac967e393ff9ef9142926217838db6be213a88"
+      "sha256": "9302ca2e49ab8c63c9c1e2afc7610c9463ca6cc8888438c4e34a05d5eb5f1631"
+    },
+    {
+      "path": "../modules/unikit-bridge/UnikitBridge.podspec",
+      "sha256": "2c697c45a7c4901e0cf4e53ec2aaec055db27be2f703f9f7f57174f54448d92f"
     },
     {
       "path": "commands.ts",
-      "sha256": "6d731a4d38cd24b07361c415cd1a4518491804224655116dff0cb16aa97d83c6"
+      "sha256": "79f0d21fd517e4ada47221057cab844becc0111d50b3a746c889b5b1c7a5376a"
     },
     {
       "path": "contract.ts",
-      "sha256": "7cb00102f0024984b9b8e1185fedd332fddb33557fd93da57399a4491168fcd1"
+      "sha256": "54f154a17a0dd29974cc7c700ba8d05018abb2b3c67afbc676cf7781937b114b"
     },
     {
       "path": "frame-codecs.ts",
-      "sha256": "b497c13c7f6498f0de72f481e49aa799feaa6b61fe8088a150586f4c2c37c11b"
+      "sha256": "79d7d44267a1cd3abd3726d10bc7040627e62e833d95630ca509d2b0096f2fdc"
     },
     {
       "path": "frame-registry.ts",
-      "sha256": "7884927113c33d172e10e90d0a85b1fb59cfe2cc0dbb9c8b6256f95bbe4e23ac"
+      "sha256": "5c9c0b8decc7d34224385d3597937678bbb77ebf8a47a5e50628ccab76ac833e"
     },
     {
       "path": "node.ts",
-      "sha256": "cb74e5c643d398ac1f59e67368dcd7f5680a0cc99e9bb928b016b908dacc92ab"
+      "sha256": "e75b42d28d0fb46fb12840c7cafad835a291f18dab5dca277b6df00d273483a8"
     },
     {
       "path": "react-native.ts",
-      "sha256": "dc840641ade3347c1cf0eaa4929caf8c913e4b93eee868cf8bca36b6f78ffc54"
+      "sha256": "c913891259e6ae5fe0bd3c7652a8855bf5a562935b94e250e342139d2eb6d652"
     },
     {
       "path": "types.ts",
-      "sha256": "69d76194d9b74f342af875431a497dee7fa16bc988aa74ea2aa3193557ced22d"
+      "sha256": "a98ec781b38ababa0c9b9a6b12b2123f400cdf20f4704375f68dda4e2549206c"
     }
   ]
 }

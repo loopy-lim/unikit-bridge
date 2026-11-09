@@ -162,10 +162,6 @@ export function resourceWrite(handle: number | bigint, key: string, value: strin
   return callPos<ResourceWriteOutput>(21, handle, key, value);
 }
 
-export function unikitRegistryDemo(op: string): Promise<RegistryDemoOutput> {
-  return callPos<RegistryDemoOutput>(12, op);
-}
-
 export function scoreTotal(input: ScoreTotalInput): Promise<ScoreTotalOutput> {
   return call<ScoreTotalOutput>(15, 'scoreTotal', input);
 }
@@ -188,6 +184,10 @@ export function sumList(input: SumListInput): Promise<SumListOutput> {
 
 export function toUpper(s: string): Promise<ToUpperOutput> {
   return callPos<ToUpperOutput>(7, s);
+}
+
+export function unikitRegistryDemo(op: string): Promise<RegistryDemoOutput> {
+  return callPos<RegistryDemoOutput>(12, op);
 }
 
 export function wideAgg(input: WideAggInput): Promise<WideAggOutput> {

@@ -746,8 +746,6 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_unikit_calculator_example_checksum_func_resourcewrite(
     ): Int
-    external fun uniffi_unikit_calculator_example_checksum_func_unikitregistrydemo(
-    ): Int
     external fun uniffi_unikit_calculator_example_checksum_func_safedivide(
     ): Int
     external fun uniffi_unikit_calculator_example_checksum_func_scoretotal(
@@ -763,6 +761,8 @@ internal object IntegrityCheckingUniffiLib {
     external fun uniffi_unikit_calculator_example_checksum_func_tagset(
     ): Int
     external fun uniffi_unikit_calculator_example_checksum_func_toupper(
+    ): Int
+    external fun uniffi_unikit_calculator_example_checksum_func_unikitregistrydemo(
     ): Int
     external fun uniffi_unikit_calculator_example_checksum_func_wideagg(
     ): Int
@@ -853,8 +853,6 @@ internal object UniffiLib {
     ): RustBuffer.ByValue
     external fun uniffi_unikit_calculator_example_fn_func_resourcewrite(`input`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    external fun uniffi_unikit_calculator_example_fn_func_unikitregistrydemo(`input`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
     external fun uniffi_unikit_calculator_example_fn_func_safedivide(`arg0`: Double,`arg1`: Double,uniffi_out_err: UniffiRustCallStatus, 
     ): Double
     external fun uniffi_unikit_calculator_example_fn_func_scoretotal(`input`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -870,6 +868,8 @@ internal object UniffiLib {
     external fun uniffi_unikit_calculator_example_fn_func_tagset(`input`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun uniffi_unikit_calculator_example_fn_func_toupper(`input`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_unikit_calculator_example_fn_func_unikitregistrydemo(`input`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun uniffi_unikit_calculator_example_fn_func_wideagg(`input`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -992,145 +992,145 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
 }
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_add() and 0xFFFF) != 7317) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_add() and 0xFFFF) != 57503) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_addnumbers() and 0xFFFF) != 26346) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_addnumbers() and 0xFFFF) != 2945) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_benchadd() and 0xFFFF) != 38735) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_benchadd() and 0xFFFF) != 39331) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_benchechobytes() and 0xFFFF) != 52368) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_benchechobytes() and 0xFFFF) != 23529) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_benchechopair() and 0xFFFF) != 16278) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_benchechopair() and 0xFFFF) != 9376) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_benchechostring() and 0xFFFF) != 16098) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_benchechostring() and 0xFFFF) != 50750) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_channeldemo() and 0xFFFF) != 19525) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_channeldemo() and 0xFFFF) != 59699) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_channeldemobytes() and 0xFFFF) != 19944) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_channeldemobytes() and 0xFFFF) != 20957) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_clamp() and 0xFFFF) != 53189) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_clamp() and 0xFFFF) != 8618) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_contracthash() and 0xFFFF) != 63409) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_contracthash() and 0xFFFF) != 1204) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_createitem() and 0xFFFF) != 40725) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_createitem() and 0xFFFF) != 21877) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_devicedemo() and 0xFFFF) != 48297) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_devicedemo() and 0xFFFF) != 52352) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_divide() and 0xFFFF) != 33615) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_divide() and 0xFFFF) != 37200) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_echogroups() and 0xFFFF) != 19097) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_echogroups() and 0xFFFF) != 60682) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_emitdemo() and 0xFFFF) != 10571) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_emitdemo() and 0xFFFF) != 21602) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_gauge() and 0xFFFF) != 43678) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_gauge() and 0xFFFF) != 10327) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_getschema() and 0xFFFF) != 25805) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_getschema() and 0xFFFF) != 3136) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_greet() and 0xFFFF) != 40983) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_greet() and 0xFFFF) != 12078) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_greetperson() and 0xFFFF) != 12281) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_greetperson() and 0xFFFF) != 45309) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_invokejson() and 0xFFFF) != 15830) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_invokejson() and 0xFFFF) != 37245) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_iseven() and 0xFFFF) != 52133) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_iseven() and 0xFFFF) != 1696) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_kindecho() and 0xFFFF) != 18248) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_kindecho() and 0xFFFF) != 53063) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_multiply() and 0xFFFF) != 37534) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_multiply() and 0xFFFF) != 62073) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_parityecho() and 0xFFFF) != 52339) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_parityecho() and 0xFFFF) != 27427) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_parityfind() and 0xFFFF) != 39123) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_parityfind() and 0xFFFF) != 36801) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_parityindexed() and 0xFFFF) != 40255) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_parityindexed() and 0xFFFF) != 28081) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_parityresident() and 0xFFFF) != 60842) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_parityresident() and 0xFFFF) != 4183) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_paritystore() and 0xFFFF) != 45315) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_paritystore() and 0xFFFF) != 38944) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_platformnativeinfo() and 0xFFFF) != 56716) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_platformnativeinfo() and 0xFFFF) != 22106) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_processitem() and 0xFFFF) != 6741) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_processitem() and 0xFFFF) != 25449) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_readremembered() and 0xFFFF) != 1137) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_readremembered() and 0xFFFF) != 43419) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_remember() and 0xFFFF) != 37808) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_remember() and 0xFFFF) != 40783) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_reset() and 0xFFFF) != 42920) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_reset() and 0xFFFF) != 34972) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_resourceclose() and 0xFFFF) != 35746) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_resourceclose() and 0xFFFF) != 4018) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_resourceopen() and 0xFFFF) != 12002) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_resourceopen() and 0xFFFF) != 42964) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_resourceread() and 0xFFFF) != 50323) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_resourceread() and 0xFFFF) != 35633) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_resourcewrite() and 0xFFFF) != 63142) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_resourcewrite() and 0xFFFF) != 8033) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_unikitregistrydemo() and 0xFFFF) != 30147) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_safedivide() and 0xFFFF) != 9397) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_safedivide() and 0xFFFF) != 65085) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_scoretotal() and 0xFFFF) != 16984) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_scoretotal() and 0xFFFF) != 64792) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_securecompute() and 0xFFFF) != 48692) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_securecompute() and 0xFFFF) != 7333) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_sizeof() and 0xFFFF) != 9541) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_sizeof() and 0xFFFF) != 10734) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_span() and 0xFFFF) != 8337) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_span() and 0xFFFF) != 24023) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_sumlist() and 0xFFFF) != 19102) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_sumlist() and 0xFFFF) != 57074) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_tagset() and 0xFFFF) != 25791) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_tagset() and 0xFFFF) != 3367) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_toupper() and 0xFFFF) != 46815) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_toupper() and 0xFFFF) != 48777) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_unikitregistrydemo() and 0xFFFF) != 18867) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_unikit_calculator_example_checksum_func_wideagg() and 0xFFFF) != 55913) {
+    if ((lib.uniffi_unikit_calculator_example_checksum_func_wideagg() and 0xFFFF) != 19244) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -5147,21 +5147,6 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
     
 
         /**
-         * `unikitRegistryDemo` — `crate::unikit_registry_demo` 커맨드의 UniFFI 타입 래퍼.
-         */
-    @Throws(UnikitCommandFailure::class) fun `unikitRegistryDemo`(`input`: RegistryDemoInput): RegistryDemoOutput {
-            return FfiConverterTypeRegistryDemoOutput.lift(
-    uniffiRustCallWithError(UnikitCommandFailure) { _status ->
-    UniffiLib.uniffi_unikit_calculator_example_fn_func_unikitregistrydemo(
-    
-        
-        FfiConverterTypeRegistryDemoInput.lower(`input`),_status)
-}
-    )
-    }
-    
-
-        /**
          * `safeDivide` — 일반 함수의 UniFFI 위치 인수 래퍼.
          */
     @Throws(UnikitCommandFailure::class) fun `safeDivide`(`arg0`: kotlin.Double, `arg1`: kotlin.Double): kotlin.Double {
@@ -5277,6 +5262,21 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
     
         
         FfiConverterTypeToUpperInput.lower(`input`),_status)
+}
+    )
+    }
+    
+
+        /**
+         * `unikitRegistryDemo` — `crate::unikit_registry_demo` 커맨드의 UniFFI 타입 래퍼.
+         */
+    @Throws(UnikitCommandFailure::class) fun `unikitRegistryDemo`(`input`: RegistryDemoInput): RegistryDemoOutput {
+            return FfiConverterTypeRegistryDemoOutput.lift(
+    uniffiRustCallWithError(UnikitCommandFailure) { _status ->
+    UniffiLib.uniffi_unikit_calculator_example_fn_func_unikitregistrydemo(
+    
+        
+        FfiConverterTypeRegistryDemoInput.lower(`input`),_status)
 }
     )
     }

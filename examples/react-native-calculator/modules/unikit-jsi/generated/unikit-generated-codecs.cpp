@@ -23,7 +23,7 @@ using namespace facebook::jsi;
 namespace jsi = facebook::jsi;
 namespace rc = unikit_bridge::codec;
 namespace unikit_bridge::generated {
-const char* compiled_contract_hash() { return "e70c24c62944ff78fb6ca58b5658d85bb5cff49af4acc96b3a78bedcbdfb0a58"; }
+const char* compiled_contract_hash() { return "be8826170c3764da609a4ce6cda76a8eb105ff818dab1425d52a51b3133df747"; }
 }
 
 // Each invocation owns its captured map values until canonical encoding finishes.
@@ -172,13 +172,13 @@ std::shared_ptr<const BoundCodecContext> make_bound_codec_context(Runtime& rt, u
     case 19: return std::shared_ptr<const BoundCodecContext>(new BoundCodecContext(rt, commandId, {"initial"}, {"handle"}));
     case 20: return std::shared_ptr<const BoundCodecContext>(new BoundCodecContext(rt, commandId, {"handle", "key"}, {"found", "value"}));
     case 21: return std::shared_ptr<const BoundCodecContext>(new BoundCodecContext(rt, commandId, {"handle", "key", "value"}, {"entries"}));
-    case 12: return std::shared_ptr<const BoundCodecContext>(new BoundCodecContext(rt, commandId, {"op"}, {"ok", "frozen", "message"}));
     case 15: return std::shared_ptr<const BoundCodecContext>(new BoundCodecContext(rt, commandId, {"scores"}, {"count", "total"}));
     case 13: return std::shared_ptr<const BoundCodecContext>(new BoundCodecContext(rt, commandId, {"a", "b"}, {"value"}));
     case 14: return std::shared_ptr<const BoundCodecContext>(new BoundCodecContext(rt, commandId, {"data"}, {"checksum", "len"}));
     case 16: return std::shared_ptr<const BoundCodecContext>(new BoundCodecContext(rt, commandId, {"pair", "value", "_"}, {"first", "second"}));
     case 6: return std::shared_ptr<const BoundCodecContext>(new BoundCodecContext(rt, commandId, {"numbers"}, {"count", "total"}));
     case 7: return std::shared_ptr<const BoundCodecContext>(new BoundCodecContext(rt, commandId, {"s"}, {"result"}));
+    case 12: return std::shared_ptr<const BoundCodecContext>(new BoundCodecContext(rt, commandId, {"op"}, {"ok", "frozen", "message"}));
     case 28: return std::shared_ptr<const BoundCodecContext>(new BoundCodecContext(rt, commandId, {"samples", "offset"}, {"max", "adjusted"}));
     case 27: return std::shared_ptr<const BoundCodecContext>(new BoundCodecContext(rt, commandId, {}, {}));
     case 33: return std::shared_ptr<const BoundCodecContext>(new BoundCodecContext(rt, commandId, {}, {}));
@@ -1182,39 +1182,6 @@ static jsi::Value decode_resourceWrite(jsi::Runtime& rt, rc::Reader& r) {
   return decode_body_resourceWrite(rt, resultObj, r, _properties.data());
 }
 
-static void encode_body_unikitRegistryDemo(jsi::Runtime& rt, const jsi::Object& argsObj, rc::Writer& w, const jsi::PropNameID* _properties) {
-  const auto& _prop_0 = _properties[0];
-  { auto _v = argsObj.getProperty(rt, _prop_0).getString(rt).utf8(rt); w.push_string(_v); }
-}
-static void encode_unikitRegistryDemo(jsi::Runtime& rt, const jsi::Value& args, rc::Writer& w) {
-  w.push_u8(12); w.push_u8(0); // cmd_id = 12 LE
-  auto argsObj = args.asObject(rt);
-  const std::array<jsi::PropNameID, 1> _properties{jsi::PropNameID::forAscii(rt, "op")};
-  encode_body_unikitRegistryDemo(rt, argsObj, w, _properties.data());
-}
-
-// (Tier 1 positional) 개별 인자 → 직접 인코딩. argsObj 경유 대비 JSI 프로퍼티 조회 1회 제거.
-static void encode_pos_unikitRegistryDemo(jsi::Runtime& rt, const jsi::Value* argv, size_t argc, rc::Writer& w) {
-  if (argc != 1) throw jsi::JSError(rt, "unikit: unikitRegistryDemo expects 1 positional argument(s), got " + std::to_string(argc));
-  w.push_u8(12); w.push_u8(0); // cmd_id = 12 LE
-  { auto _s = argv[0].asString(rt).utf8(rt); w.push_string(_s); }
-}
-
-static jsi::Value decode_body_unikitRegistryDemo(jsi::Runtime& rt, jsi::Object& resultObj, rc::Reader& r, const jsi::PropNameID* _properties) {
-  const auto& _prop_0 = _properties[0];
-  const auto& _prop_1 = _properties[1];
-  const auto& _prop_2 = _properties[2];
-  resultObj.setProperty(rt, _prop_0, r.read_bool());
-  resultObj.setProperty(rt, _prop_1, r.read_bool());
-  { auto _s = r.read_string_view(); resultObj.setProperty(rt, _prop_2, jsi::String::createFromUtf8(rt, _s.data, _s.size)); }
-  return std::move(resultObj);
-}
-static jsi::Value decode_unikitRegistryDemo(jsi::Runtime& rt, rc::Reader& r) {
-  auto resultObj = jsi::Object(rt);
-  const std::array<jsi::PropNameID, 3> _properties{jsi::PropNameID::forAscii(rt, "ok"), jsi::PropNameID::forAscii(rt, "frozen"), jsi::PropNameID::forAscii(rt, "message")};
-  return decode_body_unikitRegistryDemo(rt, resultObj, r, _properties.data());
-}
-
 static void encode_body_scoreTotal(jsi::Runtime& rt, const jsi::Object& argsObj, rc::Writer& w, const jsi::PropNameID* _properties) {
   const auto& _prop_0 = _properties[0];
   { auto _o = argsObj.getProperty(rt, _prop_0).asObject(rt); auto _names = _o.getPropertyNames(rt); const auto _count = _names.length(rt); UnikitMapEntries _entries(rt, _count); for (size_t _j = 0; _j < _count; _j++) { auto _key = _names.getValueAtIndex(rt, _j).getString(rt); auto _k = _key.utf8(rt); auto _value = unikit_map_value(rt, _o, _key, _k); _entries.emplace_back(std::move(_k), std::move(_value)); } std::sort(_entries.begin(), _entries.end(), [](const auto& _a, const auto& _b){ return _a.first < _b.first; }); w.push_uvar(_entries.size()); for (auto& _it : _entries) { w.push_string(_it.first); jsi::Value& _e = _it.second; w.push_i64(unikit_i64(rt, _e, "scores{}")); } }
@@ -1382,6 +1349,39 @@ static jsi::Value decode_toUpper(jsi::Runtime& rt, rc::Reader& r) {
   auto resultObj = jsi::Object(rt);
   const std::array<jsi::PropNameID, 1> _properties{jsi::PropNameID::forAscii(rt, "result")};
   return decode_body_toUpper(rt, resultObj, r, _properties.data());
+}
+
+static void encode_body_unikitRegistryDemo(jsi::Runtime& rt, const jsi::Object& argsObj, rc::Writer& w, const jsi::PropNameID* _properties) {
+  const auto& _prop_0 = _properties[0];
+  { auto _v = argsObj.getProperty(rt, _prop_0).getString(rt).utf8(rt); w.push_string(_v); }
+}
+static void encode_unikitRegistryDemo(jsi::Runtime& rt, const jsi::Value& args, rc::Writer& w) {
+  w.push_u8(12); w.push_u8(0); // cmd_id = 12 LE
+  auto argsObj = args.asObject(rt);
+  const std::array<jsi::PropNameID, 1> _properties{jsi::PropNameID::forAscii(rt, "op")};
+  encode_body_unikitRegistryDemo(rt, argsObj, w, _properties.data());
+}
+
+// (Tier 1 positional) 개별 인자 → 직접 인코딩. argsObj 경유 대비 JSI 프로퍼티 조회 1회 제거.
+static void encode_pos_unikitRegistryDemo(jsi::Runtime& rt, const jsi::Value* argv, size_t argc, rc::Writer& w) {
+  if (argc != 1) throw jsi::JSError(rt, "unikit: unikitRegistryDemo expects 1 positional argument(s), got " + std::to_string(argc));
+  w.push_u8(12); w.push_u8(0); // cmd_id = 12 LE
+  { auto _s = argv[0].asString(rt).utf8(rt); w.push_string(_s); }
+}
+
+static jsi::Value decode_body_unikitRegistryDemo(jsi::Runtime& rt, jsi::Object& resultObj, rc::Reader& r, const jsi::PropNameID* _properties) {
+  const auto& _prop_0 = _properties[0];
+  const auto& _prop_1 = _properties[1];
+  const auto& _prop_2 = _properties[2];
+  resultObj.setProperty(rt, _prop_0, r.read_bool());
+  resultObj.setProperty(rt, _prop_1, r.read_bool());
+  { auto _s = r.read_string_view(); resultObj.setProperty(rt, _prop_2, jsi::String::createFromUtf8(rt, _s.data, _s.size)); }
+  return std::move(resultObj);
+}
+static jsi::Value decode_unikitRegistryDemo(jsi::Runtime& rt, rc::Reader& r) {
+  auto resultObj = jsi::Object(rt);
+  const std::array<jsi::PropNameID, 3> _properties{jsi::PropNameID::forAscii(rt, "ok"), jsi::PropNameID::forAscii(rt, "frozen"), jsi::PropNameID::forAscii(rt, "message")};
+  return decode_body_unikitRegistryDemo(rt, resultObj, r, _properties.data());
 }
 
 static void encode_body_wideAgg(jsi::Runtime& rt, const jsi::Object& argsObj, rc::Writer& w, const jsi::PropNameID* _properties) {
@@ -1614,11 +1614,6 @@ bool encode_bound(Runtime& rt, const BoundCodecContext& context, const Value& ar
       auto argsObj = args.asObject(rt);
       encode_body_resourceWrite(rt, argsObj, w, context.input.data()); return true;
     }
-    case 12: {
-      w.push_u8(12); w.push_u8(0);
-      auto argsObj = args.asObject(rt);
-      encode_body_unikitRegistryDemo(rt, argsObj, w, context.input.data()); return true;
-    }
     case 15: {
       w.push_u8(15); w.push_u8(0);
       auto argsObj = args.asObject(rt);
@@ -1648,6 +1643,11 @@ bool encode_bound(Runtime& rt, const BoundCodecContext& context, const Value& ar
       w.push_u8(7); w.push_u8(0);
       auto argsObj = args.asObject(rt);
       encode_body_toUpper(rt, argsObj, w, context.input.data()); return true;
+    }
+    case 12: {
+      w.push_u8(12); w.push_u8(0);
+      auto argsObj = args.asObject(rt);
+      encode_body_unikitRegistryDemo(rt, argsObj, w, context.input.data()); return true;
     }
     case 28: {
       w.push_u8(28); w.push_u8(0);
@@ -1771,10 +1771,6 @@ Value decode_bound(Runtime& rt, const BoundCodecContext& context, rc::Reader& r)
       auto resultObj = jsi::Object(rt);
       return decode_body_resourceWrite(rt, resultObj, r, context.output.data());
     }
-    case 12: {
-      auto resultObj = jsi::Object(rt);
-      return decode_body_unikitRegistryDemo(rt, resultObj, r, context.output.data());
-    }
     case 15: {
       auto resultObj = jsi::Object(rt);
       return decode_body_scoreTotal(rt, resultObj, r, context.output.data());
@@ -1798,6 +1794,10 @@ Value decode_bound(Runtime& rt, const BoundCodecContext& context, rc::Reader& r)
     case 7: {
       auto resultObj = jsi::Object(rt);
       return decode_body_toUpper(rt, resultObj, r, context.output.data());
+    }
+    case 12: {
+      auto resultObj = jsi::Object(rt);
+      return decode_body_unikitRegistryDemo(rt, resultObj, r, context.output.data());
     }
     case 28: {
       auto resultObj = jsi::Object(rt);
@@ -1838,13 +1838,13 @@ bool encode_by_name(Runtime& rt, const std::string& name, const Value& args, rc:
   if (name == "resourceOpen") { encode_resourceOpen(rt, args, w); return true; }
   if (name == "resourceRead") { encode_resourceRead(rt, args, w); return true; }
   if (name == "resourceWrite") { encode_resourceWrite(rt, args, w); return true; }
-  if (name == "unikitRegistryDemo") { encode_unikitRegistryDemo(rt, args, w); return true; }
   if (name == "scoreTotal") { encode_scoreTotal(rt, args, w); return true; }
   if (name == "secureCompute") { encode_secureCompute(rt, args, w); return true; }
   if (name == "sizeOf") { encode_sizeOf(rt, args, w); return true; }
   if (name == "span") { encode_span(rt, args, w); return true; }
   if (name == "sumList") { encode_sumList(rt, args, w); return true; }
   if (name == "toUpper") { encode_toUpper(rt, args, w); return true; }
+  if (name == "unikitRegistryDemo") { encode_unikitRegistryDemo(rt, args, w); return true; }
   if (name == "wideAgg") { encode_wideAgg(rt, args, w); return true; }
   if (name == "echoGroups") { encode_complex_echoGroups(rt, args, w); return true; }
   if (name == "kindEcho") { encode_complex_kindEcho(rt, args, w); return true; }
@@ -1880,13 +1880,13 @@ Value decode_by_name(Runtime& rt, const std::string& name, rc::Reader& r) {
   if (name == "resourceOpen") return decode_resourceOpen(rt, r);
   if (name == "resourceRead") return decode_resourceRead(rt, r);
   if (name == "resourceWrite") return decode_resourceWrite(rt, r);
-  if (name == "unikitRegistryDemo") return decode_unikitRegistryDemo(rt, r);
   if (name == "scoreTotal") return decode_scoreTotal(rt, r);
   if (name == "secureCompute") return decode_secureCompute(rt, r);
   if (name == "sizeOf") return decode_sizeOf(rt, r);
   if (name == "span") return decode_span(rt, r);
   if (name == "sumList") return decode_sumList(rt, r);
   if (name == "toUpper") return decode_toUpper(rt, r);
+  if (name == "unikitRegistryDemo") return decode_unikitRegistryDemo(rt, r);
   if (name == "wideAgg") return decode_wideAgg(rt, r);
   if (name == "echoGroups") return decode_complex_echoGroups(rt, r);
   if (name == "kindEcho") return decode_complex_kindEcho(rt, r);
@@ -1923,13 +1923,13 @@ bool encode_by_id(Runtime& rt, uint16_t cmd_id, const Value& args, rc::Writer& w
     case 19: encode_resourceOpen(rt, args, w); return true;
     case 20: encode_resourceRead(rt, args, w); return true;
     case 21: encode_resourceWrite(rt, args, w); return true;
-    case 12: encode_unikitRegistryDemo(rt, args, w); return true;
     case 15: encode_scoreTotal(rt, args, w); return true;
     case 13: encode_secureCompute(rt, args, w); return true;
     case 14: encode_sizeOf(rt, args, w); return true;
     case 16: encode_span(rt, args, w); return true;
     case 6: encode_sumList(rt, args, w); return true;
     case 7: encode_toUpper(rt, args, w); return true;
+    case 12: encode_unikitRegistryDemo(rt, args, w); return true;
     case 28: encode_wideAgg(rt, args, w); return true;
     case 27: encode_complex_echoGroups(rt, args, w); return true;
     case 33: encode_complex_kindEcho(rt, args, w); return true;
@@ -1967,13 +1967,13 @@ Value decode_by_id(Runtime& rt, uint16_t cmd_id, rc::Reader& r) {
     case 19: return decode_resourceOpen(rt, r);
     case 20: return decode_resourceRead(rt, r);
     case 21: return decode_resourceWrite(rt, r);
-    case 12: return decode_unikitRegistryDemo(rt, r);
     case 15: return decode_scoreTotal(rt, r);
     case 13: return decode_secureCompute(rt, r);
     case 14: return decode_sizeOf(rt, r);
     case 16: return decode_span(rt, r);
     case 6: return decode_sumList(rt, r);
     case 7: return decode_toUpper(rt, r);
+    case 12: return decode_unikitRegistryDemo(rt, r);
     case 28: return decode_wideAgg(rt, r);
     case 27: return decode_complex_echoGroups(rt, r);
     case 33: return decode_complex_kindEcho(rt, r);
@@ -2010,13 +2010,13 @@ bool has_static_codec(const std::string& name) {
   if (name == "resourceOpen") return true;
   if (name == "resourceRead") return true;
   if (name == "resourceWrite") return true;
-  if (name == "unikitRegistryDemo") return true;
   if (name == "scoreTotal") return true;
   if (name == "secureCompute") return true;
   if (name == "sizeOf") return true;
   if (name == "span") return true;
   if (name == "sumList") return true;
   if (name == "toUpper") return true;
+  if (name == "unikitRegistryDemo") return true;
   if (name == "wideAgg") return true;
   if (name == "echoGroups") return true;
   if (name == "kindEcho") return true;
@@ -2053,13 +2053,13 @@ bool has_static_codec_id(uint16_t cmd_id) {
     case 19: return true;
     case 20: return true;
     case 21: return true;
-    case 12: return true;
     case 15: return true;
     case 13: return true;
     case 14: return true;
     case 16: return true;
     case 6: return true;
     case 7: return true;
+    case 12: return true;
     case 28: return true;
     case 27: return true;
     case 33: return true;
@@ -2090,10 +2090,10 @@ bool has_pos_codec(uint16_t cmd_id) {
   if (cmd_id == 22) return true;
   if (cmd_id == 20) return true;
   if (cmd_id == 21) return true;
-  if (cmd_id == 12) return true;
   if (cmd_id == 13) return true;
   if (cmd_id == 14) return true;
   if (cmd_id == 7) return true;
+  if (cmd_id == 12) return true;
   return false;
 }
 
@@ -2120,10 +2120,10 @@ void encode_pos_by_id(jsi::Runtime& rt, uint16_t cmd_id, const jsi::Value* argv,
     case 22: encode_pos_resourceClose(rt, argv, argc, w); return;
     case 20: encode_pos_resourceRead(rt, argv, argc, w); return;
     case 21: encode_pos_resourceWrite(rt, argv, argc, w); return;
-    case 12: encode_pos_unikitRegistryDemo(rt, argv, argc, w); return;
     case 13: encode_pos_secureCompute(rt, argv, argc, w); return;
     case 14: encode_pos_sizeOf(rt, argv, argc, w); return;
     case 7: encode_pos_toUpper(rt, argv, argc, w); return;
+    case 12: encode_pos_unikitRegistryDemo(rt, argv, argc, w); return;
     default: throw JSError(rt, "unikit: no positional codec for cmd_id " + std::to_string(cmd_id));
   }
 }

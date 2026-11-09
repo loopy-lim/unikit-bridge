@@ -5255,17 +5255,6 @@ public func resourceWrite(input: ResourceWriteInput)throws  -> ResourceWriteOutp
 })
 }
 /**
- * `unikitRegistryDemo` — `crate::unikit_registry_demo` 커맨드의 UniFFI 타입 래퍼.
- */
-public func unikitRegistryDemo(input: RegistryDemoInput)throws  -> RegistryDemoOutput  {
-    return try  FfiConverterTypeRegistryDemoOutput_lift(try rustCallWithError(FfiConverterTypeUnikitCommandFailure_lift) {
-        uniffiCallStatus in
-    uniffi_unikit_calculator_example_fn_func_unikitregistrydemo(
-        FfiConverterTypeRegistryDemoInput_lower(input),uniffiCallStatus
-    )
-})
-}
-/**
  * `safeDivide` — 일반 함수의 UniFFI 위치 인수 래퍼.
  */
 public func safeDivide(arg0: Double, arg1: Double)throws  -> Double  {
@@ -5355,6 +5344,17 @@ public func toUpper(input: ToUpperInput)throws  -> ToUpperOutput  {
 })
 }
 /**
+ * `unikitRegistryDemo` — `crate::unikit_registry_demo` 커맨드의 UniFFI 타입 래퍼.
+ */
+public func unikitRegistryDemo(input: RegistryDemoInput)throws  -> RegistryDemoOutput  {
+    return try  FfiConverterTypeRegistryDemoOutput_lift(try rustCallWithError(FfiConverterTypeUnikitCommandFailure_lift) {
+        uniffiCallStatus in
+    uniffi_unikit_calculator_example_fn_func_unikitregistrydemo(
+        FfiConverterTypeRegistryDemoInput_lower(input),uniffiCallStatus
+    )
+})
+}
+/**
  * `wideAgg` — `crate::wide_agg` 커맨드의 UniFFI 타입 래퍼.
  */
 public func wideAgg(input: WideAggInput)throws  -> WideAggOutput  {
@@ -5381,145 +5381,145 @@ private let initializationResult: InitializationResult = {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_add() != 7317) {
+    if (uniffi_unikit_calculator_example_checksum_func_add() != 57503) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_addnumbers() != 26346) {
+    if (uniffi_unikit_calculator_example_checksum_func_addnumbers() != 2945) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_benchadd() != 38735) {
+    if (uniffi_unikit_calculator_example_checksum_func_benchadd() != 39331) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_benchechobytes() != 52368) {
+    if (uniffi_unikit_calculator_example_checksum_func_benchechobytes() != 23529) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_benchechopair() != 16278) {
+    if (uniffi_unikit_calculator_example_checksum_func_benchechopair() != 9376) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_benchechostring() != 16098) {
+    if (uniffi_unikit_calculator_example_checksum_func_benchechostring() != 50750) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_channeldemo() != 19525) {
+    if (uniffi_unikit_calculator_example_checksum_func_channeldemo() != 59699) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_channeldemobytes() != 19944) {
+    if (uniffi_unikit_calculator_example_checksum_func_channeldemobytes() != 20957) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_clamp() != 53189) {
+    if (uniffi_unikit_calculator_example_checksum_func_clamp() != 8618) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_contracthash() != 63409) {
+    if (uniffi_unikit_calculator_example_checksum_func_contracthash() != 1204) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_createitem() != 40725) {
+    if (uniffi_unikit_calculator_example_checksum_func_createitem() != 21877) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_devicedemo() != 48297) {
+    if (uniffi_unikit_calculator_example_checksum_func_devicedemo() != 52352) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_divide() != 33615) {
+    if (uniffi_unikit_calculator_example_checksum_func_divide() != 37200) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_echogroups() != 19097) {
+    if (uniffi_unikit_calculator_example_checksum_func_echogroups() != 60682) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_emitdemo() != 10571) {
+    if (uniffi_unikit_calculator_example_checksum_func_emitdemo() != 21602) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_gauge() != 43678) {
+    if (uniffi_unikit_calculator_example_checksum_func_gauge() != 10327) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_getschema() != 25805) {
+    if (uniffi_unikit_calculator_example_checksum_func_getschema() != 3136) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_greet() != 40983) {
+    if (uniffi_unikit_calculator_example_checksum_func_greet() != 12078) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_greetperson() != 12281) {
+    if (uniffi_unikit_calculator_example_checksum_func_greetperson() != 45309) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_invokejson() != 15830) {
+    if (uniffi_unikit_calculator_example_checksum_func_invokejson() != 37245) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_iseven() != 52133) {
+    if (uniffi_unikit_calculator_example_checksum_func_iseven() != 1696) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_kindecho() != 18248) {
+    if (uniffi_unikit_calculator_example_checksum_func_kindecho() != 53063) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_multiply() != 37534) {
+    if (uniffi_unikit_calculator_example_checksum_func_multiply() != 62073) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_parityecho() != 52339) {
+    if (uniffi_unikit_calculator_example_checksum_func_parityecho() != 27427) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_parityfind() != 39123) {
+    if (uniffi_unikit_calculator_example_checksum_func_parityfind() != 36801) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_parityindexed() != 40255) {
+    if (uniffi_unikit_calculator_example_checksum_func_parityindexed() != 28081) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_parityresident() != 60842) {
+    if (uniffi_unikit_calculator_example_checksum_func_parityresident() != 4183) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_paritystore() != 45315) {
+    if (uniffi_unikit_calculator_example_checksum_func_paritystore() != 38944) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_platformnativeinfo() != 56716) {
+    if (uniffi_unikit_calculator_example_checksum_func_platformnativeinfo() != 22106) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_processitem() != 6741) {
+    if (uniffi_unikit_calculator_example_checksum_func_processitem() != 25449) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_readremembered() != 1137) {
+    if (uniffi_unikit_calculator_example_checksum_func_readremembered() != 43419) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_remember() != 37808) {
+    if (uniffi_unikit_calculator_example_checksum_func_remember() != 40783) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_reset() != 42920) {
+    if (uniffi_unikit_calculator_example_checksum_func_reset() != 34972) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_resourceclose() != 35746) {
+    if (uniffi_unikit_calculator_example_checksum_func_resourceclose() != 4018) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_resourceopen() != 12002) {
+    if (uniffi_unikit_calculator_example_checksum_func_resourceopen() != 42964) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_resourceread() != 50323) {
+    if (uniffi_unikit_calculator_example_checksum_func_resourceread() != 35633) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_resourcewrite() != 63142) {
+    if (uniffi_unikit_calculator_example_checksum_func_resourcewrite() != 8033) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_unikitregistrydemo() != 30147) {
+    if (uniffi_unikit_calculator_example_checksum_func_safedivide() != 9397) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_safedivide() != 65085) {
+    if (uniffi_unikit_calculator_example_checksum_func_scoretotal() != 16984) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_scoretotal() != 64792) {
+    if (uniffi_unikit_calculator_example_checksum_func_securecompute() != 48692) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_securecompute() != 7333) {
+    if (uniffi_unikit_calculator_example_checksum_func_sizeof() != 9541) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_sizeof() != 10734) {
+    if (uniffi_unikit_calculator_example_checksum_func_span() != 8337) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_span() != 24023) {
+    if (uniffi_unikit_calculator_example_checksum_func_sumlist() != 19102) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_sumlist() != 57074) {
+    if (uniffi_unikit_calculator_example_checksum_func_tagset() != 25791) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_tagset() != 3367) {
+    if (uniffi_unikit_calculator_example_checksum_func_toupper() != 46815) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_toupper() != 48777) {
+    if (uniffi_unikit_calculator_example_checksum_func_unikitregistrydemo() != 18867) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_unikit_calculator_example_checksum_func_wideagg() != 55913) {
+    if (uniffi_unikit_calculator_example_checksum_func_wideagg() != 19244) {
         return InitializationResult.apiChecksumMismatch
     }
 

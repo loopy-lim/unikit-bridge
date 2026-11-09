@@ -434,11 +434,6 @@ RustBuffer uniffi_unikit_calculator_example_fn_func_resourceread(RustBuffer inpu
 RustBuffer uniffi_unikit_calculator_example_fn_func_resourcewrite(RustBuffer input, RustCallStatus *_Nonnull out_status
 );
 #endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_FN_FUNC_UNIKITREGISTRYDEMO
-#define UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_FN_FUNC_UNIKITREGISTRYDEMO
-RustBuffer uniffi_unikit_calculator_example_fn_func_unikitregistrydemo(RustBuffer input, RustCallStatus *_Nonnull out_status
-);
-#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_FN_FUNC_SAFEDIVIDE
 #define UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_FN_FUNC_SAFEDIVIDE
 double uniffi_unikit_calculator_example_fn_func_safedivide(double arg0, double arg1, RustCallStatus *_Nonnull out_status
@@ -477,6 +472,11 @@ RustBuffer uniffi_unikit_calculator_example_fn_func_tagset(RustBuffer input, Rus
 #ifndef UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_FN_FUNC_TOUPPER
 #define UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_FN_FUNC_TOUPPER
 RustBuffer uniffi_unikit_calculator_example_fn_func_toupper(RustBuffer input, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_FN_FUNC_UNIKITREGISTRYDEMO
+#define UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_FN_FUNC_UNIKITREGISTRYDEMO
+RustBuffer uniffi_unikit_calculator_example_fn_func_unikitregistrydemo(RustBuffer input, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_FN_FUNC_WIDEAGG
@@ -966,12 +966,6 @@ uint16_t uniffi_unikit_calculator_example_checksum_func_resourcewrite(void
     
 );
 #endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_CHECKSUM_FUNC_UNIKITREGISTRYDEMO
-#define UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_CHECKSUM_FUNC_UNIKITREGISTRYDEMO
-uint16_t uniffi_unikit_calculator_example_checksum_func_unikitregistrydemo(void
-    
-);
-#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_CHECKSUM_FUNC_SAFEDIVIDE
 #define UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_CHECKSUM_FUNC_SAFEDIVIDE
 uint16_t uniffi_unikit_calculator_example_checksum_func_safedivide(void
@@ -1017,6 +1011,12 @@ uint16_t uniffi_unikit_calculator_example_checksum_func_tagset(void
 #ifndef UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_CHECKSUM_FUNC_TOUPPER
 #define UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_CHECKSUM_FUNC_TOUPPER
 uint16_t uniffi_unikit_calculator_example_checksum_func_toupper(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_CHECKSUM_FUNC_UNIKITREGISTRYDEMO
+#define UNIFFI_FFIDEF_UNIFFI_UNIKIT_CALCULATOR_EXAMPLE_CHECKSUM_FUNC_UNIKITREGISTRYDEMO
+uint16_t uniffi_unikit_calculator_example_checksum_func_unikitregistrydemo(void
     
 );
 #endif

@@ -296,7 +296,7 @@ fn capability_command_cannot_be_silently_registered_without_capability() {
             tmp_dir.join("Cargo.toml"),
             format!(
                 "[package]\nname = \"cap-test\"\nedition = \"2024\"\nversion = \"0.1.0\"\n\n\
-                [dependencies]\nunikit = {{ path = \"{}/crates/unikit-bridge\" }}\n\
+                [dependencies]\nunikit-bridge = {{ path = \"{}/crates/unikit-bridge\" }}\n\
                 serde = {{ version = \"1\", features = [\"derive\"] }}\n\
                 schemars = {{ version = \"0.8\", features = [\"derive\"] }}\n",
                 workspace_dir
@@ -331,7 +331,7 @@ fn capability_command_cannot_be_silently_registered_without_capability() {
         }
         let manifest = format!(
             "[package]\nname = \"cap-lib\"\nedition = \"2024\"\nversion = \"0.1.0\"\n\n\
-             [dependencies]\nunikit = {{ path = \"{}/crates/unikit-bridge\" }}\n\
+             [dependencies]\nunikit-bridge = {{ path = \"{}/crates/unikit-bridge\" }}\n\
              serde = {{ version = \"1\", features = [\"derive\"] }}\n\
              schemars = {{ version = \"0.8\", features = [\"derive\"] }}\n",
             workspace_dir
@@ -715,7 +715,7 @@ fn command_macro_rejects_wrong_signature() {
             tmp_dir.join("Cargo.toml"),
             format!(
                 "[package]\nname = \"macro-test\"\nedition = \"2024\"\nversion = \"0.1.0\"\n\n\
-                [dependencies]\nunikit = {{ path = \"{}/crates/unikit-bridge\" }}\n\
+                [dependencies]\nunikit-bridge = {{ path = \"{}/crates/unikit-bridge\" }}\n\
                 serde = {{ version = \"1\", features = [\"derive\"] }}\n\
                 schemars = {{ version = \"0.8\", features = [\"derive\"] }}\n",
                 // Windows 경로의 백슬래시는 TOML 기본 문자열에서 이스케이프로

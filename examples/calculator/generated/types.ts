@@ -315,16 +315,6 @@ export type ResourceWriteOutput = {
   entries: number;
 };
 
-export type RegistryDemoInput = {
-  op: string;
-};
-
-export type RegistryDemoOutput = {
-  ok: boolean;
-  frozen: boolean;
-  message: string;
-};
-
 /**
  * @deprecated Rust 내부 타입명(`Tuple_of_double_and_double`)이 그대로 노출된 레거시 별칭입니다.
  * 새 코드는 인라인 타입을 사용하세요 — 생성 명령 시그니처는 이미 정화됐고,
@@ -398,6 +388,16 @@ export type ToUpperInput = {
 
 export type ToUpperOutput = {
   result: string;
+};
+
+export type RegistryDemoInput = {
+  op: string;
+};
+
+export type RegistryDemoOutput = {
+  ok: boolean;
+  frozen: boolean;
+  message: string;
 };
 
 /**

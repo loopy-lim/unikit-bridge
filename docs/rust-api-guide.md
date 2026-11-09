@@ -937,7 +937,7 @@ export type AddNumbersOutput = {
 <!-- docs:sync:begin examples/calculator/generated/commands.ts -->
 
 <!-- prettier-ignore -->
-```typescript
+```ts
 import type { AddNumbersInput, AddNumbersOutput, BenchAddInput, BenchAddOutput, BenchBytesPayload, BenchPairPayload, BenchStringPayload, ChannelDemoBytesInput, ChannelDemoBytesOutput, ChannelDemoInput, ChannelDemoOutput, ClampInput, ClampOutput, CreateItemInput, CreateItemOutput, DeviceDemoOutput, DivideInput, DivideOutput, EchoGroupsInput, EchoGroupsOutput, EmitDemoInput, EmitDemoOutput, GaugeInput, GaugeOutput, GreetInput, GreetOutput, IsEvenInput, IsEvenOutput, KindEchoInput, KindEchoOutput, MultiplyInput, MultiplyOutput, ParityFindInput, ParityQuery, ParitySearch, ParityStored, ParityTree, PlatformNativeInfoOutput, ProcessItemInput, ProcessItemOutput, RegistryDemoInput, RegistryDemoOutput, ResourceCloseInput, ResourceCloseOutput, ResourceHandleOutput, ResourceOpenInput, ResourceReadInput, ResourceReadOutput, ResourceWriteInput, ResourceWriteOutput, ScoreTotalInput, ScoreTotalOutput, SecureComputeInput, SecureComputeOutput, SizeOfInput, SizeOfOutput, SpanInput, SpanOutput, SumListInput, SumListOutput, TagSetInput, TagSetOutput, ToUpperInput, ToUpperOutput, WideAggInput, WideAggOutput } from './types.js';
 import { createGeneratedFields1, createGeneratedFields2, invokeGenerated, invokeGeneratedBytes, invokeGeneratedFields3 } from '@unikit/types';
 import type { InvokeOptions as CoreInvokeOptions } from '@unikit/types';
@@ -1090,12 +1090,6 @@ export function resourceWrite(input: ResourceWriteInput, options?: InvokeOptions
 }
 resourceWrite.commandId = 'resourceWrite';
 
-/**
- * 런타임 registry 제어 명령. op:
- * `register` / `unregister` / `replacePing` / `replaceAdd` / `restoreAdd` / `freeze` / `state`.
- */
-export const unikitRegistryDemo = createGeneratedFields1<RegistryDemoInput, RegistryDemoOutput>(12, 'unikitRegistryDemo', "op", 'unikitRegistryDemo');
-
 export function safeDivide(arg0: number, arg1: number, options?: InvokeOptions): Promise<number> {
   return invokeGenerated<number>(41, 'safeDivide', [arg0, arg1], options);
 }
@@ -1138,6 +1132,12 @@ export function tagSet(input: TagSetInput, options?: InvokeOptions): Promise<Tag
 tagSet.commandId = 'tagSet';
 
 export const toUpper = createGeneratedFields1<ToUpperInput, ToUpperOutput>(7, 'toUpper', "s", 'toUpper');
+
+/**
+ * 런타임 registry 제어 명령. op:
+ * `register` / `unregister` / `replacePing` / `replaceAdd` / `restoreAdd` / `freeze` / `state`.
+ */
+export const unikitRegistryDemo = createGeneratedFields1<RegistryDemoInput, RegistryDemoOutput>(12, 'unikitRegistryDemo', "op", 'unikitRegistryDemo');
 
 /**
  * A2 와이드 정수 복합 타입 표본 — Vec<u64> + Option<i64>. 원소/옵션 레벨 uvar64/zigzag64 헬퍼가 스트림 중간 7바이트 varint 경계를 넘는 값을 무손실 왕복하는지 cross-wire 픽스처로 고정한다.

@@ -2595,83 +2595,6 @@ export const resourceWriteCodec: FrameCodec<ResourceWriteInput, ResourceWriteOut
   },
 };
 
-export const unikitRegistryDemoCodec: FrameCodec<RegistryDemoInput, RegistryDemoOutput> = {
-  commandId: 12,
-  execution: "sync",
-  syncFields: ["op"],
-
-  encode(args: RegistryDemoInput): ArrayBuffer {
-    // [cmd_id: u16 LE][postcard(RegistryDemoInput)]
-    const parts: Uint8Array[] = [];
-    const cmdId = new Uint8Array(2);
-    new DataView(cmdId.buffer).setUint16(0, 12, true);
-    parts.push(cmdId);
-    parts.push(_pcEncodeString(args.op));
-    return _pcConcatUint8Arrays(parts).buffer as ArrayBuffer;
-  },
-
-  encodeInto(args: RegistryDemoInput, reuse?: Uint8Array): Uint8Array {
-    let out = reuse ?? new Uint8Array(64);
-    let w = 0;
-    const ensure = (need: number) => {
-      if (w + need <= out.length) return;
-      const grown = new Uint8Array(Math.max(out.length * 2, w + need));
-      grown.set(out.subarray(0, w));
-      out = grown;
-    };
-    ensure(2);
-    out[w++] = 12; out[w++] = 0;
-    { const _s = args.op; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
-    return out.subarray(0, w);
-  },
-
-  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: RegistryDemoOutput; error?: UnikitError } {
-    // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
-    // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
-    // (buf.buffer, byteOffset) 로 정규화한다.
-    const isView = ArrayBuffer.isView(buf);
-    const u8 = isView
-      ? new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength)
-      : new Uint8Array(buf);
-    const view = isView
-      ? new DataView(buf.buffer, buf.byteOffset, buf.byteLength)
-      : new DataView(buf);
-    if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
-    if (u8[0] !== 1) {
-      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
-      try {
-        const errLen = view.getUint16(8, true);
-        if (errLen > 0) {
-          // postcard({ code: String, message: String })
-          const c = _pcDecodeString(u8, 10);
-          const m = _pcDecodeString(u8, 10 + c.bytesRead);
-          err = { code: c.value, message: m.value };
-        }
-      } catch {
-        // 잘린/뒤틀린 에러 프레임 — 기본 err 를 유지한다.
-      }
-      return { ok: false, error: err };
-    }
-    // Decode postcard from offset 8
-    let offset = 8;
-    const result: Partial<RegistryDemoOutput> = {};
-    {
-      result.ok = u8[offset] === 1;
-      offset += 1;
-    }
-    {
-      result.frozen = u8[offset] === 1;
-      offset += 1;
-    }
-    {
-      const _v = _pcDecodeString(u8, offset);
-      result.message = _v.value;
-      offset += _v.bytesRead;
-    }
-    return { ok: true, result: result as RegistryDemoOutput };
-  },
-};
-
 export const safeDivideCodec: FrameCodec<Tuple_of_double_and_double, double> = {
   commandId: 41,
 
@@ -3162,6 +3085,83 @@ export const toUpperCodec: FrameCodec<ToUpperInput, ToUpperOutput> = {
       offset += _v.bytesRead;
     }
     return { ok: true, result: result as ToUpperOutput };
+  },
+};
+
+export const unikitRegistryDemoCodec: FrameCodec<RegistryDemoInput, RegistryDemoOutput> = {
+  commandId: 12,
+  execution: "sync",
+  syncFields: ["op"],
+
+  encode(args: RegistryDemoInput): ArrayBuffer {
+    // [cmd_id: u16 LE][postcard(RegistryDemoInput)]
+    const parts: Uint8Array[] = [];
+    const cmdId = new Uint8Array(2);
+    new DataView(cmdId.buffer).setUint16(0, 12, true);
+    parts.push(cmdId);
+    parts.push(_pcEncodeString(args.op));
+    return _pcConcatUint8Arrays(parts).buffer as ArrayBuffer;
+  },
+
+  encodeInto(args: RegistryDemoInput, reuse?: Uint8Array): Uint8Array {
+    let out = reuse ?? new Uint8Array(64);
+    let w = 0;
+    const ensure = (need: number) => {
+      if (w + need <= out.length) return;
+      const grown = new Uint8Array(Math.max(out.length * 2, w + need));
+      grown.set(out.subarray(0, w));
+      out = grown;
+    };
+    ensure(2);
+    out[w++] = 12; out[w++] = 0;
+    { const _s = args.op; const _u = _utf8Encode(_s); ensure(5 + _u.length); let _v = _u.length; do { out[w++] = (_v % 128) | 0x80; _v = Math.floor(_v / 128); } while (_v > 0); out[w - 1] = out[w - 1]! & 0x7f; out.set(_u, w); w += _u.length; }
+    return out.subarray(0, w);
+  },
+
+  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: RegistryDemoOutput; error?: UnikitError } {
+    // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당
+    // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로
+    // (buf.buffer, byteOffset) 로 정규화한다.
+    const isView = ArrayBuffer.isView(buf);
+    const u8 = isView
+      ? new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength)
+      : new Uint8Array(buf);
+    const view = isView
+      ? new DataView(buf.buffer, buf.byteOffset, buf.byteLength)
+      : new DataView(buf);
+    if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };
+    if (u8[0] !== 1) {
+      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };
+      try {
+        const errLen = view.getUint16(8, true);
+        if (errLen > 0) {
+          // postcard({ code: String, message: String })
+          const c = _pcDecodeString(u8, 10);
+          const m = _pcDecodeString(u8, 10 + c.bytesRead);
+          err = { code: c.value, message: m.value };
+        }
+      } catch {
+        // 잘린/뒤틀린 에러 프레임 — 기본 err 를 유지한다.
+      }
+      return { ok: false, error: err };
+    }
+    // Decode postcard from offset 8
+    let offset = 8;
+    const result: Partial<RegistryDemoOutput> = {};
+    {
+      result.ok = u8[offset] === 1;
+      offset += 1;
+    }
+    {
+      result.frozen = u8[offset] === 1;
+      offset += 1;
+    }
+    {
+      const _v = _pcDecodeString(u8, offset);
+      result.message = _v.value;
+      offset += _v.bytesRead;
+    }
+    return { ok: true, result: result as RegistryDemoOutput };
   },
 };
 

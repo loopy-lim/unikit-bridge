@@ -646,16 +646,6 @@ export type ResourceWriteOutput = {
   entries: number;
 };
 
-export type RegistryDemoInput = {
-  op: string;
-};
-
-export type RegistryDemoOutput = {
-  ok: boolean;
-  frozen: boolean;
-  message: string;
-};
-
 /**
  * @deprecated Rust 내부 타입명(`Tuple_of_double_and_double`)이 그대로 노출된 레거시 별칭입니다.
  * 새 코드는 인라인 타입을 사용하세요 — 생성 명령 시그니처는 이미 정화됐고,
@@ -731,6 +721,16 @@ export type ToUpperOutput = {
   result: string;
 };
 
+export type RegistryDemoInput = {
+  op: string;
+};
+
+export type RegistryDemoOutput = {
+  ok: boolean;
+  frozen: boolean;
+  message: string;
+};
+
 /**
  * A2 와이드 정수 복합 타입 표본 — Vec<u64> + Option<i64>. 원소/옵션 레벨 uvar64/zigzag64 헬퍼가 스트림 중간 7바이트 varint 경계를 넘는 값을 무손실 왕복하는지 cross-wire 픽스처로 고정한다.
  */
@@ -779,7 +779,7 @@ export const addNumbers = createGeneratedFields2<AddNumbersInput, AddNumbersOutp
 
 <!-- prettier-ignore -->
 ```ts
-export const GENERATED_CONTRACT_HASH = 'e70c24c62944ff78fb6ca58b5658d85bb5cff49af4acc96b3a78bedcbdfb0a58';
+export const GENERATED_CONTRACT_HASH = 'be8826170c3764da609a4ce6cda76a8eb105ff818dab1425d52a51b3133df747';
 export const SCHEMA_VERSION = 1;
 ```
 

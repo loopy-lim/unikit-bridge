@@ -377,20 +377,6 @@ pub mod uniffi_api {
         pub entries: u64,
     }
 
-    /// `RegistryDemoInput` 미러 — 실제 타입 `crate::RegistryDemoInput`.
-    #[derive(Debug, uniffi::Record)]
-    pub struct RegistryDemoInput {
-        pub op: String,
-    }
-
-    /// `RegistryDemoOutput` 미러 — 실제 타입 `crate::RegistryDemoOutput`.
-    #[derive(Debug, uniffi::Record)]
-    pub struct RegistryDemoOutput {
-        pub ok: bool,
-        pub frozen: bool,
-        pub message: String,
-    }
-
     /// `ScoreTotalInput` 미러 — 실제 타입 `crate::ScoreTotalInput`.
     #[derive(Debug, uniffi::Record)]
     pub struct ScoreTotalInput {
@@ -485,6 +471,20 @@ pub mod uniffi_api {
     #[derive(Debug, uniffi::Record)]
     pub struct ToUpperOutput {
         pub result: String,
+    }
+
+    /// `RegistryDemoInput` 미러 — 실제 타입 `crate::RegistryDemoInput`.
+    #[derive(Debug, uniffi::Record)]
+    pub struct RegistryDemoInput {
+        pub op: String,
+    }
+
+    /// `RegistryDemoOutput` 미러 — 실제 타입 `crate::RegistryDemoOutput`.
+    #[derive(Debug, uniffi::Record)]
+    pub struct RegistryDemoOutput {
+        pub ok: bool,
+        pub frozen: bool,
+        pub message: String,
     }
 
     /// `WideAggInput` 미러 — 실제 타입 `crate::WideAggInput`.
@@ -1330,38 +1330,6 @@ pub mod uniffi_api {
         }
     }
 
-    impl From<RegistryDemoInput> for crate::RegistryDemoInput {
-        fn from(input: RegistryDemoInput) -> Self {
-            Self { op: input.op }
-        }
-    }
-
-    impl From<crate::RegistryDemoInput> for RegistryDemoInput {
-        fn from(input: crate::RegistryDemoInput) -> Self {
-            Self { op: input.op }
-        }
-    }
-
-    impl From<RegistryDemoOutput> for crate::RegistryDemoOutput {
-        fn from(input: RegistryDemoOutput) -> Self {
-            Self {
-                ok: input.ok,
-                frozen: input.frozen,
-                message: input.message,
-            }
-        }
-    }
-
-    impl From<crate::RegistryDemoOutput> for RegistryDemoOutput {
-        fn from(input: crate::RegistryDemoOutput) -> Self {
-            Self {
-                ok: input.ok,
-                frozen: input.frozen,
-                message: input.message,
-            }
-        }
-    }
-
     impl From<ScoreTotalInput> for crate::ScoreTotalInput {
         fn from(input: ScoreTotalInput) -> Self {
             Self {
@@ -1599,6 +1567,38 @@ pub mod uniffi_api {
         }
     }
 
+    impl From<RegistryDemoInput> for crate::RegistryDemoInput {
+        fn from(input: RegistryDemoInput) -> Self {
+            Self { op: input.op }
+        }
+    }
+
+    impl From<crate::RegistryDemoInput> for RegistryDemoInput {
+        fn from(input: crate::RegistryDemoInput) -> Self {
+            Self { op: input.op }
+        }
+    }
+
+    impl From<RegistryDemoOutput> for crate::RegistryDemoOutput {
+        fn from(input: RegistryDemoOutput) -> Self {
+            Self {
+                ok: input.ok,
+                frozen: input.frozen,
+                message: input.message,
+            }
+        }
+    }
+
+    impl From<crate::RegistryDemoOutput> for RegistryDemoOutput {
+        fn from(input: crate::RegistryDemoOutput) -> Self {
+            Self {
+                ok: input.ok,
+                frozen: input.frozen,
+                message: input.message,
+            }
+        }
+    }
+
     impl From<WideAggInput> for crate::WideAggInput {
         fn from(input: WideAggInput) -> Self {
             Self {
@@ -1645,7 +1645,8 @@ pub mod uniffi_api {
     #[uniffi::export]
     #[allow(non_snake_case)]
     pub fn add(arg0: i32, arg1: i32) -> Result<i32, UnikitCommandFailure> {
-        let args = serde_json::to_value((arg0, arg1)).map_err(unikit_bridge::UnikitError::internal)?;
+        let args =
+            serde_json::to_value((arg0, arg1)).map_err(unikit_bridge::UnikitError::internal)?;
         let out = package().invoke_json("add", args)?;
         serde_json::from_value::<i32>(out)
             .map_err(unikit_bridge::UnikitError::internal)
@@ -2033,25 +2034,12 @@ pub mod uniffi_api {
         Ok(out.into())
     }
 
-    /// `unikitRegistryDemo` — `crate::unikit_registry_demo` 커맨드의 UniFFI 타입 래퍼.
-    #[uniffi::export]
-    #[allow(non_snake_case)]
-    pub fn unikitRegistryDemo(
-        input: RegistryDemoInput,
-    ) -> Result<RegistryDemoOutput, UnikitCommandFailure> {
-        let out: crate::RegistryDemoOutput = package()
-            .invoke_typed::<crate::RegistryDemoInput, crate::RegistryDemoOutput>(
-                "unikitRegistryDemo",
-                &input.into(),
-            )?;
-        Ok(out.into())
-    }
-
     /// `safeDivide` — 일반 함수의 UniFFI 위치 인수 래퍼.
     #[uniffi::export]
     #[allow(non_snake_case)]
     pub fn safeDivide(arg0: f64, arg1: f64) -> Result<f64, UnikitCommandFailure> {
-        let args = serde_json::to_value((arg0, arg1)).map_err(unikit_bridge::UnikitError::internal)?;
+        let args =
+            serde_json::to_value((arg0, arg1)).map_err(unikit_bridge::UnikitError::internal)?;
         let out = package().invoke_json("safeDivide", args)?;
         serde_json::from_value::<f64>(out)
             .map_err(unikit_bridge::UnikitError::internal)
@@ -2126,6 +2114,20 @@ pub mod uniffi_api {
     pub fn toUpper(input: ToUpperInput) -> Result<ToUpperOutput, UnikitCommandFailure> {
         let out: crate::ToUpperOutput = package()
             .invoke_typed::<crate::ToUpperInput, crate::ToUpperOutput>("toUpper", &input.into())?;
+        Ok(out.into())
+    }
+
+    /// `unikitRegistryDemo` — `crate::unikit_registry_demo` 커맨드의 UniFFI 타입 래퍼.
+    #[uniffi::export]
+    #[allow(non_snake_case)]
+    pub fn unikitRegistryDemo(
+        input: RegistryDemoInput,
+    ) -> Result<RegistryDemoOutput, UnikitCommandFailure> {
+        let out: crate::RegistryDemoOutput = package()
+            .invoke_typed::<crate::RegistryDemoInput, crate::RegistryDemoOutput>(
+                "unikitRegistryDemo",
+                &input.into(),
+            )?;
         Ok(out.into())
     }
 
