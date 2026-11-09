@@ -2223,8 +2223,8 @@
     "unikit-bridge::platform::use:serde :: { Deserialize , Serialize }": [
       "use serde :: { Deserialize , Serialize } ;"
     ],
-    "unikit-bridge::prelude::use:crate :: { BufferCommandInput , BufferCommandOutput , CommandErrorVariant , GeneratedPackage , Package , PackageBuilder , Result , UnikitError , State , bridge_type , build , command , device_capabilities :: DeviceCapability , events :: EventSink , ffi :: FfiFormat , frame_codec :: encode_frame_error , platform :: Platform , register , }": [
-      "pub use crate :: { BufferCommandInput , BufferCommandOutput , CommandErrorVariant , GeneratedPackage , Package , PackageBuilder , Result , UnikitError , State , bridge_type , build , command , device_capabilities :: DeviceCapability , events :: EventSink , ffi :: FfiFormat , frame_codec :: encode_frame_error , platform :: Platform , register , } ;"
+    "unikit-bridge::prelude::use:crate :: { BufferCommandInput , BufferCommandOutput , CommandErrorVariant , GeneratedPackage , Package , PackageBuilder , Result , State , UnikitError , bridge_type , build , command , device_capabilities :: DeviceCapability , events :: EventSink , ffi :: FfiFormat , frame_codec :: encode_frame_error , platform :: Platform , register , }": [
+      "pub use crate :: { BufferCommandInput , BufferCommandOutput , CommandErrorVariant , GeneratedPackage , Package , PackageBuilder , Result , State , UnikitError , bridge_type , build , command , device_capabilities :: DeviceCapability , events :: EventSink , ffi :: FfiFormat , frame_codec :: encode_frame_error , platform :: Platform , register , } ;"
     ],
     "unikit-bridge::prelude::use:schemars :: JsonSchema": [
       "pub use schemars :: JsonSchema ;"
@@ -2505,8 +2505,8 @@
     "unikit-bridge::tauri_support::use:crate :: hot_core :: JsonDispatch": [
       "# [cfg (feature = \"tauri\")]  use crate :: hot_core :: JsonDispatch ;"
     ],
-    "unikit-bridge::tauri_support::use:crate :: tauri_channels :: { CHANNEL_BYTES_EVENT_PREFIX , CHANNEL_EVENT_PREFIX , EVENT_CHANNEL_PREFIX , create_bytes_channel_for , create_channel_for , drop_channel_for , event_channel , unikit_channel_create , unikit_channel_create_bytes , unikit_channel_drop , tauri_event_sink , }": [
-      "# [cfg (feature = \"tauri\")]  pub use crate :: tauri_channels :: { CHANNEL_BYTES_EVENT_PREFIX , CHANNEL_EVENT_PREFIX , EVENT_CHANNEL_PREFIX , create_bytes_channel_for , create_channel_for , drop_channel_for , event_channel , unikit_channel_create , unikit_channel_create_bytes , unikit_channel_drop , tauri_event_sink , } ;"
+    "unikit-bridge::tauri_support::use:crate :: tauri_channels :: { CHANNEL_BYTES_EVENT_PREFIX , CHANNEL_EVENT_PREFIX , EVENT_CHANNEL_PREFIX , create_bytes_channel_for , create_channel_for , drop_channel_for , event_channel , tauri_event_sink , unikit_channel_create , unikit_channel_create_bytes , unikit_channel_drop , }": [
+      "# [cfg (feature = \"tauri\")]  pub use crate :: tauri_channels :: { CHANNEL_BYTES_EVENT_PREFIX , CHANNEL_EVENT_PREFIX , EVENT_CHANNEL_PREFIX , create_bytes_channel_for , create_channel_for , drop_channel_for , event_channel , tauri_event_sink , unikit_channel_create , unikit_channel_create_bytes , unikit_channel_drop , } ;"
     ],
     "unikit-bridge::tauri_support::use:serde_json :: { Value , json }": [
       "# [cfg (feature = \"tauri\")]  use serde_json :: { Value , json } ;"
