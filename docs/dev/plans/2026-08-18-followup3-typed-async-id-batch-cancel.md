@@ -10,36 +10,36 @@ production hardening T1의 취소 인프라(Rust 레지스트리 + FFI 심볼 + 
 
 ### 주요 발견사항
 
-- **JS 인터페이스만 존재, 구현 없음**: `packages/react-native/src/index.ts:149-157` — `RustraJSIAsyncNative.invokeTypedAsync?(name, args, onSuccess, onError): void`. 반환 `void` — invocation id 없음. C++ JSI(`RustraJSIBridge.cpp`)에는 `invokeTyped`(:343-401)/`invokeTypedBatch`(:403-471)만 있고 **`invokeTypedAsync` 는 미구현**. 현재는 JS 선언 + RN 네이티브 미제공 상태로, `createAsyncEngine` 은 실 기기에서 폴백(동기 fast 엔진)으로 돈다.
-- **Rust 프레임워크 FFI는 준비 완료**: `crates/rustra/src/ffi.rs:533-561` `rustra_ffi_invoke_async(payload, len, user_data, on_complete, invocation_id: *mut u64)` — id 발급 + 취소 체크포인트 포함. `rustra_ffi_invoke_cancel`(:622-625), `rustra_ffi_cancellation_status`(:635-642). **단 이 심볼은 JSON/postcard envelope 와이어다** — C++ typed 경로의 rkyv V2 와이어(cmd_id+postcard)와 불일치(아래 접근 방식 참조).
-- **제한의 근거 주석**: `packages/react-native/src/index.ts:241-246` — "invokeTypedAsync C++ 시그니처가 invocation id 를 노출하지 않아 취소를 전파할 핸들이 없다. 전파하려면 네이티브가 rustra_ffi_invoke_async(invocation_id out-param) + rustra_ffi_invoke_cancel 을 JSI 로 노출해야 한다."
+- **JS 인터페이스만 존재, 구현 없음**: `packages/react-native/src/index.ts:149-157` — `UnikitJSIAsyncNative.invokeTypedAsync?(name, args, onSuccess, onError): void`. 반환 `void` — invocation id 없음. C++ JSI(`UnikitJSIBridge.cpp`)에는 `invokeTyped`(:343-401)/`invokeTypedBatch`(:403-471)만 있고 **`invokeTypedAsync` 는 미구현**. 현재는 JS 선언 + RN 네이티브 미제공 상태로, `createAsyncEngine` 은 실 기기에서 폴백(동기 fast 엔진)으로 돈다.
+- **Rust 프레임워크 FFI는 준비 완료**: `crates/unikit-bridge/src/ffi.rs:533-561` `unikit_ffi_invoke_async(payload, len, user_data, on_complete, invocation_id: *mut u64)` — id 발급 + 취소 체크포인트 포함. `unikit_ffi_invoke_cancel`(:622-625), `unikit_ffi_cancellation_status`(:635-642). **단 이 심볼은 JSON/postcard envelope 와이어다** — C++ typed 경로의 rkyv V2 와이어(cmd_id+postcard)와 불일치(아래 접근 방식 참조).
+- **제한의 근거 주석**: `packages/react-native/src/index.ts:241-246` — "invokeTypedAsync C++ 시그니처가 invocation id 를 노출하지 않아 취소를 전파할 핸들이 없다. 전파하려면 네이티브가 unikit_ffi_invoke_async(invocation_id out-param) + unikit_ffi_invoke_cancel 을 JSI 로 노출해야 한다."
 - **id 노출 패턴 선례**: JS `invokeAsync` 가 이미 이 형태다 — `packages/types/src/index.ts:350` `invokeAsync?(payload, onDone): number`. C++ JSI HostFunction 은 동기 Value 반환, 비동기 결과는 콜백 — id 를 동기 반환값으로 노출하는 것이 확립된 패턴.
-- **C++ typed 경로의 호출 심볼**: `invokeTyped`/`invokeTypedBatch` 는 `rustra_calculator_invoke_rkyv_v2`(calculator 소유 심볼)를 직접 호출한다. 제너릭 `rustra_ffi_invoke_async` 를 쓰지 않는다. typed 인코딩은 C++ generated codecs(`rustra-generated-codecs.hpp`)에서 수행.
+- **C++ typed 경로의 호출 심볼**: `invokeTyped`/`invokeTypedBatch` 는 `unikit_calculator_invoke_rkyv_v2`(calculator 소유 심볼)를 직접 호출한다. 제너릭 `unikit_ffi_invoke_async` 를 쓰지 않는다. typed 인코딩은 C++ generated codecs(`unikit-generated-codecs.hpp`)에서 수행.
 - **invokeBatch 폴백 누락**: `packages/types/src/index.ts:33` `BatchEntry = { command, args }` — options 필드 없음. 폴백 경로(:809) `this.invoke(e.command, e.args)` — 3번째 인자(options) 미전달. TODO(T1) 주석(:245-247)이 명시적.
-- **typed batch 단일 횡단은 동기 루프**: C++ `invokeTypedBatch` 는 각 항목마다 `rustra_calculator_invoke_rkyv_v2` 를 동기 호출(:436) — 레지스트리 등록 자체가 없고, 첫 에러에서 throw(fail-fast, :446-457). 취소 불가. 배치 관련 Rust FFI 심볼은 없다(배치는 C++/JS 레이어 루프).
-- **추가 발견 (버그)**: C++ `invokeTyped`/`invokeTypedBatch` 가 `rustra_calculator_invoke_rkyv_v2` 의 반환 버퍼를 `rustra_ffi_free` 로 해제한다 — calculator 심볼은 FFI_MAGIC 헤더 없는 `Box<[u8]>` 을 반환하는 반면 `rustra_ffi_free` 는 magic 검사 후 `header_ptr = ptr - 8` 로 역산해 Box 를 재구성한다 (ffi.rs:690-725). **짝이 안 맞는 free — release 빌드에서 잘못된 레이아웃의 Box 해제 = 정의되지 않은 동작/크래시 위험.** debug 빌드에서는 free_guard 가 NotLive 로 분류해 abort 시킨다. 이 plan에서 함께 수정한다.
+- **typed batch 단일 횡단은 동기 루프**: C++ `invokeTypedBatch` 는 각 항목마다 `unikit_calculator_invoke_rkyv_v2` 를 동기 호출(:436) — 레지스트리 등록 자체가 없고, 첫 에러에서 throw(fail-fast, :446-457). 취소 불가. 배치 관련 Rust FFI 심볼은 없다(배치는 C++/JS 레이어 루프).
+- **추가 발견 (버그)**: C++ `invokeTyped`/`invokeTypedBatch` 가 `unikit_calculator_invoke_rkyv_v2` 의 반환 버퍼를 `unikit_ffi_free` 로 해제한다 — calculator 심볼은 FFI_MAGIC 헤더 없는 `Box<[u8]>` 을 반환하는 반면 `unikit_ffi_free` 는 magic 검사 후 `header_ptr = ptr - 8` 로 역산해 Box 를 재구성한다 (ffi.rs:690-725). **짝이 안 맞는 free — release 빌드에서 잘못된 레이아웃의 Box 해제 = 정의되지 않은 동작/크래시 위험.** debug 빌드에서는 free_guard 가 NotLive 로 분류해 abort 시킨다. 이 plan에서 함께 수정한다.
 
 ### 트레이드오프 (설계 노트)
 
 - **전파는 JS 코덱 경로만** 원칙(T1 설계)은 유지한다 — 이 plan은 "typed 경로 전파의 **전제**(id 노출)"를 완성하는 것이고, 실제 typed 전파 활성화(전파 조건에 typed 경로 포함)는 별도 결정으로 남긴다. 이유: 3-tier × 취소 매트릭스 폭발 방지.
 - **`invokeTypedBatch` 단일 횡단의 취소는 지원하지 않는다**: C++ 동기 루프라 항목별 취소 지점이 없다. async 배치 재설계는 범위 확장이므로 유예 — 대신 **폴백 경로의 항목별 취소**를 완성한다. signal 있는 항목이 하나라도 섞이면 전체가 Promise.all 폴백으로 라우팅되고 각 항목은 기존 invoke 3-tier 취소 정책(전파/얕은)을 따른다.
-- **와이어 불일치 해법 선택**: C++ typed async 에 (옵션 1) JSON envelope 로 `rustra_ffi_invoke_json_async` 재사용 — 취소는 되지만 typed postcard fast path 포기, (옵션 2) 소비 크레이트(calculator)에 rkyv V2 와이어 + 취소 레지스트리 연동 심볼 추가. **옵션 2 채택** — typed fast path 유지가 이 브릿지의 존재 이유. `rustra::cancel` 모듈이 이미 `pub` 라(register/cancel/complete/status 전부 공개) 소비 크레이트가 체크포인트를 직접 구성할 수 있다.
-- **C++ 신규 표면은 예제 계층**: `invokeTypedAsync` 구현은 `examples/react-native-calculator/modules/rustra-jsi`(참조 구현)에 추가한다. 프레임워크 크레이트(rustra)는 이미 취소 인프라를 공개 API 로 제공 — Rust 프레임워크 변경은 불필요하다.
+- **와이어 불일치 해법 선택**: C++ typed async 에 (옵션 1) JSON envelope 로 `unikit_ffi_invoke_json_async` 재사용 — 취소는 되지만 typed postcard fast path 포기, (옵션 2) 소비 크레이트(calculator)에 rkyv V2 와이어 + 취소 레지스트리 연동 심볼 추가. **옵션 2 채택** — typed fast path 유지가 이 브릿지의 존재 이유. `unikit_bridge::cancel` 모듈이 이미 `pub` 라(register/cancel/complete/status 전부 공개) 소비 크레이트가 체크포인트를 직접 구성할 수 있다.
+- **C++ 신규 표면은 예제 계층**: `invokeTypedAsync` 구현은 `examples/react-native-calculator/modules/unikit-jsi`(참조 구현)에 추가한다. 프레임워크 크레이트(unikit)는 이미 취소 인프라를 공개 API 로 제공 — Rust 프레임워크 변경은 불필요하다.
 
 ## 목표 상태
 
-1. **JS 인터페이스**: `RustraJSIAsyncNative.invokeTypedAsync` 반환형 `void` → `number | void` (invocation id). `invokeCancel?(id): boolean` 추가. 구형 네이티브(void 반환)와의 하위 호환은 JS 측 `typeof id === 'number'` 가드로 처리.
-2. **Rust 예제 심볼**: calculator 크레이트에 `rustra_calculator_invoke_rkyv_v2_async` — id 발급 + cancel 체크포인트 + rkyv V2 dispatch + `encode_rkyv_v2_error` 에러 프레임.
-3. **C++ JSI 참조 구현**: `invokeTypedAsync(name, args, onSuccess, onError) → number` — encode_by_name → async 심볼 → id 동기 반환, 결과는 CallInvoker 로 JS 스레드 마샬링. `invokeCancel(id)` 은 `rustra_ffi_invoke_cancel` 그대로 JSI 노출.
+1. **JS 인터페이스**: `UnikitJSIAsyncNative.invokeTypedAsync` 반환형 `void` → `number | void` (invocation id). `invokeCancel?(id): boolean` 추가. 구형 네이티브(void 반환)와의 하위 호환은 JS 측 `typeof id === 'number'` 가드로 처리.
+2. **Rust 예제 심볼**: calculator 크레이트에 `unikit_calculator_invoke_rkyv_v2_async` — id 발급 + cancel 체크포인트 + rkyv V2 dispatch + `encode_rkyv_v2_error` 에러 프레임.
+3. **C++ JSI 참조 구현**: `invokeTypedAsync(name, args, onSuccess, onError) → number` — encode_by_name → async 심볼 → id 동기 반환, 결과는 CallInvoker 로 JS 스레드 마샬링. `invokeCancel(id)` 은 `unikit_ffi_invoke_cancel` 그대로 JSI 노출.
 4. **RN JS 어댑터**: `createAsyncEngine` 이 signal 있는 경로에서 네이티브가 `invokeCancel` 을 노출하면 id 기반 전파형 취소, 아니면 기존 얕은 취소 유지.
 5. **invokeBatch 항목별 취소 (폴백 경로)**: `BatchEntry` 에 `options?: InvokeOptions` 추가 + 폴백 `this.invoke(e.command, e.args, e.options)` 전달. 단일 횡단 조건에 "signal 없는 항목만" 추가 — 이 경로는 취소 불가임을 JSDoc 명시.
-6. **C++ free 짝 버그 수정**: `invokeTyped`/`invokeTypedBatch` 의 해제를 `rustra_ffi_free` → `rustra_calculator_free_buffer` 로 교체.
+6. **C++ free 짝 버그 수정**: `invokeTyped`/`invokeTypedBatch` 의 해제를 `unikit_ffi_free` → `unikit_calculator_free_buffer` 로 교체.
 
 ## 범위 제한 (하지 않을 것)
 
 - **typed batch 단일 횡단의 취소**: C++ 동기 루프 재설계는 하지 않는다. signal 있는 항목 포함 시 전체 Promise.all 폴백으로 충분하다(항목별 invoke 가 각자 취소 정책 적용).
 - **tier 3 동적 경로의 전파 활성화**: T1 원칙 유지 (JS 코덱 tier2 만 전파).
-- **`rustra_ffi_invoke_async` 바이트 경로의 JSI 직접 노출**: typed 경로와 중복 — 하지 않는다.
+- **`unikit_ffi_invoke_async` 바이트 경로의 JSI 직접 노출**: typed 경로와 중복 — 하지 않는다.
 - **Lynx 측 async 엔진**: Lynx 는 `createRkyvV2Engine` 위임이라 네이티브가 `invokeAsync` 를 노출하면 자동 승격 — 별도 작업 없음 (runner 템플릿의 별도 과제).
 - **`cancellation_status` 의 JS 노출**: 핸들러 내부 폴링용 공개 API 는 이미 FFI 로 존재, JS 노출은 요청된 적 없음 — 유예.
 - **JS `invoke` 전파 조건의 typed 경로 확장**(types:744 의 `!onTypedPath` 완화): 별도 결정 사항 — 이 plan은 네이티브 표면(id/cancel)과 어댑터 준비만 완성.
@@ -58,24 +58,24 @@ calculator 크레이트에 rkyv V2 async 심볼 추가, C++ JSI에 `invokeTypedA
 
 #### 1. `examples/calculator/src/lib.rs` — async 심볼
 
-**변경사항**: `rustra_calculator_invoke_rkyv_v2`(lib.rs:1097-1117) 옆에 async 변형 추가. `rustra::ffi` 의 `run_worker` 는 private 이므로 동일 계약의 미니 러너를 소비 크레이트에 둔다:
+**변경사항**: `unikit_calculator_invoke_rkyv_v2`(lib.rs:1097-1117) 옆에 async 변형 추가. `unikit_bridge::ffi` 의 `run_worker` 는 private 이므로 동일 계약의 미니 러너를 소비 크레이트에 둔다:
 
 ```rust
-/// rkyv V2 비동기 진입점 — `rustra_ffi_invoke_async` 와 동일한 계약
+/// rkyv V2 비동기 진입점 — `unikit_ffi_invoke_async` 와 동일한 계약
 /// (invocation_id 발급, 워커 스레드 dispatch, cancel 체크포인트,
 /// complete 후 on_complete)을 rkyv V2 와이어로 제공한다.
-pub type RustraCalculatorAsyncCallback =
+pub type UnikitCalculatorAsyncCallback =
     unsafe extern "C" fn(user_data: *mut std::ffi::c_void, resp: *mut u8, resp_len: usize);
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_calculator_invoke_rkyv_v2_async(
+pub unsafe extern "C" fn unikit_calculator_invoke_rkyv_v2_async(
     payload: *const u8,
     payload_len: usize,
     user_data: *mut std::ffi::c_void,
-    on_complete: Option<RustraCalculatorAsyncCallback>,
+    on_complete: Option<UnikitCalculatorAsyncCallback>,
     invocation_id: *mut u64,
 ) {
-    let id = rustra::cancel::register_invocation();
+    let id = unikit_bridge::cancel::register_invocation();
     if !invocation_id.is_null() {
         unsafe { *invocation_id = id };
     }
@@ -86,20 +86,20 @@ pub unsafe extern "C" fn rustra_calculator_invoke_rkyv_v2_async(
     };
     std::thread::spawn(move || {
         // cancel 체크포인트 — Cancelled 면 핸들러를 시작하지 않는다.
-        let resp = if rustra::cancel::status(id) == rustra::cancel::Status::Cancelled {
-            rustra::encode_rkyv_v2_error(&RustraError::cancelled(
+        let resp = if unikit_bridge::cancel::status(id) == unikit_bridge::cancel::Status::Cancelled {
+            unikit_bridge::encode_rkyv_v2_error(&UnikitError::cancelled(
                 "invocation cancelled before dispatch",
             ))
         } else {
-            match rustra::ffi::get_package()
-                .ok_or_else(|| RustraError::custom("ffi.not_registered", "package not registered"))
+            match unikit_bridge::ffi::get_package()
+                .ok_or_else(|| UnikitError::custom("ffi.not_registered", "package not registered"))
                 .and_then(|pkg| pkg.invoke_rkyv_v2(&bytes))
             {
                 Ok(bytes) => bytes,
-                Err(error) => rustra::encode_rkyv_v2_error(&error),
+                Err(error) => unikit_bridge::encode_rkyv_v2_error(&error),
             }
         };
-        rustra::cancel::complete_invocation(id);
+        unikit_bridge::cancel::complete_invocation(id);
         if let Some(cb) = on_complete {
             let mut out_len = 0;
             let ptr = alloc_response(resp, &mut out_len);
@@ -109,40 +109,40 @@ pub unsafe extern "C" fn rustra_calculator_invoke_rkyv_v2_async(
 }
 ```
 
-- `alloc_response` 는 calculator 의 기존 private 헬퍼(lib.rs:721) 재사용 — 응답 버퍼는 `rustra_calculator_free_buffer` 계약으로 해제된다(호스트 콜백 내). `on_complete` 가 None 인 경우에도 버퍼를 만들지 않도록 분기(누수 방지 — 위 코드는 Some 분기에서만 alloc).
+- `alloc_response` 는 calculator 의 기존 private 헬퍼(lib.rs:721) 재사용 — 응답 버퍼는 `unikit_calculator_free_buffer` 계약으로 해제된다(호스트 콜백 내). `on_complete` 가 None 인 경우에도 버퍼를 만들지 않도록 분기(누수 방지 — 위 코드는 Some 분기에서만 alloc).
 - `pkg.invoke_rkyv_v2` 를 호출하므로 **Follow-up 1의 크기 게이트를 자동 상속**한다 — 머지 순서와 무관하게 양쪽이 모두 머지되면 게이트가 적용된다.
-- `rustra::cancel` 이 `pub mod` 인 것을 확인했다(lib.rs:114 `pub mod cancel;`) — 소비 크레이트 경로 그대로 사용 가능.
+- `unikit_bridge::cancel` 이 `pub mod` 인 것을 확인했다(lib.rs:114 `pub mod cancel;`) — 소비 크레이트 경로 그대로 사용 가능.
 
-#### 2. `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.hpp` — extern 선언
+#### 2. `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.hpp` — extern 선언
 
 **변경사항**: 기존 extern "C" 블록에 추가:
 
 ```cpp
 uint64_t 루스트라… // (실제 구현 — 아래는 의도만)
-void rustra_calculator_invoke_rkyv_v2_async(
+void unikit_calculator_invoke_rkyv_v2_async(
   const uint8_t* payload, size_t payload_len, void* user_data,
   void (*on_complete)(void*, uint8_t*, size_t), uint64_t* invocation_id);
-bool rustra_ffi_invoke_cancel(uint64_t invocation_id);
+bool unikit_ffi_invoke_cancel(uint64_t invocation_id);
 ```
 
-(구현 시 정확한 C 타입으로 — Rust `RustraCalculatorAsyncCallback` 과 ABI 일치: `unsafe extern "C" fn(*mut c_void, *mut u8, usize)`.)
+(구현 시 정확한 C 타입으로 — Rust `UnikitCalculatorAsyncCallback` 과 ABI 일치: `unsafe extern "C" fn(*mut c_void, *mut u8, usize)`.)
 
-#### 3. `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp` — HostFunction 3종
+#### 3. `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp` — HostFunction 3종
 
 **변경사항**:
 
-1. **free 짝 수정 (기존 버그)**: `invokeTyped`(:371-397)와 `invokeTypedBatch`(:442-465) 내 모든 `rustra_ffi_free(resp, out_len)` → `rustra_calculator_free_buffer(resp, out_len)`. calculator 심볼은 magic 헤더 없는 Box 라 `rustra_ffi_free` 의 ptr-8 역산이 잘못된 레이아웃을 재구성한다.
+1. **free 짝 수정 (기존 버그)**: `invokeTyped`(:371-397)와 `invokeTypedBatch`(:442-465) 내 모든 `unikit_ffi_free(resp, out_len)` → `unikit_calculator_free_buffer(resp, out_len)`. calculator 심볼은 magic 헤더 없는 Box 라 `unikit_ffi_free` 의 ptr-8 역산이 잘못된 레이아웃을 재구성한다.
 2. **`invokeTypedAsync` HostFunction** 추가 — 시그니처 `(name, args, onSuccess, onError) → number(id)`:
    - encode_by_name 으로 postcard 요청 생성(기존 invokeTyped 와 동일).
    - 콜백 컨텍스트 구조체(name, onSuccess/onError JS 함수 캡처, CallInvoker)를 heap 에 두고 `user_data` 로 전달 — on_complete C 콜백에서 CallInvoker::invokeAsync 로 JS 스레드에 마샬링(EventDispatcher 패턴 재사용). CallInvoker 없는 호스트는 onError 즉시 호출 후 정리(또는 큐잉 폴링 — 최소 구현은 CallInvoker 필수로 하고 미제공 시 에러 반환을 JSDoc 명시).
-   - on_complete 내 응답 분기: `resp[0] == 1` → `decode_by_name` → onSuccess(result). `resp[0] == 0` → 에러 와이어 `[err_len u16 @8][postcard{code,message} @10]` 를 디코딩해 `"code: message"` 문자열로 onError(RustraError Display 형태 — JS `parseRustraErrorString` 이 코드 복원). 기존 invokeTyped 의 에러 분기는 평문 errLen 만 읽으므로, postcard 디코딩을 위해 generated codecs 의 postcard reader(rc::Reader)로 code/message 두 문자열을 읽는다.
+   - on_complete 내 응답 분기: `resp[0] == 1` → `decode_by_name` → onSuccess(result). `resp[0] == 0` → 에러 와이어 `[err_len u16 @8][postcard{code,message} @10]` 를 디코딩해 `"code: message"` 문자열로 onError(UnikitError Display 형태 — JS `parseUnikitErrorString` 이 코드 복원). 기존 invokeTyped 의 에러 분기는 평문 errLen 만 읽으므로, postcard 디코딩을 위해 generated codecs 의 postcard reader(rc::Reader)로 code/message 두 문자열을 읽는다.
    - 콜백 실행 후 컨텍스트 해제(정확히 1회).
    - 반환: `Value(static_cast<double>(id))`.
-3. **`invokeCancel` HostFunction** 추가 — `(id) → boolean`, `rustra_ffi_invoke_cancel(id)` 전달.
+3. **`invokeCancel` HostFunction** 추가 — `(id) → boolean`, `unikit_ffi_invoke_cancel(id)` 전달.
 
 #### 4. C++ shim 테스트
 
-**파일**: `examples/react-native-calculator/modules/rustra-jsi/ios/test-rustra-codec.cpp` (또는 `test-jsi-shim.hpp` 기반 신설 케이스)
+**파일**: `examples/react-native-calculator/modules/unikit-jsi/ios/test-unikit-codec.cpp` (또는 `test-jsi-shim.hpp` 기반 신설 케이스)
 **변경사항**: `run-cpp-codec-tests.sh` 실행 목록에 포함:
 
 - invokeTypedAsync 성공 라운드트립(id number 반환 + onSuccess 결과)
@@ -153,9 +153,9 @@ bool rustra_ffi_invoke_cancel(uint64_t invocation_id);
 
 #### 자동 검증:
 
-- [ ] `cargo fmt --all -- --check` + `cargo clippy -p rustra-calculator-example --all-targets -- -D warnings` 통과
-- [ ] `cargo test -p rustra-calculator-example` green — async 심볼 통합 테스트: id 발급(non-null out-param), pre-cancel 시 `cancelled` 코드 에러 프레임, 정상 라운드트립, 완료 후 레지스트리 정리(status Unknown)
-- [ ] C++ shim 테스트(`bash examples/react-native-calculator/modules/rustra-jsi/ios/run-cpp-codec-tests.sh`) green — 위 3 케이스
+- [ ] `cargo fmt --all -- --check` + `cargo clippy -p unikit-calculator-example --all-targets -- -D warnings` 통과
+- [ ] `cargo test -p unikit-calculator-example` green — async 심볼 통합 테스트: id 발급(non-null out-param), pre-cancel 시 `cancelled` 코드 에러 프레임, 정상 라운드트립, 완료 후 레지스트리 정리(status Unknown)
+- [ ] C++ shim 테스트(`bash examples/react-native-calculator/modules/unikit-jsi/ios/run-cpp-codec-tests.sh`) green — 위 3 케이스
 - [ ] `cargo test --workspace` 전체 green (프레임워크 무변경이므로 회귀만)
 
 #### 수동 검증:
@@ -175,10 +175,10 @@ JS 인터페이스 시그니처 변경(void → number | void) + `createAsyncEng
 
 **변경사항**:
 
-1. `RustraJSIAsyncNative`(149-157) 확장:
+1. `UnikitJSIAsyncNative`(149-157) 확장:
 
 ```ts
-export type RustraJSIAsyncNative = RustraJSINative & {
+export type UnikitJSIAsyncNative = UnikitJSINative & {
   /**
    * 성공/에러 후 JS 콜백 큐에서 호출될 콜백 등록형 비동기 호출.
    * 반환값: invocation id (취소 핸들). 구형 네이티브가 undefined 를
@@ -209,7 +209,7 @@ if (typeof native.invokeCancel === 'function') {
       if (settled) return;
       settled = true;
       if (invocationId >= 0) native.invokeCancel!(invocationId);
-      reject(new RustraCommandError('cancelled', `invoke("${command}") aborted`, true));
+      reject(new UnikitCommandError('cancelled', `invoke("${command}") aborted`, true));
     };
     signal.addEventListener('abort', onAbort, { once: true });
     try {
@@ -226,14 +226,14 @@ if (typeof native.invokeCancel === 'function') {
           if (settled) return;
           settled = true;
           signal.removeEventListener('abort', onAbort);
-          reject(parseRustraErrorString(message));
+          reject(parseUnikitErrorString(message));
         },
       );
       if (typeof id === 'number') invocationId = id;
     } catch (err) {
       settled = true;
       signal.removeEventListener('abort', onAbort);
-      reject(err instanceof Error ? err : new RustraCommandError('invoke.failed', String(err)));
+      reject(err instanceof Error ? err : new UnikitCommandError('invoke.failed', String(err)));
     }
   });
 }
@@ -286,7 +286,7 @@ return Promise.all(entries.map((e) => this.invoke<T>(e.command, e.args, e.option
 
 - [ ] `npm run build` + `npm run test:packages` green — 위 신규 테스트 포함
 - [ ] `npm run test:types` green — 기존 배치 테스트 5종(index.test.ts:337,367,391,485,500) 회귀 포함
-- [ ] `npm run test:ts:node` / `npm run test -w @rustra/cli` green (전체 게이트)
+- [ ] `npm run test:ts:node` / `npm run test -w @unikit-bridge/cli` green (전체 게이트)
 - [ ] `npm run lint` 0 warn
 - [ ] `npm run test:app:react-native` (예제 앱 타입체크) 통과
 
@@ -326,9 +326,9 @@ return Promise.all(entries.map((e) => this.invoke<T>(e.command, e.args, e.option
 ## 참고 자료
 
 - 상위 설계: `docs/plans/2026-08-18-production-hardening-design.md` (트랙 1 완료 노트)
-- Rust 취소 인프라: `crates/rustra/src/cancel.rs`, `crates/rustra/src/ffi.rs:533-642`
+- Rust 취소 인프라: `crates/unikit-bridge/src/cancel.rs`, `crates/unikit-bridge/src/ffi.rs:533-642`
 - JS 얕은 취소 제한 주석: `packages/react-native/src/index.ts:241-246`
 - invokeBatch TODO: `packages/types/src/index.ts:245-247`
-- C++ JSI 참조 구현: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp`
-- EventDispatcher (CallInvoker 마샬링 패턴): `RustraJSIBridge.cpp:53-188`
+- C++ JSI 참조 구현: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp`
+- EventDispatcher (CallInvoker 마샬링 패턴): `UnikitJSIBridge.cpp:53-188`
 - JS 전파 경로 선례(types invokeAsync): `packages/types/src/index.ts:744-794`

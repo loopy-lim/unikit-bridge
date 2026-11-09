@@ -1,10 +1,10 @@
 English | [한국어](./rust-api-guide.ko.md)
 
-# rustra-bridge Rust API Guide
+# unikit-bridge Rust API Guide
 
 ## 1. Overview
 
-rustra-bridge is a bridge framework that automatically generates a TypeScript client — working from Node / Bun / Tauri / React Native alike — once you define commands in Rust.
+unikit-bridge is a bridge framework that automatically generates a TypeScript client — working from Node / Bun / Tauri / React Native alike — once you define commands in Rust.
 
 ```text
 Rust #[command] definition → automatic TypeScript client generation → execution via each platform adapter
@@ -16,13 +16,13 @@ There are three core components:
 | ------------------ | --------------------------------------------------------------------------- |
 | `#[command]`       | Attribute macro that turns a function into a bridge command                 |
 | `#[bridge_type]`   | Automatically adds the required derives and serde settings to structs/enums |
-| `rustra::build!()` | Creates the package builder and registers multiple commands at once         |
+| `unikit_bridge::build!()` | Creates the package builder and registers multiple commands at once         |
 
 ---
 
 ## 2. The `#[command]` Macro
 
-An attribute macro that converts a function into a rustra-bridge command. Use it as `#[command]` or `#[command(name = "customName")]`.
+An attribute macro that converts a function into a unikit-bridge command. Use it as `#[command]` or `#[command(name = "customName")]`.
 
 ### 2-1. Struct Parameter Mode (the only input form)
 
@@ -36,7 +36,7 @@ multi-parameters (`fn add(a: i64, b: i64)`) are not supported — they fail to c
 If you need multiple values, define an Input struct:
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 struct AddNumbersInput {
@@ -89,7 +89,7 @@ are compile errors:
 #[command]
 fn divide(input: DivisionInput) -> Result<DivisionOutput> {
     if input.divisor == 0 {
-        return Err(RustraError::invalid_args("division by zero"));
+        return Err(UnikitError::invalid_args("division by zero"));
     }
     Ok(DivisionOutput {
         quotient: input.dividend / input.divisor,
@@ -171,13 +171,13 @@ async fn find_user(input: UserQuery) -> Result<User> {
 
 Async syntax support is **not** a general-purpose async runtime. The generated wrapper
 drives the future on the calling thread with a park-based executor (the waker is
-`Thread::unpark`; see `crates/rustra/src/executor.rs`). Four consequences matter to
+`Thread::unpark`; see `crates/unikit-bridge/src/executor.rs`). Four consequences matter to
 host integrators:
 
 1. **The executor parks the current thread.** Inside a multithreaded host runtime
    (e.g. tokio) a parked worker thread is a starved worker — route async command
    dispatch through `spawn_blocking` (or an equivalent dedicated pool), or wait for a
-   fully async dispatch path. On the FFI async path the handler runs on rustra's fixed
+   fully async dispatch path. On the FFI async path the handler runs on unikit's fixed
    worker pool (below), so one slow async command parks one of the two workers.
 2. **`State<T>` is thread-local and invisible to spawned tasks.** State injection
    travels through a thread-local context, valid only on the thread the dispatch
@@ -185,12 +185,12 @@ host integrators:
    what you need (clone the `Arc`) before spawning.
 3. **FFI async calls run on a fixed pool — 2 workers, queue depth 256.** The pool is
    fail-fast: a full queue rejects immediately with `invoke.backpressure` instead of
-   hanging (`crates/rustra/src/ffi_pool.rs`). Treat it as backpressure and retry after
+   hanging (`crates/unikit-bridge/src/ffi_pool.rs`). Treat it as backpressure and retry after
    drain. The constants are fixed, not configurable.
 4. **No I/O reactor or timer driver is provided.** Any future that completes
    independent of a runtime context works — wakeups from any thread unpark the
    blocked one. Futures that require a reactor or timer (tokio resources,
-   `tokio::time`) need the host's runtime entered around the dispatch; rustra creates
+   `tokio::time`) need the host's runtime entered around the dispatch; unikit creates
    none.
 
 Executor injection (plugging in your own `block_on`) is not supported. If you feel the
@@ -269,7 +269,7 @@ enum Shape {
 
 ---
 
-## 4. The `rustra::build!()` Macro
+## 4. The `unikit_bridge::build!()` Macro
 
 A macro that creates the package builder and registers `#[command]` functions all at once.
 
@@ -277,7 +277,7 @@ A macro that creates the package builder and registers `#[command]` functions al
 
 ```rust
 // register + build
-let pkg = rustra::build!("examples.calculator", add_numbers, multiply).done();
+let pkg = unikit_bridge::build!("examples.calculator", add_numbers, multiply).done();
 
 // TypeScript generation happens via Package's generate_typescript
 pkg.generate_typescript()?.write_schema_to_dir("generated")?;
@@ -285,19 +285,19 @@ pkg.generate_typescript()?.write_schema_to_dir("generated")?;
 
 ### What the Macro Expands To
 
-Calling `rustra::build!("examples.calculator", add_numbers)` expands to:
+Calling `unikit_bridge::build!("examples.calculator", add_numbers)` expands to:
 
 ```rust
-rustra::Package::builder("examples.calculator")
-    .command(__RUstra_meta_add_numbers, __rustra_add_numbers_handler)
+unikit_bridge::Package::builder("examples.calculator")
+    .command(__UNikit_meta_add_numbers, __unikit_add_numbers_handler)
 ```
 
 For each `#[command]` function, the macro generates:
 
 | Generated item    | Naming rule                  | Role                                                         |
 | ----------------- | ---------------------------- | ------------------------------------------------------------ |
-| Metadata constant | `__RUstra_meta_<fn_name>`    | A `&str` constant holding the command name                   |
-| Handler function  | `__rustra_<fn_name>_handler` | A wrapper performing input type conversion and Ok() wrapping |
+| Metadata constant | `__UNikit_meta_<fn_name>`    | A `&str` constant holding the command name                   |
+| Handler function  | `__unikit_<fn_name>_handler` | A wrapper performing input type conversion and Ok() wrapping |
 | Trait bound check | `_check_command_bounds`      | Verifies the I/O types satisfy the required traits           |
 
 ---
@@ -305,7 +305,7 @@ For each `#[command]` function, the macro generates:
 ## 5. PackageBuilder Methods
 
 `PackageBuilder` is the builder that registers commands incrementally. Create it with
-`Package::builder(id)` (or the `rustra::build!` macro calls it internally).
+`Package::builder(id)` (or the `unikit_bridge::build!` macro calls it internally).
 
 ### `.command_fn(handler)`
 
@@ -314,7 +314,7 @@ from the function name, converts it to lowerCamelCase, and uses the result as th
 command name.
 
 ```rust
-use rustra::register;
+use unikit_bridge::register;
 
 let pkg = register!(Package::builder("example.calculator"), add_numbers).build();
 ```
@@ -343,7 +343,7 @@ native module keep working through the existing paths.
 ```rust
 #[derive(Serialize, Deserialize, JsonSchema)]
 struct Bytes {
-    #[serde(with = "rustra::byte_buffer")]
+    #[serde(with = "unikit_bridge::byte_buffer")]
     #[schemars(with = "Vec<u8>")]
     data: Vec<u8>,
 }
@@ -400,11 +400,11 @@ Design rationale and the full C++/JSI boundary discussion:
 
 A `#[command]` function may take additional `State<T>` parameters besides the single
 input struct. Register the state with `.manage(state)`; the macro injects it into the
-handler via `rustra::get_state::<T>()`. Calling a command whose `State<T>` was never
+handler via `unikit_bridge::get_state::<T>()`. Calling a command whose `State<T>` was never
 managed fails with the `internal` error `State<T> not managed in package`.
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 struct QueryInput { user_id: String }
@@ -440,7 +440,7 @@ that returns `platform.unavailable`; `platform_command_impl` replaces the stub w
 the real handler on the platforms you support:
 
 ```rust
-use rustra::platform::Platform;
+use unikit_bridge::platform::Platform;
 
 let builder = Package::builder("app.native")
     .platform_command::<(), NativeWindowInfo>(
@@ -477,7 +477,7 @@ table (`ResourceHandle`, see the channels module) and JS only ever passes the
 ### `.build()` / `.done()`
 
 Builds all registered commands into an immutable `Package`. `.done()` is an alias of
-`.build()` (the `rustra::build!` expansion finishes with `.done()`).
+`.build()` (the `unikit_bridge::build!` expansion finishes with `.done()`).
 
 ```rust
 let pkg = Package::builder("example.calculator")
@@ -537,18 +537,18 @@ let output: AddNumbersOutput =
 ### Frame wire helpers (crate-level free functions)
 
 Companion helpers for anything that handles raw Frame response/error frames
-(`crates/rustra/src/frame_error.rs`). The success frame is
+(`crates/unikit-bridge/src/frame_error.rs`). The success frame is
 `[ok:1][7B reserved][postcard(O) @8]`; the error frame is
 `[ok: u8 @0 = 0][pad 7B][err_len: u16 @8 LE][postcard({code, message}) @10...]`.
 
 - `decode_frame_response(frame: &[u8]) -> Result<&[u8]>` — borrows the postcard
-  body of a success frame; error frames come back as `RustraError::internal` with
+  body of a success frame; error frames come back as `UnikitError::internal` with
   `code` and `message` merged (`"{code}: {message}"`). Need the code separately?
   Use the structured variant below.
 - `decode_frame_error_parts(frame: &[u8]) -> Result<(String, String)>` — the
   structured variant for error frames: returns the owned `(code, message)` pair.
   A success frame is rejected with `command.invalid_args`.
-- `encode_frame_error(error: &RustraError) -> Vec<u8>` — encodes an error into
+- `encode_frame_error(error: &UnikitError) -> Vec<u8>` — encodes an error into
   the wire error frame for the FFI boundary (postcard `{code, message}`, with a
   truncation marker when the message exceeds `u16::MAX`).
 
@@ -578,7 +578,7 @@ The struct holding the TypeScript code generation result.
 ### `.write_schema_to_dir(dir)`
 
 Writes `schema.json` — the contract probe output — into the given directory,
-creating it if it does not exist. `rustra codegen` then renders every surface
+creating it if it does not exist. `unikit codegen` then renders every surface
 (types, commands, contract, codecs, host entries) from this single file.
 
 ```rust
@@ -590,7 +590,7 @@ The pipeline:
 
 ```text
 generated/schema.json   # published by the Rust probe
-        │ rustra codegen --config rustra.json
+        │ unikit codegen --config unikit.json
         ▼
 generated/
   schema.json      # full command schema
@@ -601,19 +601,19 @@ generated/
 ```
 
 > `.write_schema_to_dir(dir)` publishes only `schema.json`. The TS surfaces
-> (`types.ts` etc.) are owned by `rustra codegen` — never regenerate them from Rust.
+> (`types.ts` etc.) are owned by `unikit codegen` — never regenerate them from Rust.
 > The old `.write_to_dir(dir)` dual pass is deprecated for this reason.
 
 ---
 
 ## 8. Error Handling
 
-### RustraError
+### UnikitError
 
 Every error carries `code` and `message` fields.
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 struct DivideInput { a: i64, b: i64 }
@@ -624,7 +624,7 @@ struct DivideOutput { value: i64 }
 #[command(error("math.divide_by_zero"))]
 fn divide(input: DivideInput) -> Result<DivideOutput> {
     if input.b == 0 {
-        return Err(RustraError::custom("math.divide_by_zero", "cannot divide by zero"));
+        return Err(UnikitError::custom("math.divide_by_zero", "cannot divide by zero"));
     }
     Ok(DivideOutput { value: input.a / input.b })
 }
@@ -633,7 +633,7 @@ fn divide(input: DivideInput) -> Result<DivideOutput> {
 ### Command-scoped Error Declarations (typed errors)
 
 String-comparing `err.code` in TypeScript works, but typos in codes compile fine and
-fail silently. Declare the domain codes a command may return, and `rustra codegen`
+fail silently. Declare the domain codes a command may return, and `unikit codegen`
 turns them into a per-command literal union plus a type guard.
 
 Declare with the attribute (recommended — the declaration lives next to the handler):
@@ -647,7 +647,7 @@ or with the builder chain, where you can also attach metadata (JSDoc/`retryable`
 documentation only, it does not change wire semantics):
 
 ```rust
-use rustra::CommandErrorVariant;
+use unikit_bridge::CommandErrorVariant;
 
 let package = Package::builder("example.math")
     .command_errors(
@@ -658,7 +658,7 @@ let package = Package::builder("example.math")
     // …register commands and build…
 ```
 
-After `rustra codegen`, a generated `errors.ts` appears whenever at least one command
+After `unikit codegen`, a generated `errors.ts` appears whenever at least one command
 declares errors. On the TypeScript side, catch and narrow instead of string-matching:
 
 ```ts
@@ -679,26 +679,26 @@ Rules:
   fallback path could not split such a code back out of `Display` output).
 - Declarations cover the command's **domain** codes only. Framework codes
   (`cancelled`, `transport.timeout`, `command.invalid_args`, …) can occur on any
-  command and stay in the shared `RustraErrorCode` table — compare those directly.
+  command and stay in the shared `UnikitErrorCode` table — compare those directly.
 - A declaration is a contract document, not runtime validation: handlers may still
   return undeclared codes, and the guard returns `false` for them (the runtime is an
   open contract; the union is closed). Adding declarations changes schema.json and
   therefore the contract hash — intended contract evolution, caught by
-  `rustra diff`.
-- The wire error frame and `RustraCommandError` are unchanged — see
+  `unikit diff`.
+- The wire error frame and `UnikitCommandError` are unchanged — see
   [wire-format.md](./wire-format.md).
 
 ### Error Code Classification
 
 | Code                   | Factory method                         | Meaning                                   |
 | ---------------------- | -------------------------------------- | ----------------------------------------- |
-| `command.not_found`    | `RustraError::command_not_found(name)` | Invoking an unregistered command          |
-| `command.invalid_args` | `RustraError::invalid_args(error)`     | Input argument deserialization failure    |
-| `capability.denied`    | `RustraError::capability_denied(d)`    | Capability not granted                    |
-| `transport.error`      | `RustraError::transport(error)`        | Transport/network error — **retryable**   |
-| `transport.timeout`    | `RustraError::timeout(error)`          | Timeout — **retryable**                   |
-| `internal`             | `RustraError::internal(error)`         | Internal error (serialization, I/O, etc.) |
-| (custom)               | `RustraError::custom(code, message)`   | User-defined error                        |
+| `command.not_found`    | `UnikitError::command_not_found(name)` | Invoking an unregistered command          |
+| `command.invalid_args` | `UnikitError::invalid_args(error)`     | Input argument deserialization failure    |
+| `capability.denied`    | `UnikitError::capability_denied(d)`    | Capability not granted                    |
+| `transport.error`      | `UnikitError::transport(error)`        | Transport/network error — **retryable**   |
+| `transport.timeout`    | `UnikitError::timeout(error)`          | Timeout — **retryable**                   |
+| `internal`             | `UnikitError::internal(error)`         | Internal error (serialization, I/O, etc.) |
+| (custom)               | `UnikitError::custom(code, message)`   | User-defined error                        |
 
 ### Retryability (retryable)
 
@@ -706,11 +706,11 @@ Errors created via `transport.error`/`transport.timeout` carry `retryable: true`
 error can take the `.retryable()` builder, and it is queried with `is_retryable()`:
 
 ```rust
-let err = RustraError::custom("db.locked", "retry later").retryable();
+let err = UnikitError::custom("db.locked", "retry later").retryable();
 assert!(err.is_retryable());
 ```
 
-The TypeScript-side `RustraCommandError` exposes the same value as the `.retryable`
+The TypeScript-side `UnikitCommandError` exposes the same value as the `.retryable`
 field (on JSON paths without the flag on the wire, it is inferred from the
 `transport.*` codes). The JS-side `invoke` `options.timeoutMs` rejects with this
 `transport.timeout` (retryable) on expiry — the JS-side escape hatch from a hung native.
@@ -718,10 +718,10 @@ field (on JSON paths without the flag on the wire, it is inferred from the
 ### JS call semantics: signal, timeoutMs, invokeBatch
 
 Every generated helper accepts `InvokeOptions` as its last parameter, and
-`@rustra/types` exports the same options for raw `invoke`/`invokeBatch`:
+`@unikit-bridge/types` exports the same options for raw `invoke`/`invokeBatch`:
 
 ```ts
-import { invokeBatch } from '@rustra/types';
+import { invokeBatch } from '@unikit-bridge/types';
 import { addNumbers, slowCompute } from './generated/commands.js';
 
 // cancellation — AbortSignal rejects the promise immediately (`cancelled`); on
@@ -757,7 +757,7 @@ a non-idempotent command on a retryable flag can double-charge, double-send, or
 double-insert. Before retrying on general transport failures, check the effect:
 
 ```ts
-import { withRetry } from '@rustra/types';
+import { withRetry } from '@unikit-bridge/types';
 
 // Safe: the command is a read — retrying cannot duplicate an effect.
 const user = await withRetry((attempt) => invoke('getUser', { id }), {
@@ -780,7 +780,7 @@ entry fails, but dispatched entries have run and their effects stand — there i
 all-or-nothing transaction. The per-entry fallback starts every entry concurrently,
 and the RN single-crossing batch stops at the first failing entry; the Tauri wire
 batch runs all entries and rejects afterwards. `invokeBatch` itself has no settled
-form — for partial-outcome observation use `invokeBatchSettled` (`@rustra/types`): it
+form — for partial-outcome observation use `invokeBatchSettled` (`@unikit-bridge/types`): it
 always runs entries sequentially per-entry (never the atomic wire batch), so a failed
 entry and everything after it are distinguishable — each entry settles as
 `{ status: 'fulfilled', value }`, `{ status: 'rejected', reason }`, or
@@ -790,17 +790,17 @@ Per-entry `signal`/`timeoutMs` apply exactly as with a single `invoke`.
 ### Error Methods
 
 ```rust
-let err = RustraError::custom("auth.unauthorized", "invalid token");
+let err = UnikitError::custom("auth.unauthorized", "invalid token");
 assert_eq!(err.code(), "auth.unauthorized");
 assert_eq!(err.message(), "invalid token");
 ```
 
 ### The Result Type
 
-`rustra::prelude::Result<T>` is an alias of `std::result::Result<T, RustraError>`.
+`unikit_bridge::prelude::Result<T>` is an alias of `std::result::Result<T, UnikitError>`.
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 fn my_function() -> Result<String> {
     Ok("hello".into())
@@ -813,7 +813,7 @@ fn my_function() -> Result<String> {
 
 ```rust
 fn write_output() -> Result<()> {
-    std::fs::write("output.txt", "hello")?; // io::Error → RustraError(internal)
+    std::fs::write("output.txt", "hello")?; // io::Error → UnikitError(internal)
     Ok(())
 }
 ```
@@ -843,7 +843,7 @@ fn write_output() -> Result<()> {
 
 Generic structs like `Wrapper<T> { value: T }` work at the **concrete instance
 level**: schemars 0.8 generates a monomorphized schema per instantiation
-(`Wrapper<String>` → schema name `Wrapper_for_String`), and rustra pins the
+(`Wrapper<String>` → schema name `Wrapper_for_String`), and unikit pins the
 command's `inputType`/`outputType` to that exact schemars name. The result is a
 valid TypeScript identifier that matches the schema `title` and the
 `definitions` keys, so validation, TS/C++ rendering, and codec generation all
@@ -869,12 +869,12 @@ Notes:
   standard-library generics and need nothing special — see the table above.
 - Do **not** write a bare type alias expecting parameterized generics:
   `type StringWrapper = Wrapper<String>;` also works, because the alias is a
-  concrete type — but rustra does not emit `Wrapper<T>` templates. Each used
+  concrete type — but unikit does not emit `Wrapper<T>` templates. Each used
   instantiation becomes its own generated type.
-- Older rustra releases leaked Rust's `type_name` into `inputType`
+- Older unikit releases leaked Rust's `type_name` into `inputType`
   (`Wrapper<String >` — not an identifier). If an old schema.json fails CLI
   validation with a "generic type name" error, rebuild the Rust package with
-  the current rustra and regenerate `schema.json`.
+  the current unikit and regenerate `schema.json`.
 
 ### Optional Field Handling
 
@@ -919,8 +919,8 @@ export const addNumbers = createGeneratedFields2<AddNumbersInput, int64>(1, 'add
 ### Generated types.ts Example
 
 ```typescript
-export type { EngineClient, RustraError } from '@rustra/types';
-export { RustraCommandError } from '@rustra/types';
+export type { EngineClient, UnikitError } from '@unikit-bridge/types';
+export { UnikitCommandError } from '@unikit-bridge/types';
 
 export type AddNumbersInput = {
   a: number | bigint;
@@ -937,10 +937,10 @@ export type AddNumbersOutput = {
 <!-- docs:sync:begin examples/calculator/generated/commands.ts -->
 
 <!-- prettier-ignore -->
-```typescript
+```ts
 import type { AddNumbersInput, AddNumbersOutput, BenchAddInput, BenchAddOutput, BenchBytesPayload, BenchPairPayload, BenchStringPayload, ChannelDemoBytesInput, ChannelDemoBytesOutput, ChannelDemoInput, ChannelDemoOutput, ClampInput, ClampOutput, CreateItemInput, CreateItemOutput, DeviceDemoOutput, DivideInput, DivideOutput, EchoGroupsInput, EchoGroupsOutput, EmitDemoInput, EmitDemoOutput, GaugeInput, GaugeOutput, GreetInput, GreetOutput, IsEvenInput, IsEvenOutput, KindEchoInput, KindEchoOutput, MultiplyInput, MultiplyOutput, ParityFindInput, ParityQuery, ParitySearch, ParityStored, ParityTree, PlatformNativeInfoOutput, ProcessItemInput, ProcessItemOutput, RegistryDemoInput, RegistryDemoOutput, ResourceCloseInput, ResourceCloseOutput, ResourceHandleOutput, ResourceOpenInput, ResourceReadInput, ResourceReadOutput, ResourceWriteInput, ResourceWriteOutput, ScoreTotalInput, ScoreTotalOutput, SecureComputeInput, SecureComputeOutput, SizeOfInput, SizeOfOutput, SpanInput, SpanOutput, SumListInput, SumListOutput, TagSetInput, TagSetOutput, ToUpperInput, ToUpperOutput, WideAggInput, WideAggOutput } from './types.js';
-import { createGeneratedFields1, createGeneratedFields2, invokeGenerated, invokeGeneratedBytes, invokeGeneratedFields3 } from '@rustra/types';
-import type { InvokeOptions as CoreInvokeOptions } from '@rustra/types';
+import { createGeneratedFields1, createGeneratedFields2, invokeGenerated, invokeGeneratedBytes, invokeGeneratedFields3 } from '@unikit-bridge/types';
+import type { InvokeOptions as CoreInvokeOptions } from '@unikit-bridge/types';
 
 /**
  * 이 패키지 생성 명령의 호출 옵션 — 모든 생성 함수의 마지막 파라미터.
@@ -955,7 +955,7 @@ import type { InvokeOptions as CoreInvokeOptions } from '@rustra/types';
  * 시도가 반영되지 않았음을 확인한 뒤에만 하세요.
  *
  * 전체 의미론은 docs/compatibility-matrix.md "Signal semantics in detail" 및
- * 원본 타입(`InvokeOptions`(@rustra/types)) 문서를 참고하세요.
+ * 원본 타입(`InvokeOptions`(@unikit-bridge/types)) 문서를 참고하세요.
  */
 export type InvokeOptions = CoreInvokeOptions;
 
@@ -1090,12 +1090,6 @@ export function resourceWrite(input: ResourceWriteInput, options?: InvokeOptions
 }
 resourceWrite.commandId = 'resourceWrite';
 
-/**
- * 런타임 registry 제어 명령. op:
- * `register` / `unregister` / `replacePing` / `replaceAdd` / `restoreAdd` / `freeze` / `state`.
- */
-export const rustraRegistryDemo = createGeneratedFields1<RegistryDemoInput, RegistryDemoOutput>(12, 'rustraRegistryDemo', "op", 'rustraRegistryDemo');
-
 export function safeDivide(arg0: number, arg1: number, options?: InvokeOptions): Promise<number> {
   return invokeGenerated<number>(41, 'safeDivide', [arg0, arg1], options);
 }
@@ -1140,6 +1134,12 @@ tagSet.commandId = 'tagSet';
 export const toUpper = createGeneratedFields1<ToUpperInput, ToUpperOutput>(7, 'toUpper', "s", 'toUpper');
 
 /**
+ * 런타임 registry 제어 명령. op:
+ * `register` / `unregister` / `replacePing` / `replaceAdd` / `restoreAdd` / `freeze` / `state`.
+ */
+export const unikitRegistryDemo = createGeneratedFields1<RegistryDemoInput, RegistryDemoOutput>(12, 'unikitRegistryDemo', "op", 'unikitRegistryDemo');
+
+/**
  * A2 와이드 정수 복합 타입 표본 — Vec<u64> + Option<i64>. 원소/옵션 레벨 uvar64/zigzag64 헬퍼가 스트림 중간 7바이트 varint 경계를 넘는 값을 무손실 왕복하는지 cross-wire 픽스처로 고정한다.
  */
 export function wideAgg(input: WideAggInput, options?: InvokeOptions): Promise<WideAggOutput> {
@@ -1161,7 +1161,7 @@ configure an engine itself)
 Brings the frequently used types and macros in at once:
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 ```
 
 Provided items:
@@ -1173,8 +1173,8 @@ Provided items:
 | `command`          | attribute macro | Converts a function into a bridge command |
 | `Package`          | struct          | The registered set of commands            |
 | `PackageBuilder`   | struct          | The command registration builder          |
-| `Result<T>`        | type alias      | `std::result::Result<T, RustraError>`     |
-| `RustraError`      | struct          | The error type                            |
+| `Result<T>`        | type alias      | `std::result::Result<T, UnikitError>`     |
+| `UnikitError`      | struct          | The error type                            |
 | `Serialize`        | trait           | serde serialization                       |
 | `Deserialize`      | trait           | serde deserialization                     |
 | `JsonSchema`       | trait           | JSON Schema generation                    |
@@ -1191,11 +1191,11 @@ the release static-link path is unchanged. The surface is experimental (the
 experimental-surface table in [versioning-policy.md](versioning-policy.md));
 contracts may break before 1.0.
 
-### Type inventory (`rustra::hot_core`)
+### Type inventory (`unikit_bridge::hot_core`)
 
 - `JsonDispatch` — `pub trait JsonDispatch: Send + Sync`; its single method
   `fn invoke_json(&self, command: &str, args: serde_json::Value)` returning
-  `Result<serde_json::Value, serde_json::Value>`. Errors come back as the rustra
+  `Result<serde_json::Value, serde_json::Value>`. Errors come back as the unikit
   error wire shape `{"code": ..., "message": ...}`. Implemented by `Package` (the
   static path) and `HotCoreHandle`; `Send + Sync` exists so `Arc<dyn JsonDispatch>`
   can live in Tauri managed state. (`JsonDispatch` itself compiles without
@@ -1233,7 +1233,7 @@ unload it anyway (std TLS makes `dlclose` a no-op) and Linux must not (old
 symbol pointers alive from before the swap would use-after-unload). Every
 `DylibCore::open` therefore retains its library mapping for the rest of the
 process and is counted once at open time — including loads whose symbol
-binding fails afterwards. Three items behind `rustra::hot_core` report this:
+binding fails afterwards. Three items behind `unikit_bridge::hot_core` report this:
 
 - `retained_library_stats()` — a process-wide `RetainedLibraryStats` snapshot;
   counters may advance independently while another thread is mid-load.
@@ -1258,23 +1258,23 @@ never kills the loop.
 `tauri_support::HotSwapReporter` (`.new()`, `.report(outcome)`; the
 `.install(sink)` step is plugin-internal, not public API) reports outcomes to
 the reserved channel constant `HOT_SWAP_EVENT = "hot-core/swapped"` — the
-webview channel is `rustra://hot-core/swapped`.
+webview channel is `unikit://hot-core/swapped`.
 `tauri_support::register_dispatch_with_swap_events` — parameters
 `dispatch: Arc<dyn JsonDispatch>`, `reporter: HotSwapReporter`, and
 `builder: tauri::Builder<R>` (returns `tauri::Builder<R>`) — registers static
-dispatch plus a `rustra-hot-swap` plugin that installs the reporter on the
+dispatch plus a `unikit-hot-swap` plugin that installs the reporter on the
 Tauri event sink. Unlike `register_with_events`, package events are NOT wired
 (the swap-drops-core-event-state policy is unchanged) — this function adds
 exactly one new emission, the swap outcome. On the JS side the channel is
-consumed by `subscribeHotSwap` from `@rustra/tauri` (see
+consumed by `subscribeHotSwap` from `@unikit-bridge/tauri` (see
 [events-and-channels.md](events-and-channels.md)).
 
 ### Example
 
 ```rust
 use std::sync::Arc;
-use rustra::hot_core::{self, DylibCore, DylibWatchConfig, HotCoreHandle};
-use rustra::tauri_support::{self, HotSwapReporter};
+use unikit_bridge::hot_core::{self, DylibCore, DylibWatchConfig, HotCoreHandle};
+use unikit_bridge::tauri_support::{self, HotSwapReporter};
 
 // 1) open the freshly built cdylib and wrap it in the shared swap point
 let core = DylibCore::open(artifact)?;            // dlopen + symbol bind + init
@@ -1286,12 +1286,12 @@ let mut config = DylibWatchConfig::new(artifact, handle.clone());
 config.poll = std::time::Duration::from_millis(300); // default — shown for tuning
 let sink = reporter.clone();
 config.on_swap = Arc::new(move |outcome| {
-    eprintln!("rustra hot-core: swap {outcome:?}");
+    eprintln!("unikit hot-core: swap {outcome:?}");
     sink.report(outcome.map_err(|e| e.to_string()));
 });
 hot_core::spawn_dylib_watch(config);              // std thread, sha256 polling
 
-// 3) static dispatch + the rustra-hot-swap plugin
+// 3) static dispatch + the unikit-hot-swap plugin
 tauri_support::register_dispatch_with_swap_events(handle, reporter, builder)
 ```
 
@@ -1325,7 +1325,7 @@ bun run build
 bun run test:app:resident-tree
 ```
 
-Its [Rust state](../crates/rustra/examples/support/resident_tree_model.rs) implements
+Its [Rust state](../crates/unikit-bridge/examples/support/resident_tree_model.rs) implements
 `loadTree`, `findNode`, `updateNode`, `releaseTree` and `clearTrees`. The generated
 TypeScript consumer verifies the contract and rejects released or stale-generation
 handles. IDs are never reused within the process. Trees, nodes and depth have explicit
@@ -1377,7 +1377,7 @@ declaration → generated `events.ts` → per-host `subscribeEvent`/channels —
 per-host issuance):
 
 ```rust
-use rustra::channels;
+use unikit_bridge::channels;
 
 // Reserve a handle and install a sender (host adapters do this for you —
 // this is the escape hatch for custom hosts)
@@ -1406,11 +1406,11 @@ Package::builder("app.secure")
 pkg.grant_capability("app.admin")?;
 ```
 
-**FFI (C ABI)** — calls via native modules/processes (`rustra::ffi`):
+**FFI (C ABI)** — calls via native modules/processes (`unikit_bridge::ffi`):
 
-- `rustra_ffi_register` / `rustra_ffi_invoke_json` / `rustra_ffi_invoke_postcard`
-- `rustra_ffi_invoke_async` / `rustra_ffi_invoke_cancel` — checkpoint cancellation propagation
-- `rustra_ffi_set_max_payload` / `rustra_ffi_contract_hash` / `rustra_ffi_schema_json`
+- `unikit_ffi_register` / `unikit_ffi_invoke_json` / `unikit_ffi_invoke_postcard`
+- `unikit_ffi_invoke_async` / `unikit_ffi_invoke_cancel` — checkpoint cancellation propagation
+- `unikit_ffi_set_max_payload` / `unikit_ffi_contract_hash` / `unikit_ffi_schema_json`
 
 **Freeze** — locking runtime mutation:
 
@@ -1419,24 +1419,24 @@ pkg.freeze();          // subsequent register/unregister fail with registry.froz
 assert!(pkg.is_frozen());
 ```
 
-**Tauri support** (`tauri` feature) — `rustra::tauri_support`:
+**Tauri support** (`tauri` feature) — `unikit_bridge::tauri_support`:
 
 - `tauri_support::register(app, pkg)` — registers the invoke handler
 - `tauri_support::register_with_events(...)` — includes event push
-- `tauri_support::register_profiled(...)` — bench-only, exposes `rustra_dispatch_profiled`
-- `tauri_support::rustra_dispatch(...)` — command dispatch
+- `tauri_support::register_profiled(...)` — bench-only, exposes `unikit_dispatch_profiled`
+- `tauri_support::unikit_dispatch(...)` — command dispatch
 - `tauri_support::register_dispatch_with_swap_events(...)` — hot-core swap
-  reporting on `rustra://hot-core/swapped` (see §11)
+  reporting on `unikit://hot-core/swapped` (see §11)
 
 **Schema/version** — `pkg.schema()` (the full schema JSON), `pkg.live_schema()`
 (including dynamic commands), the `.schema_version(v)` builder (T2/OTA negotiation).
 
 ### Payload Size Limits (request and response)
 
-One dynamic gate bounds both directions of a call (`crates/rustra/src/limits.rs`):
+One dynamic gate bounds both directions of a call (`crates/unikit-bridge/src/limits.rs`):
 
 ```rust
-// crates/rustra/src/limits.rs
+// crates/unikit-bridge/src/limits.rs
 /// Default maximum encoded request/response size: 1 MiB.
 pub const DEFAULT_MAX_PAYLOAD_BYTES: usize = 1024 * 1024;
 ```
@@ -1448,13 +1448,13 @@ pub const DEFAULT_MAX_PAYLOAD_BYTES: usize = 1024 * 1024;
 - **Response side**: the same limit applies to the **total encoded response**, including
   the 8-byte response frame header. Every dispatch path enforces it: the postcard fast
   path checks `8 + body` against the limit before returning
-  (`checked_frame_response_len` in `crates/rustra/src/command_handlers.rs`), the
+  (`checked_frame_response_len` in `crates/unikit-bridge/src/command_handlers.rs`), the
   complex-codec path re-checks the fully encoded frame (`complex_encode_response`, same
   file), and the JSON fallback path checks the encoded response
-  (`crates/rustra/src/invoke_dispatch.rs`). The caller-buffer direct-response path
+  (`crates/unikit-bridge/src/invoke_dispatch.rs`). The caller-buffer direct-response path
   counts the header too and, when the total exceeds the limit, falls through to the
   buffered path so both routes surface the same error
-  (`crates/rustra/src/command_into.rs`).
+  (`crates/unikit-bridge/src/command_into.rs`).
 
 A command whose output encodes beyond the limit fails with the same code an oversized
 request produces — one cause, one code, regardless of path:
@@ -1463,13 +1463,13 @@ request produces — one cause, one code, regardless of path:
 payload.too_large: payload NB exceeds max payload MB   // retryable: false
 ```
 
-(`RustraError::payload_too_large` in `crates/rustra/src/error.rs`. Non-retryable — it is
+(`UnikitError::payload_too_large` in `crates/unikit-bridge/src/error.rs`. Non-retryable — it is
 a deterministic property of the value, so re-running the command cannot fit the same
 output.)
 
 **Adjustment knobs**: there is a single knob, and it moves both directions together.
-`rustra_ffi_set_max_payload(bytes)` / `rustra_ffi_get_max_payload()`
-(`crates/rustra/src/ffi_lifecycle_entries.rs`) rewrite the shared atomic, so raising the
+`unikit_ffi_set_max_payload(bytes)` / `unikit_ffi_get_max_payload()`
+(`crates/unikit-bridge/src/ffi_lifecycle_entries.rs`) rewrite the shared atomic, so raising the
 cap raises the request and the response limit alike (concurrent sets are
 last-writer-wins; the new value applies to calls made after the change). On the JS side,
 the engine option `maxPayloadBytes` pre-checks **request** bytes right after encoding to
@@ -1481,7 +1481,7 @@ ways to deliver a larger response are raising the shared limit or returning less
 ### Calculator Example
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 struct AddNumbersInput {
@@ -1521,7 +1521,7 @@ fn multiply(input: MultiplyInput) -> Result<MultiplyOutput> {
 
 fn main() -> Result<()> {
     // runtime usage
-    let pkg = rustra::build!("example.calculator", add_numbers, multiply).done();
+    let pkg = unikit_bridge::build!("example.calculator", add_numbers, multiply).done();
 
     let sum: AddNumbersOutput = pkg.invoke("addNumbers", AddNumbersInput { a: 2, b: 3 })?;
     println!("2 + 3 = {}", sum.value);
@@ -1536,7 +1536,7 @@ fn main() -> Result<()> {
 ### User Search Example
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 struct UserQuery {
@@ -1561,7 +1561,7 @@ fn find_user(input: UserQuery) -> Result<User> {
 }
 
 fn main() -> Result<()> {
-    let pkg = rustra::build!("app.users", find_user).done();
+    let pkg = unikit_bridge::build!("app.users", find_user).done();
 
     let user: User = pkg.invoke(
         "findUser",
@@ -1577,7 +1577,7 @@ fn main() -> Result<()> {
 ### Error Handling Example
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 struct DivisionInput {
@@ -1594,7 +1594,7 @@ struct DivisionOutput {
 #[command]
 fn divide(input: DivisionInput) -> Result<DivisionOutput> {
     if input.divisor == 0 {
-        return Err(RustraError::custom(
+        return Err(UnikitError::custom(
             "math.divide_by_zero",
             "cannot divide by zero",
         ));
@@ -1606,7 +1606,7 @@ fn divide(input: DivisionInput) -> Result<DivisionOutput> {
 }
 
 fn main() -> Result<()> {
-    let pkg = rustra::build!("math.division", divide).done();
+    let pkg = unikit_bridge::build!("math.division", divide).done();
 
     match pkg.invoke("divide", DivisionInput { dividend: 10, divisor: 3 }) {
         Ok(result) => println!("10 / 3 = {} (remainder: {})", result.quotient, result.remainder),
@@ -1640,7 +1640,7 @@ Current policy (R08 — early guard):
   reports both parties in the error message); it is not a multi-engine API.
 
 All first-party adapters (`createNodeBootstrap`, `createBunBootstrap`,
-`createTauriBootstrap`, RN `createRustraBootstrap`) share the same slot path,
+`createTauriBootstrap`, RN `createUnikitBootstrap`) share the same slot path,
 so the guard covers them automatically. The Node adapter (`node-bootstrap.ts`)
 and the Bun adapter (`bun-ffi.ts`) pass `ownerId`; conflicts from the other
 adapters report the anonymous party in the diagnostics.

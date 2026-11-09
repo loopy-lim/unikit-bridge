@@ -1,6 +1,6 @@
 import { dirname, resolve } from 'node:path';
 import type { ReactNativeScaffoldOptions } from './react-native.js';
-import { readConfigSync, type RustraConfig } from './config.js';
+import { readConfigSync, type UnikitConfig } from './config.js';
 import { createFileWatch, createWatchLoop, type WatchHandle } from './watch.js';
 import {
   resolveHostEntries,
@@ -64,7 +64,7 @@ function resolvePaths(
 } {
   let schemaPath: string;
   let outputPath: string;
-  let config: RustraConfig | undefined;
+  let config: UnikitConfig | undefined;
   if (options.configPath) {
     config = readConfigSync(options.configPath);
     schemaPath = resolve(dirname(options.configPath), config.schema);
@@ -78,7 +78,7 @@ function resolvePaths(
     ? resolveReactNativeScaffold(
         config,
         options.configPath!,
-        cliManifest.rustraTemplate.reactNativeRange,
+        cliManifest.unikitTemplate.reactNativeRange,
       )
     : undefined;
   const cppOutputPath = options.cppOutputPath
@@ -122,7 +122,7 @@ export async function runWatch(args: string[]): Promise<WatchHandle> {
   await regenerate();
   console.log(`\nWatching ${paths.schemaPath} for changes...`);
   console.log(
-    'Only the schema file is watched — Rust edits need a regenerate source (cargo run … generate) or "rustra dev".',
+    'Only the schema file is watched — Rust edits need a regenerate source (cargo run … generate) or "unikit dev".',
   );
   const loop = createWatchLoop(
     async () => {

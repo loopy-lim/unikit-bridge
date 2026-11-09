@@ -2,19 +2,19 @@
 //
 // 전체 흐름(Android 판 hot-core-smoke-android.mjs 와 대칭):
 //   (a) cargo 로 스왑 유닛 cdylib 빌드 — aarch64-apple-ios-sim 대상
-//       rustra-hot-core-variant 를 plain(기본, addNumbers = a+b)과 behavior
+//       unikit-hot-core-variant 를 plain(기본, addNumbers = a+b)과 behavior
 //       변형(--features behavior, addNumbers = a+b+100)으로 각각 빌드해 staging
 //       사본을 남긴다. 같은 출력 경로를 덮어쓰므로 매 단계 후 반드시 사본을
 //       떠둔다(마지막 빌드가 이전 산출물을 가린다).
 //   (b) xcodebuild(verify:native:ios 와 동일 인자)로 핫 분기 앱을 빌드·설치.
-//   (c) EXPO_PUBLIC_RUSTRA_DEMO=hot-core 로 서빙 중인 Metro 에서 앱 부팅 →
-//       [RustraHotCore] READY value=5 토큰 대기 → behavior cdylib 를
+//   (c) EXPO_PUBLIC_UNIKIT_DEMO=hot-core 로 서빙 중인 Metro 에서 앱 부팅 →
+//       [UnikitHotCore] READY value=5 토큰 대기 → behavior cdylib 를
 //       hot-core-push-ios.mjs 로 원자 전달 → **재로드 없이** 같은 로그
 //       스트림에서 addNumbers 5→105 전환을 관측하면 통과.
 //
 // iOS 전달 계약 — Android 와 다른 점 두 가지:
-//   - 핫 디렉터는 filesDir 가 아니라 앱 data 컨테이너의 Documents/rustra/hot.
-//     어댑터는 JSI 설치 시 env RUSTRA_HOT_CORE_DIR(디렉터)을 읽으므로, 런치 전에
+//   - 핫 디렉터는 filesDir 가 아니라 앱 data 컨테이너의 Documents/unikit/hot.
+//     어댑터는 JSI 설치 시 env UNIKIT_HOT_CORE_DIR(디렉터)을 읽으므로, 런치 전에
 //     컨테이너를 조회해 SIMCTL_CHILD_ 접두사로 경로를 주입한다(simctl 이 자식
 //     프로세스 환경을 앱에 전파 — 실측 확인). 디렉터가 비어 있으면 정적 코어로
 //     부팅된다(stale live 파일이 있으면 부팅 직후 스왑이 일어나 baseline 이
@@ -23,13 +23,13 @@
 //     덮어쓰기는 iOS 에서 SIGKILL — 전달은 항상 tmp 기록 후 동일 디렉터
 //     rename(push 스크립트가 강제).
 //
-// 로그 관측 계약(HotCoreApp): [RustraHotCore] READY value=<v> /
+// 로그 관측 계약(HotCoreApp): [UnikitHotCore] READY value=<v> /
 // addNumbers=<value> hash=<8자> / FAILED message=<...>
 //
 // 사용법:
 //   bun scripts/hot-core-smoke-ios.mjs [옵션]
 // 옵션:
-//   --udid <u>            시뮬레이터 UDID (env RUSTRA_SIM_UDID, 기본: 부팅된 기기,
+//   --udid <u>            시뮬레이터 UDID (env UNIKIT_SIM_UDID, 기본: 부팅된 기기,
 //                         없으면 iPhone 17 기본 UDID 를 부팅)
 //   --bundle-id <id>      앱 bundle id (기본은 app.json 자동 감지)
 //   --skip-cargo          (a) cdylib 빌드 스킵 — 기존 staging 산출물 사용
@@ -52,12 +52,12 @@ import {
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const EXAMPLE_ROOT = resolve(SCRIPT_DIR, '..');
 const REPO_ROOT = resolve(EXAMPLE_ROOT, '..', '..');
-const LOG_PREFIX = '[RustraHotCore]';
+const LOG_PREFIX = '[UnikitHotCore]';
 const BASELINE_VALUE = 5; // addNumbers(2,3) — 정적 코어(plain) 기준값
 const SWAPPED_VALUE = 105; // behavior 변형 스왑 후 — 2+3+100
-const METRO_URL = process.env.RUSTRA_METRO_URL || 'http://127.0.0.1:8081';
+const METRO_URL = process.env.UNIKIT_METRO_URL || 'http://127.0.0.1:8081';
 const APP_RELATIVE_PATH =
-  'ios/build/rustra-derived-data/Build/Products/Debug-iphonesimulator/reactnativecalculator.app';
+  'ios/build/unikit-derived-data/Build/Products/Debug-iphonesimulator/reactnativecalculator.app';
 
 function fail(message, detail) {
   const suffix = detail ? `\n${detail}` : '';
@@ -90,8 +90,8 @@ function run(command, args, options = {}) {
 
 function parseArgs(argv) {
   return {
-    udidInput: readFlag(argv, '--udid', process.env.RUSTRA_SIM_UDID || DEFAULT_UDID),
-    bundleIdOverride: readFlag(argv, '--bundle-id', process.env.RUSTRA_IOS_BUNDLE_ID),
+    udidInput: readFlag(argv, '--udid', process.env.UNIKIT_SIM_UDID || DEFAULT_UDID),
+    bundleIdOverride: readFlag(argv, '--bundle-id', process.env.UNIKIT_IOS_BUNDLE_ID),
     skipCargo: argv.includes('--skip-cargo'),
     skipXcodebuild: argv.includes('--skip-xcodebuild'),
     readyTimeoutMs: Number(readFlag(argv, '--ready-timeout-ms', '240000')),
@@ -99,22 +99,22 @@ function parseArgs(argv) {
   };
 }
 
-// cargo 는 plain 빌드와 behavior 빌드가 같은 출력 경로(librustra_hot_core_variant.dylib)를
+// cargo 는 plain 빌드와 behavior 빌드가 같은 출력 경로(libunikit_hot_core_variant.dylib)를
 // 덮어쓴다 — 매 빌드 직후 staging 사본을 만들어 두 변형을 동시에 보관한다.
 const CARGO_TARGET_OUT = resolve(REPO_ROOT, 'target', 'aarch64-apple-ios-sim', 'release');
-const RAW_DYLIB = resolve(CARGO_TARGET_OUT, 'librustra_hot_core_variant.dylib');
+const RAW_DYLIB = resolve(CARGO_TARGET_OUT, 'libunikit_hot_core_variant.dylib');
 const STAGING_ROOT = resolve(CARGO_TARGET_OUT, 'hot-core-staging');
-const PLAIN_DYLIB = resolve(STAGING_ROOT, 'plain', 'librustra_hot_core_variant.dylib');
-const BEHAVIOR_DYLIB = resolve(STAGING_ROOT, 'behavior', 'librustra_hot_core_variant.dylib');
+const PLAIN_DYLIB = resolve(STAGING_ROOT, 'plain', 'libunikit_hot_core_variant.dylib');
+const BEHAVIOR_DYLIB = resolve(STAGING_ROOT, 'behavior', 'libunikit_hot_core_variant.dylib');
 
 function buildCdylibs() {
   // (a-1) 정적 코어 — 기본 feature(addNumbers = a+b). behavior 변형과 스키마가
   // 동일해 계약 해시가 같다(시나리오 1 전제). parity 게이트가 없으므로 이 전제는
   // READY value=5 관측 + 105 전환으로 스모크가 직접 증명한다.
-  console.log('  building plain rustra-hot-core-variant cdylib (aarch64-apple-ios-sim)…');
+  console.log('  building plain unikit-hot-core-variant cdylib (aarch64-apple-ios-sim)…');
   run(
     'cargo',
-    ['build', '--release', '--target', 'aarch64-apple-ios-sim', '-p', 'rustra-hot-core-variant'],
+    ['build', '--release', '--target', 'aarch64-apple-ios-sim', '-p', 'unikit-hot-core-variant'],
     {
       cwd: REPO_ROOT,
       timeoutMs: 600_000,
@@ -125,7 +125,7 @@ function buildCdylibs() {
   run('cp', [RAW_DYLIB, PLAIN_DYLIB]);
   // (a-2) 관측 가능한 스왑 유닛 — addNumbers 본문만 +100(시그니처 불변 로직 변경).
   // 같은 출력 경로를 덮어쓰므로 위 plain 사본이 있어야 순서가 유의미하다.
-  console.log('  building behavior rustra-hot-core-variant cdylib (--features behavior)…');
+  console.log('  building behavior unikit-hot-core-variant cdylib (--features behavior)…');
   run(
     'cargo',
     [
@@ -134,7 +134,7 @@ function buildCdylibs() {
       '--target',
       'aarch64-apple-ios-sim',
       '-p',
-      'rustra-hot-core-variant',
+      'unikit-hot-core-variant',
       '--features',
       'behavior',
     ],
@@ -149,12 +149,12 @@ function buildCdylibs() {
 
 /** 부팅된 기기가 전혀 없을 때 부팅할 기본 기기 — "available" 목록의 첫 iPhone.
  *  특정 기기의 UDID 를 하드코딩하지 않는다(다른 머신에 없는 UDID 는 boot 실패).
- *  env RUSTRA_SIM_FALLBACK_DEVICE 로 이름(부분 일치)을 지정할 수 있다. */
+ *  env UNIKIT_SIM_FALLBACK_DEVICE 로 이름(부분 일치)을 지정할 수 있다. */
 function pickDefaultDeviceUdid() {
   const available = run('xcrun', ['simctl', 'list', 'devices', 'available'], {
     timeoutMs: 30_000,
   });
-  const nameFilter = process.env.RUSTRA_SIM_FALLBACK_DEVICE;
+  const nameFilter = process.env.UNIKIT_SIM_FALLBACK_DEVICE;
   for (const line of available.output.split('\n')) {
     const match = /^\s*(.+?)\s*\(([0-9A-Fa-f-]{36})\)/.exec(line);
     if (!match) continue;
@@ -223,7 +223,7 @@ function buildAndInstallApp({ udid, bundleId }) {
       '-destination',
       'generic/platform=iOS Simulator',
       '-derivedDataPath',
-      'ios/build/rustra-derived-data',
+      'ios/build/unikit-derived-data',
       'CODE_SIGNING_ALLOWED=NO',
       'build',
     ],
@@ -251,7 +251,7 @@ async function checkMetro() {
   } catch {
     fail(
       `Metro is not reachable at ${METRO_URL}`,
-      'hint: 별도 터미널에서 bun run demo:hot-core 를 먼저 실행하세요(EXPO_PUBLIC_RUSTRA_DEMO=hot-core).',
+      'hint: 별도 터미널에서 bun run demo:hot-core 를 먼저 실행하세요(EXPO_PUBLIC_UNIKIT_DEMO=hot-core).',
     );
   }
   if (body !== 'packager-status:running') {
@@ -324,7 +324,7 @@ function waitReadyToken(logStream, timeoutMs) {
       rejectPromise(
         new Error(
           `${LOG_PREFIX} READY token not seen within ${timeoutMs}ms — ` +
-            '앱이 hot-core 분기(EXPO_PUBLIC_RUSTRA_DEMO=hot-core)로 번들링됐는지 확인하세요.',
+            '앱이 hot-core 분기(EXPO_PUBLIC_UNIKIT_DEMO=hot-core)로 번들링됐는지 확인하세요.',
         ),
       );
     }, timeoutMs);
@@ -445,7 +445,7 @@ export async function main(argv = Bun.argv.slice(2)) {
       'hint: --skip-xcodebuild 없이 다시 실행해 앱을 빌드·설치하세요.',
     );
   }
-  const hotDir = resolve(container, 'Documents', 'rustra', 'hot');
+  const hotDir = resolve(container, 'Documents', 'unikit', 'hot');
   run('mkdir', ['-p', hotDir]);
   // stale live 아티팩트를 치운다 — 남아 있으면 부팅 직후 스왑이 일어나
   // baseline(5) 관측이 무효화된다. 비어 있으면 정적 코어로 부팅된다.
@@ -463,7 +463,7 @@ export async function main(argv = Bun.argv.slice(2)) {
     await Bun.sleep(500);
     const launch = Bun.spawnSync({
       cmd: ['xcrun', 'simctl', 'launch', '--terminate-running-process', udid, bundleId],
-      env: { ...process.env, SIMCTL_CHILD_RUSTRA_HOT_CORE_DIR: hotDir },
+      env: { ...process.env, SIMCTL_CHILD_UNIKIT_HOT_CORE_DIR: hotDir },
       stdout: 'pipe',
       stderr: 'pipe',
       timeout: 60_000,

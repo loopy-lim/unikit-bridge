@@ -1,8 +1,8 @@
-# rustra-bridge DX 감사 최종 보고서
+# unikit-bridge DX 감사 최종 보고서
 
 - 작업 ID: `integrate-report` — 4개 분야 감사의 상위 불편 포인트 취합
 - 소스: `.loop-dx/audit-onboarding.md`, `.loop-dx/audit-devloop.md`, `.loop-dx/audit-errors.md`, `.loop-dx/audit-consumer.md`
-- 대상: rustra-bridge 모노레포 (Rust 코어 + TS 코드젠/어댑터 브릿지 프레임워크)
+- 대상: unikit-bridge 모노레포 (Rust 코어 + TS 코드젠/어댑터 브릿지 프레임워크)
 - 방법: 4개 보고서의 항목을 전수 취합 → 중복 제거(예: `test:fast` Linux 파손은 onboarding·devloop 양쪽에서 지적되어 병합) → Quick win / 중기 / 구조적 3단계 분류. 취합 과정에서 핵심 근거(`package.json`, `Cargo.toml`, `.github/workflows/ci.yml`, 파일 부재 여부)를 원본에서 재검증했고, 보고서 주장과 달라진 부분은 §4에 보정 기록했다.
 
 ---
@@ -28,7 +28,7 @@
 - **증상**: 저장소 설계자는 `default-members`로 macOS 전용 tauri-calculator를 bare cargo 대상에서 정확히 뺐는데(`Cargo.toml:17-19` 주석), 정작 기여자가 처음 치는 `test:fast`는 `--workspace`라 그 보호를 우회해 Linux에서 `libwebkit2gtk-4.1-dev` 등 부재로 실패한다. 필요한 패키지 목록은 `ci.yml:108,165,470`에만 존재하고 docs·CONTRIBUTING에는 0건.
 - **근거**: `package.json` `test:fast`, `Cargo.toml` `default-members` 주석, `.github/workflows/ci.yml:108,165,470`
 - **영향받는 사람**: 기여자 (Linux, 시스템 의존성 없는 macOS 포함)
-- **해결책**: `cargo check --workspace --exclude rustra-tauri-calculator-example`(또는 default-members 존중 형태)로 한 줄 수정 + CONTRIBUTING 초기 설정에 Linux 의존성 설치 블록 추가.
+- **해결책**: `cargo check --workspace --exclude unikit-tauri-calculator-example`(또는 default-members 존중 형태)로 한 줄 수정 + CONTRIBUTING 초기 설정에 Linux 의존성 설치 블록 추가.
 - _한계: Linux 파손은 Cargo.toml 주석·CI 매트릭스로부터의 추론이며 러너 재현 미실측(감사 보고서 본인 명시)._
 
 ### Q2. `test:local`에 `test:types` 편입 (패리티 구멍 제거, 한 줄)
@@ -47,7 +47,7 @@
 
 ### Q4. `Generated drift` 9종 중 7종에 재생성 힌트 부착
 
-- **증상**: `(invalid manifest)`, `(schema changed)`, `(generator changed)` 등 7종 변형에 "다음 행동" 힌트가 없다. 1차 소비자는 CI인데 `Run rustra codegen --config rustra.json` 한 줄 유무가 복구 시간을 좌우. 같은 저장소 doctor의 `fix:` 라인 관례와 불일치.
+- **증상**: `(invalid manifest)`, `(schema changed)`, `(generator changed)` 등 7종 변형에 "다음 행동" 힌트가 없다. 1차 소비자는 CI인데 `Run unikit codegen --config unikit.json` 한 줄 유무가 복구 시간을 좌우. 같은 저장소 doctor의 `fix:` 라인 관례와 불일치.
 - **근거**: `packages/cli/src/manifest.ts:49-106`, 대비 관례 `packages/cli/src/doctor-format.ts:30-35`
 - **영향받는 사람**: 기여자 (CI에서 drift 적발 시)
 - **해결책**: 9종 전부에 공통 접미 힌트 상수 1줄 부착.
@@ -61,7 +61,7 @@
 
 ### Q6. `doctor.config.json` 이름 충돌 해소
 
-- **증상**: "doctor"라는 이름이 서로 무관한 4곳(`rustra doctor` CLI, 스캐폴드 `bun run doctor`, `scripts/doctor.mjs`, 루트 `doctor.config.json`)에서 쓰여 신규 기여자의 grep을 오염시킴. `doctor.config.json`은 레포 내 실참조 0건(재확인).
+- **증상**: "doctor"라는 이름이 서로 무관한 4곳(`unikit doctor` CLI, 스캐폴드 `bun run doctor`, `scripts/doctor.mjs`, 루트 `doctor.config.json`)에서 쓰여 신규 기여자의 grep을 오염시킴. `doctor.config.json`은 레포 내 실참조 0건(재확인).
 - **근거**: `doctor.config.json`, `eslint.config.js`(미참조), `docs/dev/research/2026-08-29-22-46-49-dx-audit.md:111`(기지정 이슈)
 - **영향받는 사람**: 기여자 (첫날 혼란)
 - **해결책**: `react-doctor.config.json` 등으로 이름 변경 또는 파일 최상단 용도 주석 추가.
@@ -102,10 +102,10 @@
 
 ### M3. tier2 디코드 실패 에러 정규화 (TOP 5 #3)
 
-- **증상**: 생성 코덱의 plain `Error`가 `instanceof Error` 분기로 래핑 없이 통과 — `error.code`가 `undefined`가 되어 디코드 버그와 핸들러 실패를 구분 불가, 명령명·오프셋·와이어 단서 부재, `RUSTRA_DEBUG=1` 존재를 에러가 안내하지 않음. 같은 계층의 JSON 경로(`invalid json: {detail}`)·inspector(`at byte 42`)는 위치 정보를 주는 데 tier2만 낙후.
+- **증상**: 생성 코덱의 plain `Error`가 `instanceof Error` 분기로 래핑 없이 통과 — `error.code`가 `undefined`가 되어 디코드 버그와 핸들러 실패를 구분 불가, 명령명·오프셋·와이어 단서 부재, `UNIKIT_DEBUG=1` 존재를 에러가 안내하지 않음. 같은 계층의 JSON 경로(`invalid json: {detail}`)·inspector(`at byte 42`)는 위치 정보를 주는 데 tier2만 낙후.
 - **근거**: `packages/types/src/frame-engine-contract.ts:16-27`, `examples/calculator/generated/frame-codecs.ts`, 대비 `packages/types/src/json-wire.ts:80`, `packages/types/src/inspector.ts:141-152`
 - **영향받는 사람**: 컨슈머
-- **해결책**: `tier2Outcome`이 command 이름을 받도록 서명 확장, `RustraCommandError('invoke.malformed', "decode failed for 'addNumbers' at offset N: … — set RUSTRA_DEBUG=1")`로 정규화.
+- **해결책**: `tier2Outcome`이 command 이름을 받도록 서명 확장, `UnikitCommandError('invoke.malformed', "decode failed for 'addNumbers' at offset N: … — set UNIKIT_DEBUG=1")`로 정규화.
 
 ### M4. pre-push 훅 도입 + eslint 범위 확대
 
@@ -123,10 +123,10 @@
 
 ### M6. crud 예제 완결 — "엔진 없이" 끝나는 두 번째 예제
 
-- **증상**: crud README 스니펫이 `const engine = /* EngineClient */` 플레이스홀더로 끝나고, `rustra.json`에 호스트 키가 없어 호스트 엔트리가 생성되지 않으며, 스니펫 호출 형태가 실제 생성 함수 시그니처와도 불일치. 첫 성공 경로가 calculator에만 존재해 두 번째 예제에서 사용자가 부트스트랩을 스스로 조립하게 됨.
-- **근거**: `examples/crud/README.md:47-53`, `examples/crud/rustra.json`, `examples/crud/generated/commands.ts:14-16`, 대비 완결 사례 `examples/calculator/apps/node-app.ts`
+- **증상**: crud README 스니펫이 `const engine = /* EngineClient */` 플레이스홀더로 끝나고, `unikit.json`에 호스트 키가 없어 호스트 엔트리가 생성되지 않으며, 스니펫 호출 형태가 실제 생성 함수 시그니처와도 불일치. 첫 성공 경로가 calculator에만 존재해 두 번째 예제에서 사용자가 부트스트랩을 스스로 조립하게 됨.
+- **근거**: `examples/crud/README.md:47-53`, `examples/crud/unikit.json`, `examples/crud/generated/commands.ts:14-16`, 대비 완결 사례 `examples/calculator/apps/node-app.ts`
 - **영향받는 사람**: 컨슈머
-- **해결책**: crud `rustra.json`에 호스트 키 추가 + README 스니펫을 실제 생성 시그니처에 맞는 완결 코드로 교체.
+- **해결책**: crud `unikit.json`에 호스트 키 추가 + README 스니펫을 실제 생성 시그니처에 맞는 완결 코드로 교체.
 
 ### M7. shallow cancellation 경고를 생성 표면으로 노출
 
@@ -137,7 +137,7 @@
 
 ### M8. devtools 실패 프레임 포렌식 지원
 
-- **증상**: `DevtoolsLog`에 프레임 바이트/길이/오프셋 필드가 없어 디코드 실패(M3)를 보조할 와이어 단서가 로그에 남지 않음 — 프로세스 종료 후 재현 불가, `RUSTRA_DEBUG` 수작업 재실행으로 떠넘겨짐. 성능(타임라인)은 성숙, 장애 포렌식은 공백.
+- **증상**: `DevtoolsLog`에 프레임 바이트/길이/오프셋 필드가 없어 디코드 실패(M3)를 보조할 와이어 단서가 로그에 남지 않음 — 프로세스 종료 후 재현 불가, `UNIKIT_DEBUG` 수작업 재실행으로 떠넘겨짐. 성능(타임라인)은 성숙, 장애 포렌식은 공백.
 - **근거**: `packages/devtools/src/devtools-types.ts:24-36`, `packages/devtools/src/timeline-report.ts:59-70`, `packages/devtools/src/index.ts:7-9`
 - **영향받는 사람**: 컨슈머 + 기여자
 - **해결책**: `frameBytesHex`(절단 256B)·`frameByteLength` 선택 필드를 실패 로그 한정 additive 확장.
@@ -205,10 +205,10 @@
 
 ## 6. 잘 작동하는 것 (유지 권장 — 4개 보고서 공통 확인)
 
-- 에러 처리 성숙도: 설정 부재 시 `rustra init` 힌트, 오타 suggestion, cargo 부재 시 rustup 안내, contract hash mismatch의 원인+수순+후보 전수 보고, `rustra doctor`의 `fix:` 라인 관례, NDJSON 파싱 실패 라인 링 버퍼 보존, FFI 패닉 정규화, fuzz 타깃 3종.
+- 에러 처리 성숙도: 설정 부재 시 `unikit init` 힌트, 오타 suggestion, cargo 부재 시 rustup 안내, contract hash mismatch의 원인+수순+후보 전수 보고, `unikit doctor`의 `fix:` 라인 관례, NDJSON 파싱 실패 라인 링 버퍼 보존, FFI 패닉 정규화, fuzz 타깃 3종.
 - 문서 구조: 전제 조건의 단일 원천 표(getting-started) + CONTRIBUTING의 저장소 전용 사항만 보강, ko/en 쌍 동시 커밋 관례, `docs/gate-map.md`의 게이트 단일 지도.
 - 게이트 문화: `scripts/onboarding-gate.mjs`의 fail-closed 행위 기반 사용자 여정 검증 + 유닛 테스트, lefthook `prepare` 자동 설치 + `stage_fixed`, CI의 "각 검증 정확히 1회" 원칙과 무음 green 방지(`skipped` 실패 처리).
-- 타입/에러 인체공학: `RustraCommandError` 단일 `instanceof` 분기, 명령별 타입 가드 생성, `#[command(error(...))]` 계약.
+- 타입/에러 인체공학: `UnikitCommandError` 단일 `instanceof` 분기, 명령별 타입 가드 생성, `#[command(error(...))]` 계약.
 
 ---
 
@@ -230,7 +230,7 @@
 
 | 항목 | 상태    | 근거 (파일/스크립트)                                                                                                                                                                                                                                                                                                               |
 | ---- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q1   | ✅ 완료 | `package.json` `test:fast` → `cargo check --workspace --exclude rustra-tauri-calculator`                                                                                                                                                                                                                                           |
+| Q1   | ✅ 완료 | `package.json` `test:fast` → `cargo check --workspace --exclude unikit-tauri-calculator`                                                                                                                                                                                                                                           |
 | Q2   | ✅ 완료 | `test:local` 체인에 `test:types` 편입 확인                                                                                                                                                                                                                                                                                         |
 | Q3   | ✅ 완료 | `packages/cli/src/process.ts` — exit 코드 판정 후 `✓ done`/`✗ failed` 분기                                                                                                                                                                                                                                                         |
 | Q4   | ✅ 완료 | `packages/cli/src/manifest.ts` — `REGENERATE_HINT` 상수로 9종 drift 전체에 재생성 힌트                                                                                                                                                                                                                                             |
@@ -240,15 +240,15 @@
 | Q8   | ✅ 완료 | `docs/compatibility-matrix.md`(en/ko) — `engine.supports` engine-level 한정 각주                                                                                                                                                                                                                                                   |
 | M1   | ✅ 완료 | `test:local` 재구성 — 선두 `bun run build` 1회 후 `*:check` 변형(codegen-fresh/bindings-fresh/packages/onboarding)로 중복 빌드 제거                                                                                                                                                                                                |
 | M2   | ✅ 완료 | `test:ts:node` glob 전환(8→11개 복구: devices·loose-invoke·typed-errors), cli `test` bun 세그먼트에 generate-sync·generate-bound-context·generate-postcard-map 편입(bun:test 전용임이 원인 규명됨 — node --test 제외는 의도적), `coverage:ts`에 react 3개 테스트 전부 반영, `scripts/check-test-list-parity.mjs` + 테스트 7건 신설 |
-| M3   | ✅ 완료 | `packages/types/src/frame-engine-contract.ts` — 디코드 실패 정규화(명령명·오프셋·`RUSTRA_DEBUG=1` 힌트), `frame-engine-contract.test.ts` 신설                                                                                                                                                                                      |
+| M3   | ✅ 완료 | `packages/types/src/frame-engine-contract.ts` — 디코드 실패 정규화(명령명·오프셋·`UNIKIT_DEBUG=1` 힌트), `frame-engine-contract.test.ts` 신설                                                                                                                                                                                      |
 | M4   | ✅ 완료 | `lefthook.yml` pre-push 훅 추가, `eslint.config.js` 범위 scripts/examples 확대                                                                                                                                                                                                                                                     |
 | M5   | ✅ 완료 | `docs/README.md` — API Reference (TypeDoc) 섹션 및 인덱스 링크                                                                                                                                                                                                                                                                     |
-| M6   | ✅ 완료 | `examples/crud/rustra.json` 호스트 키 추가 → `generated/node.ts` 생성 확인, README 완결 코드 교체(en/ko)                                                                                                                                                                                                                           |
+| M6   | ✅ 완료 | `examples/crud/unikit.json` 호스트 키 추가 → `generated/node.ts` 생성 확인, README 완결 코드 교체(en/ko)                                                                                                                                                                                                                           |
 | M7   | ✅ 완료 | 코드젠 템플릿 — 생성 `commands.ts`에 얕은 취소(shallow cancellation)·retryable 경고 JSDoc 삽입                                                                                                                                                                                                                                     |
 | M8   | ✅ 완료 | `packages/devtools` — `timeline-report.ts` 등 프레임 포렌식 필드 additive 확장 + 테스트                                                                                                                                                                                                                                            |
 | M9   | ✅ 완료 | 4개 호스트 엔트리(node/bun/tauri/react-native) 옵션 정합화, 전 예제 generated 재생성                                                                                                                                                                                                                                               |
 | M10  | ✅ 완료 | CONTRIBUTING에 tauri 시스템 의존성 사전조건 명시, CI ts-checks 선두 `test:fast` 스모크                                                                                                                                                                                                                                             |
-| S1   | ✅ 완료 | `crates/rustra/src/codegen_names.rs` 등 — 타입명 정화(예약어/내장명 회피), 하위 호환 alias 유지, 전 예제 generated 갱신                                                                                                                                                                                                            |
+| S1   | ✅ 완료 | `crates/unikit-bridge/src/codegen_names.rs` 등 — 타입명 정화(예약어/내장명 회피), 하위 호환 alias 유지, 전 예제 generated 갱신                                                                                                                                                                                                            |
 | S2   | ✅ 완료 | 우산 3계층 재정의(test/test:local/test:compat), PR 필수 게이트 Linux-safe 교체, `docs/gate-map.md` 갱신                                                                                                                                                                                                                            |
 | S3   | ✅ 완료 | 중복 2쌍 제거(`test:runtime:bun-ffi`, `bench:bun` 소멸 확인), 스크립트 정리                                                                                                                                                                                                                                                        |
 | S4   | ✅ 완료 | `docs/function-registration.md`(en/ko) — 두 저작 모델 기능 지원 매트릭스 표                                                                                                                                                                                                                                                        |
@@ -264,6 +264,6 @@
 
 ### 후속 관찰 항목 상태 (2026-09-24 2차 업데이트)
 
-1. **onboarding-gate 콜드 cargo 캐시** — ✅ 완료. `RUSTRA_ONBOARDING_CARGO_TARGET_DIR` 옵트인 환경변수 추가(`scripts/onboarding-gate.mjs`). 미설정 시 기존 콜드 캐시(fresh scaffold) 의미론 유지, `test:onboarding:check`은 `target/onboarding-shared` 공유 타깃으로 웜 실행. 유닛 테스트 21건 통과.
-2. **M9/S1 마이그레이션 노트** — ✅ 완료. `.changeset/m9-host-options-s1-type-name-sanitization.md` 작성(`@rustra/cli` minor). 기본값은 어댑터 런타임 의미론상 변화 없음, 생성 엔트리 명시화와 deprecated alias 유지 범위·마이그레이션 절차 문서화.
+1. **onboarding-gate 콜드 cargo 캐시** — ✅ 완료. `UNIKIT_ONBOARDING_CARGO_TARGET_DIR` 옵트인 환경변수 추가(`scripts/onboarding-gate.mjs`). 미설정 시 기존 콜드 캐시(fresh scaffold) 의미론 유지, `test:onboarding:check`은 `target/onboarding-shared` 공유 타깃으로 웜 실행. 유닛 테스트 21건 통과.
+2. **M9/S1 마이그레이션 노트** — ✅ 완료. `.changeset/m9-host-options-s1-type-name-sanitization.md` 작성(`@unikit-bridge/cli` minor). 기본값은 어댑터 런타임 의미론상 변화 없음, 생성 엔트리 명시화와 deprecated alias 유지 범위·마이그레이션 절차 문서화.
 3. **`test:fast` Linux 실측** — ⏳ CI push 후 확인 대상. `.github/workflows/ci.yml`의 Umbrella smoke (test:fast) 스텝이 `runs-on: ubuntu-latest` 잡에 속해 푸시 시 자동 검증됨(로컬 Linux 재현 불가 환경).

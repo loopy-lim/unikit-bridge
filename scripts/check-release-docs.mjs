@@ -27,7 +27,7 @@ export function readReleaseVersions(root) {
     const path = join(root, 'packages', name, 'package.json');
     if (!existsSync(path)) continue;
     const manifest = JSON.parse(readFileSync(path, 'utf8'));
-    if (manifest.private || !manifest.name?.startsWith('@rustra/')) continue;
+    if (manifest.private || !manifest.name?.startsWith('@unikit-bridge/')) continue;
     if (typeof manifest.version !== 'string') throw new Error(`${path}: missing version`);
     npm[manifest.name] = manifest.version;
   }
@@ -55,7 +55,7 @@ export function verifyReleaseDocs(root, { docs = INSTALL_DOCS, tables = TABLE_DO
     const lines = readFileSync(join(root, rel), 'utf8').split(/\r?\n/);
     for (const [index, line] of lines.entries()) {
       const cargo = line.match(
-        /^\s*(rustra(?:-macros|-naming)?)\s*=\s*(?:\{\s*version\s*=\s*)?"([^"]+)"/,
+        /^\s*(unikit(?:-macros|-naming)?)\s*=\s*(?:\{\s*version\s*=\s*)?"([^"]+)"/,
       );
       if (cargo && cargo[2] !== rust)
         failures.push(
@@ -63,7 +63,7 @@ export function verifyReleaseDocs(root, { docs = INSTALL_DOCS, tables = TABLE_DO
         );
       if (!/^\s*(?:bun add|npm (?:install|i|exec)|pnpm add|yarn add|bunx|npx)\b/.test(line))
         continue;
-      for (const match of line.split('#')[0].matchAll(/(@rustra\/[a-z-]+)(?:@([^\s`]+))?/g)) {
+      for (const match of line.split('#')[0].matchAll(/(@unikit-bridge\/[a-z-]+)(?:@([^\s`]+))?/g)) {
         const expected = npm[match[1]];
         if (!expected || match[2] !== expected)
           failures.push(

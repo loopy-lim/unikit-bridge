@@ -26,7 +26,7 @@ import { cliManifest } from './cli-runtime.js';
 //   (iii) 거부가 루프를 죽이지 않는다(다음 변경에 다시 판정)
 //
 // cargo 는 PATH 앞단의 fake 스크립트로 대체한다:
-//   - `cargo metadata` → 단일 패키지 + `generate` bin + `rustra_bridge` staticlib
+//   - `cargo metadata` → 단일 패키지 + `generate` bin + `unikit_bridge` staticlib
 //     (resolveCodegenTarget / selectReactNativeCargoTarget 계약)
 //   - `cargo run` → $FAKE_SCHEMA_FILE 을 generated/schema.json 으로 복사
 //     ("Rust schema generation" 단계의 역할)
@@ -68,7 +68,7 @@ function writeSchema(path: string, messageType: string): void {
 
 /**
  * fake cargo 의 메타데이터 대역 변형 — 엔진 crate(`x`)의 lib 타깃 이름·크레이트 타입.
- *  - 기본 (`rustra_bridge`, staticlib+cdylib): codegen 의 RN staticlib 선택과 wasm
+ *  - 기본 (`unikit_bridge`, staticlib+cdylib): codegen 의 RN staticlib 선택과 wasm
  *    cdylib 선택이 모두 성공하는 정상형.
  *  - `"staticlib"` 만: codegen 은 통과하지만 wasm 빌드가 cdylib 부재로 실패해야
  *    하는 음성형 — exactly-one-cdylib 강제 계약 검증용.
@@ -92,24 +92,24 @@ function seedProject(root: string, engineLib: EngineLibVariant = 'cdylib'): stri
   );
   // RN 스캐폴드 경로가 실제로 돈다 — 어댑터도 설치돼 있어야 한다(감사 A11: RN
   // 코드젠은 bun install 선행이 계약). cliManifest range 를 만족하는 버전으로 심는다.
-  const adapterVersion = cliManifest.rustraTemplate.reactNativeRange.replace(/^[~^=]/, '');
-  const adapterNative = join(project, 'node_modules', '@rustra', 'react-native', 'native');
+  const adapterVersion = cliManifest.unikitTemplate.reactNativeRange.replace(/^[~^=]/, '');
+  const adapterNative = join(project, 'node_modules', '@unikit-bridge', 'react-native', 'native');
   for (const file of [
-    'android/rustra-jsi-jni.cpp',
-    'cpp/RustraJSIBridge.cpp',
-    'cpp/RustraJSIBridge.hpp',
-    'cpp/rustra-codec.hpp',
-    'ios/RustraJSIModule.mm',
+    'android/unikit-jsi-jni.cpp',
+    'cpp/UnikitJSIBridge.cpp',
+    'cpp/UnikitJSIBridge.hpp',
+    'cpp/unikit-codec.hpp',
+    'ios/UnikitJSIModule.mm',
   ]) {
     mkdirSync(join(adapterNative, ...file.split('/').slice(0, -1)), { recursive: true });
     writeFileSync(join(adapterNative, ...file.split('/')), 'adapter fixture');
   }
   writeFileSync(
-    join(project, 'node_modules', '@rustra', 'react-native', 'package.json'),
-    JSON.stringify({ name: '@rustra/react-native', version: adapterVersion }),
+    join(project, 'node_modules', '@unikit-bridge', 'react-native', 'package.json'),
+    JSON.stringify({ name: '@unikit-bridge/react-native', version: adapterVersion }),
   );
   writeFileSync(
-    join(project, 'rustra.json'),
+    join(project, 'unikit.json'),
     JSON.stringify({
       schema: './generated/schema.json',
       output: './generated',
@@ -117,7 +117,7 @@ function seedProject(root: string, engineLib: EngineLibVariant = 'cdylib'): stri
       dev: { target: 'wasm', wasm: { engine: 'wasm3' } },
     }),
   );
-  const libName = engineLib === 'custom-name' ? 'my_bridge' : 'rustra_bridge';
+  const libName = engineLib === 'custom-name' ? 'my_bridge' : 'unikit_bridge';
   const crateTypes = engineLib === 'staticlib-only' ? '["staticlib"]' : '["staticlib","cdylib"]';
   const fakeCargo = [
     '#!/bin/bash',
@@ -222,7 +222,7 @@ test(
   'runConfigDev parity wiring: drifted codegen is rejected loudly without emitting reload',
   { timeout: 30_000 },
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-parity-e2e-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-parity-e2e-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedProject(root);
@@ -243,7 +243,7 @@ test(
         errors.filter((line) => line.includes('[dev] reload rejected —')).length;
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
         // Keep Cargo active beyond the old 500ms retouch interval. Each
@@ -315,7 +315,7 @@ test(
   'runConfigDev wasm target builds the wasm32 engine artifact and still reloads',
   { timeout: 30_000 },
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-wasm-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-wasm-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedProject(root);
@@ -330,7 +330,7 @@ test(
       const restore = captureConsole(errors);
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
 
@@ -352,7 +352,7 @@ test(
             (line) =>
               line.includes('[dev:wasm] engine artifact:') &&
               line.includes(
-                join('target', 'wasm32-unknown-unknown', 'release', 'rustra_bridge.wasm'),
+                join('target', 'wasm32-unknown-unknown', 'release', 'unikit_bridge.wasm'),
               ),
           ),
           `the artifact path must be announced for the host push step, got:\n${errors.join('\n')}`,
@@ -396,7 +396,7 @@ test(
   async () => {
     // wasm 빌드 실패 = 호스트가 받을 새 엔진이 없다 — codegen 이 성공해도 reload 는
     // 방출되지 않는다(게이트 검증 이전에 실패가 전파되어 catch 로 간다).
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-wasm-fail-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-wasm-fail-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedProject(root);
@@ -410,7 +410,7 @@ test(
       const restore = captureConsole(errors);
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
         // 유예 — 그 사이 reload 가 방출되지 않음이 곧 부정 검증이다.
@@ -450,7 +450,7 @@ test(
     // 애초에 나오지 않는다. codegen(RN staticlib 선택)은 통과하는 상태에서 wasm
     // 빌드 단계만 실패해야 하고, 에러는 cdylib 원인과 수정 힌트를 함께 말해야 한다
     // (조용한 스킵/무음 재시도 없음). reload 는 물론 방출되지 않는다.
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-wasm-nocdylib-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-wasm-nocdylib-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedProject(root, 'staticlib-only');
@@ -463,7 +463,7 @@ test(
       const restore = captureConsole(errors);
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
         await sleep(300);
@@ -501,7 +501,7 @@ test(
     // [lib] name = "my_bridge" 는 my_bridge.wasm 을 만든다(x.wasm 이 아니다). 이
     // 저장소의 RN 관례(lib${rustLibrary}.a)와 같은 이름 근원이다. 패키지 이름으로
     // 계산하면 커스텀 lib 이름에서 경로가 어긋나 재빌드마다 오탈 실패한다.
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-wasm-custom-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-wasm-custom-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedProject(root, 'custom-name');
@@ -514,7 +514,7 @@ test(
       const restore = captureConsole(errors);
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
         await triggerUntil(
@@ -555,7 +555,7 @@ test(
     // 산출물 부재 fail-closed — cargo 가 성공해도 산출물이 없으면(프로필 불일치,
     // 예상 밖 target 레이아웃 등) 조용히 통과하지 않는다. existsSync 재확인이 이
     // 불일치를 loud 하게 잡는다.
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-wasm-noart-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-wasm-noart-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedProject(root);
@@ -569,7 +569,7 @@ test(
       const restore = captureConsole(errors);
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
         await sleep(300);
@@ -605,7 +605,7 @@ test(
 // 계약의 대역이다.
 //
 // 발행 계약: 빌드는 cargo 타깃 경로(스크래치)에만 닿고, 감시자가 폴링하는 라이브
-// 경로(<stem>-hot-live<ext>)는 게이트 통과 빌드만 원자적으로 발행된다. RUSTRA_HOT_CORE
+// 경로(<stem>-hot-live<ext>)는 게이트 통과 빌드만 원자적으로 발행된다. UNIKIT_HOT_CORE
 // 힌트는 라이브 경로만 가리킨다. $FAKE_DYLIB_CONTENT 로 빌드 바이트를 바꿀 수 있어
 // "드리프트된 빌드가 라이브에 닿지 않았다"를 바이트 단위로 증명한다.
 
@@ -639,7 +639,7 @@ function seedDylibProject(root: string): string {
     JSON.stringify({ name: 'proj', workspaces: [], dependencies: {} }),
   );
   writeFileSync(
-    join(project, 'rustra.json'),
+    join(project, 'unikit.json'),
     JSON.stringify({
       schema: './generated/schema.json',
       output: './generated',
@@ -655,7 +655,7 @@ function seedDylibProject(root: string): string {
     '  dir=$(dirname "$manifest")',
     '  printf \'{"target_directory":"%s/target","packages":[{"name":"x","manifest_path":"%s",',
     '  "targets":[{"name":"generate","crate_types":["bin"],"kind":["bin"]},',
-    '  {"name":"rustra_bridge","crate_types":["staticlib","cdylib"],"kind":["lib"]}]}],"workspace_root":"%s"}\\n\' "$dir" "$manifest" "${FAKE_WORKSPACE_ROOT:-$dir}"',
+    '  {"name":"unikit_bridge","crate_types":["staticlib","cdylib"],"kind":["lib"]}]}],"workspace_root":"%s"}\\n\' "$dir" "$manifest" "${FAKE_WORKSPACE_ROOT:-$dir}"',
     '  exit 0',
     'fi',
     'if [ "$1" = "run" ]; then',
@@ -676,14 +676,14 @@ function seedDylibProject(root: string): string {
     '  out="$dir/target/debug"',
     '  mkdir -p "$out"',
     '  if [ -n "$FAKE_DYLIB_NO_ARTIFACT" ]; then',
-    '    printf \'%s\\n\' "{\\"reason\\":\\"compiler-artifact\\",\\"filenames\\":[\\"$out/librustra_bridge.rmeta\\"],\\"target\\":{\\"kind\\":[\\"lib\\"]}}"',
+    '    printf \'%s\\n\' "{\\"reason\\":\\"compiler-artifact\\",\\"filenames\\":[\\"$out/libunikit_bridge.rmeta\\"],\\"target\\":{\\"kind\\":[\\"lib\\"]}}"',
     '    exit 0',
     '  fi',
-    '  printf \'%s\\n\' "{\\"reason\\":\\"compiler-artifact\\",\\"filenames\\":[\\"$out/librustra_bridge.dylib\\",\\"$out/librustra_bridge.so\\",\\"$out/rustra_bridge.dll\\"],\\"target\\":{\\"kind\\":[\\"cdylib\\"]}}"',
+    '  printf \'%s\\n\' "{\\"reason\\":\\"compiler-artifact\\",\\"filenames\\":[\\"$out/libunikit_bridge.dylib\\",\\"$out/libunikit_bridge.so\\",\\"$out/unikit_bridge.dll\\"],\\"target\\":{\\"kind\\":[\\"cdylib\\"]}}"',
     '  core="${FAKE_DYLIB_CONTENT:-fake dylib core}"',
-    '  printf \'%s\' "$core" > "$out/librustra_bridge.dylib"',
-    '  printf \'%s\' "$core" > "$out/librustra_bridge.so"',
-    '  printf \'%s\' "$core" > "$out/rustra_bridge.dll"',
+    '  printf \'%s\' "$core" > "$out/libunikit_bridge.dylib"',
+    '  printf \'%s\' "$core" > "$out/libunikit_bridge.so"',
+    '  printf \'%s\' "$core" > "$out/unikit_bridge.dll"',
     '  exit 0',
     'fi',
     'echo "unexpected cargo invocation: $*" >&2',
@@ -696,7 +696,7 @@ function seedDylibProject(root: string): string {
 }
 
 test('dispose drains a pending config read before its project can be removed', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-dev-dispose-read-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dispose-read-'));
   const originalPath = process.env.PATH;
   const originalReadFile = fsPromises.readFile;
   const logs: string[] = [];
@@ -710,7 +710,7 @@ test('dispose drains a pending config read before its project can be removed', a
   let pendingRead: Promise<unknown> | undefined;
   try {
     const project = seedDylibProject(root);
-    const configPath = join(project, 'rustra.json');
+    const configPath = join(project, 'unikit.json');
     writeSchema(join(project, 'generated', 'schema.json'), 'string');
     writeSchema(join(root, 'schema.json'), 'string');
     process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
@@ -763,7 +763,7 @@ test('dispose drains a pending config read before its project can be removed', a
 
 for (const stage of ['run', 'build']) {
   test(`dispose cancels the owned Cargo ${stage} before project cleanup`, async () => {
-    const root = mkdtempSync(join(tmpdir(), `rustra-dev-dispose-${stage}-`));
+    const root = mkdtempSync(join(tmpdir(), `unikit-dev-dispose-${stage}-`));
     const env = { ...process.env };
     const logs: string[] = [];
     const restoreConsole = captureConsole(logs);
@@ -774,7 +774,7 @@ for (const stage of ['run', 'build']) {
       writeSchema(join(root, 'schema.json'), 'string');
       process.env.PATH = `${join(root, FAKE_BIN)}:${env.PATH}`;
       process.env.FAKE_SCHEMA_FILE = join(root, 'schema.json');
-      handle = await runDev(['--config', join(project, 'rustra.json')]);
+      handle = await runDev(['--config', join(project, 'unikit.json')]);
       const originalCargo = readFileSync(join(root, FAKE_BIN, 'cargo'), 'utf8');
       const delegate = join(root, FAKE_BIN, 'cargo-delegate');
       writeFileSync(delegate, originalCargo);
@@ -803,7 +803,7 @@ for (const stage of ['run', 'build']) {
           `exec "${delegate}" "$@"`,
         ].join('\n'),
       );
-      const published = join(project, 'target', 'debug', liveDylibFileName('rustra_bridge'));
+      const published = join(project, 'target', 'debug', liveDylibFileName('unikit_bridge'));
       const before = readFileSync(published, 'utf8');
       const reloads: string[] = [];
       handle.onReload((reason) => void reloads.push(reason));
@@ -849,7 +849,7 @@ test(
   'disposing while parity verification is pending prevents publication and watcher revival',
   { timeout: 30_000 },
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-dispose-gate-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dispose-gate-'));
     const originalPath = process.env.PATH;
     const originalReadFile = fsPromises.readFile;
     const logs: string[] = [];
@@ -893,8 +893,8 @@ test(
         capturedLog(line);
         if (handle && String(line).includes('[dev:dylib] core artifact:')) pauseCapture = true;
       };
-      handle = await runDev(['--config', join(project, 'rustra.json')]);
-      const livePath = join(project, 'target', 'debug', liveDylibFileName('rustra_bridge'));
+      handle = await runDev(['--config', join(project, 'unikit.json')]);
+      const livePath = join(project, 'target', 'debug', liveDylibFileName('unikit_bridge'));
       assert.equal(readFileSync(livePath, 'utf8'), 'initial published core');
       const reloads: string[] = [];
       handle.onReload((reason) => void reloads.push(reason));
@@ -935,10 +935,10 @@ test(
 );
 
 test(
-  'runConfigDev dylib target builds the cdylib core, announces RUSTRA_HOT_CORE, and reloads',
+  'runConfigDev dylib target builds the cdylib core, announces UNIKIT_HOT_CORE, and reloads',
   { timeout: 30_000 },
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedDylibProject(root);
@@ -953,16 +953,16 @@ test(
       const restore = captureConsole(errors);
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
 
         // initial 강제 런이 codegen(cargo run)에 이어 cdylib 빌드(cargo build)를
         // 오케스트레이션한다 — runDev 반환 시점에 빌드 기록·아티팩트 안내·호스트
-        // 실행 안내(RUSTRA_HOT_CORE)가 모두 있어야 한다. 산출물은 cargo 메시지가
+        // 실행 안내(UNIKIT_HOT_CORE)가 모두 있어야 한다. 산출물은 cargo 메시지가
         // 알려준 target/debug 경로 그대로다.
-        const artifactPath = join('target', 'debug', hostDylibFileName('rustra_bridge'));
-        const livePath = join('target', 'debug', liveDylibFileName('rustra_bridge'));
+        const artifactPath = join('target', 'debug', hostDylibFileName('unikit_bridge'));
+        const livePath = join('target', 'debug', liveDylibFileName('unikit_bridge'));
         const builds = readFileSync(dylibLog, 'utf8');
         assert.ok(
           builds.split('\n').some((line) => line.includes('--lib')),
@@ -978,15 +978,15 @@ test(
           ),
           `the core artifact path must be announced, got:\n${errors.join('\n')}`,
         );
-        // RUSTRA_HOT_CORE 힌트는 게이트 통과 발행 대상인 라이브 경로만 가리킨다 —
+        // UNIKIT_HOT_CORE 힌트는 게이트 통과 발행 대상인 라이브 경로만 가리킨다 —
         // 무게이트 cargo 타깃 경로(스크래치)를 가리키면 드리프트 빌드가 그대로 스왑
         // 되는 구멍이 다시 열린다.
         assert.ok(
-          errors.some((line) => line.includes('RUSTRA_HOT_CORE=') && line.includes(livePath)),
+          errors.some((line) => line.includes('UNIKIT_HOT_CORE=') && line.includes(livePath)),
           `the host launch hint must carry the gated live path, got:\n${errors.join('\n')}`,
         );
         assert.ok(
-          !errors.some((line) => line.includes('RUSTRA_HOT_CORE=') && line.includes(artifactPath)),
+          !errors.some((line) => line.includes('UNIKIT_HOT_CORE=') && line.includes(artifactPath)),
           'the hint must never point at the ungated cargo artifact path',
         );
         // 발행 계약 — initial 런(게이트 통과)이 라이브 경로에 원자적 발행돼 있고
@@ -1041,7 +1041,7 @@ test(
     // 소재를 유지). 스키마 드리프트 시 reload 자체가 방출되지 않는다 — 앱이 구
     // 엔진을 유지하는 fail-closed. dylib + parityGate 기본값에서의 거부 배선이 이
     // 테스트의 대상이다.
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-parity-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-parity-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedDylibProject(root);
@@ -1055,12 +1055,12 @@ test(
       const restore = captureConsole(errors);
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
 
         // 시작점 — initial 런(게이트 통과)이 라이브에 발행한 상태다.
-        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('rustra_bridge'));
+        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('unikit_bridge'));
         assert.equal(readFileSync(liveAbs, 'utf8'), 'fake dylib core');
 
         // 트리거 — fake cargo 가 integer 계약과 **다른 바이트**의 코어를 빌드한다 →
@@ -1097,7 +1097,7 @@ test(
         );
         assert.equal(
           readFileSync(
-            join(project, 'target', 'debug', hostDylibFileName('rustra_bridge')),
+            join(project, 'target', 'debug', hostDylibFileName('unikit_bridge')),
             'utf8',
           ),
           'drifted core bytes',
@@ -1107,7 +1107,7 @@ test(
           errors.some(
             (line) =>
               line.includes('[dev:dylib] gated live artifact untouched') &&
-              line.includes(liveDylibFileName('rustra_bridge')),
+              line.includes(liveDylibFileName('unikit_bridge')),
           ),
           `the rejection must state the live artifact was left untouched, got:\n${errors.join('\n')}`,
         );
@@ -1145,7 +1145,7 @@ test(
     // 틱부터 회복되지만 첫 발행은 항상 밀렸다). codegen 이전 arm 은 재생성 직후
     // 기준으로 다시 잡아 첫 틱이 바로 발행해야 하고, 이후 틱의 실제 드리프트는
     // 기존과 같이 거부되어야 한다(fail-closed 불변).
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-stale-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-stale-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedDylibProject(root);
@@ -1160,12 +1160,12 @@ test(
       const restore = captureConsole(errors);
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
 
         // 첫 틱 — stale 시작 기준이 첫 발행을 막아서는 안 된다.
-        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('rustra_bridge'));
+        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('unikit_bridge'));
         assert.equal(
           readFileSync(liveAbs, 'utf8'),
           'fake dylib core',
@@ -1220,7 +1220,7 @@ test(
     // 스키마가 안정된 다음 런은 게이트를 통과하고 새 계약의 코어가 라이브로 발행된다
     // (reload 도 이때 처음 방출된다). 기존 drift 테스트가 거부에서 끝나고 통과
     // 테스트는 애초 안정 계약뿐이라, "거부 후 재발행" 절반이 갭이었다.
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-rearm-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-rearm-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedDylibProject(root);
@@ -1234,12 +1234,12 @@ test(
       const restore = captureConsole(errors);
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
 
         // 시작점 — initial 런(게이트 통과)이 라이브에 발행한 상태다.
-        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('rustra_bridge'));
+        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('unikit_bridge'));
         assert.equal(readFileSync(liveAbs, 'utf8'), 'fake dylib core');
 
         // (b) 드리프트 런 — integer 계약 + 새 바이트의 코어 → 거부. 라이브는 구
@@ -1279,11 +1279,11 @@ test(
         );
         const hints = errors.filter(
           (line) =>
-            line.includes('RUSTRA_HOT_CORE=') && line.includes(liveDylibFileName('rustra_bridge')),
+            line.includes('UNIKIT_HOT_CORE=') && line.includes(liveDylibFileName('unikit_bridge')),
         );
         assert.ok(
           hints.length >= 2,
-          `the stable run must re-announce RUSTRA_HOT_CORE for the live path, got:\n${errors.join('\n')}`,
+          `the stable run must re-announce UNIKIT_HOT_CORE for the live path, got:\n${errors.join('\n')}`,
         );
         assert.ok(
           !readdirSync(join(project, 'target', 'debug')).some((entry) => entry.includes('-tmp-')),
@@ -1310,7 +1310,7 @@ test(
     // (FAKE_DYLIB_FAIL) 발행 없이 게이트만 무장한 상태를 만든 뒤, 드리프트 트리거로
     // 거부를 유도한다. 이 상태의 거부는 "라이브가 발행된 적 없다"와 "호스트를 띄우면
     // 안 된다"를 loud 하게 말해야 하고, 어떤 발행·reload 도 일어나지 않는다.
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-firstrej-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-firstrej-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedDylibProject(root);
@@ -1325,11 +1325,11 @@ test(
       const restore = captureConsole(errors);
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
 
-        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('rustra_bridge'));
+        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('unikit_bridge'));
         // 시작점 — initial 런은 빌드 실패로 발행 없이 끝났다.
         assert.ok(
           !existsSync(liveAbs),
@@ -1387,7 +1387,7 @@ test(
   async () => {
     // crate-type "cdylib" 강제 — 핫스왑 단위가 없으면 빌드 "성공"이어도 reload 는
     // 없어야 한다. 에러는 cdylib 원인과 crate-type 힌트를 함께 말한다.
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-dylib-nocdylib-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-nocdylib-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedDylibProject(root);
@@ -1401,7 +1401,7 @@ test(
       const restore = captureConsole(errors);
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
         await sleep(300);
@@ -1451,7 +1451,7 @@ function logLineCount(path: string): number {
 
 for (const input of ['build script', 'workspace lock'] as const) {
   test(`runConfigDev rebuilds after a ${input} edit`, { timeout: 30_000 }, async () => {
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-extra-input-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-extra-input-'));
     const originalPath = process.env.PATH;
     const logs: string[] = [];
     const restore = captureConsole(logs);
@@ -1469,7 +1469,7 @@ for (const input of ['build script', 'workspace lock'] as const) {
       process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
       process.env.FAKE_WORKSPACE_ROOT = root;
       process.env.FAKE_CARGO_LOG = join(root, 'cargo-run.log');
-      handle = await runDev(['--config', join(project, 'rustra.json')]);
+      handle = await runDev(['--config', join(project, 'unikit.json')]);
       const reloads: string[] = [];
       handle.onReload((reason) => void reloads.push(reason));
       await triggerUntil(
@@ -1505,7 +1505,7 @@ test(
   'runConfigDev restores an externally changed schema before reloading',
   { timeout: 30_000 },
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-schema-edit-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-schema-edit-'));
     const originalPath = process.env.PATH;
     let handle: DevWatchHandle | undefined;
     const logs: string[] = [];
@@ -1520,7 +1520,7 @@ test(
       process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
       process.env.FAKE_SCHEMA_FILE = sourceSchema;
       process.env.FAKE_CARGO_LOG = cargoLog;
-      handle = await runDev(['--config', join(project, 'rustra.json')]);
+      handle = await runDev(['--config', join(project, 'unikit.json')]);
       const originalSchema = readFileSync(schemaPath, 'utf8');
       const reloads: string[] = [];
       handle.onReload((reason) => void reloads.push(reason));
@@ -1563,7 +1563,7 @@ test(
     // (i) cargo run/build 호출 수 불변, (ii) 게이트 desync 없음(스킵 틱에는
     // schema 바이트가 불변 → verify 통과 — 거부도 재무장도 없음), (iii) reload 훅
     // 은 계속 방출(호스트 관찰 행동 불변), (iv) 라이브 발행물 무손상.
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-fp-skip-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-fp-skip-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedDylibProject(root);
@@ -1580,15 +1580,15 @@ test(
       const restore = captureConsole(errors);
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
-        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('rustra_bridge'));
+        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('unikit_bridge'));
         assert.equal(readFileSync(liveAbs, 'utf8'), 'fake dylib core');
         const runsAfterInitial = logLineCount(cargoLog);
         assert.equal(runsAfterInitial, 1, 'the initial tick must run the cargo probe once');
 
-        const configPath = join(project, 'rustra.json');
+        const configPath = join(project, 'unikit.json');
         const originalConfig = readFileSync(configPath, 'utf8');
         await triggerUntil(
           () => errors,
@@ -1652,7 +1652,7 @@ test(
     // 재트리거는 스킵으로 돌아가야 한다(스킵과 재실행의 대조를 한 흐름에서 증명).
     // 나머지 네 오염 시나리오(필드 추가/필드명/attribute/derive)는 지문 단위
     // 테스트(dev-fingerprint.test.ts)가 담당한다.
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-fp-rerun-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-fp-rerun-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedDylibProject(root);
@@ -1669,7 +1669,7 @@ test(
       const restore = captureConsole(errors);
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
         assert.equal(logLineCount(cargoLog), 1, 'the initial tick must run the cargo probe once');
@@ -1713,7 +1713,7 @@ test(
         );
         assert.equal(
           readFileSync(
-            join(project, 'target', 'debug', liveDylibFileName('rustra_bridge')),
+            join(project, 'target', 'debug', liveDylibFileName('unikit_bridge')),
             'utf8',
           ),
           'fake dylib core',
@@ -1739,7 +1739,7 @@ test(
   async () => {
     // fail-safe — 지문이 일치해도 생성물(schema.json)이 없으면 스킵 금지다.
     // 프로브를 다시 돌려 생성물을 복구하는 것까지가 이 틱의 일이다.
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-fp-noschema-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-fp-noschema-'));
     const originalPath = process.env.PATH;
     try {
       const project = seedDylibProject(root);
@@ -1757,7 +1757,7 @@ test(
       const restore = captureConsole(errors);
       let handle: DevWatchHandle | undefined;
       try {
-        handle = await runDev(['--config', join(project, 'rustra.json')]);
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
         const reloads: string[] = [];
         handle.onReload((reason) => void reloads.push(reason));
         assert.equal(logLineCount(cargoLog), 1, 'the initial tick must run the cargo probe once');
@@ -1794,7 +1794,7 @@ test(
         assert.ok(existsSync(schemaPath), 'the fail-safe run must restore the generated schema');
         assert.equal(
           readFileSync(
-            join(project, 'target', 'debug', liveDylibFileName('rustra_bridge')),
+            join(project, 'target', 'debug', liveDylibFileName('unikit_bridge')),
             'utf8',
           ),
           'fake dylib core',

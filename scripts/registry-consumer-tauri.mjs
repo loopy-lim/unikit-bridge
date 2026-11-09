@@ -3,10 +3,10 @@
 // Tauri/macOS 실제 WebView 레지스트리 소비 여정 — 로드맵 A1/A2/A3(Tauri) 증거.
 //
 // registry-consumer-gate.mjs(Node/Bun CLI 여정)와 같은 계약을 따르되, 소비자는
-// @rustra/tauri + rustra(tauri feature) 로 구성하고 실행 증거를 **실제 WKWebView
+// @unikit-bridge/tauri + unikit(tauri feature) 로 구성하고 실행 증거를 **실제 WKWebView
 // 안에서 도는 프론트엔드 JS**가 생성된 엄격 계약 클라이언트(generated/tauri.js)로
 // 관측해 reportEvidence 커맨드(계약의 일부)로 되돌려 보낸다. 커스텀 Tauri IPC
-// 커맨드는 register* 가 invoke_handler 를 점유하므로 쓰지 않는다 — 증거가 rustra
+// 커맨드는 register* 가 invoke_handler 를 점유하므로 쓰지 않는다 — 증거가 unikit
 // 브릿지 경로 자체를 지난다는 것이 이 여정의 요점이다.
 //
 // 증명 범위: 공개 레지스트리만 쓴 설치·생성·빌드·실제 WebView 실행, 도메인 에러
@@ -61,7 +61,7 @@ function errorText(error) {
 // ── 소스 렌더러(순수 함수 — 테스트가 앵커를 지킨다) ─────────────────────────
 
 export function renderTauriLibRs() {
-  return `use rustra::prelude::*;
+  return `use unikit_bridge::prelude::*;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -75,14 +75,14 @@ pub struct EchoOutput {
     pub message: String,
 }
 
-#[rustra::command]
+#[unikit_bridge::command]
 fn echo(input: EchoInput) -> Result<EchoOutput> {
     Ok(EchoOutput { message: input.message })
 }
 
-#[rustra::command]
+#[unikit_bridge::command]
 fn fail_echo(_input: EchoInput) -> Result<EchoOutput> {
-    Err(RustraError::invalid_args("${ERROR_SENTINEL}"))
+    Err(UnikitError::invalid_args("${ERROR_SENTINEL}"))
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
@@ -98,14 +98,14 @@ pub struct EmitTicksOutput {
 }
 
 // 이벤트 푸시 — register_with_events 가 설치한 싱크로 Package::emit 이
-// "rustra://calc_tick" 채널(Rust 측 sanitize 규칙)을 통해 웹뷰에 도달한다.
+// "unikit://calc_tick" 채널(Rust 측 sanitize 규칙)을 통해 웹뷰에 도달한다.
 // 싱크는 **등록된** 패키지 인스턴스에 설치된다 — 새 Package::builder 인스턴스로
-// emit 하면 이벤트가 아무도 안 듣는 버스로 가므로 rustra::ffi::get_package()
+// emit 하면 이벤트가 아무도 안 듣는 버스로 가므로 unikit_bridge::ffi::get_package()
 // 핸들을 쓴다(calculator 예제 emit_demo 와 동일한 계약).
-#[rustra::command]
+#[unikit_bridge::command]
 fn emit_ticks(input: EmitTicksInput) -> Result<EmitTicksOutput> {
-    let package = rustra::ffi::get_package()
-        .ok_or_else(|| RustraError::custom("ffi.not_registered", "package not registered"))?;
+    let package = unikit_bridge::ffi::get_package()
+        .ok_or_else(|| UnikitError::custom("ffi.not_registered", "package not registered"))?;
     for index in 0..input.ticks {
         package.emit("calc.tick", serde_json::json!({ "value": index + 1 }));
     }
@@ -125,19 +125,19 @@ pub struct ReportEvidenceOutput {
     pub written: u32,
 }
 
-// 증거 회신 — 웹뷰 관측을 rustra 브릿지 자체를 통해 파일로 되돌린다.
-#[rustra::command]
+// 증거 회신 — 웹뷰 관측을 unikit 브릿지 자체를 통해 파일로 되돌린다.
+#[unikit_bridge::command]
 fn report_evidence(input: ReportEvidenceInput) -> Result<ReportEvidenceOutput> {
-    let path = std::env::var("RUSTRA_TAURI_EVIDENCE_FILE")
-        .map_err(|_| RustraError::invalid_args("RUSTRA_TAURI_EVIDENCE_FILE is not set"))?;
+    let path = std::env::var("UNIKIT_TAURI_EVIDENCE_FILE")
+        .map_err(|_| UnikitError::invalid_args("UNIKIT_TAURI_EVIDENCE_FILE is not set"))?;
     use std::io::Write as _;
     let mut file = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
         .open(&path)
-        .map_err(|error| RustraError::internal(format!("open evidence file failed: {error}")))?;
+        .map_err(|error| UnikitError::internal(format!("open evidence file failed: {error}")))?;
     writeln!(file, "{}", input.payload)
-        .map_err(|error| RustraError::internal(format!("write evidence file failed: {error}")))?;
+        .map_err(|error| UnikitError::internal(format!("write evidence file failed: {error}")))?;
     Ok(ReportEvidenceOutput { written: 1 })
 }
 
@@ -158,7 +158,7 @@ pub fn package() -> Package {
 pub fn run() {
     let package = package();
     package.register_ffi();
-    rustra::tauri_support::register_with_events(package, tauri::Builder::default())
+    unikit_bridge::tauri_support::register_with_events(package, tauri::Builder::default())
         .run(tauri::generate_context!())
         .expect("registry tauri consumer app failed to run");
 }
@@ -199,7 +199,7 @@ export function renderJourneyInputTs(input) {
 }
 
 export function renderTauriAppTs() {
-  return `import { echo, failEcho, emitTicks, reportEvidence, rustra, subscribeEvent } from './generated/tauri.js';
+  return `import { echo, failEcho, emitTicks, reportEvidence, unikit, subscribeEvent } from './generated/tauri.js';
 import { INPUT } from './journey-input.js';
 
 interface Tick { value: number }
@@ -207,7 +207,7 @@ interface Tick { value: number }
 function wait(ms: number) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
 try {
-  await rustra.ready();
+  await unikit.ready();
   let subscribed = 0;
   const unsubscribe = await subscribeEvent<Tick>('calc.tick', (payload) => {
     subscribed += 1;
@@ -245,14 +245,14 @@ try {
     secondEmitted: second.emitted,
   };
   await reportEvidence({ phase: INPUT.phase, payload: JSON.stringify(observations) });
-  rustra.dispose();
+  unikit.dispose();
 } catch (error) {
   // 실패도 증거로 남긴다 — 조용한 실패는 여정의 실패를 가린다.
   const payload = JSON.stringify({ phase: INPUT.phase, journeyError: String(error) });
   try {
     await reportEvidence({ phase: INPUT.phase, payload });
   } catch {
-    console.error('rustra journey: report failed for', payload);
+    console.error('unikit journey: report failed for', payload);
   }
 }
 `;
@@ -264,11 +264,11 @@ export function renderTauriConfJson() {
       $schema: 'https://schema.tauri.app/config/2',
       productName: 'registry-tauri-consumer',
       version: '0.1.0',
-      identifier: 'dev.rustra.registry-consumer',
+      identifier: 'dev.unikit.registry-consumer',
       build: { frontendDist: './dist' },
       app: {
         withGlobalTauri: true,
-        windows: [{ title: 'Rustra Registry Consumer', width: 480, height: 320 }],
+        windows: [{ title: 'Unikit Registry Consumer', width: 480, height: 320 }],
         security: { csp: null },
       },
       bundle: { active: false },
@@ -286,7 +286,7 @@ export function renderTauriCapabilities() {
     {
       $schema: '../gen/schemas/desktop-schema.json',
       identifier: 'default',
-      description: 'Rustra registry consumer: minimal core:event permission for subscribeEvent',
+      description: 'Unikit registry consumer: minimal core:event permission for subscribeEvent',
       windows: ['main'],
       permissions: ['core:event:default'],
     },
@@ -450,8 +450,8 @@ function writeTauriProjectSources(context) {
     mkdirSync(join(projectDir, 'src', 'bin'), { recursive: true });
     writeFileSync(
       join(projectDir, 'src', 'bin', 'tauri_app.rs'),
-      // init 스캐폴드의 패키지명은 rustra-app — lib 이름은 rustra_app 이다.
-      `fn main() {\n    rustra_app::run()\n}\n`,
+      // init 스캐폴드의 패키지명은 unikit-app — lib 이름은 unikit_app 이다.
+      `fn main() {\n    unikit_app::run()\n}\n`,
     );
     writeFileSync(
       join(projectDir, 'build.rs'),
@@ -469,15 +469,15 @@ function writeTauriProjectSources(context) {
       Buffer.from(ICON_PNG_BASE64, 'base64'),
     );
 
-    // Cargo.toml — rustra 에 tauri feature 를 켜고 tauri 계열 의존성을 추가한다.
-    // rustra 는 이미 pin-consumer-versions 가 "=x.y.z" 로 고정했다 — brace 형태로
+    // Cargo.toml — unikit 에 tauri feature 를 켜고 tauri 계열 의존성을 추가한다.
+    // unikit 는 이미 pin-consumer-versions 가 "=x.y.z" 로 고정했다 — brace 형태로
     // 바꿔 features 를 붙여도 version 은 정확 핀을 유지한다(오염 검사도 읽는다).
     const cargoPath = join(projectDir, 'Cargo.toml');
     let cargo = readFileSync(cargoPath, 'utf8');
-    const pinnedRustra = `rustra = { version = "=${versions.phases.candidate.rustra}", features = ["tauri"] }`;
-    cargo = cargo.replace(/^rustra\s*=\s*"[^"]+"/m, pinnedRustra);
-    if (!cargo.includes(pinnedRustra))
-      throw new Error('pinned rustra dependency line not found for tauri feature rewrite');
+    const pinnedUnikit = `unikit = { version = "=${versions.phases.candidate.unikit}", features = ["tauri"] }`;
+    cargo = cargo.replace(/^unikit\s*=\s*"[^"]+"/m, pinnedUnikit);
+    if (!cargo.includes(pinnedUnikit))
+      throw new Error('pinned unikit dependency line not found for tauri feature rewrite');
     cargo = cargo.replace(
       /\[dependencies\]/,
       '[build-dependencies]\ntauri-build = { version = "2", features = [] }\n\n[dependencies]\ntauri = { version = "2", features = [] }',
@@ -486,12 +486,12 @@ function writeTauriProjectSources(context) {
       cargo += '\n[[bin]]\nname = "tauri-app"\npath = "src/bin/tauri_app.rs"\n';
     writeFileSync(cargoPath, cargo);
 
-    // rustra.json — node 호스트 섹션을 제거하고 tauri 만 남겨 generated/tauri.ts 가
-    // tauri 어댑터 의존성(@rustra/tauri)을 요구하게 한다.
-    const config = readJson(join(projectDir, 'rustra.json'));
+    // unikit.json — node 호스트 섹션을 제거하고 tauri 만 남겨 generated/tauri.ts 가
+    // tauri 어댑터 의존성(@unikit-bridge/tauri)을 요구하게 한다.
+    const config = readJson(join(projectDir, 'unikit.json'));
     delete config.node;
     config.tauri = {};
-    writeJson(join(projectDir, 'rustra.json'), config);
+    writeJson(join(projectDir, 'unikit.json'), config);
 
     // 프론트엔드 — bun build 로 dist/index.js 를 내고 index.html 도 dist 안에
     // 둔다. frontendDist './dist' 는 dist 의 *내용물*이 웹 루트가 된다 — 루트의
@@ -522,10 +522,10 @@ function buildFrontend(context, label) {
 async function codegen(context, label) {
   await commandStep(context, `${label}-codegen`, context.projectDir, [
     process.execPath,
-    join(context.projectDir, 'node_modules', '@rustra', 'cli', 'dist', 'index.js'),
+    join(context.projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js'),
     'codegen',
     '--config',
-    'rustra.json',
+    'unikit.json',
   ]);
 }
 
@@ -554,7 +554,7 @@ function runWebviewPhase(context, label, phase) {
     });
     const child = spawn(binary, [], {
       cwd: context.projectDir,
-      env: { ...context.env, RUSTRA_TAURI_EVIDENCE_FILE: evidencePath },
+      env: { ...context.env, UNIKIT_TAURI_EVIDENCE_FILE: evidencePath },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let stderr = '';
@@ -656,7 +656,7 @@ function snapshotEvidence(context, phase) {
     'Cargo.toml',
     'package-lock.json',
     'package.json',
-    'rustra.json',
+    'unikit.json',
     'tauri.conf.json',
   ]) {
     cpSync(join(context.projectDir, relativePath), join(snapshotRoot, relativePath));
@@ -671,7 +671,7 @@ function snapshotEvidence(context, phase) {
     'Cargo.toml',
     'package-lock.json',
     'package.json',
-    'rustra.json',
+    'unikit.json',
     'tauri.conf.json',
     'src/lib.rs',
     'src/app.ts',
@@ -711,18 +711,18 @@ async function environmentEvidence(context) {
 
 async function executeTauriCycle({ logDir }) {
   const versions = validateVersionManifest(readJson(VERSIONS_PATH));
-  const scratchRoot = mkdtempSync(join(tmpdir(), 'rustra-registry-tauri-'));
+  const scratchRoot = mkdtempSync(join(tmpdir(), 'unikit-registry-tauri-'));
   const projectDir = join(scratchRoot, PROJECT_NAME);
   const targetDir = join(scratchRoot, 'cargo-target');
   const context = createContext({ logDir, scratchRoot, projectDir, targetDir, versions });
   const repoRoot = resolve(dirname(SCRIPT_PATH), '..');
-  const tauriVersion = versions.hosts?.['@rustra/tauri'];
+  const tauriVersion = versions.hosts?.['@unikit-bridge/tauri'];
   if (!tauriVersion)
-    throw new Error('versions.json hosts["@rustra/tauri"] exact pin is required for this journey');
+    throw new Error('versions.json hosts["@unikit-bridge/tauri"] exact pin is required for this journey');
   const npmVersions = {
-    '@rustra/cli': versions.npm['@rustra/cli'],
-    '@rustra/types': versions.npm['@rustra/types'],
-    '@rustra/tauri': tauriVersion,
+    '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'],
+    '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
+    '@unikit-bridge/tauri': tauriVersion,
   };
   try {
     const environment = await environmentEvidence(context);
@@ -735,9 +735,9 @@ async function executeTauriCycle({ logDir }) {
     // 1) 공개 CLI 부트스트랩 — 로컬 소스 없이 정확한 발행 버전만.
     internalStep(context, 'prepare-bootstrap-manifest', () => {
       writeJson(join(scratchRoot, 'package.json'), {
-        name: 'rustra-registry-tauri-bootstrap',
+        name: 'unikit-registry-tauri-bootstrap',
         private: true,
-        dependencies: { '@rustra/cli': npmVersions['@rustra/cli'] },
+        dependencies: { '@unikit-bridge/cli': npmVersions['@unikit-bridge/cli'] },
       });
       assertNoConsumerContamination(scratchRoot);
     });
@@ -749,9 +749,9 @@ async function executeTauriCycle({ logDir }) {
       '--no-fund',
     ]);
     internalStep(context, 'verify-published-cli-source', () =>
-      assertExactNpmProvenance(scratchRoot, { '@rustra/cli': npmVersions['@rustra/cli'] }),
+      assertExactNpmProvenance(scratchRoot, { '@unikit-bridge/cli': npmVersions['@unikit-bridge/cli'] }),
     );
-    const bootstrapCli = join(scratchRoot, 'node_modules', '@rustra', 'cli', 'dist', 'index.js');
+    const bootstrapCli = join(scratchRoot, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js');
     await commandStep(context, 'published-cli-init', scratchRoot, [
       process.execPath,
       bootstrapCli,
@@ -764,10 +764,10 @@ async function executeTauriCycle({ logDir }) {
       const packagePath = join(projectDir, 'package.json');
       const packageJson = readJson(packagePath);
       packageJson.dependencies = {
-        '@rustra/tauri': npmVersions['@rustra/tauri'],
-        '@rustra/types': npmVersions['@rustra/types'],
+        '@unikit-bridge/tauri': npmVersions['@unikit-bridge/tauri'],
+        '@unikit-bridge/types': npmVersions['@unikit-bridge/types'],
       };
-      packageJson.devDependencies = { '@rustra/cli': npmVersions['@rustra/cli'] };
+      packageJson.devDependencies = { '@unikit-bridge/cli': npmVersions['@unikit-bridge/cli'] };
       writeJson(packagePath, packageJson);
       // Cargo 핀을 오염 검사 전에 =version 으로 고정한다(스캐폴드는 caret).
       pinCargoVersions(projectDir, versions.phases.candidate);
@@ -783,8 +783,8 @@ async function executeTauriCycle({ logDir }) {
       '--ignore-scripts',
       '--no-audit',
       '--no-fund',
-      `@rustra/types@${npmVersions['@rustra/types']}`,
-      `@rustra/tauri@${npmVersions['@rustra/tauri']}`,
+      `@unikit-bridge/types@${npmVersions['@unikit-bridge/types']}`,
+      `@unikit-bridge/tauri@${npmVersions['@unikit-bridge/tauri']}`,
     ]);
     await commandStep(context, 'install-frozen-npm-lock', projectDir, [
       'npm',
@@ -797,17 +797,17 @@ async function executeTauriCycle({ logDir }) {
       assertNoConsumerContamination(projectDir, { expectedNpm: npmVersions });
       return assertExactNpmProvenance(projectDir, npmVersions);
     });
-    const projectCli = join(projectDir, 'node_modules', '@rustra', 'cli', 'dist', 'index.js');
+    const projectCli = join(projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js');
     context.projectCli = projectCli;
     await commandStep(context, 'doctor', projectDir, [
       process.execPath,
       projectCli,
       'doctor',
       '--config',
-      'rustra.json',
+      'unikit.json',
     ]);
 
-    // 3) Tauri 소비자 구성·빌드 — crates.io rustra(tauri feature) + @rustra/tauri.
+    // 3) Tauri 소비자 구성·빌드 — crates.io unikit(tauri feature) + @unikit-bridge/tauri.
     writeTauriProjectSources(context);
     await codegen(context, 'baseline');
     buildFrontend(context, 'baseline');
@@ -864,7 +864,7 @@ async function executeTauriCycle({ logDir }) {
     const mutatedSnapshot = snapshotEvidence(context, 'mutated');
 
     return {
-      gate: 'rustra-public-registry-tauri-consumer',
+      gate: 'unikit-public-registry-tauri-consumer',
       configuration: {
         manifestPath: VERSIONS_PATH,
         versions: { npm: npmVersions, rust: versions.phases.candidate },
@@ -877,8 +877,8 @@ async function executeTauriCycle({ logDir }) {
       journey: {
         scaffold: ['published CLI init', 'exact-pin npm install (frozen lock)', 'doctor'],
         tauri: [
-          'rustra =0.11.0 (tauri feature) from crates.io',
-          '@rustra/tauri + @rustra/types exact from npm',
+          'unikit =0.11.0 (tauri feature) from crates.io',
+          '@unikit-bridge/tauri + @unikit-bridge/types exact from npm',
           'CLI codegen (tauri host entry)',
           'bun frontend bundle',
           'cargo build embedding frontend assets',

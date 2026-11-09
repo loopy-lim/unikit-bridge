@@ -21,28 +21,28 @@ The root `Cargo.toml` configures the workspace.
 
 | Member path                           | Package name                | Role                                                                         |
 | ------------------------------------- | --------------------------- | ---------------------------------------------------------------------------- |
-| `crates/rustra-naming`                | `rustra-naming`             | Shared identifier naming rules used by the Rust and proc-macro codegen paths |
-| `crates/rustra`                       | `rustra`                    | Core library. Package builder, TypeScript codegen, command registration      |
-| `crates/rustra-macros`                | `rustra-macros`             | `#[command]` proc macro. Compile-time signature verification                 |
-| `examples/calculator`                 | `rustra-calculator-example` | Calculator example. Built as rlib/cdylib/staticlib and used from RN/FFI      |
-| `examples/crud`                       | `rustra-crud-example`       | CRUD pattern example (create/get/list/update/delete)                         |
-| `examples/calculator-napi`            | `rustra-calculator-napi`    | napi-rs transport example                                                    |
-| `examples/tauri-calculator/src-tauri` | (Tauri app)                 | Tauri backend. Uses rustra's `tauri` feature (macOS-only build)              |
-| `examples/benchmark`                  | `rustra-benchmark`          | Performance benchmark example                                                |
-| `examples/streaming`                  | `rustra-streaming-example`  | Event streaming example                                                      |
-| `examples/auth`                       | `rustra-auth-example`       | Session/capability gate example                                              |
+| `crates/unikit-bridge-naming`                | `unikit-bridge-naming`             | Shared identifier naming rules used by the Rust and proc-macro codegen paths |
+| `crates/unikit-bridge`                       | `unikit`                    | Core library. Package builder, TypeScript codegen, command registration      |
+| `crates/unikit-bridge-macros`                | `unikit-bridge-macros`             | `#[command]` proc macro. Compile-time signature verification                 |
+| `examples/calculator`                 | `unikit-calculator-example` | Calculator example. Built as rlib/cdylib/staticlib and used from RN/FFI      |
+| `examples/crud`                       | `unikit-crud-example`       | CRUD pattern example (create/get/list/update/delete)                         |
+| `examples/calculator-napi`            | `unikit-calculator-napi`    | napi-rs transport example                                                    |
+| `examples/tauri-calculator/src-tauri` | (Tauri app)                 | Tauri backend. Uses unikit's `tauri` feature (macOS-only build)              |
+| `examples/benchmark`                  | `unikit-benchmark`          | Performance benchmark example                                                |
+| `examples/streaming`                  | `unikit-streaming-example`  | Event streaming example                                                      |
+| `examples/auth`                       | `unikit-auth-example`       | Session/capability gate example                                              |
 
 `default-members` (what bare `cargo build`/`test` builds) excludes
-`crates/rustra-naming` and the macOS-only `examples/tauri-calculator/src-tauri`
+`crates/unikit-bridge-naming` and the macOS-only `examples/tauri-calculator/src-tauri`
 — use `--workspace` to build all members.
 
 ### Workspace Dependencies
 
 ```toml
 [workspace.dependencies]
-rustra-naming = { path = "crates/rustra-naming" }
-rustra-macros = { path = "crates/rustra-macros" }
-rustra = { path = "crates/rustra" }
+unikit-bridge-naming = { path = "crates/unikit-bridge-naming" }
+unikit-bridge-macros = { path = "crates/unikit-bridge-macros" }
+unikit-bridge = { path = "crates/unikit-bridge" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 schemars = { version = "0.8", features = ["derive", "preserve_order"] }
@@ -59,16 +59,16 @@ pin versions.)
 ## Build Dependency Graph
 
 ```
-rustra-macros (proc-macro)
+unikit-bridge-macros (proc-macro)
   ├─ syn 2 (full)
   ├─ quote 1
   ├─ proc-macro2 1
-  └─ rustra-naming (workspace)
+  └─ unikit-bridge-naming (workspace)
         │
         ▼
-rustra
-  ├─ rustra-macros (workspace)
-  ├─ rustra-naming (workspace)
+unikit
+  ├─ unikit-bridge-macros (workspace)
+  ├─ unikit-bridge-naming (workspace)
   ├─ schemars 0.8 (derive)
   ├─ serde 1 (derive)
   ├─ serde_json 1
@@ -78,22 +78,22 @@ rustra
   └─ tauri 2 (optional, feature = "tauri")
         │
         ▼
-rustra-calculator-example
-  ├─ rustra (workspace)
+unikit-calculator-example
+  ├─ unikit (workspace)
   ├─ schemars (workspace)
   ├─ serde (workspace)
   └─ serde_json (workspace)
         │
         ▼
 tauri-calculator (src-tauri)
-  └─ rustra (workspace, features = ["tauri"])
+  └─ unikit (workspace, features = ["tauri"])
 ```
 
 ---
 
 ## Crate Details
 
-### rustra (`crates/rustra`)
+### unikit (`crates/unikit-bridge`)
 
 The core library. The entry point where users assemble a Package and generate
 TypeScript clients.
@@ -113,11 +113,11 @@ TypeScript clients.
 | `GeneratedPackage`                        | struct                 | The generated TS client (4 files)                                                                                     |
 | `GeneratedPackage::write_to_dir()`        | method                 | Writes the files to a directory — deprecated (single-arrow)                                                           |
 | `GeneratedPackage::write_schema_to_dir()` | method                 | Writes schema.json only (contract probe)                                                                              |
-| `RustraError`                             | struct                 | Error type. Implements `Serialize`. `code + message` fields + `custom()` constructor + `code()` / `message()` getters |
-| `command`                                 | macro (re-export)      | `rustra_macros::command`                                                                                              |
-| `register`                                | macro (re-export)      | `rustra_macros::register`. Batch-registers multiple commands                                                          |
+| `UnikitError`                             | struct                 | Error type. Implements `Serialize`. `code + message` fields + `custom()` constructor + `code()` / `message()` getters |
+| `command`                                 | macro (re-export)      | `unikit_bridge_macros::command`                                                                                              |
+| `register`                                | macro (re-export)      | `unikit_bridge_macros::register`. Batch-registers multiple commands                                                          |
 | `prelude`                                 | module                 | Batch import of frequently used items (including `command`, `register`)                                               |
-| `tauri_support`                           | module (feature-gated) | `RustraState`, `rustra_dispatch`, `register()` — Tauri integration helpers                                            |
+| `tauri_support`                           | module (feature-gated) | `UnikitState`, `unikit_dispatch`, `register()` — Tauri integration helpers                                            |
 | `__private`                               | module (sealed)        | `CommandInput`, `CommandOutput` traits. For proc macros only                                                          |
 
 **Features:**
@@ -139,7 +139,7 @@ TypeScript clients.
 
 ---
 
-### rustra-macros (`crates/rustra-macros`)
+### unikit-bridge-macros (`crates/unikit-bridge-macros`)
 
 The proc-macro crate providing the `#[command]` attribute macro and the
 `register!` macro.
@@ -165,17 +165,17 @@ function name.
 **`#[command]` generated output:**
 
 - The original function (passed through unchanged)
-- `const __RUstra_meta_{fn_name}: &str` — a constant storing the command name, referenced by the `register!` macro
+- `const __UNikit_meta_{fn_name}: &str` — a constant storing the command name, referenced by the `register!` macro
 - `_assert_command_bounds::<I, O>()` — compile-time trait bound verification function
 
 **`register!` behavior:**
 
 ```rust
-rustra::register!(Package::builder("pkg"), add_numbers, multiply)
+unikit_bridge::register!(Package::builder("pkg"), add_numbers, multiply)
 ```
 
 The above expands into a `.command(name, fn)` chain by reading each
-function's `__RUstra_meta_*` constant.
+function's `__UNikit_meta_*` constant.
 
 ---
 
@@ -194,11 +194,11 @@ generator.
 
 Every client implements the `EngineClient` interface
 (`invoke<T>(command, args?)`). Only the Tauri adapter wraps commands in
-`rustra_dispatch` internally; the rest call the transport's `invoke` directly.
+`unikit_dispatch` internally; the rest call the transport's `invoke` directly.
 
-The Tauri adapter additionally exports the `RustraError` type and the
-`RustraCommandError` class. `createTauriEngine` converts `rustra_dispatch`
-error responses into `RustraCommandError` and throws it.
+The Tauri adapter additionally exports the `UnikitError` type and the
+`UnikitCommandError` class. `createTauriEngine` converts `unikit_dispatch`
+error responses into `UnikitCommandError` and throws it.
 
 ---
 
@@ -212,13 +212,13 @@ The core example. Contains a Rust crate + TypeScript tests + generated clients
 
 ```
 examples/calculator/
-├── Cargo.toml          # rustra-calculator-example (rlib + cdylib + staticlib)
+├── Cargo.toml          # unikit-calculator-example (rlib + cdylib + staticlib)
 ├── src/lib.rs          # add_numbers command + calculator_package() + FFI export
 ├── ts/
 │   ├── adapter-compat.test.ts    # 4 adapter behaviors + no host-specific imports
 │   ├── generated-client.test.ts  # command helper behavior + banned import check
 │   └── runtime-contract.test.ts  # host apps use generated zero-config entries + RN FFI
-├── generated/          # codegen output (schema.json, types.ts, commands.ts, contract.ts, frame-codecs.ts, frame-registry.ts, errors.ts, devices.ts, host entries, .rustra-generated.json)
+├── generated/          # codegen output (schema.json, types.ts, commands.ts, contract.ts, frame-codecs.ts, frame-registry.ts, errors.ts, devices.ts, host entries, .unikit-generated.json)
 ├── apps/
 │   ├── node-app.ts     # Node.js runtime app
 │   └── bun-app.ts      # Bun runtime app
@@ -232,8 +232,8 @@ A Tauri desktop app example.
 examples/tauri-calculator/
 ├── src/app.ts                # frontend, uses createTauriEngine
 ├── src-tauri/
-│   ├── Cargo.toml            # depends on rustra (features = ["tauri"])
-│   └── src/main.rs           # integrates with Tauri via rustra_support::register
+│   ├── Cargo.toml            # depends on unikit (features = ["tauri"])
+│   └── src/main.rs           # integrates with Tauri via unikit_support::register
 ```
 
 ### react-native-calculator (`examples/react-native-calculator/`)
@@ -244,6 +244,6 @@ A React Native mobile app example.
 examples/react-native-calculator/
 ├── App.tsx                           # uses createReactNativeEngine
 ├── metro.config.js                   # shares generated/ via watchFolders
-├── modules/rustra-calculator/
-│   └── ios/RustraCalculatorModule.swift  # Expo Module, calls Rust via FFI
+├── modules/unikit-calculator/
+│   └── ios/UnikitCalculatorModule.swift  # Expo Module, calls Rust via FFI
 ```

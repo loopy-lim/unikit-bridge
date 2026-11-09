@@ -5,7 +5,7 @@
   "app": {
     "windows": [
       {
-        "title": "Rustra Tauri IPC benchmark",
+        "title": "Unikit Tauri IPC benchmark",
         "width": 480,
         "height": 320,
         "visible": true,

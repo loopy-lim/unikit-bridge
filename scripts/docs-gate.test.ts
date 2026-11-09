@@ -33,10 +33,10 @@ afterEach(() => {
 
 // 생성물의 자기서술 헤더 8줄 + 뒤따르는 빈 줄 (examples/calculator/generated 실물과 동일 형태)
 const GENERATED_HEADER = [
-  '// ── rustra generated ────────────────────────────────────────',
+  '// ── unikit generated ────────────────────────────────────────',
   '// File:   types.ts',
   '// Source: schema.json (single source of truth for this file)',
-  '// Regen:  rustra codegen --config rustra.json',
+  '// Regen:  unikit codegen --config unikit.json',
   '// Stage:  rust-probe schema → ts renderer',
   '// DO NOT EDIT — changes will be overwritten and fail codegen --check.',
   '// ────────────────────────────────────────────────────────────',

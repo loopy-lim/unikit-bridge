@@ -8,7 +8,7 @@ import { resolveCodegenTarget } from './host-entries.js';
 import { cliManifest } from './cli-runtime.js';
 import { toPosixPath } from './paths.js';
 import { packageFactories, renderTauriRegistration } from './setup-tauri-render.js';
-import { cargoDependency, dependencyManifest, rustraDependencyLine } from './setup-tauri-cargo.js';
+import { cargoDependency, dependencyManifest, unikitDependencyLine } from './setup-tauri-cargo.js';
 
 export interface TauriIntegrationOptions {
   nativeManifestPath?: string;
@@ -34,7 +34,7 @@ export async function setupTauriIntegration(
     : join(root, basename(root) === 'src-tauri' ? '' : 'src-tauri', 'Cargo.toml');
   if (!existsSync(nativeManifest))
     throw new Error(
-      `Tauri setup could not find ${nativeManifest}. Keep rustra.json at the frontend root of an existing Tauri app, or provide nativeManifestPath.`,
+      `Tauri setup could not find ${nativeManifest}. Keep unikit.json at the frontend root of an existing Tauri app, or provide nativeManifestPath.`,
     );
   const nativeRoot = dirname(nativeManifest);
   const native = parse(readFileSync(nativeManifest, 'utf8'));
@@ -68,37 +68,37 @@ export async function setupTauriIntegration(
     );
     producer = dependency
       ? (dependency[0] === pkg.name ? libraries[0]!.name : dependency[0]).replace(/-/g, '_')
-      : 'rustra_setup_core';
+      : 'unikit_setup_core';
     if (!dependency) {
-      if (dependencies.rustra_setup_core !== undefined)
+      if (dependencies.unikit_setup_core !== undefined)
         throw new Error(
-          'Tauri Cargo dependency rustra_setup_core already exists for another producer; rename that dependency or connect the selected core explicitly.',
+          'Tauri Cargo dependency unikit_setup_core already exists for another producer; rename that dependency or connect the selected core explicitly.',
         );
       cargoLines.push(
-        `rustra_setup_core = { package = ${JSON.stringify(pkg.name)}, path = ${JSON.stringify(toPosixPath(relative(realpathSync(nativeRoot), dirname(pkg.manifest_path))))} }`,
+        `unikit_setup_core = { package = ${JSON.stringify(pkg.name)}, path = ${JSON.stringify(toPosixPath(relative(realpathSync(nativeRoot), dirname(pkg.manifest_path))))} }`,
       );
     }
   }
-  const rustra = cargoDependency(nativeManifest, 'rustra');
-  if (rustra === undefined)
+  const unikit = cargoDependency(nativeManifest, 'unikit-bridge');
+  if (unikit === undefined)
     cargoLines.push(
-      rustraDependencyLine(
-        cargoDependency(pkg.manifest_path, 'rustra'),
+      unikitDependencyLine(
+        cargoDependency(pkg.manifest_path, 'unikit-bridge'),
         nativeRoot,
-        cliManifest.rustraTemplate.cargoRange,
+        cliManifest.unikitTemplate.cargoRange,
       ),
     );
   else if (
-    typeof rustra.value !== 'object' ||
-    rustra.value === null ||
-    !('features' in rustra.value) ||
-    !Array.isArray(rustra.value.features) ||
-    !rustra.value.features.includes('tauri')
+    typeof unikit.value !== 'object' ||
+    unikit.value === null ||
+    !('features' in unikit.value) ||
+    !Array.isArray(unikit.value.features) ||
+    !unikit.value.features.includes('tauri')
   )
     result.instructions.push(
-      'Add "tauri" to the existing rustra dependency features in the native Cargo.toml.',
+      'Add "tauri" to the existing unikit dependency features in the native Cargo.toml.',
     );
-  const adapterPath = join(nativeRoot, 'src', 'rustra_setup.rs');
+  const adapterPath = join(nativeRoot, 'src', 'unikit_setup.rs');
   const adapter = renderTauriRegistration(`${producer}::${factory}`);
   if (existsSync(adapterPath) && (await readFile(adapterPath, 'utf8')) !== adapter)
     throw new Error(
@@ -133,13 +133,13 @@ export async function setupTauriIntegration(
       `Add under [dependencies] in ${nativeManifest}:\n${cargoLines.join('\n')}`,
     );
   result.instructions.push(
-    'In the native lib.rs/main.rs, add `mod rustra_setup;` and wrap your existing builder with `let builder = rustra_setup::register(builder);` before .run/.build.',
+    'In the native lib.rs/main.rs, add `mod unikit_setup;` and wrap your existing builder with `let builder = unikit_setup::register(builder);` before .run/.build.',
   );
   result.instructions.push(
-    'If the app has .invoke_handler(tauri::generate_handler![...]), replace that call with `let builder = rustra_setup::with_app_commands(builder, tauri::generate_handler![...]);` instead of register. Keep this as the final handler installation.',
+    'If the app has .invoke_handler(tauri::generate_handler![...]), replace that call with `let builder = unikit_setup::with_app_commands(builder, tauri::generate_handler![...]);` instead of register. Keep this as the final handler installation.',
   );
   result.instructions.push(
-    `Import commands from ${toPosixPath(relative(root, resolve(root, config.output, 'tauri.js')))} and rebuild the Tauri host. Use matching Rustra development source until these helpers are released.`,
+    `Import commands from ${toPosixPath(relative(root, resolve(root, config.output, 'tauri.js')))} and rebuild the Tauri host. Use matching Unikit development source until these helpers are released.`,
   );
   return result;
 }

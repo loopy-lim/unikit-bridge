@@ -1,14 +1,14 @@
 /**
- * @rustra/testing — rustra 브릿지 테스트 유틸리티.
+ * @unikit-bridge/testing — unikit 브릿지 테스트 유틸리티.
  *
  * `createMockEngine` 은 Rust 백엔드 없이 생성된 TS 클라이언트를 그대로 구동하는
  * mock `EngineClient` 를 만든다. 핸들러 등록은 `.on(command, handler)` 체이닝으로,
- * 에러는 어댑터 관례와 동일하게 `{code, message}` 를 `RustraCommandError` 로 변환한다.
+ * 에러는 어댑터 관례와 동일하게 `{code, message}` 를 `UnikitCommandError` 로 변환한다.
  *
  * @example
  * ```ts
- * import { createMockEngine } from '@rustra/testing';
- * import { configure } from '@rustra/types';
+ * import { createMockEngine } from '@unikit-bridge/testing';
+ * import { configure } from '@unikit-bridge/types';
  * import { addNumbers } from './generated/commands.js';
  *
  * const engine = createMockEngine().on('addNumbers', ({a, b}) => a + b);
@@ -17,8 +17,8 @@
  * ```
  */
 
-import type { BatchEntry, EngineClient, InvokeOptions } from '@rustra/types';
-import { CancelledError, RustraCommandError, resolveCommandId } from '@rustra/types';
+import type { BatchEntry, EngineClient, InvokeOptions } from '@unikit-bridge/types';
+import { CancelledError, UnikitCommandError, resolveCommandId } from '@unikit-bridge/types';
 import { editDistance, toMockError } from './testing-helpers.js';
 
 type Handler = (args: unknown) => unknown;
@@ -30,7 +30,7 @@ export type CommandFunction<I = unknown, O = unknown> =
       { commandId?: unknown });
 
 export type MockError =
-  RustraCommandError | Error | string | { code: string; message: string; retryable?: boolean };
+  UnikitCommandError | Error | string | { code: string; message: string; retryable?: boolean };
 
 export type MockEvent = { name: string; payload: unknown };
 
@@ -59,7 +59,7 @@ export interface MockEngine extends EngineClient {
   reset(): MockEngine;
   /** 특정 명령에만 인위적인 지연을 적용한다. */
   delay(command: string, delayMs: number): MockEngine;
-  /** 특정 명령 호출을 구조화된 Rustra 에러로 실패시킨다. */
+  /** 특정 명령 호출을 구조화된 Unikit 에러로 실패시킨다. */
   fail(command: string, error: MockError): MockEngine;
   /** Rust 이벤트를 발행하고 구독자에게 전달한다. */
   emit(name: string, payload: unknown): void;
@@ -140,7 +140,7 @@ export function createMockEngine(mockOptions: MockEngineOptions = {}): MockEngin
       if (!handler) {
         const available = [...handlers.keys()].sort();
         const suggestion = available.find((candidate) => editDistance(command, candidate) <= 2);
-        throw new RustraCommandError(
+        throw new UnikitCommandError(
           'command.not_found',
           `no mock registered for '${command}'. Available commands: ${available.join(', ') || 'none'}.` +
             (suggestion ? ` Did you mean '${suggestion}'?` : ''),

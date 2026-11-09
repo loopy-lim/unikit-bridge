@@ -1,13 +1,13 @@
-import { parseRustraErrorString, RustraCommandError } from '@rustra/types';
-import { getRustraNative } from './react-native-core.js';
+import { parseUnikitErrorString, UnikitCommandError } from '@unikit-bridge/types';
+import { getUnikitNative } from './react-native-core.js';
 
-export type RustraEventNative = {
+export type UnikitEventNative = {
   onEvent?(name: string, callback: (payloadJson: string) => void): void;
   offEvent?(name: string): void;
   /** JS 폴링 drain(CallInvoker 없는 호스트). 처리된 이벤트+채널 프레임 수 반환. */
   drainEvents?(): number;
 };
-export type RustraChannelNative = {
+export type UnikitChannelNative = {
   createChannel?(callback: (payloadJson: string) => void): number;
   /** 바이너리 채널 — 콜백이 임의 바이트를 받는다(C++ createChannelBytes HostFunction). */
   createChannelBytes?(callback: (payload: ArrayBuffer | Uint8Array) => void): number;
@@ -21,12 +21,12 @@ export type RustraChannelNative = {
 
 function assertChannelNative(valid: boolean, message: string): void {
   if (!valid) {
-    throw new RustraCommandError('channel.unavailable', message);
+    throw new UnikitCommandError('channel.unavailable', message);
   }
 }
 
 function bindChannelLifecycle(
-  native: RustraChannelNative,
+  native: UnikitChannelNative,
   options: PollingDrainOptions | undefined,
   invalidHandleMessage: string,
   register: (isClosed: () => boolean) => number,
@@ -34,7 +34,7 @@ function bindChannelLifecycle(
   let closed = false;
   const handle = register(() => closed);
   if (!Number.isSafeInteger(handle) || handle <= 0)
-    throw new RustraCommandError('channel.unavailable', invalidHandleMessage);
+    throw new UnikitCommandError('channel.unavailable', invalidHandleMessage);
   let drop: () => boolean;
   try {
     drop =
@@ -62,7 +62,7 @@ function bindChannelLifecycle(
 
 export function createChannel(
   callback: (payload: unknown) => void,
-  native: RustraChannelNative = getRustraNative(),
+  native: UnikitChannelNative = getUnikitNative(),
   options?: PollingDrainOptions,
 ): { readonly handle: number; close(): boolean } {
   assertChannelNative(
@@ -95,7 +95,7 @@ export function createChannel(
  */
 export function createBytesChannel(
   callback: (payload: Uint8Array) => void,
-  native: RustraChannelNative = getRustraNative(),
+  native: UnikitChannelNative = getUnikitNative(),
   options?: PollingDrainOptions,
 ): { readonly handle: number; close(): boolean } {
   assertChannelNative(
@@ -115,7 +115,7 @@ export function createBytesChannel(
 }
 
 const nativeListeners = new WeakMap<
-  RustraEventNative,
+  UnikitEventNative,
   Map<string, Set<(payload: unknown) => void>>
 >();
 
@@ -129,7 +129,7 @@ type PollingDrainOptions = {
   /**
    * 폴링 drain 간격(ms) — `drainEvents` 를 노출하는 네이티브(CallInvoker 없는
    * 호스트)에서 JS 측 폴링 루프를 켠다. C++ 디스패처는 CallInvoker 없으면 큐에
-   * 쌓아두고 JS 의 `drainEvents()` 폴링을 기다린다(RustraJSIBridge.cpp) — 이
+   * 쌓아두고 JS 의 `drainEvents()` 폴링을 기다린다(UnikitJSIBridge.cpp) — 이
    * 옵션이 없으면 그 큐가 영원히 소비되지 않는다. 기본 꺼짐(CallInvoker 호스트에
    * 서 drain 폴링이 불필요하고, 푸시 경로와 병행해도 무해하다 — drain 이 비어
    * 있으면 0).
@@ -168,7 +168,7 @@ function acquirePollingDemand(native: PollingDrainNative, pollMs: number | undef
       try {
         native.drainEvents!();
       } catch (error) {
-        console.error('Rustra: drainEvents failed:', error);
+        console.error('Unikit: drainEvents failed:', error);
       }
       // A callback may close the last owner and acquire a replacement loop.
       // The retired tick must not schedule another timer for that replacement.
@@ -198,10 +198,10 @@ export function subscribeEvent(
   cb: (payload: unknown) => void,
   options?: SubscribeOptions,
 ): () => void {
-  const native: RustraEventNative = getRustraNative();
+  const native: UnikitEventNative = getUnikitNative();
   if (typeof native.onEvent !== 'function') {
     if (options?.allowMissingNative) return () => {};
-    throw new RustraCommandError(
+    throw new UnikitCommandError(
       'event.unavailable',
       'native module does not expose onEvent(); event subscription is unavailable',
     );
@@ -230,7 +230,7 @@ export function subscribeEvent(
           try {
             listener(payload);
           } catch (error) {
-            console.error(`Rustra: event listener for "${name}" threw:`, error);
+            console.error(`Unikit: event listener for "${name}" threw:`, error);
           }
         });
       });
@@ -262,8 +262,8 @@ export function subscribeEvent(
   };
 }
 
-/** 동기 invoke 표면의 최소 구조 — 네이티브 전체(RustraJSINative) 없이도 테스트/부분 목(mock)이 가능하다. */
-export type RustraSyncNative = {
+/** 동기 invoke 표면의 최소 구조 — 네이티브 전체(UnikitJSINative) 없이도 테스트/부분 목(mock)이 가능하다. */
+export type UnikitSyncNative = {
   invokeTyped?(name: string, args: unknown): unknown;
 };
 
@@ -274,15 +274,15 @@ export type RustraSyncNative = {
  * `sync.unavailable` 로 loud-fail 한다(폴백 정책은 호출자 소관).
  *
  * 계약: JS 런타임 스레드에서만 호출(JSI 스레드 친화성 — 다른 네이티브 경로와
- * 동일). 커맨드 에러는 `RustraCommandError`(code/message 유지)로 재발행된다.
+ * 동일). 커맨드 에러는 `UnikitCommandError`(code/message 유지)로 재발행된다.
  */
 export function invokeTypedSync<T = unknown>(
   name: string,
   args?: unknown,
-  native: RustraSyncNative = getRustraNative(),
+  native: UnikitSyncNative = getUnikitNative(),
 ): T {
   if (typeof native.invokeTyped !== 'function') {
-    throw new RustraCommandError(
+    throw new UnikitCommandError(
       'sync.unavailable',
       'native module does not expose invokeTyped(); synchronous invoke is unavailable',
     );
@@ -290,10 +290,10 @@ export function invokeTypedSync<T = unknown>(
   try {
     return native.invokeTyped(name, args ?? {}) as T;
   } catch (error) {
-    if (error instanceof RustraCommandError) throw error;
+    if (error instanceof UnikitCommandError) throw error;
     const message = error instanceof Error ? error.message : String(error);
     // C++ HostFunction 은 "code: message" 문자열 JSError 를 던진다 —
     // 안정 코드로 복원한다(파서는 JSON/"code: message" 양쪽 계약 지원).
-    throw parseRustraErrorString(message);
+    throw parseUnikitErrorString(message);
   }
 }

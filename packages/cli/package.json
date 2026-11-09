@@ -1,14 +1,14 @@
 {
-  "name": "@rustra/cli",
+  "name": "@unikit-bridge/cli",
   "version": "0.13.0",
-  "description": "rustra CLI — generate type-safe TypeScript clients for Node, Bun, Tauri, and React Native from one Rust core, with schema diff gates that block breaking changes in CI.",
+  "description": "unikit CLI — generate type-safe TypeScript clients for Node, Bun, Tauri, and React Native from one Rust core, with schema diff gates that block breaking changes in CI.",
   "license": "MIT",
   "type": "module",
   "publishConfig": {
     "access": "public"
   },
   "sideEffects": false,
-  "rustraTemplate": {
+  "unikitTemplate": {
     "cargoRange": "^0.13.0",
     "reactNativeRange": "^0.11.0",
     "nodeRange": "^0.11.0",
@@ -19,7 +19,7 @@
     "node": ">=18"
   },
   "bin": {
-    "rustra": "./dist/index.js"
+    "unikit": "./dist/index.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -52,7 +52,7 @@
   "files": [
     "LICENSE",
     "dist",
-    "rustra.schema.json"
+    "unikit.schema.json"
   ],
   "scripts": {
     "build": "tsc",
@@ -61,7 +61,7 @@
     "test:compile": "tsc -p tsconfig.test.json"
   },
   "dependencies": {
-    "@rustra/types": "^0.13.0",
+    "@unikit-bridge/types": "^0.13.0",
     "picomatch": "^4.0.7",
     "smol-toml": "^1.9.0"
   },
@@ -71,7 +71,7 @@
     "typescript": "^5.9.0"
   },
   "keywords": [
-    "rustra",
+    "unikit",
     "cli",
     "codegen",
     "rust",
@@ -84,11 +84,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/loopy-lim/rustra.git",
+    "url": "git+https://github.com/loopy-lim/unikit-bridge.git",
     "directory": "packages/cli"
   },
   "bugs": {
-    "url": "https://github.com/loopy-lim/rustra/issues"
+    "url": "https://github.com/loopy-lim/unikit-bridge/issues"
   },
-  "homepage": "https://github.com/loopy-lim/rustra#readme"
+  "homepage": "https://github.com/loopy-lim/unikit-bridge#readme"
 }

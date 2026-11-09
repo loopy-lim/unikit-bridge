@@ -1,4 +1,4 @@
-use rustra_streaming_example::streaming_package;
+use unikit_streaming_example::streaming_package;
 
 fn main() {
     let package = streaming_package();

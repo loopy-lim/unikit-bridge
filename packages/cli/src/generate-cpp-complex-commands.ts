@@ -42,7 +42,9 @@ export function cppComplexRefFunctions(
   const declarations: string[] = [];
   const bodies: string[] = [];
   for (const name of names) {
-    const result = buildCodecIr(definitions[name], definitions);
+    const schema = definitions[name];
+    if (!schema) continue;
+    const result = buildCodecIr(schema, definitions);
     if (!result.ok) continue;
     declarations.push(
       `static void ${cppComplexEncodeName(name)}(jsi::Runtime&, const jsi::Value&, rc::Writer&, size_t);`,

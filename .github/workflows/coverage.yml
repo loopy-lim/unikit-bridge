@@ -21,13 +21,13 @@ jobs:
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
       - run: cargo install cargo-llvm-cov --locked
-      - name: Rust coverage (rustra + macros)
+      - name: Rust coverage (unikit + macros)
         # pipefail 필수 — 없으면 파이프 마지막 명령(tail)의 exit 0이 잡 성공으로
         # 이어져 llvm-cov/테스트 실패가 조용히 묻힌다.
         run: |
           set -o pipefail
-          cargo llvm-cov -p rustra -p rustra-macros --summary-only 2>&1 | tee cov.txt | tail -15 >> "$GITHUB_STEP_SUMMARY"
-          cargo llvm-cov -p rustra -p rustra-macros --lcov --output-path lcov.info
+          cargo llvm-cov -p unikit-bridge -p unikit-bridge-macros --summary-only 2>&1 | tee cov.txt | tail -15 >> "$GITHUB_STEP_SUMMARY"
+          cargo llvm-cov -p unikit-bridge -p unikit-bridge-macros --lcov --output-path lcov.info
       - uses: actions/upload-artifact@v7
         with:
           name: rust-lcov
@@ -51,7 +51,7 @@ jobs:
       # ci.yml typescript 잡과 동일한 선행 빌드. 이게 없으면 클린 러너에서
       # coverage 수집이 반드시 실패한다(2026-09-01, 033060c4 이후 4연패 근원).
       - name: Build calculator example dylib
-        run: cargo build -p rustra-calculator-example --release
+        run: cargo build -p unikit-calculator-example --release
       - name: TS coverage (c8)
         # pipefail 필수 — 테스트 실패가 tail의 exit 0에 묻히면 coverage 수치만 남는
         # false green이 된다. 이 job은 유닛 성격 테스트만 수집한다.

@@ -1,4 +1,4 @@
-import { addNumbers, rustra } from '../generated/node.js';
+import { addNumbers, unikit } from '../generated/node.js';
 
 const result = await addNumbers({ a: 20, b: 22 });
 
@@ -7,4 +7,4 @@ if (result.value !== 42) {
 }
 
 console.log(`node runtime result: ${result.value}`);
-rustra.dispose();
+unikit.dispose();

@@ -22,7 +22,7 @@ const snapshot = () => ({
   binarySha256: hash(binaryPath),
   codecs: modules(dirname(codecPath)),
   adapter: modules(dirname(adapterPath)),
-  types: modules(dirname(fileURLToPath(import.meta.resolve('@rustra/types')))),
+  types: modules(dirname(fileURLToPath(import.meta.resolve('@unikit-bridge/types')))),
 });
 const producerBefore = snapshot();
 const { createNodeLoopTransport } = await import(pathToFileURL(adapterPath));

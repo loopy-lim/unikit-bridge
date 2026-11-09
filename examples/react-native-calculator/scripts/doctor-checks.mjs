@@ -1,19 +1,19 @@
 import { createHash } from 'node:crypto';
 
 export const REQUIRED_ARCHIVE_SYMBOLS = [
-  'rustra_mobile_init',
-  'rustra_ffi_invoke_buffer',
-  'rustra_ffi_has_buffer',
-  'rustra_ffi_invoke_raw',
-  'rustra_ffi_has_raw',
-  'rustra_ffi_free_owned_bytes',
-  'rustra_ffi_invoke_frame_async',
-  'rustra_calculator_invoke_frame',
-  'rustra_calculator_invoke_typed_raw',
-  'rustra_calculator_free_frame_buffer',
+  'unikit_mobile_init',
+  'unikit_ffi_invoke_buffer',
+  'unikit_ffi_has_buffer',
+  'unikit_ffi_invoke_raw',
+  'unikit_ffi_has_raw',
+  'unikit_ffi_free_owned_bytes',
+  'unikit_ffi_invoke_frame_async',
+  'unikit_calculator_invoke_frame',
+  'unikit_calculator_invoke_typed_raw',
+  'unikit_calculator_free_frame_buffer',
 ];
 const REQUIRED_INSTALLED_SYMBOLS = REQUIRED_ARCHIVE_SYMBOLS.filter(
-  (symbol) => symbol !== 'rustra_calculator_invoke_typed_raw',
+  (symbol) => symbol !== 'unikit_calculator_invoke_typed_raw',
 );
 
 function check(status, layer, id, summary, details, fix) {
@@ -102,7 +102,7 @@ export function analyzeGeneratedArtifacts({ schemaSource, contractSource, comman
           'generated.commands',
           'Generated TypeScript command surface is incomplete',
           missingTypeScript.length ? `missing: ${missingTypeScript.join(', ')}` : 'schema contains no command ids',
-          'Run `bun run codegen`. If a command is still absent, check its `#[rustra::command]` registration in Rust.',
+          'Run `bun run codegen`. If a command is still absent, check its `#[unikit_bridge::command]` registration in Rust.',
         ),
     commands.length > 0 && missingNative.length === 0
       ? pass(
@@ -139,7 +139,7 @@ export function analyzeRustArchive({
         'Rust',
         'rust.archive',
         'Rust static archive is missing',
-        'librustra_calculator_example.a was not found',
+        'libunikit_calculator_example.a was not found',
         'Run `bun run rust:ios`. If compilation fails, first install the targets printed by the Rust target check.',
       ),
     ];
@@ -173,7 +173,7 @@ export function analyzeRustArchive({
           'rust.archive.architectures',
           'Rust archive does not cover the default simulator architectures',
           `missing: ${absentArchitectures.join(', ')}`,
-          'Install both simulator Rust targets, then run `bun run rust:ios` without RUSTRA_IOS_TARGET so the build script creates a universal archive.',
+          'Install both simulator Rust targets, then run `bun run rust:ios` without UNIKIT_IOS_TARGET so the build script creates a universal archive.',
         )
       : pass('Rust ABI', 'rust.archive.architectures', 'Rust archive is universal for iOS Simulator'),
   ];
@@ -186,7 +186,7 @@ export function analyzeInstalledBinary({ binaryMtimeMs, newestInputMtimeMs, newe
       ? fail(
           'Runtime',
           'ios.app.freshness',
-          'Installed app does not contain the current Rustra worktree',
+          'Installed app does not contain the current Unikit worktree',
           `newer input: ${newestInputPath ?? 'unknown build input'}`,
           'Run `bun run ios -- --configuration Release`. A current archive on disk does not update an already installed app.',
         )
@@ -206,25 +206,25 @@ export function analyzeInstalledBinary({ binaryMtimeMs, newestInputMtimeMs, newe
 export function analyzeAutolinking({ reactNativeConfig, podfileLock }) {
   let dependency;
   try {
-    dependency = JSON.parse(reactNativeConfig).dependencies?.['@rustra/generated-react-native'];
+    dependency = JSON.parse(reactNativeConfig).dependencies?.['@unikit-bridge/generated-react-native'];
   } catch {
     // The failure below carries the repair command.
   }
   const configsValid = Boolean(
-    dependency?.platforms?.ios?.podspecPath?.endsWith('/RustraBridge.podspec') &&
+    dependency?.platforms?.ios?.podspecPath?.endsWith('/UnikitBridge.podspec') &&
       dependency?.platforms?.android?.sourceDir?.endsWith('/android'),
   );
-  const missingPods = ['RustraBridge', 'RustraCalculator', 'NitroBench'].filter(
+  const missingPods = ['UnikitBridge', 'UnikitCalculator', 'NitroBench'].filter(
     (pod) => !new RegExp(`^  - ${pod} \\(`, 'm').test(podfileLock),
   );
   return [
     configsValid
-      ? pass('RN/Pod', 'native.autolinking.config', 'React Native autolinking finds Rustra on iOS and Android')
+      ? pass('RN/Pod', 'native.autolinking.config', 'React Native autolinking finds Unikit on iOS and Android')
       : fail(
           'RN/Pod',
           'native.autolinking.config',
-          'React Native autolinking does not expose Rustra on both platforms',
-          'Expected @rustra/generated-react-native with an iOS Podspec and Android sourceDir.',
+          'React Native autolinking does not expose Unikit on both platforms',
+          'Expected @unikit-bridge/generated-react-native with an iOS Podspec and Android sourceDir.',
           'Run `bun run codegen`, `bun install`, then `bunx --bun react-native config`.',
         ),
     missingPods.length
@@ -235,12 +235,12 @@ export function analyzeAutolinking({ reactNativeConfig, podfileLock }) {
           `missing: ${missingPods.join(', ')}`,
           'Run `bun install`, then `bunx pod-install ios`. Rebuild the native app; Metro reload is not sufficient.',
         )
-      : pass('RN/Pod', 'ios.pods.locked', 'Rustra, Swift FFI, and Nitro comparison Pods are installed'),
+      : pass('RN/Pod', 'ios.pods.locked', 'Unikit, Swift FFI, and Nitro comparison Pods are installed'),
   ];
 }
 
 export function formatDoctorReport(report) {
-  const lines = [`rustra doctor: ${report.app}`, `root: ${report.appRoot}`, ''];
+  const lines = [`unikit doctor: ${report.app}`, `root: ${report.appRoot}`, ''];
   for (const item of report.checks) {
     lines.push(`${item.status.toUpperCase()} [${item.layer}] ${item.summary}`);
     if (item.details) lines.push(`  detail: ${item.details}`);

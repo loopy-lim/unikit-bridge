@@ -14,7 +14,7 @@ test('sync batches alternate competitors, consume results and reject Promises', 
     warmup: 0,
     clock: () => time,
   });
-  expect(result.rustra).toEqual([2e6, 2e6, 2e6, 2e6]);
+  expect(result.unikit).toEqual([2e6, 2e6, 2e6, 2e6]);
   expect(result.nitro).toEqual([1e6, 1e6, 1e6, 1e6]);
   expect(order.join('')).toBe('rrrnnnnnnrrrrrrnnnnnnrrr');
   expect(result.checksum).toBe(168);

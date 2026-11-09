@@ -123,7 +123,7 @@ void test('complex codec accepts explicit keys for anonymous oneOf variants', ()
     commandId: 1,
     inputSchema: {
       oneOf: [{ type: 'string' }, { type: 'integer' }],
-      'x-rustra-variant-order': ['text', 'count'],
+      'x-unikit-variant-order': ['text', 'count'],
     },
     outputSchema: { type: 'null' },
   });

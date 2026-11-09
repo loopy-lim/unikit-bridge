@@ -1,4 +1,4 @@
-# Rustra-Bridge Project Improvement Masterplan
+# Unikit-Bridge Project Improvement Masterplan
 
 **Date**: 2026-05-14
 **Status**: Approved
@@ -72,12 +72,12 @@
 - **Changesets** 도입 — `@changesets/cli` 변경 로그 자동 생성
 - 버전 관리 전략 — 패키지 간 의존성 버전 동기화
 - npm 배포 자동화 — CI에서 changeset PR 머지 시 자동 publish
-- crates.io 배포 — `rustra`, `rustra-macros`
+- crates.io 배포 — `unikit`, `unikit-bridge-macros`
 
 ### 3-3. CLI 개선
 
 - `watch` 모드 — Rust 코드 변경 시 TS 자동 재생성
-- `init` 명령어 — 프로젝트 스캐폴딩 (`rustra init my-project`)
+- `init` 명령어 — 프로젝트 스캐폴딩 (`unikit init my-project`)
 
 ---
 
@@ -133,10 +133,10 @@ Phase 1은 독립적으로 진행 가능하며, Phase 2-4는 Phase 1의 CI/린�
 | CRUD 예제 (3-1)                       | ✅ 완료   | examples/crud                                                      |
 | Streaming/Auth 예제 (3-1)             | ✅ 완료   | examples/streaming, examples/auth (발행된 패턴 예제)               |
 | Changesets (3-2)                      | ⚠️ 도입됨 | config 존재, 0.1.2/0.1.3은 changeset 범프로 발행                   |
-| npm 배포 (3-2)                        | ✅ 완료   | @rustra/\* 10종 0.1.3 발행                                         |
-| crates.io 배포 (3-2)                  | ✅ 완료   | rustra / rustra-macros 0.1.3 발행                                  |
-| CLI watch (3-3)                       | ✅ 완료   | `rustra generate --watch`                                          |
-| CLI init (3-3)                        | ✅ 완료   | `rustra init <dir>` 스캐폴딩 (f48537ff)                            |
+| npm 배포 (3-2)                        | ✅ 완료   | @unikit-bridge/\* 10종 0.1.3 발행                                         |
+| crates.io 배포 (3-2)                  | ✅ 완료   | unikit / unikit-bridge-macros 0.1.3 발행                                  |
+| CLI watch (3-3)                       | ✅ 완료   | `unikit generate --watch`                                          |
+| CLI init (3-3)                        | ✅ 완료   | `unikit init <dir>` 스캐폴딩 (f48537ff)                            |
 | 큰 페이로드 벤치마크 (4-2)            | ✅ 완료   | docs/benchmarks.md 페이로드 scaling                                |
 | 메모리 프로파일링 / 동시성 벤치 (4-2) | ❌ 미완료 | 후보 과제                                                          |
 | CI 벤치마크 회귀 감지 (4-2)           | ✅ 완료   | bench.yml (2026-08-15)                                             |

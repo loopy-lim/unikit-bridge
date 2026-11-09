@@ -11,11 +11,11 @@
 //!
 //! 내부 폴링 명령 `__drainEvents`: 대기 중 이벤트 배열 반환.
 
-use rustra_streaming_example::streaming_package;
 use serde_json::{Value, json};
 use std::io::{BufRead, Write};
+use unikit_streaming_example::streaming_package;
 
-fn main() -> rustra::Result<()> {
+fn main() -> unikit_bridge::Result<()> {
     let serve = std::env::args().nth(1).as_deref() == Some("--serve");
     if serve {
         return run_serve();
@@ -23,7 +23,7 @@ fn main() -> rustra::Result<()> {
     run_single()
 }
 
-fn run_single() -> rustra::Result<()> {
+fn run_single() -> unikit_bridge::Result<()> {
     let mut input = String::new();
     std::io::stdin().read_line(&mut input)?;
     let response = handle(&input)?;
@@ -31,11 +31,11 @@ fn run_single() -> rustra::Result<()> {
     Ok(())
 }
 
-fn run_serve() -> rustra::Result<()> {
+fn run_serve() -> unikit_bridge::Result<()> {
     let stdin = std::io::stdin();
     let mut stdout = std::io::stdout();
     for line in stdin.lock().lines() {
-        let line = line.map_err(rustra::RustraError::internal)?;
+        let line = line.map_err(unikit_bridge::UnikitError::internal)?;
         if line.trim().is_empty() {
             continue;
         }
@@ -47,38 +47,38 @@ fn run_serve() -> rustra::Result<()> {
     Ok(())
 }
 
-fn handle(input: &str) -> rustra::Result<Vec<u8>> {
+fn handle(input: &str) -> unikit_bridge::Result<Vec<u8>> {
     let request: serde_json::Value =
-        serde_json::from_str(input).map_err(rustra::RustraError::invalid_args)?;
+        serde_json::from_str(input).map_err(unikit_bridge::UnikitError::invalid_args)?;
     let command = request
         .get("command")
         .and_then(|v| v.as_str())
-        .ok_or_else(|| rustra::RustraError::invalid_args("missing command"))?
+        .ok_or_else(|| unikit_bridge::UnikitError::invalid_args("missing command"))?
         .to_string();
     let args = request.get("args").cloned().unwrap_or_else(|| json!({}));
     // 요청 id 에코 — 멀티플렉싱 대응 (없으면 생략).
     let id = request.get("id").cloned();
 
-    let respond = |mut body: serde_json::Value| -> rustra::Result<Vec<u8>> {
+    let respond = |mut body: serde_json::Value| -> unikit_bridge::Result<Vec<u8>> {
         if let Some(id) = id {
             body["id"] = id;
         }
-        serde_json::to_vec(&body).map_err(rustra::RustraError::internal)
+        serde_json::to_vec(&body).map_err(unikit_bridge::UnikitError::internal)
     };
 
-    if command == "__rustra_contract" {
+    if command == "__unikit_contract" {
         let hash = streaming_package().generate_typescript()?.contract_hash;
         return respond(json!({ "ok": true, "result": hash }));
     }
-    if command == "__rustra_capabilities" {
+    if command == "__unikit_capabilities" {
         return respond(json!({ "ok": true, "result": { "events": "polling" } }));
     }
 
     if command == "__drainEvents" {
         // drain 페이로드는 `events` 필드로 돌아간다 — loop-stdio 참조 런타임과
-        // @rustra/node 폴링 폴백(`transport.drainEvents()`)이 읽는 계약 필드.
+        // @unikit-bridge/node 폴링 폴백(`transport.drainEvents()`)이 읽는 계약 필드.
         // `result` 에 넣으면 어댑터 subscribeEvent 가 이벤트를 영원히 받지 못한다.
-        let events: Vec<serde_json::Value> = rustra_streaming_example::event_bus()
+        let events: Vec<serde_json::Value> = unikit_streaming_example::event_bus()
             .take_pending_events()
             .into_iter()
             .map(|e| {
@@ -94,7 +94,8 @@ fn handle(input: &str) -> rustra::Result<Vec<u8>> {
     match streaming_package().invoke_json(&command, args) {
         Ok(result) => respond(json!({ "ok": true, "result": result })),
         Err(error) => {
-            let detail = serde_json::to_string(&error).map_err(rustra::RustraError::internal)?;
+            let detail =
+                serde_json::to_string(&error).map_err(unikit_bridge::UnikitError::internal)?;
             respond(json!({ "ok": false, "error": detail }))
         }
     }

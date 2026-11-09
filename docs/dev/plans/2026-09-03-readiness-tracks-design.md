@@ -55,7 +55,7 @@ production readiness 갭 중 "미통합·미착지" 5개 부류를 한 트랙에
 - 하위호환: 기존 `(schema, clientCommands: string[])` 시그니처는 유지 —
   생성물을 못 읽는 소비자는 기존 이름만 비교로 폴백한다. 신규 API는 별도 함수
   (`assertContractFieldsCurrent` 계열)로 추가.
-- changeset: `@rustra/testing` minor.
+- changeset: `@unikit-bridge/testing` minor.
 
 ## 트랙 3: React Suspense 캐시/무효화 1차 (DX audit HIGH)
 
@@ -65,25 +65,25 @@ production readiness 갭 중 "미통합·미착지" 5개 부류를 한 트랙에
 - 무효화: 모듈 레벨 캐시에 `invalidate(commandName?)` / 전체 무효화 제공,
   `useMutation` 성공 콜백에서 쓸 수 있게 한다.
 - 진화 정책(LRU 등)은 1차 범위 밖 (YAGNI — 로드맵 0.8 "훅 2세대" 후속).
-- changeset: `@rustra/react` minor.
+- changeset: `@unikit-bridge/react` minor.
 
 ## 트랙 4: 에러/디버깅 품질 4건 (0.7 "신뢰" 잔여)
 
-1. **withRetry** — `@rustra/types`에
+1. **withRetry** — `@unikit-bridge/types`에
    `withRetry(fn, { retries, baseDelayMs, signal, retryIf })`. 지수 백오프,
    기본 판정 `isRetryableCode`(errors.ts:121-123 재사용). 테스트 포함.
 2. **NDJSON 실패 라인 보존** — `packages/node/src/node-loop.ts:270-275`의
-   `catch { continue; }`를 원본 라인 링버퍼 보존 + `RUSTRA_DEBUG` 시 warn으로.
+   `catch { continue; }`를 원본 라인 링버퍼 보존 + `UNIKIT_DEBUG` 시 warn으로.
    :283 stderr 폐기도 debug 모드에서 보존. push 이벤트 경로
    (node-events.ts:175-181)의 기존 warn 관례를 따른다.
 3. **응답 셰이프 검증 경고** — JSON 엔벨로프(`{ok,...}`) 이탈과 typed 커맨드의
    undefined 응답을 debug 모드에서 warn. 버전 스큐 조기 감지용.
-   debug.ts의 기존 스위치(`debugRustra`/`traceWire`) 재사용.
+   debug.ts의 기존 스위치(`debugUnikit`/`traceWire`) 재사용.
 4. **thiserror 에러 매핑 문서화** — rust-api-guide(.ko/.md)에 커스텀 에러
    enum → TS 코드 매핑 패턴 절 신설. 실제 동작 앵커(코드젠 description→JSDoc
    경로 등)를 먼저 확인하고 문서가 거짓말하지 않게 한다.
 
-- changeset: `@rustra/types` minor (withRetry), `@rustra/node` minor
+- changeset: `@unikit-bridge/types` minor (withRetry), `@unikit-bridge/node` minor
   (NDJSON/셰이프 경고).
 
 ## 트랙 5: 문서 정직성 4건
@@ -105,7 +105,7 @@ production readiness 갭 중 "미통합·미착지" 5개 부류를 한 트랙에
 ## 트랙 6: 코드 위생
 
 - **deprecated 3표면** — 제거는 정책 요건("최소 1 마이너 유지") 검증이 선행:
-  - `RendererHost` (crates/rustra/src/renderer_host.rs:126) — deprecated
+  - `RendererHost` (crates/unikit-bridge/src/renderer_host.rs:126) — deprecated
     도입 버전 확인. 0.x 유지 문구가 정책 문서에 명시돼 있으므로(1.0에 제거
     예정) 이번 사이클은 제거하지 않고 정책 문서 문단과 상태만 정합 확인.
   - tauri/rn 레거시 `subscribeEvent` 오버로드 2건 — 도입 릴리즈 확인 후
@@ -114,12 +114,12 @@ production readiness 갭 중 "미통합·미착지" 5개 부류를 한 트랙에
   (rkyv_support.rs:14), `WireFieldKind`(rkyv_fields.rs:13,32),
   `EventState::new()`(events_state.rs:15), `surface_destroyed`
   (renderer_host.rs:189). 제거 전 실제 미사용 재확인 (grep + clippy).
-- **`__RUstra_doc_` 죽은 상수** — macro_command.rs:108-109,182의
+- **`__UNikit_doc_` 죽은 상수** — macro_command.rs:108-109,182의
   `#[allow(dead_code)]` 상수 생성 중단 (doc 전달은 builder_commands.rs 경로로
   이미 달성됨). 매크로 생성 코드라 wire round-trip 게이트로 재검증.
 - **"후속" 라벨 문구 정리** — 구현 완료된 것들(ffi_sync_entries.rs:76 등)의
   라벨을 완료 서술로 정리. 열린 것(rkyv-engine-surface.ts:146 P0-2)은 유지.
-- changeset: 제거 표면에 따라 `@rustra/tauri`/`@rustra/react-native` minor
+- changeset: 제거 표면에 따라 `@unikit-bridge/tauri`/`@unikit-bridge/react-native` minor
   (pre-1.0 폐기 규칙 — versioning-policy와 정합).
 
 ## 검증 게이트

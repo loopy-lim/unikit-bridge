@@ -16,22 +16,22 @@ describe('profile launch admission', () => {
     ] as const) {
       expect(
         parseProfileURL(
-          `rustra-parity://profile?case=${encodeURIComponent(caseId)}&framework=rustra&run=Run_1-2&ms=12000`,
+          `unikit-parity://profile?case=${encodeURIComponent(caseId)}&framework=unikit&run=Run_1-2&ms=12000`,
         ),
-      ).toEqual({ caseId, framework: 'rustra', runId: 'Run_1-2', durationMs: 12000 });
+      ).toEqual({ caseId, framework: 'unikit', runId: 'Run_1-2', durationMs: 12000 });
     }
     expect(
-      parseProfileURL('rustra-parity://profile?ms=1000&run=a&framework=nitro&case=add'),
+      parseProfileURL('unikit-parity://profile?ms=1000&run=a&framework=nitro&case=add'),
     ).toEqual({ caseId: 'add', framework: 'nitro', runId: 'a', durationMs: 1000 });
   });
 
   test('rejects ambiguous, malformed, or unbounded launch plans', () => {
-    const base = 'rustra-parity://profile?case=add&framework=nitro&run=a&ms=12000';
+    const base = 'unikit-parity://profile?case=add&framework=nitro&run=a&ms=12000';
     for (const url of [
       null,
       '',
-      base.replace('rustra-parity://profile', 'rustra-parity://other'),
-      base.replace('rustra-parity://profile', 'https://profile'),
+      base.replace('unikit-parity://profile', 'unikit-parity://other'),
+      base.replace('unikit-parity://profile', 'https://profile'),
       base + '&case=pair',
       base + '&unknown=x',
       base.replace('&run=a', ''),

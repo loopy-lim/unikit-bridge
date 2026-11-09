@@ -1,4 +1,4 @@
-import { isRetryableCode, RustraCommandError } from './errors.js';
+import { isRetryableCode, UnikitCommandError } from './errors.js';
 import { CODEC_RAW, CODEC_POSITIONAL } from './global.js';
 import { decodeTier3Response, encodeTier3Request } from './json-wire.js';
 import { traceWire } from './debug.js';
@@ -95,7 +95,7 @@ export function createFrameDispatchRuntime(context: FrameEngineContext): FrameDi
     // (T0-3) 세대 게이트는 lookupCachedLiveSchemaEntry 내부에서 1회 흡수된다.
     const entry = schema.lookupCachedLiveSchemaEntry(command);
     if (!entry) {
-      throw new RustraCommandError(
+      throw new UnikitCommandError(
         'command.not_found',
         `Frame: no codec and not in live schema for "${command}"`,
       );
@@ -119,7 +119,7 @@ export function createFrameDispatchRuntime(context: FrameEngineContext): FrameDi
     const resp = decodeTier3Response(tier3Response);
     if (!resp.ok) {
       const e = resp.error ?? { code: 'invoke.failed', message: 'Frame (tier3) invoke failed' };
-      throw new RustraCommandError(e.code, e.message, e.retryable ?? isRetryableCode(e.code));
+      throw new UnikitCommandError(e.code, e.message, e.retryable ?? isRetryableCode(e.code));
     }
     return (
       (entry.outputSchema as { type?: unknown } | undefined)?.type === 'null'

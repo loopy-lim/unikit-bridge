@@ -2,14 +2,14 @@
 # for other headers/pods; only namespace-internal includes must remain textual.
 require 'json'
 
-def rustra_fix_glog_modulemap(installer)
+def unikit_fix_glog_modulemap(installer)
   glog = installer.pod_targets.find { |target| target.name == 'glog' }
   return unless glog && glog.root_spec.version.to_s == '0.3.5'
 
   root = installer.sandbox.root
   modulemap = root.join('Target Support Files', 'glog', 'glog.modulemap')
   contents = modulemap.read
-  marker = '  // rustra: namespace-internal glog headers'
+  marker = '  // unikit: namespace-internal glog headers'
   return if contents.include?(marker)
 
   anchor = "module glog {\n"

@@ -1,12 +1,12 @@
 /**
- * 레퍼런스 앱 UI 트리 — @rustra/react 훅 사용 예시.
+ * 레퍼런스 앱 UI 트리 — @unikit-bridge/react 훅 사용 예시.
  *
- * RustraProvider 로 스코프된 EngineClient 를 받아 CRUD + 이벤트 흐름을
+ * UnikitProvider 로 스코프된 EngineClient 를 받아 CRUD + 이벤트 흐름을
  * useCommand/useMutation/useEvent 로 구성한다. RN/웹 어디서든 같은 트리를
  * 렌더할 수 있다(엔진만 플랫폼별로 주입).
  */
 import React from 'react';
-import { RustraProvider, useCommand, useMutation, useEvent } from '@rustra/react';
+import { UnikitProvider, useCommand, useMutation, useEvent } from '@unikit-bridge/react';
 import { listItems, createItem, updateItem, deleteItem } from '../../crud/generated/commands.js';
 /** 조회 — useCommand: 마운트 시 자동 실행, input 변경 시 재실행. */
 function ItemList({ minValue }) {
@@ -47,8 +47,8 @@ function LiveFeed() {
 }
 export function App({ engine }) {
     const [tick, setTick] = React.useState(0);
-    return (React.createElement(RustraProvider, { engine: engine },
-        React.createElement("h1", null, "rustra \uB808\uD37C\uB7F0\uC2A4 \uC571"),
+    return (React.createElement(UnikitProvider, { engine: engine },
+        React.createElement("h1", null, "unikit \uB808\uD37C\uB7F0\uC2A4 \uC571"),
         React.createElement(ItemList, { minValue: 0 }),
         React.createElement(ItemActions, { onDone: () => setTick((t) => t + 1) }),
         React.createElement(LiveFeed, null),

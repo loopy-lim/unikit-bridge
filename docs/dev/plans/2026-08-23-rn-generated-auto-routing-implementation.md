@@ -5,7 +5,7 @@
 - [x] Reproduce and fix the Runtime-invalid `PropNameID` cache crash.
 - [x] Run same-process React Native reload stress with the Debug allocator guard,
       then rebuild Release for performance.
-- [x] Record a normalized three-run Nitro/Rustra/Swift FFI baseline.
+- [x] Record a normalized three-run Nitro/Unikit/Swift FFI baseline.
 - [x] Keep React Doctor at 100/100.
 
 ## Phase 1: unify scalar and positional routing
@@ -13,7 +13,7 @@
 - [x] Add field-aware internal generated invoke helpers without changing command
       function signatures.
 - [x] Emit those helpers from both TypeScript generation paths so
-      `Package::generate_typescript()` and `rustra generate` cannot drift.
+      `Package::generate_typescript()` and `unikit generate` cannot drift.
 - [x] Add a native command capability mask and cache it once per engine.
 - [x] Route verified raw commands to `invokeTypedRaw`, then positional commands
       to `invokeTypedPos`, then fall back to the existing by-id/name/codec paths.
@@ -40,7 +40,7 @@
 ## Phase 3: make the fast path operationally boring
 
 - [x] Move native installation and generated-codec wiring into the codegen path:
-      one `rustra.json` emits a lazy `react-native.ts` entry, while Expo module
+      one `unikit.json` emits a lazy `react-native.ts` entry, while Expo module
       config owns Pod autolinking without a manual Podfile declaration.
 - [x] Add a Bun-based doctor command for Bun version, generated/native contract,
       Pod/autolinking, native symbols, and Release mode.
@@ -74,7 +74,7 @@ Current evidence: focused Types, CLI generator, Rust buffer/FFI, and C++ codec
 suites pass. A direct-buffer/pending-async reload probe passed 30/30 after moving
 native installation from the TurboModule queue to the JS Runtime thread. The
 latest iOS Release build/install plus three automatically extracted receipts pass
-correctness, FFI, paired-CI, and byte ownership gates. Three-run Rustra/Nitro
+correctness, FFI, paired-CI, and byte ownership gates. Three-run Unikit/Nitro
 medians are add 1.0297x, string 1.0229x, bytes64 0.9219x, pair 1.0656x,
 64KiB 0.9555x, and exact-1MiB-wire 1.0075x. React Doctor is 100/100.
 

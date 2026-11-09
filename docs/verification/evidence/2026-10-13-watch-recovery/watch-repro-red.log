@@ -1,12 +1,12 @@
-[dev] initial → codegen --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-s7JOZu/app/rustra.json
-[rustra] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-s7JOZu/app/Cargo.toml --package rustra-app --bin generate
-[rustra] ⠋ Rust schema generation (rustra-app/generate)...
+[dev] initial → codegen --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app/unikit.json
+[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app/Cargo.toml --package unikit-app --bin generate
+[unikit] ⠋ Rust schema generation (unikit-app/generate)...
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
-     Running `/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-shared/debug/generate`
-/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-s7JOZu/app/generated/schema.json written
-[rustra] ✓ Rust schema generation (rustra-app/generate) done in 0.1s
-[rustra] TypeScript/C++: generate --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-s7JOZu/app/rustra.json
-Generated TypeScript files in /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-s7JOZu/app/src/generated:
+     Running `/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-shared/debug/generate`
+/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app/generated/schema.json written
+[unikit] ✓ Rust schema generation (unikit-app/generate) done in 0.1s
+[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app/unikit.json
+Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app/src/generated:
   types.ts (unchanged)
   commands.ts (unchanged)
   contract.ts (unchanged)
@@ -15,17 +15,17 @@ Generated TypeScript files in /Users/loopy/dev/ll3/rustra-bridge/target/quick-st
   node.ts (unchanged)
 [dev] 1:25:27 PM regenerated
 
-[dev] watching /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-s7JOZu/app and /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-s7JOZu/app/rustra.json for changes...
-[dev] Rust change → codegen --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-s7JOZu/app/rustra.json
-[rustra] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-s7JOZu/app/Cargo.toml --package rustra-app --bin generate
-[rustra] ⠋ Rust schema generation (rustra-app/generate)...
-   Compiling rustra-app v0.1.0 (/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-s7JOZu/app)
+[dev] watching /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app and /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app/unikit.json for changes...
+[dev] Rust change → codegen --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app/unikit.json
+[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app/Cargo.toml --package unikit-app --bin generate
+[unikit] ⠋ Rust schema generation (unikit-app/generate)...
+   Compiling unikit-app v0.1.0 (/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app)
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.28s
-     Running `/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-shared/debug/generate`
-/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-s7JOZu/app/generated/schema.json written
-[rustra] ✓ Rust schema generation (rustra-app/generate) done in 0.3s
-[rustra] TypeScript/C++: generate --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-s7JOZu/app/rustra.json
-Generated TypeScript files in /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-s7JOZu/app/src/generated:
+     Running `/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-shared/debug/generate`
+/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app/generated/schema.json written
+[unikit] ✓ Rust schema generation (unikit-app/generate) done in 0.3s
+[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app/unikit.json
+Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-s7JOZu/app/src/generated:
   types.ts (unchanged)
   commands.ts (unchanged)
   contract.ts (unchanged)
@@ -38,12 +38,12 @@ node:internal/modules/run_main:123
     ^
 
 AssertionError [ERR_ASSERTION]: successful watch reload must invoke new Rust implementation
-    at file:///private/tmp/rustra-watch-repro.mjs:19:60
-    at file:///Users/loopy/dev/ll3/rustra-bridge/packages/cli/dist/watch.js:19:103
+    at file:///private/tmp/unikit-watch-repro.mjs:19:60
+    at file:///Users/loopy/dev/ll3/unikit-bridge/packages/cli/dist/watch.js:19:103
     at async Promise.allSettled (index 0)
-    at async Object.emitReload (file:///Users/loopy/dev/ll3/rustra-bridge/packages/cli/dist/watch.js:19:29)
-    at async perform (file:///Users/loopy/dev/ll3/rustra-bridge/packages/cli/dist/dev.js:273:13)
-    at async file:///Users/loopy/dev/ll3/rustra-bridge/packages/cli/dist/watch.js:62:21 {
+    at async Object.emitReload (file:///Users/loopy/dev/ll3/unikit-bridge/packages/cli/dist/watch.js:19:29)
+    at async perform (file:///Users/loopy/dev/ll3/unikit-bridge/packages/cli/dist/dev.js:273:13)
+    at async file:///Users/loopy/dev/ll3/unikit-bridge/packages/cli/dist/watch.js:62:21 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: 'hello from TypeScript\n',

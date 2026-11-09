@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configureDebug, resetDebugEnvForTests } from '@rustra/types';
+import { configureDebug, resetDebugEnvForTests } from '@unikit-bridge/types';
 import {
   UNPARSED_LINES_CAPACITY,
   UNPARSED_LINE_MAX_CHARS,
@@ -149,7 +149,7 @@ function newState(): UnparsedLineState {
 }
 
 void test('recordUnparsedLine preserves lines in the ring buffer when debug is off', () => {
-  delete process.env.RUSTRA_DEBUG;
+  delete process.env.UNIKIT_DEBUG;
   resetDebugEnvForTests(); // dump 게이트 메모이즈 무효화 — env 변경이 보이게.
   const state = newState();
   recordUnparsedLine('not json {', state);
@@ -158,7 +158,7 @@ void test('recordUnparsedLine preserves lines in the ring buffer when debug is o
 });
 
 void test('recordUnparsedLine ring buffer never exceeds the capacity and keeps the most recent lines', () => {
-  delete process.env.RUSTRA_DEBUG;
+  delete process.env.UNIKIT_DEBUG;
   resetDebugEnvForTests();
   const state = newState();
   for (let i = 1; i <= UNPARSED_LINES_CAPACITY + 10; i += 1) {
@@ -179,7 +179,7 @@ void test('recordUnparsedLine emits a ndjson.unparsed debug event and a once-onl
   // resetDebugEnvForTests 는 env 변수도 지우므로 먼저 무효화하고 env 를 세팅한다
   // (packages/types debug.test.ts 의 관례와 동일 순서).
   resetDebugEnvForTests();
-  process.env.RUSTRA_DEBUG = '1';
+  process.env.UNIKIT_DEBUG = '1';
   const seen: unknown[] = [];
   configureDebug((event) => seen.push(event));
   const warns: string[] = [];
@@ -196,7 +196,7 @@ void test('recordUnparsedLine emits a ndjson.unparsed debug event and a once-onl
     // debug 모드에선 버퍼 대신 이벤트 경로 — 링 버퍼는 비어 있다.
     assert.deepEqual(state.buffer, []);
     assert.equal(seen.length, 5, 'every unparsed line reaches the sink');
-    // debugRustra 가 value 백 필드를 덧붙이므로 관심 필드만 개별 단정한다.
+    // debugUnikit 가 value 백 필드를 덧붙이므로 관심 필드만 개별 단정한다.
     assert.equal((seen[0] as { kind?: string }).kind, 'ndjson.unparsed');
     assert.equal((seen[0] as { line?: string }).line, 'nope-0');
     assert.equal(warns.length, 1, 'stderr warn fires on the first occurrence only');
@@ -205,7 +205,7 @@ void test('recordUnparsedLine emits a ndjson.unparsed debug event and a once-onl
     console.warn = originalWarn;
     console.debug = originalDebug;
     configureDebug(undefined);
-    delete process.env.RUSTRA_DEBUG;
+    delete process.env.UNIKIT_DEBUG;
     resetDebugEnvForTests();
   }
 });
@@ -239,7 +239,7 @@ void test('attachExitContext appends the stderr tail after the preserved lines',
 });
 
 void test('recordUnparsedLine truncates a huge line to the char cap', () => {
-  delete process.env.RUSTRA_DEBUG;
+  delete process.env.UNIKIT_DEBUG;
   resetDebugEnvForTests();
   const state = newState();
   const huge = 'x'.repeat(UNPARSED_LINE_MAX_CHARS * 8);

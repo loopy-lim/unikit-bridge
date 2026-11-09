@@ -23,7 +23,7 @@ async function until(predicate: () => boolean): Promise<void> {
 }
 
 test('source watch follows directories created after startup and recreated roots', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-watch-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-watch-'));
   const src = join(root, 'src');
   mkdirSync(src);
   const events: string[] = [];
@@ -49,7 +49,7 @@ test('source watch follows a symlinked root and reports original-namespace paths
   // 리스크 감사 2026-09-13 #6 — lstat 기반 스냅샷은 심링크 루트를 파일로 기록해
   // 서브트리를 걷지 못했다(이벤트 0). 루트는 realpath 로 걷고, 보고 경로는
   // 사용자가 건 네임스페이스(link 기준)를 유지한다.
-  const root = mkdtempSync(join(tmpdir(), 'rustra-watch-symlink-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-watch-symlink-'));
   const real = join(root, 'real', 'src');
   mkdirSync(real, { recursive: true });
   const link = join(root, 'link');
@@ -71,7 +71,7 @@ test('source watch follows a symlinked root and reports original-namespace paths
 });
 
 test('source watch follows a retargeted root and stops observing the retired tree', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-watch-retarget-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-watch-retarget-'));
   const before = join(root, 'before');
   const after = join(root, 'after');
   mkdirSync(before);
@@ -102,7 +102,7 @@ test('source watch follows a retargeted root and stops observing the retired tre
 });
 
 test('file watch follows a retargeted directory in the original namespace', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-file-watch-retarget-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-file-watch-retarget-'));
   const before = join(root, 'before');
   const after = join(root, 'after');
   mkdirSync(before);
@@ -132,7 +132,7 @@ test('file watch follows a retargeted directory in the original namespace', asyn
 });
 
 test('source watch excludes newly created custom outputs but observes adjacent source files', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-watch-excluded-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-watch-excluded-'));
   const output = join(root, 'compiled-output');
   const generated = join(root, 'generated');
   const events: string[] = [];
@@ -156,7 +156,7 @@ test('source watch excludes newly created custom outputs but observes adjacent s
 });
 
 test('source watch excludes traversal through a canonical alias before reading the subtree', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-watch-excluded-alias-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-watch-excluded-alias-'));
   const src = join(root, 'src');
   const output = join(src, 'compiled-output');
   mkdirSync(output, { recursive: true });
@@ -178,7 +178,7 @@ test('source watch excludes traversal through a canonical alias before reading t
 });
 
 test('source watch refreshes exclusions when the subscribed symlink changes', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-watch-excluded-retarget-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-watch-excluded-retarget-'));
   const before = join(root, 'before');
   const after = join(root, 'after');
   mkdirSync(before);
@@ -209,7 +209,7 @@ test('source watch refreshes exclusions when the subscribed symlink changes', as
 });
 
 test('relative source watch paths stay bound to their original working directory', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-watch-relative-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-watch-relative-'));
   const originalCwd = process.cwd();
   mkdirSync(join(root, 'src'));
   mkdirSync(join(root, 'other'));
@@ -237,8 +237,8 @@ test('relative source watch paths stay bound to their original working directory
 });
 
 test('file watch follows initially missing and atomically replaced files', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-watch-'));
-  const file = join(root, 'rustra.json');
+  const root = mkdtempSync(join(tmpdir(), 'unikit-watch-'));
+  const file = join(root, 'unikit.json');
   let changes = 0;
   const handle = createFileWatch([{ path: file, onChange: () => changes++ }]);
   try {
@@ -339,7 +339,7 @@ test('scheduled pipeline failures are reported and the next run recovers', async
 
 test('polling reports transient read failures and recovers without dropping the subscription', async () => {
   const { chmodSync } = await import('node:fs');
-  const root = mkdtempSync(join(tmpdir(), 'rustra-watch-permission-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-watch-permission-'));
   const src = join(root, 'src');
   mkdirSync(src);
   const file = join(src, 'lib.rs');
@@ -368,8 +368,8 @@ test('polling reports transient read failures and recovers without dropping the 
 test('schema watch reloads config and follows a newly selected schema file', async () => {
   const { runWatch } = await import('./cli-generate.js');
   const { existsSync, readFileSync } = await import('node:fs');
-  const root = mkdtempSync(join(tmpdir(), 'rustra-schema-watch-'));
-  const config = join(root, 'rustra.json');
+  const root = mkdtempSync(join(tmpdir(), 'unikit-schema-watch-'));
+  const config = join(root, 'unikit.json');
   const schema = { packageId: 'app.watch', commands: [] as unknown[] };
   writeFileSync(join(root, 'first.json'), JSON.stringify(schema));
   writeFileSync(join(root, 'second.json'), JSON.stringify(schema));
@@ -397,8 +397,8 @@ test('schema watch reloads config and follows a newly selected schema file', asy
 test('schema watch follows a new path even while it is missing or malformed', async () => {
   const { runWatch } = await import('./cli-generate.js');
   const { existsSync } = await import('node:fs');
-  const root = mkdtempSync(join(tmpdir(), 'rustra-schema-recover-'));
-  const config = join(root, 'rustra.json');
+  const root = mkdtempSync(join(tmpdir(), 'unikit-schema-recover-'));
+  const config = join(root, 'unikit.json');
   const schema = JSON.stringify({ packageId: 'app.watch', commands: [] });
   writeFileSync(join(root, 'first.json'), schema);
   writeFileSync(config, JSON.stringify({ schema: 'first.json', output: 'first-output' }));

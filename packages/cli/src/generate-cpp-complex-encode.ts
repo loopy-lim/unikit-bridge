@@ -22,11 +22,11 @@ export function cppComplexEncodeNode(
       ];
     case 'integer':
       return [
-        `${indent}w.${node.format?.startsWith('uint') ? 'push_uvar(rustra_u64' : 'push_i64(rustra_i64'}(rt, ${value}, "complex integer"));`,
+        `${indent}w.${node.format?.startsWith('uint') ? 'push_uvar(unikit_u64' : 'push_i64(unikit_i64'}(rt, ${value}, "complex integer"));`,
       ];
     case 'number':
       return [
-        `${indent}w.${node.format === 'float' ? 'push_f32(rustra_f32' : 'push_f64(rustra_f64'}(rt, ${value}, "complex number"));`,
+        `${indent}w.${node.format === 'float' ? 'push_f32(unikit_f32' : 'push_f64(unikit_f64'}(rt, ${value}, "complex number"));`,
       ];
     case 'string':
       return [

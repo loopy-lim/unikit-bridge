@@ -1,9 +1,9 @@
 //! Identical flat-arena benchmark contract shared with NitroBench 0.37.1.
 //! Recursive Nitrogen DTO generation overflows; this is not a recursive DTO claim.
-use rustra::{Result, command};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, sync::Mutex};
+use unikit_bridge::{Result, command};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct ParityNode {
@@ -135,8 +135,10 @@ pub fn parity_indexed(input: ParityQuery) -> Result<ParitySearch> {
 }
 
 /// Retain macro execution metadata without moving the existing command IDs.
-pub(crate) fn register_commands(builder: rustra::PackageBuilder) -> rustra::PackageBuilder {
-    rustra::register!(
+pub(crate) fn register_commands(
+    builder: unikit_bridge::PackageBuilder,
+) -> unikit_bridge::PackageBuilder {
+    unikit_bridge::register!(
         builder,
         parity_echo,
         parity_find,

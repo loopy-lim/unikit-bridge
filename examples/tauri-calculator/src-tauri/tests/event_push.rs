@@ -4,20 +4,20 @@
 //! 루프 없음) `register_with_events` 의 배선을 증명한다:
 //!
 //! 1. `register_with_events` 로 빌드하면 플러그인 setup 에서 싱크가 설치된다 —
-//!    `Package::emit` 이 `app.emit("rustra://{name}", payload_json)` 로 도달한다.
+//!    `Package::emit` 이 `app.emit("unikit://{name}", payload_json)` 로 도달한다.
 //! 2. 페이로드는 JSON 문자열 그대로 전달된다(이중 직렬화 없음 — JS 에서
 //!    `JSON.parse` 1회 복원).
 //! 3. 싱크 설치 상태에서 버스는 우회된다(폴링과 이중 수신 없음).
 //! 4. 기존 `register`(하위호환)는 싱크를 설치하지 않는다 — 폴링 경로 유지.
-//! 5. 호스트가 나중에 자기 `.setup()` 을 붙여도 rustra 플러그인 setup 은
+//! 5. 호스트가 나중에 자기 `.setup()` 을 붙여도 unikit 플러그인 setup 은
 //!    덮어써지지 않는다(`tauri::Builder::setup` 단일 슬롯 문제 회피 증명).
 
-use rustra::Package;
-use rustra::prelude::*;
-use rustra::tauri_support::{self, EVENT_CHANNEL_PREFIX};
 use std::sync::{Arc, Mutex};
 use tauri::Listener;
 use tauri::test::{MockRuntime, mock_context, noop_assets};
+use unikit_bridge::Package;
+use unikit_bridge::prelude::*;
+use unikit_bridge::tauri_support::{self, EVENT_CHANNEL_PREFIX};
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -32,7 +32,7 @@ struct EmitDemoOutput {
 
 /// emit 만 하는 테스트 전용 핸들러 — calculator_package(공유 아티팩트) 를
 /// 건드리지 않기 위해 예제 로컬 패키지를 만든다.
-fn emit_demo(_input: EmitDemoInput) -> rustra::Result<EmitDemoOutput> {
+fn emit_demo(_input: EmitDemoInput) -> unikit_bridge::Result<EmitDemoOutput> {
     Ok(EmitDemoOutput { accepted: true })
 }
 
@@ -99,7 +99,7 @@ fn legacy_register_keeps_polling_path() {
 }
 
 #[test]
-fn host_setup_hook_does_not_clobber_rustra_sink() {
+fn host_setup_hook_does_not_clobber_unikit_sink() {
     // 호스트가 register_with_events 이후 자기 .setup() 을 붙이는 일반적인 순서.
     let pkg = emit_demo_package();
     let emit_pkg = pkg.clone();

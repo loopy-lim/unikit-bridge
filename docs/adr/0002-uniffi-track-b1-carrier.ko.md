@@ -15,7 +15,7 @@ Accepted — 2026-09-11. Phase 1(타입 안전 per-command API)이 B1-1~B1-5 로
 
 ## 배경 (Context)
 
-ADR 0001 이 rustra 자신의 계약을 기계화한(Track A) 뒤 남은 질문은 언어
+ADR 0001 이 unikit 자신의 계약을 기계화한(Track A) 뒤 남은 질문은 언어
 커버리지였다: TS 레이어 없이 Rust 를 소비하려는 순수 Kotlin(Android)/Swift(iOS)
 호스트를 무엇이 받쳐주는가. 선택지는 세 개였다.
 
@@ -35,24 +35,24 @@ E2E, iOS 크로스빌드 실측)가 근거를 제공했고,
 ### 1. B1 캐리어 — B2 자체 bindgen 기각
 
 Kotlin/Swift 바인딩은 uniffi 가 생성한다(uniffi 0.32, library 모드
-bindgen). 이 표면의 정합성은 rustra 가 아니라 **uniffi 자체의 심볼별
+bindgen). 이 표면의 정합성은 unikit 가 아니라 **uniffi 자체의 심볼별
 체크섬 + 계약 버전**이 담당한다 — ADR 0001 의 Track A 철학을 캐리어가 적용하는
-형태다. 따라서 rustra 의 `contract_hash`/`contract.mismatch` 게이트는
+형태다. 따라서 unikit 의 `contract_hash`/`contract.mismatch` 게이트는
 blob 전송 표면(JSI/Tauri/Bun/Node)에만 스코프가 머문다. B2 를 기각한 이유:
 코덱·리프트/로워·체크섬을 자체 재발명하는 비용 대비 uniffi 성숙도가 압도적이고,
 커맨드 추가가 스키마 walk 에서 자동 반영된다.
 
 ### 2. 코어는 uniffi-free — `invoke_typed` 는 평범한 Rust
 
-`crates/rustra` 는 uniffi 의존/feature 를 얻지 **않는다**. 대신:
+`crates/unikit-bridge` 는 uniffi 의존/feature 를 얻지 **않는다**. 대신:
 
 - `Package::invoke_typed<I, O>(name, &input)`
-  (`crates/rustra/src/invoke_typed.rs`) — 이름→commandId 조회, postcard 요청,
+  (`crates/unikit-bridge/src/invoke_typed.rs`) — 이름→commandId 조회, postcard 요청,
   `invoke_frame` 단일 dispatch 경로(0.10.0 Frame 리네임에서 `invoke_rkyv_v2`에서
   개명). JSON 실행 경로를 이원화하지 않아
   Rust↔TS 바이너리 호환이 코드 중복 없이 유지된다.
 - `decode_frame_response`/`decode_frame_error_parts`
-  (`crates/rustra/src/frame_error.rs`) — 응답 프레임 분리 공용 헬퍼.
+  (`crates/unikit-bridge/src/frame_error.rs`) — 응답 프레임 분리 공용 헬퍼.
 
 uniffi derive 는 전부 **앱 크레이트 쪽 생성 미러 계층**
 (`uniffi_generated.rs`, `#[cfg(feature = "uniffi")] include!`)에 놓인다.
@@ -73,8 +73,8 @@ uniffi derive 는 전부 **앱 크레이트 쪽 생성 미러 계층**
 ### 4. 열린 에러 코드 공간 — 단일 변형 record, enum 매핑 기각
 
 생성 에러 타입은 단일 변형
-`RustraCommandFailure.Failure { code, detail, retryable }`(TS
-`RustraCommandError` 와 동일 형태)다. rustra 의 에러 코드는 커스텀 문자열까지
+`UnikitCommandFailure.Failure { code, detail, retryable }`(TS
+`UnikitCommandError` 와 동일 형태)다. unikit 의 에러 코드는 커스텀 문자열까지
 열려 있으므로 코드 공간을 폐쇄해야 하는 uniffi enum 매핑은 설계상 불가능하다 —
 기각이 아니라 **원천력 불가**다.
 
@@ -94,7 +94,7 @@ minor 마다 깨지는 churn 실측(성숙도 조사)에 따른 규율이다.
 ### 7. api-surface 스냅샷 스코프 밖
 
 매크로 생성 `uniffi_*` 스캐폴딩 심볼은 api-surface 스냅샷의 수집 대상
-(`crates/rustra/src`, `crates/rustra-macros/src`, `packages/*/src/index.ts`)에
+(`crates/unikit-bridge/src`, `crates/unikit-bridge-macros/src`, `packages/*/src/index.ts`)에
 나타나지 않는다 — 스캐폴딩은 example 앱 크레이트의 cdylib 에 귀결되기
 때문이다. 이 표면의 정합성은 결정 1(uniffi 체크섬)이 담당하므로 스코프 확장은
 하지 않는다.

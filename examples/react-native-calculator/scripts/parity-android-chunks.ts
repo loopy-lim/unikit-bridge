@@ -4,11 +4,11 @@ export function extractAndroidReceipt(log: string): unknown | undefined {
   let runId: string | undefined;
   let total: number | undefined;
   for (const line of log.split('\n')) {
-    const failure = line.indexOf('RUSTRA_PARITY_FAILED=');
+    const failure = line.indexOf('UNIKIT_PARITY_FAILED=');
     if (failure >= 0) throw new Error(line.slice(failure));
-    const offset = line.indexOf('RUSTRA_PARITY_CHUNK=');
+    const offset = line.indexOf('UNIKIT_PARITY_CHUNK=');
     if (offset < 0) continue;
-    const chunk = JSON.parse(line.slice(offset + 'RUSTRA_PARITY_CHUNK='.length));
+    const chunk = JSON.parse(line.slice(offset + 'UNIKIT_PARITY_CHUNK='.length));
     if (
       !chunk ||
       typeof chunk.runId !== 'string' ||

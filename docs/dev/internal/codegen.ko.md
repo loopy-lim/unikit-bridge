@@ -3,7 +3,7 @@
 프로젝트 기여자를 위한 내부 문서. `Package::generate_typescript()`의 전체 흐름, schema 추출, TS 타입 매핑 규칙, 생성 결과물을 설명한다.
 
 단일 화살 코드젠: Rust bin은 `schema.json`만 발행하는 계약 프로브(`write_schema_to_dir`)이고,
-TS CLI(`rustra codegen`)가 그 한 파일에서 전 표면 — TS, C++, positional facade, 호스트
+TS CLI(`unikit codegen`)가 그 한 파일에서 전 표면 — TS, C++, positional facade, 호스트
 엔트리 — 를 렌더링한다. Rust가 TS를 직접 쓰던 `write_to_dir`는 듀얼 패스 함정으로서
 deprecated다.
 
@@ -23,11 +23,11 @@ Package::generate_typescript()
        │
        ├─ write_schema_to_dir() → schema.json                    (Rust 프로브는 여기까지)
        │
-       └─ rustra codegen (TS CLI) 가 schema.json 읽어 렌더링:
+       └─ unikit codegen (TS CLI) 가 schema.json 읽어 렌더링:
             types.ts, commands.ts, contract.ts, frame-codecs.ts,
             frame-registry.ts, events.ts/errors.ts/devices.ts (선언된 경우만),
             positional-facade.ts, 호스트 엔트리, C++ 코덱
-            + .rustra-generated.json (신선도 사이드카)
+            + .unikit-generated.json (신선도 사이드카)
 ```
 
 ---
@@ -214,7 +214,7 @@ fn contract_hash(input: impl AsRef<[u8]>) -> String {
 - 커맨드별 `devices`(`["camera", ...]`) — `#[command(device(...))]` / `command_devices`
   빌더에서 옴 → `devices.ts`로 렌더;
 - 커맨드별 `platforms`(`["windows", "macos"]`) — `.platform_command`에서 옴;
-- 최상위 `deviceCapabilities` — rustra 디바이스 토큰 카탈로그로, 디바이스를 선언한 커맨드가
+- 최상위 `deviceCapabilities` — unikit 디바이스 토큰 카탈로그로, 디바이스를 선언한 커맨드가
   하나라도 있으면 기록된다. CLI가 토큰 순서·`devices.ts` 유니언·`codegen.device_catalog`
   doctor 검사의 단일 출처로 읽으며, 수동 미러는 없다.
 
@@ -225,7 +225,7 @@ export type EngineClient = {
   invoke<T>(command: string, args?: unknown): Promise<T>;
 };
 
-export type RustraError = {
+export type UnikitError = {
   readonly code: string;
   readonly message: string;
 };
@@ -246,14 +246,14 @@ export type AddNumbersOutput = {
 `generate_types_ts()`는 다음 순서로 출력한다:
 
 1. `EngineClient` 타입 정의
-2. `RustraError` 타입 정의 (`readonly code: string; readonly message: string`)
+2. `UnikitError` 타입 정의 (`readonly code: string; readonly message: string`)
 3. `$defs`에 정의된 공유 타입 (enum, 재사용 구조체 등). 모든 command의 definitions를 병합한 뒤 emit
 4. 각 command의 input/output 타입. 이미 출력된 타입은 중복 emit하지 않음 (`BTreeSet`으로 추적)
 
 ### commands.ts
 
 ```typescript
-import type { AddNumbersInput, AddNumbersOutput, EngineClient, RustraError } from './types.js';
+import type { AddNumbersInput, AddNumbersOutput, EngineClient, UnikitError } from './types.js';
 
 export function addNumbers(
   engine: EngineClient,
@@ -263,7 +263,7 @@ export function addNumbers(
 }
 ```
 
-- `EngineClient`와 `RustraError`를 항상 import에 포함
+- `EngineClient`와 `UnikitError`를 항상 import에 포함
 - 모든 타입을 alphabetical로 import
 - 각 command당 하나의 함수
 
@@ -276,13 +276,13 @@ export const GENERATED_CONTRACT_HASH = '<sha256-hex>';
 ### 발행 경로 (fail-closed)
 
 Rust schema bin의 기본 발행 위치(`generated/schema.json`)는 스폰 CWD 상대다.
-일반 `rustra codegen`(check 아님 모드)에서 CLI는 `RUSTRA_SCHEMA_OUT`을
+일반 `unikit codegen`(check 아님 모드)에서 CLI는 `UNIKIT_SCHEMA_OUT`을
 `config.schema`가 선언한 디렉터리로 고정하므로, schema 바이너리의 발행물이
 config가 선언한 경로 바깥에 생기는 일은 없다. 이 고정이 없으면 config
 디렉터리에서 스폰할 때 다른 곳에 사본이 발행되는 동안 dev 패리티 게이트가
 읽는 `config.schemaPath`는 갱신되지 않아, 게이트가 조용히 stale 비교로
-무력화된다(tauri-calculator `rustra.hot.json` 레이아웃에서 실측, 2026-09-10).
-`rustra codegen --check`는 대신 발행을 버리는 임시 디렉터리로 우회한다 —
+무력화된다(tauri-calculator `unikit.hot.json` 레이아웃에서 실측, 2026-09-10).
+`unikit codegen --check`는 대신 발행을 버리는 임시 디렉터리로 우회한다 —
 check는 선언된 트리를 건드리지 않고 비교한다.
 
 호스트 엔트리(node/bun/tauri 섹션)의 Cargo 매니페스트 해석 우선순위: 섹션
@@ -296,7 +296,7 @@ check는 선언된 트리를 건드리지 않고 비교한다.
 
 ## 6. 현재 제한사항
 
-JSON Schema → TypeScript 변환은 rustra가 내보내는 object/array/union/intersection,
+JSON Schema → TypeScript 변환은 unikit가 내보내는 object/array/union/intersection,
 literal enum, map/set/tuple/$ref 재귀 표면을 지원한다. JSON Schema의 조건부
 키워드(`if`/`then`/`else`)나 `patternProperties`처럼 Rust 타입 계약에서 생성하지
 않는 임의 스키마는 안전하게 `unknown`으로 폴백한다.

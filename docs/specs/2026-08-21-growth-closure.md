@@ -12,7 +12,7 @@ priority: high
 
 ## 문제
 
-v0.2.0 발행 직후 전수조사에서 70여 건의 성장 후보를 확인했다. 그중 6건은 PR #29 감사 이후 새로 발견된 **실제 결함**이다 — release 빌드에서 capability 부여가 영원히 불가능한 것(기능이 prod에서 죽어 있음), 루트 README 퀵스타트가 컴파일 안 되는 것, `@rustra/react` 훅이 minify 환경에서 파손되는 것, 훅×Node/Bun 조합이 첫 호출부터 실패하는 것, devtools가 옵션을 탈락시키는 것, release.yml의 하드코딩 버전 대기 루프. 나머지는 구조적 갭이다: 이벤트·비동기 스토리가 절반이고, 시장 노출(crates.io 98 다운로드)이 품질 대비 0에 수렴하며, 핫패스에 남은 성능 부채(매 invoke 스키마 deep copy 등)와 CI 사각지대가 존재한다.
+v0.2.0 발행 직후 전수조사에서 70여 건의 성장 후보를 확인했다. 그중 6건은 PR #29 감사 이후 새로 발견된 **실제 결함**이다 — release 빌드에서 capability 부여가 영원히 불가능한 것(기능이 prod에서 죽어 있음), 루트 README 퀵스타트가 컴파일 안 되는 것, `@unikit-bridge/react` 훅이 minify 환경에서 파손되는 것, 훅×Node/Bun 조합이 첫 호출부터 실패하는 것, devtools가 옵션을 탈락시키는 것, release.yml의 하드코딩 버전 대기 루프. 나머지는 구조적 갭이다: 이벤트·비동기 스토리가 절반이고, 시장 노출(crates.io 98 다운로드)이 품질 대비 0에 수렴하며, 핫패스에 남은 성능 부채(매 invoke 스키마 deep copy 등)와 CI 사각지대가 존재한다.
 
 ## 해결 목표
 
@@ -23,7 +23,7 @@ v0.2.0 발행 직후 전수조사에서 70여 건의 성장 후보를 확인했�
 
 ### WS1 — 즉시 결함 수리 (6건, 최우선)
 
-- [ ] release 빌드에서 `grant_capability`가 동작한다 — freeze 예외(빌더 시점 grant 또는 grant의 mutable 요구 완화)와 테스트(`crates/rustra/src/lib.rs:1414, 879-887`)
+- [ ] release 빌드에서 `grant_capability`가 동작한다 — freeze 예외(빌더 시점 grant 또는 grant의 mutable 요구 완화)와 테스트(`crates/unikit-bridge/src/lib.rs:1414, 879-887`)
 - [ ] `#[command(capability = "...")]` 속성이 문자열 이름 재결합 없이 매크로 시점에 권한을 등록한다 (오타 시 컴파일 에러)
 - [ ] 루트 README 퀵스타트의 모든 Rust 예제가 실제 컴파일된다 (단일 Input 구조체 + `Result<O>` 계약 준수, `README.md:43,124`)
 - [ ] `useCommand`/`useMutation`/testing `.mock()`이 `commandFn.name` 대신 minify-안전 식별자(코드젠 `commandId` 상수 또는 `fn.commandId` 규약)로 명령을 식별한다
@@ -43,7 +43,7 @@ v0.2.0 발행 직후 전수조사에서 70여 건의 성장 후보를 확인했�
 - [ ] 코어에 rkyv V2 FFI 심볼(generic + async + caller-buffer 변형)이 노출되어 calculator 예제의 복제 래퍼가 코어 심볼로 대체된다 (`examples/calculator/src/lib.rs:1093-1210`)
 - [ ] 이벤트 emit 직렬화 실패가 `"{}"` 조용 폴백 대신 stderr 경고를 남긴다 (`lib.rs:679-686`)
 - [ ] rkyv V2 에러 body가 잘릴 때 truncated 마커가 남는다 (`rkyv_codec.rs:360-372`)
-- [ ] `rustra_ffi_free`의 release 역참조 위험이 문서화되고 최소 null/정렬 검사가 추가된다 (`ffi.rs:785-819`)
+- [ ] `unikit_ffi_free`의 release 역참조 위험이 문서화되고 최소 null/정렬 검사가 추가된다 (`ffi.rs:785-819`)
 - [ ] 테스트 공백 5건이 메워진다: caller-buffer fuzz/robustness, caller-buffer×async 조합, Json 기본 디스패치, 이벤트 싱크 병렬 등록, Json/postcard 심볼 혼용
 
 ### WS3 — 코어·브릿지 성능
@@ -56,22 +56,22 @@ v0.2.0 발행 직후 전수조사에서 70여 건의 성장 후보를 확인했�
 
 ### WS4 — JS 패키지 완결
 
-- [ ] `RustraErrorCode` 상수 집합(13종)이 `@rustra/types`에 노출되고 문서화된다 (`types/index.ts:124-126`)
+- [ ] `UnikitErrorCode` 상수 집합(13종)이 `@unikit-bridge/types`에 노출되고 문서화된다 (`types/index.ts:124-126`)
 - [ ] mock 엔진이 invokeBatch/options/calls 기록(signal 포함)/pre-aborted 처리를 지원한다 (`testing/index.ts:29-77`)
 - [ ] contract-gate에 expect 바인딩(vitest/jest 양방향 matcher)이 제공된다 (`testing/contract-gate.ts`)
-- [ ] react-native `RustraJSINative` 타입이 types의 단일 선언을 재사용한다 (3중 미러링 해소)
+- [ ] react-native `UnikitJSINative` 타입이 types의 단일 선언을 재사용한다 (3중 미러링 해소)
 - [ ] `_utf8Encode`/postcard varint가 number[] 누적 대신 사전 크기 추정 Writer를 쓴다 (`types/index.ts:366-388`, `cli/codegen.ts:271-282`)
 - [ ] useCommand cleanup 경쟁이 settled ref 패턴으로 막힌다 (`useCommand.ts:40-57`)
 - [ ] `invokeTypedBatchById`가 C++ JSI 브릿지에 구현되어 배치 byId 경로가 활성화된다 (JS 분기는 이미 존재, `types/index.ts:1057-1063`)
 - [ ] positional facade가 byId 진입 + options 전달 배선으로 개선되고 벤치마크에 측정치가 반영된다 (`generate.ts:1369-1447`)
 - [ ] 배치 항목별 취소의 미지원이 명시적 계약(문서+테스트)으로 고정된다 (네이티브 구현은 별트랙 명시)
 - [ ] typed(tier1) 경로의 취소 전파가 조건 완화로 확장되거나 얕은 취소 계약이 문서+테스트로 고정된다 (`types/index.ts:929-935`)
-- [ ] `@rustra/testing`/`@rustra/devtools` README이 작성된다
+- [ ] `@unikit-bridge/testing`/`@unikit-bridge/devtools` README이 작성된다
 
 ### WS5 — 이벤트 스토리 (핵심 가치 갭)
 
-- [ ] `@rustra/tauri`에 이벤트 구독 API(`subscribeEvent`, `rustra://` 채널 래핑)가 제공된다 (`compatibility-matrix.md:15`)
-- [ ] `@rustra/node` subprocess transport에서 이벤트 폴링/전파가 동작한다 (러프 루프형 런타임과 짝)
+- [ ] `@unikit-bridge/tauri`에 이벤트 구독 API(`subscribeEvent`, `unikit://` 채널 래핑)가 제공된다 (`compatibility-matrix.md:15`)
+- [ ] `@unikit-bridge/node` subprocess transport에서 이벤트 폴링/전파가 동작한다 (러프 루프형 런타임과 짝)
 - [ ] 이벤트 계약이 코드젠에 포함된다 — `emit` 이름/페이로드 타입이 schema.json에 정의되고 TS 타입+구독 헬퍼가 생성된다 (Rust bin + TS CLI dual-path)
 - [ ] 이벤트 버스의 drop-oldest 의미론과 용량 정책이 문서화되고, 형폭 포화 카운터가 노출된다 (관측성)
 
@@ -80,7 +80,7 @@ v0.2.0 발행 직후 전수조사에서 70여 건의 성장 후보를 확인했�
 - [ ] FFI async invoke가 호출당 `thread::spawn` 대신 고정 워커 풀 + bounded channel을 쓴다 (백프레셔: 큐 가득 시 즉시 에러 프레임) (`ffi.rs:646-699`)
 - [ ] `block_on` 실행기가 park 대신 waker 기반으로 동작하고 런타임 컨텍스트(tokio 등) 안에서 교착을 일으키지 않는다 (`executor.rs:21-32`) — 실행기 주입 훅 또는 개선된 기본 구현
 - [ ] thread_local state가 spawn 태스크에서 유실되는 제약이 문서화되거나 해소된다 (`state.rs:60-85`)
-- [ ] `@rustra/node`가 persistent 프로세스 + NDJSON 라인 프레이밍 transport를 제공한다 — Rust 예제에 루프형 stdio 런타임 추가, 요청 id 상관, 동시 invoke 안전 (lazy-respawn은 폴백 유지) (`node/index.ts:79-203`)
+- [ ] `@unikit-bridge/node`가 persistent 프로세스 + NDJSON 라인 프레이밍 transport를 제공한다 — Rust 예제에 루프형 stdio 런타임 추가, 요청 id 상관, 동시 invoke 안전 (lazy-respawn은 폴백 유지) (`node/index.ts:79-203`)
 
 ### WS7 — CI·인프라·문서·시장
 

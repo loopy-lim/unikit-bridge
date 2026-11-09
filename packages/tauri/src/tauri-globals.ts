@@ -1,4 +1,8 @@
-import { RustraCommandError, RustraErrorCode, type RustraErrorCodeValue } from '@rustra/types';
+import {
+  UnikitCommandError,
+  UnikitErrorCode,
+  type UnikitErrorCodeValue,
+} from '@unikit-bridge/types';
 import type { TauriInvoke, TauriListen } from './index.js';
 import type { TauriIpcChannel } from './tauri-channels.js';
 
@@ -29,12 +33,12 @@ function tauriGlobal(): TauriGlobal {
 // 맞춰 channel.unavailable 로 알린다 — 가드 구조는 동일하고 코드만 다르므로
 // 헬퍼가 코드를 받는다.
 export function requireTauriInvoke(
-  code: RustraErrorCodeValue = RustraErrorCode.TransportUnavailable,
+  code: UnikitErrorCodeValue = UnikitErrorCode.TransportUnavailable,
   api = 'createChannel()',
 ): TauriInvoke {
   const invoke = tauriGlobal().__TAURI__?.core?.invoke;
   if (typeof invoke !== 'function') {
-    throw new RustraCommandError(
+    throw new UnikitCommandError(
       code,
       `Tauri IPC was not found. Enable app.withGlobalTauri, or pass { invoke } to ${api}.`,
     );
@@ -43,11 +47,11 @@ export function requireTauriInvoke(
 }
 
 export function requireTauriListen(
-  code: RustraErrorCodeValue = RustraErrorCode.TransportUnavailable,
+  code: UnikitErrorCodeValue = UnikitErrorCode.TransportUnavailable,
 ): TauriListen {
   const listen = tauriGlobal().__TAURI__?.event?.listen;
   if (typeof listen !== 'function') {
-    throw new RustraCommandError(
+    throw new UnikitCommandError(
       code,
       'Tauri event.listen was not found. Enable app.withGlobalTauri, or pass a listen function.',
     );
@@ -61,13 +65,13 @@ export function requireTauriListen(
  */
 export function requireTauriIpcChannel(
   onMessage: (payload: unknown) => void,
-  code: RustraErrorCodeValue,
+  code: UnikitErrorCodeValue,
 ): TauriIpcChannel {
   const Channel = tauriGlobal().__TAURI__?.core?.Channel;
   const internals = tauriGlobal().__TAURI_INTERNALS__;
   const unregister = internals?.unregisterCallback;
   if (typeof Channel !== 'function' || typeof unregister !== 'function') {
-    throw new RustraCommandError(
+    throw new UnikitCommandError(
       code,
       'Tauri core.Channel and callback cleanup are required. Enable app.withGlobalTauri, or pass createIpcChannel.',
     );
@@ -81,7 +85,7 @@ export function requireTauriIpcChannel(
   // 콜백을 넘기는 호출에서는 조용한 실패 대신 loud-fail 한다. 콜백 없이 구식
   // 스타일로 Channel 을 다루는 경로는 기존 동작을 그대로 유지한다.
   if (typeof onMessage === 'function' && Channel.length === 0) {
-    throw new RustraCommandError(
+    throw new UnikitCommandError(
       code,
       'The installed @tauri-apps/api is too old for callback-style channels: its Channel constructor ignores the onMessage callback (requires @tauri-apps/api 2.5+), so channel messages would silently never arrive. Upgrade @tauri-apps/api and rebuild the app: bun add @tauri-apps/api@^2.5.0 (or npm install @tauri-apps/api@^2.5.0).',
     );

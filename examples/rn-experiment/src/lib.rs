@@ -5,7 +5,7 @@
 //!
 //! - `gzipCompress` / `gzipDecompress` — 입력·출력이 정확히 하나의 `Vec<u8>`
 //!   필드인 bytes in/out 스키마. `buffer_command_fn` 으로 등록해 Tier buffer
-//!   fast path(`rustra_ffi_invoke_buffer`)가 광고되고, JSI/host 측에서
+//!   fast path(`unikit_ffi_invoke_buffer`)가 광고되고, JSI/host 측에서
 //!   number 배열과 JSON 직렬화 없이 바이트 버퍼를 주고받는다. 실제 할당과
 //!   복사량은 별도 계측해야 한다.
 //! - `uuidV7` — 문자열 스키마(입력 없음, `{ value: string }` 출력) 기능 확인.
@@ -15,11 +15,11 @@
 //!
 //!   `#[command]` 매크로 → `build!`/`buffer_command_fn` 체인 → `Package` →
 //!   `register_ffi_with_default(FfiFormat::Json)`(전역 FFI 컨텍스트 등록 —
-//!   OnceLock first-wins) → `rustra::native_entry!` 가 `rustra_mobile_init`
+//!   OnceLock first-wins) → `unikit_bridge::native_entry!` 가 `unikit_mobile_init`
 //!   심볼과 Apple 로드 시점 constructor 를 설치.
 
-use rustra::prelude::*;
 use std::io::{Read, Write};
+use unikit_bridge::prelude::*;
 
 // ── gzip — bytes in/out 버퍼 커맨드 ──────────────────────────────
 //
@@ -31,18 +31,18 @@ use std::io::{Read, Write};
 #[derive(Debug, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct GzipPayload {
-    #[serde(with = "rustra::byte_buffer")]
+    #[serde(with = "unikit_bridge::byte_buffer")]
     #[schemars(with = "Vec<u8>")]
     pub data: Vec<u8>,
 }
 
-impl rustra::BufferCommandInput for GzipPayload {
+impl unikit_bridge::BufferCommandInput for GzipPayload {
     fn from_buffer(data: Vec<u8>) -> Self {
         Self { data }
     }
 }
 
-impl rustra::BufferCommandOutput for GzipPayload {
+impl unikit_bridge::BufferCommandOutput for GzipPayload {
     fn into_buffer(self) -> Vec<u8> {
         self.data
     }
@@ -57,8 +57,8 @@ pub fn gzip_compress(input: GzipPayload) -> Result<GzipPayload> {
     );
     encoder
         .write_all(&input.data)
-        .map_err(RustraError::internal)?;
-    let data = encoder.finish().map_err(RustraError::internal)?;
+        .map_err(UnikitError::internal)?;
+    let data = encoder.finish().map_err(UnikitError::internal)?;
     Ok(GzipPayload { data })
 }
 
@@ -66,15 +66,15 @@ pub fn gzip_compress(input: GzipPayload) -> Result<GzipPayload> {
 /// 현재 FFI payload 한도를 넘는 압축 해제 결과는 `payload.too_large` 로 거부된다.
 #[command]
 pub fn gzip_decompress(input: GzipPayload) -> Result<GzipPayload> {
-    let limit = rustra::ffi::max_payload_bytes();
+    let limit = unikit_bridge::ffi::max_payload_bytes();
     let mut decoder =
         flate2::read::GzDecoder::new(input.data.as_slice()).take(limit.saturating_add(1) as u64);
     let mut data = Vec::new();
     decoder
         .read_to_end(&mut data)
-        .map_err(|error| RustraError::invalid_args(format!("invalid gzip payload: {error}")))?;
+        .map_err(|error| UnikitError::invalid_args(format!("invalid gzip payload: {error}")))?;
     if data.len() > limit {
-        return Err(RustraError::payload_too_large(data.len(), limit));
+        return Err(UnikitError::payload_too_large(data.len(), limit));
     }
     Ok(GzipPayload { data })
 }
@@ -108,23 +108,23 @@ pub fn rn_experiment_package() -> Package {
             // 문자열 스키마 커맨드(uuidV7)는 build! 체인으로 등록하고, bytes
             // in/out 커맨드(gzip*)는 그 뒤에 buffer fast path 로 이어 붙인다.
             // 등록 순서가 command id 계약이므로 기존 순서를 유지한다.
-            let builder = rustra::build!("examples.rnexperiment", uuid_v7)
+            let builder = unikit_bridge::build!("examples.rnexperiment", uuid_v7)
                 .buffer_command_fn(gzip_compress)
                 .command_execution(
-                    __RUstra_meta_gzip_compress,
-                    __RUstra_execution_gzip_compress,
+                    __UNikit_meta_gzip_compress,
+                    __UNikit_execution_gzip_compress,
                 )
                 .buffer_command_fn(gzip_decompress)
                 .command_execution(
-                    __RUstra_meta_gzip_decompress,
-                    __RUstra_execution_gzip_decompress,
+                    __UNikit_meta_gzip_decompress,
+                    __UNikit_execution_gzip_decompress,
                 );
 
             let pkg = builder.build();
 
-            // FFI 전역 컨텍스트 등록 — rustra_ffi_invoke_* / contract_hash 가
+            // FFI 전역 컨텍스트 등록 — unikit_ffi_invoke_* / contract_hash 가
             // 읽는 상태다(calculator/hot-core-variant 와 동일, Json 기본 포맷).
-            pkg.register_ffi_with_default(rustra::ffi::FfiFormat::Json);
+            pkg.register_ffi_with_default(unikit_bridge::ffi::FfiFormat::Json);
 
             pkg
         })
@@ -134,4 +134,4 @@ pub fn rn_experiment_package() -> Package {
 // Stable zero-config native entry shared by Bun FFI and the RN bridge. The
 // macro also installs the Apple load-time constructor; other hosts call the
 // exported symbol explicitly during lazy bootstrap.
-rustra::native_entry!(rn_experiment_package);
+unikit_bridge::native_entry!(rn_experiment_package);

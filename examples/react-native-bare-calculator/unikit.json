@@ -1,0 +1,12 @@
+{
+  "schema": "../calculator/generated/schema.json",
+  "output": "./generated",
+  "positional": true,
+  "codegen": {
+    "rustManifest": "../calculator/Cargo.toml",
+    "rustPackage": "unikit-calculator-example"
+  },
+  "reactNative": {
+    "rustManifest": "../calculator/Cargo.toml"
+  }
+}

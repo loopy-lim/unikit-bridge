@@ -13,15 +13,15 @@
 | 호스트    | macOS 26.6.2 (25G83), Darwin 25.6.0                                          |
 | 소스 커밋 | `4578c851` (scriptc 코드젠 스테이지 + prettier ignore 수정 직후, 트리 클린)  |
 | 툴체인    | rustc 1.95.0, node 22.21.1, bun 1.4.1, Xcode 시뮬레이터 iPhone 17 (iOS 26.2) |
-| bun 가드  | 모든 bun 명령을 `env -u RUSTRA_BUN_LIBRARY`로 실행                           |
+| bun 가드  | 모든 bun 명령을 `env -u UNIKIT_BUN_LIBRARY`로 실행                           |
 
 ## 1. A2 선행 게이트 (runbook §2.1 — §8.4 리스크 2의 호스트 몫)
 
 ### 1-1. Hermes 단언 스위트 재실행 — **1,412 단언 0 실패**
 
 ```bash
-RUSTRA_SIMULATOR_UDID=99B087B5-… RUSTRA_NATIVE_DEPS_ROOT=<추출한 xcframework> \
-  bash examples/react-native-calculator/modules/rustra-jsi/ios/run-hermes-sync-tests.sh
+UNIKIT_SIMULATOR_UDID=99B087B5-… UNIKIT_NATIVE_DEPS_ROOT=<추출한 xcframework> \
+  bash examples/react-native-calculator/modules/unikit-jsi/ios/run-hermes-sync-tests.sh
 # NATIVE_SYNC_RESULT assertions=1412 failures=0
 ```
 
@@ -29,14 +29,14 @@ RUSTRA_SIMULATOR_UDID=99B087B5-… RUSTRA_NATIVE_DEPS_ROOT=<추출한 xcframewor
   단언) 대비 단언 수 증가는 그 이후 추가된 단언 — 새 단언 전부 통과.
 - 재현 비고 2건: (1) `ReactNativeDependencies.xcframework`가 Pods에 없으면
   `Pods/ReactNativeDependencies-artifacts/reactnative-dependencies-0.81.5-release.tar.gz`를
-  임시 디렉터리에 풀어 `RUSTRA_NATIVE_DEPS_ROOT`로 지정하면 된다. (2) 스크립트는
+  임시 디렉터리에 풀어 `UNIKIT_NATIVE_DEPS_ROOT`로 지정하면 된다. (2) 스크립트는
   `sh`가 아니라 `bash`(shebang 대상, bash 5)로 실행해야 한다 — macOS `sh`(bash 3.2
   posix 모드)는 빈 배열 확장에서 `unbound variable`로 죽는다.
 
 ### 1-2. 호출 수 불변 재단언 — **660,004 = 660,004, 폴백 0**
 
 ```bash
-env -u RUSTRA_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs   # verified: true
+env -u UNIKIT_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs   # verified: true
 ```
 
 `totalJsCalls 660,004 == routeInvocations 660,004`, `looseFallbackInvocations 0`.
@@ -60,7 +60,7 @@ env -u RUSTRA_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs   # verified: tru
 
 ### 2-1. codec_allocations — 14케이스, 2회 독립 실행 완전 일치
 
-`cargo run -p rustra --release --example codec_allocations` — 두 실행의 JSON이
+`cargo run -p unikit-bridge --release --example codec_allocations` — 두 실행의 JSON이
 바이트 단위로 동일(할당 패턴 결정적). 핵심 행:
 
 | 케이스                  | 요청    | allocs/1K iter | requested bytes |
@@ -78,7 +78,7 @@ E1 owned 경로가 건드리는 large-response 패턴(optional_chunks_near_1m)�
 
 ### 2-2. tree_route (release, criterion) — 28케이스 전부 ±1.9% 이내 재현
 
-`cargo bench -p rustra --bench tree_route -- --save-baseline e1-run1` 1차 실행 후 같은
+`cargo bench -p unikit-bridge --bench tree_route -- --save-baseline e1-run1` 1차 실행 후 같은
 명령으로 2회 더 실행(독립 프로세스 교대). criterion 저장치(`target/criterion/tree_route/**/e1-run1`
 vs 최종 `new`)에서 뽑은 median 대조 — 2026-09-24 기록은 성능 보고서 §3.6:
 
@@ -114,7 +114,7 @@ vs 최종 `new`)에서 뽑은 median 대조 — 2026-09-24 기록은 성능 보�
 ## 3. rn-experiment 앱 게이트
 
 ```bash
-env -u RUSTRA_BUN_LIBRARY bun run test:app:rn-experiment
+env -u UNIKIT_BUN_LIBRARY bun run test:app:rn-experiment
 # react native injected module (rn-experiment): 4 checks passed  (×2 — 재생성 전후)
 ```
 

@@ -15,7 +15,7 @@ export function compareCodecKeys(left: string, right: string): number {
   const b = utf8(right);
   const length = Math.min(a.length, b.length);
   for (let index = 0; index < length; index += 1) {
-    if (a[index] !== b[index]) return a[index] - b[index];
+    if (a[index] !== b[index]) return a[index]! - b[index]!;
   }
   return a.length - b.length;
 }
@@ -30,7 +30,7 @@ export function primitive(value: unknown): value is string | number | boolean | 
 }
 
 export function explicitVariantKeys(schema: JsonSchema, count: number): string[] | null {
-  const value = schema['x-rustra-variant-order'];
+  const value = schema['x-unikit-variant-order'];
   if (
     !Array.isArray(value) ||
     value.length !== count ||
@@ -54,7 +54,7 @@ export function codecVariantKey(schema: JsonSchema): string | null {
     );
     if (discriminator) return String(discriminator[1].const);
     const keys = Object.keys(schema.properties);
-    if (keys.length === 1) return keys[0];
+    if (keys.length === 1) return keys[0]!;
   }
   return typeof schema.title === 'string' ? schema.title : null;
 }
@@ -92,7 +92,7 @@ export function optionalInner(schema: JsonSchema): JsonSchema | null {
   }
   if (schema.anyOf?.length === 2) {
     const nonNull = schema.anyOf.filter((item) => item.type !== 'null');
-    if (nonNull.length === 1) return nonNull[0];
+    if (nonNull.length === 1) return nonNull[0]!;
   }
   return null;
 }

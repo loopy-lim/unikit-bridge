@@ -15,7 +15,7 @@
 //! **주의**: 이 hex 들은 TS 측 `cross-wire.test.ts` 와 반드시 일치해야 한다.
 //! 한쪽만 바뀌면 교차 테스트가 실패한다.
 
-use rustra_calculator_example::{
+use unikit_calculator_example::{
     AddNumbersInput, DivideInput, EchoGroupsInput, GaugeInput, GreetInput, Item, KindEchoInput,
     OpKind, ProcessItemInput, ScoreTotalInput, SizeOfInput, SpanInput, TagSetInput, WideAggInput,
     calculator_package,
@@ -32,12 +32,12 @@ fn hexlify(bytes: &[u8]) -> String {
 }
 
 /// invoke_frame 의 Err 를 error frame 으로 변환한다 — 실제 FFI 경계
-/// (`rustra_calculator_invoke_frame`) 와 동일하게. TS codec.decode 가 보는
+/// (`unikit_calculator_invoke_frame`) 와 동일하게. TS codec.decode 가 보는
 /// 진짜 와이어(성공 프레임 / 에러 프레임)를 낸다.
-fn invoke_with_frame(pkg: &rustra::Package, req: &[u8]) -> Vec<u8> {
+fn invoke_with_frame(pkg: &unikit_bridge::Package, req: &[u8]) -> Vec<u8> {
     match pkg.invoke_frame(req) {
         Ok(bytes) => bytes,
-        Err(error) => rustra::encode_frame_error(&error),
+        Err(error) => unikit_bridge::encode_frame_error(&error),
     }
 }
 
@@ -308,7 +308,7 @@ fn tag_set_primitive_elements_wire_is_stable() {
 
 // ── 2026-09-11 A5: 기능 타입 매트릭스 확장 — 태그 enum/중첩 구조체/결정론 맵/
 // 대용량 페이로드 와이어 고정. TS cross-wire.test.ts 신규 블록, C++
-// test-rustra-generated-codecs.cpp 공유 서브셋과 짝이다.
+// test-unikit-generated-codecs.cpp 공유 서브셋과 짝이다.
 
 // kindEcho (cmd 33) — serde 외부 태그 enum OpKind{Clear, Set{value}} 의
 // postcard 와이어: [변형 인덱스 u32 varint][변형 본문]. unit 변형은 인덱스

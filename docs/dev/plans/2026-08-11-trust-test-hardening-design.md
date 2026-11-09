@@ -2,7 +2,7 @@
 
 - **날짜**: 2026-08-11
 - **상태**: 승인됨 (설계) → 구현 계획 진행 중
-- **목표 문장**: "실제 사용자가 rustra-bridge를 믿고 쓴다"를 **테스트가 증명**하는 상태로 만든다.
+- **목표 문장**: "실제 사용자가 unikit-bridge를 믿고 쓴다"를 **테스트가 증명**하는 상태로 만든다.
 - **접근법**: 단계적 하이브리드 (측정 → 수정 → 증명 → 강화)
 
 ---
@@ -19,14 +19,14 @@
 
 | ID  | 결함                                                                                                                                                                  | 심각도  | 위치                                                                                                                | 유형      |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------- | --------- |
-| F1  | 패닉이 호스트 프로세스를 abort 시킨다. `catch_unwind`이 전무하여 핸들러 패닉이 `extern "C"` 경계를 넘어 unwind → abort                                                | 🔴 치명 | `crates/rustra/src/ffi.rs`, `examples/calculator/src/lib.rs` (`.expect()` 7곳: 577, 764, 821, 877, 949, 1003, 1045) | 결함      |
-| F2  | `rustra_ffi_free` double-free / wrong-len 이 UB. 가드·테스트 전무                                                                                                     | 🔴      | `ffi.rs:263`                                                                                                        | 결함      |
+| F1  | 패닉이 호스트 프로세스를 abort 시킨다. `catch_unwind`이 전무하여 핸들러 패닉이 `extern "C"` 경계를 넘어 unwind → abort                                                | 🔴 치명 | `crates/unikit-bridge/src/ffi.rs`, `examples/calculator/src/lib.rs` (`.expect()` 7곳: 577, 764, 821, 877, 949, 1003, 1045) | 결함      |
+| F2  | `unikit_ffi_free` double-free / wrong-len 이 UB. 가드·테스트 전무                                                                                                     | 🔴      | `ffi.rs:263`                                                                                                        | 결함      |
 | F3  | RN/Lynx JSON 엔진이 `Promise<T>` 계약 위반. `try/catch` 없어 sync throw로 새어나감 → `.catch()`로 못 잡음                                                             | 🔴      | `packages/react-native/src/index.ts:34`, `packages/lynx/src/index.ts:84`                                            | 결함      |
-| F4  | 에러 클래스 불일치. Node/Bun/Tauri는 `RustraCommandError(.code)`, RN/Lynx는 plain `Error`(코드 유실). `createRkyvV2Engine` 내부에서도 unknown-command만 plain `Error` | 🟠      | 5개 어댑터 + `packages/types/src/index.ts:381`                                                                      | 결함      |
+| F4  | 에러 클래스 불일치. Node/Bun/Tauri는 `UnikitCommandError(.code)`, RN/Lynx는 plain `Error`(코드 유실). `createRkyvV2Engine` 내부에서도 unknown-command만 plain `Error` | 🟠      | 5개 어댑터 + `packages/types/src/index.ts:381`                                                                      | 결함      |
 | F5  | contract hash가 런타임에 한 번도 검증 안 됨. `GENERATED_CONTRACT_HASH` 생성만 되고 소비 0 → 스키마 드리프트 조용히 통과                                               | 🟠      | `packages/cli/src/generate.ts:91`, 모든 어댑터                                                                      | 결함      |
 | F6  | Rust↔TS 교차 와이어 round-trip이 전무. Rust↔Rust, TS↔TS만. TS static codec 테스트는 stub codec 사용. 양쪽 진실 일치를 증명할 인프라 자체가 없음                       | 🟠      | 테스트 인프라 부재                                                                                                  | 인프라    |
 | F7  | postcard 필드 순서 드리프트 위험. schemars(알파벳순) vs postcard(선언순)가 수작업 컨벤션으로만 유지                                                                   | 🟡      | `packages/cli/src/generate.ts:132`, `examples/calculator/src/lib.rs:69`                                             | 잠재 결함 |
-| F8  | `rustra_ffi_get_schema`만 `out_len` null 체크 누락 (형제 함수 172/200/234와 불일치)                                                                                   | 🟡      | `ffi.rs:280`                                                                                                        | 결함      |
+| F8  | `unikit_ffi_get_schema`만 `out_len` null 체크 누락 (형제 함수 172/200/234와 불일치)                                                                                   | 🟡      | `ffi.rs:280`                                                                                                        | 결함      |
 
 > i64 정밀도(2^53/2^32 초과), 세 번째 postcard 구현인 C++ JSI codec 미검증 등 추가 항목은 Phase 3에서 다룬다.
 
@@ -57,12 +57,12 @@ Phase 0 (기준선 측정) → Phase 1 (결함 수정) → Phase 2 (교차 호�
 
 **수정 대상 (P0 → P2)**:
 
-- **P0-F1**: `ffi.rs` dispatch 경로 + `examples/calculator` FFI 엔트리에 `catch_unwind` 추가 → 패닉을 `RustraError::internal`로 변환. `panic=unwind` 유지 전제.
-- **P0-F3**: RN/Lynx JSON 엔진 본문을 async 래핑 + `try/catch` → 모든 실패 경로를 rejected `Promise<RustraCommandError>`로 정규화.
-- **P1-F2**: `rustra_ffi_free` debug_assert 가드(double-free / wrong-len). `# Safety` 문서화 + 계약 테스트.
-- **P1-F4**: 에러 클래스 통일. 모든 어댑터 + `createRkyvV2Engine` unknown-command 경로를 `RustraCommandError(code, message)`로 정규화.
+- **P0-F1**: `ffi.rs` dispatch 경로 + `examples/calculator` FFI 엔트리에 `catch_unwind` 추가 → 패닉을 `UnikitError::internal`로 변환. `panic=unwind` 유지 전제.
+- **P0-F3**: RN/Lynx JSON 엔진 본문을 async 래핑 + `try/catch` → 모든 실패 경로를 rejected `Promise<UnikitCommandError>`로 정규화.
+- **P1-F2**: `unikit_ffi_free` debug_assert 가드(double-free / wrong-len). `# Safety` 문서화 + 계약 테스트.
+- **P1-F4**: 에러 클래스 통일. 모든 어댑터 + `createRkyvV2Engine` unknown-command 경로를 `UnikitCommandError(code, message)`로 정규화.
 - **P1-F5**: contract hash 런타임 검증 추가. engine 생성 시 hash 주입 옵션 + 불일치 시 명확한 에러.
-- **P2-F8**: `rustra_ffi_get_schema`에 `out_len` null 체크 추가 (형제 함수와 일치).
+- **P2-F8**: `unikit_ffi_get_schema`에 `out_len` null 체크 추가 (형제 함수와 일치).
 
 **끝나면 알 수 있는 것**: 치명적 결함 제거됨. 호스트 크래시 / 계약 위반 / 에러 유실 없음.
 
@@ -99,7 +99,7 @@ Phase 0 (기준선 측정) → Phase 1 (결함 수정) → Phase 2 (교차 호�
 
 **포함**:
 
-- `crates/rustra` core (ffi, rkyv_codec, lib, renderer_host)
+- `crates/unikit-bridge` core (ffi, rkyv_codec, lib, renderer_host)
 - `examples/calculator` (FFI 템플릿 코드 — 사용자가 복사해 쓰므로 신뢰 직결)
 - C++ JSI codec (세 번째 postcard 구현, 같은 fixture로 교차 검증)
 - 5개 TS 어댑터 + `packages/types` 공유 엔진

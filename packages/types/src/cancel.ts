@@ -1,4 +1,4 @@
-import { CancelledError, RustraCommandError, TimeoutError } from './errors.js';
+import { CancelledError, UnikitCommandError, TimeoutError } from './errors.js';
 import type { EngineClient, InvokeOptions } from './public.js';
 export { invokeByIdWithTimeout } from './cancel-by-id.js';
 export { raceAbort } from './cancel-abort.js';
@@ -124,7 +124,7 @@ export function invokeCallbackWithAbort<T>(
         reject(
           error instanceof Error
             ? error
-            : new RustraCommandError(
+            : new UnikitCommandError(
                 'invoke.failed',
                 `invoke("${command}") dispatch failed: ${String(error)}`,
               ),

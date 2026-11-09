@@ -1,8 +1,8 @@
-# rustra-bridge 종합 문서화 구현 계획
+# unikit-bridge 종합 문서화 구현 계획
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** rustra-bridge의 문서를 계층형 구조로 재편한다. 사용자용과 기여자용을 분리하고, 모든 새 문서를 한국어로 작성한다.
+**Goal:** unikit-bridge의 문서를 계층형 구조로 재편한다. 사용자용과 기여자용을 분리하고, 모든 새 문서를 한국어로 작성한다.
 
 **Architecture:** docs/ 아래에 extending/, internal/, research/ 하위 디렉토리를 만들어 문서를 체계적으로 분류한다. 과거 연구 문서는 research/로 이동하여 보존하고, 루트 및 crate/package README는 현재 구현에 맞게 한국어로 재작성한다.
 
@@ -69,13 +69,13 @@ Expected: 모두 PASS (문서 이동은 코드에 영향 없음)
 
 1. **전체 데이터 흐름도** (ASCII art)
    - Rust command → Package → generate_typescript() → types.ts / commands.ts / contract.ts → adapter → host
-   - 실제 코드 경로: `crates/rustra/src/lib.rs`의 `Package`, `PackageBuilder`, `GeneratedPackage`
+   - 실제 코드 경로: `crates/unikit-bridge/src/lib.rs`의 `Package`, `PackageBuilder`, `GeneratedPackage`
 2. **EngineClient 단일 인터페이스**
    - `invoke<T>(command: string, args?: unknown): Promise<T>` 하나로 모든 host 추상화
    - 출처: `examples/calculator/generated/types.ts`
 3. **crate/패키지 관계**
-   - `crates/rustra`: core 라이브러리 (Package, codegen, invoke)
-   - `crates/rustra-macros`: `#[command]` proc macro (현재 passthrough)
+   - `crates/unikit-bridge`: core 라이브러리 (Package, codegen, invoke)
+   - `crates/unikit-bridge-macros`: `#[command]` proc macro (현재 passthrough)
    - `packages/node`, `packages/bun`, `packages/tauri`, `packages/react-native`: 각각 EngineClient 구현체
    - `examples/calculator`: 사용 예시 crate
    - `examples/tauri-calculator`: Tauri 런타임 예시
@@ -92,7 +92,7 @@ Expected: 모두 PASS (문서 이동은 코드에 영향 없음)
 
 문서에서 참조하는 모든 파일 경로와 타입 이름이 실제 코드와 일치하는지 확인:
 
-- `crates/rustra/src/lib.rs`: Package, PackageBuilder, GeneratedPackage, EngineClient
+- `crates/unikit-bridge/src/lib.rs`: Package, PackageBuilder, GeneratedPackage, EngineClient
 - `examples/calculator/generated/types.ts`: EngineClient 타입
 - `packages/node/src/index.ts`, `packages/bun/src/index.ts` 등
 
@@ -114,15 +114,15 @@ Expected: 모두 PASS (문서 이동은 코드에 영향 없음)
 
    | 크레이트/패키지         | 책임                               | 공개 API                                                                        | 의존성                                                |
    | ----------------------- | ---------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------- |
-   | `crates/rustra`         | Package authoring, codegen, invoke | `Package`, `PackageBuilder`, `GeneratedPackage`, `command` macro, `RustraError` | rustra-macros, serde, serde_json, schemars, sha2, hex |
-   | `crates/rustra-macros`  | `#[command]` proc macro            | `command` attribute macro                                                       | proc_macro                                            |
+   | `crates/unikit-bridge`         | Package authoring, codegen, invoke | `Package`, `PackageBuilder`, `GeneratedPackage`, `command` macro, `UnikitError` | unikit-bridge-macros, serde, serde_json, schemars, sha2, hex |
+   | `crates/unikit-bridge-macros`  | `#[command]` proc macro            | `command` attribute macro                                                       | proc_macro                                            |
    | `packages/node`         | Node → EngineClient                | `createNodeEngine(transport)`                                                   | 없음 (순수 TS)                                        |
    | `packages/bun`          | Bun → EngineClient                 | `createBunEngine(transport)`                                                    | 없음                                                  |
    | `packages/tauri`        | Tauri → EngineClient               | `createTauriEngine({ invoke })`                                                 | 없음                                                  |
    | `packages/react-native` | RN → EngineClient                  | `createReactNativeEngine(nativeModule)`                                         | 없음                                                  |
 
 2. **빌드 의존성 그래프** (ASCII)
-   - Cargo workspace: rustra ← rustra-macros, rustra-calculator-example ← rustra
+   - Cargo workspace: unikit ← unikit-bridge-macros, unikit-calculator-example ← unikit
    - npm: 각 adapter package는 독립적
 
 3. **examples/ 구조**
@@ -166,7 +166,7 @@ Expected: 모두 PASS (문서 이동은 코드에 영향 없음)
    npm run test:compat             전체 (TS + adapters + runtime)
    ```
 2. **테스트 파일별 역할**
-   - `crates/rustra/tests/public_authoring_api_tests.rs`: Package 빌드, invoke, codegen, 에러 코드
+   - `crates/unikit-bridge/tests/public_authoring_api_tests.rs`: Package 빌드, invoke, codegen, 에러 코드
    - `examples/calculator/ts/adapter-compat.test.ts`: 4개 adapter가 동일 패턴으로 동작하는지
    - `examples/calculator/ts/generated-client.test.ts`: 생성된 코드에 host-specific import 없는지
    - `examples/calculator/ts/runtime-contract.test.ts`: 모든 host 앱이 같은 generated commands 사용하는지
@@ -192,7 +192,7 @@ Expected: 모두 PASS (문서 이동은 코드에 영향 없음)
 1. **설치**
    ```toml
    [dependencies]
-   rustra = "0.1"
+   unikit-bridge = "0.1"
    serde = { version = "1", features = ["derive"] }
    schemars = { version = "0.8", features = ["derive"] }
    ```
@@ -210,25 +210,25 @@ Expected: 모두 PASS (문서 이동은 코드에 영향 없음)
 
    ```ts
    // Node (subprocess)
-   import { createNodeEngine } from '@rustra/node';
+   import { createNodeEngine } from '@unikit-bridge/node';
    const engine = createNodeEngine({ invoke: myTransport });
 
    // Bun (subprocess 또는 FFI)
-   import { createBunEngine } from '@rustra/bun';
+   import { createBunEngine } from '@unikit-bridge/bun';
    const engine = createBunEngine({ invoke: myTransport });
 
    // Tauri
-   import { createTauriEngine } from '@rustra/tauri';
+   import { createTauriEngine } from '@unikit-bridge/tauri';
    const engine = createTauriEngine({ invoke: window.__TAURI__.core.invoke });
 
    // React Native
-   import { createReactNativeEngine } from '@rustra/react-native';
+   import { createReactNativeEngine } from '@unikit-bridge/react-native';
    const engine = createReactNativeEngine(NativeModule);
    ```
 
 5. **실행 및 테스트**
    ```bash
-   cargo run -p rustra-calculator-example
+   cargo run -p unikit-calculator-example
    npm run test:compat
    ```
 
@@ -255,14 +255,14 @@ Expected: 모두 PASS (문서 이동은 코드에 영향 없음)
    | Node         | subprocess stdio (`spawnSync`) | `main.rs`의 `run_invoke_stdio`        | napi-rs, WASM      |
    | Bun          | subprocess stdio (`spawnSync`) | `main.rs`의 `run_invoke_stdio`        | `bun:ffi` (C FFI)  |
    | Tauri        | `window.__TAURI__.core.invoke` | Tauri command handler                 | -                  |
-   | React Native | C FFI (`extern "C"`)           | `lib.rs`의 `rustra_calculator_invoke` | TurboModule, Nitro |
+   | React Native | C FFI (`extern "C"`)           | `lib.rs`의 `unikit_calculator_invoke` | TurboModule, Nitro |
 
 3. **교체 절차** (일반화)
    - Step 1: Rust 쪽에 새 진입점 추가 (필요시)
    - Step 2: adapter 패키지에서 transport 구현
    - Step 3: 기존 테스트로 회귀 검증
 4. **예시: Bun FFI 교체**
-   - Rust: `rustra_calculator_invoke` C FFI 이미 존재 (`examples/calculator/src/lib.rs`)
+   - Rust: `unikit_calculator_invoke` C FFI 이미 존재 (`examples/calculator/src/lib.rs`)
    - Bun: `bun:ffi`로 `.dylib`/`.so` 로드 후 `invoke` 매핑
    - 실제 코드 예시 포함
 5. **예시: Node napi-rs 교체**
@@ -301,12 +301,12 @@ Expected: 모두 PASS (문서 이동은 코드에 영향 없음)
 다음 구조로 한국어 재작성:
 
 1. **프로젝트 소개** (1-2문장)
-   - rustra: Rust 패키지를 한 번 정의하면 host-neutral TypeScript 클라이언트를 생성하는 도구
+   - unikit: Rust 패키지를 한 번 정의하면 host-neutral TypeScript 클라이언트를 생성하는 도구
 2. **구조**
    ```
    crates/
-     rustra/          Rust 패키지 authoring API
-     rustra-macros/   #[command] 매크로
+     unikit/          Rust 패키지 authoring API
+     unikit-bridge-macros/   #[command] 매크로
    packages/
      node/            Node adapter
      bun/             Bun adapter
@@ -324,7 +324,7 @@ Expected: 모두 PASS (문서 이동은 코드에 영향 없음)
 5. **검증 명령**
    ```bash
    cargo test --workspace
-   cargo run -p rustra-calculator-example
+   cargo run -p unikit-calculator-example
    npm run test:compat
    ```
 6. **문서 링크** → `docs/` 안내
@@ -335,14 +335,14 @@ Expected: 모두 PASS (문서 이동은 코드에 영향 없음)
 
 **Files:**
 
-- Modify: `crates/rustra/README.md`
+- Modify: `crates/unikit-bridge/README.md`
 - Modify: `packages/node/README.md`
 - Modify: `packages/bun/README.md`
 - Modify: `packages/tauri/README.md`
 - Modify: `packages/react-native/README.md`
 - Modify: `examples/calculator/README.md`
 
-**Step 1: crates/rustra/README.md 한국어 재작성**
+**Step 1: crates/unikit-bridge/README.md 한국어 재작성**
 
 기존 영어 내용을 한국어로 번역하면서, 현재 구현에 맞게 정확도 향상:
 
@@ -373,9 +373,9 @@ Expected: 모두 PASS (문서 이동은 코드에 영향 없음)
 **Step 1: 문서 인덱스 작성**
 
 ```markdown
-# rustra 문서
+# unikit 문서
 
-rustra는 Rust 패키지를 한 번 정의하면, host-neutral TypeScript 클라이언트를 자동 생성하는 도구입니다.
+unikit는 Rust 패키지를 한 번 정의하면, host-neutral TypeScript 클라이언트를 자동 생성하는 도구입니다.
 
 ## 읽기 경로
 

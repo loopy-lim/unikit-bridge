@@ -144,8 +144,8 @@ invoke → 이벤트 → progress → 취소 → 구독 해제 → 복구 → di
 않는다** — 이 항목은 절차가 문서로 존재하고 찾을 수 있는지 확인한다.
 
 1. npm 발행 워크플로우가 green 으로 끝나면, 이 워크스페이스 밖의 스크래치
-   프로젝트에 발행된 `@rustra/*` 버전을 설치한다.
-2. 발행된 `@rustra/types` 계약에 대해 발행된 CLI(`rustra codegen`)로 클라이언트를
+   프로젝트에 발행된 `@unikit-bridge/*` 버전을 설치한다.
+2. 발행된 `@unikit-bridge/types` 계약에 대해 발행된 CLI(`unikit codegen`)로 클라이언트를
    생성한다 — 워크스페이스 소스가 아니라.
 3. calculator 예제의 generated-client 테스트를 그 산출물 위에서 실행한다.
 4. 사용한 버전과 registry consumer 출력을 아래 블록에 기록한다.

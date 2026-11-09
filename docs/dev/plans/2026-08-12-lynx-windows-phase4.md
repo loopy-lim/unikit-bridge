@@ -38,13 +38,13 @@ LYNX_CAPI_EXPORT NativeWindow lynx_view_get_native_window(lynx_view_t*);
 
 ```
 $ rustup target add x86_64-pc-windows-gnu
-$ cargo check -p rustra-calculator-example --target x86_64-pc-windows-gnu
+$ cargo check -p unikit-calculator-example --target x86_64-pc-windows-gnu
    ...
-   Checking rustra-calculator-example v0.1.0
+   Checking unikit-calculator-example v0.1.0
    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.88s
 ```
 
-단일 rustra Rust 백엔드가 Windows 타깃으로 타입체크 클린. 링크(mingw-w64 / MSVC)는 Windows 머신 필요.
+단일 unikit Rust 백엔드가 Windows 타깃으로 타입체크 클린. 링크(mingw-w64 / MSVC)는 Windows 머신 필요.
 
 ---
 
@@ -71,15 +71,15 @@ let parent: *mut c_void = match handle.as_raw() {
 Apple 은 Mach-O `__mod_init_func` constructor 가 라이브러리 로드 시 자동으로 `calculator_package()` 를
 FFI 레지스트리에 등록한다(`examples/calculator/src/lib.rs:519` `#[cfg(target_vendor="apple")]`).
 **Windows(PE) 에는 이 constructor 가 없다** (Android ELF 과 동일한 갭 — 모바일 스파이크에서
-`JNI_OnLoad`→`rustra_calculator_init()` 로 해결한 것과 동일). 따라서 Windows 호스트도 로드 시
+`JNI_OnLoad`→`unikit_calculator_init()` 로 해결한 것과 동일). 따라서 Windows 호스트도 로드 시
 명시 호출해야 한다. macOS 호스트에도 idempotent 호출을 추가해 Apple 자동등록에 의존하지 않게 했다
 (양쪽 동일 코드 경로).
 
 ```cpp
 // examples/lynx-tauri-spike/src-tauri/src/lynx_desktop.mm — lynx_spike_init 선두
-extern "C" void rustra_calculator_init(void);   // idempotent (OnceLock)
+extern "C" void unikit_calculator_init(void);   // idempotent (OnceLock)
 ...
-rustra_calculator_init();   // Windows/ELF: 필수. Apple: no-op 에 가깝지만 harmless.
+unikit_calculator_init();   // Windows/ELF: 필수. Apple: no-op 에 가깝지만 harmless.
 ```
 
 ### 포인트 3 — FML 메시지 루프 펌프 심볼 해석 (⚠️ 크럭스, 미해결)
@@ -125,20 +125,20 @@ Windows(PE) 에선: (a) `_dyld_image_count`/`_dyld_get_image_header` 대신 `Get
 ## 크로스플랫폼 회귀 발견·수정 (Phase 4 작업 중)
 
 Windows 포팅 준비로 데스크톱 호스트를 만지는 중 `verify.sh` 가 ackResult 실패를 잡았다.
-추적 결과 **모바일 스파이크(Phase A/B)가 바꾼 `getRustraNative()` 우선순위가 데스크톱 ackResult
+추적 결과 **모바일 스파이크(Phase A/B)가 바꾼 `getUnikitNative()` 우선순위가 데스크톱 ackResult
 경로를 망가뜨린 회귀**였다. 단위 테스트는 이 런타임 경로를 거치지 않아 놓쳤다.
 
-- **원인:** 모바일 작업이 `getRustraNative()` 를 closure `NativeModules` 우선으로 바꿨다.
-  데스크톱에선 Lynx NAPI 가 closure `NativeModules.RustraModule` 을 native-module 프록시
+- **원인:** 모바일 작업이 `getUnikitNative()` 를 closure `NativeModules` 우선으로 바꿨다.
+  데스크톱에선 Lynx NAPI 가 closure `NativeModules.UnikitModule` 을 native-module 프록시
   (method map 에 `invokeRkyvV2` 만 있음)로 채워, 호스트가 `globalThis` 에 주입한
   `ackResult` 포함 객체를 가렸다.
 - **수정:** 우선순위를 **globalThis 우선 → closure 폴백**으로 뒤집었다.
-  - 데스크톱: `globalThis.NativeModules.RustraModule`(호스트 주입, full surface) 복원.
+  - 데스크톱: `globalThis.NativeModules.UnikitModule`(호스트 주입, full surface) 복원.
   - 모바일: globalThis 비어있음 → closure 폴백 (기존과 동일).
   - Node 테스트: globalThis.NativeModules 주입 → 동일 동작.
 - **재검증:** 단위 24/24 + 32/32, 데스크톱 verify 7/7, iOS 7/7, Android 7/7 전부 PASS 복원/유지.
 
-이것이 "문제점 모두 확인" 의 첫 결실 — 공유 코드(`getRustraNative`) 변경이 3플랫폼에 미치는
+이것이 "문제점 모두 확인" 의 첫 결실 — 공유 코드(`getUnikitNative`) 변경이 3플랫폼에 미치는
 영향을 런타임 게이트로 잡아냈다.
 
 ---

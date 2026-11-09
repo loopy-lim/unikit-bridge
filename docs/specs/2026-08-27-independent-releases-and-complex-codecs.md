@@ -6,7 +6,7 @@
 ## Goal
 
 Close the current release candidate with reproducible consumer evidence, then
-make Rustra safe to evolve as independently versioned packages while extending
+make Unikit safe to evolve as independently versioned packages while extending
 binary transport support to recursive and data-rich schemas without silently
 losing fields.
 
@@ -36,12 +36,12 @@ Public packages are independently versioned. A package may keep the same
 version as another package when their API changes together, but the tooling
 must not require that coincidence.
 
-- `@rustra/types` is the protocol/runtime contract package.
+- `@unikit-bridge/types` is the protocol/runtime contract package.
 - Host adapters (`node`, `bun`, `tauri`, `react`, `react-native`, `testing`,
   `devtools`) declare semver ranges for the types contract they consume.
-- `@rustra/cli` carries an explicit Rust compatibility range for generated
+- `@unikit-bridge/cli` carries an explicit Rust compatibility range for generated
   projects. The CLI package version is not treated as the Rust crate version.
-- `rustra` and `rustra-macros` remain a tightly compatible Cargo pair, but
+- `unikit` and `unikit-bridge-macros` remain a tightly compatible Cargo pair, but
   their pair version is independent from npm packages and examples.
 - Examples are unpublished fixtures and do not participate in release
   coherence.

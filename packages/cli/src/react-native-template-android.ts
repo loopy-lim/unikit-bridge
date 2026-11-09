@@ -24,13 +24,13 @@ def generatedRoot = file(${JSON.stringify(options.generatedFromAndroid)}).canoni
 def rustManifest = file(${JSON.stringify(`../${options.manifestFromModule}`)}).canonicalFile
 def rustLibsDir = file("src/main/cpp/libs")
 
-abstract class RustraExecOperations {
+abstract class UnikitExecOperations {
   @Inject abstract ExecOperations getExecOperations()
 }
-def rustraExec = objects.newInstance(RustraExecOperations)
+def unikitExec = objects.newInstance(UnikitExecOperations)
 
 android {
-  namespace = "dev.rustra.bridge"
+  namespace = "dev.unikit.bridge"
   compileSdk = extOr("compileSdkVersion", 36)
   ndkVersion = extOr("ndkVersion", "27.1.12297006")
   defaultConfig {
@@ -38,7 +38,7 @@ android {
     targetSdk = extOr("targetSdkVersion", 36)
     externalNativeBuild.cmake {
       cppFlags "-std=c++20"
-      arguments "-DANDROID_STL=c++_shared", "-DRUSTRA_ADAPTER_ROOT=$adapterRoot", "-DRUSTRA_GENERATED_ROOT=$generatedRoot", "-DRUSTRA_LIB_NAME=${options.rustLibrary}"
+      arguments "-DANDROID_STL=c++_shared", "-DUNIKIT_ADAPTER_ROOT=$adapterRoot", "-DUNIKIT_GENERATED_ROOT=$generatedRoot", "-DUNIKIT_LIB_NAME=${options.rustLibrary}"
     }
     ndk { abiFilters "x86_64", "arm64-v8a" }
   }
@@ -55,7 +55,7 @@ tasks.register("buildRustAndroid") {
   outputs.cacheIf { true }
   doLast {
     def release = gradle.startParameter.taskNames.any { it.toLowerCase().contains("release") }
-    rustraExec.execOperations.exec { workingDir projectDir; environment "RUSTRA_PROFILE", release ? "release" : "debug"; commandLine "sh", "build-rust-android.sh" }
+    unikitExec.execOperations.exec { workingDir projectDir; environment "UNIKIT_PROFILE", release ? "release" : "debug"; commandLine "sh", "build-rust-android.sh" }
   }
 }
 preBuild.dependsOn "buildRustAndroid"
@@ -66,27 +66,27 @@ dependencies { implementation "com.facebook.react:react-android" }
 
 export function renderCmake(): string {
   return `cmake_minimum_required(VERSION 3.18.1)
-project(rustra_bridge)
+project(unikit_bridge)
 set(CMAKE_CXX_STANDARD 20)
 find_package(fbjni REQUIRED CONFIG)
 find_package(ReactAndroid REQUIRED CONFIG)
-add_library(rustra_static STATIC IMPORTED)
-set_target_properties(rustra_static PROPERTIES IMPORTED_LOCATION \${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/libs/\${ANDROID_ABI}/lib\${RUSTRA_LIB_NAME}.a)
-add_library(rustra_bridge SHARED \${RUSTRA_ADAPTER_ROOT}/android/rustra-jsi-jni.cpp \${RUSTRA_ADAPTER_ROOT}/cpp/RustraJSIBridge.cpp \${RUSTRA_GENERATED_ROOT}/rustra-generated-codecs.cpp)
-target_include_directories(rustra_bridge PRIVATE \${RUSTRA_ADAPTER_ROOT}/cpp \${RUSTRA_GENERATED_ROOT})
+add_library(unikit_static STATIC IMPORTED)
+set_target_properties(unikit_static PROPERTIES IMPORTED_LOCATION \${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/libs/\${ANDROID_ABI}/lib\${UNIKIT_LIB_NAME}.a)
+add_library(unikit_bridge SHARED \${UNIKIT_ADAPTER_ROOT}/android/unikit-jsi-jni.cpp \${UNIKIT_ADAPTER_ROOT}/cpp/UnikitJSIBridge.cpp \${UNIKIT_GENERATED_ROOT}/unikit-generated-codecs.cpp)
+target_include_directories(unikit_bridge PRIVATE \${UNIKIT_ADAPTER_ROOT}/cpp \${UNIKIT_GENERATED_ROOT})
 # folly 헤더 계약 — ReactAndroid prefab의 cmake-utils/folly-flags.cmake 세트와
 # 동일하게 유지(RN 0.81 프리팹은 folly_runtime 타깃 미제공).
-target_compile_definitions(rustra_bridge PRIVATE FOLLY_NO_CONFIG=1 FOLLY_HAVE_CLOCK_GETTIME=1 FOLLY_USE_LIBCPP=1 FOLLY_CFG_NO_COROUTINES=1 FOLLY_MOBILE=1 FOLLY_HAVE_RECVMMSG=1 FOLLY_HAVE_PTHREAD=1 FOLLY_HAVE_XSI_STRERROR_R=1)
-target_link_libraries(rustra_bridge PRIVATE rustra_static fbjni::fbjni ReactAndroid::jsi ReactAndroid::reactnative android log)
+target_compile_definitions(unikit_bridge PRIVATE FOLLY_NO_CONFIG=1 FOLLY_HAVE_CLOCK_GETTIME=1 FOLLY_USE_LIBCPP=1 FOLLY_CFG_NO_COROUTINES=1 FOLLY_MOBILE=1 FOLLY_HAVE_RECVMMSG=1 FOLLY_HAVE_PTHREAD=1 FOLLY_HAVE_XSI_STRERROR_R=1)
+target_link_libraries(unikit_bridge PRIVATE unikit_static fbjni::fbjni ReactAndroid::jsi ReactAndroid::reactnative android log)
 # 상위 RN이 folly_runtime 타깃을 제공하면 공식 타깃이 플래그의 원천이 된다.
 if(TARGET ReactAndroid::folly_runtime)
-  target_link_libraries(rustra_bridge PRIVATE ReactAndroid::folly_runtime)
+  target_link_libraries(unikit_bridge PRIVATE ReactAndroid::folly_runtime)
 endif()
 `;
 }
 
 export function renderAndroidModule(): string {
-  return `package dev.rustra.bridge
+  return `package dev.unikit.bridge
 
 import android.content.pm.ApplicationInfo
 import com.facebook.react.bridge.Promise
@@ -95,9 +95,9 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.turbomodule.core.interfaces.CallInvokerHolder
 
-class RustraBridgeModule(context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
-  companion object { init { System.loadLibrary("rustra_bridge") } }
-  override fun getName(): String = "RustraBridge"
+class UnikitBridgeModule(context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
+  companion object { init { System.loadLibrary("unikit_bridge") } }
+  override fun getName(): String = "UnikitBridge"
   private fun onJavaScriptThread(action: () -> Unit): Boolean {
     val queue = reactApplicationContext.jsMessageQueueThread ?: return false
     if (queue.isOnThread()) { action(); return true }
@@ -119,16 +119,16 @@ class RustraBridgeModule(context: ReactApplicationContext) : ReactContextBaseJav
     val pointer = reactApplicationContext.javaScriptContextHolder?.get()
     if (pointer == null || pointer == 0L) { promise.reject("ERR_NO_RUNTIME", "JavaScript context pointer is null"); return }
     if (!nativeInstall(pointer, reactApplicationContext.jsCallInvokerHolder)) {
-      promise.reject("ERR_INSTALL", "Failed to install Rustra onto the JSI runtime")
+      promise.reject("ERR_INSTALL", "Failed to install Unikit onto the JSI runtime")
       return
     }
-    // Android 핫 디렉터 관례: <filesDir>/rustra/hot — dev 흐름에서 CLI 가 발행하는
+    // Android 핫 디렉터 관례: <filesDir>/unikit/hot — dev 흐름에서 CLI 가 발행하는
     // *-hot-live.so 를 코어가 감시한다. debuggable 빌드에서만 활성화한다 —
     // 릴리스는 감시 스레드 자체가 생기지 않는다(appdata dlopen 표면 차단,
-    // iOS 글루의 RUSTRA_HOT_CORE_DIR env 게이트와 대칭). 파일이 없으면 정적
+    // iOS 글루의 UNIKIT_HOT_CORE_DIR env 게이트와 대칭). 파일이 없으면 정적
     // 코어로 머무르며, 설치 실패로 install 을 거절하지 않는다(dev 전용 표면).
     if (reactApplicationContext.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
-      nativeConfigureHotCore(reactApplicationContext.filesDir.resolve("rustra/hot").toString())
+      nativeConfigureHotCore(reactApplicationContext.filesDir.resolve("unikit/hot").toString())
     }
     promise.resolve(true)
   }
@@ -140,16 +140,16 @@ class RustraBridgeModule(context: ReactApplicationContext) : ReactContextBaseJav
 }
 
 export function renderAndroidPackage(): string {
-  return `package dev.rustra.bridge
+  return `package dev.unikit.bridge
 
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.uimanager.ViewManager
 
-class RustraBridgePackage : ReactPackage {
+class UnikitBridgePackage : ReactPackage {
   @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
-  override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> = listOf(RustraBridgeModule(reactContext))
+  override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> = listOf(UnikitBridgeModule(reactContext))
   override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> = emptyList()
 }
 `;

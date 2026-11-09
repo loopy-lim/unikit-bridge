@@ -1,7 +1,7 @@
 import { execFile, spawnSync } from 'node:child_process';
 import { cliFormat, parseCliArgs } from './cli-arg-parser.js';
 
-export const RUSTRA_MSRV: [number, number, number] = [1, 88, 0];
+export const UNIKIT_MSRV: [number, number, number] = [1, 88, 0];
 export const ANDROID_NDK_VERSION = '27.1.12297006';
 export const DEFAULT_ANDROID_TARGETS = ['aarch64-linux-android', 'x86_64-linux-android'];
 
@@ -93,7 +93,7 @@ export function parseDoctorArgs(args: string[]): DoctorCliOptions {
     valueFlags: ['config', 'format'],
     booleanFlags: ['strict', 'help'],
   });
-  const configPath = parsed.values.get('config') ?? 'rustra.json';
+  const configPath = parsed.values.get('config') ?? 'unikit.json';
   if (!configPath) throw new Error('doctor --config requires a path');
   return {
     configPath,
@@ -111,7 +111,7 @@ export function isVersionAtLeast(
   minimum: [number, number, number],
 ): boolean {
   for (let index = 0; index < minimum.length; index += 1) {
-    if (candidate[index] !== minimum[index]) return candidate[index] > minimum[index];
+    if (candidate[index] !== minimum[index]) return candidate[index]! > minimum[index]!;
   }
   return true;
 }

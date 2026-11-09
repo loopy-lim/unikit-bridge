@@ -1,8 +1,8 @@
-// B2 `rustra inspect` 커맨드 테스트.
+// B2 `unikit inspect` 커맨드 테스트.
 // 저장소 표준(node:test + node:assert/strict, ESM) 사용 — 새 의존성 없음.
 //
 // parseSnapshot 자체의 Rust↔TS 파리티는 B1 교차 언어 골든
-// (crates/rustra/tests/fixtures/inspector-golden.hex.txt)이 이미 게이트하므로,
+// (crates/unikit-bridge/tests/fixtures/inspector-golden.hex.txt)이 이미 게이트하므로,
 // 여기선 serializeSnapshot 으로 손으로 만든 작은 스냅샷을 인라인 hex 로 고정해
 // CLI 경로(파일 → hex/raw 판별 → 파싱 → 필드 트리 렌더)를 검증한다.
 // 렌더 결과는 **전문 고정**(pinned)이다 — 출력 형태 드리프트를 조용히
@@ -13,8 +13,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { serializeSnapshot } from '@rustra/types';
-import type { DumpedWire } from '@rustra/types';
+import { serializeSnapshot } from '@unikit-bridge/types';
+import type { DumpedWire } from '@unikit-bridge/types';
 import { decodeDump, formatInspectText, runInspect } from './cli-inspect.js';
 import { printHelp } from './cli-help.js';
 
@@ -23,7 +23,7 @@ function bytesToHex(bytes: Uint8Array): string {
 }
 
 function withTempDir(fn: (root: string) => void | Promise<void>): Promise<void> {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-inspect-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-inspect-'));
   return Promise.resolve(fn(root)).finally(() => rmSync(root, { recursive: true, force: true }));
 }
 
@@ -115,7 +115,7 @@ test('inspect tolerates 0x prefix and whitespace inside hex dumps', async () => 
 test('inspect strips # comment lines — the golden fixture artifact format', async () => {
   await withTempDir(async (root) => {
     const file = join(root, 'dump-commented.hex');
-    // crates/rustra/tests/fixtures/inspector-golden.hex.txt 와 같은 형태:
+    // crates/unikit-bridge/tests/fixtures/inspector-golden.hex.txt 와 같은 형태:
     // # 주석 헤더 + 단일 hex 라인. (교차 패키지 파일 참조 대신 인라인 재현)
     writeFileSync(file, `# dump header comment\n# second comment\n${SNAPSHOT_HEX}\n`);
     const lines = await captureConsoleLog(() => runInspect([file]));
@@ -190,7 +190,7 @@ test('inspect --help stays silent internally; cli-help owns the usage text', asy
     assert.equal(readdirSync(root).length, 0);
     // 단일 사용자용 usage 출처 — cli-help.ts 텍스트가 실제로 존재하는지 게이트.
     const usage = await captureConsoleLog(() => printHelp('inspect'));
-    assert.match(usage.join('\n'), /Usage: rustra inspect <file>/);
+    assert.match(usage.join('\n'), /Usage: unikit inspect <file>/);
   });
 });
 
@@ -199,7 +199,7 @@ test('generate help documents --watch like the top-level help', async () => {
   // 서브커맨드 help 가 이를 누락해 최상위 help 와 drift 난 적이 있다 — 표현까지
   // 최상위 항목과 동일하게 고정한다.
   const usage = (await captureConsoleLog(() => printHelp('generate'))).join('\n');
-  assert.match(usage, /Usage: rustra generate --schema <path> --output <dir>/);
+  assert.match(usage, /Usage: unikit generate --schema <path> --output <dir>/);
   assert.match(usage, /--watch\s+Watch schema file for changes and regenerate/);
 });
 
@@ -208,7 +208,7 @@ test('inspect rejects unknown flags with the arg-parser hint', async () => {
     const file = join(root, 'dump.hex');
     writeFileSync(file, SNAPSHOT_HEX);
     await assert.rejects(() => runInspect([file, '--rawe']), /Unknown inspect option: --rawe/);
-    await assert.rejects(() => runInspect([file, '--rawe']), /Run "rustra inspect --help"/);
+    await assert.rejects(() => runInspect([file, '--rawe']), /Run "unikit inspect --help"/);
   });
 });
 

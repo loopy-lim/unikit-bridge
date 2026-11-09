@@ -8,12 +8,12 @@
 
 **Tech Stack:** Node 22 (fnm), Bun 1.4, Rust/Cargo, npm lockfiles, node:test, GitHub Actions.
 
-**Spec:** `docs/specs/2026-09-14-rustra-roadmap.md`, A1-A5/G1 and evidence rules in section 6.
+**Spec:** `docs/specs/2026-09-14-unikit-roadmap.md`, A1-A5/G1 and evidence rules in section 6.
 
 ## Global Constraints
 
 - No new host or wire change; no changes to other consumer repositories. The discovered CLI fix adds only an optional `InitHosts.nodeRange` rendering option, preserving existing calls and deliberately updating the API snapshot.
-- Install exact public package versions. Published CLI canonical caret manifest specifications are allowed only with exact install arguments, a frozen lockfile and exact installed-version/source checks at every phase; literal exact manifest strings remain a separately tested CLI compatibility case. No Cargo patch, Git/path dependencies, package overrides, symlinks to the workspace or copied Rustra sources.
+- Install exact public package versions. Published CLI canonical caret manifest specifications are allowed only with exact install arguments, a frozen lockfile and exact installed-version/source checks at every phase; literal exact manifest strings remain a separately tested CLI compatibility case. No Cargo patch, Git/path dependencies, package overrides, symlinks to the workspace or copied Unikit sources.
 - Preserve independent npm versions; a Rust-only patch upgrade is identified as such.
 - Never count a Bun process using the Node adapter as Bun FFI evidence.
 - G1 requires five evaluators and Tauri/RN evidence; this automated cycle alone cannot close G1.
@@ -31,7 +31,7 @@
 - [x] Run `node --test scripts/registry-consumer-gate.test.mjs` and capture the expected failure before implementation.
 - [x] Implement isolated installation and exact installed-source checks using npm package-lock data and Cargo metadata/lockfiles. Preserve the root consumer exception while rejecting external source overrides. Reject unknown/malformed options and unpinned package versions.
 - [x] Execute published CLI init, dependency installation, doctor, build, codegen, original demo, `--check`, field addition using the existing onboarding mutation helper, regeneration, rebuild and assertion of the returned added field.
-- [x] Execute actual Node stdio and Bun FFI calls. If a fixture is needed to add a cdylib or domain error, clearly distinguish scaffold success from extended fixture success; keep Rustra source external. Add domain-error and event/unsubscribe verification when feasible through existing public contracts, and accurately report any excluded journey segment.
+- [x] Execute actual Node stdio and Bun FFI calls. If a fixture is needed to add a cdylib or domain error, clearly distinguish scaffold success from extended fixture success; keep Unikit source external. Add domain-error and event/unsubscribe verification when feasible through existing public contracts, and accurately report any excluded journey segment.
 - [x] Run baseline → candidate → rollback with exact installed Cargo/npm versions at each phase. Preserve mutated contract between phases, regenerate/build and invoke each phase, and compare rollback contract/output to baseline. A Rust patch cycle is not evidence of two successive full product upgrades.
 - [x] Fix the existing hidden preparation failure only after reproducing it through `runOnboardingSteps`; runner exceptions and nonzero exits with empty output must fail reliably.
 - [x] Run the relevant unit tests; provide a concise self-review and test commands. Do not commit other contributors' changes.
@@ -48,7 +48,7 @@
 
 ## Task 3: Fix published-CLI dependency pin incompatibility
 
-Live public CLI 0.10.0 rejected an exact compatible `@rustra/types=0.10.0` manifest because it compared that string to `^0.10.0`. Its use of the CLI version for all adapters also conflicts with independent adapter versions and CLI-only patches.
+Live public CLI 0.10.0 rejected an exact compatible `@unikit-bridge/types=0.10.0` manifest because it compared that string to `^0.10.0`. Its use of the CLI version for all adapters also conflicts with independent adapter versions and CLI-only patches.
 
 **Files:** `packages/cli/src/dependencies.ts` and new tests; CLI runtime/init/generate call sites and package template metadata; `scripts/version-packages.mjs` and `scripts/check-release-coherence.mjs` with tests; CLI patch changeset.
 

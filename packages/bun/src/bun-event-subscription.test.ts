@@ -6,13 +6,13 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { suffix } from 'bun:ffi';
 import { createBunFfiEngine } from './bun-ffi.js';
-import type { FrameCodec } from '@rustra/types';
+import type { FrameCodec } from '@unikit-bridge/types';
 
 test('a subscription receives the first emission immediately after a ready FFI runtime', async () => {
   const library = resolve(
     dirname(fileURLToPath(import.meta.url)),
     '../../../target/debug',
-    `librustra_calculator_example.${suffix}`,
+    `libunikit_calculator_example.${suffix}`,
   );
   const codec: FrameCodec<unknown, unknown> = {
     commandId: 11,
@@ -59,7 +59,7 @@ test('subscription queues subscribers until the bridge is ready and dispatches i
   const subscription = createBunEventSubscription({ poll: source });
   const ticks: unknown[] = [];
   const dones: unknown[] = [];
-  // 동기 시그니처 — SubscribeFn 계약(코드젠 onRustraEvent 에 그대로 전달 가능).
+  // 동기 시그니처 — SubscribeFn 계약(코드젠 onUnikitEvent 에 그대로 전달 가능).
   const unTick = subscription.subscribeEvent('progress.tick', (p) => ticks.push(p));
   const unDone = subscription.subscribeEvent('demo.done', (p) => dones.push(p));
   await waitFor(() => ticks.length >= 1);
@@ -91,12 +91,12 @@ test('fail-fast: no candidates and no poll source throws on subscribe', () => {
   const subscription = createBunEventSubscription({ libraryCandidates: [] });
   assert.throws(
     () => subscription.subscribeEvent('x', () => {}),
-    /No compatible Rustra Bun cdylib/,
+    /No compatible Unikit Bun cdylib/,
   );
   // 실패는 고정 — 이후 호출도 같은 오류(프로세스 재시작이 회복 경로).
   assert.throws(
     () => subscription.subscribeEvent('y', () => {}),
-    /No compatible Rustra Bun cdylib/,
+    /No compatible Unikit Bun cdylib/,
   );
 });
 

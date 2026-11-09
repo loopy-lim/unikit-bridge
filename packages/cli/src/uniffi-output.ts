@@ -24,7 +24,7 @@ async function checkBindings(staged: string, output: string): Promise<void> {
     const expected = generated.get(name);
     if (!actual || !expected || !actual.equals(expected)) {
       throw new Error(
-        `uniffi binding drift: ${join(output, name)} differs from fresh bindgen output. Run rustra codegen to update bindings.`,
+        `uniffi binding drift: ${join(output, name)} differs from fresh bindgen output. Run unikit codegen to update bindings.`,
       );
     }
   }

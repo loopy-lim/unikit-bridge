@@ -14,21 +14,21 @@ set -euo pipefail
 # 발행 계약을 따른다 — tmp 복사 뒤 rename 이며, 제자리 덮어쓰기는 매핑된 dylib 을
 # 손상시키므로 금지(README 4단계, publishGatedArtifact 와 같은 이유).
 #
-# 모든 경로·id 는 RUSTRA_HOT_IOS_* 환경변수로 겹쳐 쓸 수 있다 — usage 참고.
+# 모든 경로·id 는 UNIKIT_HOT_IOS_* 환경변수로 겹쳐 쓸 수 있다 — usage 참고.
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 EXAMPLE_DIR="$REPO_ROOT/examples/tauri-calculator"
-HOT_CONFIG="$EXAMPLE_DIR/rustra.hot.json"
+HOT_CONFIG="$EXAMPLE_DIR/unikit.hot.json"
 
 BUILD=0
 DRY_RUN=0
 CLEANUP_TMP=""
-CRATE="${RUSTRA_HOT_IOS_CRATE:-}"
-MANIFEST="${RUSTRA_HOT_IOS_MANIFEST:-}"
-BUNDLE_ID="${RUSTRA_HOT_IOS_BUNDLE_ID:-dev.rustra.calculator}"
-TRIPLE="${RUSTRA_HOT_IOS_TRIPLE:-aarch64-apple-ios-sim}"
-PROFILE="${RUSTRA_HOT_IOS_PROFILE:-release}"
-TARGET_DIR="${RUSTRA_HOT_IOS_TARGET_DIR:-$REPO_ROOT/target}"
+CRATE="${UNIKIT_HOT_IOS_CRATE:-}"
+MANIFEST="${UNIKIT_HOT_IOS_MANIFEST:-}"
+BUNDLE_ID="${UNIKIT_HOT_IOS_BUNDLE_ID:-dev.unikit.calculator}"
+TRIPLE="${UNIKIT_HOT_IOS_TRIPLE:-aarch64-apple-ios-sim}"
+PROFILE="${UNIKIT_HOT_IOS_PROFILE:-release}"
+TARGET_DIR="${UNIKIT_HOT_IOS_TARGET_DIR:-$REPO_ROOT/target}"
 
 usage() {
   cat <<'EOF'
@@ -36,23 +36,23 @@ Usage: scripts/hot-swap-ios.sh [--build] [--dry-run]
 
   examples/tauri-calculator iOS 시뮬레이터 핫스왑 진입 — 부팅된 iPhone 시뮬레이터에
   앱을 설치하고, 핫코어 dylib 을 앱 데이터 컨테이너로 원자적 rename 으로 스테이징한
-  뒤, SIMCTL_CHILD_RUSTRA_HOT_CORE 를 지정해 실행한다.
+  뒤, SIMCTL_CHILD_UNIKIT_HOT_CORE 를 지정해 실행한다.
 
   --build    문서화된 빌드 단계(프론트엔드 → tauri ios build → 시뮬레이터 cdylib)를 먼저 실행
   --dry-run  변경 커맨드는 출력만 하고 실행하지 않는다(읽기 전용 해석은 수행)
 
 환경변수 오버라이드:
-  RUSTRA_HOT_IOS_UDID            대상 UDID (기본: 부팅된 첫 iPhone 시뮬레이터)
-  RUSTRA_HOT_IOS_DYLIB           소스 dylib 직접 지정 — 이 값을 주면 파생을 생략
-  RUSTRA_HOT_IOS_CRATE           rust 패키지명 (기본: rustra.hot.json codegen.rustPackage)
-  RUSTRA_HOT_IOS_MANIFEST        cargo 매니페스트 (기본: rustra.hot.json codegen.rustManifest)
-  RUSTRA_HOT_IOS_TARGET_DIR      cargo 타깃 디렉터리 (기본: <repo>/target)
-  RUSTRA_HOT_IOS_TRIPLE          cargo 타깃 트리플 (기본: aarch64-apple-ios-sim)
-  RUSTRA_HOT_IOS_PROFILE         cargo 프로필 디렉터리 (기본: release)
-  RUSTRA_HOT_IOS_BUNDLE_ID       앱 bundle id (기본: dev.rustra.calculator)
-  RUSTRA_HOT_IOS_APP             설치할 .app 경로 (기본: gen/apple/build/arm64-sim 아래 산출물)
-  RUSTRA_HOT_IOS_CONSOLE=1       simctl launch 에 --console-pty 를 붙인다(블로킹)
-  RUSTRA_HOT_IOS_SKIP_INSTALL=1  simctl install 생략 — 실행 중인 설치에 dylib 만 재스테이징
+  UNIKIT_HOT_IOS_UDID            대상 UDID (기본: 부팅된 첫 iPhone 시뮬레이터)
+  UNIKIT_HOT_IOS_DYLIB           소스 dylib 직접 지정 — 이 값을 주면 파생을 생략
+  UNIKIT_HOT_IOS_CRATE           rust 패키지명 (기본: unikit.hot.json codegen.rustPackage)
+  UNIKIT_HOT_IOS_MANIFEST        cargo 매니페스트 (기본: unikit.hot.json codegen.rustManifest)
+  UNIKIT_HOT_IOS_TARGET_DIR      cargo 타깃 디렉터리 (기본: <repo>/target)
+  UNIKIT_HOT_IOS_TRIPLE          cargo 타깃 트리플 (기본: aarch64-apple-ios-sim)
+  UNIKIT_HOT_IOS_PROFILE         cargo 프로필 디렉터리 (기본: release)
+  UNIKIT_HOT_IOS_BUNDLE_ID       앱 bundle id (기본: dev.unikit.calculator)
+  UNIKIT_HOT_IOS_APP             설치할 .app 경로 (기본: gen/apple/build/arm64-sim 아래 산출물)
+  UNIKIT_HOT_IOS_CONSOLE=1       simctl launch 에 --console-pty 를 붙인다(블로킹)
+  UNIKIT_HOT_IOS_SKIP_INSTALL=1  simctl install 생략 — 실행 중인 설치에 dylib 만 재스테이징
 EOF
 }
 
@@ -95,7 +95,7 @@ run_in() {
   if [[ "$DRY_RUN" -eq 0 ]]; then (cd "$dir" && "$@"); fi
 }
 
-# rustra.hot.json 의 codegen 필드를 읽는다 — bash 에 JSON 파서가 없으므로 repo 가
+# unikit.hot.json 의 codegen 필드를 읽는다 — bash 에 JSON 파서가 없으므로 repo 가
 # 이미 요구하는 런타임(node/bun/python3) 중 하나를 빌려 쓴다. stdout 이 값이다.
 read_hot_config_field() {
   local field="$1"
@@ -134,17 +134,17 @@ load_hot_config() {
 
 resolve_artifact() {
   local lib_stem artifact_dir gated plain
-  if [[ -n "${RUSTRA_HOT_IOS_DYLIB:-}" ]]; then
-    [[ -f "$RUSTRA_HOT_IOS_DYLIB" ]] ||
-      fail "RUSTRA_HOT_IOS_DYLIB does not exist: $RUSTRA_HOT_IOS_DYLIB"
-    ARTIFACT="$RUSTRA_HOT_IOS_DYLIB"
-    log "artifact (RUSTRA_HOT_IOS_DYLIB override): $ARTIFACT"
+  if [[ -n "${UNIKIT_HOT_IOS_DYLIB:-}" ]]; then
+    [[ -f "$UNIKIT_HOT_IOS_DYLIB" ]] ||
+      fail "UNIKIT_HOT_IOS_DYLIB does not exist: $UNIKIT_HOT_IOS_DYLIB"
+    ARTIFACT="$UNIKIT_HOT_IOS_DYLIB"
+    log "artifact (UNIKIT_HOT_IOS_DYLIB override): $ARTIFACT"
     return 0
   fi
   load_hot_config || true
   if [[ -z "$CRATE" ]]; then
     fail "cannot derive the hot-core dylib path without the crate name" \
-      "set RUSTRA_HOT_IOS_CRATE=rustra-calculator-example (or RUSTRA_HOT_IOS_DYLIB=<abs path>)"
+      "set UNIKIT_HOT_IOS_CRATE=unikit-calculator-example (or UNIKIT_HOT_IOS_DYLIB=<abs path>)"
   fi
   lib_stem="lib${CRATE//-/_}"
   artifact_dir="$TARGET_DIR/$TRIPLE/$PROFILE"
@@ -188,13 +188,13 @@ resolve_udid() {
       first_iphone="$udid"
     fi
   done < <(printf '%s\n' "$booted")
-  if [[ -n "${RUSTRA_HOT_IOS_UDID:-}" ]]; then
-    if ! printf '%s\n' "$booted" | grep -Fq "(${RUSTRA_HOT_IOS_UDID})"; then
-      fail "RUSTRA_HOT_IOS_UDID=$RUSTRA_HOT_IOS_UDID is not a booted simulator" \
+  if [[ -n "${UNIKIT_HOT_IOS_UDID:-}" ]]; then
+    if ! printf '%s\n' "$booted" | grep -Fq "(${UNIKIT_HOT_IOS_UDID})"; then
+      fail "UNIKIT_HOT_IOS_UDID=$UNIKIT_HOT_IOS_UDID is not a booted simulator" \
         "check: xcrun simctl list devices booted"
     fi
-    UDID="$RUSTRA_HOT_IOS_UDID"
-    log "simulator (RUSTRA_HOT_IOS_UDID override): $UDID"
+    UDID="$UNIKIT_HOT_IOS_UDID"
+    log "simulator (UNIKIT_HOT_IOS_UDID override): $UDID"
     return 0
   fi
   if [[ -n "$first_iphone" ]]; then
@@ -227,7 +227,7 @@ main() {
         "  sudo xcode-select -s /Applications/Xcode.app/Contents/Developer"
     load_hot_config ||
       fail "cannot read codegen.rustPackage/rustManifest from ${HOT_CONFIG#$REPO_ROOT/}" \
-        "set RUSTRA_HOT_IOS_CRATE and RUSTRA_HOT_IOS_MANIFEST, or install node/bun/python3"
+        "set UNIKIT_HOT_IOS_CRATE and UNIKIT_HOT_IOS_MANIFEST, or install node/bun/python3"
     [[ -d "$EXAMPLE_DIR/src-tauri/gen/apple" ]] ||
       fail "the tauri iOS project is not initialized" \
         "run once: (cd examples/tauri-calculator && bunx tauri ios init)"
@@ -250,8 +250,8 @@ main() {
   resolve_artifact
   resolve_udid
 
-  if [[ "${RUSTRA_HOT_IOS_SKIP_INSTALL:-0}" != "1" ]]; then
-    APP="${RUSTRA_HOT_IOS_APP:-$EXAMPLE_DIR/src-tauri/gen/apple/build/arm64-sim/Rustra Tauri Calculator.app}"
+  if [[ "${UNIKIT_HOT_IOS_SKIP_INSTALL:-0}" != "1" ]]; then
+    APP="${UNIKIT_HOT_IOS_APP:-$EXAMPLE_DIR/src-tauri/gen/apple/build/arm64-sim/Unikit Tauri Calculator.app}"
     if [[ ! -d "$APP" ]]; then
       if [[ -d "$EXAMPLE_DIR/src-tauri/gen/apple" ]]; then
         fail "no simulator app bundle at: $APP" \
@@ -264,12 +264,12 @@ main() {
     log "installing app"
     run xcrun simctl install "$UDID" "$APP"
   else
-    log "RUSTRA_HOT_IOS_SKIP_INSTALL=1 — skipping simctl install"
+    log "UNIKIT_HOT_IOS_SKIP_INSTALL=1 — skipping simctl install"
   fi
 
   if ! CONTAINER="$(xcrun simctl get_app_container "$UDID" "$BUNDLE_ID" data)"; then
     fail "cannot resolve the data container of $BUNDLE_ID on $UDID" \
-      "the app must be installed first — drop RUSTRA_HOT_IOS_SKIP_INSTALL or run:" \
+      "the app must be installed first — drop UNIKIT_HOT_IOS_SKIP_INSTALL or run:" \
       "  xcrun simctl install $UDID <path-to-.app>"
   fi
   log "app data container: $CONTAINER"
@@ -281,12 +281,12 @@ main() {
   run mv -f "$CLEANUP_TMP" "$DEST"
 
   launch_args=(--terminate-running-process)
-  if [[ "${RUSTRA_HOT_IOS_CONSOLE:-0}" == "1" ]]; then
+  if [[ "${UNIKIT_HOT_IOS_CONSOLE:-0}" == "1" ]]; then
     launch_args=(--console-pty --terminate-running-process)
-    log "RUSTRA_HOT_IOS_CONSOLE=1 — launch blocks on the app console (ctrl-c to detach)"
+    log "UNIKIT_HOT_IOS_CONSOLE=1 — launch blocks on the app console (ctrl-c to detach)"
   fi
   log "launching $BUNDLE_ID"
-  run env "SIMCTL_CHILD_RUSTRA_HOT_CORE=$DEST" xcrun simctl launch \
+  run env "SIMCTL_CHILD_UNIKIT_HOT_CORE=$DEST" xcrun simctl launch \
     "${launch_args[@]}" "$UDID" "$BUNDLE_ID"
 
   log "done. hot core path inside the app container: $DEST"

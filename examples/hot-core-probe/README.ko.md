@@ -11,7 +11,7 @@
 
 ## 검증 항목
 
-1. `DylibCore::open` — dlopen → `rustra_mobile_init` → 심볼 바인딩
+1. `DylibCore::open` — dlopen → `unikit_mobile_init` → 심볼 바인딩
 2. JSON 디스패치 왕복(`addNumbers`) + 미지 명령 에러 재분할
 3. 계약 해시 조회(SHA-256 hex, 64자)
 4. 버전 스왑 카피(`prepare_swap_copy`) → 카피 open → 동일 해시
@@ -25,28 +25,28 @@
 
 ```bash
 # 타깃별 프로브 + 스왑 단위 cdylib 빌드
-cargo build --release -p rustra-hot-core-probe -p rustra-calculator-example
+cargo build --release -p unikit-hot-core-probe -p unikit-calculator-example
 # iOS 시뮬레이터
 cargo build --release --target aarch64-apple-ios-sim \
-  -p rustra-hot-core-probe -p rustra-calculator-example
+  -p unikit-hot-core-probe -p unikit-calculator-example
 # Android (arm64 에뮬레이터), cargo-ndk
 cargo ndk -t arm64-v8a build --release \
-  -p rustra-hot-core-probe -p rustra-calculator-example
+  -p unikit-hot-core-probe -p unikit-calculator-example
 
 # macOS 호스트
-./target/release/rustra-hot-core-probe \
-  ./target/release/librustra_calculator_example.dylib
+./target/release/unikit-hot-core-probe \
+  ./target/release/libunikit_calculator_example.dylib
 
 # iOS 시뮬레이터(부팅된 기기 UDID, 절대 경로)
 xcrun simctl spawn <UDID> \
-  target/aarch64-apple-ios-sim/release/rustra-hot-core-probe \
-  target/aarch64-apple-ios-sim/release/librustra_calculator_example.dylib
+  target/aarch64-apple-ios-sim/release/unikit-hot-core-probe \
+  target/aarch64-apple-ios-sim/release/libunikit_calculator_example.dylib
 
 # Android 에뮬레이터(shell 도메인)
-adb push target/aarch64-linux-android/release/rustra-hot-core-probe /data/local/tmp/
-adb push target/aarch64-linux-android/release/librustra_calculator_example.so /data/local/tmp/
-adb shell chmod 755 /data/local/tmp/rustra-hot-core-probe
-adb shell /data/local/tmp/rustra-hot-core-probe /data/local/tmp/librustra_calculator_example.so
+adb push target/aarch64-linux-android/release/unikit-hot-core-probe /data/local/tmp/
+adb push target/aarch64-linux-android/release/libunikit_calculator_example.so /data/local/tmp/
+adb shell chmod 755 /data/local/tmp/unikit-hot-core-probe
+adb shell /data/local/tmp/unikit-hot-core-probe /data/local/tmp/libunikit_calculator_example.so
 ```
 
 종료 코드 `0` + `PROBE PASS` 가 전 단계 통과다. 실패 단계는 `PROBE FAIL
@@ -55,14 +55,14 @@ step=<이름>` 을 출력하고 exit `1` 로 끝난다.
 ### 감시 모드
 
 ```bash
-rustra-hot-core-probe <artifact> --watch 10
+unikit-hot-core-probe <artifact> --watch 10
 ```
 
 프로브는 아티팩트를 열고 감시 스레드를 띄운 뒤 10초간 폴링한다. 그 사이 외부
 발행자가 아티팩트 바이트를 교체한다. 발행자 계약: **제자리 쓰기 금지, 반드시
 원자적 rename 으로 교체** — 프로세스가 매핑한 dylib 파일을 덮어쓰면 그 자체가
 파손이다(macOS/iOS 는 `SIGKILL`, Android 는 `SIGSEGV`). 이는 CLI 계약과 같은
-맥락이다 — `rustra dev` 는 게이트 통과 `-hot-live` 아티팩트를 tmp 파일 + rename
+맥락이다 — `unikit dev` 는 게이트 통과 `-hot-live` 아티팩트를 tmp 파일 + rename
 으로 발행해 살아있는 매핑의 기존 inode 를 보존한다.
 
 동기 모드와 달리 감시 모드는 값 단정(`addNumbers(2,3) == 5` 등)을 하지 않는다:
@@ -92,9 +92,9 @@ PROBE OBS <명령> err <코드>      # 관측 단계, 에러 와이어(코드만
 
 ```bash
 # 시나리오별 스왑 유닛을 빌드해 스테이징하고, rename 으로 발행한다:
-cargo build --release -p rustra-hot-core-variant                    # 기본
-cargo build --release -p rustra-hot-core-variant --features behavior
-cp target/release/librustra_hot_core_variant.dylib publish.tmp.dylib
+cargo build --release -p unikit-hot-core-variant                    # 기본
+cargo build --release -p unikit-hot-core-variant --features behavior
+cp target/release/libunikit_hot_core_variant.dylib publish.tmp.dylib
 mv -f publish.tmp.dylib /path/to/live.dylib
 ```
 

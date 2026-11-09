@@ -1,5 +1,5 @@
 {
-  "name": "@rustra/example-reference-app",
+  "name": "@unikit-bridge/example-reference-app",
   "version": "0.2.0",
   "private": true,
   "packageManager": "bun@1.4.0",
@@ -9,9 +9,9 @@
     "smoke": "bun src/main.ts"
   },
   "dependencies": {
-    "@rustra/react": "^0.4.0",
-    "@rustra/types": "^0.4.0",
-    "@rustra/node": "^0.4.0",
+    "@unikit-bridge/react": "^0.4.0",
+    "@unikit-bridge/types": "^0.4.0",
+    "@unikit-bridge/node": "^0.4.0",
     "react": "^19.0.0"
   },
   "devDependencies": {

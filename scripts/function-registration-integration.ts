@@ -21,7 +21,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
 const target = process.env.CARGO_TARGET_DIR ?? join(root, 'target');
 const fixture = join(resolve(root, target), 'debug/examples/function_fixture');
-const scratch = mkdtempSync(join(tmpdir(), 'rustra-functions-'));
+const scratch = mkdtempSync(join(tmpdir(), 'unikit-functions-'));
 function run(command: string, args: string[], input?: string): string {
   const result = spawnSync(command, args, {
     cwd: root,
@@ -48,7 +48,7 @@ const hex = (buffer: ArrayBuffer | ArrayBufferView): string =>
 const buffer = (value: string): ArrayBuffer => Uint8Array.from(Buffer.from(value, 'hex')).buffer;
 
 try {
-  run('cargo', ['build', '--locked', '-p', 'rustra', '--example', 'function_fixture']);
+  run('cargo', ['build', '--locked', '-p', 'unikit-bridge', '--example', 'function_fixture']);
   run('bun', ['run', '--cwd', 'packages/types', 'build']);
   const emitted = JSON.parse(run(fixture, ['schema'])) as {
     schema: string;
@@ -56,8 +56,8 @@ try {
     contract: string;
   };
   const schema = parsePackageSchema(emitted.schema);
-  mkdirSync(join(scratch, 'node_modules/@rustra'), { recursive: true });
-  symlinkSync(join(root, 'packages/types'), join(scratch, 'node_modules/@rustra/types'));
+  mkdirSync(join(scratch, 'node_modules/@unikit-bridge'), { recursive: true });
+  symlinkSync(join(root, 'packages/types'), join(scratch, 'node_modules/@unikit-bridge/types'));
   writeFileSync(join(scratch, 'package.json'), '{"type":"module"}\n');
   const files = {
     'types.ts': generateTypesTs(schema),
@@ -69,17 +69,17 @@ try {
   };
   for (const [name, text] of Object.entries(files)) writeFileSync(join(scratch, name), text);
   if (process.argv.includes('--cpp')) {
-    writeFileSync(join(scratch, 'rustra-generated-codecs.cpp'), generateFrameCodecsCpp(schema));
-    writeFileSync(join(scratch, 'rustra-generated-codecs.hpp'), generateFrameCodecsHpp(schema));
+    writeFileSync(join(scratch, 'unikit-generated-codecs.cpp'), generateFrameCodecsCpp(schema));
+    writeFileSync(join(scratch, 'unikit-generated-codecs.hpp'), generateFrameCodecsHpp(schema));
     mkdirSync(join(scratch, 'jsi'));
     writeFileSync(join(scratch, 'jsi/jsi.h'), '#pragma once\n');
     writeFileSync(
       join(scratch, 'native-check.cpp'),
       `
-#include "rustra-generated-codecs.hpp"
+#include "unikit-generated-codecs.hpp"
 #include <cassert>
 #include <cstring>
-namespace rustra::generated {
+namespace unikit_bridge::generated {
 facebook::jsi::Value make_array_buffer(facebook::jsi::Runtime& rt, const uint8_t* data, size_t size) {
   facebook::jsi::ArrayBuffer buffer(rt, size);
   if (size) std::memcpy(buffer.data(rt), data, size);
@@ -87,7 +87,7 @@ facebook::jsi::Value make_array_buffer(facebook::jsi::Runtime& rt, const uint8_t
 }
 }
 int main() {
-  namespace gen = rustra::generated;
+  namespace gen = unikit_bridge::generated;
   facebook::jsi::Runtime rt;
   ${schema.commands
     .map(
@@ -106,15 +106,15 @@ int main() {
     run(process.env.CXX ?? 'clang++', [
       '-std=c++17',
       '-O2',
-      '-DRUSTRA_TEST_JSI_SHIM=1',
+      '-DUNIKIT_TEST_JSI_SHIM=1',
       '-I',
       scratch,
       '-I',
       join(root, 'packages/react-native/native/cpp'),
       '-include',
-      join(root, 'examples/react-native-calculator/modules/rustra-jsi/ios/test-jsi-shim.hpp'),
+      join(root, 'examples/react-native-calculator/modules/unikit-jsi/ios/test-jsi-shim.hpp'),
       join(scratch, 'native-check.cpp'),
-      join(scratch, 'rustra-generated-codecs.cpp'),
+      join(scratch, 'unikit-generated-codecs.cpp'),
       '-o',
       join(scratch, 'native-check'),
     ]);

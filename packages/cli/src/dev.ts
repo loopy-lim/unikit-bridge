@@ -1,5 +1,5 @@
 import { isBindingOutputPath } from './uniffi-output-boundary.js';
-/** `rustra dev` — Rust 소스와 생성물의 dual-phase watch loop. */
+/** `unikit dev` — Rust 소스와 생성물의 dual-phase watch loop. */
 import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { parseCliArgs } from './cli-arg-parser.js';
@@ -83,7 +83,7 @@ export function parseDevArgs(args: string[]): DevOptions {
 
 function inspectHint(): void {
   console.log('[dev:inspect] Wrap your engine with createInstrumentedEngine in the app process');
-  console.log('[dev:inspect] to expose report() via console or remote: @rustra/devtools');
+  console.log('[dev:inspect] to expose report() via console or remote: @unikit-bridge/devtools');
 }
 
 export async function runDev(args: string[]): Promise<DevWatchHandle> {
@@ -336,7 +336,7 @@ async function runConfigDev(configPath: string, inspect: boolean): Promise<DevWa
       if (disposed) return;
       if (dylibPublish) {
         const livePath = publishGatedArtifact(dylibPublish.artifact, dylibPublish.livePath);
-        log(`[dev:dylib] launch the host with RUSTRA_HOT_CORE=${livePath}`);
+        log(`[dev:dylib] launch the host with UNIKIT_HOT_CORE=${livePath}`);
       }
       // 지문 채택 — 성공 틱 한정(게이트 거부는 위에서 return, 빌드 실패는 catch 로
       // 가므로 여기에 못 미친다). 코드젠이 **소비한** 입력의 판정 시점 지문을

@@ -1,8 +1,8 @@
 pub mod parity_bench;
 #[cfg(feature = "uniffi")]
 use parity_bench::*;
-use rustra::ffi::FfiFormat;
-use rustra::prelude::*;
+use unikit_bridge::ffi::FfiFormat;
+use unikit_bridge::prelude::*;
 
 /// 루프형 stdio 런타임 코어 — `loop-stdio` bin 과 통합 테스트가 공유한다.
 pub mod loop_stdio;
@@ -90,7 +90,7 @@ pub fn clamp(input: ClampInput) -> Result<ClampOutput> {
     })
 }
 
-// This declaration order is part of the postcard wire contract. rustra's
+// This declaration order is part of the postcard wire contract. unikit's
 // schema emitter preserves it and records `fieldOrder: "declaration"`.
 
 // ── Tier 2 (String/Vec) 명령 ─────────────────────────────
@@ -239,9 +239,9 @@ pub fn echo_groups(input: EchoGroupsInput) -> Result<EchoGroupsOutput> {
 }
 
 // ── Tier 1 에러 전용 명령 (criterion 6: typed error roundtrip) ────────
-// divide 는 0으로 나눌 때 RustraError::custom("math.divide_by_zero", …) 를
+// divide 는 0으로 나눌 때 UnikitError::custom("math.divide_by_zero", …) 를
 // 반환한다. Frame error wire([ok=0][pad][len u16][postcard{code,message}])를
-// 통해 code 가 그대로 건너가 JS 측 RustraCommandError(code, message) 로 복원되는
+// 통해 code 가 그대로 건너가 JS 측 UnikitCommandError(code, message) 로 복원되는
 // 것을 증명한다.
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -260,7 +260,7 @@ pub struct DivideOutput {
 #[command(error("math.divide_by_zero"))]
 pub fn divide(input: DivideInput) -> Result<DivideOutput> {
     if input.b == 0 {
-        return Err(RustraError::custom(
+        return Err(UnikitError::custom(
             "math.divide_by_zero",
             "cannot divide by zero",
         ));
@@ -298,7 +298,7 @@ pub fn secure_compute(input: SecureComputeInput) -> Result<SecureComputeOutput> 
 
 // ── Event push demo (Rust → JS 싱크 검증) ─────────────────
 // `emitDemo` 는 `Package::emit` 으로 progress.tick N 회 + demo.done 1 회를
-// 발행한다. RN JSI 호스트가 rustra_ffi_event_sink_register 로 C 콜백을
+// 발행한다. RN JSI 호스트가 unikit_ffi_event_sink_register 로 C 콜백을
 // 등록했으면 emit 이 즉시 콜백으로 전달된다(푸시 경로). 등록 안 된
 // 호스트에서는 기존대로 이벤트 버스에 쌓인다(폴링 경로) — 하위호환.
 
@@ -319,8 +319,8 @@ pub struct EmitDemoOutput {
 
 #[command]
 pub fn emit_demo(input: EmitDemoInput) -> Result<EmitDemoOutput> {
-    let pkg = rustra::ffi::get_package()
-        .ok_or_else(|| RustraError::custom("ffi.not_registered", "package not registered"))?;
+    let pkg = unikit_bridge::ffi::get_package()
+        .ok_or_else(|| UnikitError::custom("ffi.not_registered", "package not registered"))?;
     let ticks = input.ticks.max(0);
     let delay = input.step_delay_ms.max(0) as u64;
     for step in 0..ticks {
@@ -406,18 +406,18 @@ pub fn bench_echo_string(input: BenchStringPayload) -> Result<BenchStringPayload
 #[derive(Debug, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct BenchBytesPayload {
-    #[serde(with = "rustra::byte_buffer")]
+    #[serde(with = "unikit_bridge::byte_buffer")]
     #[schemars(with = "Vec<u8>")]
     pub data: Vec<u8>,
 }
 
-impl rustra::BufferCommandInput for BenchBytesPayload {
+impl unikit_bridge::BufferCommandInput for BenchBytesPayload {
     fn from_buffer(data: Vec<u8>) -> Self {
         Self { data }
     }
 }
 
-impl rustra::BufferCommandOutput for BenchBytesPayload {
+impl unikit_bridge::BufferCommandOutput for BenchBytesPayload {
     fn into_buffer(self) -> Vec<u8> {
         self.data
     }
@@ -576,7 +576,7 @@ pub fn kind_echo(input: KindEchoInput) -> Result<KindEchoOutput> {
     Ok(KindEchoOutput { echoed: input.kind })
 }
 
-// `rustraRegistryDemo` 는 빌드 시점에 등록되어 항상 호출 가능하며, 런타임에 live
+// `unikitRegistryDemo` 는 빌드 시점에 등록되어 항상 호출 가능하며, 런타임에 live
 // package 를 mutate 한다. RN 이 사용하는 동일 FFI 경로(invoke_json)를 통해 동작하며,
 // mutation 사이에 rebuild 가 필요 없다. release 빌드에서는 frozen 이다.
 
@@ -715,9 +715,9 @@ pub struct RegistryDemoOutput {
 /// 런타임 registry 제어 명령. op:
 /// `register` / `unregister` / `replacePing` / `replaceAdd` / `restoreAdd` / `freeze` / `state`.
 #[command]
-pub fn rustra_registry_demo(input: RegistryDemoInput) -> Result<RegistryDemoOutput> {
-    let pkg = rustra::ffi::get_package()
-        .ok_or_else(|| RustraError::custom("ffi.not_registered", "package not registered"))?;
+pub fn unikit_registry_demo(input: RegistryDemoInput) -> Result<RegistryDemoOutput> {
+    let pkg = unikit_bridge::ffi::get_package()
+        .ok_or_else(|| UnikitError::custom("ffi.not_registered", "package not registered"))?;
     let frozen = pkg.is_frozen();
     let message = match input.op.as_str() {
         "register" => match pkg.register("ping", ping) {
@@ -804,7 +804,7 @@ pub fn calculator_package() -> Package {
                 process_item,
                 divide,
                 emit_demo,
-                rustra_registry_demo,
+                unikit_registry_demo,
                 secure_compute,
                 size_of,
                 score_total,
@@ -820,13 +820,13 @@ pub fn calculator_package() -> Package {
             )
             .buffer_command_fn(bench_echo_bytes)
             .command_execution(
-                __RUstra_meta_bench_echo_bytes,
-                __RUstra_execution_bench_echo_bytes,
+                __UNikit_meta_bench_echo_bytes,
+                __UNikit_execution_bench_echo_bytes,
             )
             .command_fn(bench_echo_pair)
             .command_execution(
-                __RUstra_meta_bench_echo_pair,
-                __RUstra_execution_bench_echo_pair,
+                __UNikit_meta_bench_echo_pair,
+                __UNikit_execution_bench_echo_pair,
             )
             .command_fn(echo_groups)
             // register! 튜플은 .command_fn 체인만 생성하므로 buffered 커맨드들이
@@ -841,12 +841,12 @@ pub fn calculator_package() -> Package {
             // 등록은 매크로 메타(platforms)를 명시적으로 연결한다.
             .command_fn(platform_native_info)
             .platform_meta_if(
-                __RUstra_meta_platform_native_info,
-                __RUstra_platforms_platform_native_info,
+                __UNikit_meta_platform_native_info,
+                __UNikit_platforms_platform_native_info,
             )
             .command_fn(channel_demo_bytes)
             .command_fn(device_demo)
-            .devices_meta_if(__RUstra_meta_device_demo, __RUstra_devices_device_demo)
+            .devices_meta_if(__UNikit_meta_device_demo, __UNikit_devices_device_demo)
             // A5: 태그 enum 표본 — 신규 커맨드는 id 시프트 방지를 위해 체인 맨 뒤에.
             .command_fn(kind_echo);
             let pkg =
@@ -863,21 +863,21 @@ pub fn calculator_package() -> Package {
 // Stable zero-config native entry shared by Bun FFI and the RN bridge. The
 // macro also installs the Apple load-time constructor; other hosts call the
 // exported symbol explicitly during lazy bootstrap.
-rustra::native_entry!(calculator_package);
+unikit_bridge::native_entry!(calculator_package);
 
 /// Linux(ELF) — `.init_array` constructor 로 동일 자동 등록. CI(Linux)에서
 /// FFI 라운드트립 테스트가 `ffi.not_registered` 로 실패하는 것을 막는다.
 /// P2(ELF/PE 생성자 비대칭)의 ELF 측 해소 — Android 셸은 기존대로 명시
-/// `rustra_*_init()` 호출을 유지(검증된 패턴).
+/// `unikit_*_init()` 호출을 유지(검증된 패턴).
 #[cfg(target_os = "linux")]
 mod linux_init {
     #[used]
     #[unsafe(link_section = ".init_array")]
     static AUTO_INIT: extern "C" fn() = {
-        extern "C" fn rustra_auto_init() {
+        extern "C" fn unikit_auto_init() {
             crate::calculator_package();
         }
-        rustra_auto_init
+        unikit_auto_init
     };
 }
 
@@ -885,43 +885,43 @@ mod linux_init {
 /// iOS debug 빌드에서 `__mod_init_func` constructor 가 dead-strip 되는 것에 대한
 /// 결정론적 대체 수단 (예: JSI install() 에서 호출).
 #[unsafe(no_mangle)]
-pub extern "C" fn rustra_calculator_init() {
-    rustra_mobile_init();
+pub extern "C" fn unikit_calculator_init() {
+    unikit_mobile_init();
 }
 
-/// frame: command_id (u16) based request — 코어 `rustra_ffi_invoke_frame`
+/// frame: command_id (u16) based request — 코어 `unikit_ffi_invoke_frame`
 /// 심볼로 위임한다 (과거 이 파일에 복제되어 있던 패닉 가드+버퍼 프로토콜의
 /// 단일 구현). 심볼명만 calculator 네임스페이스로 재노출해 기존 C++/JSI 호스트
 /// 바인딩을 유지한다.
 ///
 /// 주의: 반환 버퍼는 **코어 FFI 할당 레이아웃**(8바이트 헤더)이므로 해제도
-/// 코어 `rustra_ffi_free`로 해야 한다 — `rustra_calculator_free_buffer` 같은
+/// 코어 `unikit_ffi_free`로 해야 한다 — `unikit_calculator_free_buffer` 같은
 /// 예제 레이아웃 해제 심볼과는 교환할 수 없다.
 ///
 /// # Safety
 ///
 /// Caller must ensure `payload` is valid for `payload_len` bytes and `out_len` is a valid pointer.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_calculator_invoke_frame(
+pub unsafe extern "C" fn unikit_calculator_invoke_frame(
     payload: *const u8,
     payload_len: usize,
     out_len: *mut usize,
 ) -> *mut u8 {
-    unsafe { rustra::ffi::rustra_ffi_invoke_frame(payload, payload_len, out_len) }
+    unsafe { unikit_bridge::ffi::unikit_ffi_invoke_frame(payload, payload_len, out_len) }
 }
 
-/// `rustra_calculator_invoke_frame` 응답 버퍼 해제 — 코어 `rustra_ffi_free`
+/// `unikit_calculator_invoke_frame` 응답 버퍼 해제 — 코어 `unikit_ffi_free`
 /// 로 위임한다(할당이 코어 레이아웃이므로).
 ///
 /// # Safety
 ///
-/// `ptr`/`len` must be the exact pair returned by `rustra_calculator_invoke_frame`.
+/// `ptr`/`len` must be the exact pair returned by `unikit_calculator_invoke_frame`.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_calculator_free_frame_buffer(ptr: *mut u8, len: usize) {
-    unsafe { rustra::ffi::rustra_ffi_free(ptr, len) };
+pub unsafe extern "C" fn unikit_calculator_free_frame_buffer(ptr: *mut u8, len: usize) {
+    unsafe { unikit_bridge::ffi::unikit_ffi_free(ptr, len) };
 }
 
-/// 코어 `rustra_ffi_invoke_raw` 의 calculator 네임스페이스 재노출 — JSI
+/// 코어 `unikit_ffi_invoke_raw` 의 calculator 네임스페이스 재노출 — JSI
 /// `invokeTypedRaw` (Tier 0 스칼라 직결) 진입과 짝을 이룬다. 계약은 코어
 /// doc 주석 참조(0=성공, 1=에러, UINT32_MAX=raw 불가 폴백 신호).
 ///
@@ -930,7 +930,7 @@ pub unsafe extern "C" fn rustra_calculator_free_frame_buffer(ptr: *mut u8, len: 
 /// `slots` must be valid for `slot_count` u64 reads; `out_slot`/`err_len` valid
 /// write pointers; `err_buf` valid for `err_buf_cap` bytes when non-null.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_calculator_invoke_typed_raw(
+pub unsafe extern "C" fn unikit_calculator_invoke_typed_raw(
     command_id: u16,
     slots: *const u64,
     slot_count: usize,
@@ -940,7 +940,7 @@ pub unsafe extern "C" fn rustra_calculator_invoke_typed_raw(
     err_len: *mut usize,
 ) -> u32 {
     unsafe {
-        rustra::ffi::rustra_ffi_invoke_raw(
+        unikit_bridge::ffi::unikit_ffi_invoke_raw(
             command_id,
             slots,
             slot_count,
@@ -952,36 +952,36 @@ pub unsafe extern "C" fn rustra_calculator_invoke_typed_raw(
     }
 }
 
-/// Frame 비동기 완료 콜백 — `rustra_ffi_invoke_async` 의 on_complete 와 동일 계약.
+/// Frame 비동기 완료 콜백 — `unikit_ffi_invoke_async` 의 on_complete 와 동일 계약.
 /// 응답 버퍼는 코어 FFI 레이아웃으로 할당되며 콜백 첫 인자가 null 이 아니면
-/// `rustra_calculator_free_frame_buffer` 로 해제해야 한다.
-pub type RustraCalculatorAsyncCallback =
+/// `unikit_calculator_free_frame_buffer` 로 해제해야 한다.
+pub type UnikitCalculatorAsyncCallback =
     unsafe extern "C" fn(user_data: *mut std::ffi::c_void, resp: *mut u8, resp_len: usize);
 
-/// Frame 비동기 진입점 — `rustra_ffi_invoke_async` 와 동일한 계약
+/// Frame 비동기 진입점 — `unikit_ffi_invoke_async` 와 동일한 계약
 /// (invocation_id 발급, 워커 스레드 dispatch, cancel 체크포인트,
 /// complete 후 on_complete)을 Frame 와이어로 제공한다.
 ///
 /// RN JSI `invokeTypedAsync` 참조 구현이 호출한다. 취소는
-/// `rustra_ffi_invoke_cancel(invocation_id)` 로 전달된다.
+/// `unikit_ffi_invoke_cancel(invocation_id)` 로 전달된다.
 ///
 /// # Safety
 ///
 /// `payload` 는 `payload_len` 바이트 유효 (null+0 허용). `on_complete` 는
 /// thread-safe C 콜백. `invocation_id` 는 null 또는 유효한 u64 쓰기 포인터.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_calculator_invoke_frame_async(
+pub unsafe extern "C" fn unikit_calculator_invoke_frame_async(
     payload: *const u8,
     payload_len: usize,
     user_data: *mut std::ffi::c_void,
-    on_complete: Option<RustraCalculatorAsyncCallback>,
+    on_complete: Option<UnikitCalculatorAsyncCallback>,
     invocation_id: *mut u64,
 ) {
     // 코어의 고정 2-worker/256-depth bounded pool을 그대로 사용한다. 예제에서
     // 호출마다 thread::spawn 하던 구현은 burst 시 스레드 폭증과 메모리 고갈을
     // 일으켰고, payload 크기 게이트도 복사 뒤에 적용됐다.
     unsafe {
-        rustra::ffi::rustra_ffi_invoke_frame_async(
+        unikit_bridge::ffi::unikit_ffi_invoke_frame_async(
             payload,
             payload_len,
             user_data,
@@ -992,7 +992,7 @@ pub unsafe extern "C" fn rustra_calculator_invoke_frame_async(
 }
 
 // ── 채널/리소스 커맨드 (2026-08-23 타입 패리티 2단계) ──────────────
-// Tauri v2 ipc::Channel·Resource 모델의 rustra 계약 버전. wire 에는 정수
+// Tauri v2 ipc::Channel·Resource 모델의 unikit 계약 버전. wire 에는 정수
 // 핸들(u32)만 실린다 — 콜백이나 객체 참조를 직렬화하지 않는다.
 //
 // - channel_demo: 커맨드 인자로 받은 ChannelHandle 로 역방향 스트림을
@@ -1004,7 +1004,7 @@ pub unsafe extern "C" fn rustra_calculator_invoke_frame_async(
 #[serde(rename_all = "camelCase")]
 pub struct ChannelDemoInput {
     /// 호스트가 발급한 채널 핸들 — JS 콜백이 이 번호에 배선돼 있다.
-    pub channel: rustra::channels::ChannelHandle,
+    pub channel: unikit_bridge::channels::ChannelHandle,
     pub ticks: i32,
 }
 
@@ -1041,7 +1041,7 @@ pub fn channel_demo(input: ChannelDemoInput) -> Result<ChannelDemoOutput> {
 #[serde(rename_all = "camelCase")]
 pub struct ChannelDemoBytesInput {
     /// 바이너리 채널로 발급받은 핸들.
-    pub channel: rustra::channels::ChannelHandle,
+    pub channel: unikit_bridge::channels::ChannelHandle,
     /// 전송할 프레임 수.
     pub ticks: i32,
 }
@@ -1141,23 +1141,24 @@ pub struct ResourceOpenInput {
 #[derive(Debug, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ResourceHandleOutput {
-    pub handle: rustra::channels::ResourceHandle,
+    pub handle: unikit_bridge::channels::ResourceHandle,
 }
 
 #[command]
 pub fn resource_open(input: ResourceOpenInput) -> Result<ResourceHandleOutput> {
-    let handle = rustra::channels::host().register_resource(std::sync::Arc::new(KvResource {
-        entries: std::sync::Mutex::new(input.initial),
-    }));
+    let handle =
+        unikit_bridge::channels::host().register_resource(std::sync::Arc::new(KvResource {
+            entries: std::sync::Mutex::new(input.initial),
+        }));
     Ok(ResourceHandleOutput {
-        handle: rustra::channels::ResourceHandle(handle),
+        handle: unikit_bridge::channels::ResourceHandle(handle),
     })
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ResourceReadInput {
-    pub handle: rustra::channels::ResourceHandle,
+    pub handle: unikit_bridge::channels::ResourceHandle,
     pub key: String,
 }
 
@@ -1173,7 +1174,7 @@ pub fn resource_read(input: ResourceReadInput) -> Result<ResourceReadOutput> {
     let res = input
         .handle
         .get::<KvResource>()
-        .ok_or_else(|| RustraError::custom("resource.not_found", "unknown or closed handle"))?;
+        .ok_or_else(|| UnikitError::custom("resource.not_found", "unknown or closed handle"))?;
     let entries = res.entries.lock().unwrap_or_else(|p| p.into_inner());
     let value = entries.get(&input.key).cloned();
     Ok(ResourceReadOutput {
@@ -1185,7 +1186,7 @@ pub fn resource_read(input: ResourceReadInput) -> Result<ResourceReadOutput> {
 #[derive(Debug, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ResourceWriteInput {
-    pub handle: rustra::channels::ResourceHandle,
+    pub handle: unikit_bridge::channels::ResourceHandle,
     pub key: String,
     pub value: String,
 }
@@ -1201,7 +1202,7 @@ pub fn resource_write(input: ResourceWriteInput) -> Result<ResourceWriteOutput> 
     let res = input
         .handle
         .get::<KvResource>()
-        .ok_or_else(|| RustraError::custom("resource.not_found", "unknown or closed handle"))?;
+        .ok_or_else(|| UnikitError::custom("resource.not_found", "unknown or closed handle"))?;
     let mut entries = res.entries.lock().unwrap_or_else(|p| p.into_inner());
     entries.insert(input.key, input.value);
     let entries = entries.len();
@@ -1211,7 +1212,7 @@ pub fn resource_write(input: ResourceWriteInput) -> Result<ResourceWriteOutput> 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ResourceCloseInput {
-    pub handle: rustra::channels::ResourceHandle,
+    pub handle: unikit_bridge::channels::ResourceHandle,
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -1223,7 +1224,7 @@ pub struct ResourceCloseOutput {
 #[command]
 pub fn resource_close(input: ResourceCloseInput) -> Result<ResourceCloseOutput> {
     Ok(ResourceCloseOutput {
-        closed: rustra::channels::host().drop_resource(input.handle.0),
+        closed: unikit_bridge::channels::host().drop_resource(input.handle.0),
     })
 }
 
@@ -1234,7 +1235,7 @@ mod tests {
     use std::sync::Arc;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
-    /// RN 이 쓰는 것과 동일한 FFI JSON 경로(`rustra_ffi_invoke_json` →
+    /// RN 이 쓰는 것과 동일한 FFI JSON 경로(`unikit_ffi_invoke_json` →
     /// `Package::invoke_json`)로 커맨드를 호출하고 응답 JSON 을 돌려준다.
     /// debug 전용 테스트에서만 사용된다.
     #[cfg(debug_assertions)]
@@ -1243,12 +1244,16 @@ mod tests {
         let payload = serde_json::to_vec(&req).unwrap();
         let mut out_len: usize = 0;
         let ptr = unsafe {
-            rustra::ffi::rustra_ffi_invoke_json(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_bridge::ffi::unikit_ffi_invoke_json(
+                payload.as_ptr(),
+                payload.len(),
+                &mut out_len,
+            )
         };
         assert!(!ptr.is_null());
         let bytes = unsafe { std::slice::from_raw_parts(ptr, out_len) };
         let resp: serde_json::Value = serde_json::from_slice(bytes).unwrap();
-        unsafe { rustra::ffi::rustra_ffi_free(ptr, out_len) };
+        unsafe { unikit_bridge::ffi::unikit_ffi_free(ptr, out_len) };
         resp
     }
 
@@ -1267,13 +1272,13 @@ mod tests {
         let hits = Arc::new(AtomicUsize::new(0));
         let seen = Arc::new(std::sync::Mutex::new(Vec::<String>::new()));
         let (h2, s2) = (hits.clone(), seen.clone());
-        let handle_num = rustra::channels::host().register_channel(Arc::new(move |p| {
+        let handle_num = unikit_bridge::channels::host().register_channel(Arc::new(move |p| {
             h2.fetch_add(1, Ordering::Relaxed);
             s2.lock().unwrap().push(p.to_string());
         }));
 
         let out = channel_demo(ChannelDemoInput {
-            channel: rustra::channels::ChannelHandle(handle_num),
+            channel: unikit_bridge::channels::ChannelHandle(handle_num),
             ticks: 3,
         })
         .unwrap();
@@ -1285,17 +1290,17 @@ mod tests {
         assert_eq!(got[2], r#"{"step":3,"of":3}"#);
 
         // 호출 종료(호스트 측 drop) 후 stale send 는 false — 핸들 재사용 없음.
-        assert!(rustra::channels::host().drop_channel(handle_num));
+        assert!(unikit_bridge::channels::host().drop_channel(handle_num));
     }
 
     /// 채널 만료: 핸들이 이미 drop 된 상태에서의 호출은 dropped_sends 로
     /// 가시화된다(조용한 무시 계약).
     #[test]
     fn channel_demo_counts_stale_sends() {
-        let handle_num = rustra::channels::host().register_channel(Arc::new(|_| {}));
-        assert!(rustra::channels::host().drop_channel(handle_num));
+        let handle_num = unikit_bridge::channels::host().register_channel(Arc::new(|_| {}));
+        assert!(unikit_bridge::channels::host().drop_channel(handle_num));
         let out = channel_demo(ChannelDemoInput {
-            channel: rustra::channels::ChannelHandle(handle_num),
+            channel: unikit_bridge::channels::ChannelHandle(handle_num),
             ticks: 2,
         })
         .unwrap();
@@ -1448,7 +1453,7 @@ mod tests {
         let mut output = std::ptr::null_mut();
         let mut output_len = 0usize;
         let status = unsafe {
-            rustra::ffi::rustra_ffi_invoke_buffer(
+            unikit_bridge::ffi::unikit_ffi_invoke_buffer(
                 bench_echo_bytes_id,
                 input.as_ptr(),
                 input.len(),
@@ -1462,12 +1467,12 @@ mod tests {
             unsafe { std::slice::from_raw_parts(output, output_len) },
             input
         );
-        unsafe { rustra::ffi::rustra_ffi_free_owned_bytes(output, output_len) };
+        unsafe { unikit_bridge::ffi::unikit_ffi_free_owned_bytes(output, output_len) };
 
         let mut empty_output = std::ptr::null_mut();
         let mut empty_output_len = usize::MAX;
         let empty_status = unsafe {
-            rustra::ffi::rustra_ffi_invoke_buffer(
+            unikit_bridge::ffi::unikit_ffi_invoke_buffer(
                 bench_echo_bytes_id,
                 std::ptr::null(),
                 0,
@@ -1478,13 +1483,13 @@ mod tests {
         assert_eq!(empty_status, 0);
         assert_eq!(empty_output_len, 0);
         assert!(!empty_output.is_null());
-        unsafe { rustra::ffi::rustra_ffi_free_owned_bytes(empty_output, empty_output_len) };
+        unsafe { unikit_bridge::ffi::unikit_ffi_free_owned_bytes(empty_output, empty_output_len) };
 
         let full_mebibyte = vec![0u8; 1024 * 1024];
         let mut error_output = std::ptr::null_mut();
         let mut error_len = 0usize;
         let over_limit_status = unsafe {
-            rustra::ffi::rustra_ffi_invoke_buffer(
+            unikit_bridge::ffi::unikit_ffi_invoke_buffer(
                 bench_echo_bytes_id,
                 full_mebibyte.as_ptr(),
                 full_mebibyte.len(),
@@ -1499,10 +1504,10 @@ mod tests {
                 .unwrap()
                 .contains("payload.too_large")
         );
-        unsafe { rustra::ffi::rustra_ffi_free_owned_bytes(error_output, error_len) };
+        unsafe { unikit_bridge::ffi::unikit_ffi_free_owned_bytes(error_output, error_len) };
 
         let invalid_status = unsafe {
-            rustra::ffi::rustra_ffi_invoke_buffer(
+            unikit_bridge::ffi::unikit_ffi_invoke_buffer(
                 bench_echo_bytes_id,
                 input.as_ptr(),
                 input.len(),
@@ -1512,8 +1517,11 @@ mod tests {
         };
         assert_eq!(invalid_status, u32::MAX);
 
-        assert_eq!(rustra::ffi::rustra_ffi_has_buffer(bench_echo_bytes_id), 1);
-        assert_eq!(rustra::ffi::rustra_ffi_has_buffer(14), 0);
+        assert_eq!(
+            unikit_bridge::ffi::unikit_ffi_has_buffer(bench_echo_bytes_id),
+            1
+        );
+        assert_eq!(unikit_bridge::ffi::unikit_ffi_has_buffer(14), 0);
     }
 
     #[test]
@@ -1525,7 +1533,7 @@ mod tests {
 
         let mut out_len: usize = 0;
         let result_ptr = unsafe {
-            rustra_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
         };
 
         assert!(!result_ptr.is_null());
@@ -1538,7 +1546,7 @@ mod tests {
         let output: AddNumbersOutput = postcard::from_bytes(&result_bytes[8..]).unwrap();
         assert_eq!(output.value, 100);
 
-        unsafe { rustra_calculator_free_frame_buffer(result_ptr, out_len) };
+        unsafe { unikit_calculator_free_frame_buffer(result_ptr, out_len) };
     }
 
     #[test]
@@ -1555,7 +1563,7 @@ mod tests {
 
         let mut out_len: usize = 0;
         let result_ptr = unsafe {
-            rustra_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
         };
 
         assert!(!result_ptr.is_null());
@@ -1568,7 +1576,7 @@ mod tests {
         let output: GreetOutput = postcard::from_bytes(&result_bytes[8..]).unwrap();
         assert_eq!(output.message, "Hello, World!");
 
-        unsafe { rustra_calculator_free_frame_buffer(result_ptr, out_len) };
+        unsafe { unikit_calculator_free_frame_buffer(result_ptr, out_len) };
     }
 
     #[test]
@@ -1585,7 +1593,7 @@ mod tests {
 
         let mut out_len: usize = 0;
         let result_ptr = unsafe {
-            rustra_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
         };
 
         assert!(!result_ptr.is_null());
@@ -1599,7 +1607,7 @@ mod tests {
         assert_eq!(output.count, 4);
         assert_eq!(output.total, 100);
 
-        unsafe { rustra_calculator_free_frame_buffer(result_ptr, out_len) };
+        unsafe { unikit_calculator_free_frame_buffer(result_ptr, out_len) };
     }
 
     #[test]
@@ -1611,7 +1619,7 @@ mod tests {
 
         let mut out_len: usize = 0;
         let result_ptr = unsafe {
-            rustra_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
         };
 
         assert!(!result_ptr.is_null());
@@ -1622,7 +1630,7 @@ mod tests {
         let output: ToUpperOutput = postcard::from_bytes(&result_bytes[8..]).unwrap();
         assert_eq!(output.result, "HELLO");
 
-        unsafe { rustra_calculator_free_frame_buffer(result_ptr, out_len) };
+        unsafe { unikit_calculator_free_frame_buffer(result_ptr, out_len) };
     }
 
     #[test]
@@ -1643,7 +1651,7 @@ mod tests {
 
         let mut out_len: usize = 0;
         let result_ptr = unsafe {
-            rustra_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
         };
 
         assert!(!result_ptr.is_null());
@@ -1660,7 +1668,7 @@ mod tests {
         assert_eq!(output.item.active, false);
         assert_eq!(output.doubled, false);
 
-        unsafe { rustra_calculator_free_frame_buffer(result_ptr, out_len) };
+        unsafe { unikit_calculator_free_frame_buffer(result_ptr, out_len) };
     }
 
     #[test]
@@ -1678,7 +1686,7 @@ mod tests {
 
         let mut out_len: usize = 0;
         let result_ptr = unsafe {
-            rustra_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
         };
 
         assert!(!result_ptr.is_null());
@@ -1692,7 +1700,7 @@ mod tests {
         assert_eq!(output.item.value, 42);
         assert_eq!(output.item.active, true);
 
-        unsafe { rustra_calculator_free_frame_buffer(result_ptr, out_len) };
+        unsafe { unikit_calculator_free_frame_buffer(result_ptr, out_len) };
     }
 
     #[test]
@@ -1704,7 +1712,7 @@ mod tests {
 
         let mut out_len: usize = 0;
         let result_ptr = unsafe {
-            rustra_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
         };
 
         assert!(!result_ptr.is_null());
@@ -1717,7 +1725,7 @@ mod tests {
         let output: AddNumbersOutput = postcard::from_bytes(&result_bytes[8..]).unwrap();
         assert_eq!(output.value, 100);
 
-        unsafe { rustra_calculator_free_frame_buffer(result_ptr, out_len) };
+        unsafe { unikit_calculator_free_frame_buffer(result_ptr, out_len) };
     }
 
     #[test]
@@ -1729,36 +1737,36 @@ mod tests {
         {
             let p = v2_request(1, &AddNumbersInput { a: 10, b: 20 });
             let mut ol: usize = 0;
-            let rp = unsafe { rustra_calculator_invoke_frame(p.as_ptr(), p.len(), &mut ol) };
+            let rp = unsafe { unikit_calculator_invoke_frame(p.as_ptr(), p.len(), &mut ol) };
             let rb = unsafe { std::slice::from_raw_parts(rp, ol) };
             assert_eq!(rb[0], 1);
             let out: AddNumbersOutput = postcard::from_bytes(&rb[8..]).unwrap();
             assert_eq!(out.value, 30);
-            unsafe { rustra_calculator_free_frame_buffer(rp, ol) };
+            unsafe { unikit_calculator_free_frame_buffer(rp, ol) };
         }
 
         // Tier 1: multiply (cmd 2)
         {
             let p = v2_request(2, &MultiplyInput { a: 1.5, b: 2.0 });
             let mut ol: usize = 0;
-            let rp = unsafe { rustra_calculator_invoke_frame(p.as_ptr(), p.len(), &mut ol) };
+            let rp = unsafe { unikit_calculator_invoke_frame(p.as_ptr(), p.len(), &mut ol) };
             let rb = unsafe { std::slice::from_raw_parts(rp, ol) };
             assert_eq!(rb[0], 1);
             let out: MultiplyOutput = postcard::from_bytes(&rb[8..]).unwrap();
             assert!((out.value - 3.0).abs() < 0.01);
-            unsafe { rustra_calculator_free_frame_buffer(rp, ol) };
+            unsafe { unikit_calculator_free_frame_buffer(rp, ol) };
         }
 
         // Tier 1: isEven (cmd 3)
         {
             let p = v2_request(3, &IsEvenInput { n: 42 });
             let mut ol: usize = 0;
-            let rp = unsafe { rustra_calculator_invoke_frame(p.as_ptr(), p.len(), &mut ol) };
+            let rp = unsafe { unikit_calculator_invoke_frame(p.as_ptr(), p.len(), &mut ol) };
             let rb = unsafe { std::slice::from_raw_parts(rp, ol) };
             assert_eq!(rb[0], 1);
             let out: IsEvenOutput = postcard::from_bytes(&rb[8..]).unwrap();
             assert_eq!(out.result, true);
-            unsafe { rustra_calculator_free_frame_buffer(rp, ol) };
+            unsafe { unikit_calculator_free_frame_buffer(rp, ol) };
         }
 
         // Tier 2: greet (cmd 5)
@@ -1766,16 +1774,16 @@ mod tests {
             let p = v2_request(
                 5,
                 &GreetInput {
-                    name: "Rustra".into(),
+                    name: "Unikit".into(),
                 },
             );
             let mut ol: usize = 0;
-            let rp = unsafe { rustra_calculator_invoke_frame(p.as_ptr(), p.len(), &mut ol) };
+            let rp = unsafe { unikit_calculator_invoke_frame(p.as_ptr(), p.len(), &mut ol) };
             let rb = unsafe { std::slice::from_raw_parts(rp, ol) };
             assert_eq!(rb[0], 1);
             let out: GreetOutput = postcard::from_bytes(&rb[8..]).unwrap();
-            assert_eq!(out.message, "Hello, Rustra!");
-            unsafe { rustra_calculator_free_frame_buffer(rp, ol) };
+            assert_eq!(out.message, "Hello, Unikit!");
+            unsafe { unikit_calculator_free_frame_buffer(rp, ol) };
         }
 
         // Tier 2: sumList (cmd 6)
@@ -1787,13 +1795,13 @@ mod tests {
                 },
             );
             let mut ol: usize = 0;
-            let rp = unsafe { rustra_calculator_invoke_frame(p.as_ptr(), p.len(), &mut ol) };
+            let rp = unsafe { unikit_calculator_invoke_frame(p.as_ptr(), p.len(), &mut ol) };
             let rb = unsafe { std::slice::from_raw_parts(rp, ol) };
             assert_eq!(rb[0], 1);
             let out: SumListOutput = postcard::from_bytes(&rb[8..]).unwrap();
             assert_eq!(out.total, 15);
             assert_eq!(out.count, 5);
-            unsafe { rustra_calculator_free_frame_buffer(rp, ol) };
+            unsafe { unikit_calculator_free_frame_buffer(rp, ol) };
         }
 
         // Tier 3: createItem (cmd 8) — postcard handles nested structs!
@@ -1806,14 +1814,14 @@ mod tests {
                 },
             );
             let mut ol: usize = 0;
-            let rp = unsafe { rustra_calculator_invoke_frame(p.as_ptr(), p.len(), &mut ol) };
+            let rp = unsafe { unikit_calculator_invoke_frame(p.as_ptr(), p.len(), &mut ol) };
             let rb = unsafe { std::slice::from_raw_parts(rp, ol) };
             assert_eq!(rb[0], 1);
             let out: CreateItemOutput = postcard::from_bytes(&rb[8..]).unwrap();
             assert_eq!(out.item.name, "Widget");
             assert_eq!(out.item.value, 42);
             assert_eq!(out.item.active, true);
-            unsafe { rustra_calculator_free_frame_buffer(rp, ol) };
+            unsafe { unikit_calculator_free_frame_buffer(rp, ol) };
         }
 
         // Tier 3: processItem (cmd 9)
@@ -1829,13 +1837,13 @@ mod tests {
                 },
             );
             let mut ol: usize = 0;
-            let rp = unsafe { rustra_calculator_invoke_frame(p.as_ptr(), p.len(), &mut ol) };
+            let rp = unsafe { unikit_calculator_invoke_frame(p.as_ptr(), p.len(), &mut ol) };
             let rb = unsafe { std::slice::from_raw_parts(rp, ol) };
             assert_eq!(rb[0], 1);
             let out: ProcessItemOutput = postcard::from_bytes(&rb[8..]).unwrap();
             assert_eq!(out.item.value, 400);
             assert_eq!(out.doubled, true);
-            unsafe { rustra_calculator_free_frame_buffer(rp, ol) };
+            unsafe { unikit_calculator_free_frame_buffer(rp, ol) };
         }
     }
 
@@ -1850,7 +1858,7 @@ mod tests {
 
         let mut out_len: usize = 0;
         let result_ptr = unsafe {
-            rustra_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
         };
 
         assert!(!result_ptr.is_null());
@@ -1865,19 +1873,19 @@ mod tests {
         assert_eq!(wire.code, "command.not_found");
         assert!(!wire.message.is_empty());
 
-        unsafe { rustra_calculator_free_frame_buffer(result_ptr, out_len) };
+        unsafe { unikit_calculator_free_frame_buffer(result_ptr, out_len) };
     }
 
     #[test]
     fn test_frame_divide_by_zero_typed_error() {
         ensure_registered();
-        // divide (command_id = 11) with b=0 → RustraError::custom("math.divide_by_zero").
+        // divide (command_id = 11) with b=0 → UnikitError::custom("math.divide_by_zero").
         // Proves a domain typed error code round-trips through the Frame error wire.
         let payload = v2_request(10, &DivideInput { a: 10, b: 0 });
 
         let mut out_len: usize = 0;
         let result_ptr = unsafe {
-            rustra_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
         };
 
         assert!(!result_ptr.is_null());
@@ -1889,7 +1897,7 @@ mod tests {
         assert_eq!(wire.code, "math.divide_by_zero");
         assert_eq!(wire.message, "cannot divide by zero");
 
-        unsafe { rustra_calculator_free_frame_buffer(result_ptr, out_len) };
+        unsafe { unikit_calculator_free_frame_buffer(result_ptr, out_len) };
     }
 
     #[test]
@@ -1900,7 +1908,7 @@ mod tests {
 
         let mut out_len: usize = 0;
         let result_ptr = unsafe {
-            rustra_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
         };
 
         assert!(!result_ptr.is_null());
@@ -1909,7 +1917,7 @@ mod tests {
         let output: DivideOutput = postcard::from_bytes(&result_bytes[8..]).unwrap();
         assert_eq!(output.value, 5);
 
-        unsafe { rustra_calculator_free_frame_buffer(result_ptr, out_len) };
+        unsafe { unikit_calculator_free_frame_buffer(result_ptr, out_len) };
     }
 
     #[test]
@@ -1922,7 +1930,7 @@ mod tests {
 
         let mut out_len: usize = 0;
         let result_ptr = unsafe {
-            rustra_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_calculator_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len)
         };
 
         assert!(!result_ptr.is_null());
@@ -1933,7 +1941,7 @@ mod tests {
         let wire: WireError = postcard::from_bytes(&result_bytes[10..10 + error_len]).unwrap();
         assert_eq!(wire.code, "capability.denied");
 
-        unsafe { rustra_calculator_free_frame_buffer(result_ptr, out_len) };
+        unsafe { unikit_calculator_free_frame_buffer(result_ptr, out_len) };
     }
 
     #[test]
@@ -1966,7 +1974,7 @@ mod tests {
     }
 
     /// Runtime registry end-to-end through the EXACT FFI path RN uses
-    /// (`rustra_ffi_invoke_json` → `Package::invoke_json`).
+    /// (`unikit_ffi_invoke_json` → `Package::invoke_json`).
     /// Proves live register / replace / unregister with no rebuild between steps.
     #[test]
     #[cfg(debug_assertions)]
@@ -1974,7 +1982,7 @@ mod tests {
         let _ = calculator_package(); // ensure global package initialized
 
         // debug build → not frozen
-        let state = ffi_call("rustraRegistryDemo", serde_json::json!({ "op": "state" }));
+        let state = ffi_call("unikitRegistryDemo", serde_json::json!({ "op": "state" }));
         assert_eq!(
             state["result"]["frozen"], false,
             "debug build must be mutable: {state}"
@@ -1986,7 +1994,7 @@ mod tests {
 
         // register at runtime (through the RN FFI path)
         let r = ffi_call(
-            "rustraRegistryDemo",
+            "unikitRegistryDemo",
             serde_json::json!({ "op": "register" }),
         );
         assert_eq!(r["result"]["message"], "registered 'ping'");
@@ -1998,7 +2006,7 @@ mod tests {
 
         // replace handler at runtime — same command, different behavior
         ffi_call(
-            "rustraRegistryDemo",
+            "unikitRegistryDemo",
             serde_json::json!({ "op": "replacePing" }),
         );
         let ping2 = ffi_call("ping", serde_json::json!({}));
@@ -2009,7 +2017,7 @@ mod tests {
 
         // unregister at runtime — command disappears
         ffi_call(
-            "rustraRegistryDemo",
+            "unikitRegistryDemo",
             serde_json::json!({ "op": "unregister" }),
         );
         let after = ffi_call("ping", serde_json::json!({}));
@@ -2024,7 +2032,7 @@ mod tests {
 
         // register the Vec-input command at runtime
         let r = ffi_call(
-            "rustraRegistryDemo",
+            "unikitRegistryDemo",
             serde_json::json!({ "op": "registerAvg" }),
         );
         assert_eq!(
@@ -2043,7 +2051,7 @@ mod tests {
 
         // unregister → gone
         ffi_call(
-            "rustraRegistryDemo",
+            "unikitRegistryDemo",
             serde_json::json!({ "op": "unregisterAvg" }),
         );
         let after = ffi_call("average", serde_json::json!({ "numbers": [] }));
@@ -2082,7 +2090,7 @@ mod tests {
         // Frame async delegates to the core allocator, so the matching core
         // free wrapper is mandatory. The legacy calculator free has a different
         // allocation layout and intentionally aborts on this pointer.
-        unsafe { rustra_calculator_free_frame_buffer(resp, resp_len) };
+        unsafe { unikit_calculator_free_frame_buffer(resp, resp_len) };
         *cap.frame.lock().unwrap() = Some((data, resp_len));
         // Publish completion only after the captured frame is visible.
         cap.fired.store(true, std::sync::atomic::Ordering::Release);
@@ -2146,7 +2154,7 @@ mod tests {
         let cap = AsyncCapture::new();
         let mut invocation_id: u64 = 0;
         unsafe {
-            rustra_calculator_invoke_frame_async(
+            unikit_calculator_invoke_frame_async(
                 req.as_ptr(),
                 req.len(),
                 &cap as *const _ as *mut std::ffi::c_void,
@@ -2168,8 +2176,8 @@ mod tests {
         assert_eq!(out.value, 42);
         // 완료 후 레지스트리 정리 — Unknown.
         assert_eq!(
-            rustra::cancel::status(invocation_id),
-            rustra::cancel::Status::Unknown
+            unikit_bridge::cancel::status(invocation_id),
+            unikit_bridge::cancel::Status::Unknown
         );
     }
 
@@ -2181,7 +2189,7 @@ mod tests {
         let cap = AsyncCapture::new();
         let mut invocation_id: u64 = 0;
         unsafe {
-            rustra_calculator_invoke_frame_async(
+            unikit_calculator_invoke_frame_async(
                 req.as_ptr(),
                 req.len(),
                 &cap as *const _ as *mut std::ffi::c_void,
@@ -2192,7 +2200,7 @@ mod tests {
             // (spawn 직후의 cancel 이라 극히 드물게 워커가 먼저 통과할 수 있으나,
             //  체크포인트가 status 를 다시 읽으므로 대부분 Cancelled 로 관측된다.
             //  이 테스트의 관심사는 "cancelled 프레임 계약" 자체다.)
-            rustra::ffi::rustra_ffi_invoke_cancel(invocation_id);
+            unikit_bridge::ffi::unikit_ffi_invoke_cancel(invocation_id);
         }
         wait_for_callback(&cap);
         let (frame, _) = cap
@@ -2222,7 +2230,7 @@ mod tests {
         // invocation_id null — ID 발급은 일어나지만 호출자에게 노출되지 않는다.
         // on_complete 도 None 이면 워커는 버퍼를 만들지 않는다 (누수 없음).
         unsafe {
-            rustra_calculator_invoke_frame_async(
+            unikit_calculator_invoke_frame_async(
                 req.as_ptr(),
                 req.len(),
                 std::ptr::null_mut(),
@@ -2243,6 +2251,6 @@ pub mod uniffi_render;
 // `--features uniffi` 빌드에서만 코드젠 산출물을 붙인다. 파일 안의 모든 항목은
 // `pub mod uniffi_api`(미러 타입 + 커맨드별 `#[uniffi::export]` 래퍼)와 크레이트
 // 루트의 `uniffi::setup_scaffolding!()` 로 이루어진다. 재생성:
-//   RUSTRA_UNIFFI_OUT=src cargo run -p rustra-calculator-example --bin generate
+//   UNIKIT_UNIFFI_OUT=src cargo run -p unikit-calculator-example --bin generate
 #[cfg(feature = "uniffi")]
 include!("uniffi_generated.rs");

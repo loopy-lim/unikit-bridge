@@ -6,13 +6,13 @@
 * @loopy-lim
 
 # Rust 코어 — FFI 경계는 별도 표시(가장 안전 민감)
-/crates/rustra/src/ffi.rs @loopy-lim
-/crates/rustra/ @loopy-lim
-/crates/rustra-macros/ @loopy-lim
+/crates/unikit-bridge/src/ffi.rs @loopy-lim
+/crates/unikit-bridge/ @loopy-lim
+/crates/unikit-bridge-macros/ @loopy-lim
 
 # 코드젠 — Rust bin 과 TS CLI 양쪽이 항상 함께 바뀌어야 한다(dual-path)
 /packages/cli/ @loopy-lim
-/crates/rustra/src/codegen.rs @loopy-lim
+/crates/unikit-bridge/src/codegen.rs @loopy-lim
 
 # 발행 인프라 — 실수 방지
 /.github/workflows/release.yml @loopy-lim

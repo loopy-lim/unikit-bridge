@@ -34,7 +34,7 @@ bun run verify:functions:ios --device booted --runs 3
 최종 빌드:
 
 - Simulator: `99B087B5-DEF6-4CF1-9177-81A5DE564CFC`, iPhone 17, iOS 26.2, arm64
-- Bundle: `com.alt-shifted.react-native-calculator`, Release, Hermes, `EXPO_PUBLIC_RUSTRA_DEMO=functions`
+- Bundle: `com.alt-shifted.react-native-calculator`, Release, Hermes, `EXPO_PUBLIC_UNIKIT_DEMO=functions`
 - Source fingerprint: `65c339a0ba66770cf2c7b57fbf31a89477776c7039c2768521295210668322f1` — [262개 입력 파일](./2026-09-16-function-simulator/source-inputs.json)
 - Contract: `bb88ac05d152c16fac2fe5e194323a3222534cbdd7b1d13b5b590d120dcf8a7c`
 - [최종 실행 manifest](./2026-09-16-function-simulator/final/manifest.json): PID 18632, 18679, 18742와 서로 다른 생성 시각·receipt 해시를 확인했다.

@@ -1,20 +1,20 @@
 English | [한국어](./README.ko.md)
 
-# @rustra/bun
+# @unikit-bridge/bun
 
 ## Events on the selected runtime
 
 Event-enabled generated entries export `subscribeEvent`, backed by the same
 contract-verified library as their generated commands. Manual bootstraps expose
-`rustra.subscribeEvent(name, callback)` too. On an initialized runtime, subscription
+`unikit.subscribeEvent(name, callback)` too. On an initialized runtime, subscription
 installs the native sink synchronously, so an immediate command can emit its first event.
-`rustra.dispose()` closes subscriptions; `reload()` reattaches them to the selected library.
+`unikit.dispose()` closes subscriptions; `reload()` reattaches them to the selected library.
 
 Native callback delivery requires emission on the JS thread, such as a synchronous FFI
 command. For Rust background threads, use `createBunEventSubscription` with an injected
 `poll` source rather than the default native callback.
 
-Adapter that automatically connects the Rustra cdylib over a stable C ABI in Bun 1.4
+Adapter that automatically connects the Unikit cdylib over a stable C ABI in Bun 1.4
 environments.
 
 ## Zero-config default path
@@ -22,7 +22,7 @@ environments.
 Declare a host-neutral entry in the Rust crate with one line and enable `cdylib`.
 
 ```rust
-rustra::native_entry!(app_package);
+unikit_bridge::native_entry!(app_package);
 ```
 
 ```toml
@@ -30,7 +30,7 @@ rustra::native_entry!(app_package);
 crate-type = ["rlib", "cdylib"]
 ```
 
-Add only `"bun": {}` to `rustra.json`. The generated file builds Release and Debug library
+Add only `"bun": {}` to `unikit.json`. The generated file builds Release and Debug library
 candidates from Cargo metadata, verifies the actual ABI symbols, and lazily installs the
 Frame engine.
 
@@ -40,10 +40,10 @@ import { addNumbers } from './generated/bun.js';
 const result = await addNumbers({ a: 20, b: 22 });
 ```
 
-If the deployment layout differs, use `RUSTRA_BUN_LIBRARY=/absolute/path/to/libapp.dylib`.
+If the deployment layout differs, use `UNIKIT_BUN_LIBRARY=/absolute/path/to/libapp.dylib`.
 
 The FFI engine and bootstrap require the Bun runtime. Running them in Node reports
-`transport.unavailable` with guidance to launch with `bun` or use `@rustra/node`.
+`transport.unavailable` with guidance to launch with `bun` or use `@unikit-bridge/node`.
 Package imports and `createBunEngine(transport)` remain available to Node hosts.
 
 ## Public API
@@ -65,7 +65,7 @@ function createBunEngine(transport: BunInvokeTransport): BunEngineClient;
 ### subprocess-based
 
 ```ts
-import { createBunEngine } from '@rustra/bun';
+import { createBunEngine } from '@unikit-bridge/bun';
 import { spawn } from 'bun';
 
 const engine = createBunEngine({
@@ -80,7 +80,7 @@ const engine = createBunEngine({
 ### bun:ffi-based
 
 ```ts
-import { createBunEngine } from '@rustra/bun';
+import { createBunEngine } from '@unikit-bridge/bun';
 import { dlopen } from 'bun:ffi';
 
 const lib = dlopen('libmy_crate.so', {/* FFI signature */});

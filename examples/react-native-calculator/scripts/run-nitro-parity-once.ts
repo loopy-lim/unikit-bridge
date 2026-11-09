@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 /** Single-launch variant of run-nitro-parity.ts for interleaved A/B installs.
  * Usage: bun scripts/run-nitro-parity-once.ts --device UDID --output DIR [--label arm]
- * The app must already be installed as com.rustra.nitroparity (per-arm build).
+ * The app must already be installed as com.unikit.nitroparity (per-arm build).
  * Validation is identical to run-nitro-parity.ts (same manifest + validateReceipt).
  */
 import { createHash } from 'node:crypto';
@@ -18,7 +18,7 @@ const { values } = parseArgs({
   options: {
     device: { type: 'string' },
     output: { type: 'string' },
-    'bundle-id': { type: 'string', default: 'com.rustra.nitroparity' },
+    'bundle-id': { type: 'string', default: 'com.unikit.nitroparity' },
     timeout: { type: 'string', default: '600' },
     label: { type: 'string', default: 'run' },
   },
@@ -55,7 +55,7 @@ const output = resolve(values.output);
 await mkdir(output, { recursive: true });
 
 simctl(['terminate', device, bundle], true);
-const receiptPath = join(data, 'Documents', 'rustra-nitro-parity.json');
+const receiptPath = join(data, 'Documents', 'unikit-nitro-parity.json');
 await unlink(receiptPath).catch((e: { code: string }) => {
   if (e.code !== 'ENOENT') throw e;
 });

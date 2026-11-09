@@ -1,14 +1,14 @@
 [English](./README.md)
 
-# rustra
+# unikit
 
 하나의 Rust 코어 → Node, Bun, Tauri, React Native 어디서든 동작하는 타입 안전
 클라이언트 — compact 바이너리 와이어 위에서, CI에서 breaking 스키마 변경을
 막는 계약 게이트로 지켜진다.
 
-[![CI](https://github.com/loopy-lim/rustra/actions/workflows/ci.yml/badge.svg)](https://github.com/loopy-lim/rustra/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@rustra/types)](https://www.npmjs.com/package/@rustra/types)
-[![crates.io](https://img.shields.io/crates/v/rustra.svg)](https://crates.io/crates/rustra)
+[![CI](https://github.com/loopy-lim/unikit-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/loopy-lim/unikit-bridge/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@unikit-bridge/types)](https://www.npmjs.com/package/@unikit-bridge/types)
+[![crates.io](https://img.shields.io/crates/v/unikit.svg)](https://crates.io/crates/unikit-bridge)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Rust에서 한 번 정의한다:
@@ -25,7 +25,7 @@ fn add_numbers(input: AddNumbersInput) -> Result<AddNumbersOutput> {
 }
 ```
 
-어떤 호스트에서든 호출한다. `rustra codegen`은 플랫폼별 타입 안전 클라이언트를
+어떤 호스트에서든 호출한다. `unikit codegen`은 플랫폼별 타입 안전 클라이언트를
 생성한다 — 같은 계약, 같은 바이너리 와이어:
 
 ```ts
@@ -68,31 +68,31 @@ Rust #[command] 정의 → TypeScript 클라이언트 자동 생성 → 각 플�
 ```
 
 - Rust 쪽에서 `#[command]`로 함수를 정의
-- `generate_typescript()`가 계약을 `schema.json`으로 발행하고, `rustra codegen`이
+- `generate_typescript()`가 계약을 `schema.json`으로 발행하고, `unikit codegen`이
   그 파일에서 타입 안전 TS 클라이언트 코드를 렌더링
 - Node, Bun, Tauri, React Native 어댑터가 동일한 `EngineClient` 인터페이스로 라우팅
 - 일반 Rust 함수도 그대로 — `PackageBuilder::function`으로 매크로 없이 0~12 인자
   함수를 등록한다 ([일반 함수 등록](docs/function-registration.ko.md))
 
-## 왜 rustra인가 (비교)
+## 왜 unikit인가 (비교)
 
 단일 Rust 코어를 여러 JS 호스트에 잇는 도구는 각자 다른 지점을 타협한다:
 
-|                               | **rustra**                                                            | napi-rs                                           | Nitro Modules | Tauri commands | tauri-specta |
+|                               | **unikit**                                                            | napi-rs                                           | Nitro Modules | Tauri commands | tauri-specta |
 | ----------------------------- | --------------------------------------------------------------------- | ------------------------------------------------- | ------------- | -------------- | ------------ |
 | 단일 Rust 코어 × 멀티 호스트  | ✅ Node/Bun/Tauri/RN                                                  | Node (+ Electron)                                 | RN 중심       | Tauri 전용     | Tauri 전용   |
 | 타입 안전 코드젠 (양방향)     | ✅ 커맨드+이벤트                                                      | Rust 구조체에서 TS 정의 생성 (어트리뷰트 매크로)¹ | ✅            | ❌ (수동)      | ✅           |
 | compact 바이너리 와이어       | ✅ Frame ([JSON 대비 요청 와이어 11.8× 작음](docs/wire-format.ko.md)) | JSON/Buffer                                       | JSI 객체      | JSON IPC       | JSON IPC     |
-| 계약 게이트 (breaking change) | ✅ `rustra diff` + contract hash                                      | ❌                                                | ❌            | ❌             | 부분         |
+| 계약 게이트 (breaking change) | ✅ `unikit diff` + contract hash                                      | ❌                                                | ❌            | ❌             | 부분         |
 | 취소/타임아웃/배치 시맨틱     | ✅ 매트릭스로 문서화                                                  | 직접 구현                                         | 직접 구현     | ❌             | ❌           |
 
-rustra의 선택: **RPC 표면 전체(정의→코드젠→와이어→검증)를 하나의 계약으로
+unikit의 선택: **RPC 표면 전체(정의→코드젠→와이어→검증)를 하나의 계약으로
 소유**한다. 명령 호출과 계약 검증은 호스트 간 공통으로 유지하고, 취소·이벤트·채널
 같은 capability 차이는 [호환성 매트릭스](docs/compatibility-matrix.ko.md)에 명시한다.
 
 ¹ 2026-09-05 napi-rs 문서 대조 검증: napi-rs는 어트리뷰트 매크로(`#[napi(object)]`)
 로 Rust 구조체에서 TypeScript 정의를 생성한다 — "수동" 표기는 이를 과소 평가한
-것이었다. rustra 셀의 차별점은 타입·이벤트·검증 게이트가 모든 호스트에서 하나의
+것이었다. unikit 셀의 차별점은 타입·이벤트·검증 게이트가 모든 호스트에서 하나의
 공유 스키마로 나온다는 것이지, 다른 도구에 코드젠이 없다는 주장이 아니다.
 
 ## 5분 퀵스타트
@@ -100,8 +100,8 @@ rustra의 선택: **RPC 표면 전체(정의→코드젠→와이어→검증)�
 Rust와 Bun 1.4 이상이 설치되어 있으면 다음 명령으로 프로젝트 생성부터 첫 호출까지 실행한다:
 
 ```bash
-bunx --bun @rustra/cli@0.13.0 init my-project --setup
-# Bun FFI를 쓰려면: bunx --bun @rustra/cli@0.13.0 init my-bun-project --host bun --setup
+bunx --bun @unikit-bridge/cli@0.13.0 init my-project --setup
+# Bun FFI를 쓰려면: bunx --bun @unikit-bridge/cli@0.13.0 init my-bun-project --host bun --setup
 ```
 
 `--setup`은 클라이언트 생성, 의존성 설치, Rust 빌드, 스캐폴드의 `echo` 데모 실행을
@@ -113,7 +113,7 @@ bun run start
 ```
 
 `start`는 setup과 데모를 다시 실행하며, `bun run setup`은 데모 없이 준비만 한다.
-실패하면 오류를 해결하고 출력된 `rustra setup` 명령으로 재시도한다. RN/Tauri의
+실패하면 오류를 해결하고 출력된 `unikit setup` 명령으로 재시도한다. RN/Tauri의
 setup은 연동을 준비하고 남은 네이티브 앱 작업을 안내한다. 실기기·WebView 런타임
 검증을 대신하지는 않는다.
 
@@ -122,8 +122,8 @@ setup은 연동을 준비하고 남은 네이티브 앱 작업을 안내한다. 
 첫 Rust 호출을 실행한다.
 
 내부 동작은 이렇다: 스캐폴드의 Rust 프로브가 `schema.json`을 발행하고,
-`rustra codegen`이 그 단일 파일에서 모든 TS 표면을 렌더링한다. 설정은 프로젝트
-루트의 `rustra.json`이다:
+`unikit codegen`이 그 단일 파일에서 모든 TS 표면을 렌더링한다. 설정은 프로젝트
+루트의 `unikit.json`이다:
 
 ```json
 {
@@ -134,9 +134,9 @@ setup은 연동을 준비하고 남은 네이티브 앱 작업을 안내한다. 
 ```
 
 ```bash
-bunx --bun @rustra/cli@0.13.0 codegen --config rustra.json   # 모든 표면 렌더링
-bunx --bun @rustra/cli@0.13.0 dev --config rustra.json       # Rust 감시 + 재생성
-bunx --bun @rustra/cli@0.13.0 generate --config rustra.json --check   # CI 동기화 게이트
+bunx --bun @unikit-bridge/cli@0.13.0 codegen --config unikit.json   # 모든 표면 렌더링
+bunx --bun @unikit-bridge/cli@0.13.0 dev --config unikit.json       # Rust 감시 + 재생성
+bunx --bun @unikit-bridge/cli@0.13.0 generate --config unikit.json --check   # CI 동기화 게이트
 ```
 
 → 전체 워크스루: [시작하기 가이드](docs/getting-started.ko.md)
@@ -146,7 +146,7 @@ bunx --bun @rustra/cli@0.13.0 generate --config rustra.json --check   # CI 동�
 
 ```toml
 [dependencies]
-rustra = "0.13.0"
+unikit-bridge = "0.13.0"
 serde = { version = "1", features = ["derive"] }
 schemars = { version = "0.8", features = ["derive"] }
 ```
@@ -155,12 +155,12 @@ schemars = { version = "0.8", features = ["derive"] }
 manifest 기반 [호환 표](docs/compatibility-matrix.ko.md)를 설치 기준으로 삼는다.
 
 ```bash
-bun add @rustra/node@0.11.1          # Node.js
-bun add @rustra/bun@0.11.1           # Bun
-bun add @rustra/tauri@0.10.1         # Tauri
-bun add @rustra/react-native@0.11.0  # React Native
-bun add @rustra/testing@0.7.3        # Mock 엔진 (테스트)
-bun add @rustra/devtools@0.7.3       # 호출 관측성 (개발)
+bun add @unikit-bridge/node@0.11.1          # Node.js
+bun add @unikit-bridge/bun@0.11.1           # Bun
+bun add @unikit-bridge/tauri@0.10.1         # Tauri
+bun add @unikit-bridge/react-native@0.11.0  # React Native
+bun add @unikit-bridge/testing@0.7.3        # Mock 엔진 (테스트)
+bun add @unikit-bridge/devtools@0.7.3       # 호출 관측성 (개발)
 ```
 
 네이티브 라이브러리·JS 어댑터·생성물은 함께 갱신한다 —
@@ -177,17 +177,17 @@ bun add @rustra/devtools@0.7.3       # 호출 관측성 (개발)
 | Rust API (`#[command]`, `build!`, 제네릭)      | [Rust API 가이드](docs/rust-api-guide.ko.md)                                                                           |
 | 호스트별 이벤트와 채널                         | [이벤트·채널 가이드](docs/events-and-channels.ko.md)                                                                   |
 | React Native 설정 (iOS JSI / Android)          | [RN 설정 가이드](docs/extending/react-native-setup.ko.md)                                                              |
-| 기존 Tauri 앱에 rustra 얹기                    | [Tauri 설정 가이드](docs/extending/tauri-setup.ko.md)                                                                  |
+| 기존 Tauri 앱에 unikit 얹기                    | [Tauri 설정 가이드](docs/extending/tauri-setup.ko.md)                                                                  |
 | transport 교체 (napi-rs, FFI)                  | [Transport 가이드](docs/extending/transport-guide.ko.md)                                                               |
 | 성능 표와 검증 근거                            | [벤치마크](docs/benchmarks.ko.md) · [벤치마크 하이라이트](docs/marketing/benchmark-highlights.md)                      |
 | 와이어 포맷과 11.8× 주장의 범위                | [와이어 포맷](docs/wire-format.ko.md)                                                                                  |
-| 로드맵 상태와 릴리스 이력                      | [로드맵 스펙](docs/specs/2026-09-14-rustra-roadmap.md) · [로드맵 상태](docs/verification/2026-09-16-roadmap-status.md) |
+| 로드맵 상태와 릴리스 이력                      | [로드맵 스펙](docs/specs/2026-09-14-unikit-roadmap.md) · [로드맵 상태](docs/verification/2026-09-16-roadmap-status.md) |
 | 버전 관리와 폐기 정책                          | [버전 정책](docs/versioning-policy.ko.md)                                                                              |
 | 마이그레이션 노트 (0.3→0.4, 0.5→0.6, post-0.9) | [마이그레이션 가이드](docs/migration-guide.ko.md) · [마이그레이션 노트](docs/migrations/)                              |
 | 위협 모델과 보안 감사                          | [위협 모델](docs/threat-model.ko.md) · [보안 감사](docs/security-audit.ko.md) · [보안 정책](.github/SECURITY.md)       |
 | 호스트별 검증 근거                             | [검증 체크리스트](docs/verification-checklist.ko.md) · [호환성 매트릭스](docs/compatibility-matrix.ko.md)              |
 | 에러 코드와 처리                               | [에러 코드](docs/error-codes.ko.md)                                                                                    |
-| `rustra doctor` / `dev` / drift 게이트         | [개발 허들 가이드](docs/development-hurdles.ko.md)                                                                     |
+| `unikit doctor` / `dev` / drift 게이트         | [개발 허들 가이드](docs/development-hurdles.ko.md)                                                                     |
 | 아키텍처와 transport 분리                      | [아키텍처 개요](docs/architecture.ko.md)                                                                               |
 | 크레이트·패키지 구조                           | [크레이트 구조](docs/dev/internal/crate-structure.ko.md)                                                               |
 | 실행 가능한 예제 (Node/Bun/Tauri/RN)           | [예제 갤러리](docs/README.ko.md#예제-갤러리)                                                                           |
@@ -199,13 +199,13 @@ bun add @rustra/devtools@0.7.3       # 호출 관측성 (개발)
 
 ```ts
 // Node 배치 작업 — 기본 one-shot 경로는 저빈도 CLI에 적합하다.
-import { addNumbers, rustra } from './generated/node.js';
+import { addNumbers, unikit } from './generated/node.js';
 
 try {
   const { value } = await addNumbers({ a: 20, b: 22 });
   console.log(value);
 } finally {
-  rustra.dispose();
+  unikit.dispose();
 }
 ```
 
@@ -224,18 +224,18 @@ Bun FFI, Tauri WebView, React Native JSI equivalents는
 전체 문서는 [`docs/`](docs/README.ko.md)에 있다 — 허브는 Tauri, React Native,
 Node/Bun 사용자별 읽기 경로를 제공한다.
 
-| 문서                                                                | 내용                                                        |
-| ------------------------------------------------------------------- | ----------------------------------------------------------- |
-| [시작하기](docs/getting-started.ko.md)                              | 설치, 첫 패키지 만들기, 어댑터 선택                         |
-| [이벤트·채널 가이드](docs/events-and-channels.ko.md)                | 호스트별 `subscribeEvent`/`createChannel` 사용법            |
-| [아키텍처 개요](docs/architecture.ko.md)                            | 데이터 흐름, EngineClient 계약, transport 분리              |
-| [Transport 교체 가이드](docs/extending/transport-guide.ko.md)       | Bun FFI, Node napi-rs 교체                                  |
-| [React Native 설정 가이드](docs/extending/react-native-setup.ko.md) | iOS JSI 모듈 설정, 사용법, 트러블슈팅                       |
-| [Tauri 설정 가이드](docs/extending/tauri-setup.ko.md)               | 기존 Tauri 앱에 rustra 얹기, 파일별 워크스루                |
-| [개발 허들 가이드](docs/development-hurdles.ko.md)                  | doctor, 통합 codegen, drift, native 경계, mock 엔진         |
-| [API 레퍼런스(생성)](docs/README.ko.md#api-레퍼런스typedoc)         | 모든 `@rustra/*` 패키지의 TypeDoc HTML — `bun run docs:api` |
-| [새 Host 추가 가이드](docs/extending/adding-host.ko.md)             | Electron, Deno 등 새 어댑터 추가                            |
-| [전체 문서 목록](docs/README.ko.md)                                 | 사용자 / 기여자별 읽기 경로                                 |
+| 문서                                                                | 내용                                                               |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| [시작하기](docs/getting-started.ko.md)                              | 설치, 첫 패키지 만들기, 어댑터 선택                                |
+| [이벤트·채널 가이드](docs/events-and-channels.ko.md)                | 호스트별 `subscribeEvent`/`createChannel` 사용법                   |
+| [아키텍처 개요](docs/architecture.ko.md)                            | 데이터 흐름, EngineClient 계약, transport 분리                     |
+| [Transport 교체 가이드](docs/extending/transport-guide.ko.md)       | Bun FFI, Node napi-rs 교체                                         |
+| [React Native 설정 가이드](docs/extending/react-native-setup.ko.md) | iOS JSI 모듈 설정, 사용법, 트러블슈팅                              |
+| [Tauri 설정 가이드](docs/extending/tauri-setup.ko.md)               | 기존 Tauri 앱에 unikit 얹기, 파일별 워크스루                       |
+| [개발 허들 가이드](docs/development-hurdles.ko.md)                  | doctor, 통합 codegen, drift, native 경계, mock 엔진                |
+| [API 레퍼런스(생성)](docs/README.ko.md#api-레퍼런스typedoc)         | 모든 `@unikit-bridge/*` 패키지의 TypeDoc HTML — `bun run docs:api` |
+| [새 Host 추가 가이드](docs/extending/adding-host.ko.md)             | Electron, Deno 등 새 어댑터 추가                                   |
+| [전체 문서 목록](docs/README.ko.md)                                 | 사용자 / 기여자별 읽기 경로                                        |
 
 ## 기여
 

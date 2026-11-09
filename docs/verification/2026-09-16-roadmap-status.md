@@ -1,10 +1,44 @@
-# Rustra 완료 기준과 후속 실행 현황
+# Unikit 완료 기준과 후속 실행 현황
 
-- 확인일: 2026-09-16 (KST) · 2026-09-21 레지스트리 여정 라운드 추가 갱신
-- 제품 기준: [2026-09-14 로드맵 SPEC](../specs/2026-09-14-rustra-roadmap.md)
+- 확인일: 2026-09-16 (KST) · 2026-09-21 레지스트리 여정 라운드 추가 갱신 · 2026-11-07 0.12/0.13 라인·M2 착수 라운드 추가 갱신
+- 제품 기준: [2026-09-14 로드맵 SPEC](../specs/2026-09-14-unikit-roadmap.md)
 - 현재 원격 main: `1f277de2e68e2242b7a6503e6e0ab731833e60e3`
 - 이번 구현: `codex/m1-registry-onboarding`, [실행 PLAN](../dev/plans/2026-09-16-m1-registry-onboarding.md)
 - 최종 목표: **검증된 Node/Bun/Tauri/RN 범위에 대한 1.0**. 현재는 M0 구현·발행 완료, M1의 Node/Bun 공개 패키지 자동 여정 구현·검증 완료이며 전체 M1·1.0은 미완료다.
+
+## 2026-11-07 라운드 — 0.12/0.13 발행 라인 완료 항목 반영·M2 착수 준비
+
+이 날짜까지 발행된 라인(공개 패키지 기준: `cli`/`types 0.13.0`, `node`/`bun 0.11.1`, `react-native 0.11.0`, `react 0.8.4`, `tauri 0.10.1`, Rust 워크스페이스 `0.13.0`)을 **완료된 작업 항목 기준**으로 정리한다. npm 패키지는 독립 버전 정책이므로 버전 숫자의 나열이 아니라 무엇이 끝났는지로 읽는다(2절 관례). 안전성 강화 항목의 실행 계획·검증 근거는 [11/1 안전성 강화 계획](../dev/plans/2026-11-01-nitro-parity-safety-hardening.md)(T1~T12 전부 완료), 이번 라운드의 실행 배치는 [11/7 다음 스텝 계획](../dev/plans/2026-11-07-next-steps-batch.md)에 있다.
+
+### 완료된 작업 항목 (0.12/0.13 라인)
+
+| 영역     | 항목                                                                                                                                                                         | 근거                                                                                            |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| 기능     | 함수 등록 — 매크로 없는 function path로 계약 명령 등록                                                                                                                       | [계획](../dev/plans/2026-09-16-function-registration.md)                                        |
+| 기능     | `bindSync` — 검증된 동기 바인딩과 invoke·코덱 최적화(nitro 호출 프로파일에서 도출)                                                                                           | [동기 바인딩 문서](../synchronous-bindings.ko.md)                                               |
+| 성능     | nitro 동일 조건 비교·후속 시도 — 맵 인코더 spill 예약 고정, Bun owned 프레임 수신, Node 파편화 프레임 결합, resident-tree 예제, criterion provenance 게이트·dev-profile 가드 | [성능 평가](../performance-evaluation.ko.md), [SPEC §10](../specs/2026-09-14-unikit-roadmap.md) |
+| 통합·DX  | scriptc 네이티브 FFI 코드젠 단계·retained 콜백 ABI, watch 재생성 복구·프로듀서 재빌드 게이트, RN 번들링 실험(rn-experiment) 확장                                             | [10/13 구현 계획](../dev/plans/2026-10-13-dx-safety-performance-implementation.md)              |
+| 안전성   | fuzz `invoke_frame` panic 가드 — 정규화 오류의 libfuzzer 크래시 승격                                                                                                         | 11/1 T1                                                                                         |
+| 안전성   | 생성 코덱 디코드 오류의 `unikit:` 접두사·`offset N` 고정 형식화                                                                                                              | 11/1 T2                                                                                         |
+| 안전성   | RN 부트스트랩·네이티브 미설치 오류의 구조화 코드(`bootstrap.failed`·`native.not_installed`)                                                                                  | 11/1 T3                                                                                         |
+| 안전성   | Rust workspace lints — unwrap·expect·unsafe를 빌드 시간에 차단                                                                                                               | 11/1 T4                                                                                         |
+| 안전성   | TS 정적 강화 — `noUncheckedIndexedAccess` 등 5종 플래그 전 패키지 적용 + eslint type-checked `--max-warnings 0`                                                              | 11/1 T5                                                                                         |
+| 안전성   | gate 잡 actionlint 배선(v1.7.12 핀) + 의존성 wildcard 정책 `deny` 승격                                                                                                       | 11/1 T6                                                                                         |
+| 안전성   | TSan 주간 트랙·릴리스 게이트 신설                                                                                                                                            | 11/1 T7                                                                                         |
+| 안전성   | 생성 C++ 코덱 3바이너리의 ASan+LSan+UBSan CI 잡(`UnikitJSIBridge.cpp`는 folly/JSI 헤더 의존으로 수동 영역에 분리 기록)                                                       | 11/1 T8                                                                                         |
+| 안전성   | `@ts-expect-error` 생성물 정적 경계 부정 픽스처                                                                                                                              | 11/1 T9                                                                                         |
+| 안전성   | miri·sanitizer·fuzz의 PR 게이트 승격 — ci-gate 집계 15→18잡, docs 전용 PR의 설계된 skip 유지                                                                                 | 11/1 T10                                                                                        |
+| 문서     | 작성자 규칙 문서(EN/KO), 위협 모델·게이트맵·릴리스 절차(npm OIDC 전환 절차 문서화 포함)·호환성 매트릭스 정합                                                                 | 11/1 T11·T12                                                                                    |
+| 유지보수 | 보안 의존성 범프(tokio 1.54.1 AsyncFd unsound 해소, shell-quote critical 어드바이저리), 레지스트리 소비 여정 핀을 현재 공개 라인으로 갱신                                    | 커밋 `3f2340bf`·`0a2f5558`·`68976ec0`                                                           |
+
+### 잔여 항목 상태 전환 (0절 기준)
+
+1. **RN/Android 이벤트 푸시 교착(0절 결함 3) — 미수선 → 수정 구현 완료(발행 대기).** 동기 Rust 실행 중 `Package::emit`의 JS 스레드 재진입에서 `CallInvoker::invokeAsync`를 우회하도록 `thread_local` 깊이 스코프를 동기 HostFunction 공용 초크포인트 3곳(+비동기 즉시 실패 경로)에 부착하고, 이벤트·채널·즉시 실패 완료를 통합 에필로그 큐로 스코프 이탈 시 drain하는 수정을 `UnikitJSIBridge.cpp`·`UnikitSyncBinding.inc`에 구현했다(11/7 배치 T1-1, working tree — **미발행**). 로컬 정적 검토·TS 대리 회귀는 통과(react-native 90·types 311 pass). C++ 컴파일·실기기 재검증은 환경 부재로 BLOCKED이며, 발행 라인 반영 뒤 rn-android 여정 `--assert-events` 옵트인(추가 완료, T1-3 — 플래그 부재 시 기존 동작 불변 실증)으로 재검증을 연결한다. 공개 `react-native 0.11.0`은 아직 이 수정을 포함하지 않는다 — 발행 전까지 RN 다리의 a3Events 주장은 하지 않는다(0절 관례 유지).
+2. **RN/iOS 자동 여정 — 없음 → 스크립트 추가 완료(실행 BLOCKED·macOS 수동).** `scripts/registry-consumer-rn-ios.mjs`(+유닛 테스트)와 문서(EN/KO)를 추가했다(11/7 배치 T2-1). scaffold→정확 핀→codegen→`pod install`→`xcodebuild`(시뮬레이터)→`simctl` 실행→a2/a3(+이벤트 시도) 단계를 정의한다. Linux/Windows에서는 preflight가 BLOCKED 영수증으로 loud-fail 한다. 이벤트 푸시는 iOS 푸시 경로의 첫 실측으로 시도 후 정직 기록한다 — 발행 어댑터에 교착 결함이 남아 있으면 `rn-ios-event-push-freeze-suspected` finding과 함께 실패로 종료한다(은폐 없음). macOS 수동 실행 절차는 [공개 레지스트리 도입 검증](../registry-onboarding.ko.md)의 RN/iOS 섹션에 있다. `package.json` 배선(`verify:consumer:rn-ios`·테스트 체인 편입)은 반영 완료다(여정 유닛 체인 59/59).
+3. **M2 실사용 — 미착수 → 착수 문서 준비 완료(소비자 앱 선정은 사용자 결정 대기).** [M2 착수 문서](../dev/plans/2026-11-07-m2-kickoff.md)에 소비자 앱 선정 기준(비계산기·목적 상이·최소 1개 동일 계약 2호스트), A5 업그레이드/롤백 프로토콜(기존 앱 Tauri 1+RN 1), A6 외부 평가자 프로토콜(모집 채널=사용자 결정·미선정), 기록 양식(사용 기록 최소 열·생명주기 100회·2시간 부하 레시피)을 확정했다. 소비자 앱 2개 선정 전까지 M2/G2는 미착수다.
+4. **병행 진행(11/7 배치).** 예제 tsconfig 상속·렌더러 플래그 정리(T5-1) 완료, JS 대규모 할당 스트레스 러너(T5-2) 완료(`test:local` 체인 편입·3/3 PASS), Windows 코드젠 결정론 워크플로(T5-3)는 구현·actionlint(v1.7.12) 검증 완료(Windows 러너 실제 실행은 푸시 후 확인 — BLOCKED). dependabot 7건은 2026-11-07 재확인(#101~#106·#111)·로컬 검증·병합 권고 산출까지 완료 — 병합 4건(#101·#103·#106·#111)·close 2건(#102·#104)·napi 패밀리 조정 범프는 사용자 승인 대기(11/7 계획 설계 T3 표). 5절의 2026-09-16 조회 PR(#65~#68)은 이후 정리되어 현재 열린 dependabot PR은 위 7건이다.
+
+A5(기존 앱 업그레이드)·A6(외부 평가자)·소비자 앱 선정·실기기 접근은 여전히 사용자 결정 사항이다(4절). 이 라운드는 문서·상태 정리 라운드며 새 발행을 수반하지 않는다 — working tree 수정(RN 교착 수정 포함)의 커밋·발행은 사용자 승인 대기다.
 
 ## 0. 2026-09-21 레지스트리 여정 라운드 (M1 보강)
 
@@ -23,7 +57,7 @@ Tauri 여정은 실제 WKWebView 안의 JS가 생성된 엄격 계약 클라이�
 
 1. **RN 생성 모듈 ESM manifest 결함(수정 완료, 미발행)** — 생성 모듈의 `"type": "module"` + CommonJS `react-native.config.js` 조합에서 Node 기반 오토크링킹이 모듈을 조용히 누락시켰다. 렌더러 수정(`type` 생략) + 예제 재생성 + 재검증(Node/bun 양쪽 `react-native config`) 완료. 발행 CLI `0.11.3` 은 여전히 결함을 가지므로 RN 여정은 동일 수정을 워크어라운드로 적용해 기록한다.
 2. **RN 오톨링킹 심링크 경로 결함(앱 해법 문서화)** — 모듈이 `node_modules` 심링크로 등록되면 Gradle `file()` 기준이 어긋나 어댑터 경로가 `node_modules/node_modules/…` 로 풀린다. 앱 소유 `react-native.config.js` 로 root 를 고정해 회피하며, 렌더러 측 강화는 후보다.
-3. **RN/Android 이벤트 푸시 교착(미수선, 최우선 후보)** — 브릿지 호출 중 명령 안에서 `Package::emit` 하면 invoke 는 반환되지만 JS 이벤트 루프가 다음 매크로태스크 전에 멈춘다. `pollMs` 로도 회피 불가(싱크가 install 시점에 설치). 실기기 TB710FU·RN 0.81.5·어댑터 0.9.2·rustra 0.11.0 에서 3/3 재현. RN 다리의 a3Events 는 주장하지 않고 Tauri 여정이 이벤트 증거를 담당한다.
+3. **RN/Android 이벤트 푸시 교착(미수선, 최우선 후보)** — 브릿지 호출 중 명령 안에서 `Package::emit` 하면 invoke 는 반환되지만 JS 이벤트 루프가 다음 매크로태스크 전에 멈춘다. `pollMs` 로도 회피 불가(싱크가 install 시점에 설치). 실기기 TB710FU·RN 0.81.5·어댑터 0.9.2·unikit 0.11.0 에서 3/3 재현. RN 다리의 a3Events 는 주장하지 않고 Tauri 여정이 이벤트 증거를 담당한다.
 
 **잔여(RN/iOS)**: RN/iOS 시뮬레이터 다리는 아직 자동 여정이 없다 — Android 다리의 패턴(RN 템플릿·정확 핀·코드젠·pod install·xcodebuild·simctl 실행)을 그대로 이어 구현·실행하면 된다. A5(기존 앱 업그레이드)·A6(외부 평가자)는 여전히 사용자 결정 사항이다.
 
@@ -43,15 +77,15 @@ Tauri 여정은 실제 WKWebView 안의 JS가 생성된 엄격 계약 클라이�
 
 2026-09-16에 GitHub API와 공개 레지스트리를 다시 조회했다.
 
-- [PR #72](https://github.com/loopy-lim/rustra/pull/72)는 위 main SHA에 병합됐다.
-- 같은 SHA의 [기본 CI](https://github.com/loopy-lim/rustra/actions/runs/34832062630), [Benchmark](https://github.com/loopy-lim/rustra/actions/runs/34832062645), [안전성 포함 Release](https://github.com/loopy-lim/rustra/actions/runs/34833773252), [수동 Rust Release](https://github.com/loopy-lim/rustra/actions/runs/34835140983)가 성공 상태다.
-- 공개 Rust `rustra`, `rustra-macros`, `rustra-naming`은 `0.10.1`, yank=false, archive checksum 일치, VCS SHA는 위 main과 일치한다.
+- [PR #72](https://github.com/loopy-lim/unikit-bridge/pull/72)는 위 main SHA에 병합됐다.
+- 같은 SHA의 [기본 CI](https://github.com/loopy-lim/unikit-bridge/actions/runs/34832062630), [Benchmark](https://github.com/loopy-lim/unikit-bridge/actions/runs/34832062645), [안전성 포함 Release](https://github.com/loopy-lim/unikit-bridge/actions/runs/34833773252), [수동 Rust Release](https://github.com/loopy-lim/unikit-bridge/actions/runs/34835140983)가 성공 상태다.
+- 공개 Rust `unikit`, `unikit-bridge-macros`, `unikit-bridge-naming`은 `0.10.1`, yank=false, archive checksum 일치, VCS SHA는 위 main과 일치한다.
 - npm `cli/types/node/bun=0.10.0`, `tauri/react-native=0.9.0`, `react=0.8.0`, `testing/devtools=0.7.0`. 각 정확한 버전이 latest와 일치한다. npm 소스 SHA는 이전 `30c73bd66159f4c777054527236573559c106c98`이며 독립 버전 정책에 따른 별도 출처다.
 - [이번 레지스트리 스냅샷](evidence/2026-09-16-registry-snapshot.json)은 오류 0개다. npm 출처가 이전 커밋이라는 사실을 현재 main 수정의 npm 발행 완료로 해석하지 않는다.
 
 [이전 M0 검증 문서](2026-09-14-m0-safety-release.md)의 ‘새 Actions 실행·발행 미수행’ 문장은 당시 로컬 검증 시점의 기록이다. 이후 병합·발행 상태는 위 조회가 보완한다. 이번 M1 작업 디렉터리의 미커밋 수정은 위 원격 CI에 포함되지 않는다.
 
-공개 npm CLI와 현재 main을 비교하면 `cli-generate.ts`의 watch 재구독 제거 수정이 아직 `@rustra/cli@0.10.0`에 포함되지 않았다. 조회한 원격 main의 changeset은 비어 있었다. 이번 로컬 후보에는 정확한 의존성 핀/독립 호스트 버전 수정과 이 watch 수정의 CLI patch changeset을 준비했다. 아직 발행하지 않았으며, 이번 registry 기본 핀 검증을 최신 main 전체 발행 증거로 사용하지 않는다.
+공개 npm CLI와 현재 main을 비교하면 `cli-generate.ts`의 watch 재구독 제거 수정이 아직 `@unikit-bridge/cli@0.10.0`에 포함되지 않았다. 조회한 원격 main의 changeset은 비어 있었다. 이번 로컬 후보에는 정확한 의존성 핀/독립 호스트 버전 수정과 이 watch 수정의 CLI patch changeset을 준비했다. 아직 발행하지 않았으며, 이번 registry 기본 핀 검증을 최신 main 전체 발행 증거로 사용하지 않는다.
 
 ## 3. 이번에 구현·검증한 M1 자동 검증
 
@@ -77,9 +111,9 @@ npm manifest에는 공개 CLI가 지원하는 caret 표기를 유지하되 정�
 3. **A3 변경·오류·이벤트:** 필드 변경 후 재호출, 선언한 도메인 에러 처리, 이벤트 수신·unsubscribe를 각 경로에서 확인한다. fixture에서 성공한 부분과 기존 앱의 성공을 구분한다.
 4. **A4 진단:** SDK 누락, 버전 불일치, stale 생성물, native 모듈 누락, 계약 불일치의 원인·대상·다음 조치가 사용자에게 보이는지 실제 실패 입력으로 검사한다. 기존 doctor 검사와 진단 구현을 먼저 재사용한다.
 5. **A5 업그레이드:** 현재 Rust 패치 왕복에 이어 Tauri 기존 앱 1개와 RN 기존 앱 1개에서 JS·crate·생성물·native artifact를 묶어 업그레이드/한 단계 rollback한다. 소비자 저장소가 정해진 뒤 해당 저장소 범위에서 수행한다.
-6. **A6 외부 평가:** Rustra 개발에 참여하지 않은 평가자 5명에게 같은 문서 경로를 제공한다. Tauri·RN Android·RN iOS 각 최소 1명을 포함하고, 첫 호출 성공 4명 이상, 개입 단계·해결·준비된 환경 시간·전체 시간을 기록한다. 모집/연락 채널은 사용자가 정하고 연락 권한을 부여해야 한다.
+6. **A6 외부 평가:** Unikit 개발에 참여하지 않은 평가자 5명에게 같은 문서 경로를 제공한다. Tauri·RN Android·RN iOS 각 최소 1명을 포함하고, 첫 호출 성공 4명 이상, 개입 단계·해결·준비된 환경 시간·전체 시간을 기록한다. 모집/연락 채널은 사용자가 정하고 연락 권한을 부여해야 한다.
 
-평가 기록의 최소 열: 익명 평가자 ID, Rustra 참여 여부, 호스트/OS/도구 버전, 정확한 package 조합, 시작/첫 성공 시각, SDK 다운로드 시간, 성공 여부, 막힌 단계, 도움 요청, 제공한 개입, 원본 로그. 평가자 관측 없이 성공률이나 첫 성공 시간을 추정하지 않는다.
+평가 기록의 최소 열: 익명 평가자 ID, Unikit 참여 여부, 호스트/OS/도구 버전, 정확한 package 조합, 시작/첫 성공 시각, SDK 다운로드 시간, 성공 여부, 막힌 단계, 도움 요청, 제공한 개입, 원본 로그. 평가자 관측 없이 성공률이나 첫 성공 시간을 추정하지 않는다.
 
 ### M2: 실제 소비자 2개를 선정한 뒤
 
@@ -103,16 +137,16 @@ G0–G3와 차단 결함 0개를 확인하고 공개 계약/API snapshot을 동�
 
 2026-09-16 조회에서 열린 issue는 없고 Dependabot PR 네 개가 남아 있다.
 
-| PR                                                                    | 조회 결과                                       | 후속 처리                                                                                               |
-| --------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| [#65 quote 1.0.47](https://github.com/loopy-lim/rustra/pull/65)       | 표시된 checks 성공                              | 최신 main 기준 변경 영향·CI 확인 후 별도 병합 판단                                                      |
-| [#66 syn 3.0.5](https://github.com/loopy-lim/rustra/pull/66)          | 표시된 checks 성공                              | 매크로/API 영향 확인 후 별도 병합 판단                                                                  |
-| [#67 serde_json 1.0.151](https://github.com/loopy-lim/rustra/pull/67) | 표시된 checks 성공                              | wire/직렬화 회귀와 최신 CI 확인 후 별도 병합 판단                                                       |
-| [#68 Tauri 2.11.5](https://github.com/loopy-lim/rustra/pull/68)       | TypeScript 실패, consumer-smoke skip, gate 실패 | watch 파일시스템 변경 미수신 테스트를 최신 main 기준으로 다시 확인. Tauri 런타임 결함으로 단정하지 않음 |
+| PR                                                                           | 조회 결과                                       | 후속 처리                                                                                               |
+| ---------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| [#65 quote 1.0.47](https://github.com/loopy-lim/unikit-bridge/pull/65)       | 표시된 checks 성공                              | 최신 main 기준 변경 영향·CI 확인 후 별도 병합 판단                                                      |
+| [#66 syn 3.0.5](https://github.com/loopy-lim/unikit-bridge/pull/66)          | 표시된 checks 성공                              | 매크로/API 영향 확인 후 별도 병합 판단                                                                  |
+| [#67 serde_json 1.0.151](https://github.com/loopy-lim/unikit-bridge/pull/67) | 표시된 checks 성공                              | wire/직렬화 회귀와 최신 CI 확인 후 별도 병합 판단                                                       |
+| [#68 Tauri 2.11.5](https://github.com/loopy-lim/unikit-bridge/pull/68)       | TypeScript 실패, consumer-smoke skip, gate 실패 | watch 파일시스템 변경 미수신 테스트를 최신 main 기준으로 다시 확인. Tauri 런타임 결함으로 단정하지 않음 |
 
-#68의 실패는 [TypeScript job](https://github.com/loopy-lim/rustra/actions/runs/34683289667/job/103527075778)의 `watch.test.js`에서 `expected filesystem change was not delivered`였다. 이 실패만으로 Tauri 의존성 업데이트가 원인이라는 결론을 내릴 수 없다. 현재 main 기준으로 `node --test packages/cli/dist-test/watch.test.js`를 실행해 6개가 통과했다. 기존 PR의 원격 실패 상태를 이 로컬 결과로 바꾸지는 않는다.
+#68의 실패는 [TypeScript job](https://github.com/loopy-lim/unikit-bridge/actions/runs/34683289667/job/103527075778)의 `watch.test.js`에서 `expected filesystem change was not delivered`였다. 이 실패만으로 Tauri 의존성 업데이트가 원인이라는 결론을 내릴 수 없다. 현재 main 기준으로 `node --test packages/cli/dist-test/watch.test.js`를 실행해 6개가 통과했다. 기존 PR의 원격 실패 상태를 이 로컬 결과로 바꾸지는 않는다.
 
-이번 작업은 Rustra 검증/문서/CI 준비 범위다. 소비자 프로젝트 선정·변경, 실제 기기 설치와 장시간 테스트, 외부 연락, 공유 main 병합·발행은 각각 구체적 대상과 권한을 확인한 뒤 실행한다. 기존 미추적 Tauri 생성물과 `.zcode`는 원래 체크아웃에 보존한다.
+이번 작업은 Unikit 검증/문서/CI 준비 범위다. 소비자 프로젝트 선정·변경, 실제 기기 설치와 장시간 테스트, 외부 연락, 공유 main 병합·발행은 각각 구체적 대상과 권한을 확인한 뒤 실행한다. 기존 미추적 Tauri 생성물과 `.zcode`는 원래 체크아웃에 보존한다.
 
 ## 6. 검증 기록
 
@@ -134,11 +168,11 @@ G0–G3와 차단 결함 0개를 확인하고 공개 계약/API snapshot을 동�
 | architecture gate                          | 4/4 통과                           | 기존 모듈 경계                                                      |
 | 현재 watch 테스트                          | 6/6 통과                           | 로컬 현재 main 기반; PR #68 원격 CI는 별도                          |
 
-원본 로그는 `/tmp/rustra-m1-review/`에 보존한다. 공개 registry 첫 실행은 gate의 Cargo `[[bin]] path` 오탐으로 중단됐고, `/tmp/rustra-m1-live-20260916/receipt.json`에 실패가 기록됐다. 성공 영수증으로 덮어쓰지 않는다. 최종 registry 검증은 아래에 별도로 기록한다.
+원본 로그는 `/tmp/unikit-m1-review/`에 보존한다. 공개 registry 첫 실행은 gate의 Cargo `[[bin]] path` 오탐으로 중단됐고, `/tmp/unikit-m1-live-20260916/receipt.json`에 실패가 기록됐다. 성공 영수증으로 덮어쓰지 않는다. 최종 registry 검증은 아래에 별도로 기록한다.
 
 ### CLI 도입 결함 수정의 직접 확인
 
-공개 CLI `0.10.0`으로 실패했던 v2 소비자는 `@rustra/types`, `@rustra/node`, `@rustra/cli`의 정확한 `0.10.0` manifest를 유지했다. 수정한 로컬 CLI로 같은 소비자의 `codegen`, `codegen --check`, 기존 demo 호출(`hello from TypeScript`)이 모두 통과했다. 로그는 `exact-pin-candidate-codegen.log`, `exact-pin-candidate-check.log`, `exact-pin-candidate-call.log`다. 이 결과는 **로컬 CLI 수정 검증**이며, 아직 발행하지 않은 CLI 패치의 공개 설치 증거가 아니다.
+공개 CLI `0.10.0`으로 실패했던 v2 소비자는 `@unikit-bridge/types`, `@unikit-bridge/node`, `@unikit-bridge/cli`의 정확한 `0.10.0` manifest를 유지했다. 수정한 로컬 CLI로 같은 소비자의 `codegen`, `codegen --check`, 기존 demo 호출(`hello from TypeScript`)이 모두 통과했다. 로그는 `exact-pin-candidate-codegen.log`, `exact-pin-candidate-check.log`, `exact-pin-candidate-call.log`다. 이 결과는 **로컬 CLI 수정 검증**이며, 아직 발행하지 않은 CLI 패치의 공개 설치 증거가 아니다.
 
 codegen freshness의 최초 podspec 드리프트는 격리 작업 디렉터리에 예제별 의존성을 설치하지 않아 다른 위치의 어댑터를 찾은 환경 차이였다. 두 RN 예제의 frozen lock으로 의존성을 설치한 뒤 6개 검사 모두 통과했으며 추적된 생성물을 변경하지 않았다.
 
@@ -153,7 +187,7 @@ codegen freshness의 최초 podspec 드리프트는 격리 작업 디렉터리�
 - 실행기 6개 파일의 hash가 최종 작업 소스와 일치하고, 세 phase의 보존된 lock/생성물 snapshot hash를 모두 다시 대조했다. 성공 소비자의 node_modules·Cargo cache/target·native binary는 정리됐고, native hash와 출력 디렉터리의 lock/생성물/실행기 snapshot·로그는 남았다.
 - [실패 시도 기록](evidence/2026-09-16-registry-attempts.json)은 v1/v3의 검증기 경로 오탐, v2 공개 CLI 핀 결함, v4 FFI 등록 누락과 v5 fixture 치환 결함을 구분한다. 각각의 원래 실패 영수증을 성공으로 덮어쓰지 않았다. v4/v5는 Bun 어댑터 결함으로 기록하지 않는다.
 
-전체 원본은 `/tmp/rustra-m1-live-20260916-v6/`에 있다. 저장소에 복사한 최종 JSON에도 원본 절대 경로를 유지했으며, 임시 디렉터리가 정리되면 그 경로의 raw log/snapshot은 사라질 수 있다. source/native/lock/생성물 hash와 관측 결과는 위 JSON에 남는다.
+전체 원본은 `/tmp/unikit-m1-live-20260916-v6/`에 있다. 저장소에 복사한 최종 JSON에도 원본 절대 경로를 유지했으며, 임시 디렉터리가 정리되면 그 경로의 raw log/snapshot은 사라질 수 있다. source/native/lock/생성물 hash와 관측 결과는 위 JSON에 남는다.
 
 ### 독립 검토
 

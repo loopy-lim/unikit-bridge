@@ -1,5 +1,5 @@
 [package]
-name = "rustra-foreign-exception-probe"
+name = "unikit-foreign-exception-probe"
 version = "0.0.0"
 edition = "2024"
 publish = false
@@ -10,4 +10,4 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-rustra = { path = "../../../crates/rustra" }
+unikit-bridge = { path = "../../../crates/unikit-bridge" }

@@ -1,5 +1,5 @@
 /**
- * @rustra/node 채널 — loop-stdio 바이너리 모드의 역방향 스트림. RN/Tauri
+ * @unikit-bridge/node 채널 — loop-stdio 바이너리 모드의 역방향 스트림. RN/Tauri
  * `createChannel` 과 동형 계약 `{ handle, close() }` 이다.
  *
  * ### 와이어 (loop-stdio 0.7 채널 예약 cmd id)
@@ -52,7 +52,7 @@
  * 없으므로 누수다. close 는 구독 해지 + drop invoke, late frame 은 무시,
  * double-close 는 idempotent(false).
  */
-import { RustraCommandError, RustraErrorCode } from '@rustra/types';
+import { UnikitCommandError, UnikitErrorCode } from '@unikit-bridge/types';
 import type { NodeEventTransport } from './node-events.js';
 
 export type NodeChannelCallback = (payload: unknown) => void;
@@ -100,7 +100,7 @@ async function ensureBinaryMode(
   // 비동기다. NDJSON 확정(구 런타임/codecs 미제공)이면 여기서 loud-fail 한다.
   if (transport.ready) await transport.ready();
   if (transport.mode === 'ndjson') {
-    throw new RustraCommandError(RustraErrorCode.ChannelUnavailable, ndjsonMessage);
+    throw new UnikitCommandError(UnikitErrorCode.ChannelUnavailable, ndjsonMessage);
   }
 }
 
@@ -112,7 +112,7 @@ async function issueNodeChannelHandle(
   const issued = (await transport.invoke(createCommand)) as { handle?: unknown };
   const handle = issued?.handle as number;
   if (!Number.isSafeInteger(handle) || handle < 1) {
-    throw new RustraCommandError(RustraErrorCode.ChannelUnavailable, invalidHandleMessage);
+    throw new UnikitCommandError(UnikitErrorCode.ChannelUnavailable, invalidHandleMessage);
   }
   return handle;
 }
@@ -154,8 +154,8 @@ export async function createNodeChannel(
   callback: NodeChannelCallback,
 ): Promise<NodeChannel> {
   if (typeof transport.onChannelFrame !== 'function') {
-    throw new RustraCommandError(
-      RustraErrorCode.ChannelUnavailable,
+    throw new UnikitCommandError(
+      UnikitErrorCode.ChannelUnavailable,
       'This transport cannot deliver channel frames: it does not expose onChannelFrame. Attach channels to a createNodeLoopTransport({ command, codecs }) runtime (loop-stdio binary mode) instead of a one-shot invoke binary.',
     );
   }
@@ -187,7 +187,7 @@ export async function createNodeChannel(
       callback(payload);
     } catch (error) {
       // 콜백 예외 격리 — 전달 경로(stdout 리더)가 죽지 않는다(RN/Node 동일 정책).
-      console.error('Rustra: channel callback threw:', error);
+      console.error('Unikit: channel callback threw:', error);
     }
   });
 
@@ -227,8 +227,8 @@ export async function createNodeBytesChannel(
   callback: NodeBytesChannelCallback,
 ): Promise<NodeBytesChannel> {
   if (typeof transport.onChannelBytesFrame !== 'function') {
-    throw new RustraCommandError(
-      RustraErrorCode.ChannelUnavailable,
+    throw new UnikitCommandError(
+      UnikitErrorCode.ChannelUnavailable,
       'This transport cannot deliver binary channel frames: it does not expose onChannelBytesFrame. Attach channels to a createNodeLoopTransport({ command, codecs }) runtime (loop-stdio binary mode) instead of a one-shot invoke binary.',
     );
   }
@@ -239,8 +239,8 @@ export async function createNodeBytesChannel(
   if (transport.channelBytesCapable !== true) {
     // 구 런타임: 0xfffb 모드 바이트를 무시하고 JSON 채널을 파버린다 — 프레임을
     // 보내기 전에 끊는다(0xfff9 구독은 영원히 비는 조용한 실패 방지).
-    throw new RustraCommandError(
-      RustraErrorCode.ChannelUnavailable,
+    throw new UnikitCommandError(
+      UnikitErrorCode.ChannelUnavailable,
       'runtime did not advertise binary channel support (no channelBytes capability in the __hello response) — upgrade the loop-stdio runtime to use binary channels',
     );
   }
@@ -262,7 +262,7 @@ export async function createNodeBytesChannel(
       callback(payload);
     } catch (error) {
       // 콜백 예외 격리 — 전달 경로(stdout 리더)가 죽지 않는다(RN/Node 동일 정책).
-      console.error('Rustra: bytes channel callback threw:', error);
+      console.error('Unikit: bytes channel callback threw:', error);
     }
   });
 

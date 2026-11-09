@@ -113,7 +113,7 @@ jobs:
       - name: Clippy
         if: runner.os == 'Linux'
         run: cargo clippy --all-targets -- -D warnings
-      # --workspace 테스트는 rustra-tauri-calculator(gtk/webkit 필요, apt step 이 Linux 에서만
+      # --workspace 테스트는 unikit-tauri-calculator(gtk/webkit 필요, apt step 이 Linux 에서만
       # 설치)까지 빌드하므로 Linux 에서만 전체 워크스페이스를 돌린다. macOS/Windows 는 코어 크레이트만.
       - name: Test (Linux — full workspace)
         if: runner.os == 'Linux'
@@ -131,27 +131,27 @@ jobs:
       # 빌드하므로(테스트 내 cargo build) 선행 워크스페이스 빌드 뒤면 증분 비용은 소.
       - name: Test hot-core feature (Linux)
         if: runner.os == 'Linux'
-        run: cargo test -p rustra --features hot-core
+        run: cargo test -p unikit-bridge --features hot-core
       - name: Test (macOS/Windows — core crates)
         if: runner.os != 'Linux'
         shell: bash
-        run: cargo test -p rustra -p rustra-calculator-example
+        run: cargo test -p unikit-bridge -p unikit-calculator-example
       - name: Build release cdylib
         shell: bash
-        run: cargo build -p rustra-calculator-example --release
+        run: cargo build -p unikit-calculator-example --release
       - name: Upload native artifact
         uses: actions/upload-artifact@v7
         with:
-          name: rustra-native-${{ matrix.os }}
+          name: unikit-native-${{ matrix.os }}
           path: |
-            target/release/librustra_calculator_example.so
-            target/release/librustra_calculator_example.dylib
-            target/release/rustra_calculator_example.dll
+            target/release/libunikit_calculator_example.so
+            target/release/libunikit_calculator_example.dylib
+            target/release/unikit_calculator_example.dll
           if-no-files-found: ignore
 
   # MSRV(1.88) 계약 검증 — Cargo.toml rust-version 선언이 실제로 빌드되는지.
   # 1.95.0 상위 툴체인만 쓰면 MSRV를 깨는 의존성/코드가 머지돼도 CI가 green이다.
-  # (1.87 에는 let-chains stabilized 가 없다 — rustra-macros 가 1.88 이상을 요구.)
+  # (1.87 에는 let-chains stabilized 가 없다 — unikit-bridge-macros 가 1.88 이상을 요구.)
   rust-msrv:
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
@@ -170,9 +170,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
       - name: Check core crates build on MSRV
-        run: cargo check -p rustra -p rustra-macros
+        run: cargo check -p unikit-bridge -p unikit-bridge-macros
       - name: Test core crate on MSRV
-        run: cargo test -p rustra --lib
+        run: cargo test -p unikit-bridge --lib
 
   # wasm32-unknown-unknown 컴파일 check — wasm dev target(dev.target: "wasm",
   # wasm.engine: "wasm3") 을 위한 선수 게이트. 컴파일만 단언하고 테스트 실행은
@@ -189,7 +189,7 @@ jobs:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
       - name: Check core crate compiles for wasm32
-        run: cargo check -p rustra --target wasm32-unknown-unknown
+        run: cargo check -p unikit-bridge --target wasm32-unknown-unknown
 
   # napi transport 경로(test:runtime:node-napi) — 어떤 CI 잡에서도 실행되지
   # 않아 무검증 방치였다. debug 애드온 빌드 + 런타임 스모크로 게이트한다.
@@ -220,11 +220,11 @@ jobs:
         run: bun install --frozen-lockfile
       # calculator tsconfig은 생성된 Node/Tauri entrypoint까지 함께 검사한다.
       # package exports가 dist 타입을 가리키므로 types만 빌드하면 깨끗한 CI에서
-      # @rustra/node와 @rustra/tauri 선언을 찾을 수 없다.
+      # @unikit-bridge/node와 @unikit-bridge/tauri 선언을 찾을 수 없다.
       - name: Build workspace packages
         run: bun run build
       - name: Build calculator example binary
-        run: cargo build -p rustra-calculator-example
+        run: cargo build -p unikit-calculator-example
       - name: Type check calculator
         run: bunx tsc -p examples/calculator/tsconfig.json
       - name: napi runtime smoke
@@ -242,7 +242,7 @@ jobs:
   # 안에서 재실행(2회)했지만, 분할은 우산을 잡 경계로 분해해 각 검증이 정확히
   # 1회 실행되도록 정리한다(ts:node 는 ts-tests 의 명시 스텝, runtime:* 은
   # ts-runtime 으로 이동).
-  # 세 잡 모두 생성 코드가 @rustra/* 를 import 하고 package exports 가 dist 를
+  # 세 잡 모두 생성 코드가 @unikit-bridge/* 를 import 하고 package exports 가 dist 를
   # 가리키므로 checkout + bun install + workspace 빌드를 각 잡이 재복제한다
   # (cargo 를 쓰는 잡은 Rust 툴체인/rust-cache 도 재복제). gtk/webkit apt 의존은
   # test:runtime:tauri 를 돌리는 ts-runtime 만 필요하다.
@@ -272,7 +272,7 @@ jobs:
           bun-version: 1.4.0
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Build @rustra/types first
+      - name: Build @unikit-bridge/types first
         run: bun run --cwd packages/types build
       - name: Build all packages
         # tsc --noEmit 이 package exports 의 dist 타입 선언을 소비하고
@@ -282,7 +282,7 @@ jobs:
         # 첫 신호 우산(test:fast)이 어느 CI 잡에서도 실행되지 않아 스크립트
         # 자체가 드리프트할 수 있었다(M10) — 이하 모든 정적 검증에 앞서 실제로
         # 돌아가는지 스모크한다. cargo check --workspace --exclude
-        # rustra-tauri-calculator 로 tauri 시스템 의존성 없이도 통과하도록
+        # unikit-tauri-calculator 로 tauri 시스템 의존성 없이도 통과하도록
         # Linux-safe 하다(로컬 pre-push 훅과 동일 명령).
         run: bun run test:fast
       - name: Release version coherence
@@ -309,10 +309,10 @@ jobs:
         run: bun run audit:prod
       - name: Type check calculator
         shell: bash
-        run: set -o pipefail && bunx tsc --noEmit -p examples/calculator/tsconfig.json 2>&1 | tee "$RUNNER_TEMP/rustra-tsc-calculator.log"
+        run: set -o pipefail && bunx tsc --noEmit -p examples/calculator/tsconfig.json 2>&1 | tee "$RUNNER_TEMP/unikit-tsc-calculator.log"
       - name: Type check crud
         shell: bash
-        run: set -o pipefail && bunx tsc --noEmit -p examples/crud/tsconfig.json 2>&1 | tee "$RUNNER_TEMP/rustra-tsc-crud.log"
+        run: set -o pipefail && bunx tsc --noEmit -p examples/crud/tsconfig.json 2>&1 | tee "$RUNNER_TEMP/unikit-tsc-crud.log"
       - name: Format and lint private Rust API parser
         run: |
           cargo fmt --manifest-path scripts/api-surface-rust/Cargo.toml -- --check
@@ -322,7 +322,7 @@ jobs:
         # 잡는다 — umbrella `test`에 없어 CI가 놓치고 있었다.
         run: bun run test:api-surface
       - name: Codegen freshness gate (examples)
-        # examples/*/rustra.json 예제의 committed generated/ 가 재생성 결과와
+        # examples/*/unikit.json 예제의 committed generated/ 가 재생성 결과와
         # 일치하는지 단언한다 — 드리프트는 예제 디렉터리에서 `bun run codegen` 으로
         # 갱신 후 커밋. Rust schema 발행(cargo run)이 필요해 잡 상단의 Rust
         # 툴체인/rust-cache 를 재사용하므로 "Build all packages" 이후에 둔다.
@@ -371,9 +371,9 @@ jobs:
         with:
           name: failure-logs-ts-checks
           path: |
-            ${{ runner.temp }}/rustra-tsc-calculator.log
-            ${{ runner.temp }}/rustra-tsc-crud.log
-            ${{ runner.temp }}/rustra-react-doctor.log
+            ${{ runner.temp }}/unikit-tsc-calculator.log
+            ${{ runner.temp }}/unikit-tsc-crud.log
+            ${{ runner.temp }}/unikit-react-doctor.log
             bun-debug.log
           if-no-files-found: ignore
           retention-days: 14
@@ -384,7 +384,7 @@ jobs:
     needs: [rust, rust-audit]
     steps:
       - uses: actions/checkout@v7
-      # test:ts:bun 과 packages/bun dylib 테스트가 rustra-calculator-example
+      # test:ts:bun 과 packages/bun dylib 테스트가 unikit-calculator-example
       # 바이너리를 요구해 Rust 툴체인이 필요하다 (rust 잡과 별도 캐시 재사용).
       - uses: dtolnay/rust-toolchain@1.95.0
       - uses: Swatinem/rust-cache@v2
@@ -397,10 +397,10 @@ jobs:
           bun-version: 1.4.0
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Build @rustra/types first
+      - name: Build @unikit-bridge/types first
         run: bun run --cwd packages/types build
       - name: Build all packages
-        # 예제 테스트/앱이 @rustra/* 를 package name 으로 import 하고 exports 가
+        # 예제 테스트/앱이 @unikit-bridge/* 를 package name 으로 import 하고 exports 가
         # dist 를 가리키므로 테스트 전에 workspace 를 빌드한다.
         run: bun run build
       - name: Test TypeScript (Bun 1.4)
@@ -446,7 +446,7 @@ jobs:
         # packages/bun 의 into-binding 테스트가 release dylib 를 로드한다 —
         # register! id 는 등록 순서이므로 dylib 가 stale 이면 테스트도 stale
         # 결과를 낸다. 항상 클린 재빌드 후 실행.
-        run: cargo build -p rustra-calculator-example --release
+        run: cargo build -p unikit-calculator-example --release
       - name: Test packages (bun binding + react-native engine)
         # packages/bun 이 FFI caller-buffer(sentinel/overflow 재시도/재사용
         # 버퍼 비앨리어싱) 계약의 유일한 자동화 검증이다. umbrella `test`에만
@@ -462,9 +462,9 @@ jobs:
       - name: Build calculator example debug bins
         # packages/node 의 process transport 테스트는 bun test 에선 skip 되고
         # node --test(test:node-runtime)에서만 실행된다 — target/debug 의
-        # rustra-calculator-example·loop-stdio 바이너리를 요구하므로 위 release
+        # unikit-calculator-example·loop-stdio 바이너리를 요구하므로 위 release
         # dylib 와 프로파일이 다른 debug 빌드가 필요하다.
-        run: cargo build -p rustra-calculator-example
+        run: cargo build -p unikit-calculator-example
       - name: Test node/tauri/testing/devtools/react package units
         # test:packages 중 CI가 놓치던 나머지 패키지 유닛 테스트 — npm 발행이
         # 버전 PR 승인 후 자동 진행되므로 PR 게이트로 승격한다.
@@ -478,7 +478,7 @@ jobs:
       - name: C++ generated codec tests
         # TS/Rust/C++ 3면 PINNED hex 게이트의 C++ 다리 — shim 테스트가 실제로
         # 실행돼야 생성 코덱과 fixture 간 드리프트를 PR 단계에서 잡는다.
-        run: bash examples/react-native-calculator/modules/rustra-jsi/ios/run-cpp-codec-tests.sh
+        run: bash examples/react-native-calculator/modules/unikit-jsi/ios/run-cpp-codec-tests.sh
 
       # 실패 로그 보존 — bun 설치/테스트 실패는 bun-debug.log 를 남기므로
       # 보존한다(예제/패키지 node_modules 설치 실패 포함).
@@ -500,7 +500,7 @@ jobs:
     needs: [rust, rust-audit]
     steps:
       - uses: actions/checkout@v7
-      # test:runtime:* 이 rustra-calculator-example release 바이너리를 빌드하므로
+      # test:runtime:* 이 unikit-calculator-example release 바이너리를 빌드하므로
       # Rust 툴체인이 필요하다 (rust 잡과 별도 캐시 재사용).
       - uses: dtolnay/rust-toolchain@1.95.0
       - uses: Swatinem/rust-cache@v2
@@ -520,10 +520,10 @@ jobs:
           bun-version: 1.4.0
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Build @rustra/types first
+      - name: Build @unikit-bridge/types first
         run: bun run --cwd packages/types build
       - name: Build all packages
-        # 컴파일된 예제 앱이 @rustra/* 를 package name 으로 import 하므로 실행
+        # 컴파일된 예제 앱이 @unikit-bridge/* 를 package name 으로 import 하므로 실행
         # 전에 dist 를 만둔다.
         run: bun run build
       - name: Install Tauri example deps
@@ -533,7 +533,7 @@ jobs:
         run: bun install --cwd examples/tauri-calculator --frozen-lockfile
       - name: Install rn-experiment dependencies (own lockfile)
         # 예제는 루트 워크스페이스 밖 자체 bun.lock 이라 별도 설치가 필요하다 —
-        # typecheck:native 가 workspace 링크(@rustra/generated-react-native)와
+        # typecheck:native 가 workspace 링크(@unikit-bridge/generated-react-native)와
         # react-native 타입을 node_modules 에서 읽는다.
         run: bun install --cwd examples/rn-experiment --frozen-lockfile
       - name: RN experiment adapter and actual Rust consumer
@@ -581,7 +581,7 @@ jobs:
   # 지적됐다. Gradle 훅이 Rust 부터 빌드하므로 cargo-ndk + NDK 만 세팅하면
   # 클린 러너에서 assembleRelease 가 재현된다 (Phase 1 수정 검증).
   # 빌드만 하던 기존 잡에 더해 에뮬레이터 런타임 스모크도 이 잡이 담당한다:
-  # APK 를 실제 기동시키고 BenchmarkApp 의 __RUSTRA_SMOKE_OK__ 마커(JS 번들 로드
+  # APK 를 실제 기동시키고 BenchmarkApp 의 __UNIKIT_SMOKE_OK__ 마커(JS 번들 로드
   # + 첫 엔진 호출 성공)와 프로세스 생존을 logcat 으로 단언한다. iOS 는 rn-ios
   # 잡의 simctl 스모크가 동일 계약을 담당한다.
   rn-android:
@@ -618,7 +618,7 @@ jobs:
         run: sdkmanager "ndk;27.1.12297006" "platforms;android-36" "build-tools;36.0.0"
       - name: Export NDK_HOME for build-rust-android.sh
         run: echo "NDK_HOME=$ANDROID_HOME/ndk/27.1.12297006" >> "$GITHUB_ENV"
-      # 생성된 RN entrypoint는 @rustra/react-native package export를 import하고,
+      # 생성된 RN entrypoint는 @unikit-bridge/react-native package export를 import하고,
       # 그 export는 dist/index.js를 가리킨다. file: 의존성을 설치하기 전에 루트
       # workspace를 빌드해야 앱 node_modules 스냅샷에도 dist가 포함된다.
       - name: Install root deps and build workspace packages
@@ -627,31 +627,31 @@ jobs:
           bun run build
       - name: Install example deps
         run: bun install --cwd examples/react-native-calculator --frozen-lockfile
-      - name: Regenerate the autolinked Rustra module
+      - name: Regenerate the autolinked Unikit module
         run: bun run --cwd examples/react-native-calculator codegen
       - name: Verify packed React Native consumer resolves native sources
         run: bun run verify:consumer:react-native
       # android/ 는 Expo prebuild 산물로 gitignore 되어 있다 (ios/ 도 동일).
       # 클린 체크아웃에서 재현하려면 prebuild 로 네이티브 프로젝트를 생성한다.
-      # 생성된 @rustra/generated-react-native 모듈은 react-native.config.js 만으로
+      # 생성된 @unikit-bridge/generated-react-native 모듈은 react-native.config.js 만으로
       # autolink 된다. 클린 네이티브 프로젝트에 수동 Gradle 패치는 없다.
       - name: Expo prebuild (generate native android project)
         working-directory: examples/react-native-calculator
         # prebuild 실패도 디버깅 가능해야 하므로 로그를 파일로 남긴다. pipefail
         # 필수 — tee 가 마지막 명령이라 pipefail 없이는 prebuild 실패가 흡수된다.
         shell: bash
-        run: set -o pipefail && bunx expo prebuild --platform android --no-install 2>&1 | tee "$RUNNER_TEMP/rustra-expo-prebuild-android.log"
+        run: set -o pipefail && bunx expo prebuild --platform android --no-install 2>&1 | tee "$RUNNER_TEMP/unikit-expo-prebuild-android.log"
       - name: Build Release APK
         env:
           NODE_ENV: production
         shell: bash
-        run: set -o pipefail && cd examples/react-native-calculator/android && ./gradlew assembleRelease -x lint --stacktrace 2>&1 | tee "$RUNNER_TEMP/rustra-gradle.log"
-      - name: Verify APK contains the uniquely named Rustra native lib
+        run: set -o pipefail && cd examples/react-native-calculator/android && ./gradlew assembleRelease -x lint --stacktrace 2>&1 | tee "$RUNNER_TEMP/unikit-gradle.log"
+      - name: Verify APK contains the uniquely named Unikit native lib
         run: |
-          unzip -l examples/react-native-calculator/android/app/build/outputs/apk/release/app-release.apk | grep -E "lib/(arm64-v8a|x86_64)/librustra_bridge\.so"
+          unzip -l examples/react-native-calculator/android/app/build/outputs/apk/release/app-release.apk | grep -E "lib/(arm64-v8a|x86_64)/libunikit_bridge\.so"
 
       # 런타임 스모크 — 에뮬레이터 부팅 후 Release APK 를 설치·기동한다. x86_64
-      # 에뮬레이터이므로 위 verify step 이 보장한 x86_64 librustra_bridge.so 가
+      # 에뮬레이터이므로 위 verify step 이 보장한 x86_64 libunikit_bridge.so 가
       # 실제 로드된다. 활동 이름은 Expo prebuild 생성값에 의존하지 않게 monkey
       # LAUNCHER 로 기동한다(package 는 app.json 의 expo.android.package).
       - name: Enable Android emulator hardware acceleration
@@ -681,16 +681,16 @@ jobs:
         with:
           name: failure-logs-rn-android
           path: |
-            ${{ runner.temp }}/rustra-gradle.log
-            ${{ runner.temp }}/rustra-expo-prebuild-android.log
-            ${{ runner.temp }}/rustra-logcat.txt
+            ${{ runner.temp }}/unikit-gradle.log
+            ${{ runner.temp }}/unikit-expo-prebuild-android.log
+            ${{ runner.temp }}/unikit-logcat.txt
           if-no-files-found: ignore
           retention-days: 14
 
   # RN iOS Release 프레임워크 빌드 — podspec prepare_command 이 Rust 를
   # 빌드한다. 빌드만 하던 기존 잡에 더해 시뮬레이터 런타임 스모크도 이 잡이
   # 담당한다(과거 "로컬 verify 게이트가 담당" 원칙을 폐기): Release .app 을
-  # 실제 기동시키고 BenchmarkApp 의 __RUSTRA_SMOKE_OK__ 마커(JS 번들 로드 +
+  # 실제 기동시키고 BenchmarkApp 의 __UNIKIT_SMOKE_OK__ 마커(JS 번들 로드 +
   # 첫 엔진 호출 성공)를 콘솔 출력으로 단언한다.
   rn-ios:
     # rn-android 와 동일한 경로 필터 skip 규칙.
@@ -699,7 +699,7 @@ jobs:
     needs: [changes, rust]
     timeout-minutes: 75
     env:
-      EXPO_PUBLIC_RUSTRA_CI_TRACE: '1'
+      EXPO_PUBLIC_UNIKIT_CI_TRACE: '1'
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@1.95.0
@@ -719,7 +719,7 @@ jobs:
           bun run build
       - name: Install example deps
         run: bun install --cwd examples/react-native-calculator --frozen-lockfile
-      - name: Regenerate the autolinked Rustra module
+      - name: Regenerate the autolinked Unikit module
         run: bun run --cwd examples/react-native-calculator codegen
       - name: Verify packed React Native consumer resolves native sources
         run: bun run verify:consumer:react-native
@@ -730,7 +730,7 @@ jobs:
         # Android 와 동일 — prebuild 실패 로그를 보존한다(실패 시 pod/xcodebuild
         # 로그는 아예 생성되지 않는다).
         shell: bash
-        run: set -o pipefail && bunx expo prebuild --platform ios --no-install 2>&1 | tee "$RUNNER_TEMP/rustra-expo-prebuild-ios.log"
+        run: set -o pipefail && bunx expo prebuild --platform ios --no-install 2>&1 | tee "$RUNNER_TEMP/unikit-expo-prebuild-ios.log"
       - name: Build iOS Release (simulator, no codesign)
         shell: bash
         run: |
@@ -738,14 +738,14 @@ jobs:
           cd examples/react-native-calculator/ios
           # pod install 은 치명적으로 유지한다(원래 실패 의미 보존) — tee 로 로그만
           # 남긴다. podspec prepare_command 의 Rust 빌드 출력도 여기에 담긴다.
-          pod install --project-directory=. 2>&1 | tee "$RUNNER_TEMP/rustra-pod.log"
+          pod install --project-directory=. 2>&1 | tee "$RUNNER_TEMP/unikit-pod.log"
           # -derivedDataPath 로 제품 경로를 고정한다 — 기본 DerivedData 경로는
           # 해시가 붙어 비결정적이라 뒤이은 simctl 스모크가 .app 을 못 찾는다.
-          if ! xcodebuild -workspace reactnativecalculator.xcworkspace -scheme reactnativecalculator -configuration Release -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO -derivedDataPath "$RUNNER_TEMP/rustra-ios-dd" build > "$RUNNER_TEMP/rustra-xcodebuild.log" 2>&1; then
-            tail -n 200 "$RUNNER_TEMP/rustra-xcodebuild.log"
+          if ! xcodebuild -workspace reactnativecalculator.xcworkspace -scheme reactnativecalculator -configuration Release -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO -derivedDataPath "$RUNNER_TEMP/unikit-ios-dd" build > "$RUNNER_TEMP/unikit-xcodebuild.log" 2>&1; then
+            tail -n 200 "$RUNNER_TEMP/unikit-xcodebuild.log"
             exit 1
           fi
-          tail -n 20 "$RUNNER_TEMP/rustra-xcodebuild.log"
+          tail -n 20 "$RUNNER_TEMP/unikit-xcodebuild.log"
       # React Native Release 마커는 stdout/stderr가 아닌 iOS 통합 로그에 기록된다.
       # 실행한 앱의 PID와 시작 시각으로 범위를 제한해 이전 실행의 마커를 배제한다.
       - name: Simulator runtime smoke (install, launch, assert engine marker)
@@ -762,24 +762,24 @@ jobs:
         with:
           name: failure-logs-rn-ios
           path: |
-            ${{ runner.temp }}/rustra-xcodebuild.log
-            ${{ runner.temp }}/rustra-pod.log
-            ${{ runner.temp }}/rustra-expo-prebuild-ios.log
-            ${{ runner.temp }}/rustra-ios-console.log
-            ${{ runner.temp }}/rustra-ios-native.stdout.log
-            ${{ runner.temp }}/rustra-ios-native.stderr.log
-            ${{ runner.temp }}/rustra-ios-kill.stderr.log
-            ${{ runner.temp }}/rustra-ios-process.log
-            ${{ runner.temp }}/rustra-ios-crash-summary.json
+            ${{ runner.temp }}/unikit-xcodebuild.log
+            ${{ runner.temp }}/unikit-pod.log
+            ${{ runner.temp }}/unikit-expo-prebuild-ios.log
+            ${{ runner.temp }}/unikit-ios-console.log
+            ${{ runner.temp }}/unikit-ios-native.stdout.log
+            ${{ runner.temp }}/unikit-ios-native.stderr.log
+            ${{ runner.temp }}/unikit-ios-kill.stderr.log
+            ${{ runner.temp }}/unikit-ios-process.log
+            ${{ runner.temp }}/unikit-ios-crash-summary.json
           if-no-files-found: ignore
           retention-days: 14
 
   # UniFFI Kotlin 바인딩 런타임 스모크 — examples/uniffi-android-smoke 최소
-  # Gradle 앱으로 생성 바인딩(uniffi.rustra_calculator_example, JNA 기반)과
+  # Gradle 앱으로 생성 바인딩(uniffi.unikit_calculator_example, JNA 기반)과
   # Rust .so 가 실제 에뮬레이터에서 로드·실행되는지 단언한다. 앱은
   # addNumbers(20,22)==42 (행복 경로)와 divide(10,0) 의 타입 에러 코드
   # "math.divide_by_zero" (에러 경로)를 모두 증명한 뒤에만
-  # __RUSTRA_UNIFFI_OK__ addNumbers(20,22)=42 마커를 Log.w 로 찍는다.
+  # __UNIKIT_UNIFFI_OK__ addNumbers(20,22)=42 마커를 Log.w 로 찍는다.
   # 도구 체인은 rn-android 잡과 동일(cargo-ndk + NDK 27.1.12297006).
   uniffi-android:
     # rn-android 와 동일한 경로 필터 skip 규칙.
@@ -811,7 +811,7 @@ jobs:
       # 계약(soname dlopen)은 ABI 무관하게 동일하므로 두 ABI 모두 jniLibs 에
       # 패킹해도 에뮬레이터 스모크에는 영향이 없다.
       - name: Build Rust .so (x86_64 + arm64-v8a)
-        run: cargo ndk -t x86_64 -t arm64-v8a --platform 21 -- build -p rustra-calculator-example --features uniffi
+        run: cargo ndk -t x86_64 -t arm64-v8a --platform 21 -- build -p unikit-calculator-example --features uniffi
       # 커밋된 생성 바인딩(.kt)과 빌드된 .so 를 앱 소스 트리로 동기화한다.
       # 바인딩 사본/jniLibs 는 커밋 금지 — 이 스크립트 산출물이다.
       - name: Sync generated bindings into the smoke app
@@ -819,7 +819,7 @@ jobs:
       - name: Assemble debug APK
         working-directory: examples/uniffi-android-smoke
         shell: bash
-        run: set -o pipefail && ./gradlew assembleDebug --no-daemon 2>&1 | tee "$RUNNER_TEMP/rustra-uniffi-gradle.log"
+        run: set -o pipefail && ./gradlew assembleDebug --no-daemon 2>&1 | tee "$RUNNER_TEMP/unikit-uniffi-gradle.log"
 
       # 런타임 스모크 — rn-android 잡과 동일한 에뮬레이터/마커 폴링 방식.
       # OK 마커는 앱이 행복 경로와 타입 에러 경로를 모두 통과한 뒤에만 찍히므로
@@ -848,8 +848,8 @@ jobs:
         with:
           name: failure-logs-uniffi-android
           path: |
-            ${{ runner.temp }}/rustra-uniffi-gradle.log
-            ${{ runner.temp }}/rustra-uniffi-logcat.txt
+            ${{ runner.temp }}/unikit-uniffi-gradle.log
+            ${{ runner.temp }}/unikit-uniffi-logcat.txt
           if-no-files-found: ignore
           retention-days: 14
 
@@ -873,7 +873,7 @@ jobs:
       # 모듈 등록) → 시뮬레이터 부팅 → simctl spawn → 마커 단언까지 수행한다.
       - name: Build + spawn smoke on iOS simulator (uniffi marker assert)
         shell: bash
-        run: set -o pipefail && bash examples/uniffi-ios-smoke/build-and-run.sh 2>&1 | tee "$RUNNER_TEMP/rustra-uniffi-ios-smoke.log"
+        run: set -o pipefail && bash examples/uniffi-ios-smoke/build-and-run.sh 2>&1 | tee "$RUNNER_TEMP/unikit-uniffi-ios-smoke.log"
 
       # 실패 로그 보존 — 스모크 캡처(stdout)와 swiftc 에러 로그. 성공 시
       # 업로드하지 않는다(if: failure()).
@@ -883,7 +883,7 @@ jobs:
         with:
           name: failure-logs-uniffi-ios
           path: |
-            ${{ runner.temp }}/rustra-uniffi-ios-smoke.log
+            ${{ runner.temp }}/unikit-uniffi-ios-smoke.log
             examples/uniffi-ios-smoke/build/*.log
           if-no-files-found: ignore
           retention-days: 14
@@ -913,30 +913,30 @@ jobs:
         run: bun run verify:consumer:react-native
       - name: Install packed packages as a consumer
         run: |
-          mkdir -p /tmp/rustra-pack
+          mkdir -p /tmp/unikit-pack
           for pkg in types node bun tauri react-native react testing devtools cli; do
-            (cd "packages/$pkg" && bun pm pack --destination /tmp/rustra-pack)
+            (cd "packages/$pkg" && bun pm pack --destination /tmp/unikit-pack)
           done
           mkdir -p /tmp/consumer && cd /tmp/consumer
           bun init -y > /dev/null
           bun pm pkg set type=module
-          for rustra_types_tgz in /tmp/rustra-pack/rustra-types-*.tgz; do
-            bun pm pkg set "overrides.@rustra/types=file:$rustra_types_tgz"
+          for unikit_types_tgz in /tmp/unikit-pack/unikit-bridge-types-*.tgz; do
+            bun pm pkg set "overrides.@unikit-bridge/types=file:$unikit_types_tgz"
             break
           done
-          bun add --no-save /tmp/rustra-pack/rustra-*.tgz
+          bun add --no-save /tmp/unikit-pack/unikit-bridge-*.tgz
       - name: Smoke — installed packages load (ESM)
         run: |
           cd /tmp/consumer
           bun --eval "
-            import * as types from '@rustra/types';
-            import * as node from '@rustra/node';
-            import * as bun from '@rustra/bun';
-            import * as tauri from '@rustra/tauri';
-            import * as rn from '@rustra/react-native';
-            import * as react from '@rustra/react';
-            import * as testing from '@rustra/testing';
-            import * as devtools from '@rustra/devtools';
+            import * as types from '@unikit-bridge/types';
+            import * as node from '@unikit-bridge/node';
+            import * as bun from '@unikit-bridge/bun';
+            import * as tauri from '@unikit-bridge/tauri';
+            import * as rn from '@unikit-bridge/react-native';
+            import * as react from '@unikit-bridge/react';
+            import * as testing from '@unikit-bridge/testing';
+            import * as devtools from '@unikit-bridge/devtools';
             console.log('consumer install ok:',
               Object.keys(types).length, Object.keys(node).length,
               Object.keys(bun).length, Object.keys(tauri).length,
@@ -946,33 +946,34 @@ jobs:
       - name: Smoke — CLI bin runs from tarball
         run: |
           cd /tmp/consumer
-          bunx --bun rustra --help | head -3
+          bunx --bun unikit --help | head -3
       - name: Smoke — CLI init generates and runs a clean project
         run: |
           cd /tmp/consumer
-          bunx --bun rustra init /tmp/rustra-init
-          cd /tmp/rustra-init
-          for rustra_types_tgz in /tmp/rustra-pack/rustra-types-*.tgz; do
-            bun pm pkg set "overrides.@rustra/types=file:$rustra_types_tgz"
+          bunx --bun unikit init /tmp/unikit-init
+          cd /tmp/unikit-init
+          for unikit_types_tgz in /tmp/unikit-pack/unikit-bridge-types-*.tgz; do
+            bun pm pkg set "overrides.@unikit-bridge/types=file:$unikit_types_tgz"
             break
           done
-          for rustra_cli_tgz in /tmp/rustra-pack/rustra-cli-*.tgz; do
-            bun pm pkg set "overrides.@rustra/cli=file:$rustra_cli_tgz"
+          for unikit_cli_tgz in /tmp/unikit-pack/unikit-bridge-cli-*.tgz; do
+            bun pm pkg set "overrides.@unikit-bridge/cli=file:$unikit_cli_tgz"
             break
           done
-          for rustra_node_tgz in /tmp/rustra-pack/rustra-node-*.tgz; do
-            bun pm pkg set "overrides.@rustra/node=file:$rustra_node_tgz"
+          for unikit_node_tgz in /tmp/unikit-pack/unikit-bridge-node-*.tgz; do
+            bun pm pkg set "overrides.@unikit-bridge/node=file:$unikit_node_tgz"
             break
           done
           bun install
           # 발행 전 release candidate를 현재 checkout의 Rust crate로 고정한다.
           # crates.io의 이전 버전으로 조용히 폴백하면 소비자 검증이 거짓 green이 된다.
-          sed -i "s#rustra = \"[^\"]*\"#rustra = { path = \"$GITHUB_WORKSPACE/crates/rustra\" }#" Cargo.toml
-          sed -i "s#rustra-macros = \"[^\"]*\"#rustra-macros = { path = \"$GITHUB_WORKSPACE/crates/rustra-macros\" }#" Cargo.toml
+          sed -i "s#unikit-bridge = \"[^\"]*\"#unikit-bridge = { path = \"$GITHUB_WORKSPACE/crates/unikit-bridge\" }#" Cargo.toml
+          sed -i "s#unikit-bridge-macros = \"[^\"]*\"#unikit-bridge-macros = { path = \"$GITHUB_WORKSPACE/crates/unikit-bridge-macros\" }#" Cargo.toml
+          sed -i "s#unikit-bridge-macros = \"[^\"]*\"#unikit-bridge-macros = { path = \"$GITHUB_WORKSPACE/crates/unikit-bridge-macros\" }#" Cargo.toml
           bun run codegen
           test -f generated/schema.json
           test -f src/generated/frame-codecs.ts
-          cargo run | grep "hello from rustra"
+          cargo run | grep "hello from unikit"
 
   # 필수 잡 집계 gate — branch protection 은 2026-09-20 부터 이 단일 체크(`gate`)
   # 만 필수로 요구한다(같은 날 앞서 실측했던 개별 8개 컨텍스트 — rust-audit,

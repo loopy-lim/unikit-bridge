@@ -2,7 +2,7 @@ English | [English](./wire-format.md)
 
 # 와이어 포맷 — 명칭과 실측 범위
 
-"Frame"은 Rustra 자체 프레임/프로토콜 이름이다(구칭 "rkyv V2" — 예전 포스트나
+"Frame"은 Unikit 자체 프레임/프로토콜 이름이다(구칭 "rkyv V2" — 예전 포스트나
 CHANGELOG에서 오 독자를 위한 참고). manifest/dispatch 경로의 payload 코덱은
 postcard이며, upstream `rkyv` 아카이브 포맷과는 무관하고 호환을 주장하지 않는다.
 이 문서는 명칭과 실측 수치를 분리해 어느 쪽도 범위를 넘어 인용되지 않게 한다.
@@ -11,7 +11,7 @@ postcard이며, upstream `rkyv` 아카이브 포맷과는 무관하고 호환을
 
 | 이름                 | 실제 의미                                                                            |
 | -------------------- | ------------------------------------------------------------------------------------ |
-| Frame                | Rustra의 바이너리 프레임 프로토콜(V2 프레이밍 + command id + postcard payload 코덱). |
+| Frame                | Unikit의 바이너리 프레임 프로토콜(V2 프레이밍 + command id + postcard payload 코덱). |
 | postcard             | manifest/dispatch 경로에서 쓰이는 payload 코덱(serde 호환 컴팩트 포맷).              |
 | JSON 와이어          | codecs 미주입 어댑터가 쓰는 `invoke_json`/stdio 라인 프로토콜.                       |
 | zero-copy (JSI 경로) | RN JSI 패스트패스가 네이티브 버퍼 뷰를 JS 사본 없이 JS 코덱에 전달.                  |
@@ -85,4 +85,4 @@ loop-stdio 런타임은 요청/응답 프레임과 같은 길이 접두 스트�
 커맨드별 타입화 에러(참조: [Rust API 가이드](./rust-api-guide.ko.md))는 여기를
 건드리지 않는다. 선언은 schema.json 에 살고, 코드젠 시점에 생성 TypeScript
 (`errors.ts` — 리터럴 유니언 + 가드)로 변환된다. 프레임, 호스트 승격,
-`RustraCommandError` 는 이전과 바이트 단위로 동일하다.
+`UnikitCommandError` 는 이전과 바이트 단위로 동일하다.

@@ -1,13 +1,13 @@
 # GitHub repository SEO update
 
-Repository: [`loopy-lim/rustra`](https://github.com/loopy-lim/rustra)
+Repository: [`loopy-lim/unikit-bridge`](https://github.com/loopy-lim/unikit-bridge)
 
 Updated GitHub metadata with `gh repo edit` and verified using `gh repo view`.
 
 - **Description:** One Rust core generates type-safe clients for Node, Bun, Tauri, and React Native over a compact binary wire, with CI contracts that block breaking schema changes.
 - **Topics (11):** `rust`, `typescript`, `ffi`, `tauri`, `react-native`, `codegen`, `bindings`, `nodejs`, `bun`, `bridge`, `cross-platform`
 
-Verification evidence from `gh repo view loopy-lim/rustra --json description,repositoryTopics`:
+Verification evidence from `gh repo view loopy-lim/unikit-bridge --json description,repositoryTopics`:
 
 ```json
 {

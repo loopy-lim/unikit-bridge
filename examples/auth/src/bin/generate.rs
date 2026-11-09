@@ -1,4 +1,4 @@
-use rustra_auth_example::auth_package;
+use unikit_auth_example::auth_package;
 
 fn main() {
     let package = auth_package();

@@ -91,7 +91,7 @@ export async function runWatchJourney(
     receipt.environment = setup.environment;
     receipt.cache = setup.cache;
     const app = setup.projectDir;
-    const configPath = join(app, 'rustra.json');
+    const configPath = join(app, 'unikit.json');
     const manifestPath = join(app, 'package.json');
     const sourcePath = join(app, 'src/lib.rs');
     const failurePath = host === 'node' ? join(app, 'src/main.rs') : sourcePath;
@@ -250,7 +250,7 @@ export async function runWatchJourney(
     assert.notEqual(contract.contractSha256, recovered.contractSha256);
     assert.notEqual(contract.nativeSha256, recovered.nativeSha256);
     receipt.measurements.contractMutationToCallMs = contractCall.afterMs - contractEdit.afterMs;
-    assert.equal(digest(configPath), configHash, 'watch preserves rustra.json');
+    assert.equal(digest(configPath), configHash, 'watch preserves unikit.json');
     assert.equal(
       digest(manifestPath),
       manifestHash,

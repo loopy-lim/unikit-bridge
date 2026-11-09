@@ -13,7 +13,7 @@ status: research-complete
 ## 방법과 원본
 
 - 판정 기준은 격차 분석의 공개 비동기 22개(느림 18, 미확정 4) 표를 그대로 사용한다(iOS 9건, Android 9건 — 근원별 분해는 아래 표).
-- 현재 소스 대조 지점: [비동기 승격 경로](../../packages/types/src/global-config.ts)(`invokeGenerated`, 163–184행), [필드 라우트 캐시](../../packages/types/src/global-fields.ts)(`invokeFields`, 44–66행), [동기 디스패치](../../packages/types/src/frame-engine-dispatch.ts), [측정 차선](../../examples/react-native-calculator/src/nitro-parity/measurement.ts)(`measureAsyncPair` — 순차 `await`), [케이스 정의](../../examples/react-native-calculator/src/nitro-parity/cases.ts)(`rustraAsync = () => publicCommand(input)`), [엔진 구성](../../examples/react-native-calculator/src/nitro-parity/run.ts)(`configure(createFrameEngine(native))`), [네이티브 동기 tail](../../packages/react-native/native/cpp/RustraJSIBridge.cpp)(`typedInvokeTail`, 266–337행), [비동기 FFI·owned 응답 계약](../../packages/react-native/native/cpp/RustraJSIBridge.cpp)(1370–1683행), [caller-buffer 핸들러](../../crates/rustra/src/command_into.rs), [probe 캐시](../../crates/rustra/src/ffi_buffer_entries.rs)(62–98행)·[FFI 진입](../../crates/rustra/src/ffi_typed_buffer.rs)(30–98행), [생성 C++ 코덱](../../examples/react-native-calculator/modules/rustra-jsi/generated/rustra-generated-codecs.cpp), [Nitro 대응 구현](../../examples/react-native-calculator/modules/nitro-bench/nitro-bench/ios/HybridNitroBench.hpp)(24–32행), [C++ Writer/Reader](../../packages/react-native/native/cpp/rustra-codec.hpp), [Rust 핸들러 fixture](../../examples/calculator/src/parity_bench.rs).
+- 현재 소스 대조 지점: [비동기 승격 경로](../../packages/types/src/global-config.ts)(`invokeGenerated`, 163–184행), [필드 라우트 캐시](../../packages/types/src/global-fields.ts)(`invokeFields`, 44–66행), [동기 디스패치](../../packages/types/src/frame-engine-dispatch.ts), [측정 차선](../../examples/react-native-calculator/src/nitro-parity/measurement.ts)(`measureAsyncPair` — 순차 `await`), [케이스 정의](../../examples/react-native-calculator/src/nitro-parity/cases.ts)(`unikitAsync = () => publicCommand(input)`), [엔진 구성](../../examples/react-native-calculator/src/nitro-parity/run.ts)(`configure(createFrameEngine(native))`), [네이티브 동기 tail](../../packages/react-native/native/cpp/UnikitJSIBridge.cpp)(`typedInvokeTail`, 266–337행), [비동기 FFI·owned 응답 계약](../../packages/react-native/native/cpp/UnikitJSIBridge.cpp)(1370–1683행), [caller-buffer 핸들러](../../crates/unikit-bridge/src/command_into.rs), [probe 캐시](../../crates/unikit-bridge/src/ffi_buffer_entries.rs)(62–98행)·[FFI 진입](../../crates/unikit-bridge/src/ffi_typed_buffer.rs)(30–98행), [생성 C++ 코덱](../../examples/react-native-calculator/modules/unikit-jsi/generated/unikit-generated-codecs.cpp), [Nitro 대응 구현](../../examples/react-native-calculator/modules/nitro-bench/nitro-bench/ios/HybridNitroBench.hpp)(24–32행), [C++ Writer/Reader](../../packages/react-native/native/cpp/unikit-codec.hpp), [Rust 핸들러 fixture](../../examples/calculator/src/parity_bench.rs).
 - 코드 인용 행 번호는 2026-09-24 작업 트리 기준이다. 새 측정은 수행하지 않았고, 인용 수치는 모두 위 문서·수화물의 기존 결과다.
 
 ## 1. 비동기 잔여 18건의 구조 분해
@@ -36,7 +36,7 @@ status: research-complete
 
 ### A1. 생성 비동기 명령의 네이티브 resolved-Promise 직결 진입
 
-**내용.** 옵션 없는 생성 명령의 비동기 호출에 대해, JS 접착(`invokeFields`의 라우트 배열 조회 + 명령 문자열 비교 + `invokeRoute` 래퍼 + `Promise.resolve` JS 내장 호출)을 거치지 않고 **이미 resolve된 JS Promise를 C++에서 만들어 반환하는 단일 JSI 진입**(예: `invokeTypedPromiseById(cmdId, args)`, positional/bytes 변형 포함)을 capability 마커와 함께 추가하고, 코드젠이 마커 노출 시 이 진입을 직접 emit한다. 인코딩→FFI→디코드→`rt.createPromise`+동기 resolve까지 한 번의 JSI 횡단에서 끝난다. 마커가 없으면 기존 경로로 컴파일되는 구조는 [이름 재사용 후보의 `RUSTRA_GENERATED_BOUND_CODEC_CONTEXT` 선례](2026-09-16-nitro-call-profile.md)와 동일하다.
+**내용.** 옵션 없는 생성 명령의 비동기 호출에 대해, JS 접착(`invokeFields`의 라우트 배열 조회 + 명령 문자열 비교 + `invokeRoute` 래퍼 + `Promise.resolve` JS 내장 호출)을 거치지 않고 **이미 resolve된 JS Promise를 C++에서 만들어 반환하는 단일 JSI 진입**(예: `invokeTypedPromiseById(cmdId, args)`, positional/bytes 변형 포함)을 capability 마커와 함께 추가하고, 코드젠이 마커 노출 시 이 진입을 직접 emit한다. 인코딩→FFI→디코드→`rt.createPromise`+동기 resolve까지 한 번의 JSI 횡단에서 끝난다. 마커가 없으면 기존 경로로 컴파일되는 구조는 [이름 재사용 후보의 `UNIKIT_GENERATED_BOUND_CODEC_CONTEXT` 선례](2026-09-16-nitro-call-profile.md)와 동일하다.
 
 **근거.**
 
@@ -53,7 +53,7 @@ status: research-complete
 - 재진입·엔진 세대·reload/dispose 검증, 취소 신호·타임아웃 옵션 경로는 기존 `invokeRaw`를 그대로 사용(옵션 있으면 현행 유지).
 - `jsi::Runtime::createPromise`의 런타임별 구현 차이 — Hermes 실측 검증 필수.
 
-**로컬 검증.** [run-hermes-sync-tests.sh](../../examples/react-native-calculator/modules/rustra-jsi/ios/run-hermes-sync-tests.sh) Hermes 단언 스위트(현 1,375 단언)에 신규 진입 추가: 결과 값·오류 거부·then 콜백 비동기 타이밍·재진입 중 호출·GC·런타임 재로드·구형 헤더 폴백(마커 부재 시 기존 경로·추가 바인딩 거부). 생성기 검사와 두 RN 예제 codegen check. 채택 판정용 측정 플랜: 이름 재사용 선례의 iOS AB/BA 5쌍(실행마다 설치 교체, 90개 항목 전체) + Android 원래 v2 5회 절차를 문서화만 수행(실기기 실행은 후속).
+**로컬 검증.** [run-hermes-sync-tests.sh](../../examples/react-native-calculator/modules/unikit-jsi/ios/run-hermes-sync-tests.sh) Hermes 단언 스위트(현 1,375 단언)에 신규 진입 추가: 결과 값·오류 거부·then 콜백 비동기 타이밍·재진입 중 호출·GC·런타임 재로드·구형 헤더 폴백(마커 부재 시 기존 경로·추가 바인딩 거부). 생성기 검사와 두 RN 예제 codegen check. 채택 판정용 측정 플랜: 이름 재사용 선례의 iOS AB/BA 5쌍(실행마다 설치 교체, 90개 항목 전체) + Android 원래 v2 5회 절차를 문서화만 수행(실기기 실행은 후속).
 
 ### A2. 필드 명령 라우트의 세대 캐시 클로저 emit (JS 전용, ABI 변경 없음)
 
@@ -77,24 +77,24 @@ ios echo8191·android setup8191·buffer65536은 3절의 echo/전송 후보(E1)�
 
 ### E1. 큰 응답의 probe-cache 2-FFI 왕복 제거 — owned 응답 핸드오프
 
-**내용.** 동기 tail([RustraJSIBridge.cpp](../../packages/react-native/native/cpp/RustraJSIBridge.cpp) 286–322행)은 512B 스택 버퍼 시도 후, 부족하면 (i) Rust가 응답을 Vec에 인코딩해 probe 캐시에 보관(요청 전체 복사와 함께), (ii) C++가 `largeBuf.resize()`로 버퍼를 만들어 2차 FFI, (iii) Rust가 캐시 요청을 전체 비교한 뒤 응답을 memcpy. 이 왕복을 **비동기 경로가 이미 쓰는 owned 응답 계약**(같은 파일 1596–1660행의 `owned=1` + 정확한 (ptr, len) free 짝)을 동기 큰 응답에도 적용해 제거한다. 스택 버퍼 소형 경로와 `to_slice` 우선 시도·`serialized_size`+`to_extend` 폴백([command_into.rs](../../crates/rustra/src/command_into.rs) 44–74행)은 그대로 둔다. 최소형으로만 하려면 FFI 변경 없이 `largeBuf`의 zero-fill 제거(`new uint8_t[]` 등 미초기화 확보)만 먼저 뗄 수도 있다.
+**내용.** 동기 tail([UnikitJSIBridge.cpp](../../packages/react-native/native/cpp/UnikitJSIBridge.cpp) 286–322행)은 512B 스택 버퍼 시도 후, 부족하면 (i) Rust가 응답을 Vec에 인코딩해 probe 캐시에 보관(요청 전체 복사와 함께), (ii) C++가 `largeBuf.resize()`로 버퍼를 만들어 2차 FFI, (iii) Rust가 캐시 요청을 전체 비교한 뒤 응답을 memcpy. 이 왕복을 **비동기 경로가 이미 쓰는 owned 응답 계약**(같은 파일 1596–1660행의 `owned=1` + 정확한 (ptr, len) free 짝)을 동기 큰 응답에도 적용해 제거한다. 스택 버퍼 소형 경로와 `to_slice` 우선 시도·`serialized_size`+`to_extend` 폴백([command_into.rs](../../crates/unikit-bridge/src/command_into.rs) 44–74행)은 그대로 둔다. 최소형으로만 하려면 FFI 변경 없이 `largeBuf`의 zero-fill 제거(`new uint8_t[]` 등 미초기화 확보)만 먼저 뗄 수도 있다.
 
 **근거.**
 
-- [ffi_buffer_entries.rs](../../crates/rustra/src/ffi_buffer_entries.rs) 62–98행: probe 저장 시 `payload.to_vec()`(요청 전체 복사), 인출 시 `entry.request == payload`(요청 전체 비교). [ffi_typed_buffer.rs](../../crates/rustra/src/ffi_typed_buffer.rs) 84–93행: 용량 부족 시 캐시 저장 후 `SIZE_MAX`.
+- [ffi_buffer_entries.rs](../../crates/unikit-bridge/src/ffi_buffer_entries.rs) 62–98행: probe 저장 시 `payload.to_vec()`(요청 전체 복사), 인출 시 `entry.request == payload`(요청 전체 비교). [ffi_typed_buffer.rs](../../crates/unikit-bridge/src/ffi_typed_buffer.rs) 84–93행: 용량 부족 시 캐시 저장 후 `SIZE_MAX`.
 - echo8191 응답 528,012B 기준 호출당 추가 메모리 통과 ≈ 요청 복사 528KB + 요청 비교 528KB + `resize` zero-fill 528KB + 응답 memcpy 528KB ≈ 2.1MB, 528KB급 할당 3회, FFI 1회 추가. 측정 memcpy 대역폭 12.6GB/s([성능 여유 계측](2026-09-17-performance-headroom.md)) 기준 ≈170µs + 대형 할당·해제(페이지 폴트 포함) 비용.
-- 판정 여유: ios async echo8191 상한 1.0644 → 1.05 도달에 약 1.4% Rustra 시간 감소 필요(격차 분석의 감소 여유 정의와 동일 계산). android buffer65536(응답 64KB, 매 배치 8회)도 같은 경로의 할당 압력을 공유한다.
+- 판정 여유: ios async echo8191 상한 1.0644 → 1.05 도달에 약 1.4% Unikit 시간 감소 필요(격차 분석의 감소 여유 정의와 동일 계산). android buffer65536(응답 64KB, 매 배치 8회)도 같은 경로의 할당 압력을 공유한다.
 - 소유권 선례: 비동기 owned=1 경로의 deleter는 정확한 (ptr, resp_len) 짝으로 dispatch 시점 코어에 free한다 — 동일 계약을 재사용하므로 새로운 소유권 모델이 아니다.
 
 **기대 효과.** echo8191 왕복 ~1–2%(전송·할당 몫), buffer65536·대형 echo 전반의 할당 압력 감소. iOS async echo8191의 느림 판정이 동급으로 이동할 가능성. setup/update(응답 소형)에는 직접 효과 없음을 명시한다.
 
 **리스크.** FFI 표면 추가(신규 진입점 + capability 마커 — 이름 재사용 선례 절차). probe 캐시 제거 시에도 핸들러 1회 실행 보존(owned 경로는 인코딩을 1회만 수행하므로 성립). free 짝·길이 불일치 방지(async 선례 재사용). 오류 프레임·malformed 응답의 기존 예외 메시지 보존. JS 디스패치 경로(tier 2 `invokeFrame`의 probe 프로토콜)와의 계약 정합 — 동기 tail만 새 진입으로 옮기고 나머지 호출자는 현행 유지.
 
-**로컬 검증.** [run-cpp-codec-tests.sh](../../examples/react-native-calculator/modules/rustra-jsi/ios/run-cpp-codec-tests.sh) C++ codec/wire 검사에 대형 응답 소유권·free 짝·에러 프레임 케이스 추가. Rust는 `cargo test -p rustra`(caller-buffer 검사)와 `cargo bench -p rustra --bench tree_route` 교대 A/B(독립 프로세스, [codec-scratch 프로토콜](2026-09-16-codec-scratch-and-frame.md) 준용). AddressSanitizer 실행. Hermes 스위트로 공개 경로 무회귀. 기기 측정은 이름 재사용 선례의 AB/BA 플랜 문서화로 대체.
+**로컬 검증.** [run-cpp-codec-tests.sh](../../examples/react-native-calculator/modules/unikit-jsi/ios/run-cpp-codec-tests.sh) C++ codec/wire 검사에 대형 응답 소유권·free 짝·에러 프레임 케이스 추가. Rust는 `cargo test -p unikit-bridge`(caller-buffer 검사)와 `cargo bench -p unikit-bridge --bench tree_route` 교대 A/B(독립 프로세스, [codec-scratch 프로토콜](2026-09-16-codec-scratch-and-frame.md) 준용). AddressSanitizer 실행. Hermes 스위트로 공개 경로 무회귀. 기기 측정은 이름 재사용 선례의 AB/BA 플랜 문서화로 대체.
 
 ### E2. 대형 요청 Writer의 성장 재할당 복사 축소
 
-**내용.** [rustra-codec.hpp](../../packages/react-native/native/cpp/rustra-codec.hpp)의 `Writer`는 128B inline → heap ×2 doubling(`ensure_capacity`)으로 자란다. 528KB 요청(echo/setup/update 입력)은 성장 중 총 약 2×최종크기(≈1MB)의 기존 내용 복사와 최대 2배의 예약 오버슈트를 매 호출 부담한다. 대역(예: 64KB 초과)에서 성장 인수를 ×2→×4로 올리거나, doubling 구간을 유지하되 마지막 확장만 필요치 정확히 예약하는 정책을 시험한다. 요청 Writer는 FFI 직후 해제되는 짧은 수명이므로 [성능 여유 계측](2026-09-17-performance-headroom.md)에서 기각된 "응답 writer 사전 예약"(입력 길이 힌트로 인한 비대칭 핸들러 메모리 잔류)과 달리 메모리 잔류 계약이 없다.
+**내용.** [unikit-codec.hpp](../../packages/react-native/native/cpp/unikit-codec.hpp)의 `Writer`는 128B inline → heap ×2 doubling(`ensure_capacity`)으로 자란다. 528KB 요청(echo/setup/update 입력)은 성장 중 총 약 2×최종크기(≈1MB)의 기존 내용 복사와 최대 2배의 예약 오버슈트를 매 호출 부담한다. 대역(예: 64KB 초과)에서 성장 인수를 ×2→×4로 올리거나, doubling 구간을 유지하되 마지막 확장만 필요치 정확히 예약하는 정책을 시험한다. 요청 Writer는 FFI 직후 해제되는 짧은 수명이므로 [성능 여유 계측](2026-09-17-performance-headroom.md)에서 기각된 "응답 writer 사전 예약"(입력 길이 힌트로 인한 비대칭 핸들러 메모리 잔류)과 달리 메모리 잔류 계약이 없다.
 
 **근거.** 위 성장 수열 계산(2^7…2^19 복사 합 ≈ 1MB). ios/android setup·update·echo의 대형 입력이 모두 같은 경로. 호출당 절대치는 ≈40–80µs(12.6GB/s 기준)로 전체의 0.2–0.4% 수준 — E1에 비해 작지만 확률적으론 확실한 감소.
 
@@ -106,9 +106,9 @@ ios echo8191·android setup8191·buffer65536은 3절의 echo/전송 후보(E1)�
 
 ### E3. C++ 생성 코덱의 숫자 시퀀스 벌크 경로 (Rust H3의 C++ 짝)
 
-**내용.** Rust 코어는 동일 정수 시퀀스의 반복 분기를 제거해 큰 배열을 벌크 처리했다([정수 시퀀스 최적화](2026-09-16-integer-sequence-optimization.md), 채택). C++ 생성 코덱은 아직 대응이 없다: `children`(f64 배열, balanced8191에서 약 8,190원소) 인코딩은 원소마다 `rustra_f64` 라벨 인자 호출을, 디코딩은 원소마다 `read_f64`+`setValueAtIndex`를 반복한다. 시퀀스 진입 시 원소 타입을 1회 확인한 뒤 원소별 타입 검사는 유지하면서 루프 본문을 벌크화(검사 함수 인라이닝/호이스팅, varint·f64 판독을 지역 버퍼로 묶는 것까지만)한다. 원소별 타입 검사·오류 메시지·깊이 한도는 유지한다.
+**내용.** Rust 코어는 동일 정수 시퀀스의 반복 분기를 제거해 큰 배열을 벌크 처리했다([정수 시퀀스 최적화](2026-09-16-integer-sequence-optimization.md), 채택). C++ 생성 코덱은 아직 대응이 없다: `children`(f64 배열, balanced8191에서 약 8,190원소) 인코딩은 원소마다 `unikit_f64` 라벨 인자 호출을, 디코딩은 원소마다 `read_f64`+`setValueAtIndex`를 반복한다. 시퀀스 진입 시 원소 타입을 1회 확인한 뒤 원소별 타입 검사는 유지하면서 루프 본문을 벌크화(검사 함수 인라이닝/호이스팅, varint·f64 판독을 지역 버퍼로 묶는 것까지만)한다. 원소별 타입 검사·오류 메시지·깊이 한도는 유지한다.
 
-**근거.** [생성 코덱](../../examples/react-native-calculator/modules/rustra-jsi/generated/rustra-generated-codecs.cpp) `encode_body_parityEcho`/`decode_body_parityEcho`의 children 루프. 컴파일러가 `rustra_f64`를 이미 인라인할 수 있어 실효는 계측 전까진 미확정 — [성능 여유 계측](2026-09-17-performance-headroom.md)의 트리 왕복 프로파일이 평평하다는 사실과 모순되지 않는 범위(원소별 호출·경계 분기는 개별 프레임으로는 관측 한계 미만)에서 먼저 호스트 계측으로 존재 여부를 확인하는 것을 전제로 한다.
+**근거.** [생성 코덱](../../examples/react-native-calculator/modules/unikit-jsi/generated/unikit-generated-codecs.cpp) `encode_body_parityEcho`/`decode_body_parityEcho`의 children 루프. 컴파일러가 `unikit_f64`를 이미 인라인할 수 있어 실효는 계측 전까진 미확정 — [성능 여유 계측](2026-09-17-performance-headroom.md)의 트리 왕복 프로파일이 평평하다는 사실과 모순되지 않는 범위(원소별 호출·경계 분기는 개별 프레임으로는 관측 한계 미만)에서 먼저 호스트 계측으로 존재 여부를 확인하는 것을 전제로 한다.
 
 **기대 효과.** 확정 불가(계측 우선). children 원소당 수 ns × 8–16K원소면 호출당 수십~수백 µs의 상한이지만, 인라인 흡수 시 0에 수렴할 수 있다. 계측 결과가 미미하면 즉시 기각한다.
 
@@ -145,9 +145,9 @@ ios echo8191·android setup8191·buffer65536은 3절의 echo/전송 후보(E1)�
 
 ```sh
 bun scripts/analyze-nitro-parity-gaps.ts          # 격차 분석 JSON 재집계(분석 게이트)
-cargo bench -p rustra --bench tree_route          # 호스트 트리 왕복(성능 여유/codec-scratch 원본)
-cd examples/react-native-calculator/modules/rustra-jsi/ios && ./run-cpp-codec-tests.sh
-cd examples/react-native-calculator/modules/rustra-jsi/ios && ./run-hermes-sync-tests.sh
+cargo bench -p unikit-bridge --bench tree_route          # 호스트 트리 왕복(성능 여유/codec-scratch 원본)
+cd examples/react-native-calculator/modules/unikit-jsi/ios && ./run-cpp-codec-tests.sh
+cd examples/react-native-calculator/modules/unikit-jsi/ios && ./run-hermes-sync-tests.sh
 ```
 
-(워커 환경 주의: `RUSTRA_BUN_LIBRARY` 오염 변수가 있으므로 bun 명령은 `env -u RUSTRA_BUN_LIBRARY`로 감싼다.)
+(워커 환경 주의: `UNIKIT_BUN_LIBRARY` 오염 변수가 있으므로 bun 명령은 `env -u UNIKIT_BUN_LIBRARY`로 감싼다.)

@@ -10,7 +10,7 @@ type EngineClient = {
 };
 ```
 
-이것이 rustra가 TypeScript 쪽에서 요구하는 전부입니다. 생성된 명령 함수(`addNumbers` 등)는 모두 `@rustra/types`의 글로벌 `invoke`를 거치며, 이것이 `configure(engine)`로 설치한 `EngineClient`를 사용합니다:
+이것이 unikit가 TypeScript 쪽에서 요구하는 전부입니다. 생성된 명령 함수(`addNumbers` 등)는 모두 `@unikit-bridge/types`의 글로벌 `invoke`를 거치며, 이것이 `configure(engine)`로 설치한 `EngineClient`를 사용합니다:
 
 ```ts
 // examples/calculator/generated/commands.ts
@@ -76,8 +76,8 @@ export type TauriInvoke = (command: string, args?: unknown) => Promise<unknown> 
 export function createTauriEngine(options: { invoke: TauriInvoke }): TauriEngineClient {
   return {
     async invoke<T>(command: string, args?: unknown): Promise<T> {
-      // Tauri는 rustra_dispatch라는 단일 커맨드로 라우팅
-      return (await options.invoke('rustra_dispatch', { command, args: args ?? {} })) as T;
+      // Tauri는 unikit_dispatch라는 단일 커맨드로 라우팅
+      return (await options.invoke('unikit_dispatch', { command, args: args ?? {} })) as T;
     },
   };
 }
@@ -89,12 +89,12 @@ export function createTauriEngine(options: { invoke: TauriInvoke }): TauriEngine
 
 ```ts
 // packages/react-native/src/index.ts (참고용)
-export type ReactNativeRustraModule = {
+export type ReactNativeUnikitModule = {
   invoke(command: string, args?: unknown): Promise<unknown> | unknown;
 };
 
 export function createReactNativeEngine(
-  nativeModule: ReactNativeRustraModule,
+  nativeModule: ReactNativeUnikitModule,
 ): ReactNativeEngineClient {
   return {
     async invoke<T>(command: string, args?: unknown): Promise<T> {
@@ -128,7 +128,7 @@ use std::ffi::{CStr, CString, c_char};
 use serde_json::{Value, json};
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_mypackage_invoke(payload: *const c_char) -> *mut c_char {
+pub unsafe extern "C" fn unikit_mypackage_invoke(payload: *const c_char) -> *mut c_char {
     if payload.is_null() {
         return json_string(json!({ "ok": false, "error": "payload was null" }));
     }
@@ -154,7 +154,7 @@ pub unsafe extern "C" fn rustra_mypackage_invoke(payload: *const c_char) -> *mut
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_mypackage_free_string(ptr: *mut c_char) {
+pub unsafe extern "C" fn unikit_mypackage_free_string(ptr: *mut c_char) {
     if !ptr.is_null() {
         let _ = unsafe { CString::from_raw(ptr) };
     }
@@ -195,14 +195,14 @@ crate-type = ["rlib", "staticlib"] # 정적 라이브러리 (iOS, Android 등)
 
 ```rust
 // main.rs
-fn run_invoke_stdio() -> rustra::Result<()> {
+fn run_invoke_stdio() -> unikit_bridge::Result<()> {
     let mut input = String::new();
     std::io::stdin().read_to_string(&mut input)?;
     let request: Value = serde_json::from_str(&input)?;
     let command = request
         .get("command")
         .and_then(Value::as_str)
-        .ok_or_else(|| rustra::RustraError::invalid_args("missing command"))?;
+        .ok_or_else(|| unikit_bridge::UnikitError::invalid_args("missing command"))?;
     let args = request.get("args").cloned().unwrap_or_else(|| json!({}));
     let result = my_package().invoke_json(command, args)?;
     let response = serde_json::to_vec(&json!({ "ok": true, "result": result }))?;
@@ -246,7 +246,7 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 
 #[napi]
-pub fn rustra_invoke(command: String, args: Option<String>) -> Result<String> {
+pub fn unikit_invoke(command: String, args: Option<String>) -> Result<String> {
     let args_value = match args {
         Some(ref a) => serde_json::from_str(a)?,
         None => serde_json::json!({}),
@@ -260,18 +260,18 @@ pub fn rustra_invoke(command: String, args: Option<String>) -> Result<String> {
 
 **적합한 경우:** Tauri 애플리케이션
 
-Tauri는 자체 `invoke` 체계를 가지므로, `rustra::tauri_support::register`로 패키지를 등록하기만 하면 됩니다. 이 함수는 `rustra_dispatch`라는 단일 커맨드 핸들러를 Tauri 빌더에 등록하고, 모든 rustra 커맨드를 이 엔드포인트로 멀티플렉싱합니다:
+Tauri는 자체 `invoke` 체계를 가지므로, `unikit_bridge::tauri_support::register`로 패키지를 등록하기만 하면 됩니다. 이 함수는 `unikit_dispatch`라는 단일 커맨드 핸들러를 Tauri 빌더에 등록하고, 모든 unikit 커맨드를 이 엔드포인트로 멀티플렉싱합니다:
 
 ```rust
 // src-tauri/src/main.rs
-let builder = rustra::tauri_support::register(my_package(), tauri::Builder::default());
+let builder = unikit_bridge::tauri_support::register(my_package(), tauri::Builder::default());
 builder.run(tauri::generate_context!()).expect("failed to run");
 ```
 
 > **참고:** `tauri_support`를 사용하려면 `Cargo.toml`에서 `tauri` feature를 활성화해야 합니다.
 >
 > ```toml
-> rustra = { path = "...", features = ["tauri"] }
+> unikit = { path = "...", features = ["tauri"] }
 > ```
 
 이 패턴은 다른 프레임워크와의 통합에서도 참고할 수 있습니다. 프레임워크가 단일 엔드포인트 기반의 명령 라우팅을 지원한다면, 비슷한 방식으로 멀티플렉스 adapter를 구현할 수 있습니다.
@@ -314,7 +314,7 @@ builder.run(tauri::generate_context!()).expect("failed to run");
 // examples/calculator/apps/<host>-app.ts
 import { addNumbers } from '../generated/commands.js';
 import { createMyHostEngine } from '../../../packages/myhost/src/index.js';
-import { configure } from '@rustra/types';
+import { configure } from '@unikit-bridge/types';
 
 // transport 구현
 const engine = createMyHostEngine({
@@ -343,7 +343,7 @@ console.log(`<host> runtime result: ${result.value}`);
 // examples/calculator/apps/<host>-app.ts (모킹 버전)
 import { addNumbers } from '../generated/commands.js';
 import { createMyHostEngine } from '../../../packages/myhost/src/index.js';
-import { configure } from '@rustra/types';
+import { configure } from '@unikit-bridge/types';
 
 const calls: Array<{ command: string; args: unknown }> = [];
 
@@ -374,7 +374,7 @@ console.log(`<host> adapter test passed`);
 {
   "scripts": {
     "test:adapter:myhost": "bun examples/calculator/apps/myhost-app.ts",
-    "test:runtime:myhost": "cargo build -p rustra-calculator-example && bun examples/calculator/apps/myhost-app.ts"
+    "test:runtime:myhost": "cargo build -p unikit-calculator-example && bun examples/calculator/apps/myhost-app.ts"
   }
 }
 ```
@@ -446,11 +446,11 @@ Electron은 Node.js 기반이므로 subprocess stdio로 시작:
 import { spawnSync } from 'node:child_process';
 import { addNumbers } from '../generated/commands.js';
 import { createElectronEngine } from '../../../packages/electron/src/index.js';
-import { configure } from '@rustra/types';
+import { configure } from '@unikit-bridge/types';
 
 const engine = createElectronEngine({
   invoke(command, args) {
-    const output = spawnSync('target/debug/rustra-calculator-example', ['invoke'], {
+    const output = spawnSync('target/debug/unikit-calculator-example', ['invoke'], {
       input: JSON.stringify({ command, args }),
       encoding: 'utf8',
     });
@@ -479,7 +479,7 @@ console.log(`electron runtime result: ${result.value}`);
 ```json
 {
   "test:adapter:electron": "bun examples/calculator/apps/electron-app.ts",
-  "test:runtime:electron": "cargo build -p rustra-calculator-example && bun examples/calculator/apps/electron-app.ts"
+  "test:runtime:electron": "cargo build -p unikit-calculator-example && bun examples/calculator/apps/electron-app.ts"
 }
 ```
 
@@ -491,7 +491,7 @@ console.log(`electron runtime result: ${result.value}`);
 const engine = createElectronEngine({
   invoke(command, args) {
     const native = require('./my-package.node');
-    const rawResponse = native.rustra_invoke(command, JSON.stringify(args));
+    const rawResponse = native.unikit_invoke(command, JSON.stringify(args));
     const response = JSON.parse(rawResponse);
     if (!response.ok) throw new Error(response.error);
     return response.result;

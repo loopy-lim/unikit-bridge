@@ -27,8 +27,8 @@ export function generateFrameCodecsTs(schema: PackageSchema): string {
   const definitions = collectAllDefinitions(schema);
   const importTypes = [...new Set([...allTypes, ...Object.keys(definitions)])].sort();
   let output = postcardHelperSource();
-  output += "import { createComplexCodec } from '@rustra/types';\n";
-  output += "import type { FrameCodec, RustraError, ComplexSchema } from '@rustra/types';\n";
+  output += "import { createComplexCodec } from '@unikit-bridge/types';\n";
+  output += "import type { FrameCodec, UnikitError, ComplexSchema } from '@unikit-bridge/types';\n";
   output += `import type { ${importTypes.join(', ')} } from './types.js';\n\n`;
   for (const command of schema.commands) {
     validateFunctionArgs(command);
@@ -146,7 +146,7 @@ function generatePostcardCodec(
   }
   lines.push(
     '',
-    `  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ${outType}; error?: RustraError } {`,
+    `  decode(buf: ArrayBuffer | ArrayBufferView): { ok: boolean; result?: ${outType}; error?: UnikitError } {`,
     `    // caller-buffer 뷰(Uint8Array subarray 등)도 받는다 — node-loop 가 왕복당`,
     `    // 사본 없이 프레임 뷰를 그대로 넘긴다. DataView 는 ArrayBuffer 만 받으므로`,
     `    // (buf.buffer, byteOffset) 로 정규화한다.`,
@@ -159,7 +159,7 @@ function generatePostcardCodec(
     `      : new DataView(buf);`,
     `    if (view.byteLength < 8) return { ok: false, error: { code: 'invoke.too_short', message: 'response too short' } };`,
     `    if (u8[0] !== 1) {`,
-    `      let err: RustraError = { code: 'invoke.failed', message: 'invoke failed' };`,
+    `      let err: UnikitError = { code: 'invoke.failed', message: 'invoke failed' };`,
     `      try {`,
     `        const errLen = view.getUint16(8, true);`,
     `        if (errLen > 0) {`,

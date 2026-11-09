@@ -1,10 +1,10 @@
 //! Core-only diagnostic: calls the real calculator resident command, without JSI/FFI.
-use rustra_calculator_example::parity_bench::*;
 use std::{
     hint::black_box,
     mem::{align_of, offset_of, size_of},
     time::Instant,
 };
+use unikit_calculator_example::parity_bench::*;
 fn load(path: &str) -> ParityTree {
     let tree: ParityTree = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
     // Host-only JSON + postcard loader: owned sequence hints, not native allocator history.

@@ -2,7 +2,7 @@
 
 # Complex binary codecs
 
-Rustra는 명령마다 wire route를 선택한다.
+Unikit는 명령마다 wire route를 선택한다.
 
 | Route          | 대상                                                                  | RN 경로                                                                |
 | -------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------- |
@@ -17,7 +17,7 @@ header 뒤에 complex body가 이어진다. Struct field는 schema declaration �
 TypeScript 사이에서 달라도 wire index가 바뀌지 않는다.
 안정적인 이름/태그/title을 얻을 수 없는 모호한 `oneOf`는 complex route에
 등록하지 않고 Tier 3 JSON으로 보낸다. 익명 variant는 스키마에
-`x-rustra-variant-order: ["key-for-first", "key-for-second"]`를 명시할 수
+`x-unikit-variant-order: ["key-for-first", "key-for-second"]`를 명시할 수
 있다. 실제 wire index는 이 stable key를 UTF-8 byte 순으로 정렬해 계산한다.
 
 변형 식별은 컴파일된 변형별 매처(matcher)다. 우선순위 순으로: 정확한
@@ -34,9 +34,9 @@ TypeScript 사이에서 달라도 wire index가 바뀌지 않는다.
 잘린 frame, 중복 map key, 잘못된 variant, trailing byte는 성공 결과가 아니라
 `command.invalid_args`/`invoke.malformed`로 처리된다.
 
-생성 postcard 코덱은 디코드 실패를 `rustra: <원인> (offset N)` 고정 형식으로
+생성 postcard 코덱은 디코드 실패를 `unikit: <원인> (offset N)` 고정 형식으로
 보고한다 — 오프셋은 실패 경계의 바이트 위치다(예:
-`rustra: varint out of bounds (offset 9)`). tier 2 `invoke.malformed` 정규화는
+`unikit: varint out of bounds (offset 9)`). tier 2 `invoke.malformed` 정규화는
 이 오프셋을 그대로 소비해 `decode failed for '<명령>' at offset N: <상세>
 (<바이트 길이>-byte frame)` 메시지를 만들고, 코덱 오류에 오프셋이 없으면 프레임
 전체 길이로 대체한다. 이 메시지 형식은 생성 코덱과 tier 2 정규화가 함께 유지하는

@@ -7,7 +7,7 @@ import { main } from './cli-main.js';
 
 test('setup is a real CLI command and reports the missing project config', async () => {
   const argv = process.argv;
-  process.argv = [argv[0]!, argv[1]!, 'setup', '--config', '/missing/rustra.json'];
+  process.argv = [argv[0]!, argv[1]!, 'setup', '--config', '/missing/unikit.json'];
   try {
     await assert.rejects(main(), /Config file not found/);
   } finally {
@@ -16,9 +16,9 @@ test('setup is a real CLI command and reports the missing project config', async
 });
 
 async function project(config: Record<string, unknown> = { node: {} }) {
-  const root = await mkdtemp(join(tmpdir(), 'rustra-setup-test-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-setup-test-'));
   await writeFile(
-    join(root, 'rustra.json'),
+    join(root, 'unikit.json'),
     JSON.stringify({ schema: 'generated/schema.json', output: 'src/generated', ...config }),
   );
   await writeFile(
@@ -31,7 +31,7 @@ async function project(config: Record<string, unknown> = { node: {} }) {
 test('setup generates local workspaces before installing, builds before calling, and can be repeated', async () => {
   const { runSetup } = await import('./cli-setup.js');
   const root = await project();
-  const configPath = join(root, 'rustra.json');
+  const configPath = join(root, 'unikit.json');
   const original = await readFile(join(root, 'package.json'), 'utf8');
   const steps: string[] = [];
   let generated = false;
@@ -86,7 +86,7 @@ test('failed build stops the first call and gives the same safe retry command', 
   const calls: string[] = [];
   try {
     await assert.rejects(
-      runSetup(['--config', join(root, 'rustra.json'), '--skip-install', '--run'], {
+      runSetup(['--config', join(root, 'unikit.json'), '--skip-install', '--run'], {
         preflight: () => {},
         codegen: async () => {},
         native: async () => [],
@@ -96,7 +96,7 @@ test('failed build stops the first call and gives the same safe retry command', 
           throw new Error('compiler diagnostic');
         },
       }),
-      /build.*compiler diagnostic[\s\S]*rustra setup.*--skip-install.*--run/,
+      /build.*compiler diagnostic[\s\S]*unikit setup.*--skip-install.*--run/,
     );
     assert.deepEqual(calls, ['cargo']);
   } finally {
@@ -109,7 +109,7 @@ test('native-only projects reject --run before generation or install', async () 
   const root = await project({ tauri: {} });
   try {
     await assert.rejects(
-      runSetup(['--config', join(root, 'rustra.json'), '--run'], {
+      runSetup(['--config', join(root, 'unikit.json'), '--run'], {
         preflight: () => assert.fail('must validate the request before any setup work'),
       }),
       /--run.*Node or Bun/,
@@ -128,7 +128,7 @@ test('setup refuses arbitrary package-manager executables before mutating files'
   );
   try {
     await assert.rejects(
-      runSetup(['--config', join(root, 'rustra.json')], {
+      runSetup(['--config', join(root, 'unikit.json')], {
         preflight: () => assert.fail('must validate package manager first'),
       }),
       /Unsupported packageManager.*bun.*npm/,
@@ -143,7 +143,7 @@ test('a fresh RN adapter is installed before codegen, then its generated module 
   const root = await project({ reactNative: {} });
   const steps: string[] = [];
   try {
-    await runSetup(['--config', join(root, 'rustra.json')], {
+    await runSetup(['--config', join(root, 'unikit.json')], {
       preflight: () => {},
       bootstrap: async () => true,
       codegen: async () => {
@@ -181,7 +181,7 @@ test('setup rebuilds a distinct runtime crate and deduplicates shared generator/
       await writeFile(join(directory, 'src/bin/generate.rs'), 'fn main() {}');
     }
     const base = { schema: 'schema.json', output: 'generated' };
-    const configPath = join(root, 'rustra.json');
+    const configPath = join(root, 'unikit.json');
     assert.equal(resolveSetupBuilds(configPath, { ...base, node: {} }).length, 1);
     const builds = resolveSetupBuilds(configPath, {
       ...base,
@@ -202,7 +202,7 @@ test('core setup does not require mobile CMake or C++ tools before explicit nati
   const commands: string[] = [];
   assert.doesNotThrow(() =>
     checkSetupTools(
-      '/project/rustra.json',
+      '/project/unikit.json',
       {
         schema: 'schema.json',
         output: 'generated',
@@ -243,7 +243,7 @@ test('RN setup selects the same static library from a virtual workspace as codeg
       '[package]\nname="mobile-core"\nversion="0.1.0"\nedition="2021"\n[lib]\ncrate-type=["rlib","staticlib"]\n',
     );
     await write('mobile/src/lib.rs', 'pub fn value() -> u8 { 1 }');
-    const builds = resolveSetupBuilds(join(root, 'rustra.json'), {
+    const builds = resolveSetupBuilds(join(root, 'unikit.json'), {
       schema: 'schema.json',
       output: 'generated',
       codegen: { rustManifest: 'schema/Cargo.toml' },
@@ -263,7 +263,7 @@ test('setup keeps the selected Cargo invocation directory for a separate RN core
   const root = await project({ reactNative: {} });
   const core = join(root, 'native-core');
   try {
-    await runSetup(['--config', join(root, 'rustra.json'), '--skip-install'], {
+    await runSetup(['--config', join(root, 'unikit.json'), '--skip-install'], {
       preflight: () => {},
       codegen: async () => {},
       native: async () => [],
@@ -284,7 +284,7 @@ test('setup respects an existing package-manager lockfile when packageManager is
   await writeFile(join(root, 'pnpm-lock.yaml'), 'lockfileVersion: 9');
   const commands: string[] = [];
   try {
-    await runSetup(['--config', join(root, 'rustra.json')], {
+    await runSetup(['--config', join(root, 'unikit.json')], {
       preflight: () => {},
       codegen: async () => {},
       native: async () => [],

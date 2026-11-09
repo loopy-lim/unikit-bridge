@@ -8,7 +8,7 @@ import { execFileSync } from 'node:child_process';
 import { benchmarkArtifact, collectBenchmarkSource } from './host-benchmark-provenance.mjs';
 
 test('host receipts identify dirty sources and exact artifacts, including missing libraries', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'rustra-host-provenance-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-host-provenance-'));
   try {
     await mkdir(join(root, 'packages', 'fixture', 'src'), { recursive: true });
     const source = join(root, 'packages', 'fixture', 'src', 'index.ts');
@@ -47,7 +47,7 @@ test('host receipts identify dirty sources and exact artifacts, including missin
 });
 
 test('runner provenance preserves the restored context and never changes Criterion data', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'rustra-bench-context-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-bench-context-'));
   const previous = '{"runId":"previous-run"}\n';
   try {
     await writeFile(join(root, 'runner-environment.json'), previous);
@@ -79,7 +79,7 @@ test('runner provenance preserves the restored context and never changes Criteri
 });
 
 test('a legacy artifact without context is recorded as unknown', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'rustra-bench-legacy-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-bench-legacy-'));
   try {
     await writeFile(join(root, 'restored-runner-environment.json'), 'stale ancestor');
     const result = await recordBenchmarkEnvironment(root, {});

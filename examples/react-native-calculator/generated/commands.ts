@@ -1,14 +1,14 @@
-// ── rustra generated ────────────────────────────────────────
+// ── unikit generated ────────────────────────────────────────
 // File:   commands.ts
 // Source: schema.json (single source of truth for this file)
-// Regen:  rustra codegen --config rustra.json
+// Regen:  unikit codegen --config unikit.json
 // Stage:  rust-probe schema → ts renderer
 // DO NOT EDIT — changes will be overwritten and fail codegen --check.
 // ────────────────────────────────────────────────────────────
 
 import type { AddNumbersInput, AddNumbersOutput, BenchAddInput, BenchAddOutput, BenchBytesPayload, BenchPairPayload, BenchStringPayload, ChannelDemoBytesInput, ChannelDemoBytesOutput, ChannelDemoInput, ChannelDemoOutput, ClampInput, ClampOutput, CreateItemInput, CreateItemOutput, DeviceDemoOutput, DivideInput, DivideOutput, EchoGroupsInput, EchoGroupsOutput, EmitDemoInput, EmitDemoOutput, GaugeInput, GaugeOutput, GreetInput, GreetOutput, IsEvenInput, IsEvenOutput, KindEchoInput, KindEchoOutput, MultiplyInput, MultiplyOutput, ParityFindInput, ParityQuery, ParitySearch, ParityStored, ParityTree, PlatformNativeInfoOutput, ProcessItemInput, ProcessItemOutput, RegistryDemoInput, RegistryDemoOutput, ResourceCloseInput, ResourceCloseOutput, ResourceHandleOutput, ResourceOpenInput, ResourceReadInput, ResourceReadOutput, ResourceWriteInput, ResourceWriteOutput, ScoreTotalInput, ScoreTotalOutput, SecureComputeInput, SecureComputeOutput, SizeOfInput, SizeOfOutput, SpanInput, SpanOutput, SumListInput, SumListOutput, TagSetInput, TagSetOutput, ToUpperInput, ToUpperOutput, WideAggInput, WideAggOutput } from './types.js';
-import { createGeneratedFields1, createGeneratedFields2, invokeGenerated, invokeGeneratedBytes, invokeGeneratedFields3 } from '@rustra/types';
-import type { InvokeOptions as CoreInvokeOptions } from '@rustra/types';
+import { createGeneratedFields1, createGeneratedFields2, invokeGenerated, invokeGeneratedBytes, invokeGeneratedFields3 } from '@unikit-bridge/types';
+import type { InvokeOptions as CoreInvokeOptions } from '@unikit-bridge/types';
 
 /**
  * 이 패키지 생성 명령의 호출 옵션 — 모든 생성 함수의 마지막 파라미터.
@@ -23,7 +23,7 @@ import type { InvokeOptions as CoreInvokeOptions } from '@rustra/types';
  * 시도가 반영되지 않았음을 확인한 뒤에만 하세요.
  *
  * 전체 의미론은 docs/compatibility-matrix.md "Signal semantics in detail" 및
- * 원본 타입(`InvokeOptions`(@rustra/types)) 문서를 참고하세요.
+ * 원본 타입(`InvokeOptions`(@unikit-bridge/types)) 문서를 참고하세요.
  */
 export type InvokeOptions = CoreInvokeOptions;
 
@@ -158,12 +158,6 @@ export function resourceWrite(input: ResourceWriteInput, options?: InvokeOptions
 }
 resourceWrite.commandId = 'resourceWrite';
 
-/**
- * 런타임 registry 제어 명령. op:
- * `register` / `unregister` / `replacePing` / `replaceAdd` / `restoreAdd` / `freeze` / `state`.
- */
-export const rustraRegistryDemo = createGeneratedFields1<RegistryDemoInput, RegistryDemoOutput>(12, 'rustraRegistryDemo', "op", 'rustraRegistryDemo');
-
 export function safeDivide(arg0: number, arg1: number, options?: InvokeOptions): Promise<number> {
   return invokeGenerated<number>(41, 'safeDivide', [arg0, arg1], options);
 }
@@ -206,6 +200,12 @@ export function tagSet(input: TagSetInput, options?: InvokeOptions): Promise<Tag
 tagSet.commandId = 'tagSet';
 
 export const toUpper = createGeneratedFields1<ToUpperInput, ToUpperOutput>(7, 'toUpper', "s", 'toUpper');
+
+/**
+ * 런타임 registry 제어 명령. op:
+ * `register` / `unregister` / `replacePing` / `replaceAdd` / `restoreAdd` / `freeze` / `state`.
+ */
+export const unikitRegistryDemo = createGeneratedFields1<RegistryDemoInput, RegistryDemoOutput>(12, 'unikitRegistryDemo', "op", 'unikitRegistryDemo');
 
 /**
  * A2 와이드 정수 복합 타입 표본 — Vec<u64> + Option<i64>. 원소/옵션 레벨 uvar64/zigzag64 헬퍼가 스트림 중간 7바이트 varint 경계를 넘는 값을 무손실 왕복하는지 cross-wire 픽스처로 고정한다.

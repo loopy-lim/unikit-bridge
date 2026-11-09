@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "schemaHash": "be8826170c3764da609a4ce6cda76a8eb105ff818dab1425d52a51b3133df747",
+  "generatorVersion": "0.13.0",
+  "files": [
+    {
+      "path": "bun.ts",
+      "sha256": "0ed6529910e7844489ae4b206ededda2d691a27d7950e9ea8da0b12322cb37f7"
+    },
+    {
+      "path": "commands.ts",
+      "sha256": "c6bba2bc037945e9fc5fb11f446df3c708731dc188bd2b83e8c87ca1b84f2c65"
+    },
+    {
+      "path": "contract.ts",
+      "sha256": "569207ebebcf836a8dc57ea3431a01c7bdff4a06c35cd8954771e7013fbb994a"
+    },
+    {
+      "path": "devices.ts",
+      "sha256": "1e941298b9ea4ae5cf01686084345c6c691584f54cfe29852f060038997fed68"
+    },
+    {
+      "path": "errors.ts",
+      "sha256": "5a4a25e61346fe2884339bce29bb280342afd183a733312c764384b7a9e1b60f"
+    },
+    {
+      "path": "frame-codecs.ts",
+      "sha256": "d9c1cb29165805ae283095be298dff450a745966526934e1535603ebcbff3da1"
+    },
+    {
+      "path": "frame-registry.ts",
+      "sha256": "e12163a93c3b0c010c1a8ab485dd4618b833d1adbb9150f059e56b33b0702050"
+    },
+    {
+      "path": "node.ts",
+      "sha256": "1257088742d02141c33f8e8316fd4eb7f87c4a1722d5e80dfc7aa285fe16143d"
+    },
+    {
+      "path": "tauri.ts",
+      "sha256": "4b26e34d9dd9a0b5726c7c670eb78e86a63026944556a5269b8d29f7fd782043"
+    },
+    {
+      "path": "types.ts",
+      "sha256": "e152dec8767357c3abef792d4ce2e35d6a2ec61ff770b1a417c196daa0ec2b1e"
+    }
+  ]
+}

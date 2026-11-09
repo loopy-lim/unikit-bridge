@@ -1,22 +1,22 @@
-/** @rustra/node — Node.js transport and generated-engine adapters. */
+/** @unikit-bridge/node — Node.js transport and generated-engine adapters. */
 export type {
   EngineClient,
   EngineSupports,
-  RustraError,
+  UnikitError,
   FrameCodec,
   FrameNative,
   InvokeOptions,
   EngineClientWithBatch,
-} from '@rustra/types';
+} from '@unikit-bridge/types';
 export {
-  RustraCommandError,
+  UnikitCommandError,
   configure,
   configureLazy,
   disposedBootstrapError,
   ensureConfigured,
   invoke,
   createFrameEngine,
-} from '@rustra/types';
+} from '@unikit-bridge/types';
 export * from './node-core.js';
 export * from './node-bootstrap.js';
 export * from './node-loop.js';

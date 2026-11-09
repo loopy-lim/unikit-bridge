@@ -36,13 +36,13 @@ const hasUpdatedMarker = (files: string[]): boolean =>
  * 스테일 런타임 바이너리 힌트(감사 #3) — codegen 은 TS/C++ 만 다시 렌더하고 실제
  * invoke 를 서브하는 런타임 바이너리는 재빌드하지 않는다. drift((updated) 표기)가
  * 있으면 기존 생성물이 갱신된 것이므로 cargo build 전까지 invoke 가 contract.mismatch
- * 로 죽을 수 있다(@rustra/types 의 RustraCommandError 코드 — 네이티브 contract hash
+ * 로 죽을 수 있다(@unikit-bridge/types 의 UnikitCommandError 코드 — 네이티브 contract hash
  * ≠ 기대 hash). JSON 계약에는 손대지 않는다(텍스트 모드 전용).
  */
 export function staleBinaryHint(files: string[]): string | null {
   if (!hasUpdatedMarker(files)) return null;
   return (
-    '[rustra] Note: generated code changed — rebuild the runtime binary before invoking ' +
+    '[unikit] Note: generated code changed — rebuild the runtime binary before invoking ' +
     '(cargo build), or invokes may fail with contract.mismatch.'
   );
 }
@@ -89,9 +89,9 @@ export async function runCodegen(
     return;
   }
   const target = resolveCodegenTarget(configPath, config);
-  const manifestPath = resolve(dirname(configPath), config.output, '.rustra-generated.json');
+  const manifestPath = resolve(dirname(configPath), config.output, '.unikit-generated.json');
   if (options.check && !existsSync(manifestPath))
-    throw new Error(`Generated check requires ${manifestPath}; run rustra codegen first`);
+    throw new Error(`Generated check requires ${manifestPath}; run unikit codegen first`);
   // uniffi 섹션 존재 자체가 기능 스위치다 — 없으면 아래 흐름은 이전과 바이트 동일
   // (env 추가 스폰 없음). 경로 해상도는 schema/output 과 같은 config 파일 위치
   // 기준 상대경로 관례를 따른다.
@@ -120,17 +120,17 @@ export async function runCodegen(
   }
   status(
     options.format,
-    `[rustra] Rust schema: cargo run --manifest-path ${target.manifestPath} --package ${target.packageName} --bin ${target.binaryName}`,
+    `[unikit] Rust schema: cargo run --manifest-path ${target.manifestPath} --package ${target.packageName} --bin ${target.binaryName}`,
   );
   const checkRoot = options.check
-    ? await mkdtemp(resolve(tmpdir(), 'rustra-codegen-check-'))
+    ? await mkdtemp(resolve(tmpdir(), 'unikit-codegen-check-'))
     : null;
   try {
     // Rust bin 의 스키마 발행 위치를 config.schema 가 선언한 디렉터리로 고정한다.
     // bin 의 기본값("generated/schema.json")은 **스폰 CWD 상대**라, config 디렉터리에서
     // 스폰되는 이 흐름에서는 config.schema 바깥에 사본을 만든다 — dev 패리티 게이트가
     // 읽는 config.schemaPath 는 갱신되지 않아 게이트가 stale 비교로 무력화된다
-    // (tauri-calculator rustra.hot.json 레이아웃, 2026-09-10 실측). check 모드는
+    // (tauri-calculator unikit.hot.json 레이아웃, 2026-09-10 실측). check 모드는
     // 기존대로 임시 디렉터리로 우회한다.
     const schemaOutDir = checkRoot ?? dirname(resolve(dirname(configPath), config.schema));
     try {
@@ -149,14 +149,14 @@ export async function runCodegen(
         {
           signal,
           env: {
-            RUSTRA_SCHEMA_OUT: schemaOutDir,
+            UNIKIT_SCHEMA_OUT: schemaOutDir,
             // uniffi 섹션이 있을 때만 프로브에 mirror 소스 출력 위치를 고정한다.
             // write 모드는 커밋 위치(uniffi.srcOut, 기본 "src")로, check 모드는
             // 임시 렌더 디렉터리로 우회시켜 커밋 파일을 더럽히지 않는다 — 스키마
             // 출력의 check/write 분기(schemaOutDir)와 같은 모양이다.
             ...(uniffiSrcOut
               ? {
-                  RUSTRA_UNIFFI_OUT: checkRoot ? resolve(checkRoot, 'uniffi-src') : uniffiSrcOut,
+                  UNIKIT_UNIFFI_OUT: checkRoot ? resolve(checkRoot, 'uniffi-src') : uniffiSrcOut,
                 }
               : {}),
           },
@@ -181,13 +181,13 @@ export async function runCodegen(
         scriptc: config.scriptc,
         target,
         schemaOutDir,
-        progress: (message: string) => status(options.format, `[rustra] scriptc: ${message}`),
+        progress: (message: string) => status(options.format, `[unikit] scriptc: ${message}`),
       };
       if (options.check) {
         // uniffi check 표기와 같은 대칭 — 성공도 조용히 지나가지 않게 한다.
         status(
           options.format,
-          '[rustra] scriptc: check — ffi.json + scriptc-ffi.d.ts byte comparison',
+          '[unikit] scriptc: check — ffi.json + scriptc-ffi.d.ts byte comparison',
         );
         checkScriptcStage(scriptcInput);
       } else {
@@ -213,7 +213,7 @@ export async function runCodegen(
           progressStream: options.format === 'json' ? 'stderr' : 'stdout',
           childOutput: options.format === 'json' ? 'stderr' : 'inherit',
         },
-        (command) => status(options.format, `[rustra] uniffi-bindings: ${command}`),
+        (command) => status(options.format, `[unikit] uniffi-bindings: ${command}`),
       );
     }
     signal?.throwIfAborted();
@@ -221,9 +221,9 @@ export async function runCodegen(
       const temporarySchema = resolve(checkRoot, 'schema.json');
       if (!existsSync(temporarySchema))
         throw new Error(
-          `Rust codegen did not produce ${temporarySchema}; the generator must honor RUSTRA_SCHEMA_OUT in check mode`,
+          `Rust codegen did not produce ${temporarySchema}; the generator must honor UNIKIT_SCHEMA_OUT in check mode`,
         );
-      status(options.format, `[rustra] TypeScript/C++: generate --config ${configPath} --check`);
+      status(options.format, `[unikit] TypeScript/C++: generate --config ${configPath} --check`);
       try {
         await runGenerate(
           [
@@ -244,12 +244,12 @@ export async function runCodegen(
       if (uniffi && uniffiSrcOut) {
         // check 모드의 uniffi 신선도 — 프로브가 임시 디렉터리에 재현한
         // uniffi_generated.rs 를 커밋 파일과 바이트 비교한다(위의 비대칭 주석).
-        // TS 매니페스트(.rustra-generated.json)에 편입하지 않은 이유: 매니페스트는
+        // TS 매니페스트(.unikit-generated.json)에 편입하지 않은 이유: 매니페스트는
         // config.output 루트에 뿌리내리고 예상 밖 항목을 거절하는 TS 렌더러 산출물
         // 대장이라, Rust 프로브 산출물을 억지로 편입하면 렌더러 계약이 흔들린다.
         status(
           options.format,
-          `[rustra] uniffi-bindings: check — ${UNIFFI_GENERATED_RS} byte comparison${options.checkBindings ? ' (actual bindings also checked)' : ' only (no cargo build / uniffi-bindgen)'}`,
+          `[unikit] uniffi-bindings: check — ${UNIFFI_GENERATED_RS} byte comparison${options.checkBindings ? ' (actual bindings also checked)' : ' only (no cargo build / uniffi-bindgen)'}`,
         );
         await checkUniffiGeneratedRs(
           resolve(checkRoot, 'uniffi-src', UNIFFI_GENERATED_RS),
@@ -272,7 +272,7 @@ export async function runCodegen(
     return;
   }
   signal?.throwIfAborted();
-  status(options.format, `[rustra] TypeScript/C++: generate --config ${configPath}`);
+  status(options.format, `[unikit] TypeScript/C++: generate --config ${configPath}`);
   try {
     const files = await runGenerate(
       ['--config', configPath, ...(options.format ? ['--format', options.format] : [])],

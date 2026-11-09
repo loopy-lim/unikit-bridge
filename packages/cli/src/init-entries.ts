@@ -44,22 +44,22 @@ const RN_POLICY = contractPolicyNote('react-native', [
 
 const TAURI_POLICY = contractPolicyNote('tauri', [
   `contractHash + contractVerification: 'strict' 전달.`,
-  `rustra_contract_hash IPC 핸드셰이크로 선택된 네이티브 코어를 검증한다.`,
+  `unikit_contract_hash IPC 핸드셰이크로 선택된 네이티브 코어를 검증한다.`,
 ]);
 
 export function generateReactNativeEntryTs(): string {
   const moduleLiteral = JSON.stringify(GENERATED_REACT_NATIVE_PACKAGE);
-  return `${generatedFileHeader('react-native.ts', 'schema → host entry')}${RN_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { createRustraBootstrap } from '@rustra/react-native';
-import { installRustraJSI, getRustraNative } from ${moduleLiteral};
+  return `${generatedFileHeader('react-native.ts', 'schema → host entry')}${RN_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { createUnikitBootstrap } from '@unikit-bridge/react-native';
+import { installUnikitJSI, getUnikitNative } from ${moduleLiteral};
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from './contract.js';
 import { frameRegistry } from './frame-registry.js';
 
 export * from './commands.js';
-export { subscribeEvent } from '@rustra/react-native';
+export { subscribeEvent } from '@unikit-bridge/react-native';
 
-export const rustra = createRustraBootstrap({
-  install: installRustraJSI,
-  getNative: getRustraNative,
+export const unikit = createUnikitBootstrap({
+  install: installUnikitJSI,
+  getNative: getUnikitNative,
   frameCodecs: frameRegistry,
   contractHash: GENERATED_CONTRACT_HASH,
   contractVerification: 'strict',
@@ -81,8 +81,8 @@ export type HostEntryRenderOptions = {
 
 const BOOTSTRAP_EVENT_EXPORTS = `
 const eventUnsubscribes = new Set<() => void>();
-const subscribe: typeof rustra.subscribeEvent = (name, callback) => {
-  const unsubscribe = rustra.subscribeEvent(name, callback);
+const subscribe: typeof unikit.subscribeEvent = (name, callback) => {
+  const unsubscribe = unikit.subscribeEvent(name, callback);
   const remove = () => {
     eventUnsubscribes.delete(remove);
     unsubscribe();
@@ -98,8 +98,8 @@ export const events = {
   },
 };
 export const subscribeEvent = events.subscribeEvent;
-const disposeBootstrap = rustra.dispose.bind(rustra);
-rustra.dispose = () => {
+const disposeBootstrap = unikit.dispose.bind(unikit);
+unikit.dispose = () => {
   events.dispose();
   disposeBootstrap();
 };
@@ -111,7 +111,7 @@ export function generateNodeEntryTs(
 ): string {
   if (options?.events === true) {
     return `${generatedFileHeader('node.ts', 'schema → host entry')}${NODE_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { fileURLToPath } from 'node:url';
-import { createNodeBootstrap } from '@rustra/node';
+import { createNodeBootstrap } from '@unikit-bridge/node';
 import { GENERATED_CONTRACT_HASH } from './contract.js';
 
 export * from './commands.js';
@@ -119,7 +119,7 @@ export * from './commands.js';
 const targetDirectory = new URL(${JSON.stringify(entry.targetDirectoryUrl)}, import.meta.url);
 const executable = ${JSON.stringify(entry.targetName)} + (process.platform === 'win32' ? '.exe' : '');
 
-export const rustra = createNodeBootstrap({
+export const unikit = createNodeBootstrap({
   binaryName: ${JSON.stringify(entry.targetName)},
   commandCandidates: [
     fileURLToPath(new URL(\`release/\${executable}\`, targetDirectory)),
@@ -134,7 +134,7 @@ export const rustra = createNodeBootstrap({
 ${BOOTSTRAP_EVENT_EXPORTS}`;
   }
   return `${generatedFileHeader('node.ts', 'schema → host entry')}${NODE_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { fileURLToPath } from 'node:url';
-import { createNodeBootstrap } from '@rustra/node';
+import { createNodeBootstrap } from '@unikit-bridge/node';
 import { GENERATED_CONTRACT_HASH } from './contract.js';
 
 export * from './commands.js';
@@ -142,7 +142,7 @@ export * from './commands.js';
 const targetDirectory = new URL(${JSON.stringify(entry.targetDirectoryUrl)}, import.meta.url);
 const executable = ${JSON.stringify(entry.targetName)} + (process.platform === 'win32' ? '.exe' : '');
 
-export const rustra = createNodeBootstrap({
+export const unikit = createNodeBootstrap({
   binaryName: ${JSON.stringify(entry.targetName)},
   commandCandidates: [
     fileURLToPath(new URL(\`release/\${executable}\`, targetDirectory)),
@@ -162,7 +162,7 @@ export function generateBunEntryTs(
   if (options?.events === true) {
     return `${generatedFileHeader('bun.ts', 'schema → host entry')}${BUN_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { fileURLToPath } from 'node:url';
 import { suffix } from 'bun:ffi';
-import { createBunBootstrap } from '@rustra/bun';
+import { createBunBootstrap } from '@unikit-bridge/bun';
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from './contract.js';
 import { frameRegistry } from './frame-registry.js';
 
@@ -171,7 +171,7 @@ export * from './commands.js';
 const targetDirectory = new URL(${JSON.stringify(entry.targetDirectoryUrl)}, import.meta.url);
 const library = \`\${process.platform === 'win32' ? '' : 'lib'}${entry.targetName}.\${suffix}\`;
 
-export const rustra = createBunBootstrap({
+export const unikit = createBunBootstrap({
   libraryName: ${JSON.stringify(entry.targetName)},
   libraryCandidates: [
     fileURLToPath(new URL(\`release/\${library}\`, targetDirectory)),
@@ -187,7 +187,7 @@ ${BOOTSTRAP_EVENT_EXPORTS}`;
   }
   return `${generatedFileHeader('bun.ts', 'schema → host entry')}${BUN_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { fileURLToPath } from 'node:url';
 import { suffix } from 'bun:ffi';
-import { createBunBootstrap } from '@rustra/bun';
+import { createBunBootstrap } from '@unikit-bridge/bun';
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from './contract.js';
 import { frameRegistry } from './frame-registry.js';
 
@@ -196,7 +196,7 @@ export * from './commands.js';
 const targetDirectory = new URL(${JSON.stringify(entry.targetDirectoryUrl)}, import.meta.url);
 const library = \`\${process.platform === 'win32' ? '' : 'lib'}${entry.targetName}.\${suffix}\`;
 
-export const rustra = createBunBootstrap({
+export const unikit = createBunBootstrap({
   libraryName: ${JSON.stringify(entry.targetName)},
   libraryCandidates: [
     fileURLToPath(new URL(\`release/\${library}\`, targetDirectory)),
@@ -211,13 +211,13 @@ export const rustra = createBunBootstrap({
 }
 
 export function generateTauriEntryTs(): string {
-  return `${generatedFileHeader('tauri.ts', 'schema → host entry')}${TAURI_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { createTauriBootstrap } from '@rustra/tauri';
+  return `${generatedFileHeader('tauri.ts', 'schema → host entry')}${TAURI_POLICY}${OPTION_UNIFICATION_CHANGELOG}import { createTauriBootstrap } from '@unikit-bridge/tauri';
 import { GENERATED_CONTRACT_HASH } from './contract.js';
 
 export * from './commands.js';
-export { subscribeTauriEvent as subscribeEvent } from '@rustra/tauri';
+export { subscribeTauriEvent as subscribeEvent } from '@unikit-bridge/tauri';
 
-export const rustra = createTauriBootstrap({
+export const unikit = createTauriBootstrap({
   contractHash: GENERATED_CONTRACT_HASH,
   contractVerification: 'strict',
 });

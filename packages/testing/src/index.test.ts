@@ -10,7 +10,7 @@ import {
   expectContractFieldsCurrent,
   assertContractHashCurrent,
 } from './index.js';
-import { CancelledError, RustraCommandError } from '@rustra/types';
+import { CancelledError, UnikitCommandError } from '@unikit-bridge/types';
 
 void test('mock engine invokes registered handler', async () => {
   const engine = createMockEngine();
@@ -29,24 +29,24 @@ void test('type-safe mock method registers command by function reference', async
   assert.deepEqual(result, { sum: 35 });
 });
 
-void test('unknown command rejects with RustraCommandError command.not_found', async () => {
+void test('unknown command rejects with UnikitCommandError command.not_found', async () => {
   const engine = createMockEngine();
   await assert.rejects(
     () => engine.invoke('missing'),
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'command.not_found',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'command.not_found',
   );
 });
 
-void test('handler errors become RustraCommandError with custom code', async () => {
+void test('handler errors become UnikitCommandError with custom code', async () => {
   const engine = createMockEngine();
   engine.on('fail', () => {
-    // 객체 throw 의 RustraCommandError 정규화 계약이 검증 대상이다.
+    // 객체 throw 의 UnikitCommandError 정규화 계약이 검증 대상이다.
     // eslint-disable-next-line @typescript-eslint/only-throw-error
     throw { code: 'validation.too_large', message: 'value exceeds limit' };
   });
   await assert.rejects(
     () => engine.invoke('fail'),
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'validation.too_large',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'validation.too_large',
   );
 });
 
@@ -83,7 +83,7 @@ void test('mock engine records options and rejects pre-aborted signals', async (
     () => engine.invoke('a', undefined, { signal: ac.signal }),
     (err: unknown) =>
       err instanceof CancelledError &&
-      err instanceof RustraCommandError &&
+      err instanceof UnikitCommandError &&
       err.code === 'cancelled' &&
       err.retryable === true,
   );
@@ -122,7 +122,7 @@ void test('mock engine supports deterministic delay, injected errors, and events
   await assert.rejects(
     () => engine.invoke('broken'),
     (error: unknown) =>
-      error instanceof RustraCommandError &&
+      error instanceof UnikitCommandError &&
       error.code === 'transport.timeout' &&
       error.retryable === true,
   );

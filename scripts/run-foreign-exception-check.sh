@@ -2,7 +2,7 @@
 set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 fixture="$repo_root/scripts/safety/foreign-exception"
-probe_target=${RUSTRA_FOREIGN_PROBE_TARGET_DIR:-"$repo_root/target/safety/foreign-exception"}
+probe_target=${UNIKIT_FOREIGN_PROBE_TARGET_DIR:-"$repo_root/target/safety/foreign-exception"}
 case "$probe_target" in /*) ;; *) echo 'probe target must be absolute' >&2; exit 2;; esac
 case "$(uname -s)" in
   Darwin|Linux) ;;
@@ -11,7 +11,7 @@ esac
 mkdir -p "$probe_target"
 cargo build --locked --manifest-path "$fixture/Cargo.toml" --target-dir "$probe_target"
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror "$fixture/host.cpp" \
-  -L "$probe_target/debug" -lrustra_foreign_exception_probe \
+  -L "$probe_target/debug" -lunikit_foreign_exception_probe \
   -Wl,-rpath,"$probe_target/debug" -o "$probe_target/foreign-exception-host"
 python3 - "$probe_target/foreign-exception-host" <<'PY'
 import resource

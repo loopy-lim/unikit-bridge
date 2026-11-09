@@ -2,9 +2,9 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** rustra-bridge에 취소 파이프라인 · OTA 명령별 폴백 · 동적 페이로드 한도 · 크로스 플랫폼 CI 매트릭스를 추가해 프로덕션 투입 가능 상태로 만든다.
+**Goal:** unikit-bridge에 취소 파이프라인 · OTA 명령별 폴백 · 동적 페이로드 한도 · 크로스 플랫폼 CI 매트릭스를 추가해 프로덕션 투입 가능 상태로 만든다.
 
-**Architecture:** Rust FFI 레이어(crates/rustra/src/ffi.rs)에 취소 레지스트리·동적 한도·이름 라우팅 폴백을 추가하고, JS 엔진 허브(packages/types/src/index.ts)에 AbortSignal/옵트인 폴백/사전 검사를 배선한다. CI는 rust 잡을 3-OS 매트릭스로 확장한다. 각 트랙은 독립 커밋으로 분리되고 풀 테스트 스위트가 매 트랙 종료 시 green이어야 한다.
+**Architecture:** Rust FFI 레이어(crates/unikit-bridge/src/ffi.rs)에 취소 레지스트리·동적 한도·이름 라우팅 폴백을 추가하고, JS 엔진 허브(packages/types/src/index.ts)에 AbortSignal/옵트인 폴백/사전 검사를 배선한다. CI는 rust 잡을 3-OS 매트릭스로 확장한다. 각 트랙은 독립 커밋으로 분리되고 풀 테스트 스위트가 매 트랙 종료 시 green이어야 한다.
 
 **Tech Stack:** Rust 1.95 (no new deps — std만 사용), TypeScript (packages/*), GitHub Actions.
 
@@ -15,7 +15,7 @@
 - lefthook pre-commit이 rustfmt/prettier를 실행하지만 **재스테이징하지 않는다** — 커밋 후 `git status`에 변경이 남으면 `git commit -am --no-verify -m "style: fmt"`로 amend.
 - FFI 전역 상태(`PACKAGE: OnceLock`) 때문에 FFI 테스트는 **각자 별도 테스트 바이너리**여야 한다 (payload_robustness.rs 패턴 참고).
 - 생성물 `crates/generated/`, `examples/*/generated/`는 prettier 대상 아님.
-- 전체 회귀: `cargo test -p rustra && npm run test:types && npm run test:ts:node && npm run test:packages`.
+- 전체 회귀: `cargo test -p unikit-bridge && npm run test:types && npm run test:ts:node && npm run test:packages`.
 
 ---
 
@@ -25,13 +25,13 @@
 
 **Files:**
 
-- Create: `crates/rustra/src/cancel.rs`
-- Modify: `crates/rustra/src/lib.rs:114` (`mod cancel;` 추가)
-- Test: `crates/rustra/src/cancel.rs` (inline #[cfg(test)])
+- Create: `crates/unikit-bridge/src/cancel.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs:114` (`mod cancel;` 추가)
+- Test: `crates/unikit-bridge/src/cancel.rs` (inline #[cfg(test)])
 
 **Step 1: Write the failing test**
 
-`crates/rustra/src/cancel.rs` 하단에:
+`crates/unikit-bridge/src/cancel.rs` 하단에:
 
 ```rust
 #[cfg(test)]
@@ -99,17 +99,17 @@ mod tests {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cargo test -p rustra --lib cancel 2>&1 | tail -5`
+Run: `cargo test -p unikit-bridge --lib cancel 2>&1 | tail -5`
 Expected: FAIL — `unresolved module` (cancel.rs 미생성이면 lib.rs mod 추가 전이므로 컴파일 에러).
 
 **Step 3: Write minimal implementation**
 
-`crates/rustra/src/cancel.rs`:
+`crates/unikit-bridge/src/cancel.rs`:
 
 ```rust
 //! Invocation 취소 레지스트리 — 트랙 1 (AbortSignal ↔ Rust).
 //!
-//! `rustra_ffi_invoke_async` 로 시작된 호출에 발급된 invocation_id 로
+//! `unikit_ffi_invoke_async` 로 시작된 호출에 발급된 invocation_id 로
 //! 협력적 취소(cooperative cancellation)를 지원한다:
 //!
 //! - `register_invocation` — 새 ID 발급 + `Running` 등록
@@ -119,7 +119,7 @@ Expected: FAIL — `unresolved module` (cancel.rs 미생성이면 lib.rs mod 추
 //!
 //! 취소는 플래그 전환만 한다. 진행 중인 핸들러 스레드를 죽이지 않고,
 //! dispatch 체크포인트(capability 게이트 직후 / 핸들러 완료 후)에서
-//! `Cancelled` 여부를 확인해 `RustraError::cancelled` 로 응답한다.
+//! `Cancelled` 여부를 확인해 `UnikitError::cancelled` 로 응답한다.
 
 use std::collections::BTreeMap;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -182,7 +182,7 @@ pub fn status(id: u64) -> Status {
 }
 ```
 
-`crates/rustra/src/lib.rs` 모듈 선언부(`mod codegen;` 근처, lib.rs:114)에 추가:
+`crates/unikit-bridge/src/lib.rs` 모듈 선언부(`mod codegen;` 근처, lib.rs:114)에 추가:
 
 ```rust
 pub mod cancel;
@@ -190,29 +190,29 @@ pub mod cancel;
 
 **Step 4: Run test to verify it passes**
 
-Run: `cargo test -p rustra --lib cancel 2>&1 | tail -5`
+Run: `cargo test -p unikit-bridge --lib cancel 2>&1 | tail -5`
 Expected: `test result: ok. 6 passed`
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra/src/cancel.rs crates/rustra/src/lib.rs
+git add crates/unikit-bridge/src/cancel.rs crates/unikit-bridge/src/lib.rs
 git commit -m "feat(cancel): invocation 취소 레지스트리 (T1)"
 ```
 
 ---
 
-### Task 2: `RustraError::cancelled` 에러 코드
+### Task 2: `UnikitError::cancelled` 에러 코드
 
 **Files:**
 
-- Modify: `crates/rustra/src/error.rs:60` 근처 (새 생성자)
-- Modify: `crates/rustra/src/error.rs:19` 근처 (문서 테이블)
-- Test: `crates/rustra/tests/cancel_tests.rs` (Task 3에서 함께 작성하므로 여기선 error.rs inline 테스트)
+- Modify: `crates/unikit-bridge/src/error.rs:60` 근처 (새 생성자)
+- Modify: `crates/unikit-bridge/src/error.rs:19` 근처 (문서 테이블)
+- Test: `crates/unikit-bridge/tests/cancel_tests.rs` (Task 3에서 함께 작성하므로 여기선 error.rs inline 테스트)
 
 **Step 1: Write the failing test**
 
-`crates/rustra/src/error.rs` 하단 inline test에 추가:
+`crates/unikit-bridge/src/error.rs` 하단 inline test에 추가:
 
 ```rust
 #[cfg(test)]
@@ -221,7 +221,7 @@ mod cancelled_tests {
 
     #[test]
     fn cancelled_error_is_retryable_with_stable_code() {
-        let e = RustraError::cancelled("aborted by AbortSignal");
+        let e = UnikitError::cancelled("aborted by AbortSignal");
         assert_eq!(e.code(), "cancelled");
         assert_eq!(e.message(), "aborted by AbortSignal");
         assert!(e.is_retryable(), "cancelled means the caller gave up on this attempt, not the operation");
@@ -231,12 +231,12 @@ mod cancelled_tests {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cargo test -p rustra --lib cancelled 2>&1 | tail -5`
+Run: `cargo test -p unikit-bridge --lib cancelled 2>&1 | tail -5`
 Expected: FAIL — `no function or associated item named 'cancelled' found`
 
 **Step 3: Write minimal implementation**
 
-`RustraError` impl 블록에 (`timeout` 생성자 뒤, error.rs:121 근처):
+`UnikitError` impl 블록에 (`timeout` 생성자 뒤, error.rs:121 근처):
 
 ```rust
     /// 호출이 취소됨 — AbortSignal/cancel 로 호출자가 포기한 경우.
@@ -258,14 +258,14 @@ Expected: FAIL — `no function or associated item named 'cancelled' found`
 
 **Step 4: Run test to verify it passes**
 
-Run: `cargo test -p rustra --lib cancelled 2>&1 | tail -3`
+Run: `cargo test -p unikit-bridge --lib cancelled 2>&1 | tail -3`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra/src/error.rs
-git commit -m "feat(cancel): RustraError::cancelled 에러 코드 (T1)"
+git add crates/unikit-bridge/src/error.rs
+git commit -m "feat(cancel): UnikitError::cancelled 에러 코드 (T1)"
 ```
 
 ---
@@ -274,23 +274,23 @@ git commit -m "feat(cancel): RustraError::cancelled 에러 코드 (T1)"
 
 **Files:**
 
-- Modify: `crates/rustra/src/ffi.rs:436-501` (async 진입점 2종에 invocation_id out-param)
-- Modify: `crates/rustra/src/ffi.rs` FFI 주석 블록(ffi.rs:1-11)에 심볼 목록 추가
-- Create: `crates/rustra/tests/cancel_tests.rs`
+- Modify: `crates/unikit-bridge/src/ffi.rs:436-501` (async 진입점 2종에 invocation_id out-param)
+- Modify: `crates/unikit-bridge/src/ffi.rs` FFI 주석 블록(ffi.rs:1-11)에 심볼 목록 추가
+- Create: `crates/unikit-bridge/tests/cancel_tests.rs`
 
 **주의:** async 시그니처 변경은 C ABI break다. 현재 유일 호출자는 방금 커밋한 우리 자신(호스트 예제 미사용)이므로 안전하게 변경한다. ABI 안정성이 필요해지면 별도 `*_v2` 심볼로 분리한다(지금은 YAGNI).
 
 **Step 1: Write the failing test**
 
-`crates/rustra/tests/cancel_tests.rs`:
+`crates/unikit-bridge/tests/cancel_tests.rs`:
 
 ```rust
 //! 트랙 1 — FFI 취소 파이프라인 (별도 바이너리: OnceLock 전역 격리).
 
-use rustra::Package;
-use rustra::ffi::{
-    rustra_ffi_cancellation_status, rustra_ffi_free, rustra_ffi_invoke_async,
-    rustra_ffi_invoke_cancel, rustra_ffi_set_max_payload,
+use unikit_bridge::Package;
+use unikit_bridge::ffi::{
+    unikit_ffi_cancellation_status, unikit_ffi_free, unikit_ffi_invoke_async,
+    unikit_ffi_invoke_cancel, unikit_ffi_set_max_payload,
 };
 use std::ffi::c_void;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -325,7 +325,7 @@ static RECEIVED: OnceLock<Mutex<Option<Completion>>> = OnceLock::new();
 unsafe extern "C" fn on_complete(_user: *mut c_void, ptr: *mut u8, len: usize) {
     let slice = std::slice::from_raw_parts(ptr, len);
     let data = slice.to_vec();
-    rustra_ffi_free(ptr, len);
+    unikit_ffi_free(ptr, len);
     *RECEIVED.get().or_init(|| Mutex::new(None)).lock().unwrap() = Some(Completion { data });
 }
 
@@ -342,7 +342,7 @@ fn async_invoke_emits_invocation_id_and_cancel_stops_handler() {
 
     let mut invocation_id: u64 = 0;
     unsafe {
-        rustra_ffi_invoke_async(
+        unikit_ffi_invoke_async(
             envelope.as_ptr(),
             envelope.len(),
             std::ptr::null_mut(),
@@ -353,11 +353,11 @@ fn async_invoke_emits_invocation_id_and_cancel_stops_handler() {
     assert!(invocation_id > 0, "FFI must issue a non-zero invocation id");
 
     // 취소 — Running 상태에서만 성공.
-    let cancelled = unsafe { rustra_ffi_invoke_cancel(invocation_id) };
+    let cancelled = unsafe { unikit_ffi_invoke_cancel(invocation_id) };
     assert!(cancelled, "cancel on a Running invocation returns true");
 
     // 상태 조회 (핸들러 폴링용 공개 API).
-    assert_eq!(unsafe { rustra_ffi_cancellation_status(invocation_id) }, 2); // 2 = Cancelled
+    assert_eq!(unsafe { unikit_ffi_cancellation_status(invocation_id) }, 2); // 2 = Cancelled
 
     // 취소된 호출의 응답은 cancelled 에러 — on_complete 콜백으로 전달된다.
     // (블로킹 핸들러가 cancel 체크포인트에서 중단하는 것은 Task 4 의
@@ -379,16 +379,16 @@ struct TestEnvelope {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cargo test -p rustra --test cancel_tests 2>&1 | tail -5`
-Expected: FAIL — 컴파일 에러 (`rustra_ffi_invoke_async` 매개변수 개수 불일치, `rustra_ffi_invoke_cancel` 미정의).
+Run: `cargo test -p unikit-bridge --test cancel_tests 2>&1 | tail -5`
+Expected: FAIL — 컴파일 에러 (`unikit_ffi_invoke_async` 매개변수 개수 불일치, `unikit_ffi_invoke_cancel` 미정의).
 
 **Step 3: Write minimal implementation**
 
-`crates/rustra/src/ffi.rs` — async 진입점 2종 모두 다음 시그니처로 (변경: 마지막에 `invocation_id: *mut u64` 추가):
+`crates/unikit-bridge/src/ffi.rs` — async 진입점 2종 모두 다음 시그니처로 (변경: 마지막에 `invocation_id: *mut u64` 추가):
 
 ```rust
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_ffi_invoke_async(
+pub unsafe extern "C" fn unikit_ffi_invoke_async(
     payload: *const u8,
     payload_len: usize,
     user_data: *mut c_void,
@@ -402,7 +402,7 @@ pub unsafe extern "C" fn rustra_ffi_invoke_async(
     // ... 기존 bytes 복제 로직 ...
     std::thread::spawn(move || {
         let mut out_len = 0;
-        let resp_ptr = unsafe { rustra_ffi_invoke(bytes.as_ptr(), bytes.len(), &mut out_len) };
+        let resp_ptr = unsafe { unikit_ffi_invoke(bytes.as_ptr(), bytes.len(), &mut out_len) };
         crate::cancel::complete_invocation(id);
         if let Some(cb) = on_complete {
             unsafe { cb(user_data_raw as *mut c_void, resp_ptr, out_len); }
@@ -422,9 +422,9 @@ pub unsafe extern "C" fn rustra_ffi_invoke_async(
 ///
 /// # Safety
 ///
-/// `invocation_id` 는 `rustra_ffi_invoke_async` 가 발급한 유효한 ID.
+/// `invocation_id` 는 `unikit_ffi_invoke_async` 가 발급한 유효한 ID.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_ffi_invoke_cancel(invocation_id: u64) -> bool {
+pub unsafe extern "C" fn unikit_ffi_invoke_cancel(invocation_id: u64) -> bool {
     crate::cancel::cancel_invocation(invocation_id)
 }
 
@@ -432,7 +432,7 @@ pub unsafe extern "C" fn rustra_ffi_invoke_cancel(invocation_id: u64) -> bool {
 ///
 /// 반환값: 0=Unknown(완료/미발급), 1=Running, 2=Cancelled.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_ffi_cancellation_status(invocation_id: u64) -> u32 {
+pub unsafe extern "C" fn unikit_ffi_cancellation_status(invocation_id: u64) -> u32 {
     match crate::cancel::status(invocation_id) {
         crate::cancel::Status::Unknown => 0,
         crate::cancel::Status::Running => 1,
@@ -444,19 +444,19 @@ pub unsafe extern "C" fn rustra_ffi_cancellation_status(invocation_id: u64) -> u
 ffi.rs 상단 심볼 문서 목록(ffi.rs:1-11)에 추가:
 
 ```rust
-//! - `rustra_ffi_invoke_cancel`         — 진행 중 async 호출 취소 (협력적)
-//! - `rustra_ffi_cancellation_status`   — 호출 취소 상태 조회 (폴링용)
+//! - `unikit_ffi_invoke_cancel`         — 진행 중 async 호출 취소 (협력적)
+//! - `unikit_ffi_cancellation_status`   — 호출 취소 상태 조회 (폴링용)
 ```
 
 **Step 4: Run test to verify it passes**
 
-Run: `cargo test -p rustra --test cancel_tests 2>&1 | tail -3`
+Run: `cargo test -p unikit-bridge --test cancel_tests 2>&1 | tail -3`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra/src/ffi.rs crates/rustra/tests/cancel_tests.rs
+git add crates/unikit-bridge/src/ffi.rs crates/unikit-bridge/tests/cancel_tests.rs
 git commit -m "feat(cancel): FFI 취소 심볼 3종 + async invocation_id 발급 (T1)"
 ```
 
@@ -466,10 +466,10 @@ git commit -m "feat(cancel): FFI 취소 심볼 3종 + async invocation_id 발급
 
 **Files:**
 
-- Modify: `crates/rustra/src/ffi.rs` (`rustra_ffi_invoke_async` 워커 클로저 내부 — sync invoke 대신 직접 dispatch)
-- Test: `crates/rustra/tests/cancel_tests.rs` (확장)
+- Modify: `crates/unikit-bridge/src/ffi.rs` (`unikit_ffi_invoke_async` 워커 클로저 내부 — sync invoke 대신 직접 dispatch)
+- Test: `crates/unikit-bridge/tests/cancel_tests.rs` (확장)
 
-**설명:** 현재 워커는 내부에서 `rustra_ffi_invoke`(sync 전체 경로)를 호출한다. 취소 체크포인트를 넣으려면 워커가 dispatch 전에 `status(id) == Cancelled`인지 확인하고, 취소됐으면 핸들러를 실행하지 않고 `cancelled` 에러 응답을 만든다. 핸들러 완료 후 체크포인트는 첫 구현에서 제외한다 — "이미 끝난 결과 폐기"는 유용성이 낮고 복잡도만 더한다 (YAGNI; 실행 전 중단이 배터리/CPU 절약의 대부분).
+**설명:** 현재 워커는 내부에서 `unikit_ffi_invoke`(sync 전체 경로)를 호출한다. 취소 체크포인트를 넣으려면 워커가 dispatch 전에 `status(id) == Cancelled`인지 확인하고, 취소됐으면 핸들러를 실행하지 않고 `cancelled` 에러 응답을 만든다. 핸들러 완료 후 체크포인트는 첫 구현에서 제외한다 — "이미 끝난 결과 폐기"는 유용성이 낮고 복잡도만 더한다 (YAGNI; 실행 전 중단이 배터리/CPU 절약의 대부분).
 
 **Step 1: Write the failing test**
 
@@ -539,22 +539,22 @@ pub(crate) fn dispatch_with_cancellation(id: u64, payload: &[u8]) -> Vec<u8> {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cargo test -p rustra --test cancel_tests 2>&1 | tail -3`
+Run: `cargo test -p unikit-bridge --test cancel_tests 2>&1 | tail -3`
 Expected: FAIL — `dispatch_with_cancellation` 미정의.
 
 **Step 3: Write minimal implementation**
 
-`rustra_ffi_invoke_async`/`invoke_json_async` 워커 클로저에서 `rustra_ffi_invoke(...)` 직접 호출을 `dispatch_with_cancellation(id, &bytes)`로 교체 (응답 ptr/len 할당은 공유 헬퍼로). 상단 `pub use`/export에 `dispatch_with_cancellation` 노출 불필요 — `pub(crate)`면 테스트(`tests/` 디렉토리)에서 접근 불가하므로 **ffi 모듈을 pub로 두고 함수를 pub로** 공개한다 (다른 FFI 심볼들과 동일하게 `pub`).
+`unikit_ffi_invoke_async`/`invoke_json_async` 워커 클로저에서 `unikit_ffi_invoke(...)` 직접 호출을 `dispatch_with_cancellation(id, &bytes)`로 교체 (응답 ptr/len 할당은 공유 헬퍼로). 상단 `pub use`/export에 `dispatch_with_cancellation` 노출 불필요 — `pub(crate)`면 테스트(`tests/` 디렉토리)에서 접근 불가하므로 **ffi 모듈을 pub로 두고 함수를 pub로** 공개한다 (다른 FFI 심볼들과 동일하게 `pub`).
 
 **Step 4: Run test to verify it passes**
 
-Run: `cargo test -p rustra --test cancel_tests 2>&1 | tail -3`
+Run: `cargo test -p unikit-bridge --test cancel_tests 2>&1 | tail -3`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra/src/ffi.rs crates/rustra/tests/cancel_tests.rs
+git add crates/unikit-bridge/src/ffi.rs crates/unikit-bridge/tests/cancel_tests.rs
 git commit -m "feat(cancel): 워커 dispatch 전 취소 체크포인트 — cancelled 에러 응답 (T1)"
 ```
 
@@ -566,7 +566,7 @@ git commit -m "feat(cancel): 워커 dispatch 전 취소 체크포인트 — canc
 
 - Modify: `packages/types/src/index.ts:441` (`createRkyvV2Engine` — invoke 옵션)
 - Modify: `packages/types/src/index.ts:103` (`isRetryableCode`에 `cancelled` 추가)
-- Modify: `packages/types/src/index.ts:130-162` (`RustraNative`에 `invokeCancel?` 선택 멤버)
+- Modify: `packages/types/src/index.ts:130-162` (`UnikitNative`에 `invokeCancel?` 선택 멤버)
 - Test: `packages/types/src/index.test.ts`
 
 **Step 1: Write the failing test**
@@ -601,8 +601,8 @@ describe('invoke AbortSignal (T1)', () => {
     const promise = engine.invoke('dynamicCmd', undefined, { signal: controller.signal });
     controller.abort();
     await assert.rejects(promise, (e: unknown) => {
-      assert.ok(e instanceof RustraCommandError);
-      assert.equal((e as RustraCommandError).code, 'cancelled');
+      assert.ok(e instanceof UnikitCommandError);
+      assert.equal((e as UnikitCommandError).code, 'cancelled');
       return true;
     });
     assert.ok(native.invokeCancel.mock.callCount() >= 1);
@@ -614,7 +614,7 @@ describe('invoke AbortSignal (T1)', () => {
 });
 ```
 
-`isRetryableCode`는 현재 module-private이므로 export하거나 테스트에서 `RustraCommandError` 경유로 확인한다 — 후자로 (공개 API 불변 유지): `new RustraCommandError('cancelled', 'x', undefined)`의 retryable 기본값은 isRetryableCode에서 온다.
+`isRetryableCode`는 현재 module-private이므로 export하거나 테스트에서 `UnikitCommandError` 경유로 확인한다 — 후자로 (공개 API 불변 유지): `new UnikitCommandError('cancelled', 'x', undefined)`의 retryable 기본값은 isRetryableCode에서 온다.
 
 **Step 2: Run test to verify it fails**
 
@@ -633,7 +633,7 @@ function isRetryableCode(code: string): boolean {
 }
 ```
 
-2. `RustraNative`에 선택 멤버 추가 (drainEvents 뒤):
+2. `UnikitNative`에 선택 멤버 추가 (drainEvents 뒤):
 
 ```typescript
   /** (T1) 진행 중 async 호출 취소. invokeAsync 가 반환한 invocation id 를 넘긴다. */
@@ -653,7 +653,7 @@ invoke<T>(command: string, args?: unknown, options?: InvokeOptions): Promise<T> 
   const signal = options?.signal;
   if (signal?.aborted) {
     return Promise.reject(
-      new RustraCommandError('cancelled', `invoke("${command}") aborted before dispatch`, true),
+      new UnikitCommandError('cancelled', `invoke("${command}") aborted before dispatch`, true),
     );
   }
   // 네이티브에 invokeAsync + invokeCancel 이 있으면 취소 전파 가능한 경로 사용.
@@ -677,7 +677,7 @@ invoke<T>(command: string, args?: unknown, options?: InvokeOptions): Promise<T> 
     let invocationId = -1;
     const onAbort = () => {
       nativeAny.invokeCancel!(invocationId);
-      reject(new RustraCommandError('cancelled', `invoke("${command}") aborted`, true));
+      reject(new UnikitCommandError('cancelled', `invoke("${command}") aborted`, true));
     };
     signal.addEventListener('abort', onAbort, { once: true });
     // invokeAsync 로 진행 — 결과 도착 시 resolve 후 리스너 제거.
@@ -692,7 +692,7 @@ invoke<T>(command: string, args?: unknown, options?: InvokeOptions): Promise<T> 
 function raceAbort<T>(promise: Promise<T>, signal: AbortSignal, command: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const onAbort = () =>
-      reject(new RustraCommandError('cancelled', `invoke("${command}") aborted`, true));
+      reject(new UnikitCommandError('cancelled', `invoke("${command}") aborted`, true));
     signal.addEventListener('abort', onAbort, { once: true });
     promise.then(
       (v) => {
@@ -761,7 +761,7 @@ it('createAsyncEngine: signal abort 시 reject + invokeCancel 호출 (T1)', asyn
 
 **Step 2: Run test to verify it fails**
 
-Run: `npm run build -w @rustra/types && npm run build -w @rustra/react-native && node --test packages/react-native/dist/index.test.js 2>&1 | tail -4`
+Run: `npm run build -w @unikit-bridge/types && npm run build -w @unikit-bridge/react-native && node --test packages/react-native/dist/index.test.js 2>&1 | tail -4`
 Expected: FAIL — invoke 3번째 인자 무시됨.
 
 **Step 3: Write minimal implementation**
@@ -773,15 +773,15 @@ invoke<T>(command: string, args?: unknown, options?: { signal?: AbortSignal }): 
   const base = new Promise<T>((resolve, reject) => {
     invokeTypedAsync(command, args,
       (result) => resolve(result as T),
-      (message) => reject(parseRustraErrorString(message)));
+      (message) => reject(parseUnikitErrorString(message)));
   });
   const signal = options?.signal;
   if (!signal) return base;
   if (signal.aborted) {
-    return Promise.reject(new RustraCommandError('cancelled', `invoke("${command}") aborted before dispatch`, true));
+    return Promise.reject(new UnikitCommandError('cancelled', `invoke("${command}") aborted before dispatch`, true));
   }
   return new Promise<T>((resolve, reject) => {
-    const onAbort = () => reject(new RustraCommandError('cancelled', `invoke("${command}") aborted`, true));
+    const onAbort = () => reject(new UnikitCommandError('cancelled', `invoke("${command}") aborted`, true));
     signal.addEventListener('abort', onAbort, { once: true });
     base.then((v) => { signal.removeEventListener('abort', onAbort); resolve(v); },
              (e) => { signal.removeEventListener('abort', onAbort); reject(e); });
@@ -789,7 +789,7 @@ invoke<T>(command: string, args?: unknown, options?: { signal?: AbortSignal }): 
 }
 ```
 
-`RustraCommandError` import 확인 (이미 parseRustraErrorString과 함께 import됨).
+`UnikitCommandError` import 확인 (이미 parseUnikitErrorString과 함께 import됨).
 
 **Step 4: Run test to verify it passes**
 
@@ -799,7 +799,7 @@ Expected: pass 증가, `# fail 0`
 **Step 5: 트랙 1 전체 회귀 + Commit**
 
 ```bash
-cargo test -p rustra && npm run test:types && npm run test:ts:node && npm run test:packages
+cargo test -p unikit-bridge && npm run test:types && npm run test:ts:node && npm run test:packages
 git add packages/react-native/src
 git commit -m "feat(cancel): RN async 엔진 AbortSignal 얕은 취소 (T1 완료)"
 ```
@@ -812,8 +812,8 @@ git commit -m "feat(cancel): RN async 엔진 AbortSignal 얕은 취소 (T1 완�
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs:723-759` (`invoke_rkyv_v2`)
-- Create: `crates/rustra/tests/ota_compat_tests.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs:723-759` (`invoke_rkyv_v2`)
+- Create: `crates/unikit-bridge/tests/ota_compat_tests.rs`
 
 **문제 재정의:** 구 JS 코드젠은 신 native의 command_id를 모른다. 하지만 JS가 보내는 것은 payload 앞 2바이트 command_id뿐이다 — 이름이 와이어에 없다. **이름 기반 폴백은 rkyv V2 바이너리 경로에서 불가능하다.** (postcard/JSON envelope 경로는 이미 이름 기반이라 문제 없음.)
 
@@ -821,12 +821,12 @@ git commit -m "feat(cancel): RN async 엔진 AbortSignal 얕은 취소 (T1 완�
 
 **Step 1: Write the failing test**
 
-`crates/rustra/tests/ota_compat_tests.rs`:
+`crates/unikit-bridge/tests/ota_compat_tests.rs`:
 
 ```rust
 //! 트랙 2 — OTA 하위 호환: 구 command_id alias 수용.
 
-use rustra::Package;
+use unikit_bridge::Package;
 
 #[path = "../benches/common.rs"]
 mod common;
@@ -872,12 +872,12 @@ fn alias_conflict_with_live_id_is_rejected_at_build() {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cargo test -p rustra --test ota_compat_tests 2>&1 | tail -3`
+Run: `cargo test -p unikit-bridge --test ota_compat_tests 2>&1 | tail -3`
 Expected: FAIL — `alias_command_id` 미정의.
 
 **Step 3: Write minimal implementation**
 
-`crates/rustra/src/lib.rs`:
+`crates/unikit-bridge/src/lib.rs`:
 
 1. `RegistryState`(lib.rs:384-397 근처)에 `id_aliases: BTreeMap<u16, String>` 추가.
 2. `PackageBuilder`에:
@@ -900,13 +900,13 @@ Expected: FAIL — `alias_command_id` 미정의.
 
 **Step 4: Run test to verify it passes**
 
-Run: `cargo test -p rustra --test ota_compat_tests 2>&1 | tail -3`
+Run: `cargo test -p unikit-bridge --test ota_compat_tests 2>&1 | tail -3`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra/src/lib.rs crates/rustra/tests/ota_compat_tests.rs
+git add crates/unikit-bridge/src/lib.rs crates/unikit-bridge/tests/ota_compat_tests.rs
 git commit -m "feat(ota): alias_command_id — 구 command_id 로 신 네이티브 수용 (T2)"
 ```
 
@@ -916,9 +916,9 @@ git commit -m "feat(ota): alias_command_id — 구 command_id 로 신 네이티�
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs:960-966` (`schema()` json 맨 위 `schemaVersion` 추가)
-- Modify: `crates/rustra/src/lib.rs` `GeneratedPackage`/`write_to_dir` (contract.ts에 SCHEMA_VERSION)
-- Test: `crates/rustra/tests/ota_compat_tests.rs` (확장)
+- Modify: `crates/unikit-bridge/src/lib.rs:960-966` (`schema()` json 맨 위 `schemaVersion` 추가)
+- Modify: `crates/unikit-bridge/src/lib.rs` `GeneratedPackage`/`write_to_dir` (contract.ts에 SCHEMA_VERSION)
+- Test: `crates/unikit-bridge/tests/ota_compat_tests.rs` (확장)
 
 **Step 1: Write the failing test**
 
@@ -942,7 +942,7 @@ fn generated_contract_ts_includes_schema_version() {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cargo test -p rustra --test ota_compat_tests 2>&1 | tail -3`
+Run: `cargo test -p unikit-bridge --test ota_compat_tests 2>&1 | tail -3`
 Expected: FAIL.
 
 **Step 3: Write minimal implementation**
@@ -961,14 +961,14 @@ format!(
 
 **Step 4: Run test to verify it passes**
 
-Run: `cargo test -p rustra --test ota_compat_tests 2>&1 | tail -3`
+Run: `cargo test -p unikit-bridge --test ota_compat_tests 2>&1 | tail -3`
 Expected: PASS
 
 **Step 5: Regenerate + Commit**
 
 ```bash
-cargo run -p rustra-calculator-example  # generated/ 재생성 (contract.ts hash 변화)
-git add crates/rustra/src/lib.rs crates/rustra/tests/ota_compat_tests.rs examples/calculator/generated crates/generated packages/cli/src/generate.ts
+cargo run -p unikit-calculator-example  # generated/ 재생성 (contract.ts hash 변화)
+git add crates/unikit-bridge/src/lib.rs crates/unikit-bridge/tests/ota_compat_tests.rs examples/calculator/generated crates/generated packages/cli/src/generate.ts
 git commit -m "feat(ota): schemaVersion 협상 필드 + SCHEMA_VERSION 코드젠 (T2)"
 ```
 
@@ -1045,7 +1045,7 @@ Expected: `# fail 0`
 **Step 5: 트랙 2 회귀 + Commit**
 
 ```bash
-cargo test -p rustra && npm run test:types && npm run test:ts:node && npm run test:packages
+cargo test -p unikit-bridge && npm run test:types && npm run test:ts:node && npm run test:packages
 git add packages/types/src
 git commit -m "feat(ota): onContractMismatch 옵트인 폴백 (T2 완료)"
 ```
@@ -1058,10 +1058,10 @@ git commit -m "feat(ota): onContractMismatch 옵트인 폴백 (T2 완료)"
 
 **Files:**
 
-- Modify: `crates/rustra/src/ffi.rs:91` (const → AtomicUsize)
-- Modify: `crates/rustra/src/ffi.rs` (rkyv V2 FFI 래퍼가 있다면 검사 추가 — 조사 결과 rkyv V2는 예제 자체 FFI로 노출되므로, `rustra_ffi_invoke`/`invoke_json`/`invoke_postcard` 3개 sync + 2개 async 위임 경로는 이미 검사 경유. 예제 계층의 중복 상수는 예제 소유이므로 이번 태스크에서 정리하지 않는다 — YAGNI, 별트랙.)
+- Modify: `crates/unikit-bridge/src/ffi.rs:91` (const → AtomicUsize)
+- Modify: `crates/unikit-bridge/src/ffi.rs` (rkyv V2 FFI 래퍼가 있다면 검사 추가 — 조사 결과 rkyv V2는 예제 자체 FFI로 노출되므로, `unikit_ffi_invoke`/`invoke_json`/`invoke_postcard` 3개 sync + 2개 async 위임 경로는 이미 검사 경유. 예제 계층의 중복 상수는 예제 소유이므로 이번 태스크에서 정리하지 않는다 — YAGNI, 별트랙.)
 - Create: 없음 (payload_robustness.rs 확장)
-- Test: `crates/rustra/tests/payload_robustness.rs`
+- Test: `crates/unikit-bridge/tests/payload_robustness.rs`
 
 **Step 1: Write the failing test**
 
@@ -1071,7 +1071,7 @@ git commit -m "feat(ota): onContractMismatch 옵트인 폴백 (T2 완료)"
 // ── (T3) 동적 페이로드 한도 ───────────────────────────────
 
 mod t3 {
-    use rustra::ffi::{rustra_ffi_free, rustra_ffi_get_max_payload, rustra_ffi_invoke_json, rustra_ffi_set_max_payload};
+    use unikit_bridge::ffi::{unikit_ffi_free, unikit_ffi_get_max_payload, unikit_ffi_invoke_json, unikit_ffi_set_max_payload};
 
     fn setup() {
         // 이 모듈의 테스트들은 한 번 등록된 전역 패키지를 공유한다.
@@ -1082,41 +1082,41 @@ mod t3 {
     #[test]
     fn default_limit_is_one_mib_and_round_trips() {
         setup();
-        assert_eq!(unsafe { rustra_ffi_get_max_payload() }, 1024 * 1024);
-        unsafe { rustra_ffi_set_max_payload(4 * 1024 * 1024) };
-        assert_eq!(unsafe { rustra_ffi_get_max_payload() }, 4 * 1024 * 1024);
+        assert_eq!(unsafe { unikit_ffi_get_max_payload() }, 1024 * 1024);
+        unsafe { unikit_ffi_set_max_payload(4 * 1024 * 1024) };
+        assert_eq!(unsafe { unikit_ffi_get_max_payload() }, 4 * 1024 * 1024);
         // 후속 테스트 오염 방지 — 원복.
-        unsafe { rustra_ffi_set_max_payload(1024 * 1024) };
+        unsafe { unikit_ffi_set_max_payload(1024 * 1024) };
     }
 
     #[test]
     fn raised_limit_admits_previously_rejected_payload() {
         setup();
-        unsafe { rustra_ffi_set_max_payload(2 * 1024 * 1024) };
+        unsafe { unikit_ffi_set_max_payload(2 * 1024 * 1024) };
         let payload = vec![b'{'; 1_500_000]; // 1.5MB — 기본 한도 초과, 신 한도 이내
         let mut out_len = 0;
         let ptr = unsafe {
-            rustra_ffi_invoke_json(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_ffi_invoke_json(payload.as_ptr(), payload.len(), &mut out_len)
         };
         assert!(!ptr.is_null(), "within raised limit → processed (clean error ok, abort/reject-by-limit no)");
-        unsafe { rustra_ffi_free(ptr, out_len) };
-        unsafe { rustra_ffi_set_max_payload(1024 * 1024) };
+        unsafe { unikit_ffi_free(ptr, out_len) };
+        unsafe { unikit_ffi_set_max_payload(1024 * 1024) };
     }
 
     #[test]
     fn lowered_limit_rejects_immediately() {
         setup();
-        unsafe { rustra_ffi_set_max_payload(1024) };
+        unsafe { unikit_ffi_set_max_payload(1024) };
         let payload = vec![b'a'; 2048];
         let mut out_len = 0;
         let ptr = unsafe {
-            rustra_ffi_invoke_json(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_ffi_invoke_json(payload.as_ptr(), payload.len(), &mut out_len)
         };
         let resp = unsafe { std::slice::from_raw_parts(ptr, out_len) };
         let text = String::from_utf8_lossy(resp);
         assert!(text.contains("payload exceeds size limit"));
-        unsafe { rustra_ffi_free(ptr, out_len) };
-        unsafe { rustra_ffi_set_max_payload(1024 * 1024) };
+        unsafe { unikit_ffi_free(ptr, out_len) };
+        unsafe { unikit_ffi_set_max_payload(1024 * 1024) };
     }
 }
 ```
@@ -1125,12 +1125,12 @@ mod t3 {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cargo test -p rustra --test payload_robustness 2>&1 | tail -3`
-Expected: FAIL — `rustra_ffi_get_max_payload` 미정의.
+Run: `cargo test -p unikit-bridge --test payload_robustness 2>&1 | tail -3`
+Expected: FAIL — `unikit_ffi_get_max_payload` 미정의.
 
 **Step 3: Write minimal implementation**
 
-`crates/rustra/src/ffi.rs`:
+`crates/unikit-bridge/src/ffi.rs`:
 
 ```rust
 const DEFAULT_MAX_PAYLOAD_BYTES: usize = 1024 * 1024;
@@ -1144,13 +1144,13 @@ fn max_payload_bytes() -> usize {
 /// (T3) 페이로드 크기 한도를 동적 변경한다. 기본 1 MiB.
 /// 축소/확대 모두 즉시 반영된다 (Relaxed — 크기 게이트는 어림잡기 용도).
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_ffi_set_max_payload(bytes: usize) {
+pub unsafe extern "C" fn unikit_ffi_set_max_payload(bytes: usize) {
     MAX_PAYLOAD_BYTES.store(bytes, std::sync::atomic::Ordering::Relaxed);
 }
 
 /// (T3) 현재 페이로드 크기 한도.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_ffi_get_max_payload() -> usize {
+pub unsafe extern "C" fn unikit_ffi_get_max_payload() -> usize {
     max_payload_bytes()
 }
 ```
@@ -1159,13 +1159,13 @@ pub unsafe extern "C" fn rustra_ffi_get_max_payload() -> usize {
 
 **Step 4: Run test to verify it passes**
 
-Run: `cargo test -p rustra --test payload_robustness 2>&1 | tail -3`
+Run: `cargo test -p unikit-bridge --test payload_robustness 2>&1 | tail -3`
 Expected: PASS (기존 테스트 포함 전부).
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra/src/ffi.rs crates/rustra/tests/payload_robustness.rs
+git add crates/unikit-bridge/src/ffi.rs crates/unikit-bridge/tests/payload_robustness.rs
 git commit -m "feat(payload): 동적 크기 한도 set/get + 기본 1MiB 유지 (T3)"
 ```
 
@@ -1225,7 +1225,7 @@ invoke 코어의 2계층(codec 경로)/3계층(tier3) 인코딩 직후:
 const encoded = codec.encode(args);
 if (options?.maxPayloadBytes !== undefined && encoded.byteLength > options.maxPayloadBytes) {
   return Promise.reject(
-    new RustraCommandError(
+    new UnikitCommandError(
       'payload.too_large',
       `encoded payload ${encoded.byteLength}B exceeds maxPayloadBytes ${options.maxPayloadBytes}B`,
       false,
@@ -1244,7 +1244,7 @@ Expected: `# fail 0`
 **Step 5: 트랙 3 회귀 + Commit**
 
 ```bash
-cargo test -p rustra && npm run test:types && npm run test:ts:node && npm run test:packages
+cargo test -p unikit-bridge && npm run test:types && npm run test:ts:node && npm run test:packages
 git add packages/types/src
 git commit -m "feat(payload): JS 사전 크기 검사 maxPayloadBytes (T3 완료)"
 ```
@@ -1288,42 +1288,42 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
       - name: Test
         shell: bash
-        run: cargo test --workspace --exclude rustra-lynx-tauri-spike
+        run: cargo test --workspace --exclude unikit-lynx-tauri-spike
       - name: Build release cdylib (cross-platform artifact)
         shell: bash
-        run: cargo build -p rustra-calculator-example --release
+        run: cargo build -p unikit-calculator-example --release
       - name: Upload native artifact
         uses: actions/upload-artifact@v4
         with:
-          name: rustra-native-${{ matrix.os }}
+          name: unikit-native-${{ matrix.os }}
           path: |
-            target/release/librustra_calculator_example.so
-            target/release/librustra_calculator_example.dylib
-            target/release/rustra_calculator_example.dll
+            target/release/libunikit_calculator_example.so
+            target/release/libunikit_calculator_example.dylib
+            target/release/unikit_calculator_example.dll
           if-no-files-found: ignore
 ```
 
 포인트:
 
 - fmt/clippy는 ubuntu에서만 (중복 실행 비용 절감, 코드는 OS 무관 동일).
-- macOS 크레이트 `rustra-lynx-tauri-spike` 제외는 유지 — Linux/Windows에서도 빌드 안 되므로.
+- macOS 크레이트 `unikit-lynx-tauri-spike` 제외는 유지 — Linux/Windows에서도 빌드 안 되므로.
 - `tauri-calculator`가 default-members에 없다면 workspace test에 포함 안 됨 — 확인 후 필요시 exclude 추가. (조사: default-members가 이미 제외하고 있음 — 그대로 두면 Linux 외 OS에선 빌드 시도조차 안 됨. OK.)
-- Windows 파일명은 cdylib 이름 규칙 확인 필수: Cargo.toml `name = "rustra-calculator-example"` → `rustra_calculator_example.dll` (하이픈→언더스코어).
-- `cargo test --workspace`가 Linux 외에서 tauri-calculator를 건드리는지 — `--workspace`는 default-members와 무관하게 **모든 멤버**를 포함한다 (주석에 명시됨). 그래서 macOS 전용 2크레이트(lynx-tauri-spike, tauri-calculator — tauri 빌드 스크립트가 gtk 요구)를 Linux와 동일하게... 잠깐, 현행 ubuntu에서도 `--workspace --exclude rustra-lynx-tauri-spike`만 하고 tauri-calculator는 통과 중이다. tauri-calculator는 Linux에서 gtk 설치로 빌드된다. Windows/macOS에선 gtk가 없어 실패할 수 있다 → Windows/macOS 매트릭스의 Test 스텝은 `cargo test -p rustra -p rustra-calculator-example` (핵심 크레이트만)으로 축소하는 게 안전하다. **결정:** Test 스텝을 OS별 분기:
+- Windows 파일명은 cdylib 이름 규칙 확인 필수: Cargo.toml `name = "unikit-calculator-example"` → `unikit_calculator_example.dll` (하이픈→언더스코어).
+- `cargo test --workspace`가 Linux 외에서 tauri-calculator를 건드리는지 — `--workspace`는 default-members와 무관하게 **모든 멤버**를 포함한다 (주석에 명시됨). 그래서 macOS 전용 2크레이트(lynx-tauri-spike, tauri-calculator — tauri 빌드 스크립트가 gtk 요구)를 Linux와 동일하게... 잠깐, 현행 ubuntu에서도 `--workspace --exclude unikit-lynx-tauri-spike`만 하고 tauri-calculator는 통과 중이다. tauri-calculator는 Linux에서 gtk 설치로 빌드된다. Windows/macOS에선 gtk가 없어 실패할 수 있다 → Windows/macOS 매트릭스의 Test 스텝은 `cargo test -p unikit-bridge -p unikit-calculator-example` (핵심 크레이트만)으로 축소하는 게 안전하다. **결정:** Test 스텝을 OS별 분기:
 
 ```yaml
 - name: Test (Linux — full workspace)
   if: runner.os == 'Linux'
-  run: cargo test --workspace --exclude rustra-lynx-tauri-spike
+  run: cargo test --workspace --exclude unikit-lynx-tauri-spike
 - name: Test (macOS/Windows — core crates)
   if: runner.os != 'Linux'
   shell: bash
-  run: cargo test -p rustra -p rustra-calculator-example
+  run: cargo test -p unikit-bridge -p unikit-calculator-example
 ```
 
 **Step 2: 검증 (로컬 가능한 부분)**
 
-Run: `cargo test -p rustra -p rustra-calculator-example 2>&1 | grep -E 'test result' | tail -5`
+Run: `cargo test -p unikit-bridge -p unikit-calculator-example 2>&1 | grep -E 'test result' | tail -5`
 Expected: 전부 ok (매트릭스의 non-Linux 스텝과 동일한 명령).
 
 `.github/workflows/ci.yml` YAML 유효성: `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"` 또는 `npx yaml-lint` 없으면 actionlint가 있다면 사용. 최소한 들여쓰기 육안 확인.
@@ -1350,7 +1350,7 @@ git commit -m "ci: rust 잡 3-OS 매트릭스 + 네이티브 아티팩트 업로
 
 ```bash
 cargo fmt --all -- --check && cargo clippy --all-targets -- -D warnings
-cargo test -p rustra
+cargo test -p unikit-bridge
 npm run test:types && npm run test:ts:node && npm run test:packages
 npm run lint && npm run format:check
 ```
@@ -1362,8 +1362,8 @@ Expected: 전부 green.
 README의 API/기능 섹션을 찾아 다음 한 줄 추가 (기존 문체 유지):
 
 - `alias_command_id` — OTA 구 클라이언트 command_id 호환
-- `rustra_ffi_invoke_cancel` / AbortSignal `signal` 옵션
-- `rustra_ffi_set_max_payload` / `maxPayloadBytes`
+- `unikit_ffi_invoke_cancel` / AbortSignal `signal` 옵션
+- `unikit_ffi_set_max_payload` / `maxPayloadBytes`
 
 **Step 3: 최종 커밋**
 
@@ -1380,7 +1380,7 @@ git log --oneline -15
 | Task | 트랙 | 산출물                    | 커밋          |
 | ---- | ---- | ------------------------- | ------------- |
 | 1    | T1   | cancel.rs 레지스트리      | feat(cancel)  |
-| 2    | T1   | RustraError::cancelled    | feat(cancel)  |
+| 2    | T1   | UnikitError::cancelled    | feat(cancel)  |
 | 3    | T1   | FFI 심볼 3종 + async 확장 | feat(cancel)  |
 | 4    | T1   | dispatch 체크포인트       | feat(cancel)  |
 | 5    | T1   | JS AbortSignal            | feat(cancel)  |

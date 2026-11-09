@@ -1,21 +1,21 @@
 English | [한국어](./README.ko.md)
 
-# @rustra/testing
+# @unikit-bridge/testing
 
 Provides a mock engine that runs generated TypeScript clients without a Rust backend, plus
-contract gates. Component/hook tests can verify rustra commands without the native module.
+contract gates. Component/hook tests can verify unikit commands without the native module.
 
 ## Install
 
 ```bash
-bun add -d @rustra/testing
+bun add -d @unikit-bridge/testing
 ```
 
 ## createMockEngine
 
 ```ts
-import { createMockEngine } from '@rustra/testing';
-import { configure } from '@rustra/types';
+import { createMockEngine } from '@unikit-bridge/testing';
+import { configure } from '@unikit-bridge/types';
 import { addNumbers } from './generated/commands.js';
 
 const engine = createMockEngine()
@@ -43,15 +43,15 @@ const engine = createMockEngine().mock(addNumbers, ({ a, b }) => ({ value: a + b
 - **invokeBatch** — processes batches by routing each entry to `invoke` (each entry's
   option policy applies as-is).
 - **Error normalization** — if a handler throws a `{code, message}` shape, it is converted
-  to `RustraCommandError`.
+  to `UnikitCommandError`.
 
 ## Contract gate
 
 Detects drift between the command list in `schema.json` and the command list the client
-exposes. Pairs with `rustra diff` (breaking changes between schema versions) in CI.
+exposes. Pairs with `unikit diff` (breaking changes between schema versions) in CI.
 
 ```ts
-import { expectContractCurrent } from '@rustra/testing';
+import { expectContractCurrent } from '@unikit-bridge/testing';
 import schemaJson from './generated/schema.json' with { type: 'json' };
 import * as commands from './generated/commands.js';
 
@@ -66,5 +66,5 @@ The pure-function form (`assertContractCurrent`) returns a result object
 
 ## Related docs
 
-- [Compatibility matrix](https://github.com/loopy-lim/rustra/blob/main/docs/compatibility-matrix.md)
-- [Main README](https://github.com/loopy-lim/rustra#readme)
+- [Compatibility matrix](https://github.com/loopy-lim/unikit-bridge/blob/main/docs/compatibility-matrix.md)
+- [Main README](https://github.com/loopy-lim/unikit-bridge#readme)

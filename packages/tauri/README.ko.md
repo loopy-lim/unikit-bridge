@@ -1,4 +1,4 @@
-# @rustra/tauri
+# @unikit-bridge/tauri
 
 Tauri의 global IPC를 lazy 감지해 공통 `EngineClient`로 연결하는 어댑터입니다.
 
@@ -11,10 +11,10 @@ Tauri 설정에서 global API를 켜고 Rust package를 한 줄 등록합니다.
 ```
 
 ```rust
-let builder = rustra::tauri_support::register_with_events(app_package(), tauri::Builder::default());
+let builder = unikit_bridge::tauri_support::register_with_events(app_package(), tauri::Builder::default());
 ```
 
-`rustra.json`에는 `"tauri": {}`만 추가합니다. 생성된 진입점이 invoke와 event API를
+`unikit.json`에는 `"tauri": {}`만 추가합니다. 생성된 진입점이 invoke와 event API를
 lazy 감지하므로 프런트엔드는 바로 명령과 구독 함수를 import합니다.
 
 ```ts
@@ -40,7 +40,7 @@ function createTauriEngine(options?: TauriEngineOptions): EngineClientWithBatch;
 
 ### hot-core 스왑 이벤트 (실험적)
 
-`subscribeHotSwap`는 예약 채널 `rustra://hot-core/swapped`를 구독한다 — Rust 쪽이
+`subscribeHotSwap`는 예약 채널 `unikit://hot-core/swapped`를 구독한다 — Rust 쪽이
 `tauri_support::register_dispatch_with_swap_events`(hot-core dylib 루프)로 등록했을 때만
 발생하며, 정적 등록 아래에서는 채널이 침묵한다.
 
@@ -62,17 +62,17 @@ function subscribeHotSwap(
 ## 사용 예시
 
 ```ts
-import { createTauriEngine } from '@rustra/tauri';
+import { createTauriEngine } from '@unikit-bridge/tauri';
 import { invoke } from '@tauri-apps/api/core';
 
 const engine = createTauriEngine({ invoke });
 ```
 
-내부적으로 Tauri의 `rustra_dispatch` 커맨드로 라우팅합니다:
+내부적으로 Tauri의 `unikit_dispatch` 커맨드로 라우팅합니다:
 
 ```ts
 engine.invoke('addNumbers', { a: 2, b: 3 });
-// → options.invoke("rustra_dispatch", { command: "addNumbers", args: { a: 2, b: 3 } })
+// → options.invoke("unikit_dispatch", { command: "addNumbers", args: { a: 2, b: 3 } })
 ```
 
 이 패키지는 `@tauri-apps/api`를 강제로 설치하지 않아 기존 Tauri 버전과 충돌하지
@@ -82,16 +82,16 @@ engine.invoke('addNumbers', { a: 2, b: 3 });
 Rust 측에서 `tauri` feature를 활성화하고 `tauri_support::register()`로 패키지를 등록해야 합니다:
 
 ```rust
-use rustra::tauri_support::register;
+use unikit_bridge::tauri_support::register;
 
 let builder = register(my_package, tauri::Builder::default());
 ```
 
-`register()`가 등록하는 `rustra_dispatch` 엔드포인트를 통해 이 어댑터가 동작합니다.
+`register()`가 등록하는 `unikit_dispatch` 엔드포인트를 통해 이 어댑터가 동작합니다.
 
 기존 Tauri 네이티브 명령이 있는 앱은 프로덕션 등록을
 `tauri_support::with_app_commands(builder, tauri::generate_handler![greet])`로
-감싸면 두 핸들러가 결합되고 Rustra 예약 엔드포인트, 상태, 이벤트, 채널도
+감싸면 두 핸들러가 결합되고 Unikit 예약 엔드포인트, 상태, 이벤트, 채널도
 유지됩니다. Tauri의 `.invoke_handler()`는 이전 핸들러를 교체합니다.
 [기존 앱 설정 예제](../../docs/extending/tauri-setup.ko.md)를 참고하세요.
 
@@ -106,7 +106,7 @@ JS가 생성하는 Tauri 채널은 발급한 물리 WebView에 귀속된 네이�
 `Channel<InvokeResponseBody>`를 사용한다. `close()`는 네이티브 lease를 해제하고
 JS 콜백을 정리하며, 페이지 이동·파괴·앱 종료에서도 소유자의 자원을 정리한다.
 `ipc-channel-chunks-v1` handshake는 기존 브로드캐스트 네이티브를 거부하므로
-`@rustra/tauri`와 Rust를 함께 갱신하고 다시 빌드해야 한다. 전역 설정에는
+`@unikit-bridge/tauri`와 Rust를 함께 갱신하고 다시 빌드해야 한다. 전역 설정에는
 `core.Channel`과 Tauri 콜백 정리 API가 필요하다. 전역 API를 쓰지 않으면 `invoke`와
 함께 `{ value, dispose() }`를 반환하는 `createIpcChannel(onMessage)` 팩터리를
 명시한다. `listen`만 전달해서는 채널을 생성할 수 없다.
@@ -130,12 +130,12 @@ JSON 모양의 문자열도 그대로 보존한다. 직렬화된 JSON 문자열�
 `subscribeTauriEvent`와 `subscribeHotSwap`도 같은 옵션을 지원한다.
 
 Rust 등록 헬퍼는 단건·배치·프로파일 명령의 실행을 Tauri 블로킹 풀로 넘긴다.
-오래 걸리는 동기 핸들러와 Rustra의 블로킹 async 실행기가 WebView IPC 스레드를
+오래 걸리는 동기 핸들러와 Unikit의 블로킹 async 실행기가 WebView IPC 스레드를
 점유하지 않는다. 와이어 명령 이름·결과 구조·배치 순서와 공개 동기 Rust 헬퍼의
 시그니처는 유지한다. 응답성 개선을 검증했으며, 위 과거 지연 측정값과 비교하려면
 새 WebView 측정이 필요하다.
 
-생성 Tauri 엔트리는 `GENERATED_CONTRACT_HASH`를 네이티브 `rustra_contract_hash`
+생성 Tauri 엔트리는 `GENERATED_CONTRACT_HASH`를 네이티브 `unikit_contract_hash`
 엔드포인트로 검증하며 기본 정책은 strict다. `bootstrap.ready()`는 검증 완료를
 기다리고, 불일치는 명령 실행 전에 `contract.mismatch`로 실패한다. 구형 등록이나
 `contract_hash()`가 없는 사용자 정의 `JsonDispatch`는 `contract.unenforceable`로

@@ -3,7 +3,7 @@ date: 2026-08-29T20:56:04+09:00
 researcher: claude
 git_commit: 47de0777d0e94a82168f4776eb19ab971094c7f9
 branch: main
-repository: rustra
+repository: unikit
 topic: '현재 아키텍처 전수 리뷰 (Rust core · TS packages · CLI codegen · RN native · 품질 신호)'
 tags: [research, architecture, review, rust-core, ts-packages, cli-codegen, react-native, tech-debt]
 status: complete
@@ -11,13 +11,13 @@ last_updated: 2026-08-29
 last_updated_by: claude
 ---
 
-# 리서치: rustra-bridge 현재 아키텍처 전수 리뷰
+# 리서치: unikit-bridge 현재 아키텍처 전수 리뷰
 
 **날짜**: 2026-08-29T20:56:04+09:00
 **연구자**: claude
 **Git Commit**: 47de0777d0e94a82168f4776eb19ab971094c7f9
 **Branch**: main
-**Repository**: rustra (loopy-lim/rustra)
+**Repository**: unikit (loopy-lim/unikit-bridge)
 
 > 이 리뷰는 **작업 트리(미커밋 58파일, +3,558/−1,442) 기준**이다. 미커밋 작업은
 > `docs/plans/2026-08-29-developer-hurdle-reduction.md` 플랜의
@@ -41,10 +41,10 @@ Miri·cargo-fuzz·coverage·MSRV·벤치 회귀 게이트·RN 양플랫폼까지
 1. **🔴 publish gap (즉시 수정 권장)** — `packages/cli/package.json`의 `files`
    배열에 신규 헬퍼 모듈(`cargo/config/hash/paths/process`)이 없어 다음 npm 발행물이
    깨진다 (`dist/index.js`가 `./cargo.js` 등을 import).
-2. **🟠 갓모듈 2개** — `crates/rustra/src/lib.rs` 3,314줄(레지스트리+4종 핸들러+
+2. **🟠 갓모듈 2개** — `crates/unikit-bridge/src/lib.rs` 3,314줄(레지스트리+4종 핸들러+
    코드젠+Tauri), `packages/types/src/index.ts` 2,108줄(계약+싱글턴+엔진+코덱).
 3. **🟠 3벌 복제된 abort-race 블록** + JSON 어댑터 래퍼 3중화(미커밋 diff가
-   `normalizeRustraError`로 절반은 해소 중).
+   `normalizeUnikitError`로 절반은 해소 중).
 4. **🟡 고아 API** — `RendererHost`(Lynx 제거 후 프로덕션 소비자 0), legacy
    benchmark FFI 게이트, node 어댑터의 binary/contract-hash 경로 부재.
 5. **🟡 문서 드리프트 패턴** — 문서가 코드보다 한 릴리즈 뒤처짐. 미커밋 diff가
@@ -56,30 +56,30 @@ Miri·cargo-fuzz·coverage·MSRV·벤치 회귀 게이트·RN 양플랫폼까지
 
 ```
 Rust crates (16.4k LOC)
-  crates/rustra         Package/registry, 4종 invoke 경로, rkyv V2 tier, FFI 26심볼
-  crates/rustra-macros  #[command] #[bridge_type] register! build! (582줄)
+  crates/unikit-bridge         Package/registry, 4종 invoke 경로, rkyv V2 tier, FFI 26심볼
+  crates/unikit-bridge-macros  #[command] #[bridge_type] register! build! (582줄)
 
 TS packages (20.7k LOC, 9개)
-  @rustra/types          유일 leaf: EngineClient·global invoke·rkyv V2 엔진·코덱·에러
-  @rustra/{node,bun,tauri,react-native}  thin transport shim (types에만 의존)
-  @rustra/{testing,devtools,react}       게이트·관측성·훅 (react는 types만 조합)
+  @unikit-bridge/types          유일 leaf: EngineClient·global invoke·rkyv V2 엔진·코덱·에러
+  @unikit-bridge/{node,bun,tauri,react-native}  thin transport shim (types에만 의존)
+  @unikit-bridge/{testing,devtools,react}       게이트·관측성·훅 (react는 types만 조합)
 
 RN native (5.1k LOC)
   packages/react-native/native/  핸드라이튼 공유 C++ (JSI 브리지 1,373줄 + postcard hpp)
   examples/*/modules/*/generated/  앱별 생성 코덱 (100% 코드젠, 이름/라이브러리명만 앱별)
 
-CLI (@rustra/cli)
+CLI (@unikit-bridge/cli)
   Rust bin → schema.json → 순수 렌더러 → 바이트비교 쓰기 + sha256 매니페스트
 ```
 
 핵심 계약 불변식(문서 주장)은 **코드로 검증됐다**: 어댑터 `src/`에서
-`@rustra/types` 외 `@rustra/*` import가 전혀 없고, RN은 `globalThis.__rustraNative`,
+`@unikit-bridge/types` 외 `@unikit-bridge/*` import가 전혀 없고, RN은 `globalThis.__unikitNative`,
 Tauri는 `window.__TAURI__`를 구조적으로만 만난다. 생성물은 host-specific import가 없다.
 
 ### 2. Rust core — 강점
 
 - **freeze 아키텍처가 우아하다**: `build()` 시점에 `frozen = !cfg!(debug_assertions)`
-  (`crates/rustra/src/lib.rs:2548`). release는 `FrozenRegistry` 스냅샷으로 무잠금
+  (`crates/unikit-bridge/src/lib.rs:2548`). release는 `FrozenRegistry` 스냅샷으로 무잠금
   invoke, debug는 가변 레지스트리(dev 핫리로드). 같은 바이너리로 dev/prod 동작이 결정된다.
   `grant_capability`만 frozen 상태에서 허용(`lib.rs:1753`) — 퍼미션은 구조 변경이
   아니라는 판단이 정확하다.
@@ -97,8 +97,8 @@ Tauri는 `window.__TAURI__`를 구조적으로만 만난다. 생성물은 host-s
 
 - **lib.rs 갓모듈**: 코드젠(`generate_types_ts`/`generate_commands_ts`,
   `lib.rs:2016`/`lib.rs:2081`)은 `codegen.rs`로, Tauri support도 분리 후보.
-  복제 헬퍼 `snake_to_lower_camel`이 `crates/rustra/src/codegen.rs:284`와
-  `crates/rustra-macros/src/lib.rs:561`에 2벌(관례로만 동기화).
+  복제 헬퍼 `snake_to_lower_camel`이 `crates/unikit-bridge/src/codegen.rs:284`와
+  `crates/unikit-bridge-macros/src/lib.rs:561`에 2벌(관례로만 동기화).
 - **core→FFI 역방향 의존**: `build_command`가 `crate::ffi::max_payload_bytes()`를
   호출(`lib.rs:759`, `lib.rs:841`) — 레지스트리 계층이 FFI 계층 상수를 끌어쓴다.
   프로세스 전역 가변 상태이기도 하다.
@@ -117,7 +117,7 @@ Tauri는 `window.__TAURI__`를 구조적으로만 만난다. 생성물은 host-s
 1. AbortSignal/timeout 통합 — `invokeWithTimeout`이 signal을 처리하고,
    `createRkyvV2Engine.invoke`가 같은 래퍼로 라우팅되도록 `invokeRaw`로 추출.
    취소 시맨틱이 JSON 어댑터와 바이너리 엔진에서 동일해짐.
-2. `normalizeRustraError` 신설 — node/bun/tauri에 복붙됐던 3분기 에러 변환 제거.
+2. `normalizeUnikitError` 신설 — node/bun/tauri에 복붙됐던 3분기 에러 변환 제거.
 3. invokeBatch 전 어댑터 완성(per-entry Promise.all) + sync throw → Promise.reject.
 4. `subscribeEvent` canonical `(name, cb)` 오버로드(tauri/RN), 신규 RN 채널 API.
 
@@ -134,10 +134,10 @@ Tauri는 `window.__TAURI__`를 구조적으로만 만난다. 생성물은 host-s
   types의 "JSON transport → engine" 컴비네이터 후보.
 - **UTF-8 핸드롤 이중화**: `packages/react-native/src/utf8.ts`와
   `packages/types/src/index.ts:1053-1148`가 각자 비공개 구현.
-- **버전 스큐**: testing/devtools/react 0.4.1이 `@rustra/types ^0.5.0`에 의존
+- **버전 스큐**: testing/devtools/react 0.4.1이 `@unikit-bridge/types ^0.5.0`에 의존
   (0.x caret의 반올림 함정 — changeset 필요).
 - **이벤트 계약 분기**: tauri는 `Promise<unsubscribe>`, RN은 sync unsubscribe +
-  WeakMap fan-out. `@rustra/react`의 `useEvent`가 반환 promise를 무시하기 때문에
+  WeakMap fan-out. `@unikit-bridge/react`의 `useEvent`가 반환 promise를 무시하기 때문에
   tauri `subscribeEvent`의 rejection이 관측되지 않는다
   (`packages/react/src/useEvent.ts:30-35`).
 - 마이너: mock이 pre-abort 거부 전에 호출을 기록(`packages/testing/src/index.ts:70`),
@@ -145,11 +145,11 @@ Tauri는 `window.__TAURI__`를 구조적으로만 만난다. 생성물은 host-s
 
 ### 6. CLI codegen 파이프라인
 
-구조는 깨끗하다: `rustra.json` → Rust bin(`RUSTRA_SCHEMA_OUT` 우회로로 temp 검증) →
-`schema.json` → 순수 렌더러 → 바이트비교 skip 쓰기 + `.rustra-generated.json`
+구조는 깨끗하다: `unikit.json` → Rust bin(`UNIKIT_SCHEMA_OUT` 우회로로 temp 검증) →
+`schema.json` → 순수 렌더러 → 바이트비교 skip 쓰기 + `.unikit-generated.json`
 sha256 매니페스트 → fail-closed drift 게이트. 신규 모듈 분해
 (`config/cargo/hash/paths/process.ts`)는 doctor·codegen·dev가 같은 파서/선택 정책을
-쓰게 만든다. `rustra diff`는
+쓰게 만든다. `unikit diff`는
 `schema-diff.ts:14-39`에서 `command_removed/field_removed/field_type_changed/
 required_field_added`를 breaking으로 분류하고 exit 1 — CI 게이트로 실재한다.
 
@@ -164,14 +164,14 @@ required_field_added`를 breaking으로 분류하고 exit 1 — CI 게이트로 
    `runDoctor`의 `process.exitCode` — 일관성 없음.
 4. 🟡 legacy `runWatch`(`index.ts:824-859`): dirty 체크 없는 100ms 핸드롤 디바운스,
    dispose 없음 — `createWatchLoop`과 불일치.
-5. 🟡 `codegen --check`는 Rust bin이 `RUSTRA_SCHEMA_OUT`을 존중해야 한다는 암묵적
+5. 🟡 `codegen --check`는 Rust bin이 `UNIKIT_SCHEMA_OUT`을 존중해야 한다는 암묵적
    env 계약(구 bin은 감지하긴 함), `dev`의 schema self-write 억제가 첫 실행 실패 시
    루프 가능, watcher 미-close, CLI 버전 bump마다 전 예제 매니페스트 무효화.
-6. 🟡 루트 `doctor.config.json`은 `rustra doctor`와 무관한 react-doctor/deslop
+6. 🟡 루트 `doctor.config.json`은 `unikit doctor`와 무관한 react-doctor/deslop
    lint 설정 — 이름 충돌이 혼란 유발.
 
 테스트: `generate.test.ts` 2,280줄 ~70 케이스로 견고. 미커버:
-`runCodegen` E2E(RUSTRA_SCHEMA_OUT 플로우), `ensureHostDependencies`의 package.json
+`runCodegen` E2E(UNIKIT_SCHEMA_OUT 플로우), `ensureHostDependencies`의 package.json
 변이, `config.ts` 전용 테스트.
 
 ### 7. RN native 레이어
@@ -185,7 +185,7 @@ shim 3줄 + 생성 코덱 + Rust .a뿐), 와이어는 `[cmd_id u16][postcard]` /
 **주 유지보수 위험은 C++가 아니라 빌드 오케스트레이션**: podspec/gradle의
 상대 `node_modules` 경로 산술 — 모듈 디렉터리이 한 단계 깊어지자 두 예제의
 경로가 조용히 깨졌고 미커밋 diff가 그 수정(`../../` → `../../../`)이다.
-`react-native-calculator/modules/rustra-jsi`에 2번째 사본이 있어 병렬 수동 수정
+`react-native-calculator/modules/unikit-jsi`에 2번째 사본이 있어 병렬 수동 수정
 필요. 또한 `invokeRkyvV2`라는 이름이 legacy 벤치 게이트와 일반 typed 진입 패밀리를
 겹쳐 쓴다 — 문서가 이 뉘앙스를 다루지 않는다.
 
@@ -216,7 +216,7 @@ shim 3줄 + 생성 코덱 + Rust .a뿐), 와이어는 `[cmd_id u16][postcard]` /
 ## 아키텍처 인사이트
 
 1. **"계약의 단일 소유"가 실제로 구현돼 있다**: schema.json이 Rust→TS→C++의 유일한
-   진실원이고, contract hash가 3면 런타임 drift를 잡고, `rustra diff`가 breaking
+   진실원이고, contract hash가 3면 런타임 drift를 잡고, `unikit diff`가 breaking
    change를 CI에서 잡는다. 대부분 프로젝트에서 문장으로만 존재하는 원칙이 여기선
    게이트로 존재한다.
 2. **계층 위반은 없되 갓모듈이 계층을 압축한다**: 위반 없음의 대가로 lib.rs와
@@ -234,18 +234,18 @@ shim 3줄 + 생성 코덱 + Rust .a뿐), 와이어는 `[cmd_id u16][postcard]` /
 
 ## 코드 참조 (리뷰 근거 top 항목)
 
-- `crates/rustra/src/lib.rs:2548` — release freeze at build()
-- `crates/rustra/src/lib.rs:759` — core→FFI 역방향 의존 (`max_payload_bytes`)
-- `crates/rustra/src/renderer_host.rs:17-25` — 고아 API 자기 인증
-- `crates/rustra/src/lib.rs:2016-2221` — 코드젠(TS emitter)의 lib.rs 내 거주
-- `packages/types/src/index.ts` — 2,108줄 갓모듈; `:142` normalizeRustraError(신규)
+- `crates/unikit-bridge/src/lib.rs:2548` — release freeze at build()
+- `crates/unikit-bridge/src/lib.rs:759` — core→FFI 역방향 의존 (`max_payload_bytes`)
+- `crates/unikit-bridge/src/renderer_host.rs:17-25` — 고아 API 자기 인증
+- `crates/unikit-bridge/src/lib.rs:2016-2221` — 코드젠(TS emitter)의 lib.rs 내 거주
+- `packages/types/src/index.ts` — 2,108줄 갓모듈; `:142` normalizeUnikitError(신규)
 - `packages/react/src/useEvent.ts:30-35` — tauri 구독 rejection 미관츠
 - `packages/cli/package.json` — `files` 배열 누락 모듈 (publish gap)
 - `packages/cli/src/index.ts:1052-1054` — autoRebuild 에러 삼킴
 - `packages/cli/src/schema-diff.ts:14-39` — breaking change 분류기
-- `packages/react-native/native/cpp/RustraJSIBridge.cpp:204` — stack-buffer
+- `packages/react-native/native/cpp/UnikitJSIBridge.cpp:204` — stack-buffer
   typedInvokeTail, handler-exactly-once 재시도
-- `examples/react-native-bare-calculator/modules/rustra-bridge/RustraBridge.podspec`
+- `examples/react-native-bare-calculator/modules/unikit-bridge/UnikitBridge.podspec`
   — 상대 경로 산술(미커밋에서 수정)
 
 ## 히스토리 컨텍스트 (thoughts/ 디렉터리)
@@ -290,7 +290,7 @@ shim 3줄 + 생성 코덱 + Rust .a뿐), 와이어는 `[cmd_id u16][postcard]` /
   `hash`, `paths`, `process`의 JS/d.ts/map 산출물을 추가했다. `npm pack --dry-run`
   으로 다섯 모듈이 패키지에 포함되는 것을 확인했다.
 - `dev --config`: repo-local CLI 탐색을 제거하고 in-process `runCodegen`을
-  사용한다. Rust schema 출력은 `RUSTRA_SCHEMA_OUT`을 따르고 동일 바이트 write를
+  사용한다. Rust schema 출력은 `UNIKIT_SCHEMA_OUT`을 따르고 동일 바이트 write를
   건너뛰므로 Linux에서 자기 파일을 다시 깨우는 루프를 만들지 않는다.
 - watcher/CLI 오케스트레이션: legacy/config 양쪽이 `createWatchLoop`의
   running/queued/dispose 상태기를 공유한다. Linux recursive watch 의존도 제거,
@@ -311,7 +311,7 @@ shim 3줄 + 생성 코덱 + Rust .a뿐), 와이어는 `[cmd_id u16][postcard]` /
 ### 현재 검증 영수증
 
 - `cargo test --workspace`: 전체 workspace 통과.
-- TypeScript: `@rustra/types` 110, CLI 107, Bun 11, React 5, testing 11, Node
+- TypeScript: `@unikit-bridge/types` 110, CLI 107, Bun 11, React 5, testing 11, Node
   소스 테스트 8 통과/4개는 Bun에서 Node 전용 process transport라 skip.
 - Node 실제 런타임 테스트: compiled test 12/12 통과.
 - React Doctor: 100/100, 이슈 없음.
@@ -328,5 +328,5 @@ shim 3줄 + 생성 코덱 + Rust .a뿐), 와이어는 `[cmd_id u16][postcard]` /
   Node entry의 binary 후보 경로는 보강했지만, hash 검증은 `getContractHash`를
   노출하는 native 엔진 범위에 한정된다. stdio 프로토콜에 새 질의를 추가하는 것은
   별도 호환성 변경으로 남긴다.
-- 공개 npm registry의 기존 `@rustra/cli@0.5.0` 산출물은 이 작업 트리의 수정과
+- 공개 npm registry의 기존 `@unikit-bridge/cli@0.5.0` 산출물은 이 작업 트리의 수정과
   별개이며, registry 재발행은 버전업/배포 승인이 있을 때 처리한다.

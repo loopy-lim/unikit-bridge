@@ -2,17 +2,17 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** 메인 트랙 3스프린트(hot-reload `rustra dev`, `@rustra/testing`, `@rustra/devtools`) + 백그라운드 트랙(Windows CI 실험, FFI 퍼징)을 구현한다.
+**Goal:** 메인 트랙 3스프린트(hot-reload `unikit dev`, `@unikit-bridge/testing`, `@unikit-bridge/devtools`) + 백그라운드 트랙(Windows CI 실험, FFI 퍼징)을 구현한다.
 
-**Architecture:** hot-reload는 기존 자산 3종(debug 런타임 레지스트리 `Package::register/replace`, `rustra generate --watch`, dual-path `codegen.sh`)을 하나의 `rustra dev` CLI로 묶되, **실행 중 프로세스 무중단 주입은 scope-out**하고 "재빌드+재생성+게이트 재실행" 루프로 증명한다(레지스트리 주입 경로는 별트랙). 테스팅/devtools는 각각 독립 npm 패키지(`packages/testing`, `packages/devtools`)로, 핵심 타입(`EngineClient`, `RustraCommandError`)은 `@rustra/types`를 재사용한다. 백그라운드 트랙은 독립 CI 워크플로 2종(`windows-experiment.yml`, `fuzz.yml`)로 본 머신을 점유하지 않게 한다.
+**Architecture:** hot-reload는 기존 자산 3종(debug 런타임 레지스트리 `Package::register/replace`, `unikit generate --watch`, dual-path `codegen.sh`)을 하나의 `unikit dev` CLI로 묶되, **실행 중 프로세스 무중단 주입은 scope-out**하고 "재빌드+재생성+게이트 재실행" 루프로 증명한다(레지스트리 주입 경로는 별트랙). 테스팅/devtools는 각각 독립 npm 패키지(`packages/testing`, `packages/devtools`)로, 핵심 타입(`EngineClient`, `UnikitCommandError`)은 `@unikit-bridge/types`를 재사용한다. 백그라운드 트랙은 독립 CI 워크플로 2종(`windows-experiment.yml`, `fuzz.yml`)로 본 머신을 점유하지 않게 한다.
 
-**Tech Stack:** TypeScript 5.9 (NodeNext), node:test, Rust 1.95 (rustra crate), cargo-fuzz, GitHub Actions (windows-latest).
+**Tech Stack:** TypeScript 5.9 (NodeNext), node:test, Rust 1.95 (unikit crate), cargo-fuzz, GitHub Actions (windows-latest).
 
 **설계 문서:** `docs/plans/2026-08-16-post-v1-growth-design.md`
 
 ---
 
-## Sprint 1 — Hot-reload / live codegen (`rustra dev`)
+## Sprint 1 — Hot-reload / live codegen (`unikit dev`)
 
 ### 배경 지식 (실행자용)
 
@@ -20,10 +20,10 @@
   1. Rust bin (`backend/src/bin/generate.rs`) → `types.ts`/`commands.ts`/`contract.ts`/`schema.json`
   2. TS CLI (`packages/cli`) → `rkyv-codecs.ts`/`rkyv-registry.ts`
      한쪽만 돌리면 stale → `runner/template/codegen.sh`가 둘 다 순서대로 실행한다.
-- **watch의 사각**: `rustra generate --watch`는 schema.json 파일 변경만 감시한다. schema.json은 **Rust bin을 실행해야** 갱신되므로, Rust 소스 수정 → schema.json 재생성 → TS 재생성 순으로 수동 2단계다. `rustra dev`가 이 간극을 메운다.
+- **watch의 사각**: `unikit generate --watch`는 schema.json 파일 변경만 감시한다. schema.json은 **Rust bin을 실행해야** 갱신되므로, Rust 소스 수정 → schema.json 재생성 → TS 재생성 순으로 수동 2단계다. `unikit dev`가 이 간극을 메운다.
 - **런타임 레지스트리**: debug 빌드에서 `Package::register/replace/unregister`가 동작(release는 freeze). 본 스프린트에서는 **코드 레벨 검증만** 사용하고 프로세스 무중단 주입은 하지 않는다.
 
-### Task 1: `rustra dev` 서브커맨드 — Rust 소스 감시 + codegen 파이프라인 재실행
+### Task 1: `unikit dev` 서브커맨드 — Rust 소스 감시 + codegen 파이프라인 재실행
 
 **Files:**
 
@@ -121,7 +121,7 @@ Expected: PASS (4 tests)
 
 ```bash
 git add packages/cli/src/dev.ts packages/cli/src/dev.test.ts
-git commit -m "feat(cli): rustra dev 인자 파싱/파이프라인 플래그 — TDD 씨앗"
+git commit -m "feat(cli): unikit dev 인자 파싱/파이프라인 플래그 — TDD 씨앗"
 ```
 
 ### Task 2: stale 감지 — mtime 비교로 dirty 판정
@@ -142,7 +142,7 @@ import { join } from 'node:path';
 import { detectDirty } from './dev.js';
 
 test('detectDirty: rust src newer than schema.json → rustNewerThanSchema', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-'));
   try {
     const backend = join(dir, 'backend');
     const generated = join(dir, 'app', 'generated');
@@ -162,7 +162,7 @@ test('detectDirty: rust src newer than schema.json → rustNewerThanSchema', () 
 });
 
 test('detectDirty: schema newer → not dirty (rust)', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-'));
   try {
     const backend = join(dir, 'backend');
     const generated = join(dir, 'app', 'generated');
@@ -242,7 +242,7 @@ Expected: PASS (6 tests)
 
 ```bash
 git add packages/cli/src/dev.ts packages/cli/src/dev.test.ts
-git commit -m "feat(cli): rustra dev stale 감지 — mtime 기반 dual-path dirty 판정"
+git commit -m "feat(cli): unikit dev stale 감지 — mtime 기반 dual-path dirty 판정"
 ```
 
 ### Task 3: 파이프라인 실행기 — cargo 재빌드 감시 루프와 watch 통합
@@ -314,9 +314,9 @@ export async function runDev(args: string[]): Promise<void> {
   const rustBin = () => spawnInherit('cargo', ['run', '--quiet', '--bin', 'generate'], backendDir);
   const tsCli = async () => {
     // codegen.sh 탐색 정책 재사용: 명시 env > 상위 탐색
-    const cli = process.env.RUSTRA_CLI ?? findRepoCli(resolve(appDir));
+    const cli = process.env.UNIKIT_CLI ?? findRepoCli(resolve(appDir));
     if (!cli) {
-      console.error('[dev] rustra CLI 를 찾을 수 없음 — RUSTRA_CLI env 지정 필요');
+      console.error('[dev] unikit CLI 를 찾을 수 없음 — UNIKIT_CLI env 지정 필요');
       return;
     }
     await spawnInherit(
@@ -379,10 +379,10 @@ if (args[0] === 'dev') {
 `printHelp()`의 Usage/Options/Examples에 추가:
 
 ```
-  rustra dev [--backend <dir>] [--app <dir>]
+  unikit dev [--backend <dir>] [--app <dir>]
   --backend <dir>    (dev) Rust backend crate dir (default: ./backend)
   --app <dir>        (dev) App dir containing generated/ (default: ./app)
-  rustra dev --backend runner/template/backend --app runner/template/app
+  unikit dev --backend runner/template/backend --app runner/template/app
 ```
 
 **Step 5: 테스트 통과 + typecheck 확인**
@@ -394,7 +394,7 @@ Expected: PASS 전부 (신규 7 + 기존)
 
 ```bash
 git add packages/cli/src/dev.ts packages/cli/src/dev.test.ts packages/cli/src/index.ts
-git commit -m "feat(cli): rustra dev — 소스 감시 + dual-path codegen 자동 루프"
+git commit -m "feat(cli): unikit dev — 소스 감시 + dual-path codegen 자동 루프"
 ```
 
 ### Task 4: 통합 검증 — runner 템플릿에서 실재작동 증명
@@ -409,7 +409,7 @@ git commit -m "feat(cli): rustra dev — 소스 감시 + dual-path codegen 자�
 # 최초 1회: generated/ 생성
 cd runner/template/app && npm install && npm run codegen
 # 이후 루프: 별 터미널에서
-RUSTRA_CLI=$PWD/packages/cli/dist/index.js node packages/cli/dist/index.js dev \
+UNIKIT_CLI=$PWD/packages/cli/dist/index.js node packages/cli/dist/index.js dev \
   --backend runner/template/backend --app runner/template/app
 # 다른 터미널에서 backend/src/lib.rs 의 greet 메시지 수정 (예: "Hello, {name}!!")
 # → [dev] regenerated 로그와 generated/schema.json 갱신 확인
@@ -424,17 +424,17 @@ Expected: greet 수정 → 자동 codegen → 번들 빌드 성공. 앱 프로�
 
 ```bash
 git add runner/template/README.md
-git commit -m "docs: runner 템플릿 rustra dev 워크플로"
+git commit -m "docs: runner 템플릿 unikit dev 워크플로"
 ```
 
 ---
 
-## Sprint 2 — `@rustra/testing` 패키지
+## Sprint 2 — `@unikit-bridge/testing` 패키지
 
 ### 배경 지식
 
 - 어댑터는 전부 `EngineClient = { invoke<T>(command, args?): Promise<T> }`만 구현하면 된다(`packages/types/src/index.ts:23`). mock 엔진도 같은 계약.
-- 에러 래핑 관례(`packages/node/src/index.test.ts`): 핸들러가 `{code, message}` 모양으로 reject 하면 `RustraCommandError`로 변환해 전파.
+- 에러 래핑 관례(`packages/node/src/index.test.ts`): 핸들러가 `{code, message}` 모양으로 reject 하면 `UnikitCommandError`로 변환해 전파.
 - 패키지 레이아웃/manifest는 `packages/tauri`를 그대로 본뜬다(workspaces glob `packages/*`라 등록만으로 편입).
 
 ### Task 5: 패키지 스캐폴드 + createMockEngine 코어
@@ -450,7 +450,7 @@ git commit -m "docs: runner 템플릿 rustra dev 워크플로"
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createMockEngine } from './index.js';
-import { RustraCommandError } from '@rustra/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 
 test('mock engine invokes registered handler', async () => {
   const engine = createMockEngine();
@@ -459,22 +459,22 @@ test('mock engine invokes registered handler', async () => {
   assert.equal(result, 42);
 });
 
-test('unknown command rejects with RustraCommandError command.not_found', async () => {
+test('unknown command rejects with UnikitCommandError command.not_found', async () => {
   const engine = createMockEngine();
   await assert.rejects(
     () => engine.invoke('missing'),
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'command.not_found',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'command.not_found',
   );
 });
 
-test('handler errors become RustraCommandError with custom code', async () => {
+test('handler errors become UnikitCommandError with custom code', async () => {
   const engine = createMockEngine();
   engine.on('fail', () => {
     throw { code: 'validation.too_large', message: 'value exceeds limit' };
   });
   await assert.rejects(
     () => engine.invoke('fail'),
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'validation.too_large',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'validation.too_large',
   );
 });
 
@@ -487,7 +487,7 @@ test('on returns engine for chaining', () => {
 
 **Step 2: 패키지 스캐폴드**
 
-`packages/testing/package.json` (`packages/tauri/package.json` 참고해 작성, name `@rustra/testing`, description "Testing utilities for rustra-bridge", test 스크립트 `tsc -p tsconfig.test.json && node --test dist-test/index.test.js`):
+`packages/testing/package.json` (`packages/tauri/package.json` 참고해 작성, name `@unikit-bridge/testing`, description "Testing utilities for unikit-bridge", test 스크립트 `tsc -p tsconfig.test.json && node --test dist-test/index.test.js`):
 
 `packages/testing/tsconfig.json`:
 
@@ -513,8 +513,8 @@ Expected: FAIL — `createMockEngine` 없음
 **Step 4: 구현 — `packages/testing/src/index.ts`**
 
 ```ts
-import type { EngineClient, RustraCommandError as _E } from '@rustra/types';
-import { RustraCommandError } from '@rustra/types';
+import type { EngineClient, UnikitCommandError as _E } from '@unikit-bridge/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 
 type Handler = (args: unknown) => unknown;
 
@@ -536,23 +536,23 @@ export function createMockEngine(): MockEngine {
       log.push({ command, args });
       const handler = handlers.get(command);
       if (!handler) {
-        throw new RustraCommandError('command.not_found', `no mock registered for '${command}'`);
+        throw new UnikitCommandError('command.not_found', `no mock registered for '${command}'`);
       }
       try {
         return (await handler(args)) as T;
       } catch (e) {
-        if (e instanceof RustraCommandError) throw e;
-        if (isRustraErrorShape(e)) {
-          throw new RustraCommandError(e.code, e.message, e.retryable);
+        if (e instanceof UnikitCommandError) throw e;
+        if (isUnikitErrorShape(e)) {
+          throw new UnikitCommandError(e.code, e.message, e.retryable);
         }
-        throw new RustraCommandError('unknown', String(e));
+        throw new UnikitCommandError('unknown', String(e));
       }
     },
   };
   return engine;
 }
 
-function isRustraErrorShape(
+function isUnikitErrorShape(
   e: unknown,
 ): e is { code: string; message: string; retryable?: boolean } {
   return (
@@ -584,7 +584,7 @@ Expected: PASS (기존 24 + 신규 4)
 
 ```bash
 git add packages/testing package.json package-lock.json
-git commit -m "feat(testing): @rustra/testing createMockEngine — 계약 동일 mock 엔진"
+git commit -m "feat(testing): @unikit-bridge/testing createMockEngine — 계약 동일 mock 엔진"
 ```
 
 ### Task 6: 계약 게이트 — schema.json 대비 생성 코드 정합성 검사
@@ -649,7 +649,7 @@ git commit -m "feat(testing): 계약 게이트 — schema.json 대비 클라이�
 
 ---
 
-## Sprint 3 — `@rustra/devtools` 패키지
+## Sprint 3 — `@unikit-bridge/devtools` 패키지
 
 ### 배경 지식
 
@@ -690,12 +690,12 @@ test('instrumented engine records calls, durations, errors', async () => {
 });
 ```
 
-**Step 2: 스캐폴드 + 실패 확인** — Task 5와 동일 패턴(`@rustra/devtools`).
+**Step 2: 스캐폴드 + 실패 확인** — Task 5와 동일 패턴(`@unikit-bridge/devtools`).
 
 **Step 3: 구현 — `packages/devtools/src/index.ts`**
 
 ```ts
-import type { EngineClient } from '@rustra/types';
+import type { EngineClient } from '@unikit-bridge/types';
 
 interface CommandStat {
   count: number;
@@ -763,23 +763,23 @@ export function createInstrumentedEngine(inner: EngineClient): InstrumentedEngin
 
 ```bash
 git add packages/devtools package.json package-lock.json
-git commit -m "feat(devtools): @rustra/devtools createInstrumentedEngine — 호출 관측성"
+git commit -m "feat(devtools): @unikit-bridge/devtools createInstrumentedEngine — 호출 관측성"
 ```
 
-### Task 8: `rustra dev --inspect` 연결점
+### Task 8: `unikit dev --inspect` 연결점
 
 **Files:**
 
 - Modify: `packages/cli/src/dev.ts`
 
-**Step 1: 구현** — `runDev`가 `--inspect` 플래그를 받으면, codegen tick 후 `InstrumentedEngine` 사용을 안내하는 주석과 함께 app 측 `@rustra/devtools` 로드 가이드를 로그로 출력 (JS 프로세스가 CLI와 다르므로 in-process 연결은 불가 — 로그 기반 안내가 정직한 범위):
+**Step 1: 구현** — `runDev`가 `--inspect` 플래그를 받으면, codegen tick 후 `InstrumentedEngine` 사용을 안내하는 주석과 함께 app 측 `@unikit-bridge/devtools` 로드 가이드를 로그로 출력 (JS 프로세스가 CLI와 다르므로 in-process 연결은 불가 — 로그 기반 안내가 정직한 범위):
 
 ```ts
 // parseDevArgs 에 inspect?: boolean 추가 (--inspect 플래그)
 // tick 성공 후:
 if (opts.inspect) {
   console.log('[dev:inspect] 앱 프로세스에서 createInstrumentedEngine 로 감싸면');
-  console.log('[dev:inspect] report() 를 콘솔/원격으로 노출할 수 있습니다: @rustra/devtools');
+  console.log('[dev:inspect] report() 를 콘솔/원격으로 노출할 수 있습니다: @unikit-bridge/devtools');
 }
 ```
 
@@ -787,7 +787,7 @@ if (opts.inspect) {
 
 ```bash
 git add packages/cli/src/dev.ts packages/cli/src/index.ts
-git commit -m "feat(cli): rustra dev --inspect — devtools 연결 안내"
+git commit -m "feat(cli): unikit dev --inspect — devtools 연결 안내"
 ```
 
 ---
@@ -886,7 +886,7 @@ git commit -m "ci: windows-experiment — lynx.dll export 덤프 + MSVC 빌드 �
 
 ### 배경 지식
 
-- 타깃: `Package::invoke_rkyv_v2(&[u8])` (`crates/rustra/src/lib.rs:462`) — 첫 2바이트 command_id(LE), 이후 postcard 인코딩 입력. FFI 진입점 `rustra_ffi_invoke_*`은 같은 디스패치를 공유하므로 `invoke_rkyv_v2`를 직접 타깃하면 핵심 디코드 경로 전체를 덮는다.
+- 타깃: `Package::invoke_rkyv_v2(&[u8])` (`crates/unikit-bridge/src/lib.rs:462`) — 첫 2바이트 command_id(LE), 이후 postcard 인코딩 입력. FFI 진입점 `unikit_ffi_invoke_*`은 같은 디스패치를 공유하므로 `invoke_rkyv_v2`를 직접 타깃하면 핵심 디코드 경로 전체를 덮는다.
 - cargo-fuzz는 **별도 crate** (`fuzz/` 디렉토리, workspace 비멤버)가 필요하다. libFuzzer sanitizer 빌드는 nightly 필요.
 
 ### Task 10: fuzz crate + CI 워크플로
@@ -902,7 +902,7 @@ git commit -m "ci: windows-experiment — lynx.dll export 덤프 + MSVC 빌드 �
 
 ```toml
 [package]
-name = "rustra-fuzz"
+name = "unikit-fuzz"
 version = "0.0.0"
 publish = false
 edition = "2021"
@@ -912,7 +912,7 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-rustra = { path = "../crates/rustra" }
+unikit-bridge = { path = "../crates/unikit-bridge" }
 
 [[bin]]
 name = "invoke_rkyv_v2"
@@ -932,9 +932,9 @@ bench = false
 
 use libfuzzer_sys::fuzz_target;
 
-fn fuzz_package() -> rustra::Package {
+fn fuzz_package() -> unikit_bridge::Package {
     // calculator 예제 패턴과 동일한 최소 패키지 — 스키마가 아닌 디스패치/디코드 자체가 타깃.
-    rustra::build!("fuzz.pkg", fuzz_add).done()
+    unikit_bridge::build!("fuzz.pkg", fuzz_add).done()
 }
 
 #[derive(serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
@@ -943,9 +943,9 @@ struct AddInput {
     b: i64,
 }
 
-#[rustra::command]
-fn fuzz_add(input: AddInput) -> rustra::Result<i64> {
-    input.a.checked_add(input.b).ok_or_else(|| rustra::RustraError::custom("math.overflow", "i64 overflow"))
+#[unikit_bridge::command]
+fn fuzz_add(input: AddInput) -> unikit_bridge::Result<i64> {
+    input.a.checked_add(input.b).ok_or_else(|| unikit_bridge::UnikitError::custom("math.overflow", "i64 overflow"))
 }
 
 fuzz_target!(|data: &[u8]| {
@@ -958,7 +958,7 @@ fuzz_target!(|data: &[u8]| {
 });
 ```
 
-주의: `rustra::build!`/`#[command]`가 요구하는 임포트는 `examples/calculator/src/main.rs`의 실제 사용 패턴을 참조해 맞출 것. `checked_add`를 쓰는 이유는 퍼징 중 산술 오버플로 패닉(debug)이 실제 버그로 오인되지 않게 하려는 의도 표시이며, 실제 코드는 calculator 예제의 기존 의미를 따른다.
+주의: `unikit_bridge::build!`/`#[command]`가 요구하는 임포트는 `examples/calculator/src/main.rs`의 실제 사용 패턴을 참조해 맞출 것. `checked_add`를 쓰는 이유는 퍼징 중 산술 오버플로 패닉(debug)이 실제 버그로 오인되지 않게 하려는 의도 표시이며, 실제 코드는 calculator 예제의 기존 의미를 따른다.
 
 **Step 2: 로컬 스모크 (nightly + cargo-fuzz 설치 필요)**
 
@@ -1016,13 +1016,13 @@ git commit -m "ci: cargo-fuzz invoke_rkyv_v2 — rkyv 디코드 경로 무작위
 
 **Step 1: 문서 갱신**
 
-- `README.md`: 프로젝트 구조 `packages/`에 `testing/`, `devtools/` 추가; 개발 절에 `rustra dev` 언급
+- `README.md`: 프로젝트 구조 `packages/`에 `testing/`, `devtools/` 추가; 개발 절에 `unikit dev` 언급
 - `docs/plans/2026-08-16-post-v1-growth-design.md`: 헤더 상태 "구현 완료" 갱신
 - `CHANGELOG.md` Unreleased에 신규 항목 추가
 
 **Step 2: 전체 회귀**
 
-Run: `cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all -- --check && npm run build && npm run test:packages && npm run test:ts:node && npm run test -w @rustra/cli`
+Run: `cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all -- --check && npm run build && npm run test:packages && npm run test:ts:node && npm run test -w @unikit-bridge/cli`
 Expected: 전부 green
 
 **Step 3: Commit + push**

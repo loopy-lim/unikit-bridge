@@ -16,7 +16,7 @@ export function appendCppBufferDispatch(lines: string[], sets: CppCommandSets): 
   );
   lines.push(
     `void encode_buffer_by_id(uint16_t cmd_id, const uint8_t* data, size_t size, rc::Writer& w) {`,
-    `  if (size > 0 && data == nullptr) throw std::invalid_argument("rustra: null byte buffer");`,
+    `  if (size > 0 && data == nullptr) throw std::invalid_argument("unikit: null byte buffer");`,
     `  switch (cmd_id) {`,
   );
   for (const command of bufferInputCommands)
@@ -28,7 +28,7 @@ export function appendCppBufferDispatch(lines: string[], sets: CppCommandSets): 
       `      return;`,
     );
   lines.push(
-    `    default: throw std::invalid_argument("rustra: no buffer codec for cmd_id " + std::to_string(cmd_id));`,
+    `    default: throw std::invalid_argument("unikit: no buffer codec for cmd_id " + std::to_string(cmd_id));`,
     `  }`,
     `}`,
     ``,
@@ -46,7 +46,7 @@ export function appendCppBufferDispatch(lines: string[], sets: CppCommandSets): 
       `    }`,
     );
   lines.push(
-    `    default: throw JSError(rt, "rustra: no buffer result codec for cmd_id " + std::to_string(cmd_id));`,
+    `    default: throw JSError(rt, "unikit: no buffer result codec for cmd_id " + std::to_string(cmd_id));`,
     `  }`,
     `}`,
     ``,
@@ -72,7 +72,7 @@ export function appendCppBufferDispatch(lines: string[], sets: CppCommandSets): 
     );
   }
   lines.push(
-    `    default: throw JSError(rt, "rustra: no bound buffer result codec");`,
+    `    default: throw JSError(rt, "unikit: no bound buffer result codec");`,
     `  }`,
     `}`,
     ``,
@@ -94,12 +94,12 @@ export function appendCppBufferDispatch(lines: string[], sets: CppCommandSets): 
   for (const { cmd, shape } of rawCommands)
     appendRawResult(lines, cmd.commandId, shape, 'context.output[0]');
   lines.push(
-    `    default: throw JSError(rt, "rustra: no bound raw result codec");`,
+    `    default: throw JSError(rt, "unikit: no bound raw result codec");`,
     `  }`,
     `}`,
     ``,
   );
-  lines.push(`} // namespace rustra::generated`);
+  lines.push(`} // namespace unikit_bridge::generated`);
 }
 
 function appendRawDispatch(lines: string[], rawCommands: CppCommandSets['rawCommands']): void {
@@ -110,13 +110,13 @@ function appendRawDispatch(lines: string[], rawCommands: CppCommandSets['rawComm
   for (const { cmd, shape } of rawCommands) {
     lines.push(
       `    case ${cmd.commandId}: {`,
-      `      if (argc != ${shape.inputFields.length}) throw JSError(rt, "rustra: ${cmd.name} expects ${shape.inputFields.length} raw argument(s), got " + std::to_string(argc));`,
+      `      if (argc != ${shape.inputFields.length}) throw JSError(rt, "unikit: ${cmd.name} expects ${shape.inputFields.length} raw argument(s), got " + std::to_string(argc));`,
     );
     shape.inputFields.forEach((field, index) => appendRawInput(lines, field, index));
     lines.push(`      return;`, `    }`);
   }
   lines.push(
-    `    default: throw JSError(rt, "rustra: no raw input codec for cmd_id " + std::to_string(cmd_id));`,
+    `    default: throw JSError(rt, "unikit: no raw input codec for cmd_id " + std::to_string(cmd_id));`,
     `  }`,
     `}`,
     ``,
@@ -127,7 +127,7 @@ function appendRawDispatch(lines: string[], rawCommands: CppCommandSets['rawComm
   );
   for (const { cmd, shape } of rawCommands) appendRawResult(lines, cmd.commandId, shape);
   lines.push(
-    `    default: throw JSError(rt, "rustra: no raw result codec for cmd_id " + std::to_string(cmd_id));`,
+    `    default: throw JSError(rt, "unikit: no raw result codec for cmd_id " + std::to_string(cmd_id));`,
     `  }`,
     `}`,
     ``,
@@ -138,17 +138,17 @@ function appendRawInput(lines: string[], field: PostcardField, index: number): v
   const name = JSON.stringify(field.name);
   if (field.kind === 'zigzag' || field.kind === 'zigzag64')
     lines.push(
-      `      { int64_t value = rustra_i64(rt, argv[${index}], ${name}); std::memcpy(&slots[${index}], &value, sizeof(value)); }`,
+      `      { int64_t value = unikit_i64(rt, argv[${index}], ${name}); std::memcpy(&slots[${index}], &value, sizeof(value)); }`,
     );
   else if (field.kind === 'uvar' || field.kind === 'uvar64')
-    lines.push(`      slots[${index}] = rustra_u64(rt, argv[${index}], ${name});`);
+    lines.push(`      slots[${index}] = unikit_u64(rt, argv[${index}], ${name});`);
   else if (field.kind === 'f64')
     lines.push(
-      `      { double value = rustra_f64(rt, argv[${index}], ${name}); std::memcpy(&slots[${index}], &value, sizeof(value)); }`,
+      `      { double value = unikit_f64(rt, argv[${index}], ${name}); std::memcpy(&slots[${index}], &value, sizeof(value)); }`,
     );
   else if (field.kind === 'f32')
     lines.push(
-      `      { double value = static_cast<double>(rustra_f32(rt, argv[${index}], ${name})); std::memcpy(&slots[${index}], &value, sizeof(value)); }`,
+      `      { double value = static_cast<double>(unikit_f32(rt, argv[${index}], ${name})); std::memcpy(&slots[${index}], &value, sizeof(value)); }`,
     );
   else lines.push(`      slots[${index}] = argv[${index}].getBool() ? 1u : 0u;`);
 }

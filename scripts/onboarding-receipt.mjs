@@ -36,11 +36,11 @@ export function scaffoldNativeArtifactPath(host) {
   const fileName =
     host === 'bun'
       ? process.platform === 'win32'
-        ? 'rustra_app.dll'
+        ? 'unikit_app.dll'
         : process.platform === 'darwin'
-          ? 'librustra_app.dylib'
-          : 'librustra_app.so'
-      : `rustra-app${process.platform === 'win32' ? '.exe' : ''}`;
+          ? 'libunikit_app.dylib'
+          : 'libunikit_app.so'
+      : `unikit-app${process.platform === 'win32' ? '.exe' : ''}`;
   return `debug/${fileName}`;
 }
 

@@ -8,7 +8,7 @@
 
 **Architecture:** 설계 §A-§G 그대로. 채널 코어(`ChannelHost` 단일 테이블·핸들 공간·전달 계약)를 공유하는 `CallbackHandle` newtype이 중심이다. 구분 정보(채널 vs 콜백)는 JS 래퍼와 코드젱이 소유하고 코어는 "u32 → sender"만 안다. 선언은 커맨드 입력 스키마 안에 산다(독립 섹션 아님 — 계약 해시·드리프트 게이트 자동 커버). request/response는 capability 호스트(Tauri/RN-async)만, 타임아웃 필수.
 
-**Tech Stack:** Rust (crates/rustra), TypeScript (packages/types, packages/cli, 4호스트 어댑터), C++ (packages/react-native/native/cpp), 예제 (examples/calculator).
+**Tech Stack:** Rust (crates/unikit-bridge), TypeScript (packages/types, packages/cli, 4호스트 어댑터), C++ (packages/react-native/native/cpp), 예제 (examples/calculator).
 
 **선행 착지(이 계획 밖에서 완료됨):** 설계 §G 슬라이스 2 — RN CallInvoker-less 호스트의 채널 프레임 영구 미소비 공백(리서치 §3.5)은 `drainEvents`가 ChannelDispatcher 도 drain + 채널 `pollMs` 폴백으로 별도 커밋됐다. 본 트랙의 콜백은 이 폴백을 상속받는다.
 
@@ -18,14 +18,14 @@
 
 **Files:**
 
-- Modify: `crates/rustra/src/channels_handles.rs` (`CallbackHandle` newtype + `call`)
-- Create: `crates/rustra/src/channels_callbacks.rs` (`CallbackHandleOf<P>` 제네릭 마커 + schemars 인코딩) — 400줄 상한 준수 분리
-- Modify: `crates/rustra/src/lib.rs` (모듈 등록 + 필요시 prelude 재수출)
-- Test: `crates/rustra/src/channels_callbacks_tests.rs` + `lib.rs` 등록
+- Modify: `crates/unikit-bridge/src/channels_handles.rs` (`CallbackHandle` newtype + `call`)
+- Create: `crates/unikit-bridge/src/channels_callbacks.rs` (`CallbackHandleOf<P>` 제네릭 마커 + schemars 인코딩) — 400줄 상한 준수 분리
+- Modify: `crates/unikit-bridge/src/lib.rs` (모듈 등록 + 필요시 prelude 재수출)
+- Test: `crates/unikit-bridge/src/channels_callbacks_tests.rs` + `lib.rs` 등록
 
 **Step 1: 실패 테스트 작성** — 채널 핸들 테이블에 발급된 핸들로 `CallbackHandle::call` 이 JSON 페이로드를 JS 싱크에 전달하는 단언(기존 channels 테스트의 싱크 목 패턴 준용), `CallbackHandleOf<ProgressPayload>` 의 serde 직렬화가 plain u32 와 동일(단일 allOf newtype), schemars 정의 이름이 렌더러 계약을 만족하는지의 단언.
 
-**Step 2: 실패 확인** — `cargo test -p rustra channels_callbacks` → 컴파일 실패.
+**Step 2: 실패 확인** — `cargo test -p unikit-bridge channels_callbacks` → 컴파일 실패.
 
 **Step 3: 구현**
 
@@ -43,7 +43,7 @@ impl CallbackHandle {
 - `CallbackHandleOf<P>`: serde/schemars 표면은 `ChannelHandle` 과 동일하게 u32 newtype 에 정의 이름이 페이로드 타입을 함의하도록 구성. **오픈 질문 7 해소가 이 태스크의 핵심 산출물** — schemars 가 제네릭 마커에 부여하는 실제 정의 이름(예: `CallbackHandleOf_ProgressPayload`)을 실측하고, "정의 이름 → TS 함수 타입" 렌더링 계약(Task 3)이 기계적으로 파싱 가능한 형태로 확정한다. 페이로드 타입의 정의는 참조로 함께 발행되야 한다(단순 마커로는 payload 스키마가 안 나오므로, `schemars::gen` 커스터마이징 또한 수단 후보 — 실측 후 계약 문서로 남긴다).
 - `call_wait` 은 Task 6 에서 추가(이 태스크에 없음).
 
-**Step 4: PASS 확인** — `cargo test -p rustra channels_callbacks && cargo test -p rustra`
+**Step 4: PASS 확인** — `cargo test -p unikit-bridge channels_callbacks && cargo test -p unikit-bridge`
 
 **Step 5: 커밋** — `feat(core): CallbackHandle + CallbackHandleOf<P> — 채널 코어 재사용 콜백 핸들 (단방향 call)`
 
@@ -54,7 +54,7 @@ impl CallbackHandle {
 **Files:**
 
 - Modify: `packages/types/src/public.ts` (`EngineSupports`에 `callbacks: 'none' | 'one-way' | 'request-response'` — additive 필드, 기존 `channels: boolean` 유지)
-- Modify: `packages/types/src/errors.ts` (`RustraErrorCode`에 `CallbackUnavailable: 'callback.unavailable'` — 이 태스크에서 쓰는 1종만. 나머지 3종은 Task 6)
+- Modify: `packages/types/src/errors.ts` (`UnikitErrorCode`에 `CallbackUnavailable: 'callback.unavailable'` — 이 태스크에서 쓰는 1종만. 나머지 3종은 Task 6)
 - Modify: 4엔진 supports 초기화 지점 — `packages/tauri/src/index.ts`, `packages/node/src/node-core.ts`, `packages/bun/src/bun-ffi.ts`, `packages/react-native/src/react-native-core.ts` (research §3.6 이 실측한 supports 채움 지점). 값은 정적 상수: Tauri `'request-response'`, Node `'one-way'`, Bun `'one-way'`, RN `'request-response'` (design §D.2 — 런타임 감지 분기 없음)
 - Test: 각 패키지 기존 supports 테스트 옆에 callbacks 값 단언
 
@@ -107,11 +107,11 @@ impl CallbackHandle {
 **Files:**
 
 - Modify: `examples/calculator/src/lib.rs` — `long_task_demo` 커맨드(커맨드 인자 콜백 2개: `on_progress`(JSON 진행률) + `on_chunk`(바이트 경로 취약점 검증용은 아니고 JSON 청크) — `channel_demo` 관례 준용 lib.rs:957-1027)
-- Regenerate: `examples/calculator/generated/` — schema.json·types.ts(함수 타입 필드)·commands.ts(새 헬퍼 배선)·contract.ts·`.rustra-generated.json`
+- Regenerate: `examples/calculator/generated/` — schema.json·types.ts(함수 타입 필드)·commands.ts(새 헬퍼 배선)·contract.ts·`.unikit-generated.json`
 - Test: `examples/calculator/ts/` 신설 `callbacks.test.ts` — 4호스트 앱 경로 중 노드/번 어댑터로 e2e(실제 싱크 목 + 드레인), 진행률 콜백 순서(FIFO) 단언, 콜백 예외가 커맨드를 죽이지 않는 단언, settle 후 stale send 무시 단언
 - Modify: `api-surface/snapshot.json` (Task 1 신규 심볼 — `bun run test:api-surface` 갱신 지시)
 
-**Step 1: 실패 테스트 → Step 3: 구현+재생성(`cargo run -p rustra-calculator-example` 스키마 프로브 → `rustra codegen --config rustra.json`) → Step 4: `bun test examples/calculator/ts/*.test.ts && bun run test:ts:node && bun run test:api-surface`**
+**Step 1: 실패 테스트 → Step 3: 구현+재생성(`cargo run -p unikit-calculator-example` 스키마 프로브 → `unikit codegen --config unikit.json`) → Step 4: `bun test examples/calculator/ts/*.test.ts && bun run test:ts:node && bun run test:api-surface`**
 
 **Step 5: 커밋** — `feat(example): long_task_demo — 커맨드 인자 콜백 e2e 패리티 + api-surface 갱신`
 
@@ -121,17 +121,17 @@ impl CallbackHandle {
 
 **Files:**
 
-- Modify: `crates/rustra/src/channels_callbacks.rs` — `call_wait(&self, payload: &str, timeout: Duration) -> Result<String, CallbackError>` (타임아웃 필수 — 기본값 없음, design §D.3)
-- Modify: `crates/rustra/src/channels_host.rs` (또는 신규 `callbacks_registry.rs`) — `(handle, seq) → oneshot` 대기 레지스트리. 완료/drop/타임아웃 시 entry 제거(`complete_invocation` 관행 준용, cancel.rs:69-75). drop_channel 시 해당 핸들 미회신 entry 즉시 실패(`callback.cancelled`)
+- Modify: `crates/unikit-bridge/src/channels_callbacks.rs` — `call_wait(&self, payload: &str, timeout: Duration) -> Result<String, CallbackError>` (타임아웃 필수 — 기본값 없음, design §D.3)
+- Modify: `crates/unikit-bridge/src/channels_host.rs` (또는 신규 `callbacks_registry.rs`) — `(handle, seq) → oneshot` 대기 레지스트리. 완료/drop/타임아웃 시 entry 제거(`complete_invocation` 관행 준용, cancel.rs:69-75). drop_channel 시 해당 핸들 미회신 entry 즉시 실패(`callback.cancelled`)
 - Modify: 호출 프레임 확장 — request/response 호출은 기존 JSON 프레임에 `seq`/`expectsReply` 변형을 실는다(단방향 형태와 공존 — design §D.3 프레임 계약)
-- Modify: `crates/rustra/src/tauri_support.rs` — 신규 커맨드 `rustra_callback_reply { handle, seq, ok, value }` 를 `rustra_dispatch` 계열 등록 지점(:208-214)에 추가
+- Modify: `crates/unikit-bridge/src/tauri_support.rs` — 신규 커맨드 `unikit_callback_reply { handle, seq, ok, value }` 를 `unikit_dispatch` 계열 등록 지점(:208-214)에 추가
 - Modify: `packages/types/src/errors.ts` — `CallbackTimeout: 'callback.timeout'`, `CallbackError: 'callback.error'`, `CallbackCancelled: 'callback.cancelled'` (additive)
-- Modify: `packages/tauri/src/tauri-channels.ts` — request/response 콜백 경로(envelope 인식 + `rustra_callback_reply` 응답). JS 콜백 예외는 **거부 응답**으로 변환(단방향 격리와 대비되는 계약)
+- Modify: `packages/tauri/src/tauri-channels.ts` — request/response 콜백 경로(envelope 인식 + `unikit_callback_reply` 응답). JS 콜백 예외는 **거부 응답**으로 변환(단방향 격리와 대비되는 계약)
 - Test: 레지스트리 단위 테스트(타임아웃/응답/드롭 회수 3종) + tauri 어댑터 테스트
 
 **교착 방지 계약 문서화**: `call_wait` 는 Tauri 커맨드 스레드·RN async 워커(ffi_pool 2워커, ffi_pool.rs:13)에서만 호출 가능 — 무한 대기는 풀 고찈이므로 타임아웃 필수.
 
-**Step 5: 커밋** — `feat(core,tauri): 콜백 request/response — call_wait oneshot 레지스트리 + rustra_callback_reply`
+**Step 5: 커밋** — `feat(core,tauri): 콜백 request/response — call_wait oneshot 레지스트리 + unikit_callback_reply`
 
 ---
 
@@ -139,7 +139,7 @@ impl CallbackHandle {
 
 **Files:**
 
-- Modify: `packages/react-native/native/cpp/RustraJSIBridge.cpp` — `callbackReply(handle, seq, ok, valueJson)` HostFunction 를 채널 캐시 블록(:870-930)에 추가. async 워커 대기 경로(invokeTypedAsync 선례 :1239-1344 — 컨텍스트 레지스트리 + generation 무효화 + shared_ptr 수명). reload 안전: ChannelDispatcher reset 패턴 준용(:633-646) — entry 회수
+- Modify: `packages/react-native/native/cpp/UnikitJSIBridge.cpp` — `callbackReply(handle, seq, ok, valueJson)` HostFunction 를 채널 캐시 블록(:870-930)에 추가. async 워커 대기 경로(invokeTypedAsync 선례 :1239-1344 — 컨텍스트 레지스트리 + generation 무효화 + shared_ptr 수명). reload 안전: ChannelDispatcher reset 패턴 준용(:633-646) — entry 회수
 - Modify: `packages/react-native/src/react-native-events.ts` — RN 콜백 어댑터의 request/response 경로(폴링 폴백 포함 — CallInvoker-less 호스트는 단방향만, `EngineSupports.callbacks` 문서와 정합)
 - Test: RN 패키지 테스트(mock 네이티브) + C++ 자체 검토(컴파일 게이트 없음 — 인접 예외 안전·락 규율 정밀 검토, 실기기는 호스트 검증 체크리스트 항목으로 등록)
 
@@ -161,7 +161,7 @@ impl CallbackHandle {
 
 ```bash
 bun run test:packages
-cargo test -p rustra -p rustra-macros
+cargo test -p unikit-bridge -p unikit-bridge-macros
 cargo clippy --workspace --all-targets -- -D warnings
 cargo fmt --all -- --check
 bun run lint && bun run format:check

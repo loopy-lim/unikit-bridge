@@ -1,6 +1,6 @@
-# @rustra/react-native
+# @unikit-bridge/react-native
 
-Rustra의 React Native JSI 어댑터와 생성 모듈용 공유 네이티브 소스입니다. Expo와
+Unikit의 React Native JSI 어댑터와 생성 모듈용 공유 네이티브 소스입니다. Expo와
 bare React Native에서 같은 generated entry와 표준 autolinking 경로를 사용합니다.
 
 ## 권장 사용
@@ -13,14 +13,14 @@ crate-type = ["rlib", "staticlib"]
 ```
 
 ```rust
-pub fn package() -> rustra::Package {
+pub fn package() -> unikit_bridge::Package {
     // commands...
 }
 
-rustra::native_entry!(package);
+unikit_bridge::native_entry!(package);
 ```
 
-앱의 `rustra.json`에서 React Native 생성을 켭니다.
+앱의 `unikit.json`에서 React Native 생성을 켭니다.
 
 ```json
 {
@@ -35,16 +35,16 @@ rustra::native_entry!(package);
 ```
 
 ```bash
-bun add @rustra/react-native @rustra/types
-bun add -d @rustra/cli
-bunx --bun @rustra/cli doctor --config rustra.json
-bunx --bun @rustra/cli codegen --config rustra.json
+bun add @unikit-bridge/react-native @unikit-bridge/types
+bun add -d @unikit-bridge/cli
+bunx --bun @unikit-bridge/cli doctor --config unikit.json
+bunx --bun @unikit-bridge/cli codegen --config unikit.json
 bun install
 ```
 
 생성기는 다음을 자동으로 처리합니다.
 
-- `modules/rustra-bridge`에 앱 전용 `@rustra/generated-react-native` 패키지 생성
+- `modules/unikit-bridge`에 앱 전용 `@unikit-bridge/generated-react-native` 패키지 생성
 - 앱 `package.json`에 충돌을 확인한 뒤 Bun workspace dependency 연결
 - iOS Podspec, Android Gradle/CMake/JNI, 공유 C++ JSI bridge 생성
 - Cargo metadata에서 package와 static library 이름 추론
@@ -59,7 +59,7 @@ const result = await addNumbers({ a: 20, b: 22 });
 ```
 
 첫 호출이 JSI 설치, contract hash/schema version 검증, fast engine 설정을
-concurrency-safe하게 한 번만 수행합니다. 별도의 `installRustraJSI()`,
+concurrency-safe하게 한 번만 수행합니다. 별도의 `installUnikitJSI()`,
 `createFastEngine()`, `configure()` 호출은 필요하지 않습니다.
 
 ## Expo와 bare React Native
@@ -89,10 +89,10 @@ concurrency-safe하게 한 번만 수행합니다. 별도의 `installRustraJSI()
 
 생성 모듈은 의도적으로 고정된 전용 이름을 사용합니다.
 
-- JavaScript package: `@rustra/generated-react-native`
-- React Native module: `RustraBridge`
-- Android namespace: `dev.rustra.bridge`
-- native shared library: `rustra_bridge`
+- JavaScript package: `@unikit-bridge/generated-react-native`
+- React Native module: `UnikitBridge`
+- Android namespace: `dev.unikit.bridge`
+- native shared library: `unikit_bridge`
 
 생성기는 같은 dependency가 다른 위치를 가리키면 덮어쓰지 않고 중단합니다. 앱마다
 로컬 생성 패키지를 하나만 두어 다른 Expo/Nitro/Turbo 모듈과 이름과 build target이
@@ -104,14 +104,14 @@ dev에서는 앱 재빌드·리마운트 없이 Rust 코어 dylib를 스왑할 �
 브릿지의 모든 FFI 호출은 함수 포인터 테이블 경유라 스왑은 atomic 테이블 교체 한
 번이고 JS 재바인딩은 없습니다.
 
-- 발행: `rustra dev`의 `dev.target: "dylib"`가 cdylib를 빌드하고, parity 게이트를
+- 발행: `unikit dev`의 `dev.target: "dylib"`가 cdylib를 빌드하고, parity 게이트를
   통과한 뒤에만 `<stem>-hot-live<ext>`를 원자적(tmp + rename)으로 발행합니다. 게이트가
   거절하면 기존 live 아티팩트가 그대로 남아 앱은 구 코어를 유지합니다(fail-closed).
-- iOS(시뮬레이터만): `RUSTRA_HOT_CORE_DIR` 환경변수에 디렉터를 지정하면 install 때
+- iOS(시뮬레이터만): `UNIKIT_HOT_CORE_DIR` 환경변수에 디렉터를 지정하면 install 때
   어댑터가 그 디렉터를 300ms 간격으로 폴링합니다. 이름 계약에 주의하세요 —
-  `RUSTRA_HOT_CORE_DIR`(RN)은 디렉터이고, Tauri 쪽 `RUSTRA_HOT_CORE`는 파일 경로로
+  `UNIKIT_HOT_CORE_DIR`(RN)은 디렉터이고, Tauri 쪽 `UNIKIT_HOT_CORE`는 파일 경로로
   서로 다른 변수입니다.
-- Android: 폴링 디렉터는 `<filesDir>/rustra/hot`이며 생성된 JNI glue가 같은 폴링을
+- Android: 폴링 디렉터는 `<filesDir>/unikit/hot`이며 생성된 JNI glue가 같은 폴링을
   켭니다 — **debuggable 빌드 한정**. 템플릿은 `ApplicationInfo.FLAG_DEBUGGABLE`
   검사 안에서만 `nativeConfigureHotCore`를 호출하므로 릴리스 빌드는 감시 스레드를
   아예 띄우지 않습니다(appdata `dlopen` 표면도 생기지 않음 — 게이트는 설계상 조용합니다).
@@ -122,7 +122,7 @@ dev에서는 앱 재빌드·리마운트 없이 Rust 코어 dylib를 스왑할 �
 
 스왑마다 코어 내부 상태(채널, 이벤트 컨텍스트)는 버려지고 새 코어에 이벤트 싱크가
 재등록됩니다. 구 코어는 의도적으로 unload하지 않습니다. dev에서
-`getRustraNative().hotCoreStatus()`가 마지막 스왑의 구/신 계약 해시(또는 마지막 오류)를
+`getUnikitNative().hotCoreStatus()`가 마지막 스왑의 구/신 계약 해시(또는 마지막 오류)를
 돌려주고 기본 정적 빌드에서는 `null`입니다.
 
 스왑 폴링에는 재시도 상한이 있습니다 — 같은 아티팩트 바이트(sha256)가 5회 연속 실패하면
@@ -134,6 +134,6 @@ dev에서는 앱 재빌드·리마운트 없이 Rust 코어 dylib를 스왑할 �
 ## 저수준 API
 
 직접 transport를 제어해야 할 때만 `createReactNativeEngine`, `createFastEngine`,
-`getRustraNative`를 사용합니다. JSON 경로는 Hermes의 `TextEncoder`/
+`getUnikitNative`를 사용합니다. JSON 경로는 Hermes의 `TextEncoder`/
 `TextDecoder` 유무와 관계없이 exact `ArrayBuffer`로 동작하고, fast path는 generated
 postcard codec과 caller-buffer FFI를 사용합니다.

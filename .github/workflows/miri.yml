@@ -44,13 +44,13 @@ jobs:
           mkdir -p "$SAFETY_LOG_DIR"
           { git rev-parse HEAD; rustc -Vv; cargo miri --version; } > "$SAFETY_LOG_DIR/environment.txt"
       - name: Run miri on lib tests
-        run: bash scripts/run-safety-check.sh lib cargo miri test -p rustra --lib
+        run: bash scripts/run-safety-check.sh lib cargo miri test -p unikit-bridge --lib
       - name: Run miri on frame wire tests
         if: ${{ !cancelled() }}
-        run: bash scripts/run-safety-check.sh frame-wire cargo miri test -p rustra --test frame_wire
+        run: bash scripts/run-safety-check.sh frame-wire cargo miri test -p unikit-bridge --test frame_wire
       - name: Run miri on field order tests
         if: ${{ !cancelled() }}
-        run: bash scripts/run-safety-check.sh field-order cargo miri test -p rustra --test field_order_drift
+        run: bash scripts/run-safety-check.sh field-order cargo miri test -p unikit-bridge --test field_order_drift
       - name: Upload Miri logs
         if: always()
         uses: actions/upload-artifact@v7

@@ -72,12 +72,12 @@
   "lifecycle": "load/update/stale/release/clear pass",
   "baseCommit": "f1a96b941ed709038b6e4fe8ae3753e895ffa8a6",
   "dirtySource": true,
-  "runtime": "Bun 1.4.3, @rustra/node persistent transport",
+  "runtime": "Bun 1.4.3, @unikit-bridge/node persistent transport",
   "requestByteScope": "JSON arguments only; excludes envelope",
   "performanceClaim": "single debug functional run; not a release benchmark",
   "sources": {
-    "crates/rustra/examples/resident_tree.rs": "3c6f880fc5a7e35c65942f9b8c0685622dac676fc43241901771edfe78e192ce",
-    "crates/rustra/examples/support/resident_tree_model.rs": "b72644a3680888b419df6583e298eb6580d661e173ba998aeca5d40f3c28c553",
+    "crates/unikit-bridge/examples/resident_tree.rs": "3c6f880fc5a7e35c65942f9b8c0685622dac676fc43241901771edfe78e192ce",
+    "crates/unikit-bridge/examples/support/resident_tree_model.rs": "b72644a3680888b419df6583e298eb6580d661e173ba998aeca5d40f3c28c553",
     "examples/resident-tree/run.mjs": "c885d81db270f79f1bd843794795e5b9f65c2db6bc698ab6e7c405dd15de1ae1",
     "examples/resident-tree/client.ts": "954e5f0c4e60af10deb11eed53b7fec9735d51557fa2889b36fd7f632914d3cd"
   }

@@ -1,6 +1,6 @@
 // static-boundary.test-d.ts — 생성 클라이언트의 TS 정적 타입 경계 부정 테스트.
 //
-// nitro 의 "틀린 구현은 컴파일 실패" 파리티 검증: rustra 는 스키마 → 코드젠으로
+// nitro 의 "틀린 구현은 컴파일 실패" 파리티 검증: unikit 는 스키마 → 코드젠으로
 // TS 정적 경계를 만들고, 이 파일은 그 경계가 실제로 잘못된 사용을 컴파일 단계에서
 // 거부하는지 고정한다. 검증 주체는 `tsc -p examples/calculator/tsconfig.json`
 // (test:fast·test:ts:node 에 배선) — 아래 모든 `@ts-expect-error` 는 해당 줄이

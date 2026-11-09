@@ -148,8 +148,8 @@
       "command": [
         "node",
         "scripts/node-framing-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/baseline.mjs",
-        "/tmp/rustra-20261013-framing-ab/framer-0-before.json"
+        "/tmp/unikit-20261013-framing-ab/baseline.mjs",
+        "/tmp/unikit-20261013-framing-ab/framer-0-before.json"
       ],
       "receipt": {
         "pid": 60068,
@@ -337,8 +337,8 @@
       "command": [
         "node",
         "scripts/node-framing-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/candidate.mjs",
-        "/tmp/rustra-20261013-framing-ab/framer-0-after.json"
+        "/tmp/unikit-20261013-framing-ab/candidate.mjs",
+        "/tmp/unikit-20261013-framing-ab/framer-0-after.json"
       ],
       "receipt": {
         "pid": 60070,
@@ -516,8 +516,8 @@
       "command": [
         "node",
         "scripts/node-framing-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/candidate.mjs",
-        "/tmp/rustra-20261013-framing-ab/framer-1-after.json"
+        "/tmp/unikit-20261013-framing-ab/candidate.mjs",
+        "/tmp/unikit-20261013-framing-ab/framer-1-after.json"
       ],
       "receipt": {
         "pid": 60071,
@@ -695,8 +695,8 @@
       "command": [
         "node",
         "scripts/node-framing-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/baseline.mjs",
-        "/tmp/rustra-20261013-framing-ab/framer-1-before.json"
+        "/tmp/unikit-20261013-framing-ab/baseline.mjs",
+        "/tmp/unikit-20261013-framing-ab/framer-1-before.json"
       ],
       "receipt": {
         "pid": 60072,
@@ -884,8 +884,8 @@
       "command": [
         "node",
         "scripts/node-framing-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/baseline.mjs",
-        "/tmp/rustra-20261013-framing-ab/framer-2-before.json"
+        "/tmp/unikit-20261013-framing-ab/baseline.mjs",
+        "/tmp/unikit-20261013-framing-ab/framer-2-before.json"
       ],
       "receipt": {
         "pid": 60076,
@@ -1073,8 +1073,8 @@
       "command": [
         "node",
         "scripts/node-framing-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/candidate.mjs",
-        "/tmp/rustra-20261013-framing-ab/framer-2-after.json"
+        "/tmp/unikit-20261013-framing-ab/candidate.mjs",
+        "/tmp/unikit-20261013-framing-ab/framer-2-after.json"
       ],
       "receipt": {
         "pid": 60085,
@@ -1252,8 +1252,8 @@
       "command": [
         "node",
         "scripts/node-framing-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/candidate.mjs",
-        "/tmp/rustra-20261013-framing-ab/framer-3-after.json"
+        "/tmp/unikit-20261013-framing-ab/candidate.mjs",
+        "/tmp/unikit-20261013-framing-ab/framer-3-after.json"
       ],
       "receipt": {
         "pid": 60086,
@@ -1431,8 +1431,8 @@
       "command": [
         "node",
         "scripts/node-framing-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/baseline.mjs",
-        "/tmp/rustra-20261013-framing-ab/framer-3-before.json"
+        "/tmp/unikit-20261013-framing-ab/baseline.mjs",
+        "/tmp/unikit-20261013-framing-ab/framer-3-before.json"
       ],
       "receipt": {
         "pid": 60087,
@@ -1620,8 +1620,8 @@
       "command": [
         "node",
         "scripts/node-framing-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/baseline.mjs",
-        "/tmp/rustra-20261013-framing-ab/framer-4-before.json"
+        "/tmp/unikit-20261013-framing-ab/baseline.mjs",
+        "/tmp/unikit-20261013-framing-ab/framer-4-before.json"
       ],
       "receipt": {
         "pid": 60151,
@@ -1809,8 +1809,8 @@
       "command": [
         "node",
         "scripts/node-framing-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/candidate.mjs",
-        "/tmp/rustra-20261013-framing-ab/framer-4-after.json"
+        "/tmp/unikit-20261013-framing-ab/candidate.mjs",
+        "/tmp/unikit-20261013-framing-ab/framer-4-after.json"
       ],
       "receipt": {
         "pid": 60215,
@@ -1988,10 +1988,10 @@
       "command": [
         "node",
         "scripts/node-native-echo-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/before/dist/index.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/target/release/loop-stdio",
-        "/tmp/rustra-20261013-framing-ab/native-0-before.json"
+        "/tmp/unikit-20261013-framing-ab/before/dist/index.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/target/release/loop-stdio",
+        "/tmp/unikit-20261013-framing-ab/native-0-before.json"
       ],
       "receipt": {
         "pid": 60216,
@@ -2163,10 +2163,10 @@
       "command": [
         "node",
         "scripts/node-native-echo-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/after/dist/index.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/target/release/loop-stdio",
-        "/tmp/rustra-20261013-framing-ab/native-0-after.json"
+        "/tmp/unikit-20261013-framing-ab/after/dist/index.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/target/release/loop-stdio",
+        "/tmp/unikit-20261013-framing-ab/native-0-after.json"
       ],
       "receipt": {
         "pid": 60222,
@@ -2338,10 +2338,10 @@
       "command": [
         "node",
         "scripts/node-native-echo-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/after/dist/index.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/target/release/loop-stdio",
-        "/tmp/rustra-20261013-framing-ab/native-1-after.json"
+        "/tmp/unikit-20261013-framing-ab/after/dist/index.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/target/release/loop-stdio",
+        "/tmp/unikit-20261013-framing-ab/native-1-after.json"
       ],
       "receipt": {
         "pid": 60224,
@@ -2512,10 +2512,10 @@
       "command": [
         "node",
         "scripts/node-native-echo-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/before/dist/index.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/target/release/loop-stdio",
-        "/tmp/rustra-20261013-framing-ab/native-1-before.json"
+        "/tmp/unikit-20261013-framing-ab/before/dist/index.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/target/release/loop-stdio",
+        "/tmp/unikit-20261013-framing-ab/native-1-before.json"
       ],
       "receipt": {
         "pid": 60229,
@@ -2689,10 +2689,10 @@
       "command": [
         "node",
         "scripts/node-native-echo-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/before/dist/index.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/target/release/loop-stdio",
-        "/tmp/rustra-20261013-framing-ab/native-2-before.json"
+        "/tmp/unikit-20261013-framing-ab/before/dist/index.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/target/release/loop-stdio",
+        "/tmp/unikit-20261013-framing-ab/native-2-before.json"
       ],
       "receipt": {
         "pid": 60231,
@@ -2863,10 +2863,10 @@
       "command": [
         "node",
         "scripts/node-native-echo-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/after/dist/index.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/target/release/loop-stdio",
-        "/tmp/rustra-20261013-framing-ab/native-2-after.json"
+        "/tmp/unikit-20261013-framing-ab/after/dist/index.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/target/release/loop-stdio",
+        "/tmp/unikit-20261013-framing-ab/native-2-after.json"
       ],
       "receipt": {
         "pid": 60236,
@@ -3040,10 +3040,10 @@
       "command": [
         "node",
         "scripts/node-native-echo-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/after/dist/index.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/target/release/loop-stdio",
-        "/tmp/rustra-20261013-framing-ab/native-3-after.json"
+        "/tmp/unikit-20261013-framing-ab/after/dist/index.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/target/release/loop-stdio",
+        "/tmp/unikit-20261013-framing-ab/native-3-after.json"
       ],
       "receipt": {
         "pid": 60238,
@@ -3215,10 +3215,10 @@
       "command": [
         "node",
         "scripts/node-native-echo-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/before/dist/index.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/target/release/loop-stdio",
-        "/tmp/rustra-20261013-framing-ab/native-3-before.json"
+        "/tmp/unikit-20261013-framing-ab/before/dist/index.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/target/release/loop-stdio",
+        "/tmp/unikit-20261013-framing-ab/native-3-before.json"
       ],
       "receipt": {
         "pid": 60243,
@@ -3390,10 +3390,10 @@
       "command": [
         "node",
         "scripts/node-native-echo-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/before/dist/index.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/target/release/loop-stdio",
-        "/tmp/rustra-20261013-framing-ab/native-4-before.json"
+        "/tmp/unikit-20261013-framing-ab/before/dist/index.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/target/release/loop-stdio",
+        "/tmp/unikit-20261013-framing-ab/native-4-before.json"
       ],
       "receipt": {
         "pid": 60245,
@@ -3564,10 +3564,10 @@
       "command": [
         "node",
         "scripts/node-native-echo-bench.mjs",
-        "/tmp/rustra-20261013-framing-ab/after/dist/index.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
-        "/Users/loopy/dev/ll3/rustra-bridge/target/release/loop-stdio",
-        "/tmp/rustra-20261013-framing-ab/native-4-after.json"
+        "/tmp/unikit-20261013-framing-ab/after/dist/index.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/dist-ts/examples/calculator/generated/frame-registry.js",
+        "/Users/loopy/dev/ll3/unikit-bridge/target/release/loop-stdio",
+        "/tmp/unikit-20261013-framing-ab/native-4-after.json"
       ],
       "receipt": {
         "pid": 60249,

@@ -1,8 +1,8 @@
-# rustra-bridge 종합 문서화 설계
+# unikit-bridge 종합 문서화 설계
 
 ## 목표
 
-rustra-bridge의 문서를 체계적으로 재편한다. 사용자용(라이브러리 사용법, 확장 가이드)과 기여자용(아키텍처, 내부 구조)을 분리하고, 모든 문서를 한국어로 작성한다.
+unikit-bridge의 문서를 체계적으로 재편한다. 사용자용(라이브러리 사용법, 확장 가이드)과 기여자용(아키텍처, 내부 구조)을 분리하고, 모든 문서를 한국어로 작성한다.
 
 ## 독자
 
@@ -49,7 +49,7 @@ docs/
 
 ### docs/README.md (문서 인덱스)
 
-- rustra 한 줄 소개
+- unikit 한 줄 소개
 - 독자별 추천 읽기 경로
 - 전체 문서 목록 (링크)
 
@@ -112,7 +112,7 @@ docs/
 | 파일                          | 작업                          |
 | ----------------------------- | ----------------------------- |
 | 루트 README.md                | 한국어 재작성, 현재 구현 기준 |
-| crates/rustra/README.md       | 한국어, API 개요              |
+| crates/unikit-bridge/README.md       | 한국어, API 개요              |
 | packages/\*/README.md (4개)   | 한국어, adapter 역할 명확화   |
 | examples/calculator/README.md | 한국어                        |
 

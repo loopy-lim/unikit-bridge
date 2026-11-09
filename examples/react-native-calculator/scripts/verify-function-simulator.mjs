@@ -28,7 +28,7 @@ export function validateReceipt(
   const require = (condition, message) => {
     if (!condition) throw new Error(message);
   };
-  require(receipt.kind === 'rustra-ordinary-functions' &&
+  require(receipt.kind === 'unikit-ordinary-functions' &&
     receipt.schemaVersion === 1, 'Wrong receipt kind/version');
   const generatedAt = Date.parse(receipt.generatedAt);
   require(generatedAt >= startedAt &&
@@ -81,7 +81,7 @@ export async function main() {
   if (matches.length !== 1) throw new Error('Select one booted Simulator with --device <UDID>');
   const simulator = matches[0];
   const device = simulator.udid;
-  const output = resolve(values.output ?? `/tmp/rustra-functions-${Date.now()}`);
+  const output = resolve(values.output ?? `/tmp/unikit-functions-${Date.now()}`);
   await mkdir(output, { recursive: false });
   const { fingerprint } = await computeBuildFingerprint();
   const contract = await readFile(resolve(DEFAULT_APP_ROOT, 'generated/contract.ts'), 'utf8');
@@ -116,7 +116,7 @@ export async function main() {
       if (!String(error.stderr).includes('NSPOSIXErrorDomain, code=3')) throw error;
     }
     const data = simctl('get_app_container', device, bundleId, 'data');
-    const receiptPath = resolve(data, 'Documents/rustra-function-receipt.json');
+    const receiptPath = resolve(data, 'Documents/unikit-function-receipt.json');
     await unlink(receiptPath).catch((error) => {
       if (error.code !== 'ENOENT') throw error;
     });
@@ -137,7 +137,7 @@ export async function main() {
     }
     if (!receipt)
       throw new Error(
-        'No fresh receipt. Build with EXPO_PUBLIC_RUSTRA_DEMO=functions and inspect Simulator/logs.',
+        'No fresh receipt. Build with EXPO_PUBLIC_UNIKIT_DEMO=functions and inspect Simulator/logs.',
       );
     const raw = `${JSON.stringify(receipt, null, 2)}\n`;
     await writeFile(resolve(output, `run-${run}.json`), raw, { flag: 'wx' });

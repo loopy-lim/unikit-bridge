@@ -10,7 +10,7 @@
 fn add(a: i32, b: i32) -> i32 { a + b }
 fn reset() {}
 
-let package = rustra::Package::builder("app")
+let package = unikit_bridge::Package::builder("app")
     .function("add", add)
     .function("reset", reset)
     .build();
@@ -19,7 +19,7 @@ let package = rustra::Package::builder("app")
 생성된 TypeScript는 `await add(2, 3)`와 `await reset()`으로 호출한다.
 
 - 인자 0~12개, 일반 반환값과 반환값 없는 함수를 지원한다. 입력·출력 래퍼 구조체와
-  Rustra 매크로, `Result` 반환을 요구하지 않는다.
+  Unikit 매크로, `Result` 반환을 요구하지 않는다.
 - 실패할 수 있는 함수는 `.try_function(name, handler, map_error)`로 등록한다.
   `.function`은 `Result`를 자동으로 풀지 않는다.
 - 안전한 `Fn` 트레잇 어댑터가 기존 명령 실행 경로를 재사용한다. 기존 command
@@ -81,7 +81,7 @@ view 접근이 포함된다. 실제 전송의 정확한 크기 `ArrayBuffer` 복
 
 | 검사                                                          | 결과                                  |
 | ------------------------------------------------------------- | ------------------------------------- |
-| 전체 `rustra` 테스트 및 doctest                               | 373 통과, 2 ignored, 실패 0           |
+| 전체 `unikit` 테스트 및 doctest                               | 373 통과, 2 ignored, 실패 0           |
 | types                                                         | 271 통과                              |
 | CLI                                                           | Node 318 + Bun 34 통과                |
 | 실제 함수 통합                                                | 18개 명령, 308개 검증 통과            |
@@ -115,8 +115,8 @@ Tauri 47 통과를 확인했다. 해당 어댑터 소스는 이후 변경하지 
 ```sh
 bun run test:functions
 bun scripts/function-registration-integration.ts --cpp
-cargo test -p rustra --locked
-cargo bench -p rustra --bench function_dispatch
+cargo test -p unikit-bridge --locked
+cargo bench -p unikit-bridge --bench function_dispatch
 bun scripts/function-registration-integration.ts --bench
 ```
 

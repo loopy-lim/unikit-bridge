@@ -1,4 +1,4 @@
-# Show HN Draft — rustra
+# Show HN Draft — unikit
 
 This file is a submission draft for Show HN. The article below quotes only
 numbers that already appear verbatim in
@@ -11,20 +11,20 @@ measurements were made for this draft.
 
 ## Title candidates
 
-1. **Show HN: Rustra – Define once in Rust, call from Node, Bun, Tauri, and React Native**
+1. **Show HN: Unikit – Define once in Rust, call from Node, Bun, Tauri, and React Native**
 2. **Show HN: One Rust core, four type-safe JS hosts, one binary wire with a CI contract gate**
-3. **Show HN: Rustra – a bridge framework that owns definition, codegen, wire, and verification**
+3. **Show HN: Unikit – a bridge framework that owns definition, codegen, wire, and verification**
 
 ## First-comment context (posted as the author's first comment)
 
-> Author here. rustra started as a scratch-my-own-itch project: I wanted one
+> Author here. unikit started as a scratch-my-own-itch project: I wanted one
 > Rust core callable from every JS runtime I ship to — Node, Bun, a Tauri
 > WebView, and React Native — without maintaining four hand-written binding
 > layers. Everything in the post links back to the repo; the performance
 > numbers come from committed benchmark receipts with the commands to
 > reproduce them. The honest-limitations section is worth reading before the
 > benchmarks: in-flight cancellation is shallow on most adapters, and Linux is
-> explicitly Alpha. Feedback on the contract-gate design (`rustra diff` +
+> explicitly Alpha. Feedback on the contract-gate design (`unikit diff` +
 > contract hash) especially welcome.
 
 ---
@@ -67,9 +67,9 @@ Each tool is reasonable within its host. The problem is multiplying a single
 Rust core across all four hosts, and getting type safety and wire format from
 _one_ source of truth rather than four adapters that each invent their own.
 
-### What rustra does instead
+### What unikit does instead
 
-rustra's bet: own the whole RPC surface — definition → codegen → wire →
+unikit's bet: own the whole RPC surface — definition → codegen → wire →
 verification — as a single contract.
 
 You define commands once in Rust:
@@ -86,7 +86,7 @@ fn add_numbers(input: AddNumbersInput) -> Result<AddNumbersOutput> {
 }
 ```
 
-Then `rustra codegen` emits a type-safe TypeScript client per host from the
+Then `unikit codegen` emits a type-safe TypeScript client per host from the
 published contract — the same contract, the same binary wire, for Node, Bun,
 Tauri, and React Native:
 
@@ -111,7 +111,7 @@ Three pieces make this more than macros plus a serializer:
    each generated host entry embeds the contract hash and verifies it against
    the live native library at bootstrap. An old native binary against new
    generated code rejects with `contract.mismatch` instead of silently
-   misbehaving. `rustra diff` reports breaking schema changes, so the gate
+   misbehaving. `unikit diff` reports breaking schema changes, so the gate
    runs in CI rather than in a QA session.
 
 3. **Documented per-host semantics instead of silent divergence.** Cancellation,
@@ -186,16 +186,16 @@ benchmarks:
 
 ### Status and try it
 
-Current release line: Rust crates 0.12.0, `@rustra/types` 0.12.1,
-`@rustra/cli` 0.12.0, adapters on their own version lines. MIT licensed. With
+Current release line: Rust crates 0.12.0, `@unikit-bridge/types` 0.12.1,
+`@unikit-bridge/cli` 0.12.0, adapters on their own version lines. MIT licensed. With
 Rust and Bun installed:
 
 ```bash
-bunx --bun @rustra/cli@0.12.0 init my-project --setup
+bunx --bun @unikit-bridge/cli@0.12.0 init my-project --setup
 ```
 
 scaffolds the project, generates the client, builds the Rust, and runs a demo
-call. `rustra doctor` checks the toolchain prerequisites per target.
+call. `unikit doctor` checks the toolchain prerequisites per target.
 
 The repo (with the benchmark receipts, verification scripts, and the full
 compatibility matrix) is linked from the submission. If you've hit the

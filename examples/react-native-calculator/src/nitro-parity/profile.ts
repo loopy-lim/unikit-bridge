@@ -1,6 +1,6 @@
 import { consume } from './measurement';
 
-export const PROFILE_CONTRACT = 'rustra-nitro-profile/v1';
+export const PROFILE_CONTRACT = 'unikit-nitro-profile/v1';
 export const PROFILE_CASES = [
   'add',
   'string',
@@ -13,7 +13,7 @@ export const PROFILE_CASES = [
   'buffer1048571',
 ] as const;
 export type ProfileCase = (typeof PROFILE_CASES)[number];
-export type ProfileFramework = 'rustra' | 'nitro';
+export type ProfileFramework = 'unikit' | 'nitro';
 export type ProfilePlan = {
   caseId: ProfileCase;
   framework: ProfileFramework;
@@ -23,7 +23,7 @@ export type ProfilePlan = {
 
 /** Small fixed grammar keeps launch admission independent of Hermes URL polyfills. */
 export function parseProfileURL(url: string | null): ProfilePlan {
-  const prefix = 'rustra-parity://profile?';
+  const prefix = 'unikit-parity://profile?';
   if (!url?.startsWith(prefix)) throw Error('invalid profile URL');
   const values: Record<string, string> = {};
   for (const pair of url.slice(prefix.length).split('&')) {
@@ -41,7 +41,7 @@ export function parseProfileURL(url: string | null): ProfilePlan {
   const { case: caseId, framework, run: runId, ms } = values;
   if (
     !PROFILE_CASES.includes(caseId as ProfileCase) ||
-    (framework !== 'rustra' && framework !== 'nitro') ||
+    (framework !== 'unikit' && framework !== 'nitro') ||
     !/^[a-zA-Z0-9_-]{1,80}$/.test(runId ?? '') ||
     !/^[0-9]+$/.test(ms ?? '')
   )

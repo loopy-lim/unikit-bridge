@@ -17,7 +17,7 @@ export async function runDiff(args: string[]): Promise<void> {
   const oldPath = options.values.get('old');
   const newPath = options.values.get('new');
   if (!oldPath || !newPath)
-    throw new UsageError('Provide --old and --new. Usage: rustra diff --old v1.json --new v2.json');
+    throw new UsageError('Provide --old and --new. Usage: unikit diff --old v1.json --new v2.json');
   // 파일 부재도 파싱 실패와 같은 계약 — 경로와 재생성 힌트를 붙인다(감사 A7
   // 후속). ENOENT 는 프로젝트 상태 오류로 exit 1, UsageError(exit 2)가 아니다.
   const readSchemaArg = async (path: string): Promise<string> => {

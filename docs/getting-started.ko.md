@@ -1,6 +1,6 @@
 [English](./getting-started.md)
 
-# rustra 시작하기
+# unikit 시작하기
 
 여러 인자와 일반 반환값을 사용하는 API는 [일반 함수 등록](./function-registration.ko.md)을 참고하세요.
 
@@ -8,11 +8,11 @@
 > 대상으로 한다. 네이티브 라이브러리·JS 패키지·생성물을 함께 갱신한다.
 > [DX 마이그레이션 안내](migrations/0.11-to-0.12.ko.md)를 참고한다.
 
-rustra는 Rust 패키지를 한 번 정의하면 Node, Bun, Tauri, React Native 어디에서나 동작하는 TypeScript 클라이언트를 자동 생성하는 브릿지 프레임워크다.
+unikit는 Rust 패키지를 한 번 정의하면 Node, Bun, Tauri, React Native 어디에서나 동작하는 TypeScript 클라이언트를 자동 생성하는 브릿지 프레임워크다.
 
-이 가이드는 rustra를 처음 사용하는 개발자가 10분 안에 첫 패키지를 만들고 TypeScript 클라이언트를 생성하는 것을 목표로 한다.
+이 가이드는 unikit를 처음 사용하는 개발자가 10분 안에 첫 패키지를 만들고 TypeScript 클라이언트를 생성하는 것을 목표로 한다.
 
-> 용어: **rustra**는 Rust 크레이트와 npm 스코프(`@rustra/*`), **rustra-bridge**는
+> 용어: **unikit**는 Rust 크레이트와 npm 스코프(`@unikit-bridge/*`), **unikit-bridge**는
 > 이 저장소를 가리킨다. 같은 프로젝트의 두 이름이다.
 
 ## 전제 조건
@@ -27,19 +27,19 @@ rustra는 Rust 패키지를 한 번 정의하면 Node, Bun, Tauri, React Native 
 | Xcode / CocoaPods            | iOS 전용     | React Native iOS ([RN 설정 가이드](extending/react-native-setup.ko.md) 참고)                         |
 | Android SDK/NDK 27+, Java 17 | Android 전용 | React Native Android                                                                                 |
 
-`rustra doctor`가 설정에 적용되는 행을 전부 검사한다 — [개발 허들 가이드](development-hurdles.ko.md) 참고.
+`unikit doctor`가 설정에 적용되는 행을 전부 검사한다 — [개발 허들 가이드](development-hurdles.ko.md) 참고.
 
 ---
 
 ## 1. 설치
 
-### 가장 빠른 시작 — `rustra init --setup`
+### 가장 빠른 시작 — `unikit init --setup`
 
 Rust와 Bun 1.4 이상이 설치되어 있으면 다음 명령을 실행한다.
 
 ```bash
-bunx --bun @rustra/cli@0.13.0 init my-project --setup
-# Bun FFI를 쓰려면: bunx --bun @rustra/cli@0.13.0 init my-bun-project --host bun --setup
+bunx --bun @unikit-bridge/cli@0.13.0 init my-project --setup
+# Bun FFI를 쓰려면: bunx --bun @unikit-bridge/cli@0.13.0 init my-bun-project --host bun --setup
 ```
 
 프로젝트 생성 → 클라이언트 생성 → 의존성 설치 → Rust 빌드 → `echo` 데모 호출까지
@@ -54,20 +54,20 @@ cd my-project
 bun run start
 ```
 
-`start`는 `rustra setup --config rustra.json --run`을 실행한다. `bun run setup`은
+`start`는 `unikit setup --config unikit.json --run`을 실행한다. `bun run setup`은
 같은 준비를 수행하되 `demo`를 실행하지 않는다. 실패하면 오류를 해결하고 출력된
 setup 명령으로 재시도한다. `init --force`는 스캐폴드 파일을 의도적으로 교체할 때만 사용한다.
 
 `--setup` 없이 만들었다면 `cd my-project`, `bun install`, `bun run start` 순서로
-시작한다. `rustra.json`과 `demo` 스크립트가 있는 기존 Node/Bun 프로젝트는
-`rustra setup --config rustra.json --run`을 사용할 수 있다.
+시작한다. `unikit.json`과 `demo` 스크립트가 있는 기존 Node/Bun 프로젝트는
+`unikit setup --config unikit.json --run`을 사용할 수 있다.
 
 스캐폴드는 Cargo 크레이트, `echo` 명령, `generate` schema probe, `src/index.ts`,
-`rustra.json`, `package.json`, `.gitignore`, `tsconfig.json`을 포함한다.
+`unikit.json`, `package.json`, `.gitignore`, `tsconfig.json`을 포함한다.
 기본 호스트는 Node이며 `--host bun`은 네이티브 라이브러리 진입점을 추가하고
 Bun FFI를 선택한다. 생성 진입점은 첫 호출 전에 Rust와 TypeScript 계약이 일치하는지 확인한다.
 
-RN의 setup은 생성 모듈을 연결하고 `rustra:ios`·`rustra:android` 준비 스크립트를 만든다.
+RN의 setup은 생성 모듈을 연결하고 `unikit:ios`·`unikit:android` 준비 스크립트를 만든다.
 Tauri는 등록 헬퍼와 앱에 추가할 코드를 출력한다. 네이티브 전용 앱은 `--run` 없이
 setup을 실행한 뒤 기존 플랫폼 명령으로 빌드·실행한다. 준비 완료는
 Simulator·실기기·WebView 런타임 검증을 뜻하지 않는다.
@@ -89,7 +89,7 @@ bun run try:node
 
 ```toml
 [dependencies]
-rustra = "0.13.0"
+unikit-bridge = "0.13.0"
 serde = { version = "1", features = ["derive"] }
 schemars = { version = "0.8", features = ["derive"] }
 ```
@@ -99,20 +99,20 @@ schemars = { version = "0.8", features = ["derive"] }
 TypeScript 어댑터는 사용할 환경만 설치하면 된다:
 
 ```bash
-bun add @rustra/node@0.11.1      # Node.js
-bun add @rustra/bun@0.11.1       # Bun
-bun add @rustra/tauri@0.10.1     # Tauri
-bun add @rustra/react-native@0.11.0  # React Native
+bun add @unikit-bridge/node@0.11.1      # Node.js
+bun add @unikit-bridge/bun@0.11.1       # Bun
+bun add @unikit-bridge/tauri@0.10.1     # Tauri
+bun add @unikit-bridge/react-native@0.11.0  # React Native
 ```
 
 ### 모노레포 / workspace에서 사용
 
-rustra는 workspace 기반으로 관리하는 것이 권장된다. 최상위 `Cargo.toml`에 다음 의존성을 추가한다.
+unikit는 workspace 기반으로 관리하는 것이 권장된다. 최상위 `Cargo.toml`에 다음 의존성을 추가한다.
 
 ```toml
 [workspace.dependencies]
-rustra = { path = "crates/rustra" }
-rustra-macros = { path = "crates/rustra-macros" }
+unikit-bridge = { path = "crates/unikit-bridge" }
+unikit-bridge-macros = { path = "crates/unikit-bridge-macros" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 schemars = { version = "0.8", features = ["derive"] }
@@ -124,7 +124,7 @@ hex = "0.4"
 
 ```toml
 [package]
-name = "rustra-calculator-example"
+name = "unikit-calculator-example"
 edition.workspace = true
 version.workspace = true
 publish = false
@@ -133,7 +133,7 @@ publish = false
 crate-type = ["rlib", "staticlib"]
 
 [dependencies]
-rustra.workspace = true
+unikit-bridge.workspace = true
 schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -143,8 +143,8 @@ serde_json.workspace = true
 
 | crate                | 역할                                                           |
 | -------------------- | -------------------------------------------------------------- |
-| `rustra`             | Package builder, TypeScript 생성기, JSON Schema 기반 타입 매핑 |
-| `rustra-macros`      | `#[command]` 속성 매크로 (rustra가 자동으로 재export)          |
+| `unikit`             | Package builder, TypeScript 생성기, JSON Schema 기반 타입 매핑 |
+| `unikit-bridge-macros`      | `#[command]` 속성 매크로 (unikit가 자동으로 재export)          |
 | `serde` + `schemars` | 직렬화/역직렬화 + JSON Schema 생성. 타입에 3개 derive 필요     |
 
 ---
@@ -158,7 +158,7 @@ serde_json.workspace = true
 입력과 출력 구조체를 정의한다. 핵심은 **세 개의 derive**와 `#[serde(rename_all = "camelCase")]`다.
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -196,7 +196,7 @@ pub fn add_numbers(input: AddNumbersInput) -> Result<AddNumbersOutput> {
 규칙:
 
 - 입력 파라미터는 **정확히 1개**. 구조체로 받는다.
-- 반환값은 `Result<O>` 형태여야 한다. `rustra::prelude::Result`를 사용.
+- 반환값은 `Result<O>` 형태여야 한다. `unikit_bridge::prelude::Result`를 사용.
 - 함수명 `add_numbers`는 자동으로 camelCase 커맨드명 `addNumbers`로 변환된다.
 
 #### 커맨드 이름 직접 지정
@@ -235,10 +235,10 @@ pub fn calculator_package() -> Package {
 여러 커맨드를 한 번에 등록할 때 `register!` 매크로를 사용할 수 있다. `Package::builder()`와 함께 커맨드 함수들을 나열하면 된다.
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 fn main() -> Result<()> {
-    let package = rustra::register!(Package::builder("my.pkg"), add_numbers, multiply)
+    let package = unikit_bridge::register!(Package::builder("my.pkg"), add_numbers, multiply)
         .build();
 
     // TypeScript 생성 — 스키마를 발행하고, 표면 렌더링은 CLI가
@@ -251,21 +251,21 @@ fn main() -> Result<()> {
 
 ### 2-4. TypeScript 생성
 
-한 커맨드로 전 표면을 렌더링한다: `bun run codegen` (즉 `rustra codegen --config rustra.json`).
+한 커맨드로 전 표면을 렌더링한다: `bun run codegen` (즉 `unikit codegen --config unikit.json`).
 Rust 쪽 역할은 계약 발행까지다 — `src/bin/generate.rs`가 `schema.json`만 쓰고, TS/C++ 산출물은
 CLI가 이 파일에서 렌더링한다. 생성 코드의 단일 진실원이 유지된다. 이것이 calculator의 실제
-프로브 bin이며 `RUSTRA_SCHEMA_OUT`를 존중한다 — 환경 변수가 있으면 그 디렉토리 안에
+프로브 bin이며 `UNIKIT_SCHEMA_OUT`를 존중한다 — 환경 변수가 있으면 그 디렉토리 안에
 `schema.json`을 쓰고(이 방식으로 `codegen --check`가 작업 트리를 건드리지 않고 Rust 단계를
 검증한다), 없으면 `generated/schema.json`에 기록한다.
 
 ```rust
 // examples/calculator/src/bin/generate.rs
-use rustra_calculator_example::calculator_package;
+use unikit_calculator_example::calculator_package;
 use std::path::PathBuf;
 
-fn main() -> rustra::Result<()> {
+fn main() -> unikit_bridge::Result<()> {
     let generated = calculator_package().generate_typescript()?;
-    let out = match std::env::var_os("RUSTRA_SCHEMA_OUT") {
+    let out = match std::env::var_os("UNIKIT_SCHEMA_OUT") {
         Some(p) if !p.is_empty() => PathBuf::from(p).join("schema.json"),
         _ => PathBuf::from("generated").join("schema.json"),
     };
@@ -288,8 +288,8 @@ println!("2 + 3 = {}", output.value);
 실행:
 
 ```bash
-cargo run -p rustra-calculator-example          # 데모: 2 + 3 = 5
-cargo run -p rustra-calculator-example --bin generate   # 계약 프로브: schema.json
+cargo run -p unikit-calculator-example          # 데모: 2 + 3 = 5
+cargo run -p unikit-calculator-example --bin generate   # 계약 프로브: schema.json
 bun run --cwd examples/calculator codegen                # schema.json에서 TS 표면 렌더링
 ```
 
@@ -316,13 +316,13 @@ bun run --cwd examples/calculator codegen                # schema.json에서 TS 
 
 <!-- prettier-ignore -->
 ```ts
-export type { EngineClient, RustraError } from '@rustra/types';
-export { RustraCommandError } from '@rustra/types';
+export type { EngineClient, UnikitError } from '@unikit-bridge/types';
+export { UnikitCommandError } from '@unikit-bridge/types';
 
 /**
  * 커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.
  *
- * 코드젠은 이 타입을 인식하면 TS 를 `RustraChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).
+ * 코드젠은 이 타입을 인식하면 TS 를 `UnikitChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).
  */
 export type ChannelHandle = number;
 
@@ -625,16 +625,6 @@ export type ResourceWriteOutput = {
   entries: number;
 };
 
-export type RegistryDemoInput = {
-  op: string;
-};
-
-export type RegistryDemoOutput = {
-  ok: boolean;
-  frozen: boolean;
-  message: string;
-};
-
 /**
  * @deprecated Rust 내부 타입명(`Tuple_of_double_and_double`)이 그대로 노출된 레거시 별칭입니다.
  * 새 코드는 인라인 타입을 사용하세요 — 생성 명령 시그니처는 이미 정화됐고,
@@ -710,6 +700,16 @@ export type ToUpperOutput = {
   result: string;
 };
 
+export type RegistryDemoInput = {
+  op: string;
+};
+
+export type RegistryDemoOutput = {
+  ok: boolean;
+  frozen: boolean;
+  message: string;
+};
+
 /**
  * A2 와이드 정수 복합 타입 표본 — Vec<u64> + Option<i64>. 원소/옵션 레벨 uvar64/zigzag64 헬퍼가 스트림 중간 7바이트 varint 경계를 넘는 값을 무손실 왕복하는지 cross-wire 픽스처로 고정한다.
  */
@@ -735,7 +735,7 @@ export type WideAggOutput = {
 
 ```ts
 import type { AddNumbersInput, AddNumbersOutput } from './types.js';
-import { createGeneratedFields2 } from '@rustra/types';
+import { createGeneratedFields2 } from '@unikit-bridge/types';
 
 // 필드 1~2개 명령은 호출당 힘(required fields)을 직접 전달하는 const 형태로 생성된다
 // (1-필드 명령은 `createGeneratedFields1` 을 쓰며 (input, options) 호출 표면은 같다).
@@ -758,7 +758,7 @@ export const addNumbers = createGeneratedFields2<AddNumbersInput, AddNumbersOutp
 
 <!-- prettier-ignore -->
 ```ts
-export const GENERATED_CONTRACT_HASH = 'e70c24c62944ff78fb6ca58b5658d85bb5cff49af4acc96b3a78bedcbdfb0a58';
+export const GENERATED_CONTRACT_HASH = 'be8826170c3764da609a4ce6cda76a8eb105ff818dab1425d52a51b3133df747';
 export const SCHEMA_VERSION = 1;
 ```
 
@@ -814,7 +814,7 @@ export const SCHEMA_VERSION = 1;
 
 ### Node
 
-`rustra.json`에 Node 블록을 추가한다 — `rustra init`은 같은 블록을
+`unikit.json`에 Node 블록을 추가한다 — `unikit init`은 같은 블록을
 `output: ./src/generated` 로 스캐폴드한다(`src/index.ts` 기준 import는 `./generated/...`).
 
 ```json
@@ -829,10 +829,10 @@ const result = await addNumbers({ a: 20, b: 22 });
 
 코드젠은 Cargo metadata의 기본 binary와 target directory를 고정한다. Release를
 먼저 사용하고 Debug로 폴백하며, transpile 뒤에는 현재 작업 디렉터리의 부모에서 같은
-Cargo target을 찾는다. 배포 디렉터리가 다르면 `RUSTRA_NODE_BINARY`를 지정한다.
+Cargo target을 찾는다. 배포 디렉터리가 다르면 `UNIKIT_NODE_BINARY`를 지정한다.
 표준 runtime은 `{command, args}` → `{ok, result}` one-shot stdio protocol을 구현해야
-한다. 여기에 `__rustra_contract` 예약 명령이 현재 계약 해시를 문자열로 반환해야
-생성 Node 진입점의 fail-fast 검사가 통과한다. calculator와 `rustra init` 스캐폴드의
+한다. 여기에 `__unikit_contract` 예약 명령이 현재 계약 해시를 문자열로 반환해야
+생성 Node 진입점의 fail-fast 검사가 통과한다. calculator와 `unikit init` 스캐폴드의
 `run_invoke_stdio`가 참조 구현이다 — 아래가 그 스캐폴드를 일반화한 완전한 최소
 `src/main.rs`다(약 30줄):
 
@@ -840,7 +840,7 @@ Cargo target을 찾는다. 배포 디렉터리가 다르면 `RUSTRA_NODE_BINARY`
 use serde_json::{json, Value};
 use std::io::{Read, Write};
 
-fn main() -> rustra::Result<()> {
+fn main() -> unikit_bridge::Result<()> {
     if std::env::args().nth(1).as_deref() == Some("invoke") {
         return run_invoke_stdio();
     }
@@ -848,17 +848,17 @@ fn main() -> rustra::Result<()> {
     Ok(())
 }
 
-fn run_invoke_stdio() -> rustra::Result<()> {
+fn run_invoke_stdio() -> unikit_bridge::Result<()> {
     let mut input = String::new();
     std::io::stdin().read_to_string(&mut input)?;
-    let request: Value = serde_json::from_str(&input).map_err(rustra::RustraError::invalid_args)?;
+    let request: Value = serde_json::from_str(&input).map_err(unikit_bridge::UnikitError::invalid_args)?;
     let command = request.get("command").and_then(Value::as_str)
-        .ok_or_else(|| rustra::RustraError::invalid_args("missing command"))?;
-    if command == "__rustra_contract" {
+        .ok_or_else(|| unikit_bridge::UnikitError::invalid_args("missing command"))?;
+    if command == "__unikit_contract" {
         // 생성 Node 진입점이 Rust와 TS가 같은 계약을 공유하는지 검증한다
         let hash = my_package().generate_typescript()?.contract_hash;
         let response = serde_json::to_vec(&json!({ "ok": true, "result": hash }))
-            .map_err(rustra::RustraError::internal)?;
+            .map_err(unikit_bridge::UnikitError::internal)?;
         std::io::stdout().write_all(&response)?;
         return Ok(());
     }
@@ -877,7 +877,7 @@ fn run_invoke_stdio() -> rustra::Result<()> {
 **커스텀 transport (napi-rs 등):**
 
 ```ts
-import { createNodeEngine } from '@rustra/node';
+import { createNodeEngine } from '@unikit-bridge/node';
 
 const engine = createNodeEngine({
   invoke(command, args) {
@@ -898,7 +898,7 @@ export한다(loop-stdio 런타임이 `events:"push"` 핸드셰이크를 받으�
 ### Bun
 
 Rust library는 `crate-type = ["rlib", "cdylib"]`과
-`rustra::native_entry!(app_package)`를 선언한다. 설정에는 빈 Bun 블록만 둔다.
+`unikit_bridge::native_entry!(app_package)`를 선언한다. 설정에는 빈 Bun 블록만 둔다.
 
 ```json
 { "schema": "./generated/schema.json", "output": "./generated", "bun": {} }
@@ -912,7 +912,7 @@ const result = await addNumbers({ a: 20, b: 22 });
 
 생성 진입점은 Release/Debug cdylib 후보를 실제 ABI 심볼까지 검사하고 Bun FFI의 stable
 C ABI를 Frame engine에 연결한다. Rust 응답은 JS 소유 `ArrayBuffer`로 복사한 뒤
-정확한 pointer/length로 해제한다. 다른 배포 레이아웃은 `RUSTRA_BUN_LIBRARY`로 지정한다.
+정확한 pointer/length로 해제한다. 다른 배포 레이아웃은 `UNIKIT_BUN_LIBRARY`로 지정한다.
 
 ### Tauri
 
@@ -925,13 +925,13 @@ await subscribeEvent('progress.tick', console.log);
 const result = await addNumbers({ a: 20, b: 22 });
 ```
 
-Tauri 어댑터는 내부적으로 모든 커맨드를 `rustra_dispatch` 단일 엔드포인트로 멀티플렉싱한다. `createTauriEngine`은 각 커맨드 호출을 `invoke('rustra_dispatch', { command, args })` 형태로 래핑한다.
+Tauri 어댑터는 내부적으로 모든 커맨드를 `unikit_dispatch` 단일 엔드포인트로 멀티플렉싱한다. `createTauriEngine`은 각 커맨드 호출을 `invoke('unikit_dispatch', { command, args })` 형태로 래핑한다.
 
-Rust 쪽에서는 `rustra::tauri_support::register`로 패키지를 Tauri 빌더에 한 줄로 등록한다.
+Rust 쪽에서는 `unikit_bridge::tauri_support::register`로 패키지를 Tauri 빌더에 한 줄로 등록한다.
 
 ```rust
 // Tauri 앱 main.rs
-use rustra::tauri_support;
+use unikit_bridge::tauri_support;
 
 fn main() {
     let builder = tauri_support::register(my_package(), tauri::Builder::default());
@@ -942,7 +942,7 @@ fn main() {
 > **참고:** `tauri_support`를 사용하려면 `Cargo.toml`에서 `tauri` feature를 활성화해야 한다.
 >
 > ```toml
-> rustra = { path = "...", features = ["tauri"] }
+> unikit = { path = "...", features = ["tauri"] }
 > ```
 
 ### React Native
@@ -955,13 +955,13 @@ native entry를 한 번 선언한다.
 **Rust 측 설정:**
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 pub fn my_package() -> Package {
     register!(Package::builder("my.pkg"), add_numbers, multiply).build()
 }
 
-rustra::native_entry!(my_package);
+unikit_bridge::native_entry!(my_package);
 ```
 
 `Cargo.toml`의 `[lib]`에는 `crate-type = ["rlib", "staticlib"]`를 둔다.
@@ -987,8 +987,8 @@ RN JSI `invokeTyped` 진입을 직접 호출한다. 해당 형태 밖의 명령�
 `commands.ts` 경로를 유지한다.
 
 ```bash
-bunx --bun @rustra/cli@0.13.0 doctor --config rustra.json
-bunx --bun @rustra/cli@0.13.0 codegen --config rustra.json
+bunx --bun @unikit-bridge/cli@0.13.0 doctor --config unikit.json
+bunx --bun @unikit-bridge/cli@0.13.0 codegen --config unikit.json
 ```
 
 **TypeScript 측 사용:**
@@ -1003,7 +1003,7 @@ const result = await addNumbers({ a: 20, b: 22 }); // JSI fast path
 `frameRegistry` 고속 엔진 설정을 동시 호출에도 한 번만 수행한다. 실패한 설치는 다음
 호출에서 재시도하고, 앱이 명시적으로 `configure()`한 엔진은 늦게 끝난 설치가 덮어쓰지
 않는다. 생성기는 Cargo package/library를 추론하고 앱 전용
-`@rustra/generated-react-native` package에 Podspec, Gradle/CMake/JNI와 공유 C++
+`@unikit-bridge/generated-react-native` package에 Podspec, Gradle/CMake/JNI와 공유 C++
 bridge를 만든다. Expo development build와 bare RN 모두 표준 autolinking을 쓰며,
 앱 코드에는 install/configure 보일러플레이트가 남지 않는다. Expo Go는 지원하지 않는다.
 
@@ -1014,12 +1014,12 @@ bridge를 만든다. Expo development build와 bare RN 모두 표준 autolinking
 
 2026-08-24 Release 성능은 동일 공개 객체 연산의 Nitro 대비 3회 중앙값
 add 1.0297x, string 1.0229x, bytes 0.9219x, pair 1.0656x다. 최신 러너는
-Nitro/Rustra/FFI 순환 측정, paired 95% CI, 생성 helper/native 경로 진단을
+Nitro/Unikit/FFI 순환 측정, paired 95% CI, 생성 helper/native 경로 진단을
 포함하며 Bun 명령으로 JSON receipt를 자동 추출한다. 비교 범위와 기능 패리티 매트릭스는
 [벤치마크 문서](benchmarks.md) §"Nitro Modules 비교" 참고.
 
 **C++ 코덱 코드젠:** `reactNative`가 활성화되면
-`rustra-generated-codecs.{hpp,cpp}`도 generated package 내부에 자동 배치되고
+`unikit-generated-codecs.{hpp,cpp}`도 generated package 내부에 자동 배치되고
 iOS와 Android build에 포함된다. Xcode/Podspec/Gradle에 파일을 수동 추가하지 않는다.
 자세한 설정은 [React Native 셋업 가이드](extending/react-native-setup.md) 참고.
 
@@ -1033,8 +1033,8 @@ TypeScript/native codec 동기화, Expo/Pod 연결, Rust iOS target, static arch
 #### JSON (저수준 transport 호환성)
 
 ```ts
-import { createReactNativeEngine } from '@rustra/react-native';
-import { configure } from '@rustra/types';
+import { createReactNativeEngine } from '@unikit-bridge/react-native';
+import { configure } from '@unikit-bridge/types';
 import { addNumbers } from '../generated/commands.js';
 import { customNativeTransport } from './native-transport';
 
@@ -1084,7 +1084,7 @@ cargo test --workspace
 ### TypeScript 생성 확인
 
 ```bash
-cargo run -p rustra-calculator-example --bin generate   # 계약 프로브: schema.json
+cargo run -p unikit-calculator-example --bin generate   # 계약 프로브: schema.json
 bun run --cwd examples/calculator codegen                # TS 표면 렌더링
 ```
 
@@ -1128,10 +1128,10 @@ bun run test:runtime:tauri
 
 ```
 my-app/
-├── rust-core/            # Rust 패키지 (rustra 사용)
+├── rust-core/            # Rust 패키지 (unikit 사용)
 │   ├── Cargo.toml
 │   ├── src/lib.rs
-│   └── generated/        ← rustra가 여기에 TS 생성
+│   └── generated/        ← unikit가 여기에 TS 생성
 │       ├── types.ts
 │       ├── commands.ts
 │       ├── contract.ts
@@ -1164,17 +1164,17 @@ my-app/
 // package.json
 {
   "scripts": {
-    "doctor": "rustra doctor --config rustra.json",
-    "codegen": "rustra codegen --config rustra.json",
-    "codegen:check": "rustra codegen --config rustra.json --check",
+    "doctor": "unikit doctor --config unikit.json",
+    "codegen": "unikit codegen --config unikit.json",
+    "codegen:check": "unikit codegen --config unikit.json --check",
     "build:ts": "tsc",
     "build": "bun run codegen && bun run build:ts",
-    "dev": "rustra dev --config rustra.json"
+    "dev": "unikit dev --config unikit.json"
   }
 }
 ```
 
-`dev` 스크립트는 `rustra dev --config rustra.json`을 쓴다 — `rustra init`이 만드는
+`dev` 스크립트는 `unikit dev --config unikit.json`을 쓴다 — `unikit init`이 만드는
 스캐폴드와 동일하며, Rust 소스 변경까지 감시해 schema 재생성 + TS 재생성을 한 번에
 처리한다. 스키마 크레이트 외에 설정된 호스트 크레이트도 감시하고, reload 성공은 설정된
 Node·Bun 런타임 프로듀서 재빌드가 끝난 뒤에만 보고된다 — 런타임 빌드가 실패하면 reload 를
@@ -1183,11 +1183,11 @@ Node·Bun 런타임 프로듀서 재빌드가 끝난 뒤에만 보고된다 — 
 치유된다. 타입 검사만 반복하고 싶다면 `tsc --watch`를 별도 스크립트로 추가한다.
 
 debug 빌드에서 프로토타이핑하는 동안에는 생성 클라이언트에 아직 없는 Rust 핸들러를
-`@rustra/types`의 `invokeLoose(engine, 'commandName', args?)`로 호출할 수 있다 — 동적
+`@unikit-bridge/types`의 `invokeLoose(engine, 'commandName', args?)`로 호출할 수 있다 — 동적
 개발 티어와 미지 디바이스 토큰 벽, 릴리스 시점 게이트는 [dev-tier.ko.md](dev-tier.ko.md)에
 있다.
 
-`rustra.json`은 Rust generator를 명시한다:
+`unikit.json`은 Rust generator를 명시한다:
 
 ```json
 {
@@ -1216,7 +1216,7 @@ calculator 예제의
 서브커맨드를 처리하도록 `main.rs`를 작성하면 된다:
 
 ```rust
-fn main() -> rustra::Result<()> {
+fn main() -> unikit_bridge::Result<()> {
     let args: Vec<String> = std::env::args().collect();
     if args.get(1).map(|s| s.as_str()) == Some("generate") {
         let package = my_package();
@@ -1244,15 +1244,15 @@ bun run codegen:check
 
 ### Rust 측
 
-`RustraError`로 에러를 반환한다. `Serialize`가 구현되어 있어 JSON으로 직렬화된다.
+`UnikitError`로 에러를 반환한다. `Serialize`가 구현되어 있어 JSON으로 직렬화된다.
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 #[command]
 fn divide(input: DivideInput) -> Result<DivideOutput> {
     if input.b == 0 {
-        return Err(RustraError::custom("math.divide_by_zero", "cannot divide by zero"));
+        return Err(UnikitError::custom("math.divide_by_zero", "cannot divide by zero"));
     }
     Ok(DivideOutput { value: input.a / input.b })
 }
@@ -1265,35 +1265,35 @@ fn divide(input: DivideInput) -> Result<DivideOutput> {
 | `command.not_found`    | 존재하지 않는 커맨드 호출            |
 | `command.invalid_args` | 입력 JSON 역직렬화 실패              |
 | `internal`             | 내부 오류 (직렬화 실패, I/O 등)      |
-| custom (지정한 코드)   | `RustraError::custom(code, message)` |
+| custom (지정한 코드)   | `UnikitError::custom(code, message)` |
 
 ### TypeScript 측
 
 커맨드 호출이 실패하면 어댑터가 에러를 throw한다. 모든 호스트 어댑터(Node/Bun/Tauri/RN)는
-`@rustra/types`의 `RustraCommandError`로 정규화하므로 `instanceof` 분기가 하나뿐이다:
+`@unikit-bridge/types`의 `UnikitCommandError`로 정규화하므로 `instanceof` 분기가 하나뿐이다:
 
 ```ts
-import { RustraCommandError } from '@rustra/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 import { divide } from '../generated/node.js';
 
 try {
   const result = await divide({ a: 10, b: 0 });
 } catch (e) {
-  if (e instanceof RustraCommandError) {
+  if (e instanceof UnikitCommandError) {
     console.log(e.code); // "math.divide_by_zero"
     console.log(e.message); // "cannot divide by zero"
   }
 }
 ```
 
-`RustraCommandError`는 `err.code`, `err.retryable`을 노출하고, 타임아웃/취소는 각각
+`UnikitCommandError`는 `err.code`, `err.retryable`을 노출하고, 타임아웃/취소는 각각
 `TimeoutError`/`CancelledError` 서브클래스로도 잡을 수 있다. 원본 transport 에러는
 `err.cause`에 보존된다.
 
 #### 타입화 에러 가드 (Rust 측에서 에러 코드를 선언한 경우)
 
 문자열 비교는 오타를 못 잡는다. Rust 커맨드가 도메인 에러 코드를 선언하면(참조:
-[Rust API 가이드 — 커맨드별 에러 코드 선언](./rust-api-guide.ko.md)) `rustra codegen`이
+[Rust API 가이드 — 커맨드별 에러 코드 선언](./rust-api-guide.ko.md)) `unikit codegen`이
 `generated/errors.ts`에 커맨드별 가드도 함께 생성한다. 가드로 잡으면 code가 리터럴
 유니언으로 좁혀져 코드 오타가 컴파일 에러로 바뀐다:
 
@@ -1309,11 +1309,11 @@ try {
     }
   }
   // 미선언 코드(예: 신규 네이티브가 새 코드를 반환)는 여기로 흐른다:
-  // 폴백은 e instanceof RustraCommandError + e.code 문자열 분기.
+  // 폴백은 e instanceof UnikitCommandError + e.code 문자열 분기.
 }
 ```
 
-선언하지 않은 커맨드에는 가드가 없을 뿐 — 위의 일반 `RustraCommandError` 패턴은
+선언하지 않은 커맨드에는 가드가 없을 뿐 — 위의 일반 `UnikitCommandError` 패턴은
 어디서나 그대로 동작한다.
 
 ---
@@ -1373,7 +1373,7 @@ Package::builder("id").command_fn(fn).build()
 package.generate_typescript()?.write_schema_to_dir("generated")   (schema.json 만)
         |
         v
-rustra codegen --config rustra.json                                (TS CLI 가 전 표면 렌더링)
+unikit codegen --config unikit.json                                (TS CLI 가 전 표면 렌더링)
         |
         v
 generated/

@@ -2,7 +2,7 @@ English | [한국어](./README.ko.md)
 
 # Tauri Calculator Example
 
-An example that integrates a rustra package into a Tauri 2 desktop application.
+An example that integrates a unikit package into a Tauri 2 desktop application.
 
 ## Overview
 
@@ -27,9 +27,9 @@ bun run bench
 
 The benchmark opens its window and requests focus after application startup to avoid
 hidden-view scheduling effects. The receipt records actual visibility and focus.
-The runner logs `RUSTRA_TAURI_BENCH_PROGRESS` checkpoints outside timed batches.
+The runner logs `UNIKIT_TAURI_BENCH_PROGRESS` checkpoints outside timed batches.
 Timeouts identify the last stage; an app launch failure or early exit fails immediately.
-Set `RUSTRA_TAURI_BENCH_TIMEOUT_MS` to an integer from 1000 to 600000 to adjust the
+Set `UNIKIT_TAURI_BENCH_TIMEOUT_MS` to an integer from 1000 to 600000 to adjust the
 60-second deadline. `bun run test:benchmark-runner` verifies collection and cleanup
 with controlled child processes, without opening a WebView.
 
@@ -37,23 +37,23 @@ with controlled child processes, without opening a WebView.
 
 Without re-running `tauri dev`, Rust handler edits swap into the running app.
 The bridge crate is `examples/calculator`, but the dev config is dedicated to
-this example (`rustra.hot.json`) so the shared calculator config keeps its
+this example (`unikit.hot.json`) so the shared calculator config keeps its
 default `native` target:
 
 ```bash
 # Terminal 1 — watch + codegen + cdylib build + parity gate + gated publish
-rustra dev --config rustra.hot.json
+unikit dev --config unikit.hot.json
 
 # Terminal 2 — the app loads and watches the gated live artifact instead of
-# static linking. Use the exact RUSTRA_HOT_CORE path rustra dev prints
-# (target/debug/librustra_calculator_example-hot-live.dylib in this workspace).
-RUSTRA_HOT_CORE=../../target/debug/librustra_calculator_example-hot-live.dylib bunx tauri dev
+# static linking. Use the exact UNIKIT_HOT_CORE path unikit dev prints
+# (target/debug/libunikit_calculator_example-hot-live.dylib in this workspace).
+UNIKIT_HOT_CORE=../../target/debug/libunikit_calculator_example-hot-live.dylib bunx tauri dev
 ```
 
 A swap is reported on stderr with the old/new contract hashes. It is also
-pushed to the webview as a `rustra://hot-core/swapped` event —
+pushed to the webview as a `unikit://hot-core/swapped` event —
 `{ oldContractHash, newContractHash }` on success, `{ error }` on failure.
-Subscribe with `subscribeHotSwap` from `@rustra/tauri` (this example renders
+Subscribe with `subscribeHotSwap` from `@unikit-bridge/tauri` (this example renders
 the swap time plus 8-char hashes in `src/app.ts`). Both hashes travel in the
 payload, so the event doubles as the JS cache resynchronization signal — no
 separate schema-generation counter. Channel and resource tables live in the
@@ -77,7 +77,7 @@ into one command. It resolves a booted iPhone simulator, installs the built
 app, re-resolves the app data container path on every run (reinstalls change
 it — the caveat that made the manual loop painful), stages the hot-core
 artifact into the container by atomic rename, and launches the app with
-`SIMCTL_CHILD_RUSTRA_HOT_CORE` pointed at the final absolute path, which it
+`SIMCTL_CHILD_UNIKIT_HOT_CORE` pointed at the final absolute path, which it
 echoes:
 
 ```bash
@@ -91,13 +91,13 @@ echoes:
 ../../scripts/hot-swap-ios.sh --dry-run
 
 # after a Rust rebuild: re-stage the dylib without reinstalling the app
-RUSTRA_HOT_IOS_SKIP_INSTALL=1 ../../scripts/hot-swap-ios.sh
+UNIKIT_HOT_IOS_SKIP_INSTALL=1 ../../scripts/hot-swap-ios.sh
 ```
 
 The artifact source follows the `packages/cli/src/dev-dylib.ts` publish
 naming (`-hot-live` gated publish preferred, then the plain cdylib cargo
 emits) under `target/aarch64-apple-ios-sim/<profile>/`. Every path, id, and
-UDID is parameterized with `RUSTRA_HOT_IOS_*` environment variables — see
+UDID is parameterized with `UNIKIT_HOT_IOS_*` environment variables — see
 `../../scripts/hot-swap-ios.sh --help`.
 
 Manual steps (reference / fallback):
@@ -108,14 +108,14 @@ bun run build:frontend
 bunx tauri ios build --target aarch64-sim --debug
 
 # 2. install + stage the hot-core artifact in the app container
-xcrun simctl install booted "src-tauri/gen/apple/build/arm64-sim/Rustra Tauri Calculator.app"
-CONTAINER=$(xcrun simctl get_app_container booted dev.rustra.calculator data)
-cp ../../target/aarch64-apple-ios-sim/release/librustra_calculator_example.dylib \
+xcrun simctl install booted "src-tauri/gen/apple/build/arm64-sim/Unikit Tauri Calculator.app"
+CONTAINER=$(xcrun simctl get_app_container booted dev.unikit.calculator data)
+cp ../../target/aarch64-apple-ios-sim/release/libunikit_calculator_example.dylib \
   "$CONTAINER/Documents/hot-core.dylib"
 
 # 3. launch with SIMCTL_CHILD_-prefixed env (simctl passes them to the app)
-SIMCTL_CHILD_RUSTRA_HOT_CORE="$CONTAINER/Documents/hot-core.dylib" \
-  xcrun simctl launch --console-pty booted dev.rustra.calculator
+SIMCTL_CHILD_UNIKIT_HOT_CORE="$CONTAINER/Documents/hot-core.dylib" \
+  xcrun simctl launch --console-pty booted dev.unikit.calculator
 
 # 4. rebuild the artifact and publish by ATOMIC RENAME into the container path
 #    (never overwrite in place — a mapped dylib corrupted in place is killed)
@@ -133,7 +133,7 @@ devices remain out of scope (library validation), per the design doc.
 1. **Tauri integration** — automatic command registration via `tauri_support::register(package, builder)`
 2. **Zero-config frontend** — `generated/tauri.ts` lazily detects global invoke/event
 3. **Real screen code** — reflects `result.value` of command results into the DOM and subscribes to events
-4. **WebView performance receipt** — repeats real `rustra_dispatch` IPC 3 times after a warm-up
+4. **WebView performance receipt** — repeats real `unikit_dispatch` IPC 3 times after a warm-up
 
 ## Key Files
 
@@ -143,7 +143,7 @@ devices remain out of scope (library validation), per the design doc.
 | `src-tauri/src/main.rs` | Desktop wrapper calling `run()` (Tauri 2 mobile requires the lib target)  |
 | `src-tauri/Cargo.toml`  | lib/bin split (`staticlib`/`cdylib`/`rlib`) + `tauri`/`hot-core` features |
 | `src/app.ts`            | Screen using generated commands and events                                |
-| `rustra.hot.json`       | Dev config for the hot-core (dylib) loop                                  |
+| `unikit.hot.json`       | Dev config for the hot-core (dylib) loop                                  |
 | `runtime-smoke.mjs`     | Automated runtime smoke test                                              |
 | `src/benchmark.ts`      | Measures real WebView IPC accuracy and latency                            |
 | `benchmark.mjs`         | Runs the hidden app + collects local receipts                             |
@@ -151,8 +151,8 @@ devices remain out of scope (library validation), per the design doc.
 ## Rust-Side Setup
 
 ```rust
-use rustra::tauri_support;
-use rustra_calculator_example::calculator_package;
+use unikit_bridge::tauri_support;
+use unikit_calculator_example::calculator_package;
 
 let builder = tauri_support::register(calculator_package(), tauri::Builder::default());
 builder.run(tauri::generate_context!()).expect("failed to run");
@@ -168,7 +168,7 @@ const { value } = await addNumbers({ a: 20, b: 22 });
 document.querySelector('output').value = String(value);
 ```
 
-The Tauri config uses `app.withGlobalTauri: true`, and `rustra.json` uses `"tauri": {}`.
+The Tauri config uses `app.withGlobalTauri: true`, and `unikit.json` uses `"tauri": {}`.
 Only existing apps that intentionally turned the global API off use
 `createTauriEngine({ invoke })` as an escape hatch.
 
@@ -184,4 +184,4 @@ call or the Node/Bun native ABI figures.
 
 - Rust toolchain
 - Tauri CLI 2.0+ (`bun add -g @tauri-apps/cli`)
-- `rustra-calculator-example` package (within the same workspace)
+- `unikit-calculator-example` package (within the same workspace)

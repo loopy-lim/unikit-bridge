@@ -4,7 +4,7 @@
 //! 루프 없이 hot-core 스왑 보고 배선을 증명한다:
 //!
 //! 1. 플러그인 setup 이 `AppHandle` 싱크를 리포터에 설치하고, 그 뒤 어느
-//!    스레드에서든 `HotSwapReporter::report` 가 `rustra://hot-core/swapped`
+//!    스레드에서든 `HotSwapReporter::report` 가 `unikit://hot-core/swapped`
 //!    채널로 도달한다(성공 `{oldContractHash,newContractHash}` / 실패 `{error}`).
 //! 2. 페이로드는 JSON 문자열 그대로(패키지 이벤트와 같은 단일 직렬화 계약).
 //! 3. 기존 `register_dispatch`(하위호환)는 보고 배선이 없다 — 리포터에 싱크가
@@ -12,16 +12,16 @@
 //! 4. report 는 부팅 전(싱크 미설치)에 호출돼도 패닉하지 않는다 — 감시 스레드가
 //!    웹뷰 부팅을 기다리지 않고 스왑을 계속한다.
 
-use rustra::hot_core::JsonDispatch;
-use rustra::tauri_support::{self, EVENT_CHANNEL_PREFIX, HotSwapReporter};
 use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
 use tauri::Listener;
 use tauri::test::{MockRuntime, mock_context, noop_assets};
+use unikit_bridge::hot_core::JsonDispatch;
+use unikit_bridge::tauri_support::{self, EVENT_CHANNEL_PREFIX, HotSwapReporter};
 
 /// 스왑 채널 — 예약 세그먼트 이름(hot-core/swapped)은 Tauri 허용 문자뿐이라
 /// 치환 없이 이 리터럴이 채널이 된다(Rust 단위 테스트 hot_swap_tests 도 고정).
-const SWAP_CHANNEL: &str = "rustra://hot-core/swapped";
+const SWAP_CHANNEL: &str = "unikit://hot-core/swapped";
 
 /// 디스패치를 안 하는 최소 구현 — 이 테스트의 대상은 커맨드가 아니라 보고 배선이다.
 struct NullDispatch;

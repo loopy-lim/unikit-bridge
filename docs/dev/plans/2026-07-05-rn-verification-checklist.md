@@ -16,15 +16,15 @@
 ## 1. debug Rust 라이브러리 빌드 (release=frozen 이므로 **반드시 debug**)
 
 ```bash
-cd examples/react-native-calculator/modules/rustra-jsi/ios
-RUSTRA_PROFILE=debug ./build-rust-ios.sh
+cd examples/react-native-calculator/modules/unikit-jsi/ios
+UNIKIT_PROFILE=debug ./build-rust-ios.sh
 ```
 
-- [ ] `target/aarch64-apple-ios-sim/debug/librustra_calculator_example.a` 생성됨.
-- [ ] `modules/rustra-jsi/ios/rust/lib/librustra_calculator_example.a` 로 복사됨.
+- [ ] `target/aarch64-apple-ios-sim/debug/libunikit_calculator_example.a` 생성됨.
+- [ ] `modules/unikit-jsi/ios/rust/lib/libunikit_calculator_example.a` 로 복사됨.
 
 > release 로 빌드하면 패키지가 frozen 이 되어 `register` 가 막힌다 → 동적 명령 데모가
-> `registry.frozen` 에러를 낸다. 반드시 `RUSTRA_PROFILE=debug`.
+> `registry.frozen` 에러를 낸다. 반드시 `UNIKIT_PROFILE=debug`.
 
 ## 2. DynamicRegistryApp 을 런치 앱으로 설정
 
@@ -46,7 +46,7 @@ pod install --project-directory=ios   # 처음 한 번 또는 의존성 변경 �
 npx expo run:ios                      # 또는: npx react-native run-ios
 ```
 
-- [ ] 빌드 성공(에러 시 `modules/rustra-jsi/src/index.ts` 의 `getSchema?` 타입 확인).
+- [ ] 빌드 성공(에러 시 `modules/unikit-jsi/src/index.ts` 의 `getSchema?` 타입 확인).
 - [ ] 시뮬레이터에 앱 설치되어 실행됨.
 
 ## 4. 화면 검증 — "Single rkyvV2 engine + live schema (Tier 3)" 섹션
@@ -80,7 +80,7 @@ npx expo run:ios                      # 또는: npx react-native run-ios
 
 - [ ] live schema 가 동적 명령 등록 전엔 해당 명령이 없고, 등록 후에만 나타남을 확인하려면
       `registerX` 호출 전후로 `getLiveSchema` 출력을 로그에 추가해 본다.
-- [ ] release 빌드(`RUSTRA_PROFILE=release`)로 바꾸면 `register` 단계에서
+- [ ] release 빌드(`UNIKIT_PROFILE=release`)로 바꾸면 `register` 단계에서
       `registry.frozen` 에러가 나는지 확인(prod 안전성 검증).
 
 ## 6. 마무리

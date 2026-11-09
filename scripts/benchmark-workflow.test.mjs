@@ -13,13 +13,13 @@ test('benchmark workflow measures every registered core Criterion route', () => 
   for (const bench of ['tier_compare', 'type_scaling', 'dynamic_registry']) {
     assert.match(
       workflow,
-      new RegExp(`cargo bench -p rustra --profile dev --bench ${bench}`),
+      new RegExp(`cargo bench -p unikit-bridge --profile dev --bench ${bench}`),
       `${bench} must run in the benchmark workflow`,
     );
   }
   assert.match(
     workflow,
-    /cargo bench -p rustra --bench complex_route/,
+    /cargo bench -p unikit-bridge --bench complex_route/,
     'the static complex route must use the production-equivalent release profile',
   );
 });
@@ -54,7 +54,7 @@ test('artifact names use valid with context and only successful jobs become base
 });
 
 test('branching tree route uses the optimized profile and is included in reports', () => {
-  assert.match(workflow, /cargo bench -p rustra --bench tree_route/);
+  assert.match(workflow, /cargo bench -p unikit-bridge --bench tree_route/);
   assert.match(workflow, /bench_tree\.txt/);
 });
 
@@ -71,7 +71,7 @@ test('benchmark gate preserves inconclusive/regression exit codes', async () => 
     .split('\n')
     .map((line) => line.replace(/^          /, ''))
     .join('\n');
-  const root = await mkdtemp(join(tmpdir(), 'rustra-bench-workflow-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-bench-workflow-'));
   try {
     await mkdir(join(root, 'bin'));
     await writeFile(join(root, 'bin/bun'), '#!/bin/sh\nexit "$BENCH_EXIT"\n', { mode: 0o755 });
@@ -93,7 +93,7 @@ test('benchmark gate preserves inconclusive/regression exit codes', async () => 
 });
 
 test('every Cargo-registered benchmark is invoked by CI', async () => {
-  const cargo = await readFile(new URL('../crates/rustra/Cargo.toml', import.meta.url), 'utf8');
+  const cargo = await readFile(new URL('../crates/unikit-bridge/Cargo.toml', import.meta.url), 'utf8');
   const benches = [...cargo.matchAll(/\[\[bench\]\]\s*name\s*=\s*"([^"]+)"/g)].map(
     (match) => match[1],
   );
@@ -131,7 +131,7 @@ test('failed baseline restoration cannot reuse cached Criterion results', async 
           .join('\n')
       : run.trim();
   };
-  const root = await mkdtemp(join(tmpdir(), 'rustra-bench-cache-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-bench-cache-'));
   try {
     await mkdir(join(root, 'target/criterion/old/base'), { recursive: true });
     await writeFile(join(root, 'target/criterion/old/base/estimates.json'), '{}');
@@ -167,7 +167,7 @@ const comparisonBenches = [
 ];
 
 async function withComparisonFixture(run) {
-  const root = await mkdtemp(join(tmpdir(), 'rustra-bench-comparison-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-bench-comparison-'));
   const repo = join(root, 'repository');
   const bin = join(root, 'bin');
   const callLog = join(root, 'cargo-calls.jsonl');

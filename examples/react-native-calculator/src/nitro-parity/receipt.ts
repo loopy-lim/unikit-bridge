@@ -22,7 +22,7 @@ export type Receipt = {
   generatedContract: string;
   nitroVersion: string;
   nitrogenVersion: string;
-  rustraVersion: string;
+  unikitVersion: string;
   representation: string;
   baseline: string;
   setupLifecycle: 'warm-full-build-and-replacement';
@@ -86,7 +86,7 @@ export function validateReceipt(value: unknown, expected: Expected): asserts val
     r.release !== true ||
     r.nitroVersion !== '0.37.1' ||
     r.nitrogenVersion !== '0.37.1' ||
-    r.rustraVersion !== '0.10.2' ||
+    r.unikitVersion !== '0.10.2' ||
     r.representation !== 'flat-arena' ||
     r.setupLifecycle !== 'warm-full-build-and-replacement'
   )
@@ -135,13 +135,13 @@ export function validateReceipt(value: unknown, expected: Expected): asserts val
       if (c[field] !== plan[field])
         throw new Error(`case ${c.id} ${field} does not match frozen manifest`);
     if (
-      !Array.isArray(c.rustra) ||
+      !Array.isArray(c.unikit) ||
       !Array.isArray(c.nitro) ||
-      c.rustra.length !== plan.rounds ||
+      c.unikit.length !== plan.rounds ||
       c.nitro.length !== plan.rounds
     )
       throw new Error('mismatched or insufficient paired samples');
-    summary(c.rustra);
+    summary(c.unikit);
     summary(c.nitro);
   }
 }
@@ -167,7 +167,7 @@ export function aggregate(values: unknown[], expected: Expected) {
       runs.some((r) => r.batch !== c.batch || r.nodes !== c.nodes || r.inputBytes !== c.inputBytes)
     )
       throw new Error('mismatched case metadata');
-    const ratios = runs.map((r) => summary(r.rustra).mean / summary(r.nitro).mean),
+    const ratios = runs.map((r) => summary(r.unikit).mean / summary(r.nitro).mean),
       ci = confidence(ratios);
     return {
       id: c.id,
@@ -179,7 +179,7 @@ export function aggregate(values: unknown[], expected: Expected) {
       confidence95: ci,
       method: 'paired-launch-log-ratio-t',
       classification: classify(ci),
-      rustra: summary(runs.flatMap((r) => r.rustra)),
+      unikit: summary(runs.flatMap((r) => r.unikit)),
       nitro: summary(runs.flatMap((r) => r.nitro)),
     };
   });

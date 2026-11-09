@@ -27,7 +27,7 @@ status: bench-complete
 - 시나리오: **warm**(warmup 1,000회 뒤 20,000회 계측) / **afterReset**(`resetConfiguredRoutes()` 1회 뒤 warmup 없이 20,000회 — 첫 호출의 재해결 포함) / **cold**(reset+첫 호출 5,000회 평균 — `resetConfiguredRoutes()` 비용 자체를 포함하며 그 기준선(reset-only)은 별도 공통 측정).
 - 반복: 5라운드, 라운드마다 경로 측정 순서를 교대해 순서 편향을 상쇄하고 중앙값 보고. 라운드 전 미계측 프리웜 100,000회로 JIT 정착.
 - 불변성 검증(스크립트 내 단언): 라우트 호출 수 === JS 호출 수(660,004 = 660,004), 이름 폴백 경로 0회, 세대당 라우트 해결 ≤ 1회(경로별) — 세대 캐시가 호출마다 해결하지 않음을 보장.
-- 실행: `env -u RUSTRA_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs` (Bun 1.4.1, macOS arm64, Apple M1 Max).
+- 실행: `env -u UNIKIT_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs` (Bun 1.4.1, macOS arm64, Apple M1 Max).
 
 ## 결과
 
@@ -92,6 +92,6 @@ status: bench-complete
 ## 재현
 
 ```sh
-env -u RUSTRA_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs
+env -u UNIKIT_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs
 # 옵션 조정: runA2FieldsMicrobench({ iterations, warmup, repeats, coldSamples, prewarmCalls })
 ```

@@ -21,7 +21,7 @@
    `ffi_scriptc`의 debug·release,
    Fuzz의 invoke_frame/invoke_complex_value/invoke_complex_serde 각각 seed 재생 및
    600초, TSan — nightly `-Zsanitizer=thread`를 `-Z build-std`와 함께
-   `-p rustra --lib`에 실행(Linux x86_64, `halt_on_error=1`).
+   `-p unikit-bridge --lib`에 실행(Linux x86_64, `halt_on_error=1`).
    주간 안전성 실행은 별도로 유지하며 PR required check와 구분한다.
 4. `bun run test:api-surface` — 공개 TS/Rust export 표면을
    `api-surface/snapshot.json` 과 비교한다. 드리프트는 게이트 실패이며, 의도적
@@ -34,7 +34,7 @@ C++ 예외 검사는 `bash scripts/run-foreign-exception-check.sh`의 별도 hos
 정상 소유권만 검사한다. 이 범위는 RN native sanitizer와 구분한다. sanitizer
 워크플로는 발행 시 `cpp-codec` 잡도 실행한다 — 생성 C++ 코덱 테스트·저수준 코덱
 테스트·sync-core 테스트를 ASan+LSan+UBSan
-(`RUSTRA_CPP_SANITIZERS=address,undefined`) 아래에. TSan artifact는
+(`UNIKIT_CPP_SANITIZERS=address,undefined`) 아래에. TSan artifact는
 `target/safety/tsan/`에 쌓인다. TSan에 `-Z build-std`가 필요한 이유는 미계측
 std가 데이터 경합 탐지가 의존하는 뮤텍스 happens-before 엣지를 가리기 때문이다.
 
@@ -47,7 +47,7 @@ Linux 지원 수준은 **Alpha**로 유지한다.
 기존 인증 환경에 제공하고 값을 출력하지 않는다.
 
 ```bash
-node scripts/check-release-gates.mjs --repository loopy-lim/rustra --sha "$(git rev-parse HEAD)" > release-gates.json
+node scripts/check-release-gates.mjs --repository loopy-lim/unikit-bridge --sha "$(git rev-parse HEAD)" > release-gates.json
 ```
 
 Release 내부는 새 안전성 job의 `needs`로 검사 성공을 강제하므로 CI 조회에만
@@ -60,19 +60,19 @@ CI를 통과시키고 Release를 재실행한다. 새 실행이 통과하기 전
 
 ## 1단계 — changeset 확정
 
-공개 `@rustra/*` 9종은 독립 release line입니다. 변경된 package만 changeset에
-올리고, 각 adapter/CLI가 요구하는 `@rustra/types` 호환 범위를 유지합니다. Rust
-`rustra`/`rustra-macros` 쌍은 Cargo workspace 안에서 계속 함께 호환되어야 하지만
-npm package 버전과 일치할 필요는 없습니다. `@rustra/cli`의 `rustraTemplate`에는
+공개 `@unikit-bridge/*` 9종은 독립 release line입니다. 변경된 package만 changeset에
+올리고, 각 adapter/CLI가 요구하는 `@unikit-bridge/types` 호환 범위를 유지합니다. Rust
+`unikit`/`unikit-bridge-macros` 쌍은 Cargo workspace 안에서 계속 함께 호환되어야 하지만
+npm package 버전과 일치할 필요는 없습니다. `@unikit-bridge/cli`의 `unikitTemplate`에는
 생성할 Rust crate와 RN adapter의 명시적 semver 범위가 들어갑니다.
 `bun run test:release-coherence`는 package별 버전, lockfile, 내부 의존성 범위,
 CLI의 Rust·RN adapter 범위, LICENSE 및 fixed group을 검사합니다.
 
-두 `rustraTemplate` 범위는 움직이는 시점이 다르고, 둘 다 coherence 검사가
+두 `unikitTemplate` 범위는 움직이는 시점이 다르고, 둘 다 coherence 검사가
 지킵니다. `cargoRange`는 Cargo workspace 버전을 올리는 기능 커밋에서 함께
 움직입니다(Rust 라인은 changesets 관리 대상이 아니다). `reactNativeRange`는
 버전 PR 안에서(`bun run version` → `scripts/version-packages.mjs`) 새로 올라간
-`@rustra/react-native` 버전에 맞춰 동기화됩니다. 같은 스크립트가
+`@unikit-bridge/react-native` 버전에 맞춰 동기화됩니다. 같은 스크립트가
 `changeset version` 뒤 `bun.lock`도 다시 맞춘다 — 버전만 올리고 lock 이
 뒤처지면 version PR 의 `test:release-coherence` 가 실패한다(2026-09-10 첫
 버전 PR 실측). `reactNativeRange`를 기능 브랜치에서 adapter 버전보다 먼저
@@ -108,8 +108,8 @@ bunx changeset version --snapshot canary
 
 ```bash
 mkdir /tmp/canary-check && cd /tmp/canary-check && bun init -y
-bun add @rustra/node@canary @rustra/types@canary
-bun -e "import * as n from '@rustra/node'; console.log(Object.keys(n))"
+bun add @unikit-bridge/node@canary @unikit-bridge/types@canary
+bun -e "import * as n from '@unikit-bridge/node'; console.log(Object.keys(n))"
 ```
 
 React Native adapter는 publish tarball의 native 파일과 clean consumer의 native root
@@ -126,7 +126,7 @@ crates.io canary 는 지원하지 않는다 (버전 삭제 불가) — Rust 는 
 
 1. Version Packages PR 머지 → release.yml 자동 실행 (npm 9종)
 2. crates 수동 잡: Actions → Release → Run workflow는 `main`의 동일 SHA에 대해
-   실제 CI와 새 Miri·Sanitizer·Fuzz·TSan 성공을 확인한 뒤 rustra-naming → rustra-macros → rustra 순서로
+   실제 CI와 새 Miri·Sanitizer·Fuzz·TSan 성공을 확인한 뒤 unikit-bridge-naming → unikit-bridge-macros → unikit 순서로
    각 의존성의 인덱스 반영을 기다리며 발행
 
 안전성 게이트를 거치는 위 수동 workflow를 사용한다. 로컬 `cargo publish`나
@@ -151,8 +151,8 @@ stable 발행 경로가 아니다. 원본 결과는 Release run과 각 artifact�
 - 새 CI 잡을 추가할 때는 `ci.yml`의 `gate` `needs`와 `scripts/ci-gate.sh`에 함께
   넣는다 — 이제 집계 잡이 곧 머지 계약이다. 보호 설정은 아래 API로 확인/복원한다:
   ```bash
-  gh api repos/loopy-lim/rustra/branches/main/protection --jq '.required_status_checks.contexts'
-  gh api --method PUT repos/loopy-lim/rustra/branches/main/protection --input - <<'EOF'
+  gh api repos/loopy-lim/unikit-bridge/branches/main/protection --jq '.required_status_checks.contexts'
+  gh api --method PUT repos/loopy-lim/unikit-bridge/branches/main/protection --input - <<'EOF'
   {
     "required_status_checks": {
       "strict": false,
@@ -169,7 +169,7 @@ stable 발행 경로가 아니다. 원본 결과는 Release run과 각 artifact�
 - **롤백 — 2026-09-20 이전 개별 컨텍스트 8개로 복원**(같은 날 오전 감사가
   기록한 상태):
   ```bash
-  gh api --method PUT repos/loopy-lim/rustra/branches/main/protection --input - <<'EOF'
+  gh api --method PUT repos/loopy-lim/unikit-bridge/branches/main/protection --input - <<'EOF'
   {
     "required_status_checks": {
       "strict": false,
@@ -213,7 +213,7 @@ Release 워크플로를 가리키는 trusted publisher) GitHub Actions가 워크
 ## 4단계 — rollback
 
 - **npm registry**: Bun에는 dist-tag 변경 명령이 없으므로 이 관리 작업만
-  `bunx --bun npm dist-tag add @rustra/node@<previous> latest`로 실행한다 — dist-tag 되돌리기로 즉시
+  `bunx --bun npm dist-tag add @unikit-bridge/node@<previous> latest`로 실행한다 — dist-tag 되돌리기로 즉시
   rollback (패키지 자체는 삭제하지 않는다). 전 패키지 동일 적용.
 - **crates.io**: 불가 (버전 영구). `cargo update --precise <previous>`를 사용자 안내로 대체.
 - **깃**: 버전 커밋 revert 후 반드시 다음 patch 버전으로 재발행한다(같은 버전 재발행 불가).
@@ -221,7 +221,7 @@ Release 워크플로를 가리키는 trusted publisher) GitHub Actions가 워크
 ## 발행 후 확인
 
 ```bash
-node scripts/audit-release-registry.mjs --output /tmp/rustra-release-matrix.json
+node scripts/audit-release-registry.mjs --output /tmp/unikit-release-matrix.json
 ```
 
 [배포 조합표](release-matrix.ko.md)의 JSON/Markdown을 발행 전후에 보관한다.

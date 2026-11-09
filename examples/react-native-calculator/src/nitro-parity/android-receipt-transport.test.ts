@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { emitAndroidReceiptChunks } from './android-receipt-transport';
 import { extractAndroidReceipt } from '../../scripts/parity-android-chunks';
 
-const chunk = (line: string) => JSON.parse(line.slice('RUSTRA_PARITY_CHUNK='.length));
+const chunk = (line: string) => JSON.parse(line.slice('UNIKIT_PARITY_CHUNK='.length));
 test('next chunk cannot emit until the preceding 10ms delay resolves', async () => {
   const emitted: string[] = [],
     delays: number[] = [],

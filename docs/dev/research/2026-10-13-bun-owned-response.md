@@ -4,9 +4,9 @@
 
 ## 변경한 비용과 소유권
 
-기존 Bun 어댑터는 모든 응답에 `rustra_ffi_invoke_frame_into`를 사용했다. 응답이 재사용하는 512B 버퍼보다 크면 Rust 코어가 요청과 응답을 probe cache에 저장하고, Bun이 정확한 크기의 버퍼를 만든 뒤 동일 요청으로 다시 진입했다. 핸들러는 한 번 실행되지만 요청 전체의 복사·재비교와 재시도 호출이 필요했다.
+기존 Bun 어댑터는 모든 응답에 `unikit_ffi_invoke_frame_into`를 사용했다. 응답이 재사용하는 512B 버퍼보다 크면 Rust 코어가 요청과 응답을 probe cache에 저장하고, Bun이 정확한 크기의 버퍼를 만든 뒤 동일 요청으로 다시 진입했다. 핸들러는 한 번 실행되지만 요청 전체의 복사·재비교와 재시도 호출이 필요했다.
 
-새 어댑터는 `rustra_ffi_invoke_frame_owned`와 `rustra_ffi_free_owned_bytes`가 **둘 다** 있는 라이브러리에서 owned 경로를 사용한다. 작은 응답은 기존 512B caller buffer를 재사용한다. 큰 응답은 Rust가 반환한 프레임을 JavaScript 소유 ArrayBuffer에 한 번 복사하고, 생산 라이브러리의 `free_owned_bytes(pointer, originalLength)`로 `finally`에서 정확히 한 번 해제한다. 디코드가 호출 반환 이후에 수행되므로 이 복사는 유지한다.
+새 어댑터는 `unikit_ffi_invoke_frame_owned`와 `unikit_ffi_free_owned_bytes`가 **둘 다** 있는 라이브러리에서 owned 경로를 사용한다. 작은 응답은 기존 512B caller buffer를 재사용한다. 큰 응답은 Rust가 반환한 프레임을 JavaScript 소유 ArrayBuffer에 한 번 복사하고, 생산 라이브러리의 `free_owned_bytes(pointer, originalLength)`로 `finally`에서 정확히 한 번 해제한다. 디코드가 호출 반환 이후에 수행되므로 이 복사는 유지한다.
 
 옵션 심볼이 없거나 free 심볼만 없으면 기존 필수 심볼 테이블로 다시 열고 원래의 probe/retry 경로를 사용한다. schema와 contract hash의 기존 header 기반 free 짝은 바꾸지 않는다. 큰 응답의 invoke 진입 횟수는 2→1이지만 별도 owned free 호출이 있으므로 **전체 FFI 호출 수가 절반이 된 것은 아니다**. 제거한 주된 비용은 probe cache의 요청 복사·비교와 재시도 프로토콜이다.
 
@@ -19,8 +19,8 @@
 - 실제 calculator cdylib에서도 두 어댑터를 각각 6개 입력 크기로 호출해 반환 바이트가 같은 것을 확인했다. 측정에서는 warmup을 포함한 **33,000개** 응답을 모두 비교했다.
 
 ```bash
-env -u RUSTRA_BUN_LIBRARY bun test packages/bun/src/bun-owned-response.test.ts
-env -u RUSTRA_BUN_LIBRARY bun run --cwd packages/bun test
+env -u UNIKIT_BUN_LIBRARY bun test packages/bun/src/bun-owned-response.test.ts
+env -u UNIKIT_BUN_LIBRARY bun run --cwd packages/bun test
 bun run --cwd packages/bun test:compile
 ```
 
@@ -50,13 +50,13 @@ Apple M1 Max / macOS Darwin 25.6.0 / arm64 / 64GiB / Bun 1.4.3. 다른 작업자
 전용 수집기는 어댑터 경로와 동일 native 라이브러리를 명시적으로 받는다. 기존 출력 파일은 덮어쓰지 않는다. 기준선 소스는 변경 적용 전에 보존하고 같은 의존성을 연결해야 한다. 이번 실행의 정확한 명령과 원본 표본은 receipt의 `launches`에 있다.
 
 ```bash
-env -u RUSTRA_BUN_LIBRARY bun scripts/benchmark-bun-owned.mjs \
+env -u UNIKIT_BUN_LIBRARY bun scripts/benchmark-bun-owned.mjs \
   target/bun-owned-ab/baseline/src/bun-ffi.ts \
-  target/bun-owned-ab/librustra_calculator_baseline.dylib \
+  target/bun-owned-ab/libunikit_calculator_baseline.dylib \
   /tmp/bun-owned-baseline-new.json baseline
-env -u RUSTRA_BUN_LIBRARY bun scripts/benchmark-bun-owned.mjs \
+env -u UNIKIT_BUN_LIBRARY bun scripts/benchmark-bun-owned.mjs \
   packages/bun/src/bun-ffi.ts \
-  target/bun-owned-ab/librustra_calculator_baseline.dylib \
+  target/bun-owned-ab/libunikit_calculator_baseline.dylib \
   /tmp/bun-owned-candidate-new.json candidate
 ```
 

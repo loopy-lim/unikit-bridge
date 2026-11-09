@@ -41,7 +41,7 @@ status: decision-complete
    - `examples/react-native-calculator/generated/commands.ts`
    - `examples/react-native-bare-calculator/generated/commands.ts`
    - (`examples/rn-experiment/generated/commands.ts` 는 현재 1-필드 헬퍼 미사용 — 재생성해도 emit 불변.)
-3. **검증(구현 워커 수행)** — [결정 문서](2026-09-24-optimization-decision.md) 3절 검증 방법 준용: `packages/types` 회귀 + `env -u RUSTRA_BUN_LIBRARY bun run test:codegen-fresh:check`(및 `--bindings`) + Hermes 스위트 + 벤치 문서의 호출 수 불변 단언 재확인.
+3. **검증(구현 워커 수행)** — [결정 문서](2026-09-24-optimization-decision.md) 3절 검증 방법 준용: `packages/types` 회귀 + `env -u UNIKIT_BUN_LIBRARY bun run test:codegen-fresh:check`(및 `--bindings`) + Hermes 스위트 + 벤치 문서의 호출 수 불변 단언 재확인.
 
 ## 롤백
 
@@ -52,5 +52,5 @@ status: decision-complete
 이 문서는 결정만 포함하므로 새 실행은 없다. 판정 수치의 재현:
 
 ```sh
-env -u RUSTRA_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs
+env -u UNIKIT_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs
 ```

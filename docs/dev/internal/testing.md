@@ -33,18 +33,18 @@ order from the top.
 
 ## Rust Tests
 
-### File: `crates/rustra/tests/public_authoring_api_tests.rs`
+### File: `crates/unikit-bridge/tests/public_authoring_api_tests.rs`
 
-48 tests. Verifies rustra's public authoring API.
+48 tests. Verifies unikit's public authoring API.
 
 | Test function                                                   | What it verifies                                                                                                                                                                                                       |
 | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `user_builds_package_without_touching_raw_engine_types`         | `Package::builder().command().build()` + `invoke()` basic flow. Confirms the result value is 42                                                                                                                        |
 | `user_can_register_command_without_writing_command_name_string` | Automatic name extraction with `command_fn()`. Confirms the generated `commands.ts` contains the function name and command name                                                                                        |
-| `register_macro_uses_macro_derived_name`                        | Registers a command with the `register!` macro. Confirms the name is auto-extracted from the `__RUstra_meta_*` constant and invoked correctly                                                                          |
+| `register_macro_uses_macro_derived_name`                        | Registers a command with the `register!` macro. Confirms the name is auto-extracted from the `__UNikit_meta_*` constant and invoked correctly                                                                          |
 | `package_generates_host_neutral_typescript_client`              | Confirms the `generate_typescript()` result contains the `AddNumbersInput` type, the `addNumbers` function, and `invoke<AddNumbersOutput>`. Confirms `EngineRequest`, `Attachment`, `node:`, `react-native` are absent |
-| `generated_package_can_be_written_to_a_directory`               | Confirms the file-writing pair: `write_schema_to_dir()` produces only `schema.json` (honoring `RUSTRA_SCHEMA_OUT`); `write_to_dir()` produces the 4 files `schema.json`, `types.ts`, `commands.ts`, `contract.ts`      |
-| `unknown_command_uses_package_level_error`                      | Confirms the `RustraError` code is `"command.not_found"` when calling an unregistered command. Uses the `error.code()` getter                                                                                          |
+| `generated_package_can_be_written_to_a_directory`               | Confirms the file-writing pair: `write_schema_to_dir()` produces only `schema.json` (honoring `UNIKIT_SCHEMA_OUT`); `write_to_dir()` produces the 4 files `schema.json`, `types.ts`, `commands.ts`, `contract.ts`      |
+| `unknown_command_uses_package_level_error`                      | Confirms the `UnikitError` code is `"command.not_found"` when calling an unregistered command. Uses the `error.code()` getter                                                                                          |
 | `ts_generator_handles_optional_fields`                          | Confirms `Option<i64>`, `Option<String>` fields are generated as `age?: number \| null`, `label?: string \| null`                                                                                                      |
 | `ts_generator_handles_enums`                                    | Confirms the enum type is generated as a `Status` reference type + `'Active' \| 'Inactive'` union                                                                                                                      |
 | `ts_generator_handles_vec_and_optional_struct`                  | Confirms `Vec<String>` → `string[]` and `Option<Item>` → `Item \| null` generation                                                                                                                                     |
@@ -56,10 +56,10 @@ order from the top.
 
 | Test function                                  | What it verifies                                                                                                                                                                                                                                              |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `calculator_example_runs_and_generates_client` | Runs the `rustra-calculator-example` binary → confirms stdout contains `2 + 3 = 5`. Confirms `generated/commands.ts` contains the `addNumbers` function and `engine.invoke<AddNumbersOutput>('addNumbers')`, and that `EngineRequest`/`Attachment` are absent |
+| `calculator_example_runs_and_generates_client` | Runs the `unikit-calculator-example` binary → confirms stdout contains `2 + 3 = 5`. Confirms `generated/commands.ts` contains the `addNumbers` function and `engine.invoke<AddNumbersOutput>('addNumbers')`, and that `EngineRequest`/`Attachment` are absent |
 
 This test executes the built binary directly through the
-`CARGO_BIN_EXE_rustra-calculator-example` environment variable when
+`CARGO_BIN_EXE_unikit-calculator-example` environment variable when
 `cargo test` runs, so it verifies the entire code generation pipeline.
 
 ### Run
@@ -70,14 +70,14 @@ cargo test
 
 ### Complex binary codec
 
-`crates/rustra/src/complex_codec.rs` and `crates/rustra/tests/frame_wire.rs`
+`crates/unikit-bridge/src/complex_codec.rs` and `crates/unikit-bridge/tests/frame_wire.rs`
 verify the schema-driven codec's map key ordering, Option, Set, data enum
 variant keys, and malformed/trailing payload boundaries. The TypeScript
 counterpart fixture lives in `packages/types/src/complex-codec.test.ts`, and
 the golden data-enum wire must be identical across both implementations.
 
 ```bash
-cargo test -p rustra --test frame_wire oneof_command_uses_complex_binary_wire
+cargo test -p unikit-bridge --test frame_wire oneof_command_uses_complex_binary_wire
 bun test packages/types/src/complex-codec.test.ts
 bun run bench:complex
 ```
@@ -103,7 +103,7 @@ bun run bench:complex
 | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `node adapter forwards generated commands to injected Node transport`         | `createNodeEngine` calls the transport's invoke correctly                                                 |
 | `bun adapter forwards generated commands to injected Bun transport`           | `createBunEngine` calls the transport's invoke correctly                                                  |
-| `tauri adapter routes generated commands through rustra_dispatch`             | `createTauriEngine` wraps in `rustra_dispatch` and calls invoke. Confirms `RustraCommandError` conversion |
+| `tauri adapter routes generated commands through unikit_dispatch`             | `createTauriEngine` wraps in `unikit_dispatch` and calls invoke. Confirms `UnikitCommandError` conversion |
 | `react native adapter forwards generated commands through JSI native module`  | `createReactNativeEngine` calls the native module's invoke correctly                                      |
 | `adapter packages keep host-specific imports out of the shared contract path` | Confirms the 4 adapter sources contain none of `@tauri-apps`, `react-native`, `@expo/`, `expo-modules`    |
 
@@ -119,7 +119,7 @@ that the RN FFI wiring is correct.
 | Test                                                                             | What it verifies                                                                                                                                                                                                                                                                                                                                         |
 | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `host apps use generated zero-config entrypoints without local transport wiring` | The Node, Bun, Tauri, and RN apps all import the generated host entries (`node.ts`/`bun.ts`/`tauri.ts`/`react-native.ts`) with no local engine wiring (`createNodeEngine`, `configure` absent from the apps); each entry builds its `create*Bootstrap` engine. The Tauri `main.rs` registers the package in Rust and does not perform the addition in JS |
-| `react native runtime fixture exposes a native Rust-backed invoke module`        | The Swift module registers as `RustraCalculator`, exposes the `invokeRaw` async function, and calls the core `rustra_ffi_invoke_json` / `rustra_ffi_free` FFI pair directly (no legacy `rustra_calculator_*` symbols). Confirms the package invoke path in the Rust lib.rs                                                                               |
+| `react native runtime fixture exposes a native Rust-backed invoke module`        | The Swift module registers as `UnikitCalculator`, exposes the `invokeRaw` async function, and calls the core `unikit_ffi_invoke_json` / `unikit_ffi_free` FFI pair directly (no legacy `unikit_calculator_*` symbols). Confirms the package invoke path in the Rust lib.rs                                                                               |
 
 ### Run
 
@@ -156,12 +156,12 @@ test:compat         → test:ts:node + test:ts:bun + test:adapters + test:runtim
 
 `test:runtime:tauri` works in the following order:
 
-1. `cargo build` — builds the Rust backend (rustra `tauri` feature enabled)
+1. `cargo build` — builds the Rust backend (unikit `tauri` feature enabled)
 2. `bun run build` — builds the Tauri app (produces the binary)
-3. `bun run smoke` — runs the app → JS call in the WebView (`rustra_dispatch`) → checks the result → exits
+3. `bun run smoke` — runs the app → JS call in the WebView (`unikit_dispatch`) → checks the result → exits
 
 This verifies end to end, on a real Tauri runtime, the path
-`createTauriEngine` → `addNumbers` → `rustra_dispatch` → Rust `invoke_json`.
+`createTauriEngine` → `addNumbers` → `unikit_dispatch` → Rust `invoke_json`.
 
 ---
 
@@ -227,6 +227,6 @@ bun run test:app:react-native
 To refresh the generated TS client after Rust code changes:
 
 ```bash
-cargo run -p rustra-calculator-example --bin generate   # contract probe: schema.json
+cargo run -p unikit-calculator-example --bin generate   # contract probe: schema.json
 bun run --cwd examples/calculator codegen                # render TS surfaces from schema.json
 ```

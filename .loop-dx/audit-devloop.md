@@ -1,7 +1,7 @@
 # 감사 보고서: 빌드/테스트 개발 루프 및 스크립트 인체공학 (audit-devloop)
 
 - 작업 ID: `audit-devloop`
-- 대상: rustra-bridge 모노레포 (Rust 코어 + TS 코드젠/어댑터 브릿지)
+- 대상: unikit-bridge 모노레포 (Rust 코어 + TS 코드젠/어댑터 브릿지)
 - 읽기 범위: `package.json`, `packages/*/package.json`, `Cargo.toml`, `lefthook.yml`, `bunfig.toml`, `.github/workflows/**`, `scripts/**`, `CONTRIBUTING.ko.md`, `examples/*/tsconfig.json`
 - 방법론: 스크립트 그래프 정적 분석(우산 스크립트 1회 실행 시 하위 스크립트 호출 횟수 집계) + 웜 상태 실측 + 컴파일된 테스트 산물 vs 스크립트 나열 목록 대조
 - 심각도 기준: **상** = 이미 손실이 발생했거나 신뢰를 깨는 수준 / **중** = 반복 비용·추측 비용이 누적되는 수준 / **하** = 개선 여지가 있는 마찰(friction)
@@ -33,7 +33,7 @@
 | `bun run build`(9패키지 tsc 전체)                    | **2회**                 | 직접 + `test:packages` 내장                                    | 3.54s                          |
 | `packages/cli build`                                 | **3회**                 | `test:codegen-fresh`, `test:bindings-fresh`, `test:onboarding` | (tsc 1회분)                    |
 | `tsc -p examples/calculator`                         | **2회**                 | `test:ts:node`, `test:runtime:node`                            | 1.25s                          |
-| `cargo build --release -p rustra-calculator-example` | **2회**                 | `test:runtime:node`, `test:runtime:bun`                        | 0.13s(웜) / 콜드 시 수십 초~분 |
+| `cargo build --release -p unikit-calculator-example` | **2회**                 | `test:runtime:node`, `test:runtime:bun`                        | 0.13s(웜) / 콜드 시 수십 초~분 |
 | `cargo build`(debug)                                 | 1회                     | `test:ts:bun`                                                  | 0.62s(웜)                      |
 
 웜 기준 낭비는 수 초지만, 클론 직후 콜드 루프에서는 cargo 두 프로파일 빌드 + tsc 전체가 단계마다 재대기된다. `test:compat`도 마찬가지로 `test:ts:node → test:runtime:node`에서 calculator tsc가 2회 실행된다.
@@ -54,7 +54,7 @@
 - **커버리지 격차**: crud 예제 미타입체크, 8개 패키지 유닛 테스트·예제 TS 테스트(bun/node 모두)·전체 게이트(codegen-fresh, api-surface 등) 미커버 — 이는 "fast"의 설계상 범위일 수 있으나, README의 `test:compat` PR 필수 문서와 사이 어느 단계도 제공되지 않는다(중간 단계 부재).
 - **스크립트 자체가 무검증**: `test:fast`, `test:local` 어느 것도 CI 어디에서도 실행되지 않는다(`.github/workflows/` 전체에서 미참조). CI가 패리티를 강제하는 스크립트가 아니므로, 앞서 확인된 `test:types` 누락 같은 드리프트가 조용히 축적된다.
 
-**개선 아이디어**: (a) `test:fast`의 cargo를 `cargo check --workspace --exclude rustra-tauri-calculator-example` 또는 default-members 존중 형태로 수정해 Linux 호환, (b) `test:types` 포함 검토(웜 수 초), (c) CI 어딘가(예: ts-checks 선두)에서 `test:fast`를 스모크 실행해 스크립트 자체를 게이트화.
+**개선 아이디어**: (a) `test:fast`의 cargo를 `cargo check --workspace --exclude unikit-tauri-calculator-example` 또는 default-members 존중 형태로 수정해 Linux 호환, (b) `test:types` 포함 검토(웜 수 초), (c) CI 어딘가(예: ts-checks 선두)에서 `test:fast`를 스모크 실행해 스크립트 자체를 게이트화.
 
 ---
 
@@ -128,8 +128,8 @@
 | `bunx tsc -p examples/calculator/tsconfig.json`              | 1.25s |
 | `bunx tsc -p examples/crud/tsconfig.json`                    | 1.19s |
 | `bun run build` (패키지 9개)                                 | 3.54s |
-| `cargo build -p rustra-calculator-example -q` (debug, 웜)    | 0.62s |
-| `cargo build --release -p rustra-calculator-example -q` (웜) | 0.13s |
+| `cargo build -p unikit-calculator-example -q` (debug, 웜)    | 0.62s |
+| `cargo build --release -p unikit-calculator-example -q` (웜) | 0.13s |
 
 미실측 한계: `test:local`/`test:compat` 전체 벽시계는 실행하지 않았다(네트워크 감사 `audit:prod`, 에뮬레이터 의존 어댑터 단계 포함). 위 중복표는 정적 전개 + 부분 실측에 근거한다.
 

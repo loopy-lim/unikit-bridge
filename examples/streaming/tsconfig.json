@@ -1,12 +1,8 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "strict": true,
     "rootDir": "../..",
-    "outDir": "../../dist-ts",
-    "skipLibCheck": true
+    "outDir": "../../dist-ts"
   },
   "include": ["generated/**/*.ts", "ts/**/*.ts", "apps/**/*.ts", "../../packages/**/*.ts"]
 }

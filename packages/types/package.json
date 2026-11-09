@@ -1,7 +1,7 @@
 {
-  "name": "@rustra/types",
+  "name": "@unikit-bridge/types",
   "version": "0.13.0",
-  "description": "Shared types and wire contracts for rustra — one Rust core generating type-safe clients for Node, Bun, Tauri, and React Native over a compact binary wire.",
+  "description": "Shared types and wire contracts for unikit — one Rust core generating type-safe clients for Node, Bun, Tauri, and React Native over a compact binary wire.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -30,7 +30,7 @@
     "typescript": "^5.9.0"
   },
   "keywords": [
-    "rustra",
+    "unikit",
     "types",
     "rust",
     "typescript",
@@ -43,11 +43,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/loopy-lim/rustra.git",
+    "url": "git+https://github.com/loopy-lim/unikit-bridge.git",
     "directory": "packages/types"
   },
   "bugs": {
-    "url": "https://github.com/loopy-lim/rustra/issues"
+    "url": "https://github.com/loopy-lim/unikit-bridge/issues"
   },
-  "homepage": "https://github.com/loopy-lim/rustra#readme"
+  "homepage": "https://github.com/loopy-lim/unikit-bridge#readme"
 }

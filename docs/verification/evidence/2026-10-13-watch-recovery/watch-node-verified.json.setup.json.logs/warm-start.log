@@ -1,35 +1,35 @@
-{"command":"bun","args":["run","start"],"cwd":"/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app"}
-[rustra] Checking setup tools...
-[rustra] Generating the Rust contract and TypeScript calls...
-[rustra] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/Cargo.toml --package rustra-app --bin generate
-[rustra] ⠋ Rust schema generation (rustra-app/generate)...
-/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/generated/schema.json written
-[rustra] ✓ Rust schema generation (rustra-app/generate) done in 0.1s
-[rustra] TypeScript/C++: generate --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/rustra.json
-Generated TypeScript files in /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/src/generated:
+{"command":"bun","args":["run","start"],"cwd":"/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app"}
+[unikit] Checking setup tools...
+[unikit] Generating the Rust contract and TypeScript calls...
+[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/Cargo.toml --package unikit-app --bin generate
+[unikit] ⠋ Rust schema generation (unikit-app/generate)...
+/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/generated/schema.json written
+[unikit] ✓ Rust schema generation (unikit-app/generate) done in 0.1s
+[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/unikit.json
+Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/src/generated:
   types.ts (unchanged)
   commands.ts (unchanged)
   contract.ts (unchanged)
   frame-codecs.ts (unchanged)
   frame-registry.ts (unchanged)
   node.ts (unchanged)
-[rustra] ⠋ JavaScript dependencies...
+[unikit] ⠋ JavaScript dependencies...
 bun install v1.4.3 (c6da4a4d3)
 
-+ @rustra/cli@../../../packages/cli
-+ @rustra/node@../../../packages/node
-+ @rustra/types@../../../packages/types
++ @unikit-bridge/cli@../../../packages/cli
++ @unikit-bridge/node@../../../packages/node
++ @unikit-bridge/types@../../../packages/types
 
 4 packages installed [121.00ms]
-[rustra] ✓ JavaScript dependencies done in 0.1s
-[rustra] ⠋ Rust runtime (rustra-app)...
-[rustra] ✓ Rust runtime (rustra-app) done in 0.1s
-[rustra] ⠋ First Rust call...
+[unikit] ✓ JavaScript dependencies done in 0.1s
+[unikit] ⠋ Rust runtime (unikit-app)...
+[unikit] ✓ Rust runtime (unikit-app) done in 0.1s
+[unikit] ⠋ First Rust call...
 hello from TypeScript
-[rustra] ✓ First Rust call done in 0.0s
-[rustra] Setup complete — demo succeeded.
-$ rustra setup --config rustra.json --run
+[unikit] ✓ First Rust call done in 0.0s
+[unikit] Setup complete — demo succeeded.
+$ unikit setup --config unikit.json --run
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
-     Running `/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/cargo-target/debug/generate`
+     Running `/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/cargo-target/debug/generate`
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
 $ bun run src/index.ts

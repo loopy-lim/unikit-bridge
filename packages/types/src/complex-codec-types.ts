@@ -12,7 +12,7 @@ export type ComplexSchema = {
   enum?: (string | number | boolean | null)[];
   const?: string | number | boolean | null;
   /** Explicit stable keys for oneOf variants, in schema declaration order. */
-  'x-rustra-variant-order'?: string[];
+  'x-unikit-variant-order'?: string[];
   format?: string;
   [key: string]: unknown;
 };

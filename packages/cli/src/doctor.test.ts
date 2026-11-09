@@ -34,8 +34,8 @@ function makeRunner(results: Record<string, DoctorCommandResult>): DoctorRunner 
 }
 
 function withConfig(config: Record<string, unknown>, callback: (path: string) => void): void {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-doctor-'));
-  const path = join(root, 'rustra.json');
+  const root = mkdtempSync(join(tmpdir(), 'unikit-doctor-'));
+  const path = join(root, 'unikit.json');
   writeFileSync(path, `${JSON.stringify(config)}\n`);
   try {
     callback(path);
@@ -99,8 +99,8 @@ test('doctor probes identical native commands once per report', () => {
 });
 
 test('async doctor prefetches independent probes concurrently', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-doctor-async-'));
-  const path = join(root, 'rustra.json');
+  const root = mkdtempSync(join(tmpdir(), 'unikit-doctor-async-'));
+  const path = join(root, 'unikit.json');
   writeFileSync(
     path,
     `${JSON.stringify({
@@ -210,16 +210,16 @@ test('doctor formatters expose stable JSON and readable fixes', () => {
   assert.match(formatDoctorText(report), /fix: sdkmanager/);
 });
 
-test('doctor args default to rustra.json and text output', () => {
+test('doctor args default to unikit.json and text output', () => {
   assert.deepEqual(parseDoctorArgs([]), {
-    configPath: 'rustra.json',
+    configPath: 'unikit.json',
     format: 'text',
     strict: false,
   });
   assert.deepEqual(
-    parseDoctorArgs(['--config', './app/rustra.json', '--format', 'json', '--strict']),
+    parseDoctorArgs(['--config', './app/unikit.json', '--format', 'json', '--strict']),
     {
-      configPath: './app/rustra.json',
+      configPath: './app/unikit.json',
       format: 'json',
       strict: true,
     },
@@ -228,9 +228,9 @@ test('doctor args default to rustra.json and text output', () => {
 
 // --- 다중 타깃 매트릭스 ---
 
-/** 매트릭스 테스트용 프로젝트 fixture — rustra.json 외 파일도 함께 쓴다. */
+/** 매트릭스 테스트용 프로젝트 fixture — unikit.json 외 파일도 함께 쓴다. */
 function withProject(files: Record<string, string>, callback: (root: string) => void): void {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-doctor-matrix-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-doctor-matrix-'));
   for (const [name, content] of Object.entries(files)) {
     const path = join(root, name);
     mkdirSync(dirname(path), { recursive: true });
@@ -302,14 +302,14 @@ function withWorkflowDoctor(
 ): void {
   withProject(
     {
-      'rustra.json': JSON.stringify({
+      'unikit.json': JSON.stringify({
         schema: './generated/schema.json',
         output: './generated',
         ...config,
       }),
       'Cargo.toml': CARGO_TOML,
       'generated/schema.json': SCHEMA_CONTENT,
-      'generated/.rustra-generated.json': JSON.stringify({
+      'generated/.unikit-generated.json': JSON.stringify({
         schemaVersion: 1,
         schemaHash: sha256(SCHEMA_CONTENT),
         generatorVersion: cliVersion,
@@ -334,7 +334,7 @@ function withWorkflowDoctor(
           return { ok: true, stdout: versions[command], stderr: '' };
         return available(command, args);
       };
-      callback(collectDoctorReport(options(join(root, 'rustra.json')), runner));
+      callback(collectDoctorReport(options(join(root, 'unikit.json')), runner));
     },
   );
 }
@@ -391,14 +391,14 @@ test('a compatible Node cannot hide an incompatible configured Bun runtime', () 
 test('multi-section config collects a matrix row for every host section', () => {
   withProject(
     {
-      'rustra.json': JSON.stringify({
+      'unikit.json': JSON.stringify({
         schema: './generated/schema.json',
         output: './generated',
         ...HOST_SECTIONS,
       }),
       'Cargo.toml': CARGO_TOML,
       'generated/schema.json': '{}\n',
-      'generated/.rustra-generated.json': JSON.stringify({
+      'generated/.unikit-generated.json': JSON.stringify({
         schemaVersion: 1,
         schemaHash: sha256('{}\n'),
         generatorVersion: cliVersion,
@@ -408,7 +408,7 @@ test('multi-section config collects a matrix row for every host section', () => 
     },
     (root) => {
       const report = collectDoctorReport(
-        optionsWithNdk(join(root, 'rustra.json'), join(root, 'ndk')),
+        optionsWithNdk(join(root, 'unikit.json'), join(root, 'ndk')),
         metadataRunner(root, [
           {
             name: 'app',
@@ -439,7 +439,7 @@ test('multi-section config collects a matrix row for every host section', () => 
 test('a red section fails the run without aborting the other sections', () => {
   withProject(
     {
-      'rustra.json': JSON.stringify({
+      'unikit.json': JSON.stringify({
         schema: './generated/schema.json',
         output: './generated',
         ...HOST_SECTIONS,
@@ -447,7 +447,7 @@ test('a red section fails the run without aborting the other sections', () => {
       }),
       'Cargo.toml': CARGO_TOML,
       'generated/schema.json': '{}\n',
-      'generated/.rustra-generated.json': JSON.stringify({
+      'generated/.unikit-generated.json': JSON.stringify({
         schemaVersion: 1,
         schemaHash: sha256('{}\n'),
         generatorVersion: cliVersion,
@@ -457,7 +457,7 @@ test('a red section fails the run without aborting the other sections', () => {
     },
     (root) => {
       const report = collectDoctorReport(
-        optionsWithNdk(join(root, 'rustra.json'), join(root, 'ndk')),
+        optionsWithNdk(join(root, 'unikit.json'), join(root, 'ndk')),
         metadataRunner(root, [
           {
             name: 'app',
@@ -489,7 +489,7 @@ test('a red section fails the run without aborting the other sections', () => {
 test('sections referencing different Rust manifests emit one consistency warning', () => {
   withProject(
     {
-      'rustra.json': JSON.stringify({
+      'unikit.json': JSON.stringify({
         schema: './generated/schema.json',
         output: './generated',
         ...HOST_SECTIONS,
@@ -498,7 +498,7 @@ test('sections referencing different Rust manifests emit one consistency warning
       'Cargo.toml': CARGO_TOML,
       'alt/Cargo.toml': '[package]\nname = "alt"\n\n[lib]\ncrate-type = ["rlib", "cdylib"]\n',
       'generated/schema.json': '{}\n',
-      'generated/.rustra-generated.json': JSON.stringify({
+      'generated/.unikit-generated.json': JSON.stringify({
         schemaVersion: 1,
         schemaHash: sha256('{}\n'),
         generatorVersion: cliVersion,
@@ -508,7 +508,7 @@ test('sections referencing different Rust manifests emit one consistency warning
     },
     (root) => {
       const report = collectDoctorReport(
-        optionsWithNdk(join(root, 'rustra.json'), join(root, 'ndk')),
+        optionsWithNdk(join(root, 'unikit.json'), join(root, 'ndk')),
         metadataRunner(root, [
           {
             name: 'app',
@@ -535,14 +535,14 @@ test('sections referencing different Rust manifests emit one consistency warning
 test('single-section config stays matrix-free for backward compatibility', () => {
   withProject(
     {
-      'rustra.json': JSON.stringify({
+      'unikit.json': JSON.stringify({
         schema: './generated/schema.json',
         output: './generated',
         node: { rustManifest: './Cargo.toml' },
       }),
       'Cargo.toml': CARGO_TOML,
       'generated/schema.json': '{}\n',
-      'generated/.rustra-generated.json': JSON.stringify({
+      'generated/.unikit-generated.json': JSON.stringify({
         schemaVersion: 1,
         schemaHash: sha256('{}\n'),
         generatorVersion: cliVersion,
@@ -551,7 +551,7 @@ test('single-section config stays matrix-free for backward compatibility', () =>
     },
     (root) => {
       const report = collectDoctorReport(
-        options(join(root, 'rustra.json')),
+        options(join(root, 'unikit.json')),
         metadataRunner(root, [
           {
             name: 'app',
@@ -575,14 +575,14 @@ test('single-section config stays matrix-free for backward compatibility', () =>
 test('text formatter renders the matrix table', () => {
   withProject(
     {
-      'rustra.json': JSON.stringify({
+      'unikit.json': JSON.stringify({
         schema: './generated/schema.json',
         output: './generated',
         ...HOST_SECTIONS,
       }),
       'Cargo.toml': CARGO_TOML,
       'generated/schema.json': '{}\n',
-      'generated/.rustra-generated.json': JSON.stringify({
+      'generated/.unikit-generated.json': JSON.stringify({
         schemaVersion: 1,
         schemaHash: sha256('{}\n'),
         generatorVersion: cliVersion,
@@ -592,7 +592,7 @@ test('text formatter renders the matrix table', () => {
     },
     (root) => {
       const report = collectDoctorReport(
-        optionsWithNdk(join(root, 'rustra.json'), join(root, 'ndk')),
+        optionsWithNdk(join(root, 'unikit.json'), join(root, 'ndk')),
         metadataRunner(root, [
           {
             name: 'app',
@@ -613,8 +613,8 @@ test('text formatter renders the matrix table', () => {
 });
 
 test('async doctor prefetches per-section cargo metadata probes', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-doctor-matrix-async-'));
-  const path = join(root, 'rustra.json');
+  const root = mkdtempSync(join(tmpdir(), 'unikit-doctor-matrix-async-'));
+  const path = join(root, 'unikit.json');
   writeFileSync(
     path,
     `${JSON.stringify({
@@ -662,7 +662,7 @@ test('async doctor prefetches per-section cargo metadata probes', async () => {
 test('tauri matrix row has an em-dash build cell and a runtime cell driven by tauri.platform_tools', () => {
   withProject(
     {
-      'rustra.json': JSON.stringify({
+      'unikit.json': JSON.stringify({
         schema: './generated/schema.json',
         output: './generated',
         codegen: { rustManifest: './Cargo.toml' },
@@ -671,7 +671,7 @@ test('tauri matrix row has an em-dash build cell and a runtime cell driven by ta
       }),
       'Cargo.toml': CARGO_TOML,
       'generated/schema.json': '{}\n',
-      'generated/.rustra-generated.json': JSON.stringify({
+      'generated/.unikit-generated.json': JSON.stringify({
         schemaVersion: 1,
         schemaHash: sha256('{}\n'),
         generatorVersion: cliVersion,
@@ -680,7 +680,7 @@ test('tauri matrix row has an em-dash build cell and a runtime cell driven by ta
     },
     (root) => {
       const report = collectDoctorReport(
-        options(join(root, 'rustra.json')),
+        options(join(root, 'unikit.json')),
         metadataRunner(root, [
           {
             name: 'app',
@@ -708,7 +708,7 @@ test('tauri matrix row has an em-dash build cell and a runtime cell driven by ta
       );
       assert.equal(tauri?.runtime, 'OK');
       const failing = collectDoctorReport(
-        options(join(root, 'rustra.json')),
+        options(join(root, 'unikit.json')),
         makeRunner({
           ...Object.fromEntries(
             [
@@ -750,8 +750,8 @@ test('tauri matrix row has an em-dash build cell and a runtime cell driven by ta
 test('async doctor prefetches divergent section manifests without false prefetch failures', async () => {
   // bun 섹션만 codegen 매니페스트와 다른 alt/Cargo.toml 을 가리킨다 — 프리페치 루프의
   // 존재 이유를 검증하는 케이스 (모두 같은 매니페스트면 루프를 되돌려도 통과한다).
-  const root = mkdtempSync(join(tmpdir(), 'rustra-doctor-matrix-divergent-'));
-  const path = join(root, 'rustra.json');
+  const root = mkdtempSync(join(tmpdir(), 'unikit-doctor-matrix-divergent-'));
+  const path = join(root, 'unikit.json');
   writeFileSync(
     path,
     `${JSON.stringify({
@@ -838,7 +838,7 @@ const WASM_DEV_CONFIG = {
 test('wasm dev target warns about cooperative cancellation and checks the wasm32 rust target', () => {
   withProject(
     {
-      'rustra.json': JSON.stringify(WASM_DEV_CONFIG),
+      'unikit.json': JSON.stringify(WASM_DEV_CONFIG),
       'Cargo.toml': CARGO_TOML,
       'generated/schema.json': '{}\n',
       // reactNative 섹션이 있어 Android 검사(NDK 포함)가 켜진다 — NDK fixture 로
@@ -866,7 +866,7 @@ test('wasm dev target warns about cooperative cancellation and checks the wasm32
         return base(command, args);
       };
       const report = collectDoctorReport(
-        optionsWithNdk(join(root, 'rustra.json'), join(root, 'ndk')),
+        optionsWithNdk(join(root, 'unikit.json'), join(root, 'ndk')),
         runner,
       );
       const warning = report.checks.find((candidate) => candidate.id === 'dev.wasm.experimental');
@@ -898,10 +898,10 @@ test('wasm dev target warns about cooperative cancellation and checks the wasm32
 test('wasm dev target fails the required check when the wasm32 rust target is missing', () => {
   withProject(
     {
-      'rustra.json': JSON.stringify(WASM_DEV_CONFIG),
+      'unikit.json': JSON.stringify(WASM_DEV_CONFIG),
       'Cargo.toml': CARGO_TOML,
       'generated/schema.json': '{}\n',
-      'generated/.rustra-generated.json': JSON.stringify({
+      'generated/.unikit-generated.json': JSON.stringify({
         schemaVersion: 1,
         schemaHash: sha256('{}\n'),
         generatorVersion: cliVersion,
@@ -910,7 +910,7 @@ test('wasm dev target fails the required check when the wasm32 rust target is mi
     },
     (root) => {
       const report = collectDoctorReport(
-        options(join(root, 'rustra.json')),
+        options(join(root, 'unikit.json')),
         metadataRunner(root, [
           {
             name: 'app',
@@ -934,14 +934,14 @@ test('wasm dev target fails the required check when the wasm32 rust target is mi
 
 // ── 코드젠 산출물 신선도 (codegen.generated_freshness) ────────────────────────
 //
-// .rustra-generated.json 매니페스트가 현재 schema.json / 제너레이터 버전과
+// .unikit-generated.json 매니페스트가 현재 schema.json / 제너레이터 버전과
 // 일치하지 않으면 스테일이다 — 치명이 아니라 안내이므로 전부 warn(required: false).
 // 바이트 전수 검증은 codegen --check 의 소관이고 doctor 는 읽기 전용 저비용 유지.
 
 function withFreshProject(manifest: object | null, callback: (root: string) => void): void {
   withProject(
     {
-      'rustra.json': JSON.stringify({
+      'unikit.json': JSON.stringify({
         schema: './generated/schema.json',
         output: './generated',
         node: { rustManifest: './Cargo.toml' },
@@ -950,7 +950,7 @@ function withFreshProject(manifest: object | null, callback: (root: string) => v
       'generated/schema.json': SCHEMA_CONTENT,
       ...(manifest === null
         ? {}
-        : { 'generated/.rustra-generated.json': `${JSON.stringify(manifest)}\n` }),
+        : { 'generated/.unikit-generated.json': `${JSON.stringify(manifest)}\n` }),
     },
     callback,
   );
@@ -959,13 +959,13 @@ function withFreshProject(manifest: object | null, callback: (root: string) => v
 test('doctor flags missing generated manifest', () => {
   withFreshProject(null, (root) => {
     const report = collectDoctorReport(
-      options(join(root, 'rustra.json')),
+      options(join(root, 'unikit.json')),
       metadataRunner(root, []),
     );
     const freshness = report.checks.find((check) => check.id === 'codegen.generated_freshness');
     assert.equal(freshness?.status, 'warn');
     assert.equal(freshness?.required, false);
-    assert.match((freshness?.fix ?? []).join(' '), /rustra codegen/);
+    assert.match((freshness?.fix ?? []).join(' '), /unikit codegen/);
   });
 });
 
@@ -979,7 +979,7 @@ test('doctor flags schema drift after schema.json change', () => {
     },
     (root) => {
       const report = collectDoctorReport(
-        options(join(root, 'rustra.json')),
+        options(join(root, 'unikit.json')),
         metadataRunner(root, [
           {
             name: 'app',
@@ -1008,7 +1008,7 @@ test('doctor flags generator version drift', () => {
     },
     (root) => {
       const report = collectDoctorReport(
-        options(join(root, 'rustra.json')),
+        options(join(root, 'unikit.json')),
         metadataRunner(root, [
           {
             name: 'app',
@@ -1037,7 +1037,7 @@ test('doctor passes fresh generated output', () => {
     },
     (root) => {
       const report = collectDoctorReport(
-        options(join(root, 'rustra.json')),
+        options(join(root, 'unikit.json')),
         metadataRunner(root, [
           {
             name: 'app',
@@ -1075,7 +1075,7 @@ test('doctor passes fresh generated output', () => {
 test('freshness check is skipped when the schema itself is missing', () => {
   withProject(
     {
-      'rustra.json': JSON.stringify({
+      'unikit.json': JSON.stringify({
         schema: './generated/schema.json',
         output: './generated',
         node: { rustManifest: './Cargo.toml' },
@@ -1085,7 +1085,7 @@ test('freshness check is skipped when the schema itself is missing', () => {
     },
     (root) => {
       const report = collectDoctorReport(
-        options(join(root, 'rustra.json')),
+        options(join(root, 'unikit.json')),
         metadataRunner(root, [
           {
             name: 'app',
@@ -1111,7 +1111,7 @@ test('freshness check is skipped when the schema itself is missing', () => {
 function withDeviceProject(schema: object, callback: (root: string) => void): void {
   withProject(
     {
-      'rustra.json': JSON.stringify({
+      'unikit.json': JSON.stringify({
         schema: './generated/schema.json',
         output: './generated',
         node: { rustManifest: './Cargo.toml' },
@@ -1131,7 +1131,7 @@ test('doctor passes device tokens inside the catalog', () => {
     },
     (root) => {
       const report = collectDoctorReport(
-        options(join(root, 'rustra.json')),
+        options(join(root, 'unikit.json')),
         metadataRunner(root, []),
       );
       const verdict = report.checks.find((check) => check.id === 'codegen.device_catalog');
@@ -1148,7 +1148,7 @@ test('doctor fails on device tokens outside the catalog', () => {
     },
     (root) => {
       const report = collectDoctorReport(
-        options(join(root, 'rustra.json')),
+        options(join(root, 'unikit.json')),
         metadataRunner(root, []),
       );
       const verdict = report.checks.find((check) => check.id === 'codegen.device_catalog');
@@ -1162,7 +1162,7 @@ test('doctor fails on device tokens outside the catalog', () => {
 test('doctor warns when declared devices lack the catalog field', () => {
   withDeviceProject({ commands: [{ name: 'scan_tags', devices: ['camera'] }] }, (root) => {
     const report = collectDoctorReport(
-      options(join(root, 'rustra.json')),
+      options(join(root, 'unikit.json')),
       metadataRunner(root, []),
     );
     const verdict = report.checks.find((check) => check.id === 'codegen.device_catalog');
@@ -1174,7 +1174,7 @@ test('doctor warns when declared devices lack the catalog field', () => {
 test('doctor skips the catalog check without device declarations', () => {
   withDeviceProject({ deviceCapabilities: ['camera'], commands: [{ name: 'add' }] }, (root) => {
     const report = collectDoctorReport(
-      options(join(root, 'rustra.json')),
+      options(join(root, 'unikit.json')),
       metadataRunner(root, []),
     );
     const verdict = report.checks.find((check) => check.id === 'codegen.device_catalog');
@@ -1199,8 +1199,8 @@ const REGISTRY_CONFIG = {
 function withRegistryProject(
   callback: (root: string, path: string) => Promise<void>,
 ): Promise<void> {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-doctor-registry-'));
-  const path = join(root, 'rustra.json');
+  const root = mkdtempSync(join(tmpdir(), 'unikit-doctor-registry-'));
+  const path = join(root, 'unikit.json');
   writeFileSync(path, `${JSON.stringify(REGISTRY_CONFIG)}\n`);
   writeFileSync(join(root, 'Cargo.toml'), CARGO_TOML);
   return callback(root, path).finally(() => rmSync(root, { recursive: true, force: true }));
@@ -1359,14 +1359,14 @@ test('registry reachability probe fetches the crates.io sparse index config', as
 test('native dev target emits neither the wasm notice nor the wasm32 target check', () => {
   withProject(
     {
-      'rustra.json': JSON.stringify({
+      'unikit.json': JSON.stringify({
         schema: './generated/schema.json',
         output: './generated',
         node: { rustManifest: './Cargo.toml' },
       }),
       'Cargo.toml': CARGO_TOML,
       'generated/schema.json': '{}\n',
-      'generated/.rustra-generated.json': JSON.stringify({
+      'generated/.unikit-generated.json': JSON.stringify({
         schemaVersion: 1,
         schemaHash: sha256('{}\n'),
         generatorVersion: cliVersion,
@@ -1375,7 +1375,7 @@ test('native dev target emits neither the wasm notice nor the wasm32 target chec
     },
     (root) => {
       const report = collectDoctorReport(
-        options(join(root, 'rustra.json')),
+        options(join(root, 'unikit.json')),
         metadataRunner(root, [
           {
             name: 'app',

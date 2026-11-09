@@ -56,7 +56,7 @@ function seedProject(root: string): string {
     JSON.stringify({ name: 'proj', private: true, workspaces: [], dependencies: {} }),
   );
   writeFileSync(
-    join(project, 'rustra.json'),
+    join(project, 'unikit.json'),
     JSON.stringify({ schema: './generated/schema.json', output: './generated', node: {} }),
   );
   writeFileSync(join(root, 'schema.json'), JSON.stringify(SCHEMA));
@@ -90,13 +90,13 @@ function seedProject(root: string): string {
 test('codegen --explain --format json carries the schemaVersion:1 surface map', async () => {
   // 신형 explain shape 핀 — 구형 `{command:'codegen', explain}` 임의 shape 로의
   // 회귀를 잡는다. explain 은 config 해석만 하므로 cargo 없이 순수 조회 경로다.
-  const root = mkdtempSync(join(tmpdir(), 'rustra-codegen-explain-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-codegen-explain-'));
   const originalLog = console.log;
   const stdout: string[] = [];
   console.log = (line: unknown) => stdout.push(String(line));
   try {
     const project = seedProject(root);
-    await runCodegen(['--config', join(project, 'rustra.json'), '--explain', '--format', 'json']);
+    await runCodegen(['--config', join(project, 'unikit.json'), '--explain', '--format', 'json']);
     const report = JSON.parse(stdout.at(-1)!) as {
       schemaVersion: number;
       command?: string;
@@ -112,7 +112,7 @@ test('codegen --explain --format json carries the schemaVersion:1 surface map', 
 });
 
 test('codegen --format json reports drift:true when regeneration rewrites existing files', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-codegen-drift-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-codegen-drift-'));
   const originalPath = process.env.PATH;
   let stdout: string[] = [];
   const restore = (() => {
@@ -129,7 +129,7 @@ test('codegen --format json reports drift:true when regeneration rewrites existi
 
     // 1차 — 신규 생성. drift 는 false 여야 한다.
     stdout = [];
-    await runCodegen(['--config', join(project, 'rustra.json'), '--format', 'json']);
+    await runCodegen(['--config', join(project, 'unikit.json'), '--format', 'json']);
     const first = JSON.parse(stdout.at(-1)!) as { drift: boolean; written: string[] };
     assert.equal(first.drift, false, `first run must not drift, got: ${stdout.at(-1)}`);
     assert.ok(
@@ -139,7 +139,7 @@ test('codegen --format json reports drift:true when regeneration rewrites existi
 
     // 2차 — 변조 없이 재실행. 내용이 같으므로 (unchanged), drift=false.
     stdout = [];
-    await runCodegen(['--config', join(project, 'rustra.json'), '--format', 'json']);
+    await runCodegen(['--config', join(project, 'unikit.json'), '--format', 'json']);
     const steady = JSON.parse(stdout.at(-1)!) as { drift: boolean; written: string[] };
     assert.equal(steady.drift, false, `clean rerun must not drift, got: ${stdout.at(-1)}`);
     assert.ok(
@@ -152,7 +152,7 @@ test('codegen --format json reports drift:true when regeneration rewrites existi
     const typesPath = join(project, 'generated', 'types.ts');
     writeFileSync(typesPath, readFileSync(typesPath, 'utf8') + '\n// drift probe\n');
     stdout = [];
-    await runCodegen(['--config', join(project, 'rustra.json'), '--format', 'json']);
+    await runCodegen(['--config', join(project, 'unikit.json'), '--format', 'json']);
     const drifted = JSON.parse(stdout.at(-1)!) as { drift: boolean; written: string[] };
     assert.equal(drifted.drift, true, `tampered rerun must drift, got: ${stdout.at(-1)}`);
     assert.ok(
@@ -166,7 +166,7 @@ test('codegen --format json reports drift:true when regeneration rewrites existi
     const legacy = join(project, 'generated', 'rkyv-codecs.ts');
     const content = '// previous generated codec\n';
     writeFileSync(legacy, content);
-    const manifestPath = join(project, 'generated', '.rustra-generated.json');
+    const manifestPath = join(project, 'generated', '.unikit-generated.json');
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
     manifest.files.push({
       path: 'rkyv-codecs.ts',
@@ -174,7 +174,7 @@ test('codegen --format json reports drift:true when regeneration rewrites existi
     });
     writeFileSync(manifestPath, JSON.stringify(manifest));
     stdout = [];
-    await runCodegen(['--config', join(project, 'rustra.json'), '--format', 'json']);
+    await runCodegen(['--config', join(project, 'unikit.json'), '--format', 'json']);
     const removed = JSON.parse(stdout.at(-1)!) as { drift: boolean; written: string[] };
     assert.equal(removed.drift, true);
     assert.ok(removed.written.includes('rkyv-codecs.ts (removed)'));

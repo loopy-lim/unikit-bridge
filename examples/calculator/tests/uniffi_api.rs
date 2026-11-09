@@ -1,13 +1,13 @@
 //! UniFFI 미러 계층 통합 테스트 — `--features uniffi` 빌드에서만 실행된다.
 //!
 //! 생성된 래퍼는 `calculator_package()` OnceLock 싱글턴을 공유하므로, 레지스트리를
-//! mutate 하는 명령(rustraRegistryDemo/freeze)은 여기서 호출하지 않는다 — 싱글턴
+//! mutate 하는 명령(unikitRegistryDemo/freeze)은 여기서 호출하지 않는다 — 싱글턴
 //! 상태가 다른 테스트로 샐 수 있다. 레지스트리 자체의 계약은 lib.rs 단위 테스트가
 //! 개별 패키지에서 검증한다.
 #![cfg(feature = "uniffi")]
 
-use rustra_calculator_example::uniffi_api::{
-    AddNumbersInput, DivideInput, KindEchoInput, OpKind, RustraCommandFailure, TagSetInput,
+use unikit_calculator_example::uniffi_api::{
+    AddNumbersInput, DivideInput, KindEchoInput, OpKind, TagSetInput, UnikitCommandFailure,
     WideAggInput, addNumbers, contractHash, deviceDemo, divide, getSchema, invokeJson, kindEcho,
     tagSet, wideAgg,
 };
@@ -19,13 +19,13 @@ fn add_numbers_wrapper_round_trips() {
     assert_eq!(out.value, 5);
 }
 
-/// 타입 에러 경로 — RustraError 가 RustraCommandFailure 로 변환되어 전파된다.
+/// 타입 에러 경로 — UnikitError 가 UnikitCommandFailure 로 변환되어 전파된다.
 #[test]
 fn divide_by_zero_maps_to_typed_failure() {
     let error = divide(DivideInput { a: 10, b: 0 }).unwrap_err();
     let text = error.to_string();
     match error {
-        RustraCommandFailure::Failure {
+        UnikitCommandFailure::Failure {
             code,
             detail,
             retryable,
@@ -102,7 +102,7 @@ fn invoke_json_generic_surface() {
     // 알 수 없는 커맨드 — command.not_found 로 타입 에러 변환.
     let error = invokeJson("nope".to_string(), String::new()).unwrap_err();
     match error {
-        RustraCommandFailure::Failure { code, .. } => assert_eq!(code, "command.not_found"),
+        UnikitCommandFailure::Failure { code, .. } => assert_eq!(code, "command.not_found"),
     }
 }
 
@@ -116,10 +116,10 @@ fn get_schema_returns_live_schema() {
     assert_eq!(value["packageId"], "examples.calculator");
 }
 
-/// contractHash — FFI rustra_ffi_contract_hash 와 동일 단일 소스.
+/// contractHash — FFI unikit_ffi_contract_hash 와 동일 단일 소스.
 #[test]
 fn contract_hash_matches_generate_typescript() {
-    let generated = rustra_calculator_example::calculator_package()
+    let generated = unikit_calculator_example::calculator_package()
         .generate_typescript()
         .unwrap();
     assert_eq!(contractHash().unwrap(), generated.contract_hash);

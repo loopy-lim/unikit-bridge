@@ -58,7 +58,7 @@
       "arm": "baseline",
       "binarySha256": "aecf5e8ddd52285b62b02e8593137daefa05eb939e1d5f9fd52b7318025f1475",
       "command": [
-        "/tmp/rustra-20261013-perf-final-evidence/baseline-bench",
+        "/tmp/unikit-20261013-perf-final-evidence/baseline-bench",
         "--bench",
         "--noplot",
         "--warm-up-time",
@@ -71,14 +71,14 @@
       "startedAtUnix": 1791863999.815457,
       "elapsedSeconds": 11.845629930496216,
       "exitCode": 0,
-      "outputDirectory": "/tmp/rustra-20261013-perf-final-evidence/measurements/run-01-baseline"
+      "outputDirectory": "/tmp/unikit-20261013-perf-final-evidence/measurements/run-01-baseline"
     },
     {
       "run": 2,
       "arm": "candidate",
       "binarySha256": "700cb18febffc1537d3b1f0ae445d207f454d7fe7ab0969e21ef88f8581e2f45",
       "command": [
-        "/tmp/rustra-20261013-perf-final-evidence/candidate-bench",
+        "/tmp/unikit-20261013-perf-final-evidence/candidate-bench",
         "--bench",
         "--noplot",
         "--warm-up-time",
@@ -91,14 +91,14 @@
       "startedAtUnix": 1791864011.661716,
       "elapsedSeconds": 11.811857223510742,
       "exitCode": 0,
-      "outputDirectory": "/tmp/rustra-20261013-perf-final-evidence/measurements/run-02-candidate"
+      "outputDirectory": "/tmp/unikit-20261013-perf-final-evidence/measurements/run-02-candidate"
     },
     {
       "run": 3,
       "arm": "candidate",
       "binarySha256": "700cb18febffc1537d3b1f0ae445d207f454d7fe7ab0969e21ef88f8581e2f45",
       "command": [
-        "/tmp/rustra-20261013-perf-final-evidence/candidate-bench",
+        "/tmp/unikit-20261013-perf-final-evidence/candidate-bench",
         "--bench",
         "--noplot",
         "--warm-up-time",
@@ -111,14 +111,14 @@
       "startedAtUnix": 1791864023.4742248,
       "elapsedSeconds": 11.633742094039917,
       "exitCode": 0,
-      "outputDirectory": "/tmp/rustra-20261013-perf-final-evidence/measurements/run-03-candidate"
+      "outputDirectory": "/tmp/unikit-20261013-perf-final-evidence/measurements/run-03-candidate"
     },
     {
       "run": 4,
       "arm": "baseline",
       "binarySha256": "aecf5e8ddd52285b62b02e8593137daefa05eb939e1d5f9fd52b7318025f1475",
       "command": [
-        "/tmp/rustra-20261013-perf-final-evidence/baseline-bench",
+        "/tmp/unikit-20261013-perf-final-evidence/baseline-bench",
         "--bench",
         "--noplot",
         "--warm-up-time",
@@ -131,14 +131,14 @@
       "startedAtUnix": 1791864035.1085591,
       "elapsedSeconds": 11.507230997085571,
       "exitCode": 0,
-      "outputDirectory": "/tmp/rustra-20261013-perf-final-evidence/measurements/run-04-baseline"
+      "outputDirectory": "/tmp/unikit-20261013-perf-final-evidence/measurements/run-04-baseline"
     },
     {
       "run": 5,
       "arm": "baseline",
       "binarySha256": "aecf5e8ddd52285b62b02e8593137daefa05eb939e1d5f9fd52b7318025f1475",
       "command": [
-        "/tmp/rustra-20261013-perf-final-evidence/baseline-bench",
+        "/tmp/unikit-20261013-perf-final-evidence/baseline-bench",
         "--bench",
         "--noplot",
         "--warm-up-time",
@@ -151,14 +151,14 @@
       "startedAtUnix": 1791864046.616333,
       "elapsedSeconds": 11.834311962127686,
       "exitCode": 0,
-      "outputDirectory": "/tmp/rustra-20261013-perf-final-evidence/measurements/run-05-baseline"
+      "outputDirectory": "/tmp/unikit-20261013-perf-final-evidence/measurements/run-05-baseline"
     },
     {
       "run": 6,
       "arm": "candidate",
       "binarySha256": "700cb18febffc1537d3b1f0ae445d207f454d7fe7ab0969e21ef88f8581e2f45",
       "command": [
-        "/tmp/rustra-20261013-perf-final-evidence/candidate-bench",
+        "/tmp/unikit-20261013-perf-final-evidence/candidate-bench",
         "--bench",
         "--noplot",
         "--warm-up-time",
@@ -171,14 +171,14 @@
       "startedAtUnix": 1791864058.451381,
       "elapsedSeconds": 12.010491847991943,
       "exitCode": 0,
-      "outputDirectory": "/tmp/rustra-20261013-perf-final-evidence/measurements/run-06-candidate"
+      "outputDirectory": "/tmp/unikit-20261013-perf-final-evidence/measurements/run-06-candidate"
     },
     {
       "run": 7,
       "arm": "candidate",
       "binarySha256": "700cb18febffc1537d3b1f0ae445d207f454d7fe7ab0969e21ef88f8581e2f45",
       "command": [
-        "/tmp/rustra-20261013-perf-final-evidence/candidate-bench",
+        "/tmp/unikit-20261013-perf-final-evidence/candidate-bench",
         "--bench",
         "--noplot",
         "--warm-up-time",
@@ -191,14 +191,14 @@
       "startedAtUnix": 1791864070.462403,
       "elapsedSeconds": 11.877129077911377,
       "exitCode": 0,
-      "outputDirectory": "/tmp/rustra-20261013-perf-final-evidence/measurements/run-07-candidate"
+      "outputDirectory": "/tmp/unikit-20261013-perf-final-evidence/measurements/run-07-candidate"
     },
     {
       "run": 8,
       "arm": "baseline",
       "binarySha256": "aecf5e8ddd52285b62b02e8593137daefa05eb939e1d5f9fd52b7318025f1475",
       "command": [
-        "/tmp/rustra-20261013-perf-final-evidence/baseline-bench",
+        "/tmp/unikit-20261013-perf-final-evidence/baseline-bench",
         "--bench",
         "--noplot",
         "--warm-up-time",
@@ -211,14 +211,14 @@
       "startedAtUnix": 1791864082.340093,
       "elapsedSeconds": 11.816174030303955,
       "exitCode": 0,
-      "outputDirectory": "/tmp/rustra-20261013-perf-final-evidence/measurements/run-08-baseline"
+      "outputDirectory": "/tmp/unikit-20261013-perf-final-evidence/measurements/run-08-baseline"
     },
     {
       "run": 9,
       "arm": "baseline",
       "binarySha256": "aecf5e8ddd52285b62b02e8593137daefa05eb939e1d5f9fd52b7318025f1475",
       "command": [
-        "/tmp/rustra-20261013-perf-final-evidence/baseline-bench",
+        "/tmp/unikit-20261013-perf-final-evidence/baseline-bench",
         "--bench",
         "--noplot",
         "--warm-up-time",
@@ -231,14 +231,14 @@
       "startedAtUnix": 1791864094.1568289,
       "elapsedSeconds": 11.896108150482178,
       "exitCode": 0,
-      "outputDirectory": "/tmp/rustra-20261013-perf-final-evidence/measurements/run-09-baseline"
+      "outputDirectory": "/tmp/unikit-20261013-perf-final-evidence/measurements/run-09-baseline"
     },
     {
       "run": 10,
       "arm": "candidate",
       "binarySha256": "700cb18febffc1537d3b1f0ae445d207f454d7fe7ab0969e21ef88f8581e2f45",
       "command": [
-        "/tmp/rustra-20261013-perf-final-evidence/candidate-bench",
+        "/tmp/unikit-20261013-perf-final-evidence/candidate-bench",
         "--bench",
         "--noplot",
         "--warm-up-time",
@@ -251,7 +251,7 @@
       "startedAtUnix": 1791864106.053531,
       "elapsedSeconds": 11.552626132965088,
       "exitCode": 0,
-      "outputDirectory": "/tmp/rustra-20261013-perf-final-evidence/measurements/run-10-candidate"
+      "outputDirectory": "/tmp/unikit-20261013-perf-final-evidence/measurements/run-10-candidate"
     }
   ],
   "analysis": [
@@ -1474,10 +1474,10 @@
     "Full Criterion raw outputs and executables remain in the local /tmp evidence directory."
   ],
   "candidateSourceSha256": {
-    "crates/rustra/src/complex_codec_wire.rs": "fec7e7ed11e266101f4773da87395c2c68179b6ca0f38441d6924e4b10f64088",
-    "crates/rustra/src/complex_serde_ser_core.rs": "f9e316cdf0261df089df3efbccfcd8793748952763df7c2ca81b91ada6654eac",
-    "crates/rustra/src/complex_serde_map_scratch.rs": "ec71e61c003c5f61f529f051c7d8b052a865261c5dcd375daa5df557a0764c22",
-    "crates/rustra/src/complex_serde_scratch_tests.rs": "b0f2ab6f402e4cb97630caff6820f56ebc7cba5b4f886bb1b3267d354c305fbf"
+    "crates/unikit-bridge/src/complex_codec_wire.rs": "fec7e7ed11e266101f4773da87395c2c68179b6ca0f38441d6924e4b10f64088",
+    "crates/unikit-bridge/src/complex_serde_ser_core.rs": "f9e316cdf0261df089df3efbccfcd8793748952763df7c2ca81b91ada6654eac",
+    "crates/unikit-bridge/src/complex_serde_map_scratch.rs": "ec71e61c003c5f61f529f051c7d8b052a865261c5dcd375daa5df557a0764c22",
+    "crates/unikit-bridge/src/complex_serde_scratch_tests.rs": "b0f2ab6f402e4cb97630caff6820f56ebc7cba5b4f886bb1b3267d354c305fbf"
   },
   "sourceIsolation": "git archive of sourceCommit, then only the four listed codec files copied; baseline and candidate built in the same snapshot path and CARGO_TARGET_DIR"
 }

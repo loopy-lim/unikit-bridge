@@ -11,9 +11,9 @@
 
 - Base c3bed5dc; 기존 isolated nitro-parity worktree. 이전 원본·기각 후보 보존.
 - 동일 입력/정답/소유권/알고리즘, 호출 세대·재진입·오류·payload·same-core invoke/free 보존.
-- 프로파일 별도 rustra-nitro-profile/v1, v2 합격 기준·순서 불변. 통계에서 느린 표본 제외 금지.
+- 프로파일 별도 unikit-nitro-profile/v1, v2 합격 기준·순서 불변. 통계에서 느린 표본 제외 금지.
 - 무작위·fuzz·스트레스 테스트 추가 없음. 고정 입력의 최대15초 CPU 관찰만 수행.
-- 부모만 빌드·기기·프로파일·측정. 성능 창 동안 다른 CPU 집약 작업 금지. 전용 com.rustra.nitroparity만 사용.
+- 부모만 빌드·기기·프로파일·측정. 성능 창 동안 다른 CPU 집약 작업 금지. 전용 com.unikit.nitroparity만 사용.
 - 새 버전·발행·push 없음. 기존 승인에 따라 검증된 변경을 로컬 커밋.
 
 ## Task 1: Actual public-call profiling harness

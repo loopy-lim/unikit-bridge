@@ -7,7 +7,7 @@ import test from 'node:test';
 
 for (const code of [0, 7]) {
   test(`safety capture preserves stdout, stderr and exit ${code}`, () => {
-    const dir = mkdtempSync(join(tmpdir(), 'rustra-safety-'));
+    const dir = mkdtempSync(join(tmpdir(), 'unikit-safety-'));
     try {
       const result = spawnSync(
         'bash',

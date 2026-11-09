@@ -81,7 +81,7 @@ void test('checkCoverageTsCoverage: react 테스트 전부 반영 시 통과, �
 
 void test('checkScriptcVersionPin: 핀과 CI 리터럴이 일치하면 통과', async () => {
   const { checkScriptcVersionPin } = await import('./check-test-list-parity.mjs');
-  const root = await mkdtemp(join(tmpdir(), 'rustra-parity-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-parity-'));
   try {
     const runSh = join(root, 'run.sh');
     const ci = join(root, 'ci.yml');
@@ -95,7 +95,7 @@ void test('checkScriptcVersionPin: 핀과 CI 리터럴이 일치하면 통과', 
 
 void test('checkScriptcVersionPin: 어느 한쪽만 올리면 드리프트로 적발', async () => {
   const { checkScriptcVersionPin } = await import('./check-test-list-parity.mjs');
-  const root = await mkdtemp(join(tmpdir(), 'rustra-parity-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-parity-'));
   try {
     const runSh = join(root, 'run.sh');
     const ci = join(root, 'ci.yml');

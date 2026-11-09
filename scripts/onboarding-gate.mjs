@@ -5,15 +5,15 @@
  * 산문("init 하면 됩니다")이 아니라 게이트로 계약한다.
  *
  * 단계:
- *   1. init          — rustra CLI로 onboarding-probe 스캐폴드 생성
+ *   1. init          — unikit CLI로 onboarding-probe 스캐폴드 생성
  *   2. doctor        — 환경 진단(경고는 통과, 필수 fail만 중단)
  *   3. build         — cargo build (스캐폴드의 Rust 제너레이터 빌드)
- *   4. codegen       — rustra codegen (Rust 계약 프로브 → schema.json → TS 표면)
+ *   4. codegen       — unikit codegen (Rust 계약 프로브 → schema.json → TS 표면)
  *   5. demo          — 생성된 호스트 엔트리로 데모 실행
- *   6. codegen-check — rustra codegen --check (check 계약의 행위 커버: 스키마 재산출 + 드리프트 0)
+ *   6. codegen-check — unikit codegen --check (check 계약의 행위 커버: 스키마 재산출 + 드리프트 0)
  *   7. mutate        — 게이트가 스캐폴드를 직접 고친다: EchoInput/EchoOutput 에 repeat: u32 추가,
  *                      호출부(index.ts)에도 repeat 을 넣는다(필수 필드라 serde 가 누락을 거절한다)
- *   8. regen         — rustra codegen 재실행 (cargo 가 lib.rs 변경을 감지해 재빌드 → 스키마 재산출)
+ *   8. regen         — unikit codegen 재실행 (cargo 가 lib.rs 변경을 감지해 재빌드 → 스키마 재산출)
  *   9. verify        — 생성된 types.ts 에 repeat 이 선언됐는지 단정 + demo 재실행(재호출 성공)
  *
  * fail-closed: 어느 단계든 실패하면 그 단계 이름과 출력 꼬리를 남기고 1로 끝난다.
@@ -22,7 +22,7 @@
  * `runner`를 주입받아 스폰 없이 테스트 가능하고, mutate(fs 조작)도 주입 가능하다
  * (onboarding-gate.test.ts).
  *
- * 웜 캐시 옵트인: RUSTRA_ONBOARDING_CARGO_TARGET_DIR 를 설정하면 게이트가 스폰하는
+ * 웜 캐시 옵트인: UNIKIT_ONBOARDING_CARGO_TARGET_DIR 를 설정하면 게이트가 스폰하는
  * 커맨드가 해당 디렉터리를 CARGO_TARGET_DIR 로 상속한다(build/rebuild 의 cargo 빌드와
  * codegen/regen 의 내부 cargo run 이 같은 타깃을 공유). 미설정이면 기존대로 콜드
  * 캐시(fresh scaffold) 검증이다 — 게이트의 fail-closed 의미론은 그대로다.
@@ -55,12 +55,12 @@ const PROJECT_NAME = 'onboarding-probe';
 
 /**
  * 발행 전 검증 패치 — repo 체크아웃(개발/CI)에서만 적용되는 검증 전제 주입.
- * init 스캐폴드는 발행 버전(cli rustraTemplate.cargoRange / npm ranges, 현재
+ * init 스캐폴드는 발행 버전(cli unikitTemplate.cargoRange / npm ranges, 현재
  * ^0.8.0)을 요구하는데, 발행은 이 게이트보다 뒤 단계다. 발행 전에도 게이트가
  * 돌아야 하므로 repo에 크레이트 소스가 있으면 두 축을 로컬로 우회한다:
  *
  *   1. Rust — .cargo/config.toml 의 [patch.crates-io] 로 워크스페이스 크레이트 사용
- *   2. JS  — node_modules/@rustra/{node,types,cli} 를 repo 패키지로 심링크.
+ *   2. JS  — node_modules/@unikit-bridge/{node,types,cli} 를 repo 패키지로 심링크.
  *      게이트는 스캐폴드에서 bun install 을 실행하지 않으므로 bun run 의 자동
  *      설치가 레지스트리(발행 전엔 ^0.8.0 없음)를 보지 않게 막는다.
  *
@@ -71,7 +71,7 @@ const PROJECT_NAME = 'onboarding-probe';
 function injectWorkspacePatch(projectDir, repoRoot) {
   const repo = repoRoot ?? join(projectDir, '..', '..');
   const cratesRoot = resolve(repo, 'crates');
-  if (!existsSync(join(cratesRoot, 'rustra', 'Cargo.toml'))) return false;
+  if (!existsSync(join(cratesRoot, 'unikit-bridge', 'Cargo.toml'))) return false;
   const posix = (p) => p.split('\\').join('/');
   const patchDir = join(projectDir, '.cargo');
   mkdirSync(patchDir, { recursive: true });
@@ -81,13 +81,13 @@ function injectWorkspacePatch(projectDir, repoRoot) {
       '# [onboarding-gate] 발행 전 검증용 — repo 워크스페이스 크레이트로 우회한다.',
       '# 신규 사용자 환경(크레이트 소스 없음)에는 생성되지 않는다.',
       '[patch.crates-io]',
-      `rustra = { path = "${posix(join(cratesRoot, 'rustra'))}" }`,
-      `rustra-macros = { path = "${posix(join(cratesRoot, 'rustra-macros'))}" }`,
-      `rustra-naming = { path = "${posix(join(cratesRoot, 'rustra-naming'))}" }`,
+      `unikit-bridge = { path = "${posix(join(cratesRoot, 'unikit-bridge'))}" }`,
+      `unikit-bridge-macros = { path = "${posix(join(cratesRoot, 'unikit-bridge-macros'))}" }`,
+      `unikit-bridge-naming = { path = "${posix(join(cratesRoot, 'unikit-bridge-naming'))}" }`,
       '',
     ].join('\n'),
   );
-  const modulesDir = join(projectDir, 'node_modules', '@rustra');
+  const modulesDir = join(projectDir, 'node_modules', '@unikit-bridge');
   mkdirSync(modulesDir, { recursive: true });
   for (const name of ['node', 'types', 'cli']) {
     const linkPath = join(modulesDir, name);
@@ -115,13 +115,13 @@ export const ONBOARDING_STEPS = [
 /** mutate 가 스캐폴드에 새로 심는 필드 — regen 후 types.ts 에 나타나야 한다. */
 const MUTATED_FIELD_PATTERN = /\brepeat\s*:\s*number\b/;
 
-/** 웜 캐시 옵트인 — RUSTRA_ONBOARDING_CARGO_TARGET_DIR 가 설정되면 게이트의 cargo
+/** 웜 캐시 옵트인 — UNIKIT_ONBOARDING_CARGO_TARGET_DIR 가 설정되면 게이트의 cargo
  *  스텝(build/rebuild, codegen/regen 이 내부에서 돌리는 cargo run)이 해당 디렉터리를
  *  CARGO_TARGET_DIR 로 상속한다. 미설정(빈 값 포함)이면 null — 콜드 캐시(fresh
  *  scaffold) 검증이라는 기본 동작이 그대로 유지된다. 상대 경로는 스텝 cwd 가
  *  제각각이므로 게이트 프로세스 cwd 기준 절대 경로로 정규화해 돌려준다. */
 export function sharedCargoTargetDir(env = process.env) {
-  const raw = env.RUSTRA_ONBOARDING_CARGO_TARGET_DIR;
+  const raw = env.UNIKIT_ONBOARDING_CARGO_TARGET_DIR;
   const value = typeof raw === 'string' ? raw.trim() : '';
   return value ? resolve(value) : null;
 }
@@ -173,27 +173,27 @@ export function commandFor(step, root, repoRoot) {
     case 'doctor':
       return {
         cwd: projectDir,
-        argv: [process.execPath, bin, 'doctor', '--config', 'rustra.json'],
+        argv: [process.execPath, bin, 'doctor', '--config', 'unikit.json'],
       };
     case 'codegen':
       return {
         cwd: projectDir,
-        argv: [process.execPath, bin, 'codegen', '--config', 'rustra.json'],
+        argv: [process.execPath, bin, 'codegen', '--config', 'unikit.json'],
       };
     case 'codegen-check':
-      // check 모드는 직전 codegen 이 남긴 .rustra-generated.json 매니페스트를 요구하고
-      // RUSTRA_SCHEMA_OUT 임시 디렉터리로 스키마를 재산출한 뒤 드리프트 0을 단정한다.
+      // check 모드는 직전 codegen 이 남긴 .unikit-generated.json 매니페스트를 요구하고
+      // UNIKIT_SCHEMA_OUT 임시 디렉터리로 스키마를 재산출한 뒤 드리프트 0을 단정한다.
       return {
         cwd: projectDir,
-        argv: [process.execPath, bin, 'codegen', '--config', 'rustra.json', '--check'],
+        argv: [process.execPath, bin, 'codegen', '--config', 'unikit.json', '--check'],
       };
     case 'regen':
       // 재코드젠 — 일반 codegen 과 같은 커맨드. 주의: cargo run --bin generate 는
-      // generate 만 재빌드하고 런타임 바이너리(rustra-app)를 재링크하지 않는다
+      // generate 만 재빌드하고 런타임 바이너리(unikit-app)를 재링크하지 않는다
       // (2026-09-06 실측) — 뒤 rebuild 단계가 런타임 재빌드를 담당한다.
       return {
         cwd: projectDir,
-        argv: [process.execPath, bin, 'codegen', '--config', 'rustra.json'],
+        argv: [process.execPath, bin, 'codegen', '--config', 'unikit.json'],
       };
     case 'demo': {
       // init 스캐폴드의 데모 스크립트 그대로 — bun으로 src/index.ts를 실행한다.
@@ -385,12 +385,12 @@ async function main() {
   if (args.length && (args.length !== 2 || args[0] !== '--output'))
     throw new Error('Usage: node scripts/onboarding-gate.mjs [--output receipt.json]');
   const output = openReceiptTarget({
-    requested: args[1] ?? process.env.RUSTRA_ONBOARDING_RECEIPT,
+    requested: args[1] ?? process.env.UNIKIT_ONBOARDING_RECEIPT,
     defaultName: `${Date.now()}-${process.pid}.json`,
     repo: root,
     label: 'onboarding',
   });
-  const scratch = mkdtempSync(join(tmpdir(), 'rustra-onboarding-'));
+  const scratch = mkdtempSync(join(tmpdir(), 'unikit-onboarding-'));
   const rawLogDirectory = openRawLogDirectory(output);
   const sourceBefore = collectBenchmarkSource(root);
   const producerBefore = captureProducerArtifact(root);

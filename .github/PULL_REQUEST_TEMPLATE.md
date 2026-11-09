@@ -7,7 +7,7 @@ from a tracked workstream (docs/research/, docs/specs/, docs/plans/). -->
 
 <!-- Which gates did you run? Keep the lines that apply. -->
 
-- [ ] `cargo test -p rustra -p rustra-macros`
+- [ ] `cargo test -p unikit-bridge -p unikit-bridge-macros`
 - [ ] `cargo clippy --all-targets -- -D warnings`
 - [ ] `bun run test:packages`
 - [ ] `bun run test:ts:node` (codegen output changes)

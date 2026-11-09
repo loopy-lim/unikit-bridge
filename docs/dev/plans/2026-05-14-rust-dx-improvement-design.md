@@ -75,13 +75,13 @@ Replace `Package::builder()` + `register!()` + `generate_typescript()` with sing
 
 ```rust
 fn main() -> Result<()> {
-    rustra::build("examples.calculator")
+    unikit_bridge::build("examples.calculator")
         .commands!(add_numbers, multiply, divide)
         .generate_to("../generated")?
 }
 ```
 
-**`rustra::build("package.name")`:**
+**`unikit_bridge::build("package.name")`:**
 
 - Creates a `PackageBuilder` with package name
 
@@ -117,13 +117,13 @@ pub trait CommandInput: Serialize + DeserializeOwned + JsonSchema {}
 No backward compatibility. Direct replacement:
 
 - Remove `register!()` macro → replace with `commands!()`
-- Remove `Package::builder()` → replace with `rustra::build()`
+- Remove `Package::builder()` → replace with `unikit_bridge::build()`
 - Remove `generate_typescript()?.write_to_dir()` → replace with `.generate_to()`
 - Update all examples to new API
 
 ## Affected Crates
 
-- `rustra-macros`: `#[command]` rewrite, new `BridgeType` derive, new `commands!()` macro
-- `rustra`: New `rustra::build()` API, remove old `Package::builder()`, `register!()`
+- `unikit-bridge-macros`: `#[command]` rewrite, new `BridgeType` derive, new `commands!()` macro
+- `unikit`: New `unikit_bridge::build()` API, remove old `Package::builder()`, `register!()`
 - `examples/*`: Update all examples to new API
 - Tests: Update to new patterns

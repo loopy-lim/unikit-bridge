@@ -1,9 +1,9 @@
 //! CRUD stdio runtime: invoke handles one request; serve retains the store across calls.
-use rustra_crud_example::crud_package;
 use serde_json::{Value, json};
 use std::io::{BufRead, Read, Write};
+use unikit_crud_example::crud_package;
 
-fn main() -> rustra::Result<()> {
+fn main() -> unikit_bridge::Result<()> {
     match std::env::args().nth(1).as_deref() {
         Some("invoke") => return run_invoke_stdio(),
         Some("serve") => return run_serve_stdio(),
@@ -20,17 +20,18 @@ fn main() -> rustra::Result<()> {
     Ok(())
 }
 
-fn run_invoke_stdio() -> rustra::Result<()> {
+fn run_invoke_stdio() -> unikit_bridge::Result<()> {
     let mut input = String::new();
     std::io::stdin()
         .take(1024 * 1024)
         .read_to_string(&mut input)?;
     let response = invoke_response(&crud_package(), &input);
-    serde_json::to_writer(std::io::stdout(), &response).map_err(rustra::RustraError::internal)?;
+    serde_json::to_writer(std::io::stdout(), &response)
+        .map_err(unikit_bridge::UnikitError::internal)?;
     Ok(())
 }
 
-fn run_serve_stdio() -> rustra::Result<()> {
+fn run_serve_stdio() -> unikit_bridge::Result<()> {
     let package = crud_package();
     let stdin = std::io::stdin();
     let mut stdout = std::io::stdout().lock();
@@ -40,17 +41,18 @@ fn run_serve_stdio() -> rustra::Result<()> {
             continue;
         }
         let response = invoke_response(&package, &line);
-        serde_json::to_writer(&mut stdout, &response).map_err(rustra::RustraError::internal)?;
+        serde_json::to_writer(&mut stdout, &response)
+            .map_err(unikit_bridge::UnikitError::internal)?;
         stdout.write_all(b"\n")?;
         stdout.flush()?;
     }
     Ok(())
 }
 
-fn invoke_response(package: &rustra::Package, input: &str) -> Value {
+fn invoke_response(package: &unikit_bridge::Package, input: &str) -> Value {
     let request: Value = match serde_json::from_str(input) {
         Ok(request) => request,
-        Err(error) => return error_response(rustra::RustraError::invalid_args(error)),
+        Err(error) => return error_response(unikit_bridge::UnikitError::invalid_args(error)),
     };
     let mut response = match handle_request(package, &request) {
         Ok(response) => response,
@@ -62,20 +64,23 @@ fn invoke_response(package: &rustra::Package, input: &str) -> Value {
     response
 }
 
-fn error_response(error: rustra::RustraError) -> Value {
+fn error_response(error: unikit_bridge::UnikitError) -> Value {
     let detail = serde_json::to_string(&error).unwrap_or_else(|_| error.to_string());
     json!({ "ok": false, "error": detail })
 }
 
-fn handle_request(package: &rustra::Package, request: &Value) -> rustra::Result<Value> {
+fn handle_request(
+    package: &unikit_bridge::Package,
+    request: &Value,
+) -> unikit_bridge::Result<Value> {
     let command = request
         .get("command")
         .and_then(Value::as_str)
-        .ok_or_else(|| rustra::RustraError::invalid_args("missing command"))?;
-    if command == "__rustra_contract" {
+        .ok_or_else(|| unikit_bridge::UnikitError::invalid_args("missing command"))?;
+    if command == "__unikit_contract" {
         return Ok(json!({ "ok": true, "result": package.generate_typescript()?.contract_hash }));
     }
-    if command == "__rustra_capabilities" {
+    if command == "__unikit_capabilities" {
         return Ok(json!({ "ok": true, "result": { "events": "polling" } }));
     }
     if command == "__drainEvents" {

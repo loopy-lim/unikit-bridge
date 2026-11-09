@@ -26,16 +26,16 @@ CPU가 다른 측정을 비교했으므로 59건의 10% 예산 초과를 코드 
 - 기존 baseline은 유지한다. 같은 러너의 `comparison_ref` 경로로 두 소스를
   비교하는 절차와 mixed-change 방어를 유지한다.
 
-`env -u RUSTRA_BUN_LIBRARY bun run test:bench-gate`: **39 passed / 0 failed**.
+`env -u UNIKIT_BUN_LIBRARY bun run test:bench-gate`: **39 passed / 0 failed**.
 같은 러너 비교의 두 revision 사전 빌드와 baseline 설치 실패 방어도 포함한다.
 실제 rejected artifact에 새 gate를 적용한 결과는 `host.cpuModels` 불일치로
 **exit 2**다. 이 결과는 과거 CI를 녹색으로 바꾼 것이 아니며, 동일 환경의 원격
 재측정도 아직 실행하지 않았다.
 
 ```bash
-env -u RUSTRA_BUN_LIBRARY bun scripts/check-criterion-regression.mjs \
-  --criterion-root /tmp/rustra-20261013-rejected \
-  --report /tmp/rustra-20261013-rejected-classification.md
+env -u UNIKIT_BUN_LIBRARY bun scripts/check-criterion-regression.mjs \
+  --criterion-root /tmp/unikit-20261013-rejected \
+  --report /tmp/unikit-20261013-rejected-classification.md
 ```
 
 ## 정수 시퀀스 임시 버퍼
@@ -52,9 +52,9 @@ env -u RUSTRA_BUN_LIBRARY bun scripts/check-criterion-regression.mjs \
 `capacity overflow`로 패닉했고, 새 코드는 동일한 정렬 와이어를 반환한다.
 64키의 한 번 예약은 유지하며 더 큰 맵은 실제 항목 삽입에 따라 성장한다.
 전체 collection 한도는 계속 검사한다. 기존 코드에서 실패하는 회귀 실행은
-`/tmp/rustra-20261013-perf-evidence/map-hint-red.log`에 남겼다.
+`/tmp/unikit-20261013-perf-evidence/map-hint-red.log`에 남겼다.
 
-HEAD를 `/tmp/rustra-20261013-perf-source`에 `git archive`로 고정했다. 기준선과
+HEAD를 `/tmp/unikit-20261013-perf-source`에 `git archive`로 고정했다. 기준선과
 후보를 같은 위치·Cargo target에서 순차 빌드한 뒤 실행 파일을 각각 보존했다.
 후보는 코덱 파일 변경만 추가하여 다른 동시 작업이 A/B에 섞이지 않게 했다.
 
@@ -69,9 +69,9 @@ HEAD를 `/tmp/rustra-20261013-perf-source`에 `git archive`로 고정했다. 기
 나머지 11개 케이스도 할당 수와 요청 바이트가 동일하다. map_seq_1024의 할당 호출은
 41.7%, 누적 요청 바이트는 18.5% 감소했다. 요청 바이트는 RSS나 최대 메모리가 아니다.
 
-검증: `cargo test -p rustra complex_`는 단위 78건과 통합 2건 통과,
-`cargo test -p rustra --release --lib complex_`는 77건 통과,
-`cargo clippy -p rustra --all-targets -- -D warnings`는 종료 코드 0이다.
+검증: `cargo test -p unikit-bridge complex_`는 단위 78건과 통합 2건 통과,
+`cargo test -p unikit-bridge --release --lib complex_`는 77건 통과,
+`cargo clippy -p unikit-bridge --all-targets -- -D warnings`는 종료 코드 0이다.
 추가 검사는 postcard 와이어 일치, scratch 할당 2회, caller-buffer 무할당,
 큰 길이 힌트의 payload 제한, 고정 버퍼 overflow, 거대한 map hint와 실제
 collection 한도를 다룬다.
@@ -101,7 +101,7 @@ warmup 0.2초·측정 0.5초·resample 1,000이다. 전체 실행은 약 118초�
 비용을 갖는 변경으로 취급한다. 추가 최적화는 새 후보와 독립 A/B가 필요하다.
 
 첫 탐색 후보(작은 시퀀스의 예약 검사 생략 전)는 별도
-`/tmp/rustra-20261013-perf-evidence/ab-receipt.json`에 남겼다. map_keys_64의 작은
+`/tmp/unikit-20261013-perf-evidence/ab-receipt.json`에 남겼다. map_keys_64의 작은
 증가를 보고 inline 크기 이하를 기존 경로로 유지하도록 바꾼 뒤 위 최종 측정을 했다.
 탐색 결과와 최종 결과를 섞지 않는다.
 
@@ -113,12 +113,12 @@ warmup 0.2초·측정 0.5초·resample 1,000이다. 전체 실행은 약 118초�
 [보존 receipt](../../benchmark-receipts/2026-10-13-codec-allocation-ab.json)에
 개별 런치 추정치·환경·바이너리 및 후보 파일 해시·통계·전체 할당 결과를 담았다.
 Criterion 원본과 바이너리·계량/검증 로그는
-`/tmp/rustra-20261013-perf-final-evidence/`에 있다. 재현 시 같은 HEAD snapshot에
+`/tmp/unikit-20261013-perf-final-evidence/`에 있다. 재현 시 같은 HEAD snapshot에
 네 코덱 파일만 적용하고, 아래 실행 스크립트의 설정과 순서를 유지한다:
 
 ```bash
-python3 /tmp/rustra-20261013-perf-final-evidence/run-ab.py
-python3 /tmp/rustra-20261013-perf-final-evidence/analyze-ab.py
+python3 /tmp/unikit-20261013-perf-final-evidence/run-ab.py
+python3 /tmp/unikit-20261013-perf-final-evidence/analyze-ab.py
 ```
 
 원격 같은 러너 Benchmark 재측정, 실제 RN 앱의 독립 5회 gzip 비교, E1/A2 실기기

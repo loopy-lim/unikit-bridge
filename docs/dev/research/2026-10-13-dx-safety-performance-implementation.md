@@ -50,8 +50,8 @@ dev의 오래된 실행 파일·실패 복구 결함, Node 응답 복사, Bun �
 
 | 검사                                                                               | 결과와 범위                                                                                                       |
 | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `cargo test -p rustra -p rustra-calculator-example`                                | 541 passed, 0 failed, 3 ignored; doctest 포함                                                                     |
-| `cargo clippy -p rustra -p rustra-calculator-example --all-targets -- -D warnings` | 통과                                                                                                              |
+| `cargo test -p unikit-bridge -p unikit-calculator-example`                                | 541 passed, 0 failed, 3 ignored; doctest 포함                                                                     |
+| `cargo clippy -p unikit-bridge -p unikit-calculator-example --all-targets -- -D warnings` | 통과                                                                                                              |
 | `CARGO_NET_OFFLINE=true bun run --cwd packages/cli test`                           | Node 507/507, Bun 추가 45/45                                                                                      |
 | `bun run test:packages:check`                                                      | debug calculator 바이너리 빌드 후 모든 package suite 통과                                                         |
 | `bun run test:release-tools`                                                       | 128/128                                                                                                           |

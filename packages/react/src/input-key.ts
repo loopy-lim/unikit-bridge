@@ -36,7 +36,7 @@ function warnUnstableIdentityKey(key: string): void {
   if (warnedKeys.has(key) || warnedKeys.size >= warnedKeyLimit) return;
   warnedKeys.add(key);
   console.warn(
-    '[rustra] command input contains a class instance, function, or symbol; it is keyed by identity and is not a stable serialization target',
+    '[unikit] command input contains a class instance, function, or symbol; it is keyed by identity and is not a stable serialization target',
   );
 }
 
@@ -64,7 +64,7 @@ export function inputKey(value: unknown): string {
         usesIdentityKey = true;
         return ['ref', instanceId(item)];
     }
-    if (ancestors.has(item)) throw new TypeError('Rustra command inputs cannot contain cycles');
+    if (ancestors.has(item)) throw new TypeError('Unikit command inputs cannot contain cycles');
     ancestors.add(item);
     try {
       if (item instanceof ArrayBuffer || ArrayBuffer.isView(item)) {

@@ -17,13 +17,13 @@ def main():
     legacy = ROOT / '.superpowers/sdd/2026-09-16-nitro-parity-followup/core-dfs'
     receipt = json.loads((legacy / 'receipt.json').read_text())
     saved_rust = output / 'legacy-sources/nitro_core_dfs.rs'
-    saved_binary = output / 'legacy-sources/rustra_core_dfs'
-    assert sha(saved_binary) == receipt['binaries']['rustra'], 'saved original Rust binary differs'
+    saved_binary = output / 'legacy-sources/unikit_core_dfs'
+    assert sha(saved_binary) == receipt['binaries']['unikit'], 'saved original Rust binary differs'
     assert sha(legacy / 'nitro_core_dfs') == receipt['binaries']['nitro'], 'original Nitro binary differs'
     launches = []
     for pair in range(1, 6):
-        for framework in (['rustra', 'nitro'] if pair % 2 else ['nitro', 'rustra']):
-            extension = 'json' if framework == 'rustra' else 'txt'
+        for framework in (['unikit', 'nitro'] if pair % 2 else ['nitro', 'unikit']):
+            extension = 'json' if framework == 'unikit' else 'txt'
             path = legacy / f'{framework}-{pair}.jsonl'
             rows = [json.loads(line) for line in path.read_text().splitlines()]
             assert len(rows) == 5
@@ -32,17 +32,17 @@ def main():
                 assert len(row['samplesNs']) == 31 and row['warmup'] == 3 and row['batch'] == 16
                 count = row['nodes']
                 assert row['checksum'] == 34 * 16 * (2 * count + len(f'node-{count-1}'))
-            launches.append({'pair': pair, 'framework': framework, 'argv': [str(ROOT / 'target/release/examples/nitro_core_dfs') if framework == 'rustra' else str(legacy / 'nitro_core_dfs'), *[str(legacy / f'{name}.{extension}') for name in ORDER]], 'raw': {'path': str(path), 'sha256': sha(path)}, 'exitCode': 0, 'exitCodeEvidence': 'successful execution reported by parent; original command event log is not in this directory'})
+            launches.append({'pair': pair, 'framework': framework, 'argv': [str(ROOT / 'target/release/examples/nitro_core_dfs') if framework == 'unikit' else str(legacy / 'nitro_core_dfs'), *[str(legacy / f'{name}.{extension}') for name in ORDER]], 'raw': {'path': str(path), 'sha256': sha(path)}, 'exitCode': 0, 'exitCodeEvidence': 'successful execution reported by parent; original command event log is not in this directory'})
     files = [path for path in legacy.iterdir() if path.is_file()]
     files += [saved_rust, saved_binary, ROOT / 'examples/calculator/src/parity_bench.rs', ROOT / 'Cargo.toml', ROOT / 'Cargo.lock']
     supplement = {
-        'protocol': 'rustra-nitro-host-core-dfs-legacy-supplement/v1',
+        'protocol': 'unikit-nitro-host-core-dfs-legacy-supplement/v1',
         'originalReceipt': {'path': str(legacy / 'receipt.json'), 'sha256': sha(legacy / 'receipt.json')},
         'originalReceiptUnmodified': True,
         'originalBinaryHashesVerified': True,
         'recordedSourceCaptureCaveat': 'The Rust driver was saved immediately before its diagnostic-only edit. Current Rust DFS, Cargo manifests, and lockfile are capture-time hashes, not a contemporaneous complete build freeze. Historical source/binary correspondence cannot be fully reconstructed from this record.',
         'parentReportedBuildCommands': [
-            {'cwd': str(ROOT), 'argv': ['cargo', 'build', '--release', '--locked', '-p', 'rustra-calculator-example', '--example', 'nitro_core_dfs', '-j2']},
+            {'cwd': str(ROOT), 'argv': ['cargo', 'build', '--release', '--locked', '-p', 'unikit-calculator-example', '--example', 'nitro_core_dfs', '-j2']},
             {'cwd': str(legacy), 'argv': ['clang++', '-std=c++20', '-O3', '-DNDEBUG', '-fno-lto', '-c', 'core.cpp', '-o', 'core.o']},
             {'cwd': str(legacy), 'argv': ['clang++', '-std=c++20', '-O3', '-DNDEBUG', '-fno-lto', 'driver.cpp', 'core.o', '-o', 'nitro_core_dfs']},
         ],

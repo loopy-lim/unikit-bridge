@@ -1,20 +1,20 @@
 import React, { createContext, useContext, type ReactNode } from 'react';
-import type { EngineClient, InvokeOptions } from '@rustra/types';
-import { getEngineRegistrationToken, invoke, RustraCommandError } from '@rustra/types';
+import type { EngineClient, InvokeOptions } from '@unikit-bridge/types';
+import { getEngineRegistrationToken, invoke, UnikitCommandError } from '@unikit-bridge/types';
 
-const RustraContext = createContext<EngineClient | null>(null);
+const UnikitContext = createContext<EngineClient | null>(null);
 
-export interface RustraProviderProps {
+export interface UnikitProviderProps {
   engine: EngineClient;
   /** Optional to match React's createElement/conditional-composition ergonomics. */
   children?: ReactNode;
 }
 
 /**
- * Provides a scoped Rustra `EngineClient` to component subtree.
+ * Provides a scoped Unikit `EngineClient` to component subtree.
  */
-export function RustraProvider({ engine, children }: RustraProviderProps): React.ReactElement {
-  return React.createElement(RustraContext.Provider, { value: engine }, children);
+export function UnikitProvider({ engine, children }: UnikitProviderProps): React.ReactElement {
+  return React.createElement(UnikitContext.Provider, { value: engine }, children);
 }
 
 let defaultEngine: EngineClient | undefined;
@@ -29,7 +29,7 @@ export function getDefaultEngine(): EngineClient {
       invoke: <T>(command: string, args?: unknown, options?: InvokeOptions): Promise<T> => {
         if (registration !== getEngineRegistrationToken()) {
           return Promise.reject(
-            new RustraCommandError(
+            new UnikitCommandError(
               'transport.unavailable',
               'The global engine was replaced; render with the current engine before invoking',
             ),
@@ -43,9 +43,9 @@ export function getDefaultEngine(): EngineClient {
 }
 
 /**
- * Returns the currently active `EngineClient`, either from `<RustraProvider>` or
+ * Returns the currently active `EngineClient`, either from `<UnikitProvider>` or
  * a default engine invoking the global `invoke` singleton.
  */
-export function useRustraEngine(): EngineClient {
-  return useContext(RustraContext) ?? getDefaultEngine();
+export function useUnikitEngine(): EngineClient {
+  return useContext(UnikitContext) ?? getDefaultEngine();
 }

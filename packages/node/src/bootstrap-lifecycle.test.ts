@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configure, ensureConfigured, invoke } from '@rustra/types';
+import { configure, ensureConfigured, invoke } from '@unikit-bridge/types';
 import { createNodeBootstrap, createNodeProcessTransport } from './index.js';
 
 const clean = () => configure({ invoke: async <T>() => 'replacement' as T });

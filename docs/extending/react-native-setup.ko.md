@@ -1,6 +1,6 @@
 # React Native Setup Guide
 
-Rustra는 Expo development build와 bare React Native에 같은 generated native
+Unikit는 Expo development build와 bare React Native에 같은 generated native
 package를 사용합니다. 앱의 Podfile, Gradle settings, `MainApplication`, CMake를
 직접 편집하지 않습니다.
 
@@ -14,16 +14,16 @@ crate-type = ["rlib", "staticlib"]
 ```
 
 ```rust
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 pub fn app_package() -> Package {
-    rustra::build!("app.example", add_numbers).done()
+    unikit_bridge::build!("app.example", add_numbers).done()
 }
 
-rustra::native_entry!(app_package);
+unikit_bridge::native_entry!(app_package);
 ```
 
-`native_entry!`는 플랫폼 공통 `rustra_mobile_init` ABI를 만들고 Apple에서는 library
+`native_entry!`는 플랫폼 공통 `unikit_mobile_init` ABI를 만들고 Apple에서는 library
 load 시 package를 자동 등록합니다. 앱별 함수명을 C++에 복사하지 않습니다.
 
 ## 2. 앱 설정
@@ -62,27 +62,27 @@ target 이름은 Cargo metadata에서 추론하므로 보통 `rustLibrary`는 �
 Bun 1.4 이상으로 의존성을 추가한 뒤 setup을 실행합니다.
 
 ```bash
-bun add @rustra/react-native@0.10.0 @rustra/types@0.12.1
-bun add -d @rustra/cli@0.12.0
-bunx --bun rustra setup --config rustra.json
+bun add @unikit-bridge/react-native@0.10.0 @unikit-bridge/types@0.12.1
+bun add -d @unikit-bridge/cli@0.12.0
+bunx --bun unikit setup --config unikit.json
 ```
 
 setup은 클라이언트와 로컬 네이티브 모듈을 생성하고 의존성을 설치하며 Rust 코어를
-빌드합니다. 기존 앱 스크립트를 보존하면서 `rustra:ios`·`rustra:android` 준비 스크립트를
+빌드합니다. 기존 앱 스크립트를 보존하면서 `unikit:ios`·`unikit:android` 준비 스크립트를
 추가합니다. 실패하면 오류를 해결한 뒤 출력된 setup 명령으로 재시도합니다.
 설치 시 프로젝트의 `packageManager` 또는 lockfile을 따릅니다.
 
 사용하는 플랫폼만 준비한 뒤 기존 React Native 또는 Expo 명령으로 앱을 실행합니다.
 
 ```bash
-bun run rustra:ios      # iOS Pods 준비
-# bun run rustra:android  # Android debug APK 빌드
+bun run unikit:ios      # iOS Pods 준비
+# bun run unikit:android  # Android debug APK 빌드
 ```
 
 이 스크립트는 앱을 설치하거나 실행하지 않습니다. 기존 커스텀 스크립트와 충돌하면
 setup이 출력한 준비 명령을 사용합니다. RN만 설정한 앱은 `setup --run` 대신 setup만
 실행합니다. `--run`은 Node/Bun 프로젝트의 `demo` 스크립트용입니다.
-JS 패키지와 네이티브 Rustra 0.12.0을 함께 갱신하고 앱을 다시 빌드해야 합니다.
+JS 패키지와 네이티브 Unikit 0.12.0을 함께 갱신하고 앱을 다시 빌드해야 합니다.
 setup 성공, registry 발행, Simulator·실기기 명령 검증은 각각 별도의 확인입니다.
 
 생성 결과는 기본적으로 다음과 같습니다.
@@ -92,16 +92,16 @@ generated/
   react-native.ts
   commands.ts
   frame-registry.ts
-modules/rustra-bridge/
+modules/unikit-bridge/
   package.json
   react-native.config.js
-  RustraBridge.podspec
+  UnikitBridge.podspec
   ios/
   android/
   generated/
 ```
 
-생성기는 `package.json`의 `@rustra/generated-react-native` workspace dependency가 다른
+생성기는 `package.json`의 `@unikit-bridge/generated-react-native` workspace dependency가 다른
 경로를 가리키면 덮어쓰지 않고 실패합니다. 이 fail-closed 동작이 기존 패키지와의
 우발적 충돌을 막습니다.
 
@@ -166,41 +166,41 @@ bun run verify:native:android
 bun run verify:native:ios
 ```
 
-CI는 클린 Expo prebuild 후 Android Release APK의 `librustra_bridge.so`와 iOS
+CI는 클린 Expo prebuild 후 Android Release APK의 `libunikit_bridge.so`와 iOS
 Release workspace link를 확인합니다. build/link 성공은 실제 기기 실행과 별개이므로
 제품 릴리스 전에는 simulator/device에서 generated command 결과도 확인해야 합니다.
 
 ## 충돌 방지 계약
 
-- JS package: `@rustra/generated-react-native`
-- native module: `RustraBridge`
-- Android namespace: `dev.rustra.bridge`
-- Android library: `rustra_bridge`
-- stable Rust initializer: `rustra_mobile_init`
+- JS package: `@unikit-bridge/generated-react-native`
+- native module: `UnikitBridge`
+- Android namespace: `dev.unikit.bridge`
+- Android library: `unikit_bridge`
+- stable Rust initializer: `unikit_mobile_init`
 
-## C++ 에서 rustra 호출 (TurboModule 상호운용)
+## C++ 에서 unikit 호출 (TurboModule 상호운용)
 
 다른 C++ TurboModule(또는 JS 런타임 스레드의 네이티브 코드)이 `jsi::Value` 로
-rustra 를 직접 호출할 수 있다 — JS 왕복도 JSON 마샬링도 없다.
-`RustraJSIBridge.hpp` 의 공개 진입점은 JS 측 `__rustraNative.invokeTyped*` 와
+unikit 를 직접 호출할 수 있다 — JS 왕복도 JSON 마샬링도 없다.
+`UnikitJSIBridge.hpp` 의 공개 진입점은 JS 측 `__unikitNative.invokeTyped*` 와
 정확히 같은 경로를 공유한다:
 
 ```cpp
-#include <RustraJSIBridge.hpp>
+#include <UnikitJSIBridge.hpp>
 
-// JS 런타임 스레드에서만 호출(installRustraJSI 와 동일한 스레드 친화성 계약).
-// installRustraJSI 호출은 불필요 — FFI 전역 패키지 등록만 있으면 된다.
-rustra::TypedInvokeResult result =
-    rustra::invokeTypedById(runtime, commandId, argsValue);
+// JS 런타임 스레드에서만 호출(installUnikitJSI 와 동일한 스레드 친화성 계약).
+// installUnikitJSI 호출은 불필요 — FFI 전역 패키지 등록만 있으면 된다.
+unikit_bridge::TypedInvokeResult result =
+    unikit_bridge::invokeTypedById(runtime, commandId, argsValue);
 
 switch (result.status) {
-  case rustra::TypedInvokeStatus::Ok:            // result.value — 디코딩된 출력
+  case unikit_bridge::TypedInvokeStatus::Ok:            // result.value — 디코딩된 출력
     break;
-  case rustra::TypedInvokeStatus::NoStaticCodec: // invokeFrame 로 폴백
+  case unikit_bridge::TypedInvokeStatus::NoStaticCodec: // invokeFrame 로 폴백
     break;
-  case rustra::TypedInvokeStatus::CommandError:  // result.value: {code, message}
+  case unikit_bridge::TypedInvokeStatus::CommandError:  // result.value: {code, message}
     break;                                       // (예: platform.unavailable)
-  case rustra::TypedInvokeStatus::MalformedResponse:
+  case unikit_bridge::TypedInvokeStatus::MalformedResponse:
     break;                                       // result.message 에 상세
 }
 ```
@@ -211,26 +211,26 @@ switch (result.status) {
 
 인접한 상호운용 표면:
 
-- **folly::dynamic 입력** — `RustraTurboInterop.hpp` 의
+- **folly::dynamic 입력** — `UnikitTurboInterop.hpp` 의
   `invokeTypedByNameDynamic`/`invokeTypedByIdDynamic` 오버로드가 dynamic 을
   `jsi::Value` 로 변환해 동일 경로를 쓴다(2^53 초과 int64 는 정밀도 손실 —
   헤더 계약 참고).
 - **바이너리 채널** — `createChannelBytes(callback)`(JS: `createBytesChannel`)
   는 채널 페이로드를 ArrayBuffer 복사본으로 전달한다 — JSON 직렬화 없이
   Frame 프레임. JSON 채널과 동일한 핸들/close 계약, 한 핸들은 한 경로.
-- **동기 invoke** — `invokeTypedSync(name, args)`(`@rustra/react-native`)는
+- **동기 invoke** — `invokeTypedSync(name, args)`(`@unikit-bridge/react-native`)는
   UI 핫패스에서 Promise 홉 없이 C++ typed fast path 를 직접 쓴다 — 미지원
   환경은 `sync.unavailable` 로 loud-fail.
 
 ## 문제 해결
 
-`RustraBridge was not linked`가 나오면 `bun run codegen`, `bun install`,
+`UnikitBridge was not linked`가 나오면 `bun run codegen`, `bun install`,
 `bunx --bun react-native config` 순서로 확인하고 iOS는 Pods를 다시 설치한 뒤 native
 app을 재빌드합니다.
 
 부트스트랩 실패도 분류된 오류로 발급됩니다. 설정 실패(install 또는 native engine
 구성)는 `bootstrap.failed` 로 발급되고 근본 오류가 `cause` 에 보존되며, JS realm 에
-JSI 모듈이 없으면(`installRustraJSI()` 미호출, Expo Go, 네이티브 재빌드 누락)
+JSI 모듈이 없으면(`installUnikitJSI()` 미호출, Expo Go, 네이티브 재빌드 누락)
 `native.not_installed` 로 발급됩니다. `error.code` 로 분기하고 native app 재빌드로
 복구합니다 — JavaScript reload는 native drift를 복구하지 못합니다.
 

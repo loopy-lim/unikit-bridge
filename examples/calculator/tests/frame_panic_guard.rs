@@ -2,17 +2,17 @@
 //!
 //! 핸들러 패닉의 직접 유도는 전역 FFI 패키지 스왑이 필요해 예제 크레이트에서
 //! 불가능하다 — 패닉→internal 에러 정규화 자체는 코어 통합 테스트
-//! `crates/rustra/tests/frame_panic.rs` 가 담보한다. 여기서는 guard 추가가
+//! `crates/unikit-bridge/tests/frame_panic.rs` 가 담보한다. 여기서는 guard 추가가
 //! 정상 경로를 오염하지 않는지 확인한다: (1) 정상 왕복이 여전히 성공 프레임,
 //! (2) 잘린 페이로드가 여전히 clean 한 에러 프레임(ok=0) — abort 아님.
 //!
-//! async 진입점(`rustra_ffi_invoke_frame_async`)은 on-complete 계약을
+//! async 진입점(`unikit_ffi_invoke_frame_async`)은 on-complete 계약을
 //! 핀한다: 워커가 어떤 경로로 끝나도 (1) `on_complete` 가 정확히 1회 발화
 //! (JS 프라미스 hang 방지), (2) 취소 레지스트리 엔트리가 정리됨(Unknown).
 //! 패닉 유도가 불가능하므로 정상 경로 계약 고정이 곧 구조 보장의 기준선이다.
 //!
 //! sync/async 응답 버퍼 모두 코어 FFI 할당 레이아웃을 따른다 — 반드시 코어
-//! `rustra_ffi_free` 로 해제한다. 테스트는 calculator 재노출 심볼을 거치지
+//! `unikit_ffi_free` 로 해제한다. 테스트는 calculator 재노출 심볼을 거치지
 //! 않고 코어 제네릭 심볼을 직접 extern 한다 (와이어는 동일).
 
 use std::ffi::c_void;
@@ -20,16 +20,16 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use rustra_calculator_example::{AddNumbersInput, AddNumbersOutput, calculator_package};
+use unikit_calculator_example::{AddNumbersInput, AddNumbersOutput, calculator_package};
 
 unsafe extern "C" {
-    fn rustra_ffi_invoke_frame(
+    fn unikit_ffi_invoke_frame(
         payload: *const u8,
         payload_len: usize,
         out_len: *mut usize,
     ) -> *mut u8;
-    fn rustra_ffi_free(ptr: *mut u8, len: usize);
-    fn rustra_ffi_invoke_frame_async(
+    fn unikit_ffi_free(ptr: *mut u8, len: usize);
+    fn unikit_ffi_invoke_frame_async(
         payload: *const u8,
         payload_len: usize,
         user_data: *mut c_void,
@@ -62,13 +62,13 @@ fn add_numbers_id() -> u16 {
 /// 테스트 프로세스가 죽는다 — 정상 복귀 자체가 계약의 일부다.
 fn invoke_frame(payload: &[u8]) -> Vec<u8> {
     let mut out_len = 0usize;
-    let ptr = unsafe { rustra_ffi_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len) };
+    let ptr = unsafe { unikit_ffi_invoke_frame(payload.as_ptr(), payload.len(), &mut out_len) };
     assert!(
         !ptr.is_null(),
         "FFI must return a response buffer, not null"
     );
     let out = unsafe { std::slice::from_raw_parts(ptr, out_len) }.to_vec();
-    unsafe { rustra_ffi_free(ptr, out_len) };
+    unsafe { unikit_ffi_free(ptr, out_len) };
     out
 }
 
@@ -103,7 +103,7 @@ unsafe extern "C" fn async_test_cb(_ud: *mut c_void, resp: *mut u8, len: usize) 
     if !resp.is_null() && len > 0 {
         let first = unsafe { *resp }; // ok flag
         ASYNC_OK.store(first == 1, Ordering::SeqCst);
-        unsafe { rustra_ffi_free(resp, len) };
+        unsafe { unikit_ffi_free(resp, len) };
     }
     ASYNC_DONE.store(true, Ordering::SeqCst);
 }
@@ -122,7 +122,7 @@ fn async_invoke_completes_exactly_once_and_cleans_registry() {
 
     let mut id: u64 = 0;
     unsafe {
-        rustra_ffi_invoke_frame_async(
+        unikit_ffi_invoke_frame_async(
             req.as_ptr(),
             req.len(),
             std::ptr::null_mut(),
@@ -156,7 +156,7 @@ fn async_invoke_completes_exactly_once_and_cleans_registry() {
     // Unknown 이 terminal 상태다. complete→callback 순서 계약상 이미
     // Unknown 이어야 하지만 경합 여유로 짧게 폴링한다.
     let deadline = Instant::now() + Duration::from_secs(1);
-    while rustra::cancel::status(id) != rustra::cancel::Status::Unknown {
+    while unikit_bridge::cancel::status(id) != unikit_bridge::cancel::Status::Unknown {
         assert!(
             Instant::now() < deadline,
             "registry entry leaked — complete_invocation never ran"
@@ -170,13 +170,13 @@ fn async_invoke_completes_exactly_once_and_cleans_registry() {
 /// addNumbers(1) raw 직결: 슬롯 [42, 58] → 100. postcard 왕복 없음.
 #[test]
 fn raw_invoke_add_numbers_via_ffi() {
-    rustra_calculator_example::calculator_package();
+    unikit_calculator_example::calculator_package();
     let slots: [u64; 2] = [42, 58];
     let mut out_slot: u64 = 0;
     let mut err_buf = [0u8; 256];
     let mut err_len: usize = 0;
     let code = unsafe {
-        rustra_calculator_example::rustra_calculator_invoke_typed_raw(
+        unikit_calculator_example::unikit_calculator_invoke_typed_raw(
             1,
             slots.as_ptr(),
             2,
@@ -194,12 +194,12 @@ fn raw_invoke_add_numbers_via_ffi() {
 /// 문자열 명령(greet=5)은 raw 불가 — UINT32_MAX 폴백 신호.
 #[test]
 fn raw_invoke_string_command_signals_fallback() {
-    rustra_calculator_example::calculator_package();
+    unikit_calculator_example::calculator_package();
     let slots: [u64; 1] = [0];
     let mut out_slot: u64 = 0;
     let mut err_len: usize = 0;
     let code = unsafe {
-        rustra_calculator_example::rustra_calculator_invoke_typed_raw(
+        unikit_calculator_example::unikit_calculator_invoke_typed_raw(
             5,
             slots.as_ptr(),
             1,
@@ -215,14 +215,14 @@ fn raw_invoke_string_command_signals_fallback() {
 /// 에러 경로: divide(10) by zero — code=1, 에러 와이어가 err_buf 에 싣힌다.
 #[test]
 fn raw_invoke_error_path_returns_wire() {
-    rustra_calculator_example::calculator_package();
+    unikit_calculator_example::calculator_package();
     // divide 입력은 i64 2개 — {a, b}
     let slots: [u64; 2] = [7, 0];
     let mut out_slot: u64 = 0;
     let mut err_buf = [0u8; 256];
     let mut err_len: usize = 0;
     let code = unsafe {
-        rustra_calculator_example::rustra_calculator_invoke_typed_raw(
+        unikit_calculator_example::unikit_calculator_invoke_typed_raw(
             10,
             slots.as_ptr(),
             2,
@@ -241,14 +241,14 @@ fn raw_invoke_error_path_returns_wire() {
 /// f64 비트 왕복: benchAdd(23)은 f64 2개 입력 → f64 출력.
 #[test]
 fn raw_invoke_f64_bit_roundtrip() {
-    rustra_calculator_example::calculator_package();
+    unikit_calculator_example::calculator_package();
     let a = 3.5f64;
     let b = 2.25f64;
     let slots: [u64; 2] = [a.to_bits(), b.to_bits()];
     let mut out_slot: u64 = 0;
     let mut err_len: usize = 0;
     let code = unsafe {
-        rustra_calculator_example::rustra_calculator_invoke_typed_raw(
+        unikit_calculator_example::unikit_calculator_invoke_typed_raw(
             23,
             slots.as_ptr(),
             2,

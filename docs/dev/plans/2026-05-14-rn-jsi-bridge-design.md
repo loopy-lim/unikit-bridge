@@ -15,7 +15,7 @@ Replace Expo Module bridge with raw JSI HostObject to reduce React Native invoca
 ## Architecture
 
 ```
-JS (rustra engine)
+JS (unikit engine)
   ↓ invoke(command, args)
   ↓ TextEncoder → Uint8Array (phase 1: JSON bytes)
 JSI HostObject
@@ -37,7 +37,7 @@ New generic FFI function alongside existing per-package functions:
 
 ```rust
 #[no_mangle]
-pub extern "C" fn rustra_invoke(
+pub extern "C" fn unikit_invoke(
     package_id: *const c_char,
     payload: *const u8,
     payload_len: usize,
@@ -47,11 +47,11 @@ pub extern "C" fn rustra_invoke(
 
 - Currently wraps `serde_json` internally
 - Future: swap to `bincode` or other binary format without changing signature
-- Caller must call `rustra_free_buffer` to deallocate returned buffer
+- Caller must call `unikit_free_buffer` to deallocate returned buffer
 
 ### 2. C++ JSI Bridge (~100-150 lines)
 
-Single `RustraHostObject` class implementing `jsi::HostObject`:
+Single `UnikitHostObject` class implementing `jsi::HostObject`:
 
 - Exposes `invoke(packageId: string, payload: ArrayBuffer): ArrayBuffer` to JS
 - Passes raw bytes through to Rust FFI
@@ -62,7 +62,7 @@ Single `RustraHostObject` class implementing `jsi::HostObject`:
 ### 3. JS Package (packages/react-native)
 
 ```typescript
-export function createReactNativeEngine(nativeModule: RustraJSIModule): ReactNativeEngineClient {
+export function createReactNativeEngine(nativeModule: UnikitJSIModule): ReactNativeEngineClient {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
@@ -90,9 +90,9 @@ Phase 2: Swap to `msgpack.encode` / `bincode::deserialize` — C++ unchanged.
 
 ### 5. Expo Module Removal
 
-- Delete `modules/rustra-calculator/` Expo module from example
+- Delete `modules/unikit-calculator/` Expo module from example
 - Remove `expo-modules-core` dependency from RN package
-- Remove `rustra-calculator` Expo module dependency from example app
+- Remove `unikit-calculator` Expo module dependency from example app
 - Update `packages/react-native/src/index.ts` to use JSI engine only
 
 ## Expected Performance

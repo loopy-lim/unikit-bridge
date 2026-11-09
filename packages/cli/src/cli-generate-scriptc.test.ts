@@ -35,8 +35,8 @@ const CALCULATOR_SCHEMA_PATH = fileURLToPath(
   new URL('../../../examples/calculator/generated/schema.json', import.meta.url),
 );
 
-const CALCULATOR_PACKAGE = 'rustra-calculator-example';
-const CALCULATOR_ARCHIVE = 'librustra_calculator_example.a';
+const CALCULATOR_PACKAGE = 'unikit-calculator-example';
+const CALCULATOR_ARCHIVE = 'libunikit_calculator_example.a';
 
 const loadCalculatorSchema = (): PackageSchema =>
   JSON.parse(readFileSync(CALCULATOR_SCHEMA_PATH, 'utf8')) as PackageSchema;
@@ -85,32 +85,32 @@ test('ffi.json gold: ffi_format, function list, and library boundary', () => {
   assert.deepEqual(
     manifest.functions.map((entry) => entry.name),
     [
-      'rustra_mobile_init',
-      'rustra_ffi_invoke_json_into_len',
-      'rustra_ffi_schema_generation',
-      'rustra_ffi_get_max_payload',
-      'rustra_ffi_set_max_payload',
-      'rustra_ffi_invoke_cancel',
-      'rustra_ffi_cancellation_status',
-      'rustra_ffi_channel_create_bytes',
-      'rustra_ffi_channel_release_scriptc',
-      'rustra_ffi_channel_send_bytes',
-      'rustra_ffi_invoke_json_async_channel',
-      'rustra_ffi_event_sink_register_scriptc',
-      'rustra_ffi_event_sink_release_scriptc',
+      'unikit_mobile_init',
+      'unikit_ffi_invoke_json_into_len',
+      'unikit_ffi_schema_generation',
+      'unikit_ffi_get_max_payload',
+      'unikit_ffi_set_max_payload',
+      'unikit_ffi_invoke_cancel',
+      'unikit_ffi_cancellation_status',
+      'unikit_ffi_channel_create_bytes',
+      'unikit_ffi_channel_release_scriptc',
+      'unikit_ffi_channel_send_bytes',
+      'unikit_ffi_invoke_json_async_channel',
+      'unikit_ffi_event_sink_register_scriptc',
+      'unikit_ffi_event_sink_release_scriptc',
     ],
   );
-  // name 과 symbol 은 rustra 에서 동일하다.
+  // name 과 symbol 은 unikit 에서 동일하다.
   for (const entry of manifest.functions) assert.equal(entry.name, entry.symbol);
 });
 
 test('ffi.json gold: (ptr,len) pairs fold into single classes', () => {
   const byName = new Map(generateScriptcFunctions().map((entry) => [entry.name, entry]));
-  const init = byName.get('rustra_mobile_init');
-  const intoLen = byName.get('rustra_ffi_invoke_json_into_len');
-  const setMax = byName.get('rustra_ffi_set_max_payload');
-  const cancel = byName.get('rustra_ffi_invoke_cancel');
-  const status = byName.get('rustra_ffi_cancellation_status');
+  const init = byName.get('unikit_mobile_init');
+  const intoLen = byName.get('unikit_ffi_invoke_json_into_len');
+  const setMax = byName.get('unikit_ffi_set_max_payload');
+  const cancel = byName.get('unikit_ffi_invoke_cancel');
+  const status = byName.get('unikit_ffi_cancellation_status');
   assert.ok(init && intoLen && setMax && cancel && status);
   // 초기화는 무인자 void — native_entry! 계약.
   assert.deepEqual(init.params, []);
@@ -133,22 +133,22 @@ test('ffi.json excludes out-pointer and callback symbols with documented reasons
   for (const { symbol } of scriptcExcludedSymbols) assert.equal(included.has(symbol), false);
   // out 포인터에 쓰는 심볼 — scriptc 직접 세계에 caller 주소 프리미티브가 없다.
   for (const name of [
-    'rustra_ffi_invoke',
-    'rustra_ffi_invoke_json',
-    'rustra_ffi_invoke_json_into',
-    'rustra_ffi_invoke_buffer',
-    'rustra_ffi_invoke_raw',
-    'rustra_ffi_get_schema',
-    'rustra_ffi_contract_hash',
-    'rustra_ffi_free',
-    'rustra_ffi_free_owned_bytes',
+    'unikit_ffi_invoke',
+    'unikit_ffi_invoke_json',
+    'unikit_ffi_invoke_json_into',
+    'unikit_ffi_invoke_buffer',
+    'unikit_ffi_invoke_raw',
+    'unikit_ffi_get_schema',
+    'unikit_ffi_contract_hash',
+    'unikit_ffi_free',
+    'unikit_ffi_free_owned_bytes',
   ])
     assert.equal(included.has(name), false);
   // 콜백 함수 포인터를 받는 심볼도 callback descriptor(format 2+/5) 없이는 불가.
   for (const name of [
-    'rustra_ffi_invoke_async',
-    'rustra_ffi_event_sink_register',
-    'rustra_ffi_channel_create',
+    'unikit_ffi_invoke_async',
+    'unikit_ffi_event_sink_register',
+    'unikit_ffi_channel_create',
   ])
     assert.equal(included.has(name), false);
   // 사유는 그룹별로 명시한다(out 포인터 / 포인터 인자 / 콜백 / 짝 심볼).
@@ -157,10 +157,10 @@ test('ffi.json excludes out-pointer and callback symbols with documented reasons
       reason,
       /out-pointer|pointer parameter|callback descriptor|C-unwind callback|pairs with/,
     );
-    assert.ok(symbol.startsWith('rustra_ffi_'), symbol);
+    assert.ok(symbol.startsWith('unikit_ffi_'), symbol);
   }
   // caller-buffer 계약의 scriptc 형태 대체재가 존재해야 한다.
-  assert.ok(included.has('rustra_ffi_invoke_json_into_len'));
+  assert.ok(included.has('unikit_ffi_invoke_json_into_len'));
 });
 
 test('ffi.json serialization is stable and parses back to the manifest', () => {
@@ -181,21 +181,21 @@ test('declarations gold: signature-only TS for calculator schema', () => {
   assert.deepEqual(manifest.libraries, [archive]);
   // 골드 시그니처 — 플랫 클래스 배열이 TS 타입으로 1:1 펼쳐진다.
   const gold = [
-    'declare function rustra_mobile_init(): void;',
-    'declare function rustra_ffi_invoke_json_into_len(payload: string, buf: Uint8Array): bigint;',
-    'declare function rustra_ffi_schema_generation(): bigint;',
-    'declare function rustra_ffi_get_max_payload(): bigint;',
-    'declare function rustra_ffi_set_max_payload(bytes: bigint): void;',
-    'declare function rustra_ffi_invoke_cancel(invocation_id: bigint): boolean;',
-    'declare function rustra_ffi_cancellation_status(invocation_id: bigint): number;',
+    'declare function unikit_mobile_init(): void;',
+    'declare function unikit_ffi_invoke_json_into_len(payload: string, buf: Uint8Array): bigint;',
+    'declare function unikit_ffi_schema_generation(): bigint;',
+    'declare function unikit_ffi_get_max_payload(): bigint;',
+    'declare function unikit_ffi_set_max_payload(bytes: bigint): void;',
+    'declare function unikit_ffi_invoke_cancel(invocation_id: bigint): boolean;',
+    'declare function unikit_ffi_cancellation_status(invocation_id: bigint): number;',
   ];
   for (const line of gold) assert.ok(declarations.includes(line), line);
   // 시그니처-only — 함수 본문이 없어야 한다.
   for (const line of declarations.split('\n'))
     if (line.startsWith('export declare function ')) assert.ok(line.endsWith(';'), line);
-  // 근거 스키마 각인과 생성 헤더(첫 행은 'rustra generated' 대시 런).
+  // 근거 스키마 각인과 생성 헤더(첫 행은 'unikit generated' 대시 런).
   assert.ok(declarations.includes('근거 스키마: examples.calculator (schemaVersion 1)'));
-  assert.ok(declarations.startsWith('// ── rustra generated ──'));
+  assert.ok(declarations.startsWith('// ── unikit generated ──'));
   assert.ok(declarations.includes(`File:   ${SCRIPTC_SOURCE_FILE}`));
   // ffi.json 은 calculator 아카이브를 가리킨다.
   assert.deepEqual(JSON.parse(ffiJson).libraries, [archive]);
@@ -246,27 +246,27 @@ test('retained foreign callbacks have identity-paired release and omit native co
   const source = renderScriptcDeclarations(manifest, 'app.x');
   assert.ok(
     source.includes(
-      'rustra_ffi_channel_create_bytes(receive: (value0: number, value1: Uint8Array) => void): number;',
+      'unikit_ffi_channel_create_bytes(receive: (value0: number, value1: Uint8Array) => void): number;',
     ),
   );
   assert.ok(
     source.includes(
-      'rustra_ffi_channel_release_scriptc(receive: (value0: number, value1: Uint8Array) => void): void;',
+      'unikit_ffi_channel_release_scriptc(receive: (value0: number, value1: Uint8Array) => void): void;',
     ),
   );
   assert.ok(
     source.includes(
-      'rustra_ffi_event_sink_register_scriptc(onEvent: (value0: string, value1: string) => void): void;',
+      'unikit_ffi_event_sink_register_scriptc(onEvent: (value0: string, value1: string) => void): void;',
     ),
   );
   assert.ok(
     source.includes(
-      'rustra_ffi_event_sink_release_scriptc(onEvent: (value0: string, value1: string) => void): void;',
+      'unikit_ffi_event_sink_release_scriptc(onEvent: (value0: string, value1: string) => void): void;',
     ),
   );
   assert.ok(
     source.includes(
-      'rustra_ffi_invoke_json_async_channel(payload: string, channel: number): bigint;',
+      'unikit_ffi_invoke_json_async_channel(payload: string, channel: number): bigint;',
     ),
   );
   assert.equal(source.includes('context:'), false);

@@ -17,7 +17,7 @@
 // emit 순서상 progress.tick 전부가 demo.done 보다 앞서므로, 그 도착은 잔여
 // 진행 이벤트의 소진을 보증한다.
 //
-// 실행: `bun run test:ts:node` (cargo build -p rustra-calculator-example 사전
+// 실행: `bun run test:ts:node` (cargo build -p unikit-calculator-example 사전
 // 필요 — test:ts:bun/test:runtime:* 과 동일 전제). CI 는 typescript 잡의
 // test:compat 체인에서 실행한다. bun test 러너 아래에서는 스킵한다 — Bun 1.4
 // 러너가 node:child_process posix_spawn 을 깨뜨린다(packages/node e2e와 동일
@@ -28,8 +28,8 @@ import test from 'node:test';
 import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CancelledError, RustraCommandError } from '@rustra/types';
-import { createNodeEngine, createNodeLoopTransport, subscribeEvent } from '@rustra/node';
+import { CancelledError, UnikitCommandError } from '@unikit-bridge/types';
+import { createNodeEngine, createNodeLoopTransport, subscribeEvent } from '@unikit-bridge/node';
 // 같은 dist-ts 트리의 generated registry — codecs 주입으로 바이너리 모드 +
 // events:"push" 핸드셰이크가 협상된다(node 패키지 e2e와 동일 패턴).
 import { frameRegistry } from '../generated/frame-registry.js';
@@ -140,7 +140,7 @@ void journeyTest(journeyName, { timeout: 30_000 }, async () => {
         (error: unknown) => {
           assert.ok(error instanceof CancelledError, 'shallow cancel must be a CancelledError');
           assert.ok(
-            error instanceof RustraCommandError && error.code === 'cancelled',
+            error instanceof UnikitCommandError && error.code === 'cancelled',
             `cancel code must be 'cancelled', got ${String(error)}`,
           );
           assert.equal(error.retryable, true, 'cancelled must be retryable');

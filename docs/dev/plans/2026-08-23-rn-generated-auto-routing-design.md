@@ -5,13 +5,13 @@ Status: implemented through the direct typed-buffer ownership path on 2026-08-24
 ## Context
 
 The normalized iOS simulator benchmark compares the same public input and output
-shapes in a Hermes Release build. Across three interleaved runs, Rustra was
+shapes in a Hermes Release build. Across three interleaved runs, Unikit was
 1.082x slower than Nitro for scalar add and 1.143x-1.157x slower for string,
-64-byte payload, and pair operations. The same Rustra paths were substantially
+64-byte payload, and pair operations. The same Unikit paths were substantially
 faster than the Swift async FFI comparison, so the remaining gap is primarily in
 the generated-JS-to-JSI hot path rather than in the Rust handler.
 
-Rustra already exposes lower-level native entries such as `invokeTypedRaw`,
+Unikit already exposes lower-level native entries such as `invokeTypedRaw`,
 `invokeTypedPos`, and `invokeTypedById`. They are not currently one product
 surface:
 
@@ -113,7 +113,7 @@ multi-byte views, non-integral/out-of-range bytes, malformed view bounds, and
 payloads beyond the dynamic wire limit fail closed.
 
 For an echo operation, Nitro performs one copy into a fresh `ArrayBuffer`.
-Rustra performs one copy from the borrowed JS input into the owned Rust vector,
+Unikit performs one copy from the borrowed JS input into the owned Rust vector,
 then transfers that vector to JSI without an output copy. The externally
 visible fresh-output contract is therefore equivalent while both paths move the
 bulk bytes once.
@@ -135,9 +135,9 @@ bulk bytes once.
 
 The final three Release runs were taken below the 10-logical-CPU load threshold.
 All runs used 500 warmups, 10,000 iterations, rotating interleaving, Hermes, and
-pre-timing output equivalence checks across Nitro, Rustra, and Swift FFI.
+pre-timing output equivalence checks across Nitro, Unikit, and Swift FFI.
 
-| Operation | Rustra/Nitro median | Swift FFI/Nitro median | Gate                     |
+| Operation | Unikit/Nitro median | Swift FFI/Nitro median | Gate                     |
 | --------- | ------------------: | ---------------------: | ------------------------ |
 | add       |              1.034x |                11.361x | pass                     |
 | string    |              1.019x |                11.072x | pass                     |
@@ -158,20 +158,20 @@ timed calls; the exact 1 MiB-wire case used 5 warmups and 50 timed calls. Its
 data length is 1,048,571 bytes because command id and postcard length consume
 the remaining five bytes of the default 1 MiB wire limit.
 
-| Payload    | Nitro avg median | Rustra avg median | Paired ratio median | Paired 95% CI envelope |
+| Payload    | Nitro avg median | Unikit avg median | Paired ratio median | Paired 95% CI envelope |
 | ---------- | ---------------: | ----------------: | ------------------: | ---------------------: |
 | 64 KiB     |         9.256 us |          8.644 us |              0.934x |          0.633x-1.018x |
 | 1 MiB wire |        87.979 us |         89.836 us |              1.013x |          0.989x-1.043x |
 
 Before the ownership transfer, the corresponding median ratios were 2.344x and
 3.644x. The final rerun after moving JSI installation onto the JS Runtime thread
-measured Rustra at 8.644 us for 64 KiB and 89.836 us for 1 MiB wire. The wide
-64 KiB envelope includes one transient Nitro-only slowdown; Rustra itself stayed
+measured Unikit at 8.644 us for 64 KiB and 89.836 us for 1 MiB wire. The wide
+64 KiB envelope includes one transient Nitro-only slowdown; Unikit itself stayed
 within 8.456–8.792 us. These are simulator receipts, not physical-device or
 Android performance claims.
 
 ## Versioning
 
-This release moves every public `@rustra/*` package and both Rust crates to
+This release moves every public `@unikit-bridge/*` package and both Rust crates to
 `0.4.0`. Future releases use one Changesets fixed group, so all public packages
 advance together even when only one package owns the source change.

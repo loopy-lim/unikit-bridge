@@ -1,10 +1,10 @@
 // Actual generated consumer: a schema generator is not an invoke executable.
 import assert from 'node:assert/strict';
-import { gzipCompress, gzipDecompress, rustra, uuidV7 } from '../generated/node.js';
+import { gzipCompress, gzipDecompress, unikit, uuidV7 } from '../generated/node.js';
 import { asBytes, pseudoRandomPayload } from './benchmark.js';
 
 try {
-  await rustra.ready();
+  await unikit.ready();
   const input = pseudoRandomPayload(64 * 1024);
   const compressed = asBytes((await gzipCompress({ data: Array.from(input) })).data);
   const restored = asBytes((await gzipDecompress({ data: Array.from(compressed) })).data);
@@ -19,5 +19,5 @@ try {
     'rn-experiment generated Node consumer: Rust gzip round trip, UUID and invalid input passed',
   );
 } finally {
-  rustra.dispose();
+  unikit.dispose();
 }

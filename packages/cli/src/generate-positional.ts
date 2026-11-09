@@ -18,7 +18,7 @@ import { POSITIONAL_SCALAR_KINDS } from './generate-routing.js';
  * 각 기존 객체 명령에 대해:
  * - 입력 필드가 0..3개면 positional 파라미터 시그니처
  * - 그 외는 객체 인자 그대로 pass-through
- * 내부적으로 `installRustraPositional(native)` 로 주입받은 native 의
+ * 내부적으로 `installUnikitPositional(native)` 로 주입받은 native 의
  * `invokeTyped(name, args)` 를 호출한다 (RN JSI). 코덱 미지원 명령은 생성에서
  * 제외된다 — Tier 3 폴백 경로(commands.ts)를 쓰면 된다.
  *
@@ -59,13 +59,13 @@ export function generatePositionalFacadeTs(schema: PackageSchema): string {
     `  invokeTypedPos?(cmdId: number, ...fields: unknown[]): unknown;\n` +
     `};\n\n` +
     `let _native: PositionalNative | null = null;\n\n` +
-    `/** 앱 시작 시 JSI 네이티브를 주입한다 (installRustraJSI 이후). */\n` +
-    `export function installRustraPositional(native: PositionalNative): void {\n` +
+    `/** 앱 시작 시 JSI 네이티브를 주입한다 (installUnikitJSI 이후). */\n` +
+    `export function installUnikitPositional(native: PositionalNative): void {\n` +
     `  _native = native;\n` +
     `}\n\n` +
     `function requireNative(): PositionalNative {\n` +
     `  if (!_native) {\n` +
-    `    throw new Error('positional facade not installed — call installRustraPositional(native) first');\n` +
+    `    throw new Error('positional facade not installed — call installUnikitPositional(native) first');\n` +
     `  }\n` +
     `  return _native;\n` +
     `}\n\n` +

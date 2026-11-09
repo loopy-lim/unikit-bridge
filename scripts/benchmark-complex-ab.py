@@ -28,26 +28,26 @@ def digest(path):
 def identity(root, binary, allocator, suite="complex"):
     source = {
         str(path.relative_to(root)): digest(path)
-        for path in sorted((root / "crates/rustra/src").rglob("*.rs"))
+        for path in sorted((root / "crates/unikit-bridge/src").rglob("*.rs"))
     }
     harness = [
-        "crates/rustra/benches/complex_route.rs",
-        "crates/rustra/benches/support/complex_cases.rs",
-        "crates/rustra/benches/common.rs",
-        "crates/rustra/examples/codec_allocations.rs",
+        "crates/unikit-bridge/benches/complex_route.rs",
+        "crates/unikit-bridge/benches/support/complex_cases.rs",
+        "crates/unikit-bridge/benches/common.rs",
+        "crates/unikit-bridge/examples/codec_allocations.rs",
     ]
     if suite == "tree":
-        harness = ["crates/rustra/benches/tree_route.rs",
-                   "crates/rustra/benches/common.rs",
-                   "crates/rustra/examples/tree_allocations.rs"]
+        harness = ["crates/unikit-bridge/benches/tree_route.rs",
+                   "crates/unikit-bridge/benches/common.rs",
+                   "crates/unikit-bridge/examples/tree_allocations.rs"]
         harness += [str(path.relative_to(root)) for path in
-                    sorted((root / "crates/rustra/benches/support").glob("tree_*.rs"))]
+                    sorted((root / "crates/unikit-bridge/benches/support").glob("tree_*.rs"))]
     return {
         "headSha": command("git", "rev-parse", "HEAD", cwd=root),
         "runtimeSourceHashes": source,
         "manifestHashes": {name: digest(root / name) for name in
-                           ["Cargo.toml", "Cargo.lock", "crates/rustra/Cargo.toml",
-                            "crates/rustra-macros/Cargo.toml", "crates/rustra-naming/Cargo.toml"]},
+                           ["Cargo.toml", "Cargo.lock", "crates/unikit-bridge/Cargo.toml",
+                            "crates/unikit-bridge-macros/Cargo.toml", "crates/unikit-bridge-naming/Cargo.toml"]},
         "harnessHashes": {name: digest(root / name) for name in harness},
         "benchmarkBinarySha256": digest(binary),
         "allocationBinarySha256": digest(allocator),

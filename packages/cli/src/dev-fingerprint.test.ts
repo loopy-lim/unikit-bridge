@@ -58,7 +58,7 @@ function fingerprintOf(project: string): string {
 
 for (const source of ['config', 'environment'] as const) {
   test(`dev inputs resolve relative Cargo dep-info from ${source} basedir`, () => {
-    const root = realpathSync(mkdtempSync(join(tmpdir(), 'rustra-relative-dep-info-')));
+    const root = realpathSync(mkdtempSync(join(tmpdir(), 'unikit-relative-dep-info-')));
     const previous = process.env.CARGO_BUILD_DEP_INFO_BASEDIR;
     const oldTarget = process.env.CARGO_TARGET_DIR;
     try {
@@ -103,7 +103,7 @@ for (const source of ['config', 'environment'] as const) {
 }
 
 test('dev inputs exclude custom Cargo output directories under a root-level library', () => {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), 'rustra-dev-custom-output-')));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'unikit-dev-custom-output-')));
   const oldCwd = process.cwd();
   const oldTarget = process.env.CARGO_TARGET_DIR;
   try {
@@ -135,7 +135,7 @@ test('dev inputs exclude custom Cargo output directories under a root-level libr
 
 for (const name of ['rust-toolchain', 'rust-toolchain.toml']) {
   test(`dev inputs observe creation of ${name} in the invocation ancestry`, async () => {
-    const root = realpathSync(mkdtempSync(join(tmpdir(), 'rustra-dev-toolchain-')));
+    const root = realpathSync(mkdtempSync(join(tmpdir(), 'unikit-dev-toolchain-')));
     const handles: Array<{ dispose(): void }> = [];
     try {
       const project = seedCrate(join(root, 'manifest'));
@@ -162,7 +162,7 @@ for (const name of ['rust-toolchain', 'rust-toolchain.toml']) {
 }
 
 test('dev inputs preserve Rust sources when Cargo target-dir shares the project root', async () => {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), 'rustra-dev-shared-output-')));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'unikit-dev-shared-output-')));
   const oldTarget = process.env.CARGO_TARGET_DIR;
   const handles: Array<{ dispose(): void }> = [];
   try {
@@ -220,7 +220,7 @@ test('dev inputs preserve Rust sources when Cargo target-dir shares the project 
 });
 
 test('dev inputs protect engine sources from another producer sharing their target directory', async () => {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), 'rustra-dev-producer-overlap-')));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'unikit-dev-producer-overlap-')));
   const oldTarget = process.env.CARGO_TARGET_DIR;
   const handles: Array<{ dispose(): void }> = [];
   try {
@@ -284,7 +284,7 @@ test('dev inputs protect engine sources from another producer sharing their targ
 });
 
 test('dev input resolution preserves two invocation cwd contexts for the same manifest', () => {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), 'rustra-dev-producer-cwd-')));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'unikit-dev-producer-cwd-')));
   const oldTarget = process.env.CARGO_TARGET_DIR;
   try {
     delete process.env.CARGO_TARGET_DIR;
@@ -322,7 +322,7 @@ test('dev input resolution preserves two invocation cwd contexts for the same ma
 });
 
 test('dev inputs follow compiler and build-script inputs outside the source tree', () => {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), 'rustra-dev-dep-info-')));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'unikit-dev-dep-info-')));
   try {
     const project = join(root, 'app');
     mkdirSync(join(project, 'src'), { recursive: true });
@@ -367,7 +367,7 @@ test('dev inputs follow compiler and build-script inputs outside the source tree
 });
 
 test('dev fingerprint excludes owned generated trees and files without hiding source edits', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-dev-owned-output-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-dev-owned-output-'));
   try {
     const project = seedCrate(root);
     const generated = join(project, 'src', 'generated');
@@ -392,7 +392,7 @@ test('dev fingerprint excludes owned generated trees and files without hiding so
 });
 
 test('dev fingerprint follows a symlinked source root like its watcher', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-dev-root-link-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-dev-root-link-'));
   try {
     mkdirSync(join(root, 'real'));
     writeFileSync(join(root, 'real', 'lib.rs'), 'pub fn one() {}');
@@ -411,7 +411,7 @@ test('dev fingerprint follows a symlinked source root like its watcher', () => {
 });
 
 test('dev inputs include transitive local dependencies, custom targets and workspace files', () => {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), 'rustra-dev-dependencies-')));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'unikit-dev-dependencies-')));
   try {
     for (const name of ['app', 'shared', 'leaf']) mkdirSync(join(root, name), { recursive: true });
     writeFileSync(
@@ -452,7 +452,7 @@ test('dev inputs include transitive local dependencies, custom targets and works
 });
 
 test('rustInputFingerprint is deterministic and ignores mtime-only changes', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-fp-det-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-fp-det-'));
   try {
     const project = seedCrate(dir);
     const first = fingerprintOf(project);
@@ -467,7 +467,7 @@ test('rustInputFingerprint is deterministic and ignores mtime-only changes', () 
 });
 
 test('rustInputFingerprint walks nested source trees', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-fp-nested-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-fp-nested-'));
   try {
     const project = seedCrate(dir);
     const before = fingerprintOf(project);
@@ -496,7 +496,7 @@ test('all five schema-contamination edits change the fingerprint', () => {
     ['an attribute removal', LIB_RS_V1.replace('#[serde(rename_all = "camelCase")]\n', '')],
     ['a derive change', LIB_RS_V1.replace('#[derive(Debug, Clone)]', '#[derive(Debug)]')],
   ];
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-fp-contam-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-fp-contam-'));
   try {
     const project = seedCrate(dir);
     const lib = join(project, 'src', 'lib.rs');
@@ -513,7 +513,7 @@ test('all five schema-contamination edits change the fingerprint', () => {
 });
 
 test('rustInputFingerprint covers Cargo.toml and Cargo.lock', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-fp-manifest-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-fp-manifest-'));
   try {
     const project = seedCrate(dir);
     const base = fingerprintOf(project);
@@ -531,7 +531,7 @@ test('rustInputFingerprint covers Cargo.toml and Cargo.lock', () => {
 test('rustInputFingerprint excludes target, node_modules, and .git at any depth', () => {
   // 감시자(watch.ts snapshotPath)와 같은 제외 규칙 — 빌드·캐시 트리의 쓰기는
   // 코드젠 입력이 아니므로 지문도 움직여서는 안 된다(그렇지 않으면 스킵이 없다).
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-fp-exclude-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-fp-exclude-'));
   try {
     const project = seedCrate(dir);
     const base = fingerprintOf(project);
@@ -551,7 +551,7 @@ test('rustInputFingerprint excludes target, node_modules, and .git at any depth'
 test('rustInputFingerprint hashes symlink entries without following them', () => {
   // 감시자의 no-follow 규약 — 링크된 트리 밖 내용은 지문에 들어가지 않고, 링크
   // 자체의 유무·대상 텍스트가 지문이다(트리 밖 추종·사이클 진입 방지).
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-fp-symlink-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-fp-symlink-'));
   try {
     const project = seedCrate(dir);
     const outside = join(dir, 'outside');
@@ -575,7 +575,7 @@ test('rustInputFingerprint hashes symlink entries without following them', () =>
 test('rustInputFingerprint throws on uncertain filesystem state instead of guessing', () => {
   // fail-safe 계약 — 없는 루트(ENOENT)·파일 아래의 경로(ENOTDIR) 같은 불확실성은
   // "빈 기여"로 삼키지 않고 전파한다. dev 루프는 throw 를 스킵 금지로 번역한다.
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-fp-error-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-fp-error-'));
   try {
     const project = seedCrate(dir);
     assert.throws(

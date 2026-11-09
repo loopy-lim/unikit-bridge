@@ -1,8 +1,8 @@
-# Rustra Architecture Decomposition Implementation Plan
+# Unikit Architecture Decomposition Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 책임별 모듈 분리와 자동 architecture boundary 검사를 추가해 Rustra의 큰 파일과 중복 구현이 다시 커지지 않게 한다.
+**Goal:** 책임별 모듈 분리와 자동 architecture boundary 검사를 추가해 Unikit의 큰 파일과 중복 구현이 다시 커지지 않게 한다.
 
 **Architecture:** 기존 public facade와 wire contract는 유지하고 내부 구현을 Rust core, shared TypeScript runtime, CLI watcher 단위로 이동한다. 공용 helper를 먼저 고정한 뒤 각 소비자를 re-export facade로 연결하며, line budget보다 import/dependency/duplicate rule을 우선하는 구조 검사를 둔다.
 
@@ -50,37 +50,37 @@
 
 **Files:**
 
-- Create: `crates/rustra-naming/Cargo.toml`
-- Create: `crates/rustra-naming/src/lib.rs`
+- Create: `crates/unikit-bridge-naming/Cargo.toml`
+- Create: `crates/unikit-bridge-naming/src/lib.rs`
 - Modify: `Cargo.toml`
-- Modify: `crates/rustra/Cargo.toml`
-- Modify: `crates/rustra-macros/Cargo.toml`
-- Modify: `crates/rustra/src/codegen.rs`
-- Modify: `crates/rustra-macros/src/lib.rs`
+- Modify: `crates/unikit-bridge/Cargo.toml`
+- Modify: `crates/unikit-bridge-macros/Cargo.toml`
+- Modify: `crates/unikit-bridge/src/codegen.rs`
+- Modify: `crates/unikit-bridge-macros/src/lib.rs`
 
 **Interfaces:**
 
-- Produces `rustra_naming::snake_to_lower_camel(&str) -> String`.
+- Produces `unikit_bridge_naming::snake_to_lower_camel(&str) -> String`.
 
 - [ ] **Step 1: Add a failing shared naming integration test covering `_`, leading, and already-camel names**
 - [ ] **Step 2: Run the test and confirm the new crate/function is absent**
 - [ ] **Step 3: Implement the tiny dependency and replace both private copies**
-- [ ] **Step 4: Run `cargo test -p rustra-naming -p rustra -p rustra-macros`**
+- [ ] **Step 4: Run `cargo test -p unikit-bridge-naming -p unikit-bridge -p unikit-bridge-macros`**
 
 ### Task 3: Rust core codegen and package extraction
 
 **Files:**
 
-- Create: `crates/rustra/src/codegen/mod.rs`
-- Create: `crates/rustra/src/codegen/types.rs`
-- Create: `crates/rustra/src/codegen/commands.rs`
-- Create: `crates/rustra/src/codegen/contract.rs`
-- Create: `crates/rustra/src/command.rs`
-- Create: `crates/rustra/src/registry.rs`
-- Create: `crates/rustra/src/package.rs`
-- Create: `crates/rustra/src/invoke.rs`
-- Modify: `crates/rustra/src/lib.rs`
-- Modify: `crates/rustra/src/lib.rs` module declarations and module-local tests that move with their implementation
+- Create: `crates/unikit-bridge/src/codegen/mod.rs`
+- Create: `crates/unikit-bridge/src/codegen/types.rs`
+- Create: `crates/unikit-bridge/src/codegen/commands.rs`
+- Create: `crates/unikit-bridge/src/codegen/contract.rs`
+- Create: `crates/unikit-bridge/src/command.rs`
+- Create: `crates/unikit-bridge/src/registry.rs`
+- Create: `crates/unikit-bridge/src/package.rs`
+- Create: `crates/unikit-bridge/src/invoke.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs` module declarations and module-local tests that move with their implementation
 
 **Interfaces:**
 
@@ -88,11 +88,11 @@
 - `Package`, `PackageBuilder`, `GeneratedPackage`, `Command`, and existing public
   traits keep their existing paths.
 
-- [ ] **Step 1: Add compile/API tests that import public types through `rustra` and assert generated output equality**
+- [ ] **Step 1: Add compile/API tests that import public types through `unikit` and assert generated output equality**
 - [ ] **Step 2: Run the focused Rust tests before moving implementation**
 - [ ] **Step 3: Move codegen emitters behind `codegen::*` and command/registry/invoke internals behind their modules**
 - [ ] **Step 4: Keep `pub use`/private `use` wiring in `lib.rs` explicit, update module declarations, and remove imports made dead by the moves**
-- [ ] **Step 5: Run `cargo test -p rustra --lib --tests` and the architecture checker**
+- [ ] **Step 5: Run `cargo test -p unikit-bridge --lib --tests` and the architecture checker**
 
 ### Task 4: TypeScript runtime split
 
@@ -114,7 +114,7 @@
 **Interfaces:**
 
 - `packages/types/src/index.ts` remains the package entrypoint.
-- Existing exports (`EngineClient`, `RustraCommandError`, `createJsonEngine`,
+- Existing exports (`EngineClient`, `UnikitCommandError`, `createJsonEngine`,
   `createRkyvV2Engine`, global invoke functions) remain source-compatible.
 - RN imports shared `encodeUtf8`, `decodeUtf8`, `exactArrayBuffer`, and cancel helper.
 
@@ -150,7 +150,7 @@
 
 - Modify: `packages/cli/src/index.ts`
 - Modify: `packages/react-native/src/index.ts`
-- Modify: `crates/rustra/src/renderer_host.rs`
+- Modify: `crates/unikit-bridge/src/renderer_host.rs`
 - Modify: `doctor.config.json` only if the installed React Doctor CLI supports an equivalent explicit config path; otherwise retain the auto-discovered filename and document the naming boundary
 - Create: `.changeset/<descriptive-name>.md`
 - Modify: related focused tests

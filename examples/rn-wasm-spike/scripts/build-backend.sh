@@ -29,7 +29,7 @@ cargo test --manifest-path "$BACKEND/Cargo.toml"
 # staticlib (native baseline for device)
 cargo build --manifest-path "$BACKEND/Cargo.toml" --release
 mkdir -p "$ARTIFACTS"
-cp "$BACKEND/target/release/librustra_wasm_spike_backend.a" "$ARTIFACTS/" 2>/dev/null || true
-cp "$BACKEND/target/wasm32-unknown-unknown/release/rustra_wasm_spike_backend.wasm" "$ARTIFACTS/engine_v1.wasm"
+cp "$BACKEND/target/release/libunikit_wasm_spike_backend.a" "$ARTIFACTS/" 2>/dev/null || true
+cp "$BACKEND/target/wasm32-unknown-unknown/release/unikit_wasm_spike_backend.wasm" "$ARTIFACTS/engine_v1.wasm"
 echo "artifacts in $ARTIFACTS:"
 ls -la "$ARTIFACTS"

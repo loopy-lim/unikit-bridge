@@ -104,7 +104,7 @@ export async function analyzeRuntime({
       warn(
         'Runtime',
         'ios.app',
-        'Rustra example is not installed on the booted simulator',
+        'Unikit example is not installed on the booted simulator',
         commandError(appContainer),
         'Run `bun run ios -- --configuration Release`. This rebuilds Rust before Expo/Xcode.',
       ),
@@ -123,7 +123,7 @@ export async function analyzeRuntime({
   const executableStat = executablePath ? await fileStat(executablePath) : undefined;
   if (!executablePath || !executableStat) {
     return [
-      pass('Runtime', 'ios.app', 'Rustra example is installed on the booted simulator', appContainer.stdout),
+      pass('Runtime', 'ios.app', 'Unikit example is installed on the booted simulator', appContainer.stdout),
       fail(
         'Runtime',
         'ios.app.binary',
@@ -135,7 +135,7 @@ export async function analyzeRuntime({
   }
 
   const runtimeChecks = [
-    pass('Runtime', 'ios.app', 'Rustra example is installed on the booted simulator', appContainer.stdout),
+    pass('Runtime', 'ios.app', 'Unikit example is installed on the booted simulator', appContainer.stdout),
     ...analyzeInstalledBinary({
       binaryMtimeMs: executableStat.mtimeMs,
       newestInputMtimeMs: newestAppInput.mtimeMs,
@@ -151,7 +151,7 @@ export async function analyzeRuntime({
     'data',
   ]);
   const receiptPath = dataContainer.ok
-    ? join(dataContainer.stdout, 'Documents', 'rustra-benchmark-receipt.json')
+    ? join(dataContainer.stdout, 'Documents', 'unikit-benchmark-receipt.json')
     : undefined;
   const receiptSource = receiptPath ? await readOptional(receiptPath) : undefined;
   if (!receiptSource) {

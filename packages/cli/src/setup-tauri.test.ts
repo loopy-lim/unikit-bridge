@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { setupTauriIntegration } from './setup-tauri.js';
-import { cargoDependency, rustraDependencyLine } from './setup-tauri-cargo.js';
+import { cargoDependency, unikitDependencyLine } from './setup-tauri-cargo.js';
 
 async function fixture(fn: (root: string) => Promise<void>) {
-  const root = await mkdtemp(join(tmpdir(), 'rustra-tauri-setup-'));
+  const root = await mkdtemp(join(tmpdir(), 'unikit-tauri-setup-'));
   try {
     await mkdir(join(root, 'core/src/bin'), { recursive: true });
     await mkdir(join(root, 'src-tauri/src'), { recursive: true });
@@ -17,7 +17,7 @@ async function fixture(fn: (root: string) => Promise<void>) {
     );
     await writeFile(
       join(root, 'core/src/lib.rs'),
-      'pub fn package() -> rustra::Package { todo!() }\n',
+      'pub fn package() -> unikit_bridge::Package { todo!() }\n',
     );
     await writeFile(join(root, 'core/src/bin/generate.rs'), 'fn main() {}\n');
     await writeFile(
@@ -37,7 +37,7 @@ async function fixture(fn: (root: string) => Promise<void>) {
       }),
     );
     await writeFile(
-      join(root, 'rustra.json'),
+      join(root, 'unikit.json'),
       JSON.stringify({
         schema: './generated/schema.json',
         output: './src/generated',
@@ -55,18 +55,18 @@ test('Tauri setup generates one-call native registration and preserves app sourc
   await fixture(async (root) => {
     const nativeManifest = await readFile(join(root, 'src-tauri/Cargo.toml'), 'utf8');
     const entry = await readFile(join(root, 'src-tauri/src/lib.rs'), 'utf8');
-    const result = await setupTauriIntegration(join(root, 'rustra.json'));
-    const adapter = await readFile(join(root, 'src-tauri/src/rustra_setup.rs'), 'utf8');
+    const result = await setupTauriIntegration(join(root, 'unikit.json'));
+    const adapter = await readFile(join(root, 'src-tauri/src/unikit_setup.rs'), 'utf8');
     assert.match(adapter, /pub fn register<R: tauri::Runtime>/);
-    assert.match(adapter, /rustra_setup_core::package\(\)/);
+    assert.match(adapter, /unikit_setup_core::package\(\)/);
     assert.match(adapter, /pub fn with_app_commands<R, F>/);
     assert.match(adapter, /tauri_support::with_app_commands\(register\(builder\), app_handler\)/);
     assert.match(
       result.instructions.join('\n'),
-      /rustra_setup_core = \{ package = "setup-core", path = "\.\.\/core" \}/,
+      /unikit_setup_core = \{ package = "setup-core", path = "\.\.\/core" \}/,
     );
-    assert.match(result.instructions.join('\n'), /mod rustra_setup;/);
-    assert.match(result.instructions.join('\n'), /rustra_setup::register\(builder\)/);
+    assert.match(result.instructions.join('\n'), /mod unikit_setup;/);
+    assert.match(result.instructions.join('\n'), /unikit_setup::register\(builder\)/);
     assert.equal(result.packageJsonChanged, false);
     assert.equal(await readFile(join(root, 'src-tauri/Cargo.toml'), 'utf8'), nativeManifest);
     assert.equal(await readFile(join(root, 'src-tauri/src/lib.rs'), 'utf8'), entry);
@@ -82,26 +82,26 @@ test('Tauri setup generates one-call native registration and preserves app sourc
 
 test('repeat Tauri setup leaves generated files and already-enabled config byte-identical', async () => {
   await fixture(async (root) => {
-    await setupTauriIntegration(join(root, 'rustra.json'));
-    const adapter = await readFile(join(root, 'src-tauri/src/rustra_setup.rs'), 'utf8');
+    await setupTauriIntegration(join(root, 'unikit.json'));
+    const adapter = await readFile(join(root, 'src-tauri/src/unikit_setup.rs'), 'utf8');
     const config = await readFile(join(root, 'src-tauri/tauri.conf.json'), 'utf8');
-    const repeat = await setupTauriIntegration(join(root, 'rustra.json'));
+    const repeat = await setupTauriIntegration(join(root, 'unikit.json'));
     assert.deepEqual(repeat.files, []);
-    assert.equal(await readFile(join(root, 'src-tauri/src/rustra_setup.rs'), 'utf8'), adapter);
+    assert.equal(await readFile(join(root, 'src-tauri/src/unikit_setup.rs'), 'utf8'), adapter);
     assert.equal(await readFile(join(root, 'src-tauri/tauri.conf.json'), 'utf8'), config);
   });
 });
 
 test('Tauri setup refuses to overwrite an edited adapter before changing global config', async () => {
   await fixture(async (root) => {
-    await writeFile(join(root, 'src-tauri/src/rustra_setup.rs'), '// my own registration\n');
+    await writeFile(join(root, 'src-tauri/src/unikit_setup.rs'), '// my own registration\n');
     const config = await readFile(join(root, 'src-tauri/tauri.conf.json'), 'utf8');
     await assert.rejects(
-      setupTauriIntegration(join(root, 'rustra.json')),
-      /Refusing to overwrite.*rustra_setup.rs/,
+      setupTauriIntegration(join(root, 'unikit.json')),
+      /Refusing to overwrite.*unikit_setup.rs/,
     );
     assert.equal(
-      await readFile(join(root, 'src-tauri/src/rustra_setup.rs'), 'utf8'),
+      await readFile(join(root, 'src-tauri/src/unikit_setup.rs'), 'utf8'),
       '// my own registration\n',
     );
     assert.equal(await readFile(join(root, 'src-tauri/tauri.conf.json'), 'utf8'), config);
@@ -116,14 +116,14 @@ test('Tauri setup reuses an existing renamed core dependency and its custom pack
     );
     await writeFile(
       join(root, 'src-tauri/Cargo.toml'),
-      '[package]\nname="app"\nversion="0.1.0"\n[dependencies]\ntauri="2"\nrustra={path="../../rustra",features=["tauri"]}\napp_core={package="setup-core",path="../core"}\n',
+      '[package]\nname="app"\nversion="0.1.0"\n[dependencies]\ntauri="2"\nunikit={path="../../unikit",features=["tauri"]}\napp_core={package="setup-core",path="../core"}\n',
     );
-    const result = await setupTauriIntegration(join(root, 'rustra.json'));
+    const result = await setupTauriIntegration(join(root, 'unikit.json'));
     assert.match(
-      await readFile(join(root, 'src-tauri/src/rustra_setup.rs'), 'utf8'),
+      await readFile(join(root, 'src-tauri/src/unikit_setup.rs'), 'utf8'),
       /app_core::calculator_package\(\)/,
     );
-    assert.doesNotMatch(result.instructions.join('\n'), /rustra_setup_core =/);
+    assert.doesNotMatch(result.instructions.join('\n'), /unikit_setup_core =/);
   });
 });
 
@@ -134,15 +134,15 @@ test('Tauri setup rejects ambiguous producers without guessing or writing files'
       'pub fn package() -> Package { todo!() }\npub fn second_package() -> Package { todo!() }\n',
     );
     await assert.rejects(
-      setupTauriIntegration(join(root, 'rustra.json')),
+      setupTauriIntegration(join(root, 'unikit.json')),
       /package\(\).*second_package\(\)/,
     );
-    const result = await setupTauriIntegration(join(root, 'rustra.json'), {
+    const result = await setupTauriIntegration(join(root, 'unikit.json'), {
       packageFunction: 'second_package',
     });
     assert.equal(result.files.length, 2);
     assert.match(
-      await readFile(join(root, 'src-tauri/src/rustra_setup.rs'), 'utf8'),
+      await readFile(join(root, 'src-tauri/src/unikit_setup.rs'), 'utf8'),
       /second_package\(\)/,
     );
   });
@@ -152,12 +152,12 @@ test('Tauri setup does not infer fake factories inside comments, strings, or nes
   await fixture(async (root) => {
     await writeFile(
       join(root, 'core/src/lib.rs'),
-      '// pub fn fake() -> Package {}\nconst DOC: &str = r###"pub fn fake2() -> Package {}"###;\nmod hidden { pub fn inner() -> Package { todo!() } }\n/* pub fn fake3() -> Package {} */\npub fn package() -> rustra::Package { todo!() }\n',
+      '// pub fn fake() -> Package {}\nconst DOC: &str = r###"pub fn fake2() -> Package {}"###;\nmod hidden { pub fn inner() -> Package { todo!() } }\n/* pub fn fake3() -> Package {} */\npub fn package() -> unikit_bridge::Package { todo!() }\n',
     );
-    await setupTauriIntegration(join(root, 'rustra.json'));
+    await setupTauriIntegration(join(root, 'unikit.json'));
     assert.match(
-      await readFile(join(root, 'src-tauri/src/rustra_setup.rs'), 'utf8'),
-      /rustra_setup_core::package\(\)/,
+      await readFile(join(root, 'src-tauri/src/unikit_setup.rs'), 'utf8'),
+      /unikit_setup_core::package\(\)/,
     );
   });
 });
@@ -171,7 +171,7 @@ test('Tauri setup can use the native crate itself as producer without a self-dep
     await mkdir(join(root, 'src-tauri/src/bin'));
     await writeFile(join(root, 'src-tauri/src/bin/generate.rs'), 'fn main() {}\n');
     await writeFile(
-      join(root, 'rustra.json'),
+      join(root, 'unikit.json'),
       JSON.stringify({
         schema: './generated/schema.json',
         output: './src/generated',
@@ -184,18 +184,18 @@ test('Tauri setup can use the native crate itself as producer without a self-dep
       join(root, 'src-tauri/Cargo.toml'),
       '[package]\nname="app"\nversion="0.1.0"\nedition="2021"\n[workspace]\n',
     );
-    const result = await setupTauriIntegration(join(root, 'rustra.json'));
+    const result = await setupTauriIntegration(join(root, 'unikit.json'));
     assert.match(
-      await readFile(join(root, 'src-tauri/src/rustra_setup.rs'), 'utf8'),
+      await readFile(join(root, 'src-tauri/src/unikit_setup.rs'), 'utf8'),
       /crate::package\(\)/,
     );
-    assert.doesNotMatch(result.instructions.join('\n'), /rustra_setup_core =/);
+    assert.doesNotMatch(result.instructions.join('\n'), /unikit_setup_core =/);
     const nativeFixture = new URL(
       '../../../examples/tauri-calculator/src-tauri/tests/fixtures/setup_registration.rs',
       import.meta.url,
     );
     assert.equal(
-      await readFile(join(root, 'src-tauri/src/rustra_setup.rs'), 'utf8'),
+      await readFile(join(root, 'src-tauri/src/unikit_setup.rs'), 'utf8'),
       await readFile(nativeFixture, 'utf8'),
       'actual generated adapter must match the compiled MockRuntime fixture',
     );
@@ -206,9 +206,9 @@ test('Tauri setup rejects malformed app config before writing its adapter', asyn
   await fixture(async (root) => {
     const raw = '{"app":[]}';
     await writeFile(join(root, 'src-tauri/tauri.conf.json'), raw);
-    await assert.rejects(setupTauriIntegration(join(root, 'rustra.json')), /object app section/);
+    await assert.rejects(setupTauriIntegration(join(root, 'unikit.json')), /object app section/);
     assert.equal(await readFile(join(root, 'src-tauri/tauri.conf.json'), 'utf8'), raw);
-    await assert.rejects(readFile(join(root, 'src-tauri/src/rustra_setup.rs'), 'utf8'), {
+    await assert.rejects(readFile(join(root, 'src-tauri/src/unikit_setup.rs'), 'utf8'), {
       code: 'ENOENT',
     });
   });
@@ -218,18 +218,18 @@ test('Cargo snippet retains the producer local workspace source and features', a
   await fixture(async (root) => {
     await writeFile(
       join(root, 'Cargo.toml'),
-      '[workspace]\nmembers=["core"]\n[workspace.dependencies]\nrustra={path="./matching-rustra",version="0.11.0",features=["hot-core"]}\n',
+      '[workspace]\nmembers=["core"]\n[workspace.dependencies]\nunikit={path="./matching-unikit",version="0.11.0",features=["hot-core"]}\n',
     );
     await writeFile(
       join(root, 'core/Cargo.toml'),
-      '[package]\nname="setup-core"\nversion="0.1.0"\n[dependencies]\nrustra={workspace=true,features=["wasm"]}\n',
+      '[package]\nname="setup-core"\nversion="0.1.0"\n[dependencies]\nunikit={workspace=true,features=["wasm"]}\n',
     );
-    const line = rustraDependencyLine(
-      cargoDependency(join(root, 'core/Cargo.toml'), 'rustra'),
+    const line = unikitDependencyLine(
+      cargoDependency(join(root, 'core/Cargo.toml'), 'unikit'),
       join(root, 'src-tauri'),
       '^0.11.0',
     );
-    assert.match(line, /path = "\.\.\/matching-rustra"/);
+    assert.match(line, /path = "\.\.\/matching-unikit"/);
     assert.match(line, /version = "0.11.0"/);
     assert.match(line, /features = \["hot-core","wasm","tauri"\]/);
     assert.doesNotMatch(line, /workspace/);
@@ -239,12 +239,12 @@ test('Cargo snippet retains the producer local workspace source and features', a
 test('Tauri setup reports the exact missing native manifest and skips other hosts', async () => {
   await fixture(async (root) => {
     await rm(join(root, 'src-tauri'), { recursive: true });
-    await assert.rejects(setupTauriIntegration(join(root, 'rustra.json')), /src-tauri\/Cargo.toml/);
+    await assert.rejects(setupTauriIntegration(join(root, 'unikit.json')), /src-tauri\/Cargo.toml/);
     await writeFile(
-      join(root, 'rustra.json'),
+      join(root, 'unikit.json'),
       JSON.stringify({ schema: './generated/schema.json', output: './src/generated', node: {} }),
     );
-    assert.deepEqual(await setupTauriIntegration(join(root, 'rustra.json')), {
+    assert.deepEqual(await setupTauriIntegration(join(root, 'unikit.json')), {
       files: [],
       instructions: [],
       packageJsonChanged: false,

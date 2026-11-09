@@ -6,13 +6,13 @@
 
 **Architecture:** 3단계 최적화 — (1) 설치 시점에 JSI HostObject 스캔을 일반 JS 객체 프로퍼티로 평평화(호출당 22회 선형 스캔 제거), (2) cmd_id 기반 `invokeTypedById` 진입점 추가로 문자열 마샬링+비교체인 제거 + `hasStaticCodec` JS 캐시로 JSI 호출 2→1회, (3) ArrayBuffer 생성자/에러 postcard 파서 캐시. 모두 기존 typed fast path 위의 추가 최적화로, 동적 명령/Tier 3/OTA 경로는 그대로.
 
-**Tech Stack:** C++17 (JSI), TypeScript (@rustra/types, @rustra/cli codegen), 기존 테스트 인프라(node --test, run-cpp-codec-tests.sh, cargo test)
+**Tech Stack:** C++17 (JSI), TypeScript (@unikit-bridge/types, @unikit-bridge/cli codegen), 기존 테스트 인프라(node --test, run-cpp-codec-tests.sh, cargo test)
 
 **성공 기준 (측정 방법 Task 7):**
 
 - `native.invokeRkyvV2(preEncoded)` JSI 호 홉: 8.3µs → 3µs 이하 (측정 환경 편차 고려 상대 비교)
 - typed async(`addNumbers(INPUT)`): 5.4µs → 3µs 이하
-- 기존 테스트 전부 통과 (`npm run test:packages`, `run-cpp-codec-tests.sh`, `cargo test -p rustra`)
+- 기존 테스트 전부 통과 (`npm run test:packages`, `run-cpp-codec-tests.sh`, `cargo test -p unikit-bridge`)
 
 **핵심 제약 (반드시 지킬 것):**
 
@@ -29,18 +29,18 @@
 
 **Files:**
 
-- Modify: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp` (invokeTyped 에러 분기 ~line 382-402, batch ~line 461-479, async ~line 586-599)
+- Modify: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp` (invokeTyped 에러 분기 ~line 382-402, batch ~line 461-479, async ~line 586-599)
 
 **Step 1: 헬퍼 작성 (리팩터링이므로 테스트는 기존 것 사용)**
 
-`RustraJSIBridge.cpp` 상단 `extractBytes` 헬퍼 아래에 추가:
+`UnikitJSIBridge.cpp` 상단 `extractBytes` 헬퍼 아래에 추가:
 
 ```cpp
 // ── rkyv V2 에러 와이어 파싱 ────────────────────────────────
 // 에러 프레임: [ok:0][pad to @8][err_len u16 LE @8][postcard{code,message} @10]
 // postcard 파싱 실패 시 원시 바이트로 폴백한다(계약: 실패해도 throw 아님).
 static std::string parseRkyvV2Error(const uint8_t* resp, size_t out_len) {
-  if (out_len < 10) return "RustraJSI: malformed error response";
+  if (out_len < 10) return "UnikitJSI: malformed error response";
   uint16_t errLen = (uint16_t)resp[8] | ((uint16_t)resp[9] << 8);
   size_t avail = out_len > 10 ? out_len - 10 : 0;
   size_t bodyLen = errLen <= avail ? errLen : avail;
@@ -76,13 +76,13 @@ static std::string parseRkyvV2ErrorBody(const uint8_t* resp, size_t out_len) {
 
 **Step 2: 컴파일 검증**
 
-Run: `cd examples/react-native-calculator/modules/rustra-jsi/ios && ./run-cpp-codec-tests.sh`
+Run: `cd examples/react-native-calculator/modules/unikit-jsi/ios && ./run-cpp-codec-tests.sh`
 Expected: `OK: all C++ codec tests passed` (브리지는 본 스크립트가 컴파일하지 않으므로, 컴파일 확인은 Task 6의 통합 빌드에서 함 — 여기서는 논리 리뷰만)
 
 실제 컴파일 확인이 필요하면 Xcode 없이 syntax-check만:
 
 ```bash
-clang++ -std=c++17 -fsyntax-only -I examples/react-native-calculator/modules/rustra-jsi/ios examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp 2>&1 | head -5
+clang++ -std=c++17 -fsyntax-only -I examples/react-native-calculator/modules/unikit-jsi/ios examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp 2>&1 | head -5
 ```
 
 (단, jsi.h/ReactCommon 헤더가 없어 실패할 수 있음 — 그 경우 Task 6에서 통합 검증. 이때는 논리 리뷰로 대체하고 커밋하지 않고 Task 2로 진행)
@@ -90,7 +90,7 @@ clang++ -std=c++17 -fsyntax-only -I examples/react-native-calculator/modules/rus
 **Step 3: Commit**
 
 ```bash
-git add examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp
+git add examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp
 git commit -m "refactor(jsi): rkyv V2 에러 와이어 파싱을 공유 헬퍼로 추출"
 git add -u && git commit --amend --no-edit  # lefthook prettier 반영 (C++는 미적용이지만 안전하게)
 ```
@@ -99,22 +99,22 @@ git add -u && git commit --amend --no-edit  # lefthook prettier 반영 (C++는 �
 
 ### Task 2: JSI 함수들을 일반 JS 객체 프로퍼티로 평평화 (핵심 최적화 #1)
 
-**배경:** `RustraHostObject::get`이 22개 엔트리를 `PropNameID::compare`로 선형 스캔한다(호출당 가상 호출 최대 22회). Nitro 방식대로 설치 시점에 일반 `jsi::Object`에 프로퍼티로 박아두면 이후 조회는 순수 JS 프로퍼티 로드가 된다. **기대 효과 −1~2µs/호출.**
+**배경:** `UnikitHostObject::get`이 22개 엔트리를 `PropNameID::compare`로 선형 스캔한다(호출당 가상 호출 최대 22회). Nitro 방식대로 설치 시점에 일반 `jsi::Object`에 프로퍼티로 박아두면 이후 조회는 순수 JS 프로퍼티 로드가 된다. **기대 효과 −1~2µs/호출.**
 
 **Files:**
 
-- Modify: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp` (`RustraHostObject::get`/`getPropertyNames` ~line 640-658, `installRustraJSIWithInvoker` ~line 666-674)
-- Modify: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.hpp`
+- Modify: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp` (`UnikitHostObject::get`/`getPropertyNames` ~line 640-658, `installUnikitJSIWithInvoker` ~line 666-674)
+- Modify: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.hpp`
 - Test: 기존 `packages/react-native/src/index.test.ts` + 새 유닛 테스트 없음 (JSI 동작은 시뮬레이터 벤치로 검증)
 
 **Step 1: 설치 함수 변경**
 
-`installRustraJSIWithInvoker`에서 HostObject 대신 평범한 Object 생성으로 전환한다. HostObject 클래스와 `get`/`getPropertyNames`는 **Android JNI 경로 호환을 위해 유지**하되(아래 Step 2 확인 후 제거 여부 결정), install 경로만 교체:
+`installUnikitJSIWithInvoker`에서 HostObject 대신 평범한 Object 생성으로 전환한다. HostObject 클래스와 `get`/`getPropertyNames`는 **Android JNI 경로 호환을 위해 유지**하되(아래 Step 2 확인 후 제거 여부 결정), install 경로만 교체:
 
 ```cpp
-void installRustraJSIWithInvoker(Runtime& rt,
+void installUnikitJSIWithInvoker(Runtime& rt,
                                   std::shared_ptr<void> typeErasedCallInvoker) {
-  rustra_calculator_init();
+  unikit_calculator_init();
   auto dispatcher = getEventDispatcher();
   dispatcher->setCallInvoker(std::move(typeErasedCallInvoker));
 
@@ -122,16 +122,16 @@ void installRustraJSIWithInvoker(Runtime& rt,
   // native.invokeRkyvV2(...) 조회가 HostObject 콜백(엔트리당 compare 가상
   // 호출)이 아니라 엔진의 인라인 프로퍼티 로드가 된다 (Nitro 평탄화 방식).
   // 캐시는 HostObject 내부 cache_ 대신 이 객체 자체가 된다.
-  auto hostObject = std::make_shared<RustraHostObject>(rt);  // 함수 팩토리로만 사용
+  auto hostObject = std::make_shared<UnikitHostObject>(rt);  // 함수 팩토리로만 사용
   Object obj(rt);
   for (auto& name : hostObject->propertyNames(rt)) {
     obj.setProperty(rt, name, hostObject->getFunction(rt, name));
   }
-  rt.global().setProperty(rt, "__rustraNative", std::move(obj));
+  rt.global().setProperty(rt, "__unikitNative", std::move(obj));
 }
 ```
 
-이를 위해 `RustraJSIBridge.hpp`의 `RustraHostObject`에 public 접근자 2개 추가:
+이를 위해 `UnikitJSIBridge.hpp`의 `UnikitHostObject`에 public 접근자 2개 추가:
 
 ```cpp
   /// 설치 평탄화용: 캐시된 함수 이름 목록.
@@ -144,14 +144,14 @@ void installRustraJSIWithInvoker(Runtime& rt,
 
 **Step 2: Android 경로 확인**
 
-Android `rustra_jni.cpp`(runner template)가 `installRustraJSI`를 직접 호출하는지 확인한다. `grep -rn "installRustraJSI" runner/ examples/react-native-calculator/modules/*/android 2>/dev/null` — 호출부가 installRustraJSI\* 만 쓰면 이 변경으로 자동 적용된다(단일 정의).
+Android `unikit_jni.cpp`(runner template)가 `installUnikitJSI`를 직접 호출하는지 확인한다. `grep -rn "installUnikitJSI" runner/ examples/react-native-calculator/modules/*/android 2>/dev/null` — 호출부가 installUnikitJSI\* 만 쓰면 이 변경으로 자동 적용된다(단일 정의).
 
 **Step 3: 빌드/테스트 검증은 Task 6에서 통합 실행** (시뮬레이터 빌드 필요). 여기서는 헤더 의존 관계 리뷰만.
 
 **Step 4: Commit**
 
 ```bash
-git add examples/react-native-calculator/modules/rustra-jsi/
+git add examples/react-native-calculator/modules/unikit-jsi/
 git commit -m "perf(jsi): 네이티브 함수를 HostObject 스캔 대신 평평한 JS 객체로 설치"
 ```
 
@@ -163,7 +163,7 @@ git commit -m "perf(jsi): 네이티브 함수를 HostObject 스캔 대신 평평
 
 **Files:**
 
-- Modify: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp` (createArrayBuffer ~line 24-32)
+- Modify: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp` (createArrayBuffer ~line 24-32)
 
 **Step 1: 생성자 캐시 구현**
 
@@ -171,16 +171,16 @@ git commit -m "perf(jsi): 네이티브 함수를 HostObject 스캔 대신 평평
 // ── ArrayBuffer helpers ────────────────────────────────────
 
 /// ArrayBuffer 생성자 캐시 — 첫 호출 시 1회 조회, 이후 재사용.
-/// (Runtime 생명주기 동안 불변 — JS reload 시 installRustraJSI 가 재실행되어
+/// (Runtime 생명주기 동안 불변 — JS reload 시 installUnikitJSI 가 재실행되어
 /// 새 Runtime 컨텍스트에서 재초기화된다. 전역 Function은 Runtime 소유이므로
 /// 프로세스 전역 static 대신 설치 시점 캐시 구조체를 쓴다.)
-struct RustraJsiCache {
+struct UnikitJsiCache {
   Function arrayBufferCtor;  // default-constructible 아님 → optional 사용
 };
 
 static Function& cachedArrayBufferCtor(Runtime& rt) {
   // 설치 시점에 초기화된 프로세스 전역 캐시. RN reload 로 Runtime 이 교체되면
-  // installRustraJSIWithInvoker 가 재호출되어 여기도 재초기화된다.
+  // installUnikitJSIWithInvoker 가 재호출되어 여기도 재초기화된다.
   static std::optional<Function> ctor;
   if (!ctor) {
     ctor = rt.global().getPropertyAsFunction(rt, "ArrayBuffer");
@@ -198,17 +198,17 @@ static Value createArrayBuffer(Runtime& rt, const uint8_t* data, size_t size) {
 }
 ```
 
-⚠️ **주의:** `static std::optional<Function>`은 프로세스 전역이지만 jsi::Function은 Runtime 소유다. RN 리로드로 기존 Runtime이 죽으면 dangling된다. 안전장치: `installRustraJSIWithInvoker` 시작 부분에서 캐시를 리셋한다:
+⚠️ **주의:** `static std::optional<Function>`은 프로세스 전역이지만 jsi::Function은 Runtime 소유다. RN 리로드로 기존 Runtime이 죽으면 dangling된다. 안전장치: `installUnikitJSIWithInvoker` 시작 부분에서 캐시를 리셋한다:
 
 ```cpp
 // RN reload 대응: 새 Runtime 설치 시 정적 캐시 초기화.
-resetRustraJsiCache();
+resetUnikitJsiCache();
 ```
 
 헬퍼:
 
 ```cpp
-static void resetRustraJsiCache() {
+static void resetUnikitJsiCache() {
   cachedArrayBufferCtorReset();
 }
 ```
@@ -217,12 +217,12 @@ static void resetRustraJsiCache() {
 
 **Step 2: 로컬 컴파일 검증**
 
-Task 6 통합 전 빠른 확인 — test-jsi-shim 기반 컴파일은 RustraJSIBridge.cpp가 ReactCommon 의존이라 불가. 논리 리뷰로 대체 (Function의 이동/복사 semantics: jsi::Function은 이동 전용이므로 optional에 move-assign).
+Task 6 통합 전 빠른 확인 — test-jsi-shim 기반 컴파일은 UnikitJSIBridge.cpp가 ReactCommon 의존이라 불가. 논리 리뷰로 대체 (Function의 이동/복사 semantics: jsi::Function은 이동 전용이므로 optional에 move-assign).
 
 **Step 3: Commit**
 
 ```bash
-git add examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp
+git add examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp
 git commit -m "perf(jsi): ArrayBuffer 생성자 캐시로 응답 경로 글로벌 조회 제거"
 ```
 
@@ -235,11 +235,11 @@ git commit -m "perf(jsi): ArrayBuffer 생성자 캐시로 응답 경로 글로�
 **Files:**
 
 - Modify: `packages/types/src/index.ts` (createRkyvV2Engine dispatch ~line 696-744)
-- Modify: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp` (invokeTyped 옆에 invokeTypedById 추가)
-- Modify: `examples/react-native-calculator/modules/rustra-jsi/src/index.ts` (RustraNative 타입에 추가)
+- Modify: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp` (invokeTyped 옆에 invokeTypedById 추가)
+- Modify: `examples/react-native-calculator/modules/unikit-jsi/src/index.ts` (UnikitNative 타입에 추가)
 - Modify: `packages/cli/src/generate.ts` (generateRkyvCodecsHpp/Cpp — encode_by_id/decode_by_id/has_static_codec_id)
 - Test: `packages/types/src/index.test.ts`, `packages/react-native/src/index.test.ts`
-- Regenerate: `examples/react-native-calculator/modules/rustra-jsi/ios/rustra-generated-codecs.{hpp,cpp}`
+- Regenerate: `examples/react-native-calculator/modules/unikit-jsi/ios/unikit-generated-codecs.{hpp,cpp}`
 
 **Step 1: 실패 테스트 작성 (TDD)**
 
@@ -324,12 +324,12 @@ const dispatch = async <T>(command: string, args?: unknown): Promise<T> => {
 
 **Step 4: 테스트 통과 확인**
 
-Run: `npm run test:types && cd ../.. && npm run build -w @rustra/types`
+Run: `npm run test:types && cd ../.. && npm run build -w @unikit-bridge/types`
 Expected: PASS
 
 **Step 5: C++ invokeTypedById 추가**
 
-`RustraJSIBridge.cpp` invokeTyped 바로 뒤에:
+`UnikitJSIBridge.cpp` invokeTyped 바로 뒤에:
 
 ```cpp
   // invokeTypedById(cmdId, args): invokeTyped 의 id 인덱싱 변형 — 문자열
@@ -340,35 +340,35 @@ Expected: PASS
       rt, propNameId, 2,
       [](Runtime& rt, const Value&, const Value* args, size_t count) -> Value {
         if (count < 2) {
-          throw JSError(rt, "RustraJSI: invokeTypedById requires (cmdId, args)");
+          throw JSError(rt, "UnikitJSI: invokeTypedById requires (cmdId, args)");
         }
         uint16_t cmdId = static_cast<uint16_t>(args[0].asNumber());
         rc::Writer w;
         if (!gen::encode_by_id(rt, cmdId, args[1], w)) {
-          throw JSError(rt, "RustraJSI: no C++ codec for id " + std::to_string(cmdId));
+          throw JSError(rt, "UnikitJSI: no C++ codec for id " + std::to_string(cmdId));
         }
         auto req = w.take();
         size_t out_len = 0;
-        uint8_t* resp = rustra_calculator_invoke_rkyv_v2(req.data(), req.size(), &out_len);
+        uint8_t* resp = unikit_calculator_invoke_rkyv_v2(req.data(), req.size(), &out_len);
         if (!resp) {
-          throw JSError(rt, "RustraJSI: invokeRkyvV2 returned null");
+          throw JSError(rt, "UnikitJSI: invokeRkyvV2 returned null");
         }
         if (out_len < 1) {
-          rustra_calculator_free_buffer(resp, out_len);
-          throw JSError(rt, "RustraJSI: empty rkyv v2 response");
+          unikit_calculator_free_buffer(resp, out_len);
+          throw JSError(rt, "UnikitJSI: empty rkyv v2 response");
         }
         if (resp[0] == 0) {
           std::string errStr = parseRkyvV2ErrorBody(resp, out_len);
-          rustra_calculator_free_buffer(resp, out_len);
+          unikit_calculator_free_buffer(resp, out_len);
           throw JSError(rt, errStr);
         }
         if (out_len < 8) {
-          rustra_calculator_free_buffer(resp, out_len);
-          throw JSError(rt, "RustraJSI: malformed success response");
+          unikit_calculator_free_buffer(resp, out_len);
+          throw JSError(rt, "UnikitJSI: malformed success response");
         }
         rc::Reader r(resp + 8, out_len - 8);
         Value result = gen::decode_by_id(rt, cmdId, r);
-        rustra_calculator_free_buffer(resp, out_len);
+        unikit_calculator_free_buffer(resp, out_len);
         return result;
       });
     cache_["invokeTypedById"] = std::make_unique<CachedFunction>(
@@ -376,7 +376,7 @@ Expected: PASS
   }
 ```
 
-(실제 `CachedFunction` 구조는 헤더 확인 후 정확히 맞춘다 — `RustraJSIBridge.hpp` 참조.)
+(실제 `CachedFunction` 구조는 헤더 확인 후 정확히 맞춘다 — `UnikitJSIBridge.hpp` 참조.)
 
 **Step 6: 코드젠에 encode_by_id/decode_by_id/has_static_codec_id 추가**
 
@@ -386,10 +386,10 @@ Expected: PASS
 lines.push(`/// cmd_id(u16)로 postcard 요청을 인코딩한다(정적 명령만). 미발견 시 false.\n`);
 lines.push(`bool encode_by_id(facebook::jsi::Runtime& rt, uint16_t cmd_id,\n`);
 lines.push(`                    const facebook::jsi::Value& args,\n`);
-lines.push(`                    rustra::codec::Writer& w);\n\n`);
+lines.push(`                    unikit_bridge::codec::Writer& w);\n\n`);
 lines.push(`/// cmd_id(u16)로 postcard 응답 바디를 디코딩한다(정적 명령만). 미발견 시 JSError.\n`);
 lines.push(`facebook::jsi::Value decode_by_id(facebook::jsi::Runtime& rt, uint16_t cmd_id,\n`);
-lines.push(`                        rustra::codec::Reader& r);\n\n`);
+lines.push(`                        unikit_bridge::codec::Reader& r);\n\n`);
 ```
 
 `generateRkyvCodecsCpp` 구현은 **switch 문**으로 생성 (이름 비교체인과 동일한 로직, cmd_id 케이스):
@@ -410,12 +410,12 @@ decode도 동일 구조. `has_static_codec` (이름 기반)은 유지 — JS 캐
 
 ```bash
 # 코드젠 실행 (memory: codegen-dual-path-regen — Rust bin + TS CLI 둘 다 확인했으면 하나로)
-npm run codegen 2>/dev/null || npx @rustra/cli generate --schema examples/calculator/generated/schema.json --out examples/react-native-calculator/modules/rustra-jsi/ios --cpp-output .
+npm run codegen 2>/dev/null || npx @unikit-bridge/cli generate --schema examples/calculator/generated/schema.json --out examples/react-native-calculator/modules/unikit-jsi/ios --cpp-output .
 ```
 
 (정확한 명령은 `packages/cli/src/index.ts` CLI 인자 확인 후 플랜 실행 시 결정 — schema.json 경로와 out 경로가 이전과 동일한지 확인.)
 
-`test-rustra-generated-codecs.cpp`에 by_id 케이스 추가:
+`test-unikit-generated-codecs.cpp`에 by_id 케이스 추가:
 
 ```cpp
   // ── encode_by_id / decode_by_id (P0-#3) ──
@@ -432,12 +432,12 @@ npm run codegen 2>/dev/null || npx @rustra/cli generate --schema examples/calcul
   }
 ```
 
-Run: `cd examples/react-native-calculator/modules/rustra-jsi/ios && ./run-cpp-codec-tests.sh`
+Run: `cd examples/react-native-calculator/modules/unikit-jsi/ios && ./run-cpp-codec-tests.sh`
 Expected: `OK: all C++ codec tests passed`
 
-**Step 8: JS 쪽 RustraNative 타입 갱신**
+**Step 8: JS 쪽 UnikitNative 타입 갱신**
 
-`examples/react-native-calculator/modules/rustra-jsi/src/index.ts` 타입과 `packages/react-native/src/index.ts` `RustraJSINative`에 `invokeTypedById?(cmdId: number, args: unknown): unknown;` 추가.
+`examples/react-native-calculator/modules/unikit-jsi/src/index.ts` 타입과 `packages/react-native/src/index.ts` `UnikitJSINative`에 `invokeTypedById?(cmdId: number, args: unknown): unknown;` 추가.
 
 **Step 9: 전체 테스트**
 
@@ -447,7 +447,7 @@ Expected: 모든 패키지 테스트 PASS
 **Step 10: Commit**
 
 ```bash
-git add packages/types/src/index.ts packages/types/src/index.test.ts packages/cli/src/generate.ts packages/cli/src/generate.test.ts examples/react-native-calculator/modules/rustra-jsi/
+git add packages/types/src/index.ts packages/types/src/index.test.ts packages/cli/src/generate.ts packages/cli/src/generate.test.ts examples/react-native-calculator/modules/unikit-jsi/
 git commit -m "perf(engine): cmd_id 진입점 invokeTypedById + 정적 명령 집합 JS 캐시"
 ```
 
@@ -460,7 +460,7 @@ git commit -m "perf(engine): cmd_id 진입점 invokeTypedById + 정적 명령 �
 **Files:**
 
 - Modify: `packages/types/src/index.ts` (invokeBatch ~line 813-831)
-- Modify: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp` (invokeTypedBatch 옆)
+- Modify: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp` (invokeTypedBatch 옆)
 - Test: `packages/types/src/index.test.ts`
 
 동일 패턴(invokeTypedBatchById(ids, args))이므로 상세는 Task 4와 동일 — 실행 시 Task 4의 완성 코드를 참조해 대응시킨다. 배치 dispatch:
@@ -489,7 +489,7 @@ if (
 **Step 1: Rust + iOS 시뮬레이터 빌드**
 
 ```bash
-cd examples/react-native-calculator/modules/rustra-jsi/ios && ./build-rust-ios.sh
+cd examples/react-native-calculator/modules/unikit-jsi/ios && ./build-rust-ios.sh
 cd .. && npx expo run:ios  # BenchmarkApp 교체 필요하면 교체 후
 ```
 
@@ -506,7 +506,7 @@ BenchmarkApp의 기존 벤치 실행. 확인 지표:
 
 **Step 3: Rust 테스트**
 
-Run: `cargo test -p rustra -p rustra-calculator-example 2>&1 | tail -3`
+Run: `cargo test -p unikit-bridge -p unikit-calculator-example 2>&1 | tail -3`
 Expected: 전부 PASS
 
 **Step + 문서 갱신:**
@@ -528,7 +528,7 @@ Expected: 전부 PASS
 | Task | 내용                                                               | 커밋 유형 |
 | ---- | ------------------------------------------------------------------ | --------- |
 | 1    | 에러 파싱 헬퍼 추출                                                | refactor  |
-| 2    | JSI 함수 평탄화 (사전 확인: `grep -rn "installRustraJSI" runner/`) | perf      |
+| 2    | JSI 함수 평탄화 (사전 확인: `grep -rn "installUnikitJSI" runner/`) | perf      |
 | 3    | ArrayBuffer 생성자 캐시                                            | perf      |
 | 4    | invokeTypedById + JS 캐시                                          | perf      |
 | 5    | batch byId (선택)                                                  | perf      |
@@ -537,6 +537,6 @@ Expected: 전부 PASS
 
 **리스크 노트:**
 
-- Task 2의 평탄화는 RN reload 시 재설치 계약(installRustraJSI가 매 reload 호출됨)에 의존 — 기존 동작과 동일하므로 안전.
-- Task 3의 static Function 캐시는 reload 시 dangling 위험 → resetRustraJsiCache로 방어 (플랜에 명시).
+- Task 2의 평탄화는 RN reload 시 재설치 계약(installUnikitJSI가 매 reload 호출됨)에 의존 — 기존 동작과 동일하므로 안전.
+- Task 3의 static Function 캐시는 reload 시 dangling 위험 → resetUnikitJsiCache로 방어 (플랜에 명시).
 - Task 4의 `ensureStaticIds`는 registry와 C++ 코덱 사이 불변식(정적 명령 ⊆ registry)에 의존 — 주석 명시.

@@ -14,12 +14,12 @@
 
 **Files:**
 
-- Modify: `crates/rustra/src/codegen.rs:84-96` (ts_object_from_schema)
-- Test: `crates/rustra/tests/public_authoring_api_tests.rs`
+- Modify: `crates/unikit-bridge/src/codegen.rs:84-96` (ts_object_from_schema)
+- Test: `crates/unikit-bridge/tests/public_authoring_api_tests.rs`
 
 **Step 1: Write the failing test**
 
-Append to `crates/rustra/tests/public_authoring_api_tests.rs`:
+Append to `crates/unikit-bridge/tests/public_authoring_api_tests.rs`:
 
 ```rust
 #[test]
@@ -67,12 +67,12 @@ fn ts_generator_handles_hashmap() {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cargo test --package rustra -- ts_generator_handles_hashmap --nocapture`
+Run: `cargo test --package unikit-bridge -- ts_generator_handles_hashmap --nocapture`
 Expected: FAIL — `scores` likely shows as `Record<string, unknown>` or similar
 
 **Step 3: Write minimal implementation**
 
-In `crates/rustra/src/codegen.rs`, modify `ts_object_from_schema()` at line 95. Currently when `properties` is None, it returns `Record<string, unknown>`. Change it to check for `additionalProperties`:
+In `crates/unikit-bridge/src/codegen.rs`, modify `ts_object_from_schema()` at line 95. Currently when `properties` is None, it returns `Record<string, unknown>`. Change it to check for `additionalProperties`:
 
 ```rust
 pub(super) fn ts_object_from_schema(schema: &Value, definitions: &Value) -> String {
@@ -101,13 +101,13 @@ pub(super) fn ts_object_from_schema(schema: &Value, definitions: &Value) -> Stri
 
 **Step 4: Run test to verify it passes**
 
-Run: `cargo test --package rustra -- ts_generator_handles_hashmap --nocapture`
+Run: `cargo test --package unikit-bridge -- ts_generator_handles_hashmap --nocapture`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra/src/codegen.rs crates/rustra/tests/public_authoring_api_tests.rs
+git add crates/unikit-bridge/src/codegen.rs crates/unikit-bridge/tests/public_authoring_api_tests.rs
 git commit -m "feat(codegen): add HashMap/BTreeMap → Record<string, V> support"
 ```
 
@@ -117,12 +117,12 @@ git commit -m "feat(codegen): add HashMap/BTreeMap → Record<string, V> support
 
 **Files:**
 
-- Modify: `crates/rustra/src/codegen.rs:46-52` (array handling in ts_type_from_schema)
-- Test: `crates/rustra/tests/public_authoring_api_tests.rs`
+- Modify: `crates/unikit-bridge/src/codegen.rs:46-52` (array handling in ts_type_from_schema)
+- Test: `crates/unikit-bridge/tests/public_authoring_api_tests.rs`
 
 **Step 1: Write the failing test**
 
-Append to `crates/rustra/tests/public_authoring_api_tests.rs`:
+Append to `crates/unikit-bridge/tests/public_authoring_api_tests.rs`:
 
 ```rust
 #[test]
@@ -167,12 +167,12 @@ fn ts_generator_handles_tuples() {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cargo test --package rustra -- ts_generator_handles_tuples --nocapture`
+Run: `cargo test --package unikit-bridge -- ts_generator_handles_tuples --nocapture`
 Expected: FAIL — tuple likely renders as `unknown[]`
 
 **Step 3: Write minimal implementation**
 
-In `crates/rustra/src/codegen.rs`, modify the `"array"` arm (line 46). Check if `items` is an array (tuple) vs object (regular array):
+In `crates/unikit-bridge/src/codegen.rs`, modify the `"array"` arm (line 46). Check if `items` is an array (tuple) vs object (regular array):
 
 ```rust
 "array" => {
@@ -195,13 +195,13 @@ In `crates/rustra/src/codegen.rs`, modify the `"array"` arm (line 46). Check if 
 
 **Step 4: Run test to verify it passes**
 
-Run: `cargo test --package rustra -- ts_generator_handles_tuples --nocapture`
+Run: `cargo test --package unikit-bridge -- ts_generator_handles_tuples --nocapture`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra/src/codegen.rs crates/rustra/tests/public_authoring_api_tests.rs
+git add crates/unikit-bridge/src/codegen.rs crates/unikit-bridge/tests/public_authoring_api_tests.rs
 git commit -m "feat(codegen): add tuple type → [T1, T2, T3] support"
 ```
 
@@ -211,12 +211,12 @@ git commit -m "feat(codegen): add tuple type → [T1, T2, T3] support"
 
 **Files:**
 
-- Modify: `crates/rustra/src/codegen.rs:13-24` (add oneOf handling before anyOf)
-- Test: `crates/rustra/tests/public_authoring_api_tests.rs`
+- Modify: `crates/unikit-bridge/src/codegen.rs:13-24` (add oneOf handling before anyOf)
+- Test: `crates/unikit-bridge/tests/public_authoring_api_tests.rs`
 
 **Step 1: Write the failing test**
 
-Append to `crates/rustra/tests/public_authoring_api_tests.rs`:
+Append to `crates/unikit-bridge/tests/public_authoring_api_tests.rs`:
 
 ```rust
 #[test]
@@ -271,12 +271,12 @@ fn ts_generator_handles_enum_with_data() {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cargo test --package rustra -- ts_generator_handles_enum_with_data --nocapture`
+Run: `cargo test --package unikit-bridge -- ts_generator_handles_enum_with_data --nocapture`
 Expected: FAIL — enum with data likely renders incorrectly since `oneOf` is not handled
 
 **Step 3: Write minimal implementation**
 
-In `crates/rustra/src/codegen.rs`, add `oneOf` handling after `$ref` resolution (line 16) and before `anyOf`:
+In `crates/unikit-bridge/src/codegen.rs`, add `oneOf` handling after `$ref` resolution (line 16) and before `anyOf`:
 
 ```rust
 pub(super) fn ts_type_from_schema(schema: &Value, definitions: &Value) -> String {
@@ -298,13 +298,13 @@ pub(super) fn ts_type_from_schema(schema: &Value, definitions: &Value) -> String
 
 **Step 4: Run test to verify it passes**
 
-Run: `cargo test --package rustra -- ts_generator_handles_enum_with_data --nocapture`
+Run: `cargo test --package unikit-bridge -- ts_generator_handles_enum_with_data --nocapture`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra/src/codegen.rs crates/rustra/tests/public_authoring_api_tests.rs
+git add crates/unikit-bridge/src/codegen.rs crates/unikit-bridge/tests/public_authoring_api_tests.rs
 git commit -m "feat(codegen): add enum-with-data → tagged union support via oneOf"
 ```
 
@@ -314,11 +314,11 @@ git commit -m "feat(codegen): add enum-with-data → tagged union support via on
 
 **Files:**
 
-- Test: `crates/rustra/tests/public_authoring_api_tests.rs`
+- Test: `crates/unikit-bridge/tests/public_authoring_api_tests.rs`
 
 **Step 1: Write the test**
 
-Append to `crates/rustra/tests/public_authoring_api_tests.rs`:
+Append to `crates/unikit-bridge/tests/public_authoring_api_tests.rs`:
 
 ```rust
 #[test]
@@ -377,13 +377,13 @@ fn ts_generator_handles_deep_nesting() {
 
 **Step 2: Run test**
 
-Run: `cargo test --package rustra -- ts_generator_handles_deep_nesting --nocapture`
+Run: `cargo test --package unikit-bridge -- ts_generator_handles_deep_nesting --nocapture`
 Expected: PASS (deep nesting already works via recursion)
 
 **Step 3: Commit**
 
 ```bash
-git add crates/rustra/tests/public_authoring_api_tests.rs
+git add crates/unikit-bridge/tests/public_authoring_api_tests.rs
 git commit -m "test(codegen): add deep nesting type tests"
 ```
 
@@ -393,12 +393,12 @@ git commit -m "test(codegen): add deep nesting type tests"
 
 **Step 1: Run all tests**
 
-Run: `cargo test --package rustra`
+Run: `cargo test --package unikit-bridge`
 Expected: All tests PASS (old + new)
 
 **Step 2: Verify generated TypeScript for complex types**
 
-Run: `cargo test --package rustra -- --nocapture 2>&1 | head -100`
+Run: `cargo test --package unikit-bridge -- --nocapture 2>&1 | head -100`
 Expected: No panics, no failures
 
 **Step 3: Commit any final fixes**

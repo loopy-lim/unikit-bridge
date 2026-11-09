@@ -26,8 +26,8 @@
 
 **Files:**
 
-- Create: `crates/rustra/src/complex_schema_ir.rs`
-- Test: `crates/rustra/src/complex_into_tests.rs` (기존 파일에 추가) 또는 신규 IR 테스트 모듈
+- Create: `crates/unikit-bridge/src/complex_schema_ir.rs`
+- Test: `crates/unikit-bridge/src/complex_into_tests.rs` (기존 파일에 추가) 또는 신규 IR 테스트 모듈
 
 **Steps:**
 
@@ -40,16 +40,16 @@
 fn compiles_refs_options_and_sorted_variants() { /* ... */ }
 ```
 
-- [ ] **Step 2: 테스트 실패 확인** — `cargo test -p rustra complex_schema_ir 2>&1 | tail -5` → FAIL (모듈 부재)
+- [ ] **Step 2: 테스트 실패 확인** — `cargo test -p unikit-bridge complex_schema_ir 2>&1 | tail -5` → FAIL (모듈 부재)
 - [ ] **Step 3: IR 구현** — 노드 종류: Scalar(format별)/String/Bool/Null/Seq{Box<ResolvedNode>}/Option{Box}/Struct{Vec<(String, ResolvedNode)>, required set}/Enum/Const/DataEnum{sorted variants}/Map. `$ref`는 빌드 시 전개(재귀는 `Arc`+depth 한도로). `variants()`의 클론+정렬을 빌드로 이동 — key는 컴파일 시점 1회 결정
-- [ ] **Step 4: 통과 확인** — `cargo test -p rustra`
+- [ ] **Step 4: 통과 확인** — `cargo test -p unikit-bridge`
 - [ ] **Step 5: 커밋** — `feat(core): complex 스키마 IR 사전컴파일`
 
 ### Task A2: encode/decode를 IR 순회로 전환
 
 **Files:**
 
-- Modify: `crates/rustra/src/complex_codec.rs` (encode_node/decode_node → IR 매칭), `crates/rustra/src/command.rs` (Command에 컴파일된 IR 보관)
+- Modify: `crates/unikit-bridge/src/complex_codec.rs` (encode_node/decode_node → IR 매칭), `crates/unikit-bridge/src/command.rs` (Command에 컴파일된 IR 보관)
 - Test: 기존 complex codec 테스트 전수
 
 **Steps:**
@@ -57,8 +57,8 @@ fn compiles_refs_options_and_sorted_variants() { /* ... */ }
 - [ ] **Step 1: 실패 테스트** — 기존 complex round-trip 테스트(`complex_into_tests.rs`, `command.rs` tests, wire fixtures)를 그대로 게이트로 쓴다. IR 전환 후에도 동일 바이트임을 명시하는 테스트 1개 추가 (같은 페이로드 → 구현 전후 동일 hex — fixture로 충분)
 - [ ] **Step 2: 구현** — `complex_encode`/`complex_decode`/`complex_encode_into`가 `&Value` 스키마 대신 `&ComplexSchemaIr`을 받는 오버로드로 전환. 기존 `&Value` 시그니처는 IR 빌드→호출 래퍼로 유지(외부 호환). 매 호출 `resolved_schema`/`option_inner`/`variants` 호출 소멸
 - [ ] **Step 3: Command 연결** — `build_command`에서 input/output IR을 1회 컴파일해 `rkyv_v2_handler`/`rkyv_v2_into_handler` 클로저가 Arc로 캡처
-- [ ] **Step 4: 전체 게이트** — `cargo test -p rustra` + wire fixture byte-exact
-- [ ] **Step 5: 벤치 + 커밋** — `cargo bench -p rustra` (complex 라우트 벤치 있으면 실행, 없으면 트랙 B 끝에 일괄) → `perf(core): complex 스키마 IR 순회 — 매 호출 clone/정렬 제거`
+- [ ] **Step 4: 전체 게이트** — `cargo test -p unikit-bridge` + wire fixture byte-exact
+- [ ] **Step 5: 벤치 + 커밋** — `cargo bench -p unikit-bridge` (complex 라우트 벤치 있으면 실행, 없으면 트랙 B 끝에 일괄) → `perf(core): complex 스키마 IR 순회 — 매 호출 clone/정렬 제거`
 
 ### Task A3: JS complex-codec 미러 (스키마 resolve 캐시)
 
@@ -84,8 +84,8 @@ fn compiles_refs_options_and_sorted_variants() { /* ... */ }
 
 **Files:**
 
-- Create: `crates/rustra/src/complex_serde.rs`
-- Test: `crates/rustra/tests/complex_serde_roundtrip.rs`
+- Create: `crates/unikit-bridge/src/complex_serde.rs`
+- Test: `crates/unikit-bridge/tests/complex_serde_roundtrip.rs`
 
 **Steps:**
 
@@ -99,8 +99,8 @@ fn compiles_refs_options_and_sorted_variants() { /* ... */ }
 
 **Files:**
 
-- Modify: `crates/rustra/src/complex_serde.rs`
-- Test: `crates/rustra/tests/complex_serde_roundtrip.rs`
+- Modify: `crates/unikit-bridge/src/complex_serde.rs`
+- Test: `crates/unikit-bridge/tests/complex_serde_roundtrip.rs`
 
 **Steps:**
 
@@ -113,14 +113,14 @@ fn compiles_refs_options_and_sorted_variants() { /* ... */ }
 
 **Files:**
 
-- Modify: `crates/rustra/src/command.rs:125-258` (complex 분기 2곳)
+- Modify: `crates/unikit-bridge/src/command.rs:125-258` (complex 분기 2곳)
 - Test: 기존 전체 게이트
 
 **Steps:**
 
 - [ ] **Step 1: 실패 테스트** — complex 라우트 명령이 Value 없이 처리됨을 검증 (기존 테스트가 이미 wire로 검증하므로, 여기선 성능 회귀 게이트로 criterion or iter 벤치 추가)
 - [ ] **Step 2: 구현** — `complex_decode+from_value` → `complex_serde::from_bytes::<I>` / `to_value+complex_encode` → `complex_serde::to_bytes::<O>`. into-handler도 `complex_encode_into` → serde bounded writer로 전환. Value 트리 3회 왕복 소멸
-- [ ] **Step 3: 전체 게이트** — `cargo test -p rustra -p rustra-macros` + wire fixtures + `bun run test:ts:node` (JS codec과의 cross-wire)
+- [ ] **Step 3: 전체 게이트** — `cargo test -p unikit-bridge -p unikit-bridge-macros` + wire fixtures + `bun run test:ts:node` (JS codec과의 cross-wire)
 - [ ] **Step 4: 벤치** — core dispatch addNumbers/echoGroups before/after (트랙 A 직후 동일 측정과 비교) → `docs/benchmarks.md` 갱신
 - [ ] **Step 5: 커밋** — `perf(core): complex 라우트 serde 직결 — Value 트리 왕복 제거`
 

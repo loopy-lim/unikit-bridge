@@ -26,7 +26,7 @@ function unknownOptionError(
     ? ` Did you mean --${suggestion}?`
     : ` Available ${command} options: ${available}.`;
   return new UsageError(
-    `Unknown ${command} option: ${argument}.${hint} Run "rustra ${command} --help".`,
+    `Unknown ${command} option: ${argument}.${hint} Run "unikit ${command} --help".`,
   );
 }
 
@@ -63,7 +63,7 @@ export function parseCliArgs(args: readonly string[], options: CliArgParserOptio
     if (booleanFlags.has(name!)) {
       if (inlineValue !== undefined) {
         throw new UsageError(
-          `--${name} does not accept a value. Run "rustra ${options.command} --help".`,
+          `--${name} does not accept a value. Run "unikit ${options.command} --help".`,
         );
       }
       flags.add(name!);
@@ -72,7 +72,7 @@ export function parseCliArgs(args: readonly string[], options: CliArgParserOptio
     if (!valueFlags.has(name!)) throw unknownOptionError(options.command, argument, known);
     const value = inlineValue ?? args[++index];
     if (!value || value.startsWith('--'))
-      throw new UsageError(`--${name} requires a value. Run "rustra ${options.command} --help".`);
+      throw new UsageError(`--${name} requires a value. Run "unikit ${options.command} --help".`);
     values.set(name!, value);
   }
 

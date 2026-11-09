@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { InvokeOptions } from '@rustra/types';
-import { resolveCommandId } from '@rustra/types';
-import { useRustraEngine } from './context.js';
+import type { InvokeOptions } from '@unikit-bridge/types';
+import { resolveCommandId } from '@unikit-bridge/types';
+import { useUnikitEngine } from './context.js';
 import { inputKey } from './input-key.js';
 
 export type CommandFn<I, O> = (input: I, options?: InvokeOptions) => Promise<O>;
@@ -24,7 +24,7 @@ export function useCommand<I, O>(
   input?: I,
   options?: UseCommandOptions,
 ): UseCommandResult<O> {
-  const engine = useRustraEngine();
+  const engine = useUnikitEngine();
   const [data, setData] = useState<O | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(options?.enabled ?? true);
   const [error, setError] = useState<Error | null>(null);

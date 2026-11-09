@@ -1,0 +1,34 @@
+{"command":"yarn","args":["run","start"],"cwd":"/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-yarn-E3lXJn/app"}
+yarn run v1.22.22
+$ unikit setup --config unikit.json --run
+[unikit] Checking setup tools...
+[unikit] Generating the Rust contract and TypeScript calls...
+[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-yarn-E3lXJn/app/Cargo.toml --package unikit-app --bin generate
+[unikit] ⠋ Rust schema generation (unikit-app/generate)...
+/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-yarn-E3lXJn/app/generated/schema.json written
+[unikit] ✓ Rust schema generation (unikit-app/generate) done in 0.1s
+[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-yarn-E3lXJn/app/unikit.json
+Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-yarn-E3lXJn/app/src/generated:
+  types.ts (unchanged)
+  commands.ts (unchanged)
+  contract.ts (unchanged)
+  frame-codecs.ts (unchanged)
+  frame-registry.ts (unchanged)
+  node.ts (unchanged)
+[unikit] ⠋ JavaScript dependencies...
+[1/4] Resolving packages...
+success Already up-to-date.
+[unikit] ✓ JavaScript dependencies done in 0.1s
+[unikit] ⠋ Rust runtime (unikit-app)...
+[unikit] ✓ Rust runtime (unikit-app) done in 0.0s
+[unikit] ⠋ First Rust call...
+$ bun run src/index.ts
+hello from TypeScript
+[unikit] ✓ First Rust call done in 0.1s
+[unikit] Setup complete — demo succeeded.
+Done in 0.72s.
+warning Cannot find a suitable global folder. Tried these: "/usr/local, /Users/loopy/.yarn"
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-yarn-E3lXJn/cargo-target/debug/generate`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+warning Cannot find a suitable global folder. Tried these: "/usr/local, /Users/loopy/.yarn"

@@ -169,7 +169,7 @@ function compareSchemaValues(
     'uniqueItems',
     'minItems',
     'maxItems',
-    'x-rustra-variant-order',
+    'x-unikit-variant-order',
   ]) {
     if (JSON.stringify(oldObj[facet]) !== JSON.stringify(newObj[facet])) {
       breaking.push({

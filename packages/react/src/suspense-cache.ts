@@ -1,4 +1,4 @@
-import type { EngineClient } from '@rustra/types';
+import type { EngineClient } from '@unikit-bridge/types';
 import { getDefaultEngine } from './context.js';
 
 export interface SuspenseEntry<O = unknown> {
@@ -67,7 +67,7 @@ export function configureSuspenseCache(
       (name !== 'maxEntries' && value > 2_147_483_647)
     ) {
       throw new RangeError(
-        `Rustra suspense cache ${name} must be a positive safe integer within timer limits`,
+        `Unikit suspense cache ${name} must be a positive safe integer within timer limits`,
       );
     }
   }
@@ -110,13 +110,13 @@ export function resolveSuspenseEntry<O>(
   if (cache.entries.size >= cache.policy.maxEntries) {
     const evictable = [...cache.entries].find(([, record]) => record.entry.status !== 'pending');
     if (evictable) remove(cache, evictable[0]);
-    else throw new Error('Rustra suspense cache capacity reached while all requests are pending');
+    else throw new Error('Unikit suspense cache capacity reached while all requests are pending');
   }
 
   let timeout: ReturnType<typeof setTimeout>;
   const deadline = new Promise<never>((_, reject) => {
     timeout = setTimeout(
-      () => reject(new Error('Rustra suspense command timed out')),
+      () => reject(new Error('Unikit suspense command timed out')),
       cache.policy.pendingTimeoutMs,
     );
   });

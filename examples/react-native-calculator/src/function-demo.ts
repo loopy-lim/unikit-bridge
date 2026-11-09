@@ -1,7 +1,7 @@
-import { getRustraNative } from '@rustra/generated-react-native';
-import { createFrameEngine, RustraCommandError } from '@rustra/types';
+import { getUnikitNative } from '@unikit-bridge/generated-react-native';
+import { createFrameEngine, UnikitCommandError } from '@unikit-bridge/types';
 import { Platform } from 'react-native';
-import RustraCalculator from '../modules/rustra-calculator/src';
+import UnikitCalculator from '../modules/unikit-calculator/src';
 import {
   add,
   addNumbers,
@@ -13,7 +13,7 @@ import {
 } from '../generated/react-native';
 import { frameRegistry } from '../generated/frame-registry';
 import { GENERATED_CONTRACT_HASH } from '../generated/contract';
-import { RUSTRA_BUILD_FINGERPRINT } from './build-fingerprint';
+import { UNIKIT_BUILD_FINGERPRINT } from './build-fingerprint';
 import { summarize } from './benchmark-stats';
 
 /** Real generated commands, with the installed native bridge and Rust state. */
@@ -36,12 +36,12 @@ export async function runFunctionDemo() {
   try {
     await safeDivide(1, 0);
   } catch (error) {
-    if (!(error instanceof RustraCommandError)) throw error;
+    if (!(error instanceof UnikitCommandError)) throw error;
     errorCode = error.code;
   }
   check('zero divisor maps domain error', errorCode, 'math.zero_divisor');
 
-  const native = getRustraNative();
+  const native = getUnikitNative();
   const codec = frameRegistry.get('add');
   if (!codec?.encodeInto) throw new Error('Generated add cursor codec is missing');
   check(
@@ -109,12 +109,12 @@ export async function runFunctionDemo() {
     }
   }
   const receipt = {
-    kind: 'rustra-ordinary-functions',
+    kind: 'unikit-ordinary-functions',
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     platform: Platform.OS,
     buildMode: __DEV__ ? 'debug' : 'release',
-    buildFingerprint: RUSTRA_BUILD_FINGERPRINT,
+    buildFingerprint: UNIKIT_BUILD_FINGERPRINT,
     contractHash: GENERATED_CONTRACT_HASH,
     checks,
     correctness: { passed: true, checkedBeforeTiming: true },
@@ -133,11 +133,11 @@ export async function runFunctionDemo() {
         },
   };
   if (Platform.OS === 'ios') {
-    if (!RustraCalculator.writeFunctionReceipt)
+    if (!UnikitCalculator.writeFunctionReceipt)
       throw new Error('Rebuild iOS: function receipt writer is missing');
-    RustraCalculator.writeFunctionReceipt(JSON.stringify(receipt));
+    UnikitCalculator.writeFunctionReceipt(JSON.stringify(receipt));
   }
-  console.warn(`__RUSTRA_FUNCTIONS_OK__ ${checks.length} checks ${RUSTRA_BUILD_FINGERPRINT}`);
+  console.warn(`__UNIKIT_FUNCTIONS_OK__ ${checks.length} checks ${UNIKIT_BUILD_FINGERPRINT}`);
   return receipt;
 }
 

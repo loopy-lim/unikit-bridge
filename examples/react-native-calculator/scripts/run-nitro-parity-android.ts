@@ -14,7 +14,7 @@ const { values } = parseArgs({
     apk: { type: 'string' },
     manifest: { type: 'string' },
     output: { type: 'string' },
-    package: { type: 'string', default: 'com.rustra.nitroparity' },
+    package: { type: 'string', default: 'com.unikit.nitroparity' },
     launches: { type: 'string', default: '5' },
     timeout: { type: 'string', default: '600' },
   },

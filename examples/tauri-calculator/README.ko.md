@@ -1,6 +1,6 @@
 # Tauri Calculator 예시
 
-rustra 패키지를 Tauri 2 데스크톱 애플리케이션에 통합하는 예시입니다.
+unikit 패키지를 Tauri 2 데스크톱 애플리케이션에 통합하는 예시입니다.
 
 ## 개요
 
@@ -25,9 +25,9 @@ bun run bench
 
 벤치마크 창을 열고 앱 시작 후 포커스를 요청하여 숨은 뷰의 스케줄링 영향을
 피합니다. 실제 표시·포커스 상태는 영수증에 기록됩니다.
-러너는 측정 배치 밖에서 `RUSTRA_TAURI_BENCH_PROGRESS` 단계 로그를 남깁니다.
+러너는 측정 배치 밖에서 `UNIKIT_TAURI_BENCH_PROGRESS` 단계 로그를 남깁니다.
 시간 초과에는 마지막 단계가 표시되고 앱 시작 실패·조기 종료는 즉시 실패합니다.
-`RUSTRA_TAURI_BENCH_TIMEOUT_MS`를 1000~600000 사이 정수로 지정하면 기본
+`UNIKIT_TAURI_BENCH_TIMEOUT_MS`를 1000~600000 사이 정수로 지정하면 기본
 60초 제한을 바꿀 수 있습니다. `bun run test:benchmark-runner`는 WebView를
 열지 않고 제어된 자식 프로세스로 수집·정리를 검증합니다.
 
@@ -35,22 +35,22 @@ bun run bench
 
 `tauri dev`를 다시 돌리지 않고도 Rust 핸들러 수정이 실행 중인 앱에 스왑됩니다.
 브리지 크레이트는 `examples/calculator`이지만 dev 설정은 이 예시 전용
-(`rustra.hot.json`)으로 둡니다 — 공유하는 calculator 설정이 기본 `native`
+(`unikit.hot.json`)으로 둡니다 — 공유하는 calculator 설정이 기본 `native`
 타깃을 유지해야 하기 때문입니다:
 
 ```bash
 # 터미널 1 — 감시 + codegen + cdylib 빌드 + parity 게이트 + 게이트 발행
-rustra dev --config rustra.hot.json
+unikit dev --config unikit.hot.json
 
 # 터미널 2 — 앱이 정적 링크 대신 게이트를 통과한 라이브 아티팩트를 로드하고 감시합니다.
-# RUSTRA_HOT_CORE 경로는 rustra dev 가 출력하는 그대로를 쓰세요
-# (이 워크스페이스 기준 target/debug/librustra_calculator_example-hot-live.dylib).
-RUSTRA_HOT_CORE=../../target/debug/librustra_calculator_example-hot-live.dylib bunx tauri dev
+# UNIKIT_HOT_CORE 경로는 unikit dev 가 출력하는 그대로를 쓰세요
+# (이 워크스페이스 기준 target/debug/libunikit_calculator_example-hot-live.dylib).
+UNIKIT_HOT_CORE=../../target/debug/libunikit_calculator_example-hot-live.dylib bunx tauri dev
 ```
 
 스왑은 stderr로 구·신 컨트랙트 해시와 함께 보고됩니다. 동시에 웹뷰에는
-`rustra://hot-core/swapped` 이벤트로도 푸시됩니다 — 성공은
-`{ oldContractHash, newContractHash }`, 실패는 `{ error }`. `@rustra/tauri` 의
+`unikit://hot-core/swapped` 이벤트로도 푸시됩니다 — 성공은
+`{ oldContractHash, newContractHash }`, 실패는 `{ error }`. `@unikit-bridge/tauri` 의
 `subscribeHotSwap` 으로 구독합니다(이 예제는 `src/app.ts` 에 스왑 시각과 해시
 앞 8자를 표시합니다). 페이로드에 구·신 해시가 함께 실리므로 이 이벤트가 JS 캐시
 재동기화 신호를 대행합니다 — 별도의 스키마 세대 카운터는 두지 않습니다. 채널·
@@ -73,7 +73,7 @@ RUSTRA_HOT_CORE=../../target/debug/librustra_calculator_example-hot-live.dylib b
 묶어줍니다. 부팅된 iPhone 시뮬레이터를 해석하고, 빌드된 앱을 설치하고, 앱 데이터
 컨테이너 경로를 매 실행 다시 해석하며(재설치마다 바뀌는 — 수동 루프를 괴롭히던
 주의사항), 핫코어 아티팩트를 컨테이너로 원자적 rename 으로 스테이징한 뒤, 최종
-절대 경로를 `SIMCTL_CHILD_RUSTRA_HOT_CORE` 에 지정해 앱을 실행하고 그 경로를
+절대 경로를 `SIMCTL_CHILD_UNIKIT_HOT_CORE` 에 지정해 앱을 실행하고 그 경로를
 출력합니다:
 
 ```bash
@@ -87,13 +87,13 @@ RUSTRA_HOT_CORE=../../target/debug/librustra_calculator_example-hot-live.dylib b
 ../../scripts/hot-swap-ios.sh --dry-run
 
 # Rust 재빌드 뒤: 앱 재설치 없이 dylib 만 다시 스테이징
-RUSTRA_HOT_IOS_SKIP_INSTALL=1 ../../scripts/hot-swap-ios.sh
+UNIKIT_HOT_IOS_SKIP_INSTALL=1 ../../scripts/hot-swap-ios.sh
 ```
 
 아티팩트 소스는 `packages/cli/src/dev-dylib.ts` 의 발행 이름 계약을 따릅니다
 (`-hot-live` 게이트 발행을 우선하고, 없으면 cargo 가 내놓는 평범한 cdylib) —
 `target/aarch64-apple-ios-sim/<profile>/` 아래에서 찾습니다. 경로·id·UDID 는
-모두 `RUSTRA_HOT_IOS_*` 환경변수로 겹쳐 쓸 수 있습니다 —
+모두 `UNIKIT_HOT_IOS_*` 환경변수로 겹쳐 쓸 수 있습니다 —
 `../../scripts/hot-swap-ios.sh --help` 참고.
 
 수동 단계(참고/폴백):
@@ -104,14 +104,14 @@ bun run build:frontend
 bunx tauri ios build --target aarch64-sim --debug
 
 # 2. 설치 + 앱 컨테이너에 핫코어 아티팩트 스테이징
-xcrun simctl install booted "src-tauri/gen/apple/build/arm64-sim/Rustra Tauri Calculator.app"
-CONTAINER=$(xcrun simctl get_app_container booted dev.rustra.calculator data)
-cp ../../target/aarch64-apple-ios-sim/release/librustra_calculator_example.dylib \
+xcrun simctl install booted "src-tauri/gen/apple/build/arm64-sim/Unikit Tauri Calculator.app"
+CONTAINER=$(xcrun simctl get_app_container booted dev.unikit.calculator data)
+cp ../../target/aarch64-apple-ios-sim/release/libunikit_calculator_example.dylib \
   "$CONTAINER/Documents/hot-core.dylib"
 
 # 3. SIMCTL_CHILD_ 접두사 환경변수로 실행 (simctl 이 앱 프로세스에 전달)
-SIMCTL_CHILD_RUSTRA_HOT_CORE="$CONTAINER/Documents/hot-core.dylib" \
-  xcrun simctl launch --console-pty booted dev.rustra.calculator
+SIMCTL_CHILD_UNIKIT_HOT_CORE="$CONTAINER/Documents/hot-core.dylib" \
+  xcrun simctl launch --console-pty booted dev.unikit.calculator
 
 # 4. 아티팩트 재빌드 뒤 컨테이너 경로로 원자적 rename 발행
 #    (제자리 덮어쓰기 금지 — 매핑된 dylib 변조는 커널이 처단)
@@ -129,7 +129,7 @@ targetSdk 35) 양쪽 모두 통과 — 프로브 README 매트릭스 참고. iOS
 1. **Tauri 연동** — `tauri_support::register(package, builder)`로 커맨드 자동 등록
 2. **Zero config 프런트엔드** — `generated/tauri.ts`가 global invoke/event를 lazy 감지
 3. **실제 화면 코드** — 명령 결과의 `result.value`를 DOM에 반영하고 event를 구독
-4. **WebView 성능 영수증** — 실제 `rustra_dispatch` IPC를 warm-up 뒤 3회 반복
+4. **WebView 성능 영수증** — 실제 `unikit_dispatch` IPC를 warm-up 뒤 3회 반복
 
 ## 핵심 파일
 
@@ -139,7 +139,7 @@ targetSdk 35) 양쪽 모두 통과 — 프로브 README 매트릭스 참고. iOS
 | `src-tauri/src/main.rs` | `run()` 을 호출하는 데스크톱 래퍼 (Tauri 2 모바일은 lib 타깃 필수)     |
 | `src-tauri/Cargo.toml`  | lib/bin 분리(`staticlib`/`cdylib`/`rlib`) + `tauri`/`hot-core` feature |
 | `src/app.ts`            | generated command와 event를 사용하는 화면                              |
-| `rustra.hot.json`       | 핫코어(dylib) dev 루프용 설정                                          |
+| `unikit.hot.json`       | 핫코어(dylib) dev 루프용 설정                                          |
 | `runtime-smoke.mjs`     | 자동화 런타임 스모크 테스트                                            |
 | `src/benchmark.ts`      | 실제 WebView IPC 정확성·지연 측정                                      |
 | `benchmark.mjs`         | 숨은 앱 실행 + 로컬 영수증 수집                                        |
@@ -147,8 +147,8 @@ targetSdk 35) 양쪽 모두 통과 — 프로브 README 매트릭스 참고. iOS
 ## Rust 측 설정
 
 ```rust
-use rustra::tauri_support;
-use rustra_calculator_example::calculator_package;
+use unikit_bridge::tauri_support;
+use unikit_calculator_example::calculator_package;
 
 let builder = tauri_support::register(calculator_package(), tauri::Builder::default());
 builder.run(tauri::generate_context!()).expect("failed to run");
@@ -164,7 +164,7 @@ const { value } = await addNumbers({ a: 20, b: 22 });
 document.querySelector('output').value = String(value);
 ```
 
-Tauri 설정은 `app.withGlobalTauri: true`, `rustra.json`은 `"tauri": {}`를 사용합니다.
+Tauri 설정은 `app.withGlobalTauri: true`, `unikit.json`은 `"tauri": {}`를 사용합니다.
 global API를 의도적으로 끈 기존 앱만 `createTauriEngine({ invoke })`를 escape hatch로
 사용합니다.
 
@@ -179,4 +179,4 @@ global API를 의도적으로 끈 기존 앱만 `createTauriEngine({ invoke })`�
 
 - Rust 툴체인
 - Tauri CLI 2.0+ (`bun add -g @tauri-apps/cli`)
-- `rustra-calculator-example` 패키지 (같은 워크스페이스 내)
+- `unikit-calculator-example` 패키지 (같은 워크스페이스 내)

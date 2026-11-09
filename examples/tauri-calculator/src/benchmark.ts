@@ -15,7 +15,7 @@ type BenchmarkResult = {
   throughputOpsPerSecond: number;
 };
 
-/** E1 성분 분해 — `rustra_dispatch_profiled` 응답 (Rust Instant 차분 포함). */
+/** E1 성분 분해 — `unikit_dispatch_profiled` 응답 (Rust Instant 차분 포함). */
 type ProfiledResponse = {
   result: { value: number };
   ok: boolean;
@@ -43,9 +43,9 @@ async function reportProgress(
   completedCalls = 0,
   averageNs?: number,
 ): Promise<void> {
-  const response = await fetch('http://127.0.0.1:19473/rustra-benchmark', {
+  const response = await fetch('http://127.0.0.1:19473/unikit-benchmark', {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-rustra-benchmark': 'receipt-v1' },
+    headers: { 'content-type': 'application/json', 'x-unikit-benchmark': 'receipt-v1' },
     body: JSON.stringify({ type: 'progress', stage, completedCalls, averageNs }),
   });
   if (!response.ok) throw new Error(`progress server returned ${response.status}`);
@@ -120,7 +120,7 @@ async function measure(): Promise<{
   const nativeSamples: number[] = [];
   for (let index = 0; index < 200; index += 1) {
     const started = performance.now();
-    const response = (await tauriInvoke('rustra_dispatch_profiled', {
+    const response = (await tauriInvoke('unikit_dispatch_profiled', {
       command: 'addNumbers',
       args: { a: 20, b: 22 },
     })) as ProfiledResponse;
@@ -159,11 +159,11 @@ async function measure(): Promise<{
 try {
   await reportProgress('webview-ready');
   const { production, profiled } = await measure();
-  const response = await fetch('http://127.0.0.1:19473/rustra-benchmark', {
+  const response = await fetch('http://127.0.0.1:19473/unikit-benchmark', {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
-      'x-rustra-benchmark': 'receipt-v1',
+      'x-unikit-benchmark': 'receipt-v1',
     },
     body: JSON.stringify({
       runtime: navigator.userAgent,
@@ -183,9 +183,9 @@ try {
   document.body.dataset.benchmarkError = message;
   // 진단 전송 — WebView 콘솔이 보이지 않는 환경에서 실패 원인을 수신자에 남긴다.
   try {
-    await fetch('http://127.0.0.1:19473/rustra-benchmark', {
+    await fetch('http://127.0.0.1:19473/unikit-benchmark', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-rustra-benchmark': 'receipt-v1' },
+      headers: { 'content-type': 'application/json', 'x-unikit-benchmark': 'receipt-v1' },
       body: JSON.stringify({ error: message, ua: navigator.userAgent }),
     });
   } catch {

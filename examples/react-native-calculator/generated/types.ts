@@ -1,18 +1,18 @@
-// ── rustra generated ────────────────────────────────────────
+// ── unikit generated ────────────────────────────────────────
 // File:   types.ts
 // Source: schema.json (single source of truth for this file)
-// Regen:  rustra codegen --config rustra.json
+// Regen:  unikit codegen --config unikit.json
 // Stage:  rust-probe schema → ts renderer
 // DO NOT EDIT — changes will be overwritten and fail codegen --check.
 // ────────────────────────────────────────────────────────────
 
-export type { EngineClient, RustraError } from '@rustra/types';
-export { RustraCommandError } from '@rustra/types';
+export type { EngineClient, UnikitError } from '@unikit-bridge/types';
+export { UnikitCommandError } from '@unikit-bridge/types';
 
 /**
  * 커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.
  *
- * 코드젠은 이 타입을 인식하면 TS 를 `RustraChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).
+ * 코드젠은 이 타입을 인식하면 TS 를 `UnikitChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).
  */
 export type ChannelHandle = number;
 
@@ -315,16 +315,6 @@ export type ResourceWriteOutput = {
   entries: number;
 };
 
-export type RegistryDemoInput = {
-  op: string;
-};
-
-export type RegistryDemoOutput = {
-  ok: boolean;
-  frozen: boolean;
-  message: string;
-};
-
 /**
  * @deprecated Rust 내부 타입명(`Tuple_of_double_and_double`)이 그대로 노출된 레거시 별칭입니다.
  * 새 코드는 인라인 타입을 사용하세요 — 생성 명령 시그니처는 이미 정화됐고,
@@ -398,6 +388,16 @@ export type ToUpperInput = {
 
 export type ToUpperOutput = {
   result: string;
+};
+
+export type RegistryDemoInput = {
+  op: string;
+};
+
+export type RegistryDemoOutput = {
+  ok: boolean;
+  frozen: boolean;
+  message: string;
 };
 
 /**

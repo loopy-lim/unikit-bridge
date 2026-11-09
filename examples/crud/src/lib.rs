@@ -1,6 +1,6 @@
-use rustra::prelude::*;
 use std::collections::HashMap;
 use std::sync::Mutex;
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 #[derive(Clone)]
@@ -134,7 +134,7 @@ pub fn delete_item(input: DeleteItemInput) -> Result<DeleteItemOutput> {
 }
 
 pub fn crud_package() -> Package {
-    rustra::build!(
+    unikit_bridge::build!(
         "examples.crud",
         create_item,
         get_item,

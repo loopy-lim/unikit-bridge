@@ -105,7 +105,7 @@ async function hasBaseline(directory) {
 export async function prepareComparison(repository, request, env = process.env) {
   const temporaryRoot = env.RUNNER_TEMP ?? tmpdir();
   await mkdir(temporaryRoot, { recursive: true });
-  const directory = await mkdtemp(join(temporaryRoot, 'rustra-benchmark-comparison-'));
+  const directory = await mkdtemp(join(temporaryRoot, 'unikit-benchmark-comparison-'));
   const oldRepository = join(directory, 'old-source');
   const oldTarget = join(directory, 'old-target');
   const candidateTarget = join(repository, 'target');
@@ -144,7 +144,7 @@ export async function prepareComparison(repository, request, env = process.env) 
         const args = [
           'bench',
           '-p',
-          'rustra',
+          'unikit-bridge',
           ...(profile === 'dev' ? ['--profile', 'dev'] : []),
           '--no-run',
         ];
@@ -164,7 +164,7 @@ export async function prepareComparison(repository, request, env = process.env) 
       const args = [
         'bench',
         '-p',
-        'rustra',
+        'unikit',
         ...(devBenches.includes(bench) ? ['--profile', 'dev'] : []),
         '--bench',
         bench,

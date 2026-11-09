@@ -10,7 +10,7 @@
  * 호출당 할당 정책 공개). 두 경로 모두 같은 스텁 엔진 라우트를 공유하므로
  * 차이는 순수하게 JS 디스패치 오버헤드(라우트 조회·문자열 비교)다.
  *
- * 실행: env -u RUSTRA_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs
+ * 실행: env -u UNIKIT_BUN_LIBRARY bun scripts/a2-fields-microbench.mjs
  */
 import {
   configure,

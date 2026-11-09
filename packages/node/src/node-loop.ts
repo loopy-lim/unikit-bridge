@@ -1,10 +1,10 @@
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import {
-  RustraCommandError,
-  isRustraDebugEnabled,
-  parseRustraErrorString,
-  RustraErrorCode,
-} from '@rustra/types';
+  UnikitCommandError,
+  isUnikitDebugEnabled,
+  parseUnikitErrorString,
+  UnikitErrorCode,
+} from '@unikit-bridge/types';
 import type { HandshakeFrame, LoopResponseFrame, NodeLoopTransport } from './node-loop-contract.js';
 export type { NodeLoopTransport } from './node-loop-contract.js';
 import type { NodeLoopBinaryCodecs } from './node-binary-framing.js';
@@ -50,7 +50,7 @@ export function createNodeLoopTransport(options: {
     number,
     {
       resolve: (frame: LoopResponseFrame) => void;
-      reject: (error: RustraCommandError) => void;
+      reject: (error: UnikitCommandError) => void;
       handshake: boolean;
     }
   >();
@@ -80,10 +80,10 @@ export function createNodeLoopTransport(options: {
 
   const ensureProcess = (): ChildProcessWithoutNullStreams => {
     if (disposed)
-      throw new RustraCommandError('transport.unavailable', 'Node loop transport was disposed');
+      throw new UnikitCommandError('transport.unavailable', 'Node loop transport was disposed');
     if (child) {
       if (child.exitCode === null && child.signalCode === null) return child;
-      throw new RustraCommandError(
+      throw new UnikitCommandError(
         'transport.error',
         'runtime process is closing; retry after its output streams close',
         true,
@@ -109,7 +109,7 @@ export function createNodeLoopTransport(options: {
       child = null;
       proc.on('error', () => {});
       proc.kill();
-      throw new RustraCommandError('transport.error', 'stdio unavailable', true);
+      throw new UnikitCommandError('transport.error', 'stdio unavailable', true);
     }
     proc.stdout.on('data', (chunk: Buffer) => {
       if (child !== proc) return;
@@ -134,7 +134,7 @@ export function createNodeLoopTransport(options: {
         }
         if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
           fail(
-            new RustraCommandError(
+            new UnikitCommandError(
               'invoke.malformed',
               'Runtime returned a non-object JSON response',
             ),
@@ -152,7 +152,7 @@ export function createNodeLoopTransport(options: {
         pending.delete(frame.id);
         if (typeof frame.ok !== 'boolean') {
           waiter.reject(
-            new RustraCommandError(
+            new UnikitCommandError(
               'invoke.malformed',
               'Runtime response is missing a boolean ok field',
             ),
@@ -167,10 +167,10 @@ export function createNodeLoopTransport(options: {
         }
         if (frame.ok) waiter.resolve(frame);
         else if (frame.error == null || typeof frame.error === 'string')
-          waiter.reject(parseRustraErrorString(frame.error ?? 'invoke failed'));
+          waiter.reject(parseUnikitErrorString(frame.error ?? 'invoke failed'));
         else
           waiter.reject(
-            new RustraCommandError('invoke.malformed', 'Runtime error field must be a string'),
+            new UnikitCommandError('invoke.malformed', 'Runtime error field must be a string'),
           );
         if (mode === 'binary') {
           if (stdoutBuffer.length) session.onChunk(stdoutBuffer);
@@ -183,10 +183,10 @@ export function createNodeLoopTransport(options: {
       if (child !== proc) return;
       // debug 모드에서만 수집한다 — 비 debug 는 드레인만(기존 계약, 성능 무영향).
       // 상한(STDERR_TAIL_CHARS) 이후는 앞쪽부터 탈락시켜 최근 꼬리만 유지한다.
-      if (!isRustraDebugEnabled()) return;
+      if (!isUnikitDebugEnabled()) return;
       stderrTail = ((stderrTail ?? '') + chunk.toString('utf8')).slice(-STDERR_TAIL_CHARS);
     });
-    const fail = (error: RustraCommandError) => {
+    const fail = (error: UnikitCommandError) => {
       if (child !== proc) return;
       child = null;
       handshakeSettled = undefined;
@@ -201,14 +201,14 @@ export function createNodeLoopTransport(options: {
       stderrTail = undefined;
     };
     proc.on('error', (error) => {
-      fail(new RustraCommandError('transport.error', `spawn failed: ${String(error)}`, true));
+      fail(new UnikitCommandError('transport.error', `spawn failed: ${String(error)}`, true));
     });
     proc.stdin.on('error', (error) => {
-      fail(new RustraCommandError('transport.error', `write failed: ${String(error)}`, true));
+      fail(new UnikitCommandError('transport.error', `write failed: ${String(error)}`, true));
       proc.kill();
     });
     proc.on('close', () => {
-      const error = new RustraCommandError(
+      const error = new UnikitCommandError(
         'transport.error',
         attachExitContext('runtime process exited before responding', unparsed.buffer, stderrTail),
         true,
@@ -233,7 +233,7 @@ export function createNodeLoopTransport(options: {
       proc.stdin.write(`${JSON.stringify({ id, ...payload })}\n`, (error) => {
         if (error) {
           pending.delete(id);
-          reject(new RustraCommandError('transport.error', `write failed: ${String(error)}`, true));
+          reject(new UnikitCommandError('transport.error', `write failed: ${String(error)}`, true));
         }
       });
     });
@@ -262,7 +262,7 @@ export function createNodeLoopTransport(options: {
   const prepare = (): Promise<void> => {
     if (disposed)
       return Promise.reject(
-        new RustraCommandError('transport.unavailable', 'Node loop transport was disposed'),
+        new UnikitCommandError('transport.unavailable', 'Node loop transport was disposed'),
       );
     if (!binaryCodecs) return Promise.resolve();
     try {
@@ -290,8 +290,8 @@ export function createNodeLoopTransport(options: {
       // 조용한 command.not_found 대신 명확한 계약 에러로 loud-fail 한다.
       if (!binaryCodecs && isChannelCommand(command)) {
         return Promise.reject(
-          new RustraCommandError(
-            RustraErrorCode.ChannelUnavailable,
+          new UnikitCommandError(
+            UnikitErrorCode.ChannelUnavailable,
             'channels require binary mode: create the transport with codecs (createNodeLoopTransport({ command, codecs })) so the __hello handshake negotiates binary framing',
           ),
         );
@@ -303,8 +303,8 @@ export function createNodeLoopTransport(options: {
           if (isChannelCommand(command)) {
             // 정착 후에도 NDJSON 구 런타임 — 위와 동일 loud-fail(능력 부재).
             return Promise.reject(
-              new RustraCommandError(
-                RustraErrorCode.ChannelUnavailable,
+              new UnikitCommandError(
+                UnikitErrorCode.ChannelUnavailable,
                 'runtime stayed on legacy NDJSON (no binary capability) — channels are unavailable on this runtime',
               ),
             );
@@ -329,7 +329,7 @@ export function createNodeLoopTransport(options: {
     dispose() {
       if (disposed) return;
       disposed = true;
-      const error = new RustraCommandError(
+      const error = new UnikitCommandError(
         'transport.unavailable',
         'Node loop transport was disposed',
       );

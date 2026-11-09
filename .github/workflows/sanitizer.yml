@@ -56,7 +56,7 @@ jobs:
           RUSTFLAGS: -Zsanitizer=address -Cunsafe-allow-abi-mismatch=sanitizer
           ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:log_path=${{ github.workspace }}/target/safety/asan/asan
           RUST_TEST_THREADS: '1'
-        run: bash scripts/run-safety-check.sh lib cargo test -p rustra --lib --target x86_64-unknown-linux-gnu
+        run: bash scripts/run-safety-check.sh lib cargo test -p unikit-bridge --lib --target x86_64-unknown-linux-gnu
       - name: Run FFI integration tests under AddressSanitizer + LeakSanitizer
         if: ${{ !cancelled() }}
         env:
@@ -67,7 +67,7 @@ jobs:
           RUSTFLAGS: -Zsanitizer=address -Cunsafe-allow-abi-mismatch=sanitizer
           ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:log_path=${{ github.workspace }}/target/safety/asan/ffi
           RUST_TEST_THREADS: '1'
-        run: bash scripts/run-safety-check.sh ffi-debug cargo test -p rustra --target x86_64-unknown-linux-gnu --test trust_baseline_ffi --test payload_robustness --test ffi_process_contract --test large_payload_boundary --test ffi_scriptc
+        run: bash scripts/run-safety-check.sh ffi-debug cargo test -p unikit-bridge --target x86_64-unknown-linux-gnu --test trust_baseline_ffi --test payload_robustness --test ffi_process_contract --test large_payload_boundary --test ffi_scriptc
       - name: Run release FFI integration tests under AddressSanitizer + LeakSanitizer
         if: ${{ !cancelled() }}
         env:
@@ -78,7 +78,7 @@ jobs:
           RUSTFLAGS: -Zsanitizer=address -Cunsafe-allow-abi-mismatch=sanitizer
           ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1:log_path=${{ github.workspace }}/target/safety/asan/ffi-release
           RUST_TEST_THREADS: '1'
-        run: bash scripts/run-safety-check.sh ffi-release cargo test -p rustra --release --target x86_64-unknown-linux-gnu --test trust_baseline_ffi --test payload_robustness --test ffi_process_contract --test large_payload_boundary --test ffi_scriptc
+        run: bash scripts/run-safety-check.sh ffi-release cargo test -p unikit-bridge --release --target x86_64-unknown-linux-gnu --test trust_baseline_ffi --test payload_robustness --test ffi_process_contract --test large_payload_boundary --test ffi_scriptc
       - name: Verify C++ foreign exception containment in child processes
         if: ${{ !cancelled() }}
         run: bash scripts/run-safety-check.sh foreign-exception bash scripts/run-foreign-exception-check.sh
@@ -92,7 +92,7 @@ jobs:
 
   # C++ 어댑터 표면 — 생성 C++ 코덱·저수준 Writer/Reader·sync core 테스트를
   # ASan+LSan+UBSan 으로 검증한다. test-jsi-shim.hpp 덕에 Linux 에서 헤더 의존
-  # 없이 빌드 가능하며, RustraJSIBridge.cpp 등 실제 JSI 바인딩은 여전히
+  # 없이 빌드 가능하며, UnikitJSIBridge.cpp 등 실제 JSI 바인딩은 여전히
   # 기기/Xcode 빌드(수동 체크리스트) 영역이다. UBSan 위반은
   # -fno-sanitize-recover 로 조용한 경고가 아닌 치명 실패가 된다.
   cpp-codec:
@@ -110,8 +110,8 @@ jobs:
           { git rev-parse HEAD; clang++ --version; } > "$SAFETY_LOG_DIR/environment.txt"
       - name: Run C++ codec tests under ASan + LSan + UBSan
         env:
-          RUSTRA_CPP_SANITIZERS: address,undefined
-        run: bash scripts/run-safety-check.sh cpp-codec bash examples/react-native-calculator/modules/rustra-jsi/ios/run-cpp-codec-tests.sh
+          UNIKIT_CPP_SANITIZERS: address,undefined
+        run: bash scripts/run-safety-check.sh cpp-codec bash examples/react-native-calculator/modules/unikit-jsi/ios/run-cpp-codec-tests.sh
       - name: Upload sanitizer reports
         if: always()
         uses: actions/upload-artifact@v7

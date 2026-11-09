@@ -7,11 +7,11 @@ This API is part of the Rust 0.11 release line. Use the manifest-aligned
 the client. Local changes require separate package and native-build verification.
 
 `PackageBuilder::function` accepts a safe synchronous Rust function or closure
-with zero through twelve arguments. It does not require a Rustra macro, an
+with zero through twelve arguments. It does not require a Unikit macro, an
 input/output wrapper struct, or a `Result` return.
 
 ```rust
-use rustra::{Package, RustraError};
+use unikit_bridge::{Package, UnikitError};
 
 fn add(a: i32, b: i32) -> i32 { a + b }
 fn reset() {}
@@ -24,7 +24,7 @@ fn read(id: u32) -> Result<String, ReadError> {
 let package = Package::builder("app.functions")
     .function("add", add)
     .function("reset", reset)
-    .try_function("read", read, |_| RustraError::custom("read.missing", "not found"))
+    .try_function("read", read, |_| UnikitError::custom("read.missing", "not found"))
     .build();
 
 assert_eq!(package.invoke_json("add", serde_json::json!([2, 3])).unwrap(), serde_json::json!(5));
@@ -33,7 +33,7 @@ assert_eq!(package.invoke_json("add", serde_json::json!([2, 3])).unwrap(), serde
 After each change to registered functions, regenerate and typecheck:
 
 ```sh
-rustra codegen            # or the scaffold script: bun run codegen
+unikit codegen            # or the scaffold script: bun run codegen
 bunx tsc --noEmit         # positional signatures are compile-time checked
 ```
 
@@ -49,9 +49,9 @@ const message: string = await read(7, { timeoutMs: 1000 });
 
 ## Choosing an authoring model: `#[command]` vs `PackageBuilder::function`
 
-Rustra has two ways to register a command, and they differ in more than syntax.
+Unikit has two ways to register a command, and they differ in more than syntax.
 The macro path (`#[command]` + `#[bridge_type]` structs, wired by
-`rustra::build!`) and the plain-function path (`.function`/`.try_function`)
+`unikit_bridge::build!`) and the plain-function path (`.function`/`.try_function`)
 register into the same `PackageBuilder`, so one package can mix them — but pick
 per command with this matrix in mind:
 
@@ -60,9 +60,9 @@ per command with this matrix in mind:
 | Wrapper structs           | Required — one input and one output struct per command (the crud example's 5 commands declare 10: [`examples/crud/src/lib.rs`](../examples/crud/src/lib.rs)) | None — plain functions or closures, 0–12 arguments                                                                                                                        |
 | TS call convention        | One input object with named fields — `addNumbers({ a, b })`                                                                                                  | Positional arguments — `add(2, 3)`                                                                                                                                        |
 | Generated parameter names | The struct's field names (camelCase via `#[serde(rename_all = "camelCase")]`)                                                                                | `arg0`, `arg1`, … — Rust's `Fn` traits do not expose source names                                                                                                         |
-| Async handlers            | ✅ `async fn` supported (runs on rustra's fixed FFI worker pool — see [rust-api-guide.md](rust-api-guide.md))                                                | ❌ synchronous functions/closures only                                                                                                                                    |
+| Async handlers            | ✅ `async fn` supported (runs on unikit's fixed FFI worker pool — see [rust-api-guide.md](rust-api-guide.md))                                                | ❌ synchronous functions/closures only                                                                                                                                    |
 | Automatic state injection | ✅ `State<T>` parameters + `.manage(state)`                                                                                                                  | ❌ capture the state in the closure yourself                                                                                                                              |
-| Result / error surface    | `Result<Output>` with `#[command(error(...))]` declaring typed per-command error codes (rendered to `generated/errors.ts`)                                   | `try_function(name, handler, map_error)` maps any `Result<T, E>` to a `RustraError` code chosen in the mapper; `function` treats a serializable `Result` as ordinary data |
+| Result / error surface    | `Result<Output>` with `#[command(error(...))]` declaring typed per-command error codes (rendered to `generated/errors.ts`)                                   | `try_function(name, handler, map_error)` maps any `Result<T, E>` to a `UnikitError` code chosen in the mapper; `function` treats a serializable `Result` as ordinary data |
 | React Native fast path    | Native scalar raw/positional shortcut for eligible shapes                                                                                                    | No native scalar shortcut — the generated JS binary codec covers the shape when the native static codec declines it                                                       |
 | Typed binary codecs       | ✅ rendered from the schema (`frame-codecs.ts`)                                                                                                              | ✅ supported argument tuples and returns, including the scalar caller-buffer path that skips the JSON tree                                                                |
 
@@ -97,7 +97,7 @@ absorption is tracked as a structural item in the DX audit.
 
 Use `try_function(name, handler, map_error)` to turn `Result<T, E>` into a rejected
 TypeScript promise. The domain error `E` does not need a serialization or display
-implementation: the mapper chooses the public `RustraError` code and message.
+implementation: the mapper chooses the public `UnikitError` code and message.
 Use a stable error code and handle it in TypeScript with `try`/`catch`.
 
 `function` does not automatically unwrap a `Result`: if serializable, that value
@@ -125,8 +125,8 @@ claim follows from a Rust microbenchmark.
 
 ```sh
 bun run test:functions
-cargo test -p rustra --test function_allocations
-cargo bench -p rustra --bench function_dispatch
+cargo test -p unikit-bridge --test function_allocations
+cargo bench -p unikit-bridge --bench function_dispatch
 ```
 
 The integration test generates a client from a real Rust fixture, type-checks

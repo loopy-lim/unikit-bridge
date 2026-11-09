@@ -13,7 +13,7 @@ impl Drop for Runtime {
 #[test]
 fn serve_keeps_command_events_in_the_same_runtime() {
     let mut runtime = Runtime(
-        Command::new(env!("CARGO_BIN_EXE_rustra-calculator-example"))
+        Command::new(env!("CARGO_BIN_EXE_unikit-calculator-example"))
             .arg("serve")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -23,7 +23,7 @@ fn serve_keeps_command_events_in_the_same_runtime() {
     let mut input = runtime.0.stdin.take().unwrap();
     let mut output = BufReader::new(runtime.0.stdout.take().unwrap());
     let requests = [
-        json!({"id":1,"command":"__rustra_capabilities"}),
+        json!({"id":1,"command":"__unikit_capabilities"}),
         json!({"id":2,"command":"emitDemo","args":{"ticks":1,"stepDelayMs":0}}),
         json!({"id":3,"command":"__drainEvents"}),
     ];
@@ -44,7 +44,7 @@ fn serve_keeps_command_events_in_the_same_runtime() {
 #[test]
 fn one_shot_command_errors_preserve_the_structured_error_frame() {
     let mut runtime = Runtime(
-        Command::new(env!("CARGO_BIN_EXE_rustra-calculator-example"))
+        Command::new(env!("CARGO_BIN_EXE_unikit-calculator-example"))
             .arg("invoke")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())

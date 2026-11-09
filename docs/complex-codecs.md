@@ -2,7 +2,7 @@ English | [한국어](./complex-codecs.ko.md)
 
 # Complex binary codecs
 
-Rustra selects a wire route per command.
+Unikit selects a wire route per command.
 
 | Route          | Targets                                                                                      | RN path                                                                             |
 | -------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
@@ -18,7 +18,7 @@ tag. As a result, the wire index does not change even if the order of the `oneOf
 array differs between Rust and the generated TypeScript.
 An ambiguous `oneOf` for which no stable name/tag/title can be obtained is not
 registered on the complex route and is sent as Tier 3 JSON. Anonymous variants may
-declare `x-rustra-variant-order: ["key-for-first", "key-for-second"]` in the
+declare `x-unikit-variant-order: ["key-for-first", "key-for-second"]` in the
 schema. The actual wire index is computed by sorting these stable keys in UTF-8
 byte order.
 
@@ -37,8 +37,8 @@ Truncated frames, duplicate map keys, invalid variants, and trailing bytes are
 handled as `command.invalid_args`/`invoke.malformed`, not as success results.
 
 Generated postcard codecs report decode failures in a fixed
-`rustra: <cause> (offset N)` format, where the offset is the byte position of the
-failure boundary (for example `rustra: varint out of bounds (offset 9)`). The
+`unikit: <cause> (offset N)` format, where the offset is the byte position of the
+failure boundary (for example `unikit: varint out of bounds (offset 9)`). The
 tier 2 `invoke.malformed` normalization consumes that offset as-is —
 `decode failed for '<command>' at offset N: <detail> (<byte length>-byte frame)` —
 and falls back to the full frame length when a codec error carries no offset.

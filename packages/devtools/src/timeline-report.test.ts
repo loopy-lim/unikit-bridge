@@ -50,7 +50,7 @@ const EXPECTED_HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>rustra timeline report</title>
+<title>unikit timeline report</title>
 <style>
 :root { color-scheme: light; }
 body { font-family: system-ui, sans-serif; margin: 16px; color: #1a1a1a; }
@@ -68,7 +68,7 @@ td.kind { font-family: monospace; }
 </style>
 </head>
 <body>
-<h1>rustra timeline report</h1>
+<h1>unikit timeline report</h1>
 <ul class="summary">
 <li><span>entries</span><b>4</b></li>
 <li><span>errors</span><b>1</b></li>

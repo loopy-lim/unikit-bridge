@@ -1,30 +1,30 @@
 {
   "schemaVersion": 1,
   "npm": {
-    "@rustra/cli": "0.12.0",
-    "@rustra/types": "0.12.1",
-    "@rustra/node": "0.11.0",
-    "@rustra/bun": "0.11.0"
+    "@unikit-bridge/cli": "0.12.0",
+    "@unikit-bridge/types": "0.12.1",
+    "@unikit-bridge/node": "0.11.0",
+    "@unikit-bridge/bun": "0.11.0"
   },
   "hosts": {
-    "@rustra/tauri": "0.10.0",
-    "@rustra/react-native": "0.10.0"
+    "@unikit-bridge/tauri": "0.10.0",
+    "@unikit-bridge/react-native": "0.10.0"
   },
   "phases": {
     "baseline": {
-      "rustra": "0.11.0",
-      "rustra-macros": "0.11.0",
-      "rustra-naming": "0.11.0"
+      "unikit-bridge": "0.11.0",
+      "unikit-bridge-macros": "0.11.0",
+      "unikit-bridge-naming": "0.11.0"
     },
     "candidate": {
-      "rustra": "0.12.0",
-      "rustra-macros": "0.12.0",
-      "rustra-naming": "0.12.0"
+      "unikit-bridge": "0.12.0",
+      "unikit-bridge-macros": "0.12.0",
+      "unikit-bridge-naming": "0.12.0"
     },
     "rollback": {
-      "rustra": "0.11.0",
-      "rustra-macros": "0.11.0",
-      "rustra-naming": "0.11.0"
+      "unikit-bridge": "0.11.0",
+      "unikit-bridge-macros": "0.11.0",
+      "unikit-bridge-naming": "0.11.0"
     }
   }
 }

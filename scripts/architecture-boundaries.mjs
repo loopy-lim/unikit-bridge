@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const RULES = {
-  rustraLibSize: 'rustra-lib-size',
+  unikitLibSize: 'unikit-lib-size',
   typesIndexSize: 'types-index-size',
   cliIndexSize: 'cli-index-size',
   sharedRustNaming: 'shared-rust-naming',
@@ -13,7 +13,7 @@ const RULES = {
 };
 
 const FACADE_LIMITS = {
-  'crates/rustra/src/lib.rs': 200,
+  'crates/unikit-bridge/src/lib.rs': 200,
   'packages/types/src/index.ts': 200,
   'packages/cli/src/index.ts': 200,
 };
@@ -84,8 +84,8 @@ export function checkArchitectureBoundaries({ root }) {
     if (!source) continue;
     const lines = lineCount(source);
     if (lines > limit) {
-      const rule = path === 'crates/rustra/src/lib.rs'
-        ? RULES.rustraLibSize
+      const rule = path === 'crates/unikit-bridge/src/lib.rs'
+        ? RULES.unikitLibSize
         : path === 'packages/types/src/index.ts'
           ? RULES.typesIndexSize
           : RULES.cliIndexSize;
@@ -118,12 +118,12 @@ export function checkArchitectureBoundaries({ root }) {
   });
   if (
     namingImplementations.length !== 1 ||
-    !namingImplementations[0]?.endsWith('crates/rustra-naming/src/lib.rs')
+    !namingImplementations[0]?.endsWith('crates/unikit-bridge-naming/src/lib.rs')
   ) {
     errors.push(
       error(
         RULES.sharedRustNaming,
-        'crates/rustra-naming/src/lib.rs',
+        'crates/unikit-bridge-naming/src/lib.rs',
         `expected one shared naming implementation, found ${namingImplementations.length}`,
       ),
     );
@@ -133,12 +133,12 @@ export function checkArchitectureBoundaries({ root }) {
     const path = `packages/${adapter}/src/index.ts`;
     const source = readDirectorySources(root, `packages/${adapter}/src`);
     if (!source) continue;
-    if (!/\bcreateJsonEngine\b/.test(source) || !/@rustra\/types/.test(source)) {
+    if (!/\bcreateJsonEngine\b/.test(source) || !/@unikit-bridge\/types/.test(source)) {
       errors.push(
         error(
           RULES.sharedJsonEngine,
           path,
-          'adapter must use createJsonEngine from @rustra/types',
+          'adapter must use createJsonEngine from @unikit-bridge/types',
         ),
       );
     }

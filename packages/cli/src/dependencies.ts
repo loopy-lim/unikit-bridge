@@ -15,7 +15,7 @@ export async function ensureReactNativeDependency(
     raw = await readFile(manifestPath, 'utf8');
   } catch {
     throw new Error(
-      'React Native setup requires package.json next to rustra.json so autolinking can see the generated module.',
+      'React Native setup requires package.json next to unikit.json so autolinking can see the generated module.',
     );
   }
   const manifest = JSON.parse(raw) as Record<string, unknown> & {
@@ -41,10 +41,10 @@ export async function ensureReactNativeDependency(
   }
   dependencies[GENERATED_REACT_NATIVE_PACKAGE] = expectedModule;
   if (
-    dependencies['@rustra/react-native'] === undefined &&
-    manifest.devDependencies?.['@rustra/react-native'] === undefined
+    dependencies['@unikit-bridge/react-native'] === undefined &&
+    manifest.devDependencies?.['@unikit-bridge/react-native'] === undefined
   ) {
-    dependencies['@rustra/react-native'] = adapterRange;
+    dependencies['@unikit-bridge/react-native'] = adapterRange;
   }
   manifest.dependencies = Object.fromEntries(
     Object.entries(dependencies).sort(([a], [b]) => a.localeCompare(b)),
@@ -104,7 +104,7 @@ export async function ensureHostDependencies(
   try {
     raw = await readFile(manifestPath, 'utf8');
   } catch {
-    throw new Error('Node, Bun, and Tauri setup requires package.json next to rustra.json.');
+    throw new Error('Node, Bun, and Tauri setup requires package.json next to unikit.json.');
   }
   const manifest = JSON.parse(raw) as Record<string, unknown> & {
     dependencies?: Record<string, string>;
@@ -112,10 +112,10 @@ export async function ensureHostDependencies(
   };
   const dependencies = { ...(manifest.dependencies ?? {}) };
   const required = [
-    '@rustra/types',
-    ...(hosts.node ? ['@rustra/node'] : []),
-    ...(hosts.bun ? ['@rustra/bun'] : []),
-    ...(hosts.tauri ? ['@rustra/tauri'] : []),
+    '@unikit-bridge/types',
+    ...(hosts.node ? ['@unikit-bridge/node'] : []),
+    ...(hosts.bun ? ['@unikit-bridge/bun'] : []),
+    ...(hosts.tauri ? ['@unikit-bridge/tauri'] : []),
   ];
   for (const name of required) {
     const expected = ranges[name];
@@ -129,7 +129,7 @@ export async function ensureHostDependencies(
     ) {
       throw new Error(
         `Dependency ${name} already points to ${existing}; refusing to replace it with ${expected}. ` +
-          'Align the Rustra release line explicitly.',
+          'Align the Unikit release line explicitly.',
       );
     }
     if (existing === undefined) dependencies[name] = expected;

@@ -6,13 +6,13 @@
 
 **Architecture:** Single `Package` type retained. Internals move from `Arc<BTreeMap>` to `Arc<RwLock<RegistryState>>` + `Arc<AtomicBool> frozen`. New public mutation API (`register`/`register_fn`/`replace`/`unregister`/`freeze`/`is_frozen`). `command_id` is monotonic and retired-on-remove (never reused). Mode split via `cfg!(debug_assertions)`: debug → mutable, release → frozen. Mutation methods always compile; they return `Err("registry.frozen")` when frozen.
 
-**Tech Stack:** Rust 2024, `std::sync::{Arc, RwLock, atomic::AtomicBool}`, existing `schemars`/`serde_json`/`rkyv`/`postcard` machinery. Tests: integration tests in `crates/rustra/tests/`, white-box `#[cfg(test)]` mod in `lib.rs`.
+**Tech Stack:** Rust 2024, `std::sync::{Arc, RwLock, atomic::AtomicBool}`, existing `schemars`/`serde_json`/`rkyv`/`postcard` machinery. Tests: integration tests in `crates/unikit-bridge/tests/`, white-box `#[cfg(test)]` mod in `lib.rs`.
 
 **Design doc:** `docs/plans/2026-07-04-runtime-command-registry-design.md`
 
 ---
 
-## Reference: exact locations in `crates/rustra/src/lib.rs`
+## Reference: exact locations in `crates/unikit-bridge/src/lib.rs`
 
 | Item                                                    | Lines   | Change                             |
 | ------------------------------------------------------- | ------- | ---------------------------------- |
@@ -34,7 +34,7 @@
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs` (inside `impl PackageBuilder`, around line 475-546)
+- Modify: `crates/unikit-bridge/src/lib.rs` (inside `impl PackageBuilder`, around line 475-546)
 
 **Step 1: Add a free function `build_command`** above `impl PackageBuilder` (after the `Command` Debug impl, ~line 254). Move the Command-construction body (currently lib.rs:481-538) into it:
 
@@ -68,13 +68,13 @@ where
     let handler_bin = handler.clone();
     let rkyv_v2_handler: Option<BinHandler> = Some(Arc::new(move |payload: &[u8]| {
         if payload.len() < 2 {
-            return Err(RustraError::invalid_args("rkyv v2: payload too short"));
+            return Err(UnikitError::invalid_args("rkyv v2: payload too short"));
         }
         let input: I = postcard::from_bytes(&payload[2..])
-            .map_err(|e| RustraError::invalid_args(format!("postcard decode: {e}")))?;
+            .map_err(|e| UnikitError::invalid_args(format!("postcard decode: {e}")))?;
         let output = handler_bin(input)?;
         let out_bytes = postcard::to_allocvec(&output)
-            .map_err(|e| RustraError::internal(format!("postcard encode: {e}")))?;
+            .map_err(|e| UnikitError::internal(format!("postcard encode: {e}")))?;
         let mut buf = vec![0u8; 8 + out_bytes.len()];
         buf[0] = 1; // ok = true
         buf[8..8 + out_bytes.len()].copy_from_slice(&out_bytes);
@@ -89,9 +89,9 @@ where
         output_schema,
         definitions,
         invoke: Arc::new(move |params| {
-            let input = serde_json::from_value::<I>(params).map_err(RustraError::invalid_args)?;
+            let input = serde_json::from_value::<I>(params).map_err(UnikitError::invalid_args)?;
             let output = handler(input)?;
-            serde_json::to_value(output).map_err(RustraError::internal)
+            serde_json::to_value(output).map_err(UnikitError::internal)
         }),
         rkyv_v2_handler,
         rkyv_v2_decode: rkyv_v2_decoder,
@@ -123,14 +123,14 @@ where
 
 **Step 3: Verify refactor (no behavior change)**
 
-Run: `cargo test -p rustra --test public_authoring_api_tests`
+Run: `cargo test -p unikit-bridge --test public_authoring_api_tests`
 Expected: PASS (all existing tests green).
 
 **Step 4: Commit**
 
 ```bash
-git add crates/rustra/src/lib.rs
-git commit -m "refactor(rustra): extract build_command helper from PackageBuilder::command"
+git add crates/unikit-bridge/src/lib.rs
+git commit -m "refactor(unikit): extract build_command helper from PackageBuilder::command"
 ```
 
 ---
@@ -139,7 +139,7 @@ git commit -m "refactor(rustra): extract build_command helper from PackageBuilde
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs` (struct defs, `build`, all read methods, codegen methods)
+- Modify: `crates/unikit-bridge/src/lib.rs` (struct defs, `build`, all read methods, codegen methods)
 
 **Step 1: Change imports** at top of lib.rs — add:
 
@@ -197,7 +197,7 @@ pub fn invoke_json(&self, name: &str, params: Value) -> crate::Result<Value> {
         state
             .commands
             .get(name)
-            .ok_or_else(|| RustraError::command_not_found(name))?
+            .ok_or_else(|| UnikitError::command_not_found(name))?
             .clone()
     };
     (command.invoke)(params)
@@ -214,7 +214,7 @@ pub fn resolve_command_id(&self, id: u16) -> Option<String> {
 
 pub fn invoke_rkyv_v2(&self, payload: &[u8]) -> crate::Result<Vec<u8>> {
     if payload.len() < 2 {
-        return Err(RustraError::invalid_args("rkyv v2: payload too short"));
+        return Err(UnikitError::invalid_args("rkyv v2: payload too short"));
     }
     let command_id = u16::from_le_bytes([payload[0], payload[1]]);
     let command = {
@@ -222,11 +222,11 @@ pub fn invoke_rkyv_v2(&self, payload: &[u8]) -> crate::Result<Vec<u8>> {
         let name = state
             .id_to_name
             .get(&command_id)
-            .ok_or_else(|| RustraError::command_not_found(format!("id:{command_id}")))?;
+            .ok_or_else(|| UnikitError::command_not_found(format!("id:{command_id}")))?;
         state
             .commands
             .get(name)
-            .ok_or_else(|| RustraError::command_not_found(name))?
+            .ok_or_else(|| UnikitError::command_not_found(name))?
             .clone()
     };
 
@@ -234,7 +234,7 @@ pub fn invoke_rkyv_v2(&self, payload: &[u8]) -> crate::Result<Vec<u8>> {
         return handler(payload);
     }
     if !command.rkyv_v2_tier3 && payload.len() < 8 {
-        return Err(RustraError::invalid_args("rkyv v2: payload too short"));
+        return Err(UnikitError::invalid_args("rkyv v2: payload too short"));
     }
     let params = (command.rkyv_v2_decode)(payload)?;
     let result = (command.invoke)(params)?;
@@ -250,7 +250,7 @@ pub fn invoke_rkyv_v2(&self, payload: &[u8]) -> crate::Result<Vec<u8>> {
 pub fn generate_typescript(&self) -> crate::Result<GeneratedPackage> {
     let state = self.state.read().unwrap();
     let schema_value = Self::schema(&state);
-    let schema_json = serde_json::to_string_pretty(&schema_value).map_err(RustraError::internal)?;
+    let schema_json = serde_json::to_string_pretty(&schema_value).map_err(UnikitError::internal)?;
     let contract_hash = contract_hash(&schema_json);
     let types_ts = Self::generate_types_ts(&state);
     let commands_ts = Self::generate_commands_ts(&state);
@@ -285,18 +285,18 @@ impl std::fmt::Debug for Package {
 grep -rn "resolve_command_id" crates/ examples/
 ```
 
-Expected: only `invoke_rkyv_v2` (internal, already rewritten) and possibly `crates/rustra/src/ffi.rs`. If ffi.rs uses it, `.as_deref()` or adjust to owned.
+Expected: only `invoke_rkyv_v2` (internal, already rewritten) and possibly `crates/unikit-bridge/src/ffi.rs`. If ffi.rs uses it, `.as_deref()` or adjust to owned.
 
 **Step 8: Verify refactor**
 
-Run: `cargo build -p rustra && cargo test --workspace`
+Run: `cargo build -p unikit-bridge && cargo test --workspace`
 Expected: PASS (all existing tests + examples' tests green; behavior unchanged).
 
 **Step 9: Commit**
 
 ```bash
-git add crates/rustra/src/lib.rs crates/rustra/src/ffi.rs
-git commit -m "refactor(rustra): back Package with RwLock<RegistryState> (no behavior change)"
+git add crates/unikit-bridge/src/lib.rs crates/unikit-bridge/src/ffi.rs
+git commit -m "refactor(unikit): back Package with RwLock<RegistryState> (no behavior change)"
 ```
 
 ---
@@ -305,8 +305,8 @@ git commit -m "refactor(rustra): back Package with RwLock<RegistryState> (no beh
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs` (add methods on `impl Package`)
-- Test: `crates/rustra/tests/public_authoring_api_tests.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs` (add methods on `impl Package`)
+- Test: `crates/unikit-bridge/tests/public_authoring_api_tests.rs`
 
 **Step 1: Write failing tests** (append to integration test file):
 
@@ -330,7 +330,7 @@ fn release_build_is_frozen_by_default() {
 
 **Step 2: Run → verify failure**
 
-Run: `cargo test -p rustra --test public_authoring_api_tests freeze`
+Run: `cargo test -p unikit-bridge --test public_authoring_api_tests freeze`
 Expected: FAIL — `no method named is_frozen/freeze found`.
 
 **Step 3: Implement** on `impl Package`:
@@ -349,7 +349,7 @@ pub fn is_frozen(&self) -> bool {
 
 fn ensure_mutable(&self) -> crate::Result<()> {
     if self.is_frozen() {
-        Err(RustraError::custom(
+        Err(UnikitError::custom(
             "registry.frozen",
             "package is frozen; runtime mutation disabled",
         ))
@@ -361,19 +361,19 @@ fn ensure_mutable(&self) -> crate::Result<()> {
 
 **Step 4: Run → verify pass (debug)**
 
-Run: `cargo test -p rustra --test public_authoring_api_tests freeze`
+Run: `cargo test -p unikit-bridge --test public_authoring_api_tests freeze`
 Expected: `debug_build_is_mutable_by_default` PASS; release test skipped.
 
 **Step 5: Run release variant**
 
-Run: `cargo test --release -p rustra --test public_authoring_api_tests freeze`
+Run: `cargo test --release -p unikit-bridge --test public_authoring_api_tests freeze`
 Expected: `release_build_is_frozen_by_default` PASS.
 
 **Step 6: Commit**
 
 ```bash
-git add crates/rustra/src/lib.rs crates/rustra/tests/public_authoring_api_tests.rs
-git commit -m "feat(rustra): add freeze()/is_frozen() (debug mutable, release frozen)"
+git add crates/unikit-bridge/src/lib.rs crates/unikit-bridge/tests/public_authoring_api_tests.rs
+git commit -m "feat(unikit): add freeze()/is_frozen() (debug mutable, release frozen)"
 ```
 
 ---
@@ -382,8 +382,8 @@ git commit -m "feat(rustra): add freeze()/is_frozen() (debug mutable, release fr
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs`
-- Test: `crates/rustra/tests/public_authoring_api_tests.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs`
+- Test: `crates/unikit-bridge/tests/public_authoring_api_tests.rs`
 
 **Step 1: Write failing test** (append):
 
@@ -415,7 +415,7 @@ fn runtime_register_adds_command() {
 
 **Step 2: Run → verify failure**
 
-Run: `cargo test -p rustra --test public_authoring_api_tests runtime_register`
+Run: `cargo test -p unikit-bridge --test public_authoring_api_tests runtime_register`
 Expected: FAIL — `no method named register`.
 
 **Step 3: Implement** on `impl Package`:
@@ -439,7 +439,7 @@ where
             state.next_command_id = state
                 .next_command_id
                 .checked_add(1)
-                .ok_or_else(|| RustraError::custom(
+                .ok_or_else(|| UnikitError::custom(
                     "registry.id_exhausted",
                     "command_id u16 space exhausted (65535 commands)",
                 ))?;
@@ -455,14 +455,14 @@ where
 
 **Step 4: Run → verify pass**
 
-Run: `cargo test -p rustra --test public_authoring_api_tests runtime_register`
+Run: `cargo test -p unikit-bridge --test public_authoring_api_tests runtime_register`
 Expected: PASS.
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra/src/lib.rs crates/rustra/tests/public_authoring_api_tests.rs
-git commit -m "feat(rustra): runtime register() with stable command_id"
+git add crates/unikit-bridge/src/lib.rs crates/unikit-bridge/tests/public_authoring_api_tests.rs
+git commit -m "feat(unikit): runtime register() with stable command_id"
 ```
 
 ---
@@ -471,7 +471,7 @@ git commit -m "feat(rustra): runtime register() with stable command_id"
 
 **Files:**
 
-- Modify: `crates/rustra/tests/public_authoring_api_tests.rs` (test only — `register` already handles this)
+- Modify: `crates/unikit-bridge/tests/public_authoring_api_tests.rs` (test only — `register` already handles this)
 
 **Step 1: Write failing test** (append):
 
@@ -521,14 +521,14 @@ fn register_replaces_existing_handler() {
 
 **Step 3: Run → verify pass** (register already implements replace)
 
-Run: `cargo test -p rustra --test public_authoring_api_tests register_replaces`
+Run: `cargo test -p unikit-bridge --test public_authoring_api_tests register_replaces`
 Expected: PASS.
 
 **Step 4: Commit**
 
 ```bash
-git add crates/rustra/tests/public_authoring_api_tests.rs
-git commit -m "test(rustra): register() replaces existing handler"
+git add crates/unikit-bridge/tests/public_authoring_api_tests.rs
+git commit -m "test(unikit): register() replaces existing handler"
 ```
 
 ---
@@ -537,8 +537,8 @@ git commit -m "test(rustra): register() replaces existing handler"
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs`
-- Test: `crates/rustra/tests/public_authoring_api_tests.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs`
+- Test: `crates/unikit-bridge/tests/public_authoring_api_tests.rs`
 
 **Step 1: Write failing test** (append):
 
@@ -554,7 +554,7 @@ fn runtime_register_fn_derives_name() {
 
 **Step 2: Run → verify failure**
 
-Run: `cargo test -p rustra --test public_authoring_api_tests runtime_register_fn`
+Run: `cargo test -p unikit-bridge --test public_authoring_api_tests runtime_register_fn`
 Expected: FAIL — `no method named register_fn`.
 
 **Step 3: Implement** on `impl Package`:
@@ -574,14 +574,14 @@ where
 
 **Step 4: Run → verify pass**
 
-Run: `cargo test -p rustra --test public_authoring_api_tests runtime_register_fn`
+Run: `cargo test -p unikit-bridge --test public_authoring_api_tests runtime_register_fn`
 Expected: PASS.
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra/src/lib.rs crates/rustra/tests/public_authoring_api_tests.rs
-git commit -m "feat(rustra): runtime register_fn() with name inference"
+git add crates/unikit-bridge/src/lib.rs crates/unikit-bridge/tests/public_authoring_api_tests.rs
+git commit -m "feat(unikit): runtime register_fn() with name inference"
 ```
 
 ---
@@ -590,8 +590,8 @@ git commit -m "feat(rustra): runtime register_fn() with name inference"
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs`
-- Test: `crates/rustra/tests/public_authoring_api_tests.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs`
+- Test: `crates/unikit-bridge/tests/public_authoring_api_tests.rs`
 
 **Step 1: Write failing test** (append):
 
@@ -606,7 +606,7 @@ fn replace_missing_command_errors() {
 
 **Step 2: Run → verify failure**
 
-Run: `cargo test -p rustra --test public_authoring_api_tests replace_missing`
+Run: `cargo test -p unikit-bridge --test public_authoring_api_tests replace_missing`
 Expected: FAIL — `no method named replace`.
 
 **Step 3: Implement** on `impl Package`:
@@ -625,7 +625,7 @@ where
         .commands
         .get(name)
         .map(|c| c.command_id)
-        .ok_or_else(|| RustraError::command_not_found(name))?;
+        .ok_or_else(|| UnikitError::command_not_found(name))?;
     let command = build_command::<I, O, F>(command_id, handler);
     state.commands.insert(name.to_string(), command);
     Ok(())
@@ -634,14 +634,14 @@ where
 
 **Step 4: Run → verify pass**
 
-Run: `cargo test -p rustra --test public_authoring_api_tests replace_missing`
+Run: `cargo test -p unikit-bridge --test public_authoring_api_tests replace_missing`
 Expected: PASS.
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra/src/lib.rs crates/rustra/tests/public_authoring_api_tests.rs
-git commit -m "feat(rustra): runtime replace() (errors if missing)"
+git add crates/unikit-bridge/src/lib.rs crates/unikit-bridge/tests/public_authoring_api_tests.rs
+git commit -m "feat(unikit): runtime replace() (errors if missing)"
 ```
 
 ---
@@ -650,8 +650,8 @@ git commit -m "feat(rustra): runtime replace() (errors if missing)"
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs` (add `unregister` + inline `#[cfg(test)]` white-box mod)
-- Test: `crates/rustra/tests/public_authoring_api_tests.rs` (public behavior)
+- Modify: `crates/unikit-bridge/src/lib.rs` (add `unregister` + inline `#[cfg(test)]` white-box mod)
+- Test: `crates/unikit-bridge/tests/public_authoring_api_tests.rs` (public behavior)
 
 **Step 1: Write failing public test** (append):
 
@@ -672,7 +672,7 @@ fn unregister_removes_command() {
 
 **Step 2: Run → verify failure**
 
-Run: `cargo test -p rustra --test public_authoring_api_tests unregister_removes`
+Run: `cargo test -p unikit-bridge --test public_authoring_api_tests unregister_removes`
 Expected: FAIL — `no method named unregister`.
 
 **Step 3: Implement** on `impl Package`:
@@ -685,7 +685,7 @@ pub fn unregister(&self, name: &str) -> crate::Result<()> {
     let removed = state
         .commands
         .remove(name)
-        .ok_or_else(|| RustraError::command_not_found(name))?;
+        .ok_or_else(|| UnikitError::command_not_found(name))?;
     state.id_to_name.remove(&removed.command_id);
     // NOTE: next_command_id is NOT decremented — retired ids are never reused.
     Ok(())
@@ -746,14 +746,14 @@ mod runtime_registry_tests {
 
 **Step 5: Run → verify pass**
 
-Run: `cargo test -p rustra`
+Run: `cargo test -p unikit-bridge`
 Expected: PASS — both integration `unregister_removes_command` and the two white-box tests.
 
 **Step 6: Commit**
 
 ```bash
-git add crates/rustra/src/lib.rs crates/rustra/tests/public_authoring_api_tests.rs
-git commit -m "feat(rustra): runtime unregister() with retired-id guarantee + exhaustion guard"
+git add crates/unikit-bridge/src/lib.rs crates/unikit-bridge/tests/public_authoring_api_tests.rs
+git commit -m "feat(unikit): runtime unregister() with retired-id guarantee + exhaustion guard"
 ```
 
 ---
@@ -762,7 +762,7 @@ git commit -m "feat(rustra): runtime unregister() with retired-id guarantee + ex
 
 **Files:**
 
-- Modify: `crates/rustra/tests/public_authoring_api_tests.rs` (test only)
+- Modify: `crates/unikit-bridge/tests/public_authoring_api_tests.rs` (test only)
 
 **Step 1: Write failing test** (append):
 
@@ -789,14 +789,14 @@ fn frozen_blocks_mutation() {
 
 **Step 2: Run → verify pass** (mutation methods already check `ensure_mutable`)
 
-Run: `cargo test -p rustra --test public_authoring_api_tests frozen_blocks`
+Run: `cargo test -p unikit-bridge --test public_authoring_api_tests frozen_blocks`
 Expected: PASS.
 
 **Step 3: Commit**
 
 ```bash
-git add crates/rustra/tests/public_authoring_api_tests.rs
-git commit -m "test(rustra): frozen registry rejects all mutation"
+git add crates/unikit-bridge/tests/public_authoring_api_tests.rs
+git commit -m "test(unikit): frozen registry rejects all mutation"
 ```
 
 ---
@@ -817,7 +817,7 @@ git commit -m "test(rustra): frozen registry rejects all mutation"
 `build()` 시점에 자동 동결되어 불변이 된다.
 
 ```rust
-let pkg = rustra::build!("my.pkg", add_numbers).done();
+let pkg = unikit_bridge::build!("my.pkg", add_numbers).done();
 
 // debug 빌드에서만 동작. release에서는 registry.frozen 에러.
 pkg.register("double", |i: NumIn| Ok(NumOut { value: i.x * 2 }))?;
@@ -839,7 +839,7 @@ pkg.freeze(); // 명시적 봉인 (prod 동작 시뮬레이션)
 `Package` 내부는 `Arc<RwLock<RegistryState>>` + `Arc<AtomicBool> frozen` 이다.
 
 - **debug 빌드** (`debug_assertions`): `build()` 후에도 mutable. `register`/`register_fn`/`replace`/`unregister` 로 런타임 변경 가능.
-- **release 빌드**: `build()` 시점 `frozen = true` 로 자동 동결. mutation 시도는 `RustraError { code: "registry.frozen" }` 반환.
+- **release 빌드**: `build()` 시점 `frozen = true` 로 자동 동결. mutation 시도는 `UnikitError { code: "registry.frozen" }` 반환.
 
 불변식:
 1. `command_id` (u16)는 단조 증가. `unregister` 시 retired 되어 **재사용 금지**.
@@ -849,7 +849,7 @@ pkg.freeze(); // 명시적 봉인 (prod 동작 시뮬레이션)
 
 **Step 3: Verify docs build/links**
 
-Run: `cargo test --doc -p rustra` (doc-tests still pass)
+Run: `cargo test --doc -p unikit-bridge` (doc-tests still pass)
 Expected: PASS.
 
 **Step 4: Commit**
@@ -870,7 +870,7 @@ Expected: ALL PASS.
 
 **Step 2: Release-mode freeze behavior**
 
-Run: `cargo test --release -p rustra`
+Run: `cargo test --release -p unikit-bridge`
 Expected: `release_build_is_frozen_by_default` PASS; mutation tests that rely on debug-mutability should be `#[cfg(debug_assertions)]`-gated so they're absent/ignored in release.
 
 **Step 3: Clippy + fmt**

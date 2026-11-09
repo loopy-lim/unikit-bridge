@@ -2,17 +2,17 @@ import {
   configureLazy,
   disposedBootstrapError,
   ensureConfigured,
-  RustraCommandError,
+  UnikitCommandError,
   type BootstrapState,
   type FrameEngine,
-} from '@rustra/types';
+} from '@unikit-bridge/types';
 import { createBunFfiEngine } from './bun-ffi.js';
 import type { BunFfiEngineOptions, BunFfiRuntime } from './bun-ffi-library.js';
 import { createBunEventSubscription, type BunEventSubscription } from './bun-event-subscription.js';
 
 export type BunBootstrap = {
   /**
-   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@rustra/types).
+   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@unikit-bridge/types).
    * dispose 는 멱등이고 dispose 후 ready 는 loud-fail 한다.
    */
   readonly state: BootstrapState;
@@ -60,7 +60,7 @@ export function createBunBootstrap(options: BunFfiEngineOptions): BunBootstrap {
   const assertActive = () => {
     if (state === 'disposed') throw disposedBootstrapError('Bun');
     if (!registration.isCurrent())
-      throw new RustraCommandError(
+      throw new UnikitCommandError(
         'transport.unavailable',
         'Bun bootstrap registration was replaced',
       );
@@ -89,7 +89,7 @@ export function createBunBootstrap(options: BunFfiEngineOptions): BunBootstrap {
       const engine = (await ensureConfigured()) as FrameEngine;
       assertActive();
       if (requestedRegistration !== registration)
-        throw new RustraCommandError(
+        throw new UnikitCommandError(
           'transport.unavailable',
           'Bun readiness was superseded by reload; call ready() again',
         );

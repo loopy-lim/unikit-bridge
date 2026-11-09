@@ -5,7 +5,7 @@ cd "$ROOT"
 # scriptc 버전 핀 — 단일 출처. CI(ts-runtime)는 같은 리터럴로 전역 설치하며,
 # scripts/check-test-list-parity.mjs 가 양쪽 리터럴의 일치를 검증한다.
 SCRIPTC_VERSION=0.2.1
-cargo build --release -p rustra-calculator-example --lib
+cargo build --release -p unikit-calculator-example --lib
 mkdir -p examples/calculator/scriptc/build
 if command -v scriptc >/dev/null 2>&1; then
   SCRIPTC=(scriptc)

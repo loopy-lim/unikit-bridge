@@ -2,9 +2,9 @@ English | [한국어](./platform-permissions.ko.md)
 
 # Platform Permissions Guide (for Host Apps)
 
-## 1. Scope: what rustra-bridge does and does not do
+## 1. Scope: what unikit-bridge does and does not do
 
-rustra-bridge is a Rust engine plus a JS/React-Native bridge library. **It never requests operating-system permissions** (camera, microphone, location, file system, network, etc.) and ships no platform permission declarations of its own.
+unikit-bridge is a Rust engine plus a JS/React-Native bridge library. **It never requests operating-system permissions** (camera, microphone, location, file system, network, etc.) and ships no platform permission declarations of its own.
 
 By design, the host application owns platform permission UX:
 
@@ -18,20 +18,20 @@ Native bridge owns only engine lifecycle and platform permission UX.
 
 The library's own authorization layer is the **command-level capability system** (Runtime Authority): deny-by-default, `require_capability` at the builder, `grant_capability` at runtime. That system governs _who may call a bridge command_ — it is independent of, and does not replace, OS-level permission prompts. See the "Runtime Authority (capabilities)" section of the [Rust API Guide](./rust-api-guide.md) (Appendix: Advanced API Summary) and the `.require_capability(name, cap)` builder entry.
 
-This guide walks host apps through the platform permission surfaces they own when embedding rustra.
+This guide walks host apps through the platform permission surfaces they own when embedding unikit.
 
 ---
 
 ## 2. Which layer answers which question?
 
-| Question                                                     | OS permission (iOS/Android/Windows/macOS)       | Tauri ACL (capabilities/permissions)   | rustra capability system                         |
+| Question                                                     | OS permission (iOS/Android/Windows/macOS)       | Tauri ACL (capabilities/permissions)   | unikit capability system                         |
 | ------------------------------------------------------------ | ----------------------------------------------- | -------------------------------------- | ------------------------------------------------ |
 | May the app access hardware (camera, mic, location)?         | **Yes** — declared + runtime-prompted           | No (except via specific Tauri plugins) | No                                               |
 | May this window/webview call this Tauri command/plugin?      | No                                              | **Yes**                                | Only for commands routed through `tauri_support` |
 | Who may call this bridge command at runtime?                 | No                                              | No                                     | **Yes** — deny-by-default, `grant_capability`    |
 | May the app load remote code / connect to arbitrary origins? | Partially (ATS, cleartext, CSP at OS/app level) | **Yes** — CSP in `tauri.conf.json`     | No                                               |
 
-Rule of thumb: OS permissions gate **hardware and system resources**, Tauri ACL gates **which webview may invoke which Tauri plugin command**, and rustra capabilities gate **which bridge commands are callable** until granted.
+Rule of thumb: OS permissions gate **hardware and system resources**, Tauri ACL gates **which webview may invoke which Tauri plugin command**, and unikit capabilities gate **which bridge commands are callable** until granted.
 
 ---
 
@@ -39,7 +39,7 @@ Rule of thumb: OS permissions gate **hardware and system resources**, Tauri ACL 
 
 ### 3-1. Tauri ACL
 
-Tauri v2 uses an Access Control List system: capabilities files (`src-tauri/capabilities/*.json`) declare which windows may use which plugin permissions. A rustra host that only dispatches through `rustra::tauri_support` (`tauri_support::register(pkg, builder)` / `register_with_events(pkg, builder)`) typically needs minimal ACL grants beyond the defaults — rustra commands ride Tauri's invoke handler, not a plugin. Consult the official Tauri "Capabilities" and "Permissions" documentation for the full model.
+Tauri v2 uses an Access Control List system: capabilities files (`src-tauri/capabilities/*.json`) declare which windows may use which plugin permissions. A unikit host that only dispatches through `unikit_bridge::tauri_support` (`tauri_support::register(pkg, builder)` / `register_with_events(pkg, builder)`) typically needs minimal ACL grants beyond the defaults — unikit commands ride Tauri's invoke handler, not a plugin. Consult the official Tauri "Capabilities" and "Permissions" documentation for the full model.
 
 Note: `examples/tauri-calculator` currently has an empty `gen/schemas/capabilities.json` — the calculator commands need no extra ACL entries.
 
@@ -47,9 +47,9 @@ Note: `examples/tauri-calculator` currently has an empty `gen/schemas/capabiliti
 
 `tauri.conf.json > app.security.csp` controls what the webview may load. The example ships `"csp": null` (dev-friendly, not recommended for production). Hosts should set a restrictive CSP in production, especially when the frontend talks to the bridge via `invoke`.
 
-### 3-3. rustra capability system (distinct layer)
+### 3-3. unikit capability system (distinct layer)
 
-Even inside Tauri, rustra commands guarded by `require_capability` still answer to the library's own deny-by-default check (`capability.denied` until `grant_capability`). Tauri ACL and rustra capabilities compose; neither substitutes for the other. See the [Rust API Guide](./rust-api-guide.md).
+Even inside Tauri, unikit commands guarded by `require_capability` still answer to the library's own deny-by-default check (`capability.denied` until `grant_capability`). Tauri ACL and unikit capabilities compose; neither substitutes for the other. See the [Rust API Guide](./rust-api-guide.md).
 
 ---
 
@@ -58,7 +58,7 @@ Even inside Tauri, rustra commands guarded by `require_capability` still answer 
 - **WebView2 runtime**: Tauri on Windows renders in Microsoft Edge WebView2. Most Windows 10/11 installs already include it; if absent, the bootstrapper/installed runtime must be provisioned (Tauri's bundler can download a fixed WebView2 runtime for distribution). This is an environment requirement, not a permission.
 - **MSIX / package identity**: Certain Windows capabilities (e.g., some device access, broad file-system access) are only meaningful when the app has package identity — i.e., it is packaged as MSIX or signed appropriately. An unpackaged, unsigned executable has fewer capability options but also fewer restrictions on ordinary file/network access. Decide based on your distribution model (MSIX, signed MSI/NSIS installer, or portable EXE).
 - **Typical permissions a host may need**: none for pure compute bridges (the calculator example bundles nothing and requests nothing). Hosts whose bridge commands touch files, camera, or microphone should declare the corresponding Windows capabilities in their packaging manifest and/or handle Windows privacy settings prompts.
-- **SmartScreen**: unsigned installers/EXEs trigger SmartScreen warnings; code-signing (and ideally EV certificates) is a distribution concern, not a rustra one.
+- **SmartScreen**: unsigned installers/EXEs trigger SmartScreen warnings; code-signing (and ideally EV certificates) is a distribution concern, not a unikit one.
 
 ---
 
@@ -75,7 +75,7 @@ Even inside Tauri, rustra commands guarded by `require_capability` still answer 
 
 iOS gates hardware behind Info.plist usage descriptions plus a runtime prompt. Add keys only for what your bridge commands actually touch. Common entries:
 
-| Key                                   | Resource              | When a rustra host needs it               |
+| Key                                   | Resource              | When a unikit host needs it               |
 | ------------------------------------- | --------------------- | ----------------------------------------- |
 | `NSCameraUsageDescription`            | Camera                | Bridge commands that capture photos/video |
 | `NSMicrophoneUsageDescription`        | Microphone            | Bridge commands that record audio         |
@@ -106,13 +106,13 @@ Common entries:
 
 - `INTERNET` is the baseline for any app loading bundles from a dev server or fetching remote resources.
 - Cleartext traffic is controlled separately (`android:usesCleartextTraffic`); the RN wasm spike templates this per build type.
-- Runtime prompting order: declare in manifest → request at runtime → only then call the bridge command that uses the resource. rustra's capability `grant_capability` is a natural place to also confirm the OS grant before enabling the command.
+- Runtime prompting order: declare in manifest → request at runtime → only then call the bridge command that uses the resource. unikit's capability `grant_capability` is a natural place to also confirm the OS grant before enabling the command.
 
 ---
 
-## 8. The device capability contract (rustra side)
+## 8. The device capability contract (unikit side)
 
-OS permissions stay with the host — but rustra gives commands a way to _declare_ which
+OS permissions stay with the host — but unikit gives commands a way to _declare_ which
 device capabilities they assume, and JS a standard way to _query_ status, so the
 ad-hoc per-app wiring doesn't fork across hosts.
 
@@ -133,14 +133,14 @@ macOS entitlements) are intentionally hidden behind the token — the cross-refe
 for each OS/plugin/library lives in
 [docs/dev/research/2026-09-08-device-capabilities.md](./dev/research/2026-09-08-device-capabilities.md).
 
-A declaration is a contract document, not runtime gating: rustra never blocks the
+A declaration is a contract document, not runtime gating: unikit never blocks the
 invoke and never prompts. Declaring `devices` changes schema.json (and therefore the
-contract hash) — intended evolution, caught by `rustra diff`.
+contract hash) — intended evolution, caught by `unikit diff`.
 
 **Query (TypeScript)** — one registered provider answers for the whole app:
 
 ```ts
-import { registerDeviceStatusProvider, getDeviceStatus } from '@rustra/types';
+import { registerDeviceStatusProvider, getDeviceStatus } from '@unikit-bridge/types';
 
 registerDeviceStatusProvider(async (capability) => {
   if (capability === 'camera') return { availability: 'available', permission: 'granted' };
@@ -155,10 +155,10 @@ const status = await getDeviceStatus('camera');
 Without a registered provider the query fails open (`unknown`/`unknown`) with a
 one-time debug note — the host app decides what to do. Hosts raise
 `device.unavailable` / `device.permission_denied` themselves when they choose to
-enforce; rustra's core never emits these codes.
+enforce; unikit's core never emits these codes.
 
 **How the layers compose**: the OS gates hardware (declare + runtime prompt), the
-Tauri ACL gates which webview may invoke plugins, rustra capabilities gate who may
+Tauri ACL gates which webview may invoke plugins, unikit capabilities gate who may
 call a bridge command, and the device declaration documents _why_ a command needs
 the hardware — see §2.
 

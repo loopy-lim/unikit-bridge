@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "schemaHash": "295434d2ddbaf113d15cfca54f56f7967be59dbb4bc8a01ea093176315e6fdeb",
+  "generatorVersion": "0.13.0",
+  "files": [
+    {
+      "path": "commands.ts",
+      "sha256": "85098293ba2cbf3e74341ccb5de242d73ec73793f765643a76a41bef3943261f"
+    },
+    {
+      "path": "contract.ts",
+      "sha256": "0c8914306f14219fcbd515326695aee7ce0b7dba9a5c173c8d6280e08f26df67"
+    },
+    {
+      "path": "frame-codecs.ts",
+      "sha256": "12db750138d1b2d8e57514e0a8185b7297d9ae9eeb09592b58e713a3031ca3ab"
+    },
+    {
+      "path": "frame-registry.ts",
+      "sha256": "dd7556709245d6013a108b0465a1763db12c0f0bfe6028868186cccc80269fd5"
+    },
+    {
+      "path": "node.ts",
+      "sha256": "8af842c847a631af5acda04b7ad784b48c4efa933bf50cdfa08246d781717324"
+    },
+    {
+      "path": "types.ts",
+      "sha256": "2854f7fe5748064a55badee334a2760aa0d83b78506b4e6913593bd930758dde"
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+use serde_json::{Map, Value, json};
+use std::collections::BTreeSet;
+
+pub(crate) fn sorted_map_keys(map: &Map<String, Value>) -> Vec<&str> {
+    let mut keys: Vec<&str> = map.keys().map(String::as_str).collect();
+    keys.sort_by(|left, right| left.as_bytes().cmp(right.as_bytes()));
+    keys
+}
+
+pub(crate) fn variant_key(schema: &Value, _index: usize) -> Option<String> {
+    if let Some(value) = schema.get("const").and_then(Value::as_str) {
+        return Some(value.to_string());
+    }
+    if let Some(values) = schema.get("enum").and_then(Value::as_array)
+        && values.len() == 1
+    {
+        return Some(variant_value_key(&values[0]));
+    }
+    if let Some(properties) = schema.get("properties").and_then(Value::as_object) {
+        if let Some(value) = properties
+            .values()
+            .find_map(|property| property.get("const"))
+        {
+            return Some(variant_value_key(value));
+        }
+        // len == 1 이면 키가 존재하지만, unwrap 대신 let 사슬로 단일 출처에서 보증한다.
+        if properties.len() == 1
+            && let Some(key) = properties.keys().next()
+        {
+            return Some(key.clone());
+        }
+    }
+    schema
+        .get("title")
+        .and_then(Value::as_str)
+        .map(str::to_string)
+}
+
+pub(crate) fn explicit_variant_keys(schema: &Value) -> Option<Vec<String>> {
+    let one_of = schema.get("oneOf")?.as_array()?;
+    let keys = schema
+        .get("x-unikit-variant-order")?
+        .as_array()?
+        .iter()
+        .map(Value::as_str)
+        .collect::<Option<Vec<_>>>()?;
+    if keys.len() != one_of.len() {
+        return None;
+    }
+    let mut unique = BTreeSet::new();
+    let keys = keys.into_iter().map(str::to_string).collect::<Vec<_>>();
+    keys.iter()
+        .all(|key| unique.insert(key.clone()))
+        .then_some(keys)
+}
+
+fn variant_value_key(value: &Value) -> String {
+    value
+        .as_str()
+        .map(str::to_string)
+        .unwrap_or_else(|| value.to_string())
+}
+
+pub(crate) fn annotate_variant_order(value: &mut Value) {
+    let Value::Object(object) = value else {
+        return;
+    };
+    let derived = object
+        .get("oneOf")
+        .and_then(Value::as_array)
+        .and_then(|variants| {
+            variants
+                .iter()
+                .enumerate()
+                .map(|(index, variant)| variant_key(variant, index))
+                .collect::<Option<Vec<_>>>()
+        });
+    if object.get("x-unikit-variant-order").is_none()
+        && let Some(keys) = derived
+        && keys.iter().collect::<BTreeSet<_>>().len() == keys.len()
+    {
+        object.insert("x-unikit-variant-order".into(), json!(keys));
+    }
+    for child in object.values_mut() {
+        annotate_variant_order(child);
+    }
+}

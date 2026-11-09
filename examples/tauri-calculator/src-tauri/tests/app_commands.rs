@@ -1,4 +1,3 @@
-use rustra::{Package, RustraError, tauri_support};
 use serde_json::{Value, json};
 use std::sync::{
     Arc, Mutex,
@@ -8,6 +7,7 @@ use tauri::ipc::{CallbackFn, InvokeBody};
 use tauri::test::{get_ipc_response, mock_builder, mock_context, noop_assets};
 use tauri::webview::InvokeRequest;
 use tauri::{Listener, WebviewWindowBuilder};
+use unikit_bridge::{Package, UnikitError, tauri_support};
 
 #[tauri::command]
 fn app_greet() -> &'static str {
@@ -33,9 +33,9 @@ fn request(command: &str, args: Value) -> InvokeRequest {
 }
 
 #[test]
-fn native_app_command_survives_rustra_registration() {
+fn native_app_command_survives_unikit_registration() {
     let package = Package::builder("app.commands")
-        .command("answer", |_: Value| Ok::<_, RustraError>(json!(42)))
+        .command("answer", |_: Value| Ok::<_, UnikitError>(json!(42)))
         .build();
     let emit_package = package.clone();
     let app = tauri_support::with_app_commands(
@@ -48,20 +48,20 @@ fn native_app_command_survives_rustra_registration() {
         .build()
         .unwrap();
     let greet = get_ipc_response(&webview, request("app_greet", json!({})))
-        .expect("adding Rustra must preserve the app's own native commands");
+        .expect("adding Unikit must preserve the app's own native commands");
     assert_eq!(
         greet.deserialize::<Value>().unwrap(),
         json!("hello from the app")
     );
     let answer = get_ipc_response(
         &webview,
-        request("rustra_dispatch", json!({"command":"answer","args":{}})),
+        request("unikit_dispatch", json!({"command":"answer","args":{}})),
     )
     .unwrap();
     assert_eq!(answer.deserialize::<Value>().unwrap(), json!(42));
     let received = Arc::new(Mutex::new(Vec::new()));
     let listener = received.clone();
-    app.listen("rustra://progress_tick", move |event| {
+    app.listen("unikit://progress_tick", move |event| {
         listener.lock().unwrap().push(event.payload().to_owned());
     });
     emit_package.emit("progress.tick", json!({"value":42}));
@@ -76,7 +76,7 @@ fn native_app_command_survives_rustra_registration() {
 #[test]
 fn app_handler_cannot_shadow_production_endpoints_or_enable_profiling() {
     let package = Package::builder("app.reserved")
-        .command("answer", |_: Value| Ok::<_, RustraError>(json!(42)))
+        .command("answer", |_: Value| Ok::<_, UnikitError>(json!(42)))
         .build();
     let calls = Arc::new(AtomicUsize::new(0));
     let handler_calls = calls.clone();
@@ -94,19 +94,19 @@ fn app_handler_cannot_shadow_production_endpoints_or_enable_profiling() {
         .build()
         .unwrap();
     for (command, args) in [
-        ("rustra_contract_hash", json!({})),
-        ("rustra_dispatch", json!({"command":"answer","args":{}})),
-        ("rustra_dispatch_batch", json!({"requests":[]})),
-        ("rustra_channel_create", json!({})),
-        ("rustra_channel_create_bytes", json!({})),
-        ("rustra_channel_drop", json!({})),
+        ("unikit_contract_hash", json!({})),
+        ("unikit_dispatch", json!({"command":"answer","args":{}})),
+        ("unikit_dispatch_batch", json!({"requests":[]})),
+        ("unikit_channel_create", json!({})),
+        ("unikit_channel_create_bytes", json!({})),
+        ("unikit_channel_drop", json!({})),
     ] {
         let response = get_ipc_response(&webview, request(command, args));
         match response {
             Ok(body) => assert_ne!(
                 body.deserialize::<Value>().unwrap(),
                 json!("app fallback"),
-                "{command} must belong to Rustra"
+                "{command} must belong to Unikit"
             ),
             Err(error) => assert_ne!(
                 error,
@@ -123,12 +123,12 @@ fn app_handler_cannot_shadow_production_endpoints_or_enable_profiling() {
     let error = get_ipc_response(
         &webview,
         request(
-            "rustra_dispatch_profiled",
+            "unikit_dispatch_profiled",
             json!({"command":"answer","args":{}}),
         ),
     )
     .unwrap_err();
-    assert_eq!(error, json!("Command rustra_dispatch_profiled not found"));
+    assert_eq!(error, json!("Command unikit_dispatch_profiled not found"));
     assert_eq!(calls.load(Ordering::SeqCst), 0);
     let custom = get_ipc_response(&webview, request("custom_app_command", json!({}))).unwrap();
     assert_eq!(
@@ -141,7 +141,7 @@ fn app_handler_cannot_shadow_production_endpoints_or_enable_profiling() {
 #[test]
 fn custom_dispatch_registration_keeps_its_selected_producer() {
     let package = Package::builder("app.selected")
-        .command("answer", |_: Value| Ok::<_, RustraError>(json!(99)))
+        .command("answer", |_: Value| Ok::<_, UnikitError>(json!(99)))
         .build();
     let app = tauri_support::with_app_commands(
         tauri_support::register_dispatch(Arc::new(package), mock_builder()),
@@ -154,7 +154,7 @@ fn custom_dispatch_registration_keeps_its_selected_producer() {
         .unwrap();
     let answer = get_ipc_response(
         &webview,
-        request("rustra_dispatch", json!({"command":"answer","args":{}})),
+        request("unikit_dispatch", json!({"command":"answer","args":{}})),
     )
     .unwrap();
     assert_eq!(answer.deserialize::<Value>().unwrap(), json!(99));

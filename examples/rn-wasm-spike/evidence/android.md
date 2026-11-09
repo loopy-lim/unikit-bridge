@@ -1,16 +1,16 @@
-# Android emulator evidence — rustra wasm3 spike (Task A0)
+# Android emulator evidence — unikit wasm3 spike (Task A0)
 
 Environment: Medium_Phone_API_36.1 emulator (adb serial emulator-5572), API 36
-arm64, app `com.rustrawasmspike` (Debug APK built 20:15:59, .so md5
+arm64, app `com.unikitwasmspike` (Debug APK built 20:15:59, .so md5
 90b17949f4d90d9731dcb19573044db2), React Native 0.81.5 bridgeless/Hermes,
 Metro on :8082 (`debug_http_host=localhost:8082` shared pref + two
 `adb reverse` rules 8081→8082, 8082→8082). Captured via `logcat -s
-ReactNativeJS:V` and `logcat | grep RustraWasmSpike:`.
+ReactNativeJS:V` and `logcat | grep UnikitWasmSpike:`.
 
 Debugging note (root cause of the earlier `find spike_alloc: function lookup
 failed` failures): the emulator kept running a STALE install from 20:11:56 that
 predated the Wasm3Jni.cpp unification to a single shared engine. On API 36 the
-loader maps librustra_wasm_spike.so straight out of base.apk (no extracted lib
+loader maps libunikit_wasm_spike.so straight out of base.apk (no extracted lib
 path), and `adb install -r` did not replace the APK. A forced
 `adb uninstall` + fresh `adb install` (lastUpdateTime 20:33:21) fixed it. No
 code change was needed for this failure — the old per-entry-point
@@ -19,7 +19,7 @@ code change was needed for this failure — the old per-entry-point
 ## Phase 1 — v1 engine (factor=2), wasm vs native staticlib (cold start, pid 6245)
 
 ```
-20:35:54.667 (native) RustraWasmSpike: instantiated: version=2 hash=e79b7f01… in 2.0 ms
+20:35:54.667 (native) UnikitWasmSpike: instantiated: version=2 hash=e79b7f01… in 2.0 ms
 20:35:54.704 [ok]   instantiated: engineVersion=2 hash=e79b7f013a6e7f88098ff552519fab69bee7ac1db244f1fc9f81dc13a9cc32e2 in 2.0ms
 20:35:54.755 [hex]  double(21) envelope (16B): 06646f75626c65087b226e223a32317d
 20:35:54.794 [hex]  double(21) wasm   (0.803ms): 01010c7b2276616c7565223a34327d00

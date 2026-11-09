@@ -17,7 +17,7 @@ import test from 'node:test';
 import { renderReactNativeModule } from './react-native.js';
 
 function fixture(manifest: Record<string, unknown> = {}) {
-  const appRoot = realpathSync(mkdtempSync(join(tmpdir(), 'rustra-rn-host with spaces-')));
+  const appRoot = realpathSync(mkdtempSync(join(tmpdir(), 'unikit-rn-host with spaces-')));
   const moduleDir = join(appRoot, 'native modules/bridge');
   const options = { appRoot, moduleDir, adapterRange: '^0.9.0' };
   const write = (path: string, content: string) => {
@@ -25,17 +25,17 @@ function fixture(manifest: Record<string, unknown> = {}) {
     writeFileSync(path, content);
   };
   write(join(appRoot, 'package.json'), JSON.stringify({ private: true, ...manifest }));
-  const adapter = join(appRoot, 'node_modules/@rustra/react-native');
+  const adapter = join(appRoot, 'node_modules/@unikit-bridge/react-native');
   write(
     join(adapter, 'package.json'),
-    JSON.stringify({ name: '@rustra/react-native', version: '0.9.0' }),
+    JSON.stringify({ name: '@unikit-bridge/react-native', version: '0.9.0' }),
   );
   for (const path of [
-    'android/rustra-jsi-jni.cpp',
-    'cpp/RustraJSIBridge.cpp',
-    'cpp/RustraJSIBridge.hpp',
-    'cpp/rustra-codec.hpp',
-    'ios/RustraJSIModule.mm',
+    'android/unikit-jsi-jni.cpp',
+    'cpp/UnikitJSIBridge.cpp',
+    'cpp/UnikitJSIBridge.hpp',
+    'cpp/unikit-codec.hpp',
+    'ios/UnikitJSIModule.mm',
   ]) {
     write(join(adapter, 'native', path), 'fixture');
   }
@@ -187,7 +187,7 @@ test('generated preparation stops on tool failure and gives the failing native s
 test('RN host scripts preserve existing commands and remain byte-identical on repeat', async () => {
   const { prepareReactNativeHost } = await import('./react-native-host.js');
   const f = fixture({
-    scripts: { ios: 'user ios', 'rustra:ios': 'custom setup', test: 'user test' },
+    scripts: { ios: 'user ios', 'unikit:ios': 'custom setup', test: 'user test' },
   });
   try {
     f.generate();
@@ -196,10 +196,10 @@ test('RN host scripts preserve existing commands and remain byte-identical on re
     const first = readFileSync(path, 'utf8');
     const scripts = JSON.parse(first).scripts;
     assert.equal(scripts.ios, 'user ios');
-    assert.equal(scripts['rustra:ios'], 'custom setup');
+    assert.equal(scripts['unikit:ios'], 'custom setup');
     assert.equal(scripts.test, 'user test');
-    assert.match(scripts['rustra:android'], /prepare-native\.cjs/);
-    assert.equal(result.conflicts[0]?.name, 'rustra:ios');
+    assert.match(scripts['unikit:android'], /prepare-native\.cjs/);
+    assert.equal(result.conflicts[0]?.name, 'unikit:ios');
     assert.equal(result.changedFiles.length, 1);
     assert.deepEqual((await prepareReactNativeHost(f)).changedFiles, []);
     assert.equal(readFileSync(path, 'utf8'), first);
@@ -219,7 +219,10 @@ test('RN bootstrap declares only the missing adapter before initial installation
     const result = await ensureReactNativeAdapter(f);
     const manifest = JSON.parse(readFileSync(join(f.appRoot, 'package.json'), 'utf8'));
     assert.equal(result.needsInstall, true);
-    assert.deepEqual(manifest.dependencies, { react: '19.1.0', '@rustra/react-native': '^0.9.0' });
+    assert.deepEqual(manifest.dependencies, {
+      react: '19.1.0',
+      '@unikit-bridge/react-native': '^0.9.0',
+    });
     assert.equal(manifest.scripts.postinstall, 'user install');
     assert.equal(manifest.workspaces, undefined);
   } finally {
@@ -229,7 +232,7 @@ test('RN bootstrap declares only the missing adapter before initial installation
 
 test('RN bootstrap preserves local adapter dependency and skips already complete installation', async () => {
   const { ensureReactNativeAdapter } = await import('./react-native-host.js');
-  const f = fixture({ dependencies: { '@rustra/react-native': 'file:../custom-adapter' } });
+  const f = fixture({ dependencies: { '@unikit-bridge/react-native': 'file:../custom-adapter' } });
   try {
     const raw = readFileSync(join(f.appRoot, 'package.json'), 'utf8');
     assert.equal((await ensureReactNativeAdapter(f)).needsInstall, false);
@@ -241,7 +244,7 @@ test('RN bootstrap preserves local adapter dependency and skips already complete
 
 test('RN bootstrap refuses stale missing generated workspace before any manifest rewrite', async () => {
   const { ensureReactNativeAdapter } = await import('./react-native-host.js');
-  const f = fixture({ dependencies: { '@rustra/generated-react-native': 'workspace:*' } });
+  const f = fixture({ dependencies: { '@unikit-bridge/generated-react-native': 'workspace:*' } });
   try {
     rmSync(join(f.appRoot, 'node_modules'), { recursive: true });
     const raw = readFileSync(join(f.appRoot, 'package.json'), 'utf8');
@@ -258,12 +261,12 @@ test('RN preparation runs through its installed generated package script', async
   const f = fixture();
   try {
     f.generate();
-    symlinkSync(f.moduleDir, join(f.appRoot, 'node_modules/@rustra/generated-react-native'));
+    symlinkSync(f.moduleDir, join(f.appRoot, 'node_modules/@unikit-bridge/generated-react-native'));
     f.write(join(f.appRoot, 'ios/Podfile'), '# user Podfile');
     f.executable(join(f.appRoot, 'bin/pod'));
     await prepareReactNativeHost(f);
     const command = JSON.parse(readFileSync(join(f.appRoot, 'package.json'), 'utf8')).scripts[
-      'rustra:ios'
+      'unikit:ios'
     ];
     const result = spawnSync('sh', ['-c', command], {
       cwd: f.appRoot,
@@ -280,7 +283,7 @@ test('RN preparation runs through its installed generated package script', async
 test('RN host script conflicts leave the original manifest bytes untouched', async () => {
   const { prepareReactNativeHost } = await import('./react-native-host.js');
   const f = fixture({
-    scripts: { 'rustra:ios': 'custom ios', 'rustra:android': 'custom android' },
+    scripts: { 'unikit:ios': 'custom ios', 'unikit:android': 'custom android' },
   });
   try {
     f.generate();
@@ -309,11 +312,11 @@ test('RN bootstrap rejects malformed dependency objects before rewriting package
 
 test('RN bootstrap rejects an installed incompatible adapter without altering declared dependencies', async () => {
   const { ensureReactNativeAdapter } = await import('./react-native-host.js');
-  const f = fixture({ dependencies: { '@rustra/react-native': '^0.8.0' } });
+  const f = fixture({ dependencies: { '@unikit-bridge/react-native': '^0.8.0' } });
   try {
     f.write(
-      join(f.appRoot, 'node_modules/@rustra/react-native/package.json'),
-      JSON.stringify({ name: '@rustra/react-native', version: '0.8.0' }),
+      join(f.appRoot, 'node_modules/@unikit-bridge/react-native/package.json'),
+      JSON.stringify({ name: '@unikit-bridge/react-native', version: '0.8.0' }),
     );
     const raw = readFileSync(join(f.appRoot, 'package.json'), 'utf8');
     await assert.rejects(ensureReactNativeAdapter(f), /incompatible.*expected \^0\.9\.0/);

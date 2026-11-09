@@ -25,15 +25,15 @@ async function run(command, options = {}) {
 }
 
 function parseReceipt(stdout) {
-  const marker = stdout.split(/\r?\n/u).find((line) => line.startsWith('RUSTRA_HOST_BENCH_JSON='));
-  if (!marker) throw new Error('benchmark did not emit RUSTRA_HOST_BENCH_JSON');
-  return JSON.parse(marker.slice('RUSTRA_HOST_BENCH_JSON='.length));
+  const marker = stdout.split(/\r?\n/u).find((line) => line.startsWith('UNIKIT_HOST_BENCH_JSON='));
+  if (!marker) throw new Error('benchmark did not emit UNIKIT_HOST_BENCH_JSON');
+  return JSON.parse(marker.slice('UNIKIT_HOST_BENCH_JSON='.length));
 }
 
 if (!skipBuild) {
   // The Bun FFI path loads the package cdylib from target/release. `--bins`
   // builds only the stdio executables and leaves that library absent.
-  await run(['cargo', 'build', '--release', '-p', 'rustra-calculator-example']);
+  await run(['cargo', 'build', '--release', '-p', 'unikit-calculator-example']);
   await run(['bun', 'run', '--cwd', 'examples/calculator-napi', 'build']);
   await run(['bun', 'run', 'build']);
   await run(['bunx', '--bun', 'tsc', '-p', 'examples/calculator/tsconfig.json']);
@@ -59,15 +59,15 @@ function resolveNativeArtifact() {
   const dylib = resolve(
     root,
     'target/release',
-    { darwin: 'librustra_calculator_example.dylib', linux: 'librustra_calculator_example.so' }[
+    { darwin: 'libunikit_calculator_example.dylib', linux: 'libunikit_calculator_example.so' }[
       process.platform
-    ] ?? 'rustra_calculator_example.dll',
+    ] ?? 'unikit_calculator_example.dll',
   );
   return benchmarkArtifact(root, dylib.slice(root.length + 1));
 }
 const nativeArtifacts = [
   resolveNativeArtifact(),
-  benchmarkArtifact(root, 'target/release/rustra-calculator-example'),
+  benchmarkArtifact(root, 'target/release/unikit-calculator-example'),
   benchmarkArtifact(root, 'target/release/loop-stdio'),
   benchmarkArtifact(
     root,
@@ -106,4 +106,4 @@ const receipt = {
 
 const serialized = `${JSON.stringify(receipt, null, 2)}\n`;
 if (output) await Bun.write(resolve(root, output), serialized);
-console.log(`\nRUSTRA_HOST_MATRIX_JSON=${JSON.stringify(receipt)}`);
+console.log(`\nUNIKIT_HOST_MATRIX_JSON=${JSON.stringify(receipt)}`);

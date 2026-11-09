@@ -49,7 +49,7 @@ function seedProject(root: string): string {
     JSON.stringify({ name: 'proj', private: true, workspaces: [], dependencies: {} }),
   );
   writeFileSync(
-    join(project, 'rustra.json'),
+    join(project, 'unikit.json'),
     JSON.stringify({ schema: './generated/schema.json', output: './generated', node: {} }),
   );
   writeFileSync(join(root, 'schema.json'), JSON.stringify(SCHEMA));
@@ -94,7 +94,7 @@ test('staleBinaryHint fires only on the (updated) marker and names cargo build +
 });
 
 test('codegen text mode prints the stale runtime binary hint only when regeneration drifts', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-codegen-hint-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-codegen-hint-'));
   const originalPath = process.env.PATH;
   let stdout: string[] = [];
   const restore = (() => {
@@ -111,7 +111,7 @@ test('codegen text mode prints the stale runtime binary hint only when regenerat
 
     // 1차 — 신규 생성((updated) 없음) → 힌트가 없어야 한다.
     stdout = [];
-    await runCodegen(['--config', join(project, 'rustra.json')]);
+    await runCodegen(['--config', join(project, 'unikit.json')]);
     assert.equal(
       stdout.some((line) => line.includes('contract.mismatch')),
       false,
@@ -122,7 +122,7 @@ test('codegen text mode prints the stale runtime binary hint only when regenerat
     const typesPath = join(project, 'generated', 'types.ts');
     writeFileSync(typesPath, readFileSync(typesPath, 'utf8') + '\n// drift probe\n');
     stdout = [];
-    await runCodegen(['--config', join(project, 'rustra.json')]);
+    await runCodegen(['--config', join(project, 'unikit.json')]);
     const hint = stdout.find((line) => line.includes('contract.mismatch'));
     assert.ok(hint, `drifted rerun must hint, got: ${JSON.stringify(stdout)}`);
     assert.match(hint, /cargo build/);
@@ -137,7 +137,7 @@ test('codegen text mode prints the stale runtime binary hint only when regenerat
 test('codegen text mode lists written files with (unchanged)/(updated) markers like generate', async () => {
   // 감사 A3 — codegen 은 주력 경로인데 quiet 로 목록을 삼키면 drift 표기가
   // stale 힌트에만 의존한다. generate 와 동일한 파일 목록·표기를 출력해야 한다.
-  const root = mkdtempSync(join(tmpdir(), 'rustra-codegen-files-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-codegen-files-'));
   const originalPath = process.env.PATH;
   const stdout: string[] = [];
   const restore = (() => {
@@ -154,7 +154,7 @@ test('codegen text mode lists written files with (unchanged)/(updated) markers l
 
     // 1차 — 신규 생성이어도 무엇을 썼는지 목록이 나와야 한다.
     stdout.length = 0;
-    await runCodegen(['--config', join(project, 'rustra.json')]);
+    await runCodegen(['--config', join(project, 'unikit.json')]);
     assert.ok(
       stdout.some((line) => /^Generated TypeScript files in /.test(line)),
       `header line expected, got: ${JSON.stringify(stdout)}`,
@@ -170,7 +170,7 @@ test('codegen text mode lists written files with (unchanged)/(updated) markers l
 
     // 2차 — 동일 스키마 재생성은 (unchanged) 표기로 무음 드리프트를 없앤다.
     stdout.length = 0;
-    await runCodegen(['--config', join(project, 'rustra.json')]);
+    await runCodegen(['--config', join(project, 'unikit.json')]);
     assert.ok(
       stdout.some((line) => /^\s+types\.ts \(unchanged\)/.test(line)),
       `(unchanged) marker expected, got: ${JSON.stringify(stdout)}`,

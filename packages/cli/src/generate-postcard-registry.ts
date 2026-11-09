@@ -23,7 +23,7 @@ export function generateFrameRegistryTs(schema: PackageSchema): string {
     } else {
       excluded.push(command.name);
       console.warn(
-        `[rustra] WARN: command '${command.name}' has a schema unsupported by both the postcard and complex codecs; excluding from Frame registry — the engine will route it via Tier 3 JSON fallback.`,
+        `[unikit] WARN: command '${command.name}' has a schema unsupported by both the postcard and complex codecs; excluding from Frame registry — the engine will route it via Tier 3 JSON fallback.`,
       );
     }
   }
@@ -35,5 +35,5 @@ export function generateFrameRegistryTs(schema: PackageSchema): string {
     included.length === schema.commands.length
       ? ''
       : `// ${excluded.length} command(s) excluded — unsupported postcard field types (Tier 3 fallback): ${excluded.join(', ')}\n`;
-  return `${header}import { ${imports} } from './frame-codecs.js';\n\nexport const frameRegistry = new Map<string, import('@rustra/types').FrameCodec<any, any>>([\n${entries},\n]);\n`;
+  return `${header}import { ${imports} } from './frame-codecs.js';\n\nexport const frameRegistry = new Map<string, import('@unikit-bridge/types').FrameCodec<any, any>>([\n${entries},\n]);\n`;
 }

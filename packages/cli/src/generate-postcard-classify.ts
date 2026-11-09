@@ -26,7 +26,7 @@ export function classifyPostcardField(
   if (depth > 8) return null;
   if (schema.type === 'null') return 'unit';
   if (Array.isArray(schema.allOf) && schema.allOf.length === 1) {
-    return classifyPostcardField(schema.allOf[0], definitions, depth + 1);
+    return classifyPostcardField(schema.allOf[0]!, definitions, depth + 1);
   }
   if (schema.type === 'string' && Array.isArray(schema.enum) && schema.enum.length > 0) {
     if (schema.enum.every((value) => typeof value === 'string')) return 'enum_str';

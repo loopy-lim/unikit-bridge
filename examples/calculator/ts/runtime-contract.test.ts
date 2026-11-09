@@ -22,7 +22,7 @@ void test('host apps use generated zero-config entrypoints without local transpo
   assert.match(bunApp, /from '..\/generated\/bun\.js'/);
   assert.match(tauriApp, /calculator\/generated\/tauri\.js'/);
   assert.match(reactNativeApp, /from ['"]\.\/generated\/react-native['"]/);
-  assert.doesNotMatch(reactNativeApp, /\b(?:configure|installRustraJSI|createFastEngine)\s*\(/);
+  assert.doesNotMatch(reactNativeApp, /\b(?:configure|installUnikitJSI|createFastEngine)\s*\(/);
 
   assert.doesNotMatch(nodeApp, /createNodeEngine|configure\(/);
   assert.doesNotMatch(bunApp, /createBunEngine|configure\(|dlopen/);
@@ -30,33 +30,33 @@ void test('host apps use generated zero-config entrypoints without local transpo
   assert.match(nodeEntry, /createNodeBootstrap/);
   assert.match(bunEntry, /createBunBootstrap/);
   assert.match(tauriEntry, /createTauriBootstrap/);
-  assert.match(reactNativeEntry, /createRustraBootstrap/);
-  assert.match(reactNativeEntry, /installRustraJSI/);
+  assert.match(reactNativeEntry, /createUnikitBootstrap/);
+  assert.match(reactNativeEntry, /installUnikitJSI/);
   assert.match(reactNativeMetro, /watchFolders = \[repoRoot\]/);
   assert.match(reactNativeMetro, /nodeModulesPaths/);
 
   // lib/bin 분리 레이아웃(Tauri 2 모바일) — 생성 패키지 등록은 lib.rs 의
-  // run()에 살고, main.rs 는 rustra_tauri_calculator_lib::run() 만 부르는 얇은 래퍼다.
-  assert.match(tauriLib, /rustra_calculator_example::calculator_package/);
+  // run()에 살고, main.rs 는 unikit_tauri_calculator_lib::run() 만 부르는 얇은 래퍼다.
+  assert.match(tauriLib, /unikit_calculator_example::calculator_package/);
   assert.match(tauriLib, /tauri_support::register/);
   assert.doesNotMatch(tauriLib, /value:\s*a\s*\+\s*b/);
-  assert.match(tauriMain, /rustra_tauri_calculator_lib::run\(\)/);
+  assert.match(tauriMain, /unikit_tauri_calculator_lib::run\(\)/);
   assert.doesNotMatch(tauriMain, /calculator_package|tauri_support/);
 });
 
 void test('react native runtime fixture exposes a native Rust-backed invoke module', async () => {
   const swiftModule = await readFile(
-    'examples/react-native-calculator/modules/rustra-calculator/ios/RustraCalculatorModule.swift',
+    'examples/react-native-calculator/modules/unikit-calculator/ios/UnikitCalculatorModule.swift',
     'utf8',
   );
   const calculatorLib = await readFile('examples/calculator/src/lib.rs', 'utf8');
 
-  assert.match(swiftModule, /Name\("RustraCalculator"\)/);
+  assert.match(swiftModule, /Name\("UnikitCalculator"\)/);
   assert.match(swiftModule, /AsyncFunction\("invokeRaw"\)/);
-  // legacy FFI 심볼(rustra_calculator_invoke) 제거 후 — Swift 는 코어
-  // rustra_ffi_invoke_json + rustra_ffi_free 짝으로 직결한다.
-  assert.match(swiftModule, /rustra_ffi_invoke_json/);
-  assert.match(swiftModule, /rustra_ffi_free/);
-  assert.doesNotMatch(swiftModule, /rustra_calculator_invoke/);
+  // legacy FFI 심볼(unikit_calculator_invoke) 제거 후 — Swift 는 코어
+  // unikit_ffi_invoke_json + unikit_ffi_free 짝으로 직결한다.
+  assert.match(swiftModule, /unikit_ffi_invoke_json/);
+  assert.match(swiftModule, /unikit_ffi_free/);
+  assert.doesNotMatch(swiftModule, /unikit_calculator_invoke/);
   assert.match(calculatorLib, /get_package\(\).*invoke_json/s);
 });

@@ -8,7 +8,7 @@
 ## 문제
 
 1. **커맨드 프로토타이핑 루프** — 신규 명령 실험 한 번에 Rust 수정 →
-   `rustra codegen`(cargo 프로브 포함) → 런타임 바이넌 재빌드 → tsc →
+   `unikit codegen`(cargo 프로브 포함) → 런타임 바이넌 재빌드 → tsc →
    (export 변동 시) api-surface → docs 리전 재생성까지 최대 6단계. 정작
    동적 경로(엔진 이름 기반 `invoke`, `debug_assertions` 런타임 레지스트리,
    live schema commandId 조회, Tier 3 JSON 폴백 — `rkyv-engine-async.ts`가
@@ -16,7 +16,7 @@
 2. **디바이스 토큰 이중 하드코딩 + 닫힘** — 카탈로그 21종이 Rust
    `DeviceCapability::ALL`(`device_capabilities.rs:43-65`)과 CLI 수동 미러
    (`generate-devices.ts:23-45`, "주석이 유일한 연결 고리") 양쪽에 박혀
-   있다. 카탈로그 밖 토큰은 등록 시점 패닉 — 앱 개발자는 rustra 릴리스가
+   있다. 카탈로그 밖 토큰은 등록 시점 패닉 — 앱 개발자는 unikit 릴리스가
    나오기 전까지 신규 역량 토큰을 선언으로 실험할 수 없다.
 3. **느슨한 타입 표면 부재** — 생성 클라이언트(타입화 함수)가 유일한 공식
    호출 경로. 문자열 키 즉석 호출은 엔진 메서드로는 존재하지만 문서화된
@@ -69,8 +69,8 @@ export function invokeLoose<T = unknown>(
 - **프로토타이핑 루프** — Rust 핸들러를 `Package::register`(debug 빌드
   런타임 등록) 또는 매크로로 추가 → `cargo build` → JS에서 곧장
   `invokeLoose`. 코드젱·tsc·api-surface 불필요(live schema가 commandId를
-  제공). 정적 승격은 평소처럼 `rustra codegen`.
-- debug 이벤트(`RustraDebugEvent`)는 v1에서 붙이지 않는다 — transport
+  제공). 정적 승격은 평소처럼 `unikit codegen`.
+- debug 이벤트(`UnikitDebugEvent`)는 v1에서 붙이지 않는다 — transport
   필드가 필수라 와이어 프레임이 아닌 loose 호출에는 맞는 값이 없고,
   엔진 수준 진단은 이미 존재한다(YAGNI).
 
@@ -86,7 +86,7 @@ export function invokeLoose<T = unknown>(
 - **렌더러**(`generate-devices.ts`) — `DEVICE_CAPABILITY_CATALOG` 수동
   미러·`CATALOG_ORDER`를 삭제하고 스키마 카탈로그로 정렬·검증한다.
   미지 토큰(선언에는 있고 카탈로그에는 없는)은 throw 대신 렌더 대상이
-  된다(§C). 카탈로그 필드가 없는데 선언이 있으면(구버전 rustra 스키마)
+  된다(§C). 카탈로그 필드가 없는데 선언이 있으면(구버전 unikit 스키마)
   재생성 안내와 함께 throw — fail-closed.
 - **계약 해시 영향** — 선언 있는 패키지(calculator)는 schema.json이
   바뀌므로 `GENERATED_CONTRACT_HASH`가 갱신된다. 코드젱이 양쪽(스키마와
@@ -96,7 +96,7 @@ export function invokeLoose<T = unknown>(
 
 - **Rust 빌더**(`builder_devices.rs::command_devices`) — 미지 토큰 판정을
   프로파일로 분기:
-  - `#[cfg(debug_assertions)]`: eprintln 경고(관례: `rustra: …`,
+  - `#[cfg(debug_assertions)]`: eprintln 경고(관례: `unikit: …`,
     `ffi_event_entries.rs:104` 참고) 후 수용 — 선언이 스키마로 흐른다.
   - `#[cfg(not(debug_assertions))]`: 현행 패닉 유지 — 릴리스 바이너리의
     계약 벽.
@@ -110,9 +110,9 @@ export function invokeLoose<T = unknown>(
   - schema.json을 읽어 선언 토큰(각 commands[].devices)이
     `deviceCapabilities` 안에 있으면 **pass**.
   - 미지 토큰이 있으면 **fail**(required) — 토큰 목록과 안내(카탈로그
-    토큰으로 교체하거나 rustra 카탈로그 확장).
+    토큰으로 교체하거나 unikit 카탈로그 확장).
   - 선언은 있는데 카탈로그 필드가 없으면(구버전 스키마) **warn** — 현행
-    rustra로 재생성 안내.
+    unikit로 재생성 안내.
   - 선언 자체가 없으면 **skip**(검사 부재와 의도된 스킵 구별 — 기존
     관례). schema.json 부재는 기존 `codegen.schema_output` warn이 이미
     담당하므로 중복 보고하지 않는다.
@@ -122,7 +122,7 @@ export function invokeLoose<T = unknown>(
 - 루트 `package.json` 신규 스크립트:
   `"test:fast": "cargo check --workspace -q && tsc -p examples/calculator/tsconfig.json && bun run --cwd packages/cli test"`
 - 의미: 언어 양쪽 컴파일 정합 + 코드젠 렌더러·doctor 유닛(cli). Rust
-  동작 검증은 `cargo test -p rustra <필터>`로 ad-hoc. 문서 위치: 새
+  동작 검증은 `cargo test -p unikit-bridge <필터>`로 ad-hoc. 문서 위치: 새
   dev-tier 가이드(§E)에 "빠른 루프 vs 풀 배터리" 표.
 - CI(`ci-gate.sh`)·pre-commit(lefthook) 무변경 — 풀 배터리가 PR/발행
   게이트로 그대로 남는다.
@@ -160,7 +160,7 @@ export function invokeLoose<T = unknown>(
 
 - `codegen --from-live` 스캐폴딩(live 덤프 → `#[command]` 골격) — 후속
   슬라이스.
-- `RustraDebugEvent`에 loose 호출 이벤트 추가 — transport 필드 의미론
+- `UnikitDebugEvent`에 loose 호출 이벤트 추가 — transport 필드 의미론
   정리가 선행되어야 한다.
 - pre-push 훅 신설 — codegen:check가 cargo 프로브를 돌려 pre-push에
   무겁다. CI가 드리프트를 잡는다.
@@ -171,11 +171,11 @@ export function invokeLoose<T = unknown>(
 
 ## changeset
 
-minor 후보(@rustra/types 신규 export, cli 코드젱 입력 스키마 확장) —
+minor 후보(@unikit-bridge/types 신규 export, cli 코드젱 입력 스키마 확장) —
 **생성은 사용자 승인 게이트**(관례: 계획서에 초안만).
 
-- `@rustra/types`: minor — `invokeLoose` 추가
-- `@rustra/cli`: minor — 스키마 `deviceCapabilities` 소싱, 미지 토큰
+- `@unikit-bridge/types`: minor — `invokeLoose` 추가
+- `@unikit-bridge/cli`: minor — 스키마 `deviceCapabilities` 소싱, 미지 토큰
   렌더, doctor 검사, `test:fast`
-- `rustra`(crate): 카탈로그 스키마 기록 + debug 관대화 — crates.io
+- `unikit`(crate): 카탈로그 스키마 기록 + debug 관대화 — crates.io
   발행은 changeset과 별개 절차(사용자 게이트).

@@ -9,37 +9,37 @@
       "type": "dev-log",
       "afterMs": 8713.390749999999,
       "stream": "stdout",
-      "text": "[dev] initial → codegen --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/rustra.json"
+      "text": "[dev] initial → codegen --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/unikit.json"
     },
     {
       "type": "dev-log",
       "afterMs": 8804.062875,
       "stream": "stdout",
-      "text": "[rustra] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/Cargo.toml --package rustra-app --bin generate"
+      "text": "[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/Cargo.toml --package unikit-app --bin generate"
     },
     {
       "type": "dev-log",
       "afterMs": 8806.891916999999,
       "stream": "stdout",
-      "text": "[rustra] ⠋ Rust schema generation (rustra-app/generate)..."
+      "text": "[unikit] ⠋ Rust schema generation (unikit-app/generate)..."
     },
     {
       "type": "dev-log",
       "afterMs": 8864.847082999999,
       "stream": "stdout",
-      "text": "[rustra] ✓ Rust schema generation (rustra-app/generate) done in 0.1s"
+      "text": "[unikit] ✓ Rust schema generation (unikit-app/generate) done in 0.1s"
     },
     {
       "type": "dev-log",
       "afterMs": 8865.13525,
       "stream": "stdout",
-      "text": "[rustra] TypeScript/C++: generate --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/rustra.json"
+      "text": "[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/unikit.json"
     },
     {
       "type": "dev-log",
       "afterMs": 8882.312042,
       "stream": "stdout",
-      "text": "Generated TypeScript files in /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/src/generated:"
+      "text": "Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/src/generated:"
     },
     {
       "type": "dev-log",
@@ -81,13 +81,13 @@
       "type": "dev-log",
       "afterMs": 8885.230375,
       "stream": "stdout",
-      "text": "[rustra] ⠋ Dev runtime (rustra-app)..."
+      "text": "[unikit] ⠋ Dev runtime (unikit-app)..."
     },
     {
       "type": "dev-log",
       "afterMs": 8933.395457999999,
       "stream": "stdout",
-      "text": "[rustra] ✓ Dev runtime (rustra-app) done in 0.0s"
+      "text": "[unikit] ✓ Dev runtime (unikit-app) done in 0.0s"
     },
     {
       "type": "dev-log",
@@ -99,7 +99,7 @@
       "type": "dev-log",
       "afterMs": 8992.946124999999,
       "stream": "stdout",
-      "text": "\n[dev] watching /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app and /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/rustra.json for changes..."
+      "text": "\n[dev] watching /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app and /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/unikit.json for changes..."
     },
     {
       "type": "source-edit",
@@ -110,37 +110,37 @@
       "type": "dev-log",
       "afterMs": 10287.988458,
       "stream": "stdout",
-      "text": "[dev] Rust change → codegen --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/rustra.json"
+      "text": "[dev] Rust change → codegen --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/unikit.json"
     },
     {
       "type": "dev-log",
       "afterMs": 10338.707208,
       "stream": "stdout",
-      "text": "[rustra] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/Cargo.toml --package rustra-app --bin generate"
+      "text": "[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/Cargo.toml --package unikit-app --bin generate"
     },
     {
       "type": "dev-log",
       "afterMs": 10341.55425,
       "stream": "stdout",
-      "text": "[rustra] ⠋ Rust schema generation (rustra-app/generate)..."
+      "text": "[unikit] ⠋ Rust schema generation (unikit-app/generate)..."
     },
     {
       "type": "dev-log",
       "afterMs": 10636.406749999998,
       "stream": "stdout",
-      "text": "[rustra] ✓ Rust schema generation (rustra-app/generate) done in 0.3s"
+      "text": "[unikit] ✓ Rust schema generation (unikit-app/generate) done in 0.3s"
     },
     {
       "type": "dev-log",
       "afterMs": 10636.491957999999,
       "stream": "stdout",
-      "text": "[rustra] TypeScript/C++: generate --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/rustra.json"
+      "text": "[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/unikit.json"
     },
     {
       "type": "dev-log",
       "afterMs": 10646.980458,
       "stream": "stdout",
-      "text": "Generated TypeScript files in /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/src/generated:"
+      "text": "Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/src/generated:"
     },
     {
       "type": "dev-log",
@@ -182,13 +182,13 @@
       "type": "dev-log",
       "afterMs": 10649.736832999999,
       "stream": "stdout",
-      "text": "[rustra] ⠋ Dev runtime (rustra-app)..."
+      "text": "[unikit] ⠋ Dev runtime (unikit-app)..."
     },
     {
       "type": "dev-log",
       "afterMs": 10852.906792,
       "stream": "stdout",
-      "text": "[rustra] ✓ Dev runtime (rustra-app) done in 0.2s"
+      "text": "[unikit] ✓ Dev runtime (unikit-app) done in 0.2s"
     },
     {
       "type": "dev-log",
@@ -211,37 +211,37 @@
       "type": "dev-log",
       "afterMs": 11295.268457999999,
       "stream": "stdout",
-      "text": "[dev] Rust change → codegen --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/rustra.json"
+      "text": "[dev] Rust change → codegen --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/unikit.json"
     },
     {
       "type": "dev-log",
       "afterMs": 11354.129958,
       "stream": "stdout",
-      "text": "[rustra] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/Cargo.toml --package rustra-app --bin generate"
+      "text": "[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/Cargo.toml --package unikit-app --bin generate"
     },
     {
       "type": "dev-log",
       "afterMs": 11356.597791999999,
       "stream": "stdout",
-      "text": "[rustra] ⠋ Rust schema generation (rustra-app/generate)..."
+      "text": "[unikit] ⠋ Rust schema generation (unikit-app/generate)..."
     },
     {
       "type": "dev-log",
       "afterMs": 11790.270499999999,
       "stream": "stdout",
-      "text": "[rustra] ✓ Rust schema generation (rustra-app/generate) done in 0.4s"
+      "text": "[unikit] ✓ Rust schema generation (unikit-app/generate) done in 0.4s"
     },
     {
       "type": "dev-log",
       "afterMs": 11790.347542,
       "stream": "stdout",
-      "text": "[rustra] TypeScript/C++: generate --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/rustra.json"
+      "text": "[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/unikit.json"
     },
     {
       "type": "dev-log",
       "afterMs": 11797.210167,
       "stream": "stdout",
-      "text": "Generated TypeScript files in /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/src/generated:"
+      "text": "Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/src/generated:"
     },
     {
       "type": "dev-log",
@@ -283,19 +283,19 @@
       "type": "dev-log",
       "afterMs": 11797.309292,
       "stream": "stdout",
-      "text": "[rustra] Note: generated code changed — rebuild the runtime binary before invoking (cargo build), or invokes may fail with contract.mismatch."
+      "text": "[unikit] Note: generated code changed — rebuild the runtime binary before invoking (cargo build), or invokes may fail with contract.mismatch."
     },
     {
       "type": "dev-log",
       "afterMs": 11799.943333,
       "stream": "stdout",
-      "text": "[rustra] ⠋ Dev runtime (rustra-app)..."
+      "text": "[unikit] ⠋ Dev runtime (unikit-app)..."
     },
     {
       "type": "dev-log",
       "afterMs": 11908.031958,
       "stream": "stdout",
-      "text": "[rustra] ✗ Dev runtime (rustra-app) failed in 0.1s"
+      "text": "[unikit] ✗ Dev runtime (unikit-app) failed in 0.1s"
     },
     {
       "type": "dev-log",
@@ -311,37 +311,37 @@
       "type": "dev-log",
       "afterMs": 12960.687542,
       "stream": "stdout",
-      "text": "[dev] Rust change → codegen --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/rustra.json"
+      "text": "[dev] Rust change → codegen --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/unikit.json"
     },
     {
       "type": "dev-log",
       "afterMs": 13021.322166999998,
       "stream": "stdout",
-      "text": "[rustra] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/Cargo.toml --package rustra-app --bin generate"
+      "text": "[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/Cargo.toml --package unikit-app --bin generate"
     },
     {
       "type": "dev-log",
       "afterMs": 13023.812708,
       "stream": "stdout",
-      "text": "[rustra] ⠋ Rust schema generation (rustra-app/generate)..."
+      "text": "[unikit] ⠋ Rust schema generation (unikit-app/generate)..."
     },
     {
       "type": "dev-log",
       "afterMs": 13444.239791999998,
       "stream": "stdout",
-      "text": "[rustra] ✓ Rust schema generation (rustra-app/generate) done in 0.4s"
+      "text": "[unikit] ✓ Rust schema generation (unikit-app/generate) done in 0.4s"
     },
     {
       "type": "dev-log",
       "afterMs": 13444.314957999999,
       "stream": "stdout",
-      "text": "[rustra] TypeScript/C++: generate --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/rustra.json"
+      "text": "[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/unikit.json"
     },
     {
       "type": "dev-log",
       "afterMs": 13451.261832999999,
       "stream": "stdout",
-      "text": "Generated TypeScript files in /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/src/generated:"
+      "text": "Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/src/generated:"
     },
     {
       "type": "dev-log",
@@ -383,19 +383,19 @@
       "type": "dev-log",
       "afterMs": 13451.38,
       "stream": "stdout",
-      "text": "[rustra] Note: generated code changed — rebuild the runtime binary before invoking (cargo build), or invokes may fail with contract.mismatch."
+      "text": "[unikit] Note: generated code changed — rebuild the runtime binary before invoking (cargo build), or invokes may fail with contract.mismatch."
     },
     {
       "type": "dev-log",
       "afterMs": 13453.626542,
       "stream": "stdout",
-      "text": "[rustra] ⠋ Dev runtime (rustra-app)..."
+      "text": "[unikit] ⠋ Dev runtime (unikit-app)..."
     },
     {
       "type": "dev-log",
       "afterMs": 13658.981416999999,
       "stream": "stdout",
-      "text": "[rustra] ✓ Dev runtime (rustra-app) done in 0.2s"
+      "text": "[unikit] ✓ Dev runtime (unikit-app) done in 0.2s"
     },
     {
       "type": "dev-log",
@@ -418,37 +418,37 @@
       "type": "dev-log",
       "afterMs": 14096.297708,
       "stream": "stdout",
-      "text": "[dev] Rust change → codegen --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/rustra.json"
+      "text": "[dev] Rust change → codegen --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/unikit.json"
     },
     {
       "type": "dev-log",
       "afterMs": 14147.158291999998,
       "stream": "stdout",
-      "text": "[rustra] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/Cargo.toml --package rustra-app --bin generate"
+      "text": "[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/Cargo.toml --package unikit-app --bin generate"
     },
     {
       "type": "dev-log",
       "afterMs": 14149.935082999998,
       "stream": "stdout",
-      "text": "[rustra] ⠋ Rust schema generation (rustra-app/generate)..."
+      "text": "[unikit] ⠋ Rust schema generation (unikit-app/generate)..."
     },
     {
       "type": "dev-log",
       "afterMs": 14604.139374999999,
       "stream": "stdout",
-      "text": "[rustra] ✓ Rust schema generation (rustra-app/generate) done in 0.5s"
+      "text": "[unikit] ✓ Rust schema generation (unikit-app/generate) done in 0.5s"
     },
     {
       "type": "dev-log",
       "afterMs": 14604.265249999999,
       "stream": "stdout",
-      "text": "[rustra] TypeScript/C++: generate --config /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/rustra.json"
+      "text": "[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/unikit.json"
     },
     {
       "type": "dev-log",
       "afterMs": 14610.853083,
       "stream": "stdout",
-      "text": "Generated TypeScript files in /Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app/src/generated:"
+      "text": "Generated TypeScript files in /Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app/src/generated:"
     },
     {
       "type": "dev-log",
@@ -490,19 +490,19 @@
       "type": "dev-log",
       "afterMs": 14610.953125,
       "stream": "stdout",
-      "text": "[rustra] Note: generated code changed — rebuild the runtime binary before invoking (cargo build), or invokes may fail with contract.mismatch."
+      "text": "[unikit] Note: generated code changed — rebuild the runtime binary before invoking (cargo build), or invokes may fail with contract.mismatch."
     },
     {
       "type": "dev-log",
       "afterMs": 14613.091666999999,
       "stream": "stdout",
-      "text": "[rustra] ⠋ Dev runtime (rustra-app)..."
+      "text": "[unikit] ⠋ Dev runtime (unikit-app)..."
     },
     {
       "type": "dev-log",
       "afterMs": 14866.420208,
       "stream": "stdout",
-      "text": "[rustra] ✓ Dev runtime (rustra-app) done in 0.3s"
+      "text": "[unikit] ✓ Dev runtime (unikit-app) done in 0.3s"
     },
     {
       "type": "dev-log",
@@ -576,14 +576,14 @@
     "sourceFileCount": 1128
   },
   "producerBefore": {
-    "name": "@rustra/cli",
+    "name": "@unikit-bridge/cli",
     "version": "0.12.0",
-    "resolvedDirectory": "/Users/loopy/dev/ll3/rustra-bridge/packages/cli",
+    "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/packages/cli",
     "files": 151,
     "sha256": "a9a2e6fe1880fc1fd8dc49716defbc4529585b9bafda4f226ea3539e20060a8b"
   },
-  "setupReceipt": "/tmp/rustra-20261013-watch-node-verified.json.setup.json",
-  "projectDir": "/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/app",
+  "setupReceipt": "/tmp/unikit-20261013-watch-node-verified.json.setup.json",
+  "projectDir": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/app",
   "environment": {
     "platform": "darwin",
     "arch": "arm64",
@@ -597,7 +597,7 @@
   },
   "cache": {
     "cargoTarget": "fresh-project-target",
-    "cargoTargetDir": "/Users/loopy/dev/ll3/rustra-bridge/target/quick-start-node-bun-gvyHsF/cargo-target",
+    "cargoTargetDir": "/Users/loopy/dev/ll3/unikit-bridge/target/quick-start-node-bun-gvyHsF/cargo-target",
     "dependencyDownloads": "shared-cache-not-cleared"
   },
   "reloadsDuringFailure": 0,
@@ -609,9 +609,9 @@
   },
   "sourceStable": true,
   "producerAfter": {
-    "name": "@rustra/cli",
+    "name": "@unikit-bridge/cli",
     "version": "0.12.0",
-    "resolvedDirectory": "/Users/loopy/dev/ll3/rustra-bridge/packages/cli",
+    "resolvedDirectory": "/Users/loopy/dev/ll3/unikit-bridge/packages/cli",
     "files": 151,
     "sha256": "a9a2e6fe1880fc1fd8dc49716defbc4529585b9bafda4f226ea3539e20060a8b"
   },

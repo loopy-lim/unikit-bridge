@@ -5,7 +5,7 @@
 // 교차 검증한다:
 //   - Rust→TS : Rust 가 낸 response hex → TS codec.decode → 값 일치
 //   - TS→Rust : TS codec.encode 결과 → Rust 가 기대하는 request hex 와 일치
-//   - 에러    : Rust error frame hex → TS codec.decode → RustraError(code,message)
+//   - 에러    : Rust error frame hex → TS codec.decode → UnikitError(code,message)
 //
 // hex 는 양쪽에서 동일해야 한다 — 한쪽 코덱/스키마가 드리프트하면 이 테스트가 실패한다.
 
@@ -97,7 +97,7 @@ void test('cross-wire greet: TS codec.encode → Rust request wire', () => {
 
 // ── divide (에러 프레임 교차, Task 2.6) ─────────────────────
 
-void test('cross-wire divide: Rust error frame → TS codec.decode → RustraError', () => {
+void test('cross-wire divide: Rust error frame → TS codec.decode → UnikitError', () => {
   const r = divideCodec.decode(hexToBytes(DIVIDE_RESPONSE));
   assert.equal(r.ok, false, 'divide-by-zero must decode as an error frame');
   assert.equal(r.error?.code, 'math.divide_by_zero');

@@ -4,9 +4,9 @@
 
 **Goal:** Make runtime-registered (dynamic) commands callable via the **same rkyvV2 engine** as static commands, with a **live schema** query so TS can discover dynamic commands' id/types. Dev-only DX; prod (release/frozen) unaffected.
 
-**Architecture:** Dynamic commands are forced to **Tier 3 (JSON-in-binary)** at registration (`rkyv_v2_handler = None`, JSON decoder). The TS `createRkyvV2Engine` falls back to Tier 3 for any command absent from the static codec registry, using the `commandId` from a live-schema query (`rustra_ffi_get_schema`). Static commands keep their fast postcard path; prod has no dynamic commands (frozen).
+**Architecture:** Dynamic commands are forced to **Tier 3 (JSON-in-binary)** at registration (`rkyv_v2_handler = None`, JSON decoder). The TS `createRkyvV2Engine` falls back to Tier 3 for any command absent from the static codec registry, using the `commandId` from a live-schema query (`unikit_ffi_get_schema`). Static commands keep their fast postcard path; prod has no dynamic commands (frozen).
 
-**Tech Stack:** Rust (`crates/rustra`), TypeScript (`packages/types`), JSI/C++ (`RustraJSIBridge.cpp`), RN example. Tests: Rust integration, TS unit (mock native), RN sim.
+**Tech Stack:** Rust (`crates/unikit-bridge`), TypeScript (`packages/types`), JSI/C++ (`UnikitJSIBridge.cpp`), RN example. Tests: Rust integration, TS unit (mock native), RN sim.
 
 **Design doc:** `docs/plans/2026-07-04-dynamic-rkyv-path-design.md`
 
@@ -26,9 +26,9 @@
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs` (`build_command` ~line 257, `register`/`register_fn` ~line 340)
+- Modify: `crates/unikit-bridge/src/lib.rs` (`build_command` ~line 257, `register`/`register_fn` ~line 340)
 
-**Step 1: Write failing test** (append to `runtime_registry_tests` mod in `crates/rustra/src/lib.rs`):
+**Step 1: Write failing test** (append to `runtime_registry_tests` mod in `crates/unikit-bridge/src/lib.rs`):
 
 ```rust
     #[test]
@@ -62,7 +62,7 @@ Add (alongside `c1`/`c2`/`c3` in the mod) an `echo` handler + types:
 
 **Step 2: Run → verify failure**
 
-Run: `cargo test -p rustra dynamic_command_invokable_via_rkyv_v2_tier3`
+Run: `cargo test -p unikit-bridge dynamic_command_invokable_via_rkyv_v2_tier3`
 Expected: FAIL — dynamic command's `rkyv_v2_handler` is `Some` (postcard), so Tier 3 JSON payload fails to decode.
 
 **Step 3: Implement** — add `force_tier3: bool` to `build_command`:
@@ -93,13 +93,13 @@ where
         let handler_bin = handler.clone();
         Some(Arc::new(move |payload: &[u8]| {
             if payload.len() < 2 {
-                return Err(RustraError::invalid_args("rkyv v2: payload too short"));
+                return Err(UnikitError::invalid_args("rkyv v2: payload too short"));
             }
             let input: I = postcard::from_bytes(&payload[2..])
-                .map_err(|e| RustraError::invalid_args(format!("postcard decode: {e}")))?;
+                .map_err(|e| UnikitError::invalid_args(format!("postcard decode: {e}")))?;
             let output = handler_bin(input)?;
             let out_bytes = postcard::to_allocvec(&output)
-                .map_err(|e| RustraError::internal(format!("postcard encode: {e}")))?;
+                .map_err(|e| UnikitError::internal(format!("postcard encode: {e}")))?;
             let mut buf = vec![0u8; 8 + out_bytes.len()];
             buf[0] = 1;
             buf[8..8 + out_bytes.len()].copy_from_slice(&out_bytes);
@@ -115,9 +115,9 @@ where
         output_schema,
         definitions,
         invoke: Arc::new(move |params| {
-            let input = serde_json::from_value::<I>(params).map_err(RustraError::invalid_args)?;
+            let input = serde_json::from_value::<I>(params).map_err(UnikitError::invalid_args)?;
             let output = handler(input)?;
-            serde_json::to_value(output).map_err(RustraError::internal)
+            serde_json::to_value(output).map_err(UnikitError::internal)
         }),
         rkyv_v2_handler,
         rkyv_v2_decode: rkyv_v2_decoder,
@@ -136,14 +136,14 @@ Update callers:
 
 **Step 4: Run → verify pass**
 
-Run: `cargo test -p rustra`
+Run: `cargo test -p unikit-bridge`
 Expected: PASS (new test + all existing).
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra/src/lib.rs
-git commit -m "feat(rustra): force Tier 3 for dynamic commands (rkyv V2 path)"
+git add crates/unikit-bridge/src/lib.rs
+git commit -m "feat(unikit): force Tier 3 for dynamic commands (rkyv V2 path)"
 ```
 
 ---
@@ -152,7 +152,7 @@ git commit -m "feat(rustra): force Tier 3 for dynamic commands (rkyv V2 path)"
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs` (add public method; reuse private `schema(id, state)`)
+- Modify: `crates/unikit-bridge/src/lib.rs` (add public method; reuse private `schema(id, state)`)
 
 **Step 1: Write failing test** (append to `runtime_registry_tests`):
 
@@ -183,17 +183,17 @@ pub fn live_schema(&self) -> Value {
 }
 ```
 
-**Step 4: Run → verify pass**: `cargo test -p rustra live_schema`
+**Step 4: Run → verify pass**: `cargo test -p unikit-bridge live_schema`
 
-**Step 5: Commit**: `git commit -m "feat(rustra): Package::live_schema() public"`
+**Step 5: Commit**: `git commit -m "feat(unikit): Package::live_schema() public"`
 
 ---
 
-## Task 3: `rustra_ffi_get_schema` FFI
+## Task 3: `unikit_ffi_get_schema` FFI
 
 **Files:**
 
-- Modify: `crates/rustra/src/ffi.rs`
+- Modify: `crates/unikit-bridge/src/ffi.rs`
 
 **Step 1: Write failing test** (append to `mod tests` in ffi.rs):
 
@@ -202,33 +202,33 @@ pub fn live_schema(&self) -> Value {
     fn ffi_get_schema_returns_json() {
         let pkg = Package::builder("test.schema")
             .command("add", |args: serde_json::Value| {
-                Ok::<_, crate::RustraError>(serde_json::json!(1))
+                Ok::<_, crate::UnikitError>(serde_json::json!(1))
             })
             .build();
         pkg.register_ffi();
         let mut out_len: usize = 0;
-        let ptr = unsafe { rustra_ffi_get_schema(&mut out_len) };
+        let ptr = unsafe { unikit_ffi_get_schema(&mut out_len) };
         assert!(!ptr.is_null());
         let bytes = unsafe { std::slice::from_raw_parts(ptr, out_len) };
         let v: serde_json::Value = serde_json::from_slice(bytes).unwrap();
         assert_eq!(v["packageId"], "test.schema");
         assert!(v["commands"].as_array().unwrap().iter().any(|c| c["name"] == "add"));
-        unsafe { rustra_ffi_free(ptr, out_len) };
+        unsafe { unikit_ffi_free(ptr, out_len) };
     }
 ```
 
-**Step 2: Run → verify failure** (`rustra_ffi_get_schema not found`)
+**Step 2: Run → verify failure** (`unikit_ffi_get_schema not found`)
 
-**Step 3: Implement** — add to ffi.rs (after `rustra_ffi_free`):
+**Step 3: Implement** — add to ffi.rs (after `unikit_ffi_free`):
 
 ```rust
 /// 현재 등록된 패키지의 라이브 스키마를 JSON 바이트로 반환한다.
-/// 반환 버퍼는 `rustra_ffi_free` 로 해제. read-only (debug/release 모두).
+/// 반환 버퍼는 `unikit_ffi_free` 로 해제. read-only (debug/release 모두).
 ///
 /// # Safety
-/// `out_len` must be a valid write pointer. Caller must free with `rustra_ffi_free`.
+/// `out_len` must be a valid write pointer. Caller must free with `unikit_ffi_free`.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_ffi_get_schema(out_len: *mut usize) -> *mut u8 {
+pub unsafe extern "C" fn unikit_ffi_get_schema(out_len: *mut usize) -> *mut u8 {
     match get_package() {
         Some(pkg) => {
             let json = serde_json::to_vec(&pkg.live_schema()).unwrap_or_else(|_| b"{}".to_vec());
@@ -239,9 +239,9 @@ pub unsafe extern "C" fn rustra_ffi_get_schema(out_len: *mut usize) -> *mut u8 {
 }
 ```
 
-**Step 4: Run → verify pass**: `cargo test -p rustra ffi_get_schema`
+**Step 4: Run → verify pass**: `cargo test -p unikit-bridge ffi_get_schema`
 
-**Step 5: Commit**: `git commit -m "feat(rustra): rustra_ffi_get_schema FFI for live schema"`
+**Step 5: Commit**: `git commit -m "feat(unikit): unikit_ffi_get_schema FFI for live schema"`
 
 ---
 
@@ -249,25 +249,25 @@ pub unsafe extern "C" fn rustra_ffi_get_schema(out_len: *mut usize) -> *mut u8 {
 
 **Files:**
 
-- Modify: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp`
+- Modify: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp`
 
-**Step 1: Implement** — add to `RustraHostObject` constructor (after the `noop` block, before closing `}`):
+**Step 1: Implement** — add to `UnikitHostObject` constructor (after the `noop` block, before closing `}`):
 
 ```cpp
-  // live schema query → rustra_ffi_get_schema
+  // live schema query → unikit_ffi_get_schema
   {
-    extern "C" uint8_t* rustra_ffi_get_schema(size_t* out_len);
+    extern "C" uint8_t* unikit_ffi_get_schema(size_t* out_len);
     auto propNameId = PropNameID::forAscii(rt, "getSchema");
     auto hostFn = Function::createFromHostFunction(
       rt, propNameId, 0,
       [](Runtime& rt, const Value&, const Value*, size_t) -> Value {
         size_t out_len = 0;
-        uint8_t* data = rustra_ffi_get_schema(&out_len);
+        uint8_t* data = unikit_ffi_get_schema(&out_len);
         if (!data) {
-          throw JSError(rt, "RustraJSI: getSchema returned null");
+          throw JSError(rt, "UnikitJSI: getSchema returned null");
         }
         auto returnValue = createArrayBuffer(rt, data, out_len);
-        rustra_ffi_free(data, out_len);
+        unikit_ffi_free(data, out_len);
         return returnValue;
       });
     cache_["getSchema"] = std::make_unique<CachedFunction>(
@@ -275,9 +275,9 @@ pub unsafe extern "C" fn rustra_ffi_get_schema(out_len: *mut usize) -> *mut u8 {
   }
 ```
 
-Also declare `getSchema` in the `RustraNative` TS type (Task 5 covers TS).
+Also declare `getSchema` in the `UnikitNative` TS type (Task 5 covers TS).
 
-**Step 2: Verify compile** — rebuild debug iOS lib + app (covered in Task 7 sim run). For now: `cargo build -p rustra` (ensures Rust side compiles). The C++ compiles at the iOS build step.
+**Step 2: Verify compile** — rebuild debug iOS lib + app (covered in Task 7 sim run). For now: `cargo build -p unikit-bridge` (ensures Rust side compiles). The C++ compiles at the iOS build step.
 
 **Step 3: Commit**: `git commit -m "feat(rn-jsi): expose getSchema (live schema) to JS"`
 
@@ -438,7 +438,7 @@ export type RkyvV2SchemaNative = {
 
 and guard `liveSchema()` with `if (!native.getSchema) throw ...`.
 
-**Step 4: Run → verify pass**: `npm test --workspace @rustra/types` (or the package's test cmd).
+**Step 4: Run → verify pass**: `npm test --workspace @unikit-bridge/types` (or the package's test cmd).
 
 **Step 5: Commit**: `git commit -m "feat(types): rkyvV2 engine Tier 3 fallback + getLiveSchema"`
 
@@ -453,16 +453,16 @@ and guard `liveSchema()` with `if (!native.getSchema) throw ...`.
 **Step 1: Implement** — add a section that uses the **rkyvV2 engine** (not JSON engine) for a dynamic command and displays the live schema:
 
 ```ts
-import { createRkyvV2Engine, getLiveSchema } from '@rustra/types';
+import { createRkyvV2Engine, getLiveSchema } from '@unikit-bridge/types';
 // ...
-// after installRustraJSI():
+// after installUnikitJSI():
 const rkyvEngine = createRkyvV2Engine(
-  getRustraNative() as any,
+  getUnikitNative() as any,
   rkyvV2Registry_static_empty_or_imported,
 );
 // register a dynamic command via the control command (JSON path, one-off):
-await call('rustraRegistryDemo', { op: 'registerAvg' });
-const schema = getLiveSchema(getRustraNative() as any);
+await call('unikitRegistryDemo', { op: 'registerAvg' });
+const schema = getLiveSchema(getUnikitNative() as any);
 const avgEntry = schema.get('average');
 log(`live schema: 'average' commandId=${avgEntry?.commandId}`);
 // call it via the SAME rkyvV2 engine (Tier 3 fallback):
@@ -474,7 +474,7 @@ log(`rkyvV2 engine.invoke('average') → average=${avg.average} count=${avg.coun
 
 (Exact integration depends on how `rkyvV2Registry` is imported; if the static registry isn't needed, pass an empty `Map`.)
 
-**Step 2: Rebuild** — `RUSTRA_PROFILE=debug ./build-rust-ios.sh` then `npx expo run:ios --device "iPhone 17"`.
+**Step 2: Rebuild** — `UNIKIT_PROFILE=debug ./build-rust-ios.sh` then `npx expo run:ios --device "iPhone 17"`.
 
 **Step 3: Verify on sim** — screenshot + OCR; expect a line showing the dynamic command called via the rkyvV2 engine + its commandId from live schema.
 
@@ -485,8 +485,8 @@ log(`rkyvV2 engine.invoke('average') → average=${avg.average} count=${avg.coun
 ## Task 7: Verification + docs
 
 **Step 1: Full Rust suite**: `cargo test --workspace` → all pass.
-**Step 2: Release sanity**: `cargo test --release -p rustra` → mutation tests compiled out; static + schema tests pass.
-**Step 3: Clippy/fmt**: `cargo clippy -p rustra --all-targets -- -D warnings`; `rustfmt` touched files.
+**Step 2: Release sanity**: `cargo test --release -p unikit-bridge` → mutation tests compiled out; static + schema tests pass.
+**Step 3: Clippy/fmt**: `cargo clippy -p unikit-bridge --all-targets -- -D warnings`; `rustfmt` touched files.
 **Step 4: Docs**: append a "Dynamic commands → rkyv V2 (Tier 3) + live schema" subsection to `docs/architecture.md` and `README.md`.
 **Step 5: Commit**: `git commit -m "docs: dynamic commands on rkyv V2 + live schema"`
 
@@ -496,12 +496,12 @@ log(`rkyvV2 engine.invoke('average') → average=${avg.average} count=${avg.coun
 
 - [x] Dynamic commands (runtime `register`) invokable via `invoke_rkyv_v2` (Tier 3 wire) — Rust test.
       (`tests/rkyv_v2_wire.rs` — dynamic_tier3_* 10종 타입 round-trip + fuzz/concurrency)
-- [x] `Package::live_schema()` + `rustra_ffi_get_schema` work; JSI exposes `getSchema`.
+- [x] `Package::live_schema()` + `unikit_ffi_get_schema` work; JSI exposes `getSchema`.
       (`ffi_get_schema_returns_live_schema` + `live_schema_lists_all_dynamic_commands`)
 - [x] `createRkyvV2Engine` Tier 3 fallback for non-codegen commands — TS unit test.
       (`packages/types/src/index.test.ts` — 8 tests, `npm run test:types`)
 - [x] RN sim: dynamic command called via the single rkyvV2 engine + live schema commandId shown.
       (`DynamicRegistryApp.tsx` 4종 타입(Vec/String/Map/Nested) + `docs/plans/2026-07-05-rn-verification-checklist.md`)
 - [x] Static commands unaffected (fast postcard path); prod (release/frozen) unaffected.
-      (`cargo test --release -p rustra` — 정적 10종 pass, 동적 cfg'd out)
-- [x] `cargo test --workspace`, `--release -p rustra` clean. 성능: `crates/rustra/benches/` (tier_compare/dynamic_registry/type_scaling) — 수치는 `docs/benchmarks.md` "동적 명령 (Tier 3)" 섹션.
+      (`cargo test --release -p unikit-bridge` — 정적 10종 pass, 동적 cfg'd out)
+- [x] `cargo test --workspace`, `--release -p unikit-bridge` clean. 성능: `crates/unikit-bridge/benches/` (tier_compare/dynamic_registry/type_scaling) — 수치는 `docs/benchmarks.md` "동적 명령 (Tier 3)" 섹션.

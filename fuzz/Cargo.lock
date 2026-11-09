@@ -244,44 +244,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
-name = "rustra"
-version = "0.13.0"
-dependencies = [
- "hex",
- "postcard",
- "rustra-macros",
- "rustra-naming",
- "schemars",
- "serde",
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "rustra-fuzz"
-version = "0.0.0"
-dependencies = [
- "libfuzzer-sys",
- "rustra",
- "schemars",
- "serde",
-]
-
-[[package]]
-name = "rustra-macros"
-version = "0.13.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "rustra-naming",
- "syn 3.0.3",
-]
-
-[[package]]
-name = "rustra-naming"
-version = "0.13.0"
-
-[[package]]
 name = "schemars"
 version = "0.8.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -431,6 +393,44 @@ name = "unicode-ident"
 version = "1.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75"
+
+[[package]]
+name = "unikit-bridge"
+version = "0.13.0"
+dependencies = [
+ "hex",
+ "postcard",
+ "schemars",
+ "serde",
+ "serde_json",
+ "sha2",
+ "unikit-bridge-macros",
+ "unikit-bridge-naming",
+]
+
+[[package]]
+name = "unikit-bridge-macros"
+version = "0.13.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.3",
+ "unikit-bridge-naming",
+]
+
+[[package]]
+name = "unikit-bridge-naming"
+version = "0.13.0"
+
+[[package]]
+name = "unikit-fuzz"
+version = "0.0.0"
+dependencies = [
+ "libfuzzer-sys",
+ "schemars",
+ "serde",
+ "unikit-bridge",
+]
 
 [[package]]
 name = "version_check"

@@ -1,12 +1,12 @@
 /**
- * @rustra/react — React and React Native hooks for rustra-bridge.
+ * @unikit-bridge/react — React and React Native hooks for unikit-bridge.
  *
  * Provides declarative data fetching (`useCommand`), mutations (`useMutation`),
- * event subscriptions (`useEvent`), and scoped engine context (`RustraProvider`).
+ * event subscriptions (`useEvent`), and scoped engine context (`UnikitProvider`).
  *
  * @example
  * ```tsx
- * import { RustraProvider, useCommand, useMutation } from '@rustra/react';
+ * import { UnikitProvider, useCommand, useMutation } from '@unikit-bridge/react';
  * import { getItem, createItem } from './generated/commands.js';
  *
  * function ItemView({ id }: { id: string }) {
@@ -21,8 +21,8 @@
  * ```
  */
 
-export { RustraProvider, useRustraEngine } from './context.js';
-export type { RustraProviderProps } from './context.js';
+export { UnikitProvider, useUnikitEngine } from './context.js';
+export type { UnikitProviderProps } from './context.js';
 
 export { useCommand } from './useCommand.js';
 export type {

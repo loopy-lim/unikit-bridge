@@ -64,20 +64,20 @@ export async function runInit(args: string[]): Promise<void> {
   }
   const directories = parsed.positionals;
   if (directories.length !== 1)
-    throw new UsageError('Provide one project directory. Usage: rustra init my-project [--force]');
+    throw new UsageError('Provide one project directory. Usage: unikit init my-project [--force]');
   const root = resolve(directories[0]!);
   // 감지는 파일을 쓰기 전에 — 기존 프로젝트 위로 init 하는 경우가 관찰 대상이다.
   const detected = detectInitHosts(root);
   const hosts: InitHosts = {
-    nodeRange: cliManifest.rustraTemplate.nodeRange,
-    bunRange: cliManifest.rustraTemplate.bunRange,
+    nodeRange: cliManifest.unikitTemplate.nodeRange,
+    bunRange: cliManifest.unikitTemplate.bunRange,
     bun: hostValue === 'bun',
     reactNative: hostValue === 'react-native' || (hostValue === undefined && detected.reactNative),
   };
   const versions = templateVersions(
     cliVersion,
-    cliManifest.dependencies['@rustra/types'],
-    cliManifest.rustraTemplate.cargoRange,
+    cliManifest.dependencies['@unikit-bridge/types'],
+    cliManifest.unikitTemplate.cargoRange,
   );
   const files = renderInitProjectFiles(versions, hosts);
   const contents: Record<string, string> = {
@@ -87,7 +87,7 @@ export async function runInit(args: string[]): Promise<void> {
     'src/bin/generate.rs': files.generateRs,
     'src/index.ts': files.appTs,
     'package.json': files.packageJson,
-    'rustra.json': files.rustraJson,
+    'unikit.json': files.unikitJson,
     '.gitignore': files.gitignore,
     'tsconfig.json': files.tsconfig,
   };
@@ -101,7 +101,7 @@ export async function runInit(args: string[]): Promise<void> {
     await mkdir(dirname(path), { recursive: true });
     await writeFile(path, content);
   }
-  console.log(`Created rustra project in ${root}:`);
+  console.log(`Created unikit project in ${root}:`);
   console.log(`  ${Object.keys(contents).join(', ')}`);
   const hostSummary = hosts.bun ? 'bun' : hosts.reactNative ? 'node, react-native' : 'node';
   // 선택 이유 표시 — --host 로 감지를 바꿨다면 그 사실을 안내해 "왜 RN이 빠졌는지"를 남긴다.
@@ -110,7 +110,7 @@ export async function runInit(args: string[]): Promise<void> {
   if (parsed.flags.has('setup')) {
     await runSetup([
       '--config',
-      resolve(root, 'rustra.json'),
+      resolve(root, 'unikit.json'),
       ...(hosts.reactNative ? [] : ['--run']),
     ]);
     return;

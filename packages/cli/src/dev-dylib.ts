@@ -71,12 +71,12 @@ export function spawnCapturingStdout(
     const render = (suffix: string): void => {
       const elapsed = Math.floor((Date.now() - started) / 1000);
       const frame = SPINNER_FRAMES[tick % SPINNER_FRAMES.length];
-      output(`[rustra] ${frame} ${progressLabel} ${suffix} (${elapsed}s)`);
+      output(`[unikit] ${frame} ${progressLabel} ${suffix} (${elapsed}s)`);
       tick += 1;
     };
     const timer = setInterval(() => render('still running'), 1000);
     timer.unref?.();
-    output(`[rustra] ⠋ ${progressLabel}...`);
+    output(`[unikit] ⠋ ${progressLabel}...`);
     const finish = (): void => {
       if (timer) clearInterval(timer);
     };
@@ -92,10 +92,10 @@ export function spawnCapturingStdout(
       finish();
       const total = ((Date.now() - started) / 1000).toFixed(1);
       if (code === 0 && !spawnError) {
-        output(`[rustra] ✓ ${progressLabel} done in ${total}s`);
+        output(`[unikit] ✓ ${progressLabel} done in ${total}s`);
         resolveSpawn(Buffer.concat(chunks).toString('utf8'));
       } else {
-        output(`[rustra] ✗ ${progressLabel} failed in ${total}s`);
+        output(`[unikit] ✗ ${progressLabel} failed in ${total}s`);
         rejectSpawn(
           spawnError ?? new Error(`cargo ${signal ? `terminated by ${signal}` : `exit ${code}`}`),
         );

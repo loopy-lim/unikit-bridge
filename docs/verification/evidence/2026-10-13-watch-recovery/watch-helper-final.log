@@ -41,14 +41,14 @@ ok 7 - gate aborts when hidden workspace patch preparation fails on disk
   duration_ms: 1.92925
   type: 'test'
   ...
-# Subtest: scaffold generate bin honors RUSTRA_SCHEMA_OUT (codegen:check contract)
-ok 8 - scaffold generate bin honors RUSTRA_SCHEMA_OUT (codegen:check contract)
+# Subtest: scaffold generate bin honors UNIKIT_SCHEMA_OUT (codegen:check contract)
+ok 8 - scaffold generate bin honors UNIKIT_SCHEMA_OUT (codegen:check contract)
   ---
   duration_ms: 0.439459
   type: 'test'
   ...
-# Subtest: cargo steps inherit RUSTRA_ONBOARDING_CARGO_TARGET_DIR as CARGO_TARGET_DIR; unset stays env-free
-ok 9 - cargo steps inherit RUSTRA_ONBOARDING_CARGO_TARGET_DIR as CARGO_TARGET_DIR; unset stays env-free
+# Subtest: cargo steps inherit UNIKIT_ONBOARDING_CARGO_TARGET_DIR as CARGO_TARGET_DIR; unset stays env-free
+ok 9 - cargo steps inherit UNIKIT_ONBOARDING_CARGO_TARGET_DIR as CARGO_TARGET_DIR; unset stays env-free
   ---
   duration_ms: 6.384084
   type: 'test'

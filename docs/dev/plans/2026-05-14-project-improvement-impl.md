@@ -1,8 +1,8 @@
-# Rustra-Bridge Project Improvement Implementation Plan
+# Unikit-Bridge Project Improvement Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** rustra-bridge 프로젝트의 기반 인프라(CI/CD, 린트), 기능 완성도(타입 매핑, RN, 에러), DX(예제, 퍼블리싱, CLI), 기술부채(매크로, 벤치마크, 계약)를 4-phase로 개선
+**Goal:** unikit-bridge 프로젝트의 기반 인프라(CI/CD, 린트), 기능 완성도(타입 매핑, RN, 에러), DX(예제, 퍼블리싱, CLI), 기술부채(매크로, 벤치마크, 계약)를 4-phase로 개선
 
 **Architecture:** 모노레포 구조 유지. Phase 1에서 기반을 먼저 구축하고, 이후 Phase에서 점진적으로 개선. 각 Task는 독립적으로 커밋 가능한 단위.
 
@@ -21,7 +21,7 @@
 
 **Step 1: ESLint 관련 패키지 설치**
 
-Run: `npm install -D -w rustra-bridge eslint @eslint/js typescript-eslint`
+Run: `npm install -D -w unikit-bridge eslint @eslint/js typescript-eslint`
 
 **Step 2: `eslint.config.js` 작성**
 
@@ -84,7 +84,7 @@ git commit -m "chore: ESLint 9 flat config 추가"
 
 **Step 1: Prettier 설치**
 
-Run: `npm install -D -w rustra-bridge prettier`
+Run: `npm install -D -w unikit-bridge prettier`
 
 **Step 2: `.prettierrc` 작성**
 
@@ -132,7 +132,7 @@ git commit -m "chore: Prettier 설정 및 전체 코드 포맷팅"
 
 **Step 1: Husky + lint-staged 설치**
 
-Run: `npm install -D -w rustra-bridge husky lint-staged`
+Run: `npm install -D -w unikit-bridge husky lint-staged`
 
 **Step 2: Husky 초기화**
 
@@ -257,7 +257,7 @@ git commit -m "ci: GitHub Actions CI 워크플로우 추가"
 
 **Files:**
 
-- Modify: `crates/rustra/Cargo.toml` (clippy 설정 확인용)
+- Modify: `crates/unikit-bridge/Cargo.toml` (clippy 설정 확인용)
 
 이 Task는 CI에서 `cargo fmt --check` 와 `cargo clippy`를 이미 실행하므로,
 로컬에서도 실행 가능하도록 스크립트만 추가합니다.
@@ -293,7 +293,7 @@ git commit -m "chore: Rust 품질 검사 스크립트 추가"
 
 **Files:**
 
-- Modify: `crates/rustra/src/codegen.rs` (tuple 매핑 로직)
+- Modify: `crates/unikit-bridge/src/codegen.rs` (tuple 매핑 로직)
 - Test: 기존 Rust 테스트로 검증
 
 **Step 1: `codegen.rs`의 `ts_type_from_schema` 함수에서 tuple 처리 추가**
@@ -331,7 +331,7 @@ Expected: 모든 테스트 통과
 **Step 3: Commit**
 
 ```bash
-git add crates/rustra/src/codegen.rs
+git add crates/unikit-bridge/src/codegen.rs
 git commit -m "feat(codegen): tuple 타입 → [A, B, C] 매핑 추가"
 ```
 
@@ -341,7 +341,7 @@ git commit -m "feat(codegen): tuple 타입 → [A, B, C] 매핑 추가"
 
 **Files:**
 
-- Modify: `crates/rustra/src/codegen.rs`
+- Modify: `crates/unikit-bridge/src/codegen.rs`
 
 **Step 1: `additionalProperties` 기반 Record 타입 생성 로직 추가**
 
@@ -372,7 +372,7 @@ Expected: 모든 테스트 통과
 **Step 3: Commit**
 
 ```bash
-git add crates/rustra/src/codegen.rs
+git add crates/unikit-bridge/src/codegen.rs
 git commit -m "feat(codegen): Map → Record<string, T> 타입 매핑 추가"
 ```
 
@@ -382,14 +382,14 @@ git commit -m "feat(codegen): Map → Record<string, T> 타입 매핑 추가"
 
 **Files:**
 
-- Modify: `crates/rustra/src/error.rs` (retryable 필드, 도메인별 에러 추가)
-- Modify: `packages/types/src/index.ts` (RustraError 타입 확장)
+- Modify: `crates/unikit-bridge/src/error.rs` (retryable 필드, 도메인별 에러 추가)
+- Modify: `packages/types/src/index.ts` (UnikitError 타입 확장)
 
 **Step 1: `error.rs`에 retryable 필드와 도메인별 에러 추가**
 
 ```rust
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
-pub struct RustraError {
+pub struct UnikitError {
     code: &'static str,
     message: String,
     #[serde(skip_serializing_if = "is_false")]
@@ -423,12 +423,12 @@ pub fn timeout(error: impl fmt::Display) -> Self {
 }
 ```
 
-**Step 2: TypeScript `RustraError` 타입 확장**
+**Step 2: TypeScript `UnikitError` 타입 확장**
 
 `packages/types/src/index.ts`:
 
 ```typescript
-export type RustraError = {
+export type UnikitError = {
   readonly code: string;
   readonly message: string;
   readonly retryable?: boolean;
@@ -443,7 +443,7 @@ Expected: 모든 테스트 통과 (retryable은 optional이므로 기존 코드 
 **Step 4: Commit**
 
 ```bash
-git add crates/rustra/src/error.rs packages/types/src/index.ts
+git add crates/unikit-bridge/src/error.rs packages/types/src/index.ts
 git commit -m "feat(error): retryable 필드 및 transport 도메인 에러 추가"
 ```
 
@@ -484,7 +484,7 @@ git commit -m "docs: React Native 설정 가이드 추가"
 
 **Step 1: Changesets 설치**
 
-Run: `npm install -D -w rustra-bridge @changesets/cli`
+Run: `npm install -D -w unikit-bridge @changesets/cli`
 
 **Step 2: Changesets 초기화**
 
@@ -544,7 +544,7 @@ git commit -m "chore: Changesets 버전 관리 도구 도입"
 
 **Step 3: 통합 테스트 실행**
 
-Run: `cargo test -p rustra-crud-example && npm run test:ts:node`
+Run: `cargo test -p unikit-crud-example && npm run test:ts:node`
 Expected: 모든 테스트 통과
 
 **Step 4: Commit**
@@ -594,7 +594,7 @@ git commit -m "feat(cli): watch 모드 추가 — schema 변경 시 자동 재�
 
 **Files:**
 
-- Modify: `crates/rustra-macros/src/lib.rs`
+- Modify: `crates/unikit-bridge-macros/src/lib.rs`
 
 **Step 1: proc-macro 에러에 정확한 span 정보 추가**
 
@@ -608,7 +608,7 @@ Expected: 모든 테스트 통과
 **Step 3: Commit**
 
 ```bash
-git add crates/rustra-macros/src/lib.rs
+git add crates/unikit-bridge-macros/src/lib.rs
 git commit -m "refactor(macros): 컴파일 에러 span 정확도 개선"
 ```
 

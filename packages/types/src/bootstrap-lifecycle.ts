@@ -1,4 +1,4 @@
-import { RustraCommandError, RustraErrorCode } from './errors.js';
+import { UnikitCommandError, UnikitErrorCode } from './errors.js';
 
 /**
  * bootstrap 수명 상태(A05) — R08 loud-fail 가드 위의 로컬 상태 3종.
@@ -15,10 +15,10 @@ import { RustraCommandError, RustraErrorCode } from './errors.js';
 export type BootstrapState = 'initializing' | 'ready' | 'disposed';
 
 /** dispose 후 ready 재진입 loud-fail 계약의 공용 에러 — 어댑터별 메시지 접두 포함. */
-export function disposedBootstrapError(adapter: string, detail?: string): RustraCommandError {
+export function disposedBootstrapError(adapter: string, detail?: string): UnikitCommandError {
   const suffix = detail ? ` ${detail}` : '';
-  return new RustraCommandError(
-    RustraErrorCode.TransportUnavailable,
+  return new UnikitCommandError(
+    UnikitErrorCode.TransportUnavailable,
     `This ${adapter} bootstrap has been disposed. Create a new bootstrap to re-initialize ` +
       `the engine — ready() after dispose() is rejected instead of silently re-resolving.` +
       suffix,

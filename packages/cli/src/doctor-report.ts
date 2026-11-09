@@ -26,7 +26,7 @@ export function collectDoctorReport(
   if (!existsSync(configPath)) {
     checks.unshift(
       check('config.file', 'fail', true, `Config file does not exist: ${configPath}`, undefined, [
-        'Create rustra.json or pass --config <path>',
+        'Create unikit.json or pass --config <path>',
       ]),
     );
     return { schemaVersion: 1, checks };

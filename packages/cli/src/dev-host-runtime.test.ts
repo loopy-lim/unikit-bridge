@@ -20,14 +20,14 @@ for (const host of ['node', 'bun'] as const) {
       skip: process.platform === 'win32' ? 'fixture uses a POSIX executable Cargo shim' : false,
     },
     async () => {
-      const root = mkdtempSync(join(tmpdir(), 'rustra-dev-runtime-'));
+      const root = mkdtempSync(join(tmpdir(), 'unikit-dev-runtime-'));
       const generator = join(root, 'generator');
       const runtime = join(root, 'runtime');
       const bin = join(root, 'bin');
       const source = join(runtime, 'src', 'lib.rs');
       const artifact = join(root, 'target', 'runtime.txt');
       const attempts = join(root, 'target', 'attempts.log');
-      const configPath = join(root, 'rustra.json');
+      const configPath = join(root, 'unikit.json');
       const oldPath = process.env.PATH;
       const oldError = console.error;
       const failures: string[] = [];
@@ -88,8 +88,8 @@ for (const host of ['node', 'bun'] as const) {
 const args=process.argv.slice(2);
 if(args[0]==='metadata') console.log(${JSON.stringify(JSON.stringify(metadata))});
 else if(args[0]==='run') {
- fs.mkdirSync(process.env.RUSTRA_SCHEMA_OUT,{recursive:true});
- fs.writeFileSync(path.join(process.env.RUSTRA_SCHEMA_OUT,'schema.json'),${JSON.stringify(JSON.stringify({ packageId: 'runtime.probe', commands: [] }))});
+ fs.mkdirSync(process.env.UNIKIT_SCHEMA_OUT,{recursive:true});
+ fs.writeFileSync(path.join(process.env.UNIKIT_SCHEMA_OUT,'schema.json'),${JSON.stringify(JSON.stringify({ packageId: 'runtime.probe', commands: [] }))});
 } else if(args[0]==='build' && args[args.indexOf('--package')+1]==='runtime') {
  const source=fs.readFileSync(${JSON.stringify(source)},'utf8');
  fs.appendFileSync(${JSON.stringify(attempts)},source+'\\n');

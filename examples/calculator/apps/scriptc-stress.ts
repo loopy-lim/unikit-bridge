@@ -1,24 +1,24 @@
 import {
-  rustra_mobile_init,
-  rustra_ffi_invoke_json_into_len,
-  rustra_ffi_event_sink_register_scriptc,
-  rustra_ffi_event_sink_release_scriptc,
-  rustra_ffi_channel_create_bytes,
-  rustra_ffi_channel_release_scriptc,
-  rustra_ffi_channel_send_bytes,
-  rustra_ffi_invoke_json_async_channel,
-  rustra_ffi_invoke_cancel,
-  rustra_ffi_cancellation_status,
+  unikit_mobile_init,
+  unikit_ffi_invoke_json_into_len,
+  unikit_ffi_event_sink_register_scriptc,
+  unikit_ffi_event_sink_release_scriptc,
+  unikit_ffi_channel_create_bytes,
+  unikit_ffi_channel_release_scriptc,
+  unikit_ffi_channel_send_bytes,
+  unikit_ffi_invoke_json_async_channel,
+  unikit_ffi_invoke_cancel,
+  unikit_ffi_cancellation_status,
 } from '../scriptc/scriptc-ffi.js';
 import {
-  rustra_stress_wait_workers,
-  rustra_stress_release_workers,
-  rustra_stress_handler_calls,
+  unikit_stress_wait_workers,
+  unikit_stress_release_workers,
+  unikit_stress_handler_calls,
 } from '../scriptc/stress-controls.js';
 
 // A real native executable with an external deadline. The private fixture only
 // controls worker scheduling; callbacks, async, cancellation and free are production.
-rustra_mobile_init();
+unikit_mobile_init();
 const cycles = 64;
 const cancelledRequests = 64;
 const decoder = new TextDecoder();
@@ -58,30 +58,30 @@ const onNew: (name: string, payload: string) => void = (name, payload) => {
 };
 
 for (let cycle = 0; cycle < cycles; cycle += 1) {
-  const first = rustra_ffi_channel_create_bytes(onCopied);
-  const second = rustra_ffi_channel_create_bytes(onCopied);
+  const first = unikit_ffi_channel_create_bytes(onCopied);
+  const second = unikit_ffi_channel_create_bytes(onCopied);
   if (first === 0 || second <= first) throw new Error('channel handles must increase');
   const bytes = new Uint8Array([cycle, 0, 128, 255]);
-  if (rustra_ffi_channel_send_bytes(first, bytes) !== 1) throw new Error('first send failed');
-  if (rustra_ffi_channel_send_bytes(second, bytes) !== 1) throw new Error('second send failed');
-  rustra_ffi_channel_release_scriptc(onCopied);
-  if (rustra_ffi_channel_send_bytes(second, bytes) !== 0)
+  if (unikit_ffi_channel_send_bytes(first, bytes) !== 1) throw new Error('first send failed');
+  if (unikit_ffi_channel_send_bytes(second, bytes) !== 1) throw new Error('second send failed');
+  unikit_ffi_channel_release_scriptc(onCopied);
+  if (unikit_ffi_channel_send_bytes(second, bytes) !== 0)
     throw new Error('newest owner was not released');
-  if (rustra_ffi_channel_send_bytes(first, bytes) !== 1)
+  if (unikit_ffi_channel_send_bytes(first, bytes) !== 1)
     throw new Error('older registration was lost');
-  rustra_ffi_channel_release_scriptc(onCopied);
-  if (rustra_ffi_channel_send_bytes(first, bytes) !== 0)
+  unikit_ffi_channel_release_scriptc(onCopied);
+  if (unikit_ffi_channel_send_bytes(first, bytes) !== 0)
     throw new Error('released channel accepted send');
   bytes[0] = 255;
   bytes[2] = 0;
 
-  rustra_ffi_event_sink_register_scriptc(onOld);
-  rustra_ffi_invoke_json_into_len(JSON.stringify({ command: 'emit', args: cycle }), output);
-  rustra_ffi_event_sink_register_scriptc(onNew);
-  rustra_ffi_event_sink_release_scriptc(onOld);
-  rustra_ffi_invoke_json_into_len(JSON.stringify({ command: 'emit', args: cycle }), output);
-  rustra_ffi_event_sink_release_scriptc(onNew);
-  rustra_ffi_invoke_json_into_len(JSON.stringify({ command: 'emit', args: 999 }), output);
+  unikit_ffi_event_sink_register_scriptc(onOld);
+  unikit_ffi_invoke_json_into_len(JSON.stringify({ command: 'emit', args: cycle }), output);
+  unikit_ffi_event_sink_register_scriptc(onNew);
+  unikit_ffi_event_sink_release_scriptc(onOld);
+  unikit_ffi_invoke_json_into_len(JSON.stringify({ command: 'emit', args: cycle }), output);
+  unikit_ffi_event_sink_release_scriptc(onNew);
+  unikit_ffi_invoke_json_into_len(JSON.stringify({ command: 'emit', args: 999 }), output);
 }
 // Release prevents new native posts. Already queued callbacks still drain, so
 // disposing consumer state separately guards effects from those deliveries.
@@ -104,43 +104,43 @@ const onAsync: (handle: number, payload: Uint8Array) => void = (_handle, payload
     cancellationCalls += 1;
   }
   asyncCalls += 1;
-  if (asyncCalls === cancelledRequests + 2) rustra_ffi_channel_release_scriptc(onAsync);
+  if (asyncCalls === cancelledRequests + 2) unikit_ffi_channel_release_scriptc(onAsync);
 };
-const asyncChannel = rustra_ffi_channel_create_bytes(onAsync);
+const asyncChannel = unikit_ffi_channel_create_bytes(onAsync);
 ids.push(
-  rustra_ffi_invoke_json_async_channel(
+  unikit_ffi_invoke_json_async_channel(
     JSON.stringify({ command: 'block', args: 100 }),
     asyncChannel,
   ),
 );
 ids.push(
-  rustra_ffi_invoke_json_async_channel(
+  unikit_ffi_invoke_json_async_channel(
     JSON.stringify({ command: 'block', args: 101 }),
     asyncChannel,
   ),
 );
-if (!rustra_stress_wait_workers()) throw new Error('both workers did not enter the gate');
+if (!unikit_stress_wait_workers()) throw new Error('both workers did not enter the gate');
 for (let index = 0; index < cancelledRequests; index += 1) {
-  const id = rustra_ffi_invoke_json_async_channel(
+  const id = unikit_ffi_invoke_json_async_channel(
     JSON.stringify({ command: 'count', args: index }),
     asyncChannel,
   );
-  if (id === 0n || !rustra_ffi_invoke_cancel(id)) throw new Error('queued cancellation failed');
-  if (rustra_ffi_cancellation_status(id) !== 2) throw new Error('cancel state not observable');
+  if (id === 0n || !unikit_ffi_invoke_cancel(id)) throw new Error('queued cancellation failed');
+  if (unikit_ffi_cancellation_status(id) !== 2) throw new Error('cancel state not observable');
   ids.push(id);
 }
 const onLate: (handle: number, payload: Uint8Array) => void = (_handle, _payload) => {
   lateCalls += 1;
 };
-const lateChannel = rustra_ffi_channel_create_bytes(onLate);
-const lateId = rustra_ffi_invoke_json_async_channel(
+const lateChannel = unikit_ffi_channel_create_bytes(onLate);
+const lateId = unikit_ffi_invoke_json_async_channel(
   JSON.stringify({ command: 'count', args: 999 }),
   lateChannel,
 );
-rustra_ffi_channel_release_scriptc(onLate);
-if (rustra_ffi_invoke_json_async_channel('{', lateChannel) !== 0n)
+unikit_ffi_channel_release_scriptc(onLate);
+if (unikit_ffi_invoke_json_async_channel('{', lateChannel) !== 0n)
   throw new Error('closed invocation accepted');
-rustra_stress_release_workers();
+unikit_stress_release_workers();
 
 function finish(): void {
   pollCount += 1;
@@ -150,7 +150,7 @@ function finish(): void {
     oldEvents !== cycles ||
     newEvents !== cycles ||
     asyncCalls !== cancelledRequests + 2 ||
-    rustra_ffi_cancellation_status(lateId) !== 0
+    unikit_ffi_cancellation_status(lateId) !== 0
   ) {
     setTimeout(finish, 5);
     return;
@@ -162,20 +162,18 @@ function finish(): void {
     setTimeout(finish, 50);
     return;
   }
-  if (cancellationCalls !== cancelledRequests || rustra_stress_handler_calls() !== 1)
+  if (cancellationCalls !== cancelledRequests || unikit_stress_handler_calls() !== 1)
     throw new Error('cancelled commands crossed their dispatch checkpoint');
   if (lateCalls !== 0 || eventApplications !== 0)
     throw new Error('disposed consumer received an effect');
   for (let index = 0; index < saved.length; index += 1) {
-    if (saved[index][0] !== Math.floor(index / 3) || saved[index][2] !== 128)
+    const entry = saved[index]!;
+    if (entry[0] !== Math.floor(index / 3) || entry[2] !== 128)
       throw new Error('retained callback bytes changed after later deliveries');
   }
   for (let index = 0; index < ids.length; index += 1) {
-    if (
-      ids[index] === 0n ||
-      rustra_ffi_cancellation_status(ids[index]) !== 0 ||
-      rustra_ffi_invoke_cancel(ids[index])
-    )
+    const id = ids[index]!;
+    if (id === 0n || unikit_ffi_cancellation_status(id) !== 0 || unikit_ffi_invoke_cancel(id))
       throw new Error('completed cancellation ID stayed live');
   }
   console.log(

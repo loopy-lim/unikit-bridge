@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createNodeBootstrap, createNodeEngine } from './index.js';
 import type { NodeProcessTransport } from './index.js';
-import { RustraCommandError } from '@rustra/types';
-import type { EngineClientWithBatch } from '@rustra/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
+import type { EngineClientWithBatch } from '@unikit-bridge/types';
 
 void test('createNodeEngine routes invoke to transport', async () => {
   const calls: Array<{ command: string; args: unknown }> = [];
@@ -26,7 +26,7 @@ void test('createNodeEngine applies timeoutMs and shallow abort to pending trans
 
   await assert.rejects(
     engine.invoke('slow', undefined, { timeoutMs: 10 }),
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'transport.timeout',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'transport.timeout',
   );
 
   const controller = new AbortController();
@@ -34,7 +34,7 @@ void test('createNodeEngine applies timeoutMs and shallow abort to pending trans
   controller.abort();
   await assert.rejects(
     pending,
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'cancelled',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'cancelled',
   );
 });
 
@@ -48,7 +48,7 @@ void test('createNodeEngine exposes Promise-based invokeBatch with stable order'
   assert.deepEqual(out, [1, 2]);
 });
 
-void test('createNodeEngine wraps RustraError-shaped rejects into RustraCommandError', async () => {
+void test('createNodeEngine wraps UnikitError-shaped rejects into UnikitCommandError', async () => {
   const engine = createNodeEngine({
     async invoke() {
       // 객체 throw 의 정규화 계약이 검증 대상이다.
@@ -60,7 +60,7 @@ void test('createNodeEngine wraps RustraError-shaped rejects into RustraCommandE
   await assert.rejects(
     () => engine.invoke('missing'),
     (err: unknown) => {
-      if (!(err instanceof RustraCommandError)) return false;
+      if (!(err instanceof UnikitCommandError)) return false;
       assert.equal(err.code, 'transport.timeout');
       assert.equal(err.message, 'request timed out');
       assert.equal(err.retryable, true);
@@ -69,7 +69,7 @@ void test('createNodeEngine wraps RustraError-shaped rejects into RustraCommandE
   );
 });
 
-void test('createNodeEngine wraps unknown errors into RustraCommandError', async () => {
+void test('createNodeEngine wraps unknown errors into UnikitCommandError', async () => {
   const engine = createNodeEngine({
     async invoke() {
       // 문자열 throw 의 정규화 계약이 검증 대상이다.
@@ -81,7 +81,7 @@ void test('createNodeEngine wraps unknown errors into RustraCommandError', async
   await assert.rejects(
     () => engine.invoke('cmd'),
     (err: unknown) => {
-      if (!(err instanceof RustraCommandError)) return false;
+      if (!(err instanceof UnikitCommandError)) return false;
       assert.equal(err.code, 'unknown');
       assert.equal(err.message, 'something broke');
       return true;
@@ -89,10 +89,10 @@ void test('createNodeEngine wraps unknown errors into RustraCommandError', async
   );
 });
 
-// ── napi 와이어 에러 — Error.message 의 RustraError JSON/Display 복원 ──
+// ── napi 와이어 에러 — Error.message 의 UnikitError JSON/Display 복원 ──
 
-void test('createNodeEngine parses RustraError JSON message from napi Error', async () => {
-  // napi transport 는 Rust 의 RustraError 를 Error.reason(JSON 직렬화)로 던진다.
+void test('createNodeEngine parses UnikitError JSON message from napi Error', async () => {
+  // napi transport 는 Rust 의 UnikitError 를 Error.reason(JSON 직렬화)로 던진다.
   // engine 은 이를 파싱해 code/retryable 을 보존해야 한다(unknown 래핑 금지).
   const engine = createNodeEngine({
     async invoke() {
@@ -103,7 +103,7 @@ void test('createNodeEngine parses RustraError JSON message from napi Error', as
   await assert.rejects(
     () => engine.invoke('nope'),
     (err: unknown) => {
-      if (!(err instanceof RustraCommandError)) return false;
+      if (!(err instanceof UnikitCommandError)) return false;
       assert.equal(err.code, 'command.not_found');
       assert.equal(err.message, 'command not found: nope');
       assert.equal(err.retryable, false);
@@ -123,7 +123,7 @@ void test('createNodeEngine parses Display-style "code: message" Error message',
   await assert.rejects(
     () => engine.invoke('nope'),
     (err: unknown) => {
-      if (!(err instanceof RustraCommandError)) return false;
+      if (!(err instanceof UnikitCommandError)) return false;
       assert.equal(err.code, 'command.not_found');
       assert.equal(err.message, 'nope');
       return true;
@@ -147,7 +147,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '.
 // from the compiled Node test suite instead of reporting a Bun runner issue
 // as a transport failure.
 const isBun = typeof process.versions.bun === 'string';
-const processTest = isBun || process.env.RUSTRA_BUN_COVERAGE === '1' ? test.skip : test;
+const processTest = isBun || process.env.UNIKIT_BUN_COVERAGE === '1' ? test.skip : test;
 
 void processTest(
   'createNodeProcessTransport invokes a real Rust runtime over stdio',
@@ -155,7 +155,7 @@ void processTest(
   async () => {
     // calculator 예제 바이너리가 stdio JSON 프로토콜로 응답하는지 실제 검증.
     const transport = createNodeProcessTransport({
-      command: resolve(repoRoot, 'target/debug/rustra-calculator-example'),
+      command: resolve(repoRoot, 'target/debug/unikit-calculator-example'),
       args: ['invoke'],
     });
     const result = (await transport.invoke('addNumbers', { a: 20, b: 22 })) as {
@@ -171,7 +171,7 @@ void processTest(
   { timeout: 30_000 },
   async () => {
     const transport = createNodeProcessTransport({
-      command: resolve(repoRoot, 'target/debug/rustra-calculator-example'),
+      command: resolve(repoRoot, 'target/debug/unikit-calculator-example'),
       args: ['invoke'],
     });
     const hash = await transport.getContractHash();
@@ -184,7 +184,7 @@ void processTest(
   'createNodeBootstrap owns lazy configure and Cargo runtime discovery',
   async () => {
     const bootstrap = createNodeBootstrap({
-      commandCandidates: [resolve(repoRoot, 'target/debug/rustra-calculator-example')],
+      commandCandidates: [resolve(repoRoot, 'target/debug/unikit-calculator-example')],
     });
     try {
       const engine = await bootstrap.ready();
@@ -197,14 +197,14 @@ void processTest(
 );
 
 void test('createNodeBootstrap reports the exact runtime override when discovery fails', async () => {
-  const previous = process.env.RUSTRA_NODE_BINARY;
-  delete process.env.RUSTRA_NODE_BINARY;
-  const bootstrap = createNodeBootstrap({ commandCandidates: ['./missing-rustra-runtime'] });
+  const previous = process.env.UNIKIT_NODE_BINARY;
+  delete process.env.UNIKIT_NODE_BINARY;
+  const bootstrap = createNodeBootstrap({ commandCandidates: ['./missing-unikit-runtime'] });
   try {
-    await assert.rejects(bootstrap.ready(), /RUSTRA_NODE_BINARY/);
+    await assert.rejects(bootstrap.ready(), /UNIKIT_NODE_BINARY/);
   } finally {
-    if (previous === undefined) delete process.env.RUSTRA_NODE_BINARY;
-    else process.env.RUSTRA_NODE_BINARY = previous;
+    if (previous === undefined) delete process.env.UNIKIT_NODE_BINARY;
+    else process.env.UNIKIT_NODE_BINARY = previous;
   }
 });
 
@@ -224,7 +224,7 @@ function writeRuntimeScript(directory: string, name: string, contractHash: strin
     "process.stdin.on('data', (chunk) => { input += chunk; });",
     'process.stdin.on("end", () => {',
     '  const request = JSON.parse(input);',
-    '  if (request.command === "__rustra_contract") {',
+    '  if (request.command === "__unikit_contract") {',
     `    process.stdout.write(JSON.stringify({ ok: true, result: ${JSON.stringify(contractHash)} }));`,
     '    return;',
     '  }',
@@ -254,9 +254,9 @@ function seedStaleReleaseFixture(prefix: string): { root: string; stale: string;
 }
 
 void test('nodeRuntimeCandidates orders existing candidates newest-build-first', () => {
-  const { root, stale, fresh } = seedStaleReleaseFixture('rustra-node-candidates-');
-  const previous = process.env.RUSTRA_NODE_BINARY;
-  delete process.env.RUSTRA_NODE_BINARY;
+  const { root, stale, fresh } = seedStaleReleaseFixture('unikit-node-candidates-');
+  const previous = process.env.UNIKIT_NODE_BINARY;
+  delete process.env.UNIKIT_NODE_BINARY;
   try {
     // 최신 빌드(debug) 우선 + 부재 후보 제거 — stale release 가 첫 존재 후보로
     // 잡히는 함정이 후보 열거 단계에서부터 해소된다.
@@ -266,25 +266,25 @@ void test('nodeRuntimeCandidates orders existing candidates newest-build-first',
       }),
       [fresh, stale],
     );
-    // 명시 지정(command/RUSTRA_NODE_BINARY)은 존재 검사·정렬 없이 단일 후보.
+    // 명시 지정(command/UNIKIT_NODE_BINARY)은 존재 검사·정렬 없이 단일 후보.
     assert.deepEqual(nodeRuntimeCandidates({ command: './anywhere' }), ['./anywhere']);
-    process.env.RUSTRA_NODE_BINARY = fresh;
+    process.env.UNIKIT_NODE_BINARY = fresh;
     assert.deepEqual(nodeRuntimeCandidates({}), [fresh]);
   } finally {
-    if (previous === undefined) delete process.env.RUSTRA_NODE_BINARY;
-    else process.env.RUSTRA_NODE_BINARY = previous;
+    if (previous === undefined) delete process.env.UNIKIT_NODE_BINARY;
+    else process.env.UNIKIT_NODE_BINARY = previous;
     rmSync(root, { recursive: true, force: true });
   }
 });
 
 void test('selectVerifiedRuntime treats contract mismatch as candidate rejection, not fatal', async () => {
-  const { root, stale, fresh } = seedStaleReleaseFixture('rustra-node-select-');
+  const { root, stale, fresh } = seedStaleReleaseFixture('unikit-node-select-');
   try {
     const attempts: string[] = [];
     const selected = await selectVerifiedRuntime([stale, fresh], async (candidate) => {
       attempts.push(candidate);
       if (candidate === stale)
-        throw new RustraCommandError('contract.mismatch', 'contract hash mismatch: stale');
+        throw new UnikitCommandError('contract.mismatch', 'contract hash mismatch: stale');
       return `engine@${candidate}`;
     });
     assert.equal(selected.value, `engine@${fresh}`);
@@ -295,14 +295,14 @@ void test('selectVerifiedRuntime treats contract mismatch as candidate rejection
 });
 
 void test('selectVerifiedRuntime reports every attempted candidate with mtime when all are stale', async () => {
-  const { root, stale, fresh } = seedStaleReleaseFixture('rustra-node-allstale-');
+  const { root, stale, fresh } = seedStaleReleaseFixture('unikit-node-allstale-');
   try {
     await assert.rejects(
       selectVerifiedRuntime([stale, fresh], async () => {
-        throw new RustraCommandError('contract.mismatch', 'contract hash mismatch: stale');
+        throw new UnikitCommandError('contract.mismatch', 'contract hash mismatch: stale');
       }),
       (error: unknown) => {
-        if (!(error instanceof RustraCommandError)) return false;
+        if (!(error instanceof UnikitCommandError)) return false;
         assert.equal(error.code, 'contract.mismatch');
         assert.match(error.message, /Tried 2 runtime candidates \(newest first\)/);
         assert.ok(error.message.includes(stale), `보고에 stale 경로 포함: ${error.message}`);
@@ -317,7 +317,7 @@ void test('selectVerifiedRuntime reports every attempted candidate with mtime wh
 });
 
 void test('selectVerifiedRuntime rethrows non-contract failures without trying further candidates', async () => {
-  const { root, stale, fresh } = seedStaleReleaseFixture('rustra-node-fatal-');
+  const { root, stale, fresh } = seedStaleReleaseFixture('unikit-node-fatal-');
   try {
     const attempts: string[] = [];
     await assert.rejects(
@@ -339,9 +339,9 @@ void processTest(
   async () => {
     // 스테일 release 함정의 종단 재현 — stale 해시를 내놓는 release 후보가
     // 후보 목록 앞에 있어도 fresh 후보로 폴백해 부트스트랩이 성공해야 한다.
-    const root = mkdtempSync(join(tmpdir(), 'rustra-node-stale-release-'));
-    const previous = process.env.RUSTRA_NODE_BINARY;
-    delete process.env.RUSTRA_NODE_BINARY;
+    const root = mkdtempSync(join(tmpdir(), 'unikit-node-stale-release-'));
+    const previous = process.env.UNIKIT_NODE_BINARY;
+    delete process.env.UNIKIT_NODE_BINARY;
     try {
       const stale = writeRuntimeScript(root, 'stale-runtime', 'stale-contract-hash');
       const fresh = writeRuntimeScript(root, 'fresh-runtime', 'fresh-contract-hash');
@@ -358,8 +358,8 @@ void processTest(
         bootstrap.dispose();
       }
     } finally {
-      if (previous === undefined) delete process.env.RUSTRA_NODE_BINARY;
-      else process.env.RUSTRA_NODE_BINARY = previous;
+      if (previous === undefined) delete process.env.UNIKIT_NODE_BINARY;
+      else process.env.UNIKIT_NODE_BINARY = previous;
       rmSync(root, { recursive: true, force: true });
     }
   },
@@ -369,9 +369,9 @@ void processTest(
   'createNodeBootstrap reports fix guidance and all candidate paths when every runtime is stale',
   { timeout: 30_000 },
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'rustra-node-all-stale-'));
-    const previous = process.env.RUSTRA_NODE_BINARY;
-    delete process.env.RUSTRA_NODE_BINARY;
+    const root = mkdtempSync(join(tmpdir(), 'unikit-node-all-stale-'));
+    const previous = process.env.UNIKIT_NODE_BINARY;
+    delete process.env.UNIKIT_NODE_BINARY;
     try {
       const stale = writeRuntimeScript(root, 'stale-release', 'stale-contract-hash');
       const alsoStale = writeRuntimeScript(root, 'stale-debug', 'another-stale-hash');
@@ -381,7 +381,7 @@ void processTest(
         contractHash: 'fresh-contract-hash',
       });
       await assert.rejects(bootstrap.ready(), (error: unknown) => {
-        if (!(error instanceof RustraCommandError)) return false;
+        if (!(error instanceof UnikitCommandError)) return false;
         assert.equal(error.code, 'contract.mismatch');
         // A6 — Bun 선례와 동일한 fix 안내가 Node mismatch 에도 붙는다.
         assert.match(error.message, /regenerate the TypeScript and native codecs/);
@@ -391,8 +391,8 @@ void processTest(
         return true;
       });
     } finally {
-      if (previous === undefined) delete process.env.RUSTRA_NODE_BINARY;
-      else process.env.RUSTRA_NODE_BINARY = previous;
+      if (previous === undefined) delete process.env.UNIKIT_NODE_BINARY;
+      else process.env.UNIKIT_NODE_BINARY = previous;
       rmSync(root, { recursive: true, force: true });
     }
   },
@@ -404,9 +404,9 @@ void processTest(
   async () => {
     // (A2) warn 탈출구 — 불일치 후보를 기각하지 않고 console.warn 후 degraded
     // 채택한다(OTA 롤백/지연 배포에서 앱 전체 마비를 피하는 정책).
-    const root = mkdtempSync(join(tmpdir(), 'rustra-node-warn-'));
-    const previous = process.env.RUSTRA_NODE_BINARY;
-    delete process.env.RUSTRA_NODE_BINARY;
+    const root = mkdtempSync(join(tmpdir(), 'unikit-node-warn-'));
+    const previous = process.env.UNIKIT_NODE_BINARY;
+    delete process.env.UNIKIT_NODE_BINARY;
     const originalWarn = console.warn;
     const warnings: string[] = [];
     console.warn = (...args: unknown[]) => warnings.push(args.join(' '));
@@ -431,8 +431,8 @@ void processTest(
       }
     } finally {
       console.warn = originalWarn;
-      if (previous === undefined) delete process.env.RUSTRA_NODE_BINARY;
-      else process.env.RUSTRA_NODE_BINARY = previous;
+      if (previous === undefined) delete process.env.UNIKIT_NODE_BINARY;
+      else process.env.UNIKIT_NODE_BINARY = previous;
       rmSync(root, { recursive: true, force: true });
     }
   },
@@ -442,11 +442,11 @@ void processTest(
   'createNodeBootstrap contractVerification off skips the contract handshake',
   { timeout: 30_000 },
   async () => {
-    // (A2) off 탈출구 — 검증 자체를 생략한다. `__rustra_contract` 엔드포인트가
+    // (A2) off 탈출구 — 검증 자체를 생략한다. `__unikit_contract` 엔드포인트가
     // 없는 런타임으로도 부트스트랩이 진행된다(생성 파일 한 줄 수정으로 끈다).
-    const root = mkdtempSync(join(tmpdir(), 'rustra-node-off-'));
-    const previous = process.env.RUSTRA_NODE_BINARY;
-    delete process.env.RUSTRA_NODE_BINARY;
+    const root = mkdtempSync(join(tmpdir(), 'unikit-node-off-'));
+    const previous = process.env.UNIKIT_NODE_BINARY;
+    delete process.env.UNIKIT_NODE_BINARY;
     try {
       const stale = writeRuntimeScript(root, 'stale-runtime', 'stale-contract-hash');
       const bootstrap = createNodeBootstrap({
@@ -463,8 +463,8 @@ void processTest(
         bootstrap.dispose();
       }
     } finally {
-      if (previous === undefined) delete process.env.RUSTRA_NODE_BINARY;
-      else process.env.RUSTRA_NODE_BINARY = previous;
+      if (previous === undefined) delete process.env.UNIKIT_NODE_BINARY;
+      else process.env.UNIKIT_NODE_BINARY = previous;
       rmSync(root, { recursive: true, force: true });
     }
   },
@@ -477,7 +477,7 @@ void processTest(
       command: './definitely-not-a-real-binary',
     });
     await assert.rejects(transport.invoke('addNumbers', {}) as Promise<unknown>, (err: unknown) => {
-      if (!(err instanceof RustraCommandError)) return false;
+      if (!(err instanceof UnikitCommandError)) return false;
       assert.equal(err.code, 'transport.error');
       return true;
     });
@@ -497,7 +497,7 @@ void processTest('createNodeProcessTransport preserves structured retryable erro
   });
   await assert.rejects(transport.invoke('slow', {}) as Promise<unknown>, (err: unknown) => {
     return (
-      err instanceof RustraCommandError &&
+      err instanceof UnikitCommandError &&
       err.code === 'transport.timeout' &&
       err.retryable === true
     );
@@ -540,7 +540,7 @@ void processTest(
       // 존재하지 않는 명령 — id 상관 에러 전파.
       await assert.rejects(
         () => transport.invoke('nope') as Promise<unknown>,
-        (err: unknown) => err instanceof RustraCommandError && err.code === 'command.not_found',
+        (err: unknown) => err instanceof UnikitCommandError && err.code === 'command.not_found',
       );
     } finally {
       transport.dispose();
@@ -627,7 +627,7 @@ void processTest(
       assert.equal(base.value, 42);
 
       // 런타임 register — JS 는 아무 것도 안 해도 새 명령을 부를 수 있다.
-      const reg = await engine.invoke<{ message: string }>('rustraRegistryDemo', {
+      const reg = await engine.invoke<{ message: string }>('unikitRegistryDemo', {
         op: 'register',
       });
       assert.match(reg.message, /registered 'ping'/);
@@ -635,12 +635,12 @@ void processTest(
       assert.equal(ping.pong, true);
 
       // 치환 — 같은 이름 addNumbers 가 곱하기로 동작 (스키마 동일, 핸들러 교체).
-      await engine.invoke('rustraRegistryDemo', { op: 'replaceAdd' });
+      await engine.invoke('unikitRegistryDemo', { op: 'replaceAdd' });
       const replaced = await engine.invoke<{ value: number }>('addNumbers', { a: 6, b: 7 });
       assert.equal(replaced.value, 42, '6*7 — the replaced handler must serve');
 
       // 복원.
-      await engine.invoke('rustraRegistryDemo', { op: 'restoreAdd' });
+      await engine.invoke('unikitRegistryDemo', { op: 'restoreAdd' });
       const restored = await engine.invoke<{ value: number }>('addNumbers', { a: 20, b: 22 });
       assert.equal(restored.value, 42);
     } finally {
@@ -702,7 +702,7 @@ void processTest(
 
 void processTest('createNodeBootstrap reload disposes and re-bootstraps the runtime', async () => {
   const bootstrap = createNodeBootstrap({
-    commandCandidates: [resolve(repoRoot, 'target/debug/rustra-calculator-example')],
+    commandCandidates: [resolve(repoRoot, 'target/debug/unikit-calculator-example')],
     args: ['invoke'],
   });
   try {
@@ -727,9 +727,9 @@ void test('createNodeBootstrap reload rejects when engine spawn fails (one-shot 
   // 스폰 실패(resolveNodeRuntime 부재) 전파뿐이다. 정상 경로 재부트스트랩은
   // 위의 'reload disposes and re-bootstraps' 실바이너리 테스트가 담당한다.
   const bootstrap = createNodeBootstrap({
-    commandCandidates: ['./missing-rustra-runtime'],
+    commandCandidates: ['./missing-unikit-runtime'],
   });
-  await assert.rejects(bootstrap.reload(), /RUSTRA_NODE_BINARY|No Rustra Node runtime/);
+  await assert.rejects(bootstrap.reload(), /UNIKIT_NODE_BINARY|No Unikit Node runtime/);
 });
 
 // ── 이벤트 푸시 e2e (Task 6) — 실제 스폰 → 핸드셰이크 → 0xfffd → 콜백 ──────
@@ -863,7 +863,7 @@ void processTest(
       await assert.rejects(
         () => transport.invoke('addNumbers', { a: 1, b: 2 }) as Promise<unknown>,
         (err: unknown) => {
-          if (!(err instanceof RustraCommandError)) return false;
+          if (!(err instanceof UnikitCommandError)) return false;
           assert.equal(err.code, 'transport.error');
           assert.ok(
             err.message.startsWith('runtime process exited before responding'),
@@ -888,13 +888,13 @@ void processTest(
   { timeout: 15_000 },
   async () => {
     // 부모도 debug 모드로 세팅한다 — stderr 수집 게이트는 transport 쪽에서
-    // isRustraDebugEnabled() 를 매 데이터 이벤트마다 읽는다. 다만 shouldDumpWire
+    // isUnikitDebugEnabled() 를 매 데이터 이벤트마다 읽는다. 다만 shouldDumpWire
     // 는 모듈 레벨 메모이즈이므로 resetDebugEnvForTests 로 먼저 무효화해야 env
     // 변경이 보인다(types debug.test.ts 와 동일 순서).
-    const previousDebug = process.env.RUSTRA_DEBUG;
-    const { resetDebugEnvForTests } = await import('@rustra/types');
+    const previousDebug = process.env.UNIKIT_DEBUG;
+    const { resetDebugEnvForTests } = await import('@unikit-bridge/types');
     resetDebugEnvForTests();
-    process.env.RUSTRA_DEBUG = '1';
+    process.env.UNIKIT_DEBUG = '1';
     const { createNodeLoopTransport } = await import('./index.js');
     const transport = createNodeLoopTransport({
       command: process.execPath,
@@ -911,7 +911,7 @@ void processTest(
       await assert.rejects(
         () => transport.invoke('addNumbers', { a: 1, b: 2 }) as Promise<unknown>,
         (err: unknown) => {
-          if (!(err instanceof RustraCommandError)) return false;
+          if (!(err instanceof UnikitCommandError)) return false;
           assert.ok(err.message.startsWith('runtime process exited before responding'));
           assert.ok(err.message.includes('stderr:'), 'stderr section is attached');
           assert.ok(err.message.includes('boom: child panicked'));
@@ -920,8 +920,8 @@ void processTest(
       );
     } finally {
       transport.dispose();
-      if (previousDebug === undefined) delete process.env.RUSTRA_DEBUG;
-      else process.env.RUSTRA_DEBUG = previousDebug;
+      if (previousDebug === undefined) delete process.env.UNIKIT_DEBUG;
+      else process.env.UNIKIT_DEBUG = previousDebug;
       resetDebugEnvForTests();
     }
   },
@@ -943,13 +943,13 @@ void processTest(
     // 자식이 아무 것도 출력하지 않는다. 재스폰 시 spawn 경계 clear가 대기 중
     // 백로그를 지우므로 2 라이프 exit 는 반드시 맨몸 메시지다. clear 가 없으면
     // 백로그가 2 라이프 에러에 오속 첨부된다(이 테스트가 잡는 회귀).
-    const flag = resolve(join(tmpdir(), `rustra-quiet-flag-${process.pid}-${Date.now()}`));
+    const flag = resolve(join(tmpdir(), `unikit-quiet-flag-${process.pid}-${Date.now()}`));
     const staleLine = `stale-${'x'.repeat(4_000)}`;
     const blob = Array.from({ length: 256 }, () => staleLine).join('\n') + '\n';
     // ~1MB blob 은 argv 에 못 넣는다 — Linux 단일 인자 한도 128KB(MAX_ARG_STRLEN,
     // spawn E2BIG). 스크립트를 파일로 미룬다.
     const scriptPath = resolve(
-      join(tmpdir(), `rustra-backlog-script-${process.pid}-${Date.now()}.cjs`),
+      join(tmpdir(), `unikit-backlog-script-${process.pid}-${Date.now()}.cjs`),
     );
     writeFileSync(
       scriptPath,
@@ -976,7 +976,7 @@ void processTest(
       await assert.rejects(
         () => second,
         (err: unknown) => {
-          if (!(err instanceof RustraCommandError)) return false;
+          if (!(err instanceof UnikitCommandError)) return false;
           assert.equal(
             err.message,
             'runtime process exited before responding',
@@ -998,9 +998,9 @@ void processTest(
   { timeout: 15_000 },
   async () => {
     // drain 계약 — 비 debug 에선 stderr 를 수집하지 않는다(성능 무영향 유지).
-    const previousDebug = process.env.RUSTRA_DEBUG;
-    delete process.env.RUSTRA_DEBUG;
-    const { resetDebugEnvForTests } = await import('@rustra/types');
+    const previousDebug = process.env.UNIKIT_DEBUG;
+    delete process.env.UNIKIT_DEBUG;
+    const { resetDebugEnvForTests } = await import('@unikit-bridge/types');
     resetDebugEnvForTests();
     const { createNodeLoopTransport } = await import('./index.js');
     const transport = createNodeLoopTransport({
@@ -1018,7 +1018,7 @@ void processTest(
       await assert.rejects(
         () => transport.invoke('addNumbers', { a: 1, b: 2 }) as Promise<unknown>,
         (err: unknown) => {
-          if (!(err instanceof RustraCommandError)) return false;
+          if (!(err instanceof UnikitCommandError)) return false;
           assert.equal(err.message, 'runtime process exited before responding');
           assert.ok(!err.message.includes('stderr:'), 'stderr must stay discarded (drain only)');
           assert.ok(!err.message.includes('boom: child panicked'));
@@ -1027,8 +1027,8 @@ void processTest(
       );
     } finally {
       transport.dispose();
-      if (previousDebug === undefined) delete process.env.RUSTRA_DEBUG;
-      else process.env.RUSTRA_DEBUG = previousDebug;
+      if (previousDebug === undefined) delete process.env.UNIKIT_DEBUG;
+      else process.env.UNIKIT_DEBUG = previousDebug;
       resetDebugEnvForTests();
     }
   },
@@ -1046,7 +1046,7 @@ const cleanSlotEngine = {
 } as unknown as EngineClientWithBatch;
 
 void test('R08: 소비 전 경쟁 lazy 등록은 loud-fail 하고 첫 등록이 승리한다', async () => {
-  const { configure, configureLazy, invoke } = await import('@rustra/types');
+  const { configure, configureLazy, invoke } = await import('@unikit-bridge/types');
   try {
     // 슬롯을 알려진 상태로 — configure 이후의 등록이 유일한 pending 이 된다.
     configure(cleanSlotEngine);
@@ -1065,7 +1065,7 @@ void test('R08: 소비 전 경쟁 lazy 등록은 loud-fail 하고 첫 등록이 
           { ownerId: 'host-b' },
         ),
       (err: unknown) => {
-        assert.ok(err instanceof RustraCommandError, 'conflict must be a RustraCommandError');
+        assert.ok(err instanceof UnikitCommandError, 'conflict must be a UnikitCommandError');
         assert.equal(err.code, 'registry.frozen');
         assert.match((err as Error).message, /host-a/);
         assert.match((err as Error).message, /host-b/);
@@ -1082,12 +1082,12 @@ void test('R08: 소비 전 경쟁 lazy 등록은 loud-fail 하고 첫 등록이 
 });
 
 void test('R08: createNodeBootstrap 도 같은 가드를 통과한다 — pending 노드 bootstrap 위 다른 호스트 등록 거부', async () => {
-  const { configure, configureLazy } = await import('@rustra/types');
+  const { configure, configureLazy } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     // 노드 bootstrap 을 등록만 하고 ready 전에 둔다(프로세스 스폰 없음 —
     // initializer 는 ready/dispatch 시점에야 달린다).
-    const pending = createNodeBootstrap({ commandCandidates: ['./missing-rustra-runtime'] });
+    const pending = createNodeBootstrap({ commandCandidates: ['./missing-unikit-runtime'] });
     let foreignRan = 0;
     assert.throws(
       () =>
@@ -1099,7 +1099,7 @@ void test('R08: createNodeBootstrap 도 같은 가드를 통과한다 — pendin
           { ownerId: 'host-foreign' },
         ),
       (err: unknown) => {
-        assert.ok(err instanceof RustraCommandError);
+        assert.ok(err instanceof UnikitCommandError);
         assert.equal(err.code, 'registry.frozen');
         assert.match((err as Error).message, /node/);
         return true;
@@ -1113,7 +1113,8 @@ void test('R08: createNodeBootstrap 도 같은 가드를 통과한다 — pendin
 });
 
 void test('R08: 소비가 시작된 뒤의 교체와 소비 실패 뒤의 복구 등록은 허용된다', async () => {
-  const { configure, configureLazy, ensureConfigured, invoke } = await import('@rustra/types');
+  const { configure, configureLazy, ensureConfigured, invoke } =
+    await import('@unikit-bridge/types');
   try {
     // (a) 소비 진행 중 교체 — 기존 "newer wins" 계약 보존.
     configure(cleanSlotEngine);
@@ -1155,7 +1156,7 @@ void test('R08: 소비가 시작된 뒤의 교체와 소비 실패 뒤의 복구
 });
 
 void test('R08: 같은 bootstrap 클로저의 재등록(reload 경로)은 허용된다', async () => {
-  const { configure, configureLazy, ensureConfigured } = await import('@rustra/types');
+  const { configure, configureLazy, ensureConfigured } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     // node-bootstrap.ts 의 reload 는 dispose 뒤 같은 bootstrap 클로저로
@@ -1178,7 +1179,7 @@ void processTest(
   { timeout: 15_000 },
   async () => {
     // 모듈 import 순서 시나리오는 모듈 레지스트리가 갈린 다른 프로세스에서
-    // 재현한다. 빌드된 @rustra/types dist 를 절대 URL 로 import 하는 최소
+    // 재현한다. 빌드된 @unikit-bridge/types dist 를 절대 URL 로 import 하는 최소
     // 스크립트 — 호스트 A 등록 → 호스트 B 등록 → B 는 거부되어야 한다.
     const { spawnSync } = await import('node:child_process');
     const { pathToFileURL } = await import('node:url');
@@ -1231,13 +1232,13 @@ void test('A02: createNodeEngine exposes supports matching the compatibility mat
 // no-op)하되 dispose 후 ready 는 loud-fail 한다.
 
 void test('A05: createNodeBootstrap exposes the lifecycle state surface', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     // 스폰 실패 bootstrap — 상태 전이만 검증하므로 실바이너리가 필요 없다.
-    const bootstrap = createNodeBootstrap({ commandCandidates: ['./missing-rustra-runtime'] });
+    const bootstrap = createNodeBootstrap({ commandCandidates: ['./missing-unikit-runtime'] });
     assert.equal(bootstrap.state, 'initializing', 'fresh bootstrap starts as initializing');
-    await assert.rejects(bootstrap.ready(), /No Rustra Node runtime/);
+    await assert.rejects(bootstrap.ready(), /No Unikit Node runtime/);
     assert.equal(bootstrap.state, 'initializing', 'failed readiness keeps initializing');
     bootstrap.dispose();
     assert.equal(bootstrap.state, 'disposed');
@@ -1247,14 +1248,14 @@ void test('A05: createNodeBootstrap exposes the lifecycle state surface', async 
 });
 
 void test('A05: ready after dispose rejects loudly (no zombie re-resolution)', async () => {
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
-    const bootstrap = createNodeBootstrap({ commandCandidates: ['./missing-rustra-runtime'] });
+    const bootstrap = createNodeBootstrap({ commandCandidates: ['./missing-unikit-runtime'] });
     bootstrap.dispose();
     assert.equal(bootstrap.state, 'disposed');
     await assert.rejects(bootstrap.ready(), (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.match(err.message, /disposed/);
       return true;
     });
@@ -1264,7 +1265,7 @@ void test('A05: ready after dispose rejects loudly (no zombie re-resolution)', a
 });
 
 void test('A05: dispose is idempotent — second dispose is a no-op', () => {
-  const bootstrap = createNodeBootstrap({ commandCandidates: ['./missing-rustra-runtime'] });
+  const bootstrap = createNodeBootstrap({ commandCandidates: ['./missing-unikit-runtime'] });
   bootstrap.dispose();
   bootstrap.dispose(); // no-op — must not throw
   assert.equal(bootstrap.state, 'disposed');
@@ -1274,7 +1275,7 @@ void test('A05: concurrent ready calls share one initialization promise (ensureC
   // 동일 초기화 프라미스 공유는 ensureConfigured 의 기존 계약 — JSON 엔진을
   // 직접 configure 하는 스파로 회귀를 고정한다(스폰 없는 node bootstrap 은
   // 만들 수 없다 — 원샷 transport 내장).
-  const { configure, configureLazy, ensureConfigured } = await import('@rustra/types');
+  const { configure, configureLazy, ensureConfigured } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     let constructions = 0;
@@ -1298,7 +1299,7 @@ void test('A05: reload duck-drains its own transport before dispose (createTrans
   // drain 한다. drain 이 있는 transport(createTransport seam 주입)만 drain 되고,
   // drain 이 없는 원샷 transport 는 즉시 진행한다. drain 시맨틱 자체는
   // NodeLoopTransport drain 테스트(실바이너리)가 담당한다.
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     const drained: Array<number | undefined> = [];
@@ -1337,7 +1338,7 @@ void test('A05: reload duck-drains its own transport before dispose (createTrans
 void test('A05: dispose during reload drain aborts the reload — no zombie ready (I-1)', async () => {
   // I-1 회귀 — drain 중 dispose 하면 reload 가 재개해 state='ready' 로 부활하고
   // ready() 가 해소하는 좀비를 만들 수 없다. await 경계마다 disposed 재검사.
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     let releaseDrain: (() => void) | undefined;
@@ -1364,7 +1365,7 @@ void test('A05: dispose during reload drain aborts the reload — no zombie read
     bootstrap.dispose();
     releaseDrain?.();
     await assert.rejects(reloading, (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.match(err.message, /disposed/);
       return true;
     });
@@ -1379,7 +1380,7 @@ void test('A05: dispose during reload drain aborts the reload — no zombie read
 void test('A05: failed reload keeps the original error and restores retryable state (I-2)', async () => {
   // I-2 회귀 — 재초기화 실패는 bootstrap 을 'disposed' 로 벽돌화하지 않는다.
   // 상태는 'initializing' 으로 복원되고 다음 ready() 는 원본 에러를 다시 낸다.
-  const { configure } = await import('@rustra/types');
+  const { configure } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     let failNextSpawn = false;
@@ -1388,7 +1389,7 @@ void test('A05: failed reload keeps the original error and restores retryable st
       createTransport: () => {
         spawnCount++;
         if (failNextSpawn) {
-          const error = new RustraCommandError('transport.error', 'transient spawn failure');
+          const error = new UnikitCommandError('transport.error', 'transient spawn failure');
           failNextSpawn = false;
           return Promise.reject(error);
         }
@@ -1405,7 +1406,7 @@ void test('A05: failed reload keeps the original error and restores retryable st
     await assert.rejects(
       bootstrap.reload(),
       (err: unknown) =>
-        err instanceof RustraCommandError && /transient spawn failure/.test(err.message),
+        err instanceof UnikitCommandError && /transient spawn failure/.test(err.message),
       'reload rejects with the ORIGINAL error',
     );
     assert.equal(bootstrap.state, 'initializing', 'state restored to retryable initializing');
@@ -1425,7 +1426,7 @@ void test('A05: dispose during reload re-init leaves no zombie engine in the glo
   // 클로저의 엔진이 전역 슬롯에 설치되어선 안 된다. 클로저 반환 직전 disposed
   // 재검사가 configure(engine) 기록을 막고(ensureConfigured catch 가 초기화를
   // 비움), dispose 후 글로벌 invoke() 는 disposed loud-fail 로 거부된다.
-  const { configure, invoke } = await import('@rustra/types');
+  const { configure, invoke } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     const makeTransport = () =>
@@ -1466,7 +1467,7 @@ void test('A05: dispose during reload re-init leaves no zombie engine in the glo
     await assert.rejects(
       invoke('addNumbers'),
       (err: unknown) =>
-        err instanceof RustraCommandError &&
+        err instanceof UnikitCommandError &&
         (err.code === 'transport.unavailable' || /disposed|not configured/.test(err.message)),
       'global invoke must not resolve through the zombie engine',
     );
@@ -1479,7 +1480,7 @@ void test('A05: dispose during reload re-init on the one-shot path leaves no Typ
   // I-NEW 회귀(RV8b) — 원샷 경로에서 dispose 가 transport 를 undefined 로 만든
   // 뒤 클로저가 엔진을 반환하면 글로벌 invoke() 가 TypeError 로 터진다. 반환 직전
   // 재검사가 이를 막는다.
-  const { configure, invoke } = await import('@rustra/types');
+  const { configure, invoke } = await import('@unikit-bridge/types');
   try {
     configure(cleanSlotEngine);
     const makeTransport = () =>
@@ -1505,7 +1506,7 @@ void test('A05: dispose during reload re-init on the one-shot path leaves no Typ
     await assert.rejects(
       invoke('addNumbers'),
       (err: unknown) =>
-        err instanceof RustraCommandError &&
+        err instanceof UnikitCommandError &&
         (err.code === 'transport.unavailable' || /disposed|not configured/.test(err.message)),
       'global invoke must not hit a TypeError from a disposed-transport engine',
     );
@@ -1612,7 +1613,7 @@ void processTest(
       assert.equal(transport.mode, 'ndjson');
       await assert.rejects(
         createNodeChannel(transport, () => {}),
-        (err: unknown) => err instanceof RustraCommandError && err.code === 'channel.unavailable',
+        (err: unknown) => err instanceof UnikitCommandError && err.code === 'channel.unavailable',
       );
     } finally {
       transport.dispose();
@@ -1633,7 +1634,7 @@ void test('createNodeBytesChannel loud-fails without a bytes frame path', async 
   await assert.rejects(
     createNodeBytesChannel(transport, () => {}),
     (err: unknown) =>
-      err instanceof RustraCommandError &&
+      err instanceof UnikitCommandError &&
       err.code === 'channel.unavailable' &&
       /onChannelBytesFrame/.test(err.message),
   );
@@ -1650,7 +1651,7 @@ void test('createNodeBytesChannel loud-fails on an NDJSON transport', async () =
   await assert.rejects(
     createNodeBytesChannel(transport, () => {}),
     (err: unknown) =>
-      err instanceof RustraCommandError &&
+      err instanceof UnikitCommandError &&
       err.code === 'channel.unavailable' &&
       /NDJSON/.test(err.message),
   );
@@ -1675,7 +1676,7 @@ void test('createNodeBytesChannel loud-fails when the runtime lacks the channelB
   await assert.rejects(
     createNodeBytesChannel(transport, () => {}),
     (err: unknown) =>
-      err instanceof RustraCommandError &&
+      err instanceof UnikitCommandError &&
       err.code === 'channel.unavailable' &&
       /channelBytes/.test(err.message),
   );
@@ -1859,7 +1860,7 @@ void processTest(
       assert.equal(transport.mode, 'ndjson');
       await assert.rejects(
         createNodeBytesChannel(transport, () => {}),
-        (err: unknown) => err instanceof RustraCommandError && err.code === 'channel.unavailable',
+        (err: unknown) => err instanceof UnikitCommandError && err.code === 'channel.unavailable',
       );
     } finally {
       transport.dispose();

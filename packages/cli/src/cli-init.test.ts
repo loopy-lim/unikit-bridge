@@ -26,28 +26,28 @@ import { runGenerate } from './cli-generate.js';
 import { cliManifest } from './cli-runtime.js';
 
 function withTempDir(fn: (root: string) => void | Promise<void>): Promise<void> {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-init-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-init-'));
   return Promise.resolve(fn(root)).finally(() => rmSync(root, { recursive: true, force: true }));
 }
 
 /** RN 어댑터 설치 픽스처 — 감사 A11 이후 RN 코드젠은 어댑터 설치(bun install)가
  * 선행해야 loud-fail 하지 않는다. cliManifest 의 range 를 만족하는 버전으로 심는다. */
 function seedReactNativeAdapter(project: string): void {
-  const version = cliManifest.rustraTemplate.reactNativeRange.replace(/^[~^=]/, '');
-  const nativeRoot = join(project, 'node_modules', '@rustra', 'react-native', 'native');
+  const version = cliManifest.unikitTemplate.reactNativeRange.replace(/^[~^=]/, '');
+  const nativeRoot = join(project, 'node_modules', '@unikit-bridge', 'react-native', 'native');
   for (const file of [
-    'android/rustra-jsi-jni.cpp',
-    'cpp/RustraJSIBridge.cpp',
-    'cpp/RustraJSIBridge.hpp',
-    'cpp/rustra-codec.hpp',
-    'ios/RustraJSIModule.mm',
+    'android/unikit-jsi-jni.cpp',
+    'cpp/UnikitJSIBridge.cpp',
+    'cpp/UnikitJSIBridge.hpp',
+    'cpp/unikit-codec.hpp',
+    'ios/UnikitJSIModule.mm',
   ]) {
     mkdirSync(join(nativeRoot, ...file.split('/').slice(0, -1)), { recursive: true });
     writeFileSync(join(nativeRoot, ...file.split('/')), 'adapter fixture');
   }
   writeFileSync(
-    join(project, 'node_modules', '@rustra', 'react-native', 'package.json'),
-    JSON.stringify({ name: '@rustra/react-native', version }),
+    join(project, 'node_modules', '@unikit-bridge', 'react-native', 'package.json'),
+    JSON.stringify({ name: '@unikit-bridge/react-native', version }),
   );
 }
 
@@ -61,8 +61,8 @@ test('runInit refuses to overwrite an existing scaffold and --force replaces it'
     // --force로 재생성 통과 + 파일이 여전히 유효한 스캐폴드인지
     await runInit([project, '--force']);
     const packageJson = JSON.parse(readFileSync(join(project, 'package.json'), 'utf-8'));
-    assert.equal(packageJson.name, 'rustra-app');
-    assert.equal(packageJson.scripts.dev, 'rustra dev --config rustra.json');
+    assert.equal(packageJson.name, 'unikit-app');
+    assert.equal(packageJson.scripts.dev, 'unikit dev --config unikit.json');
   });
 });
 
@@ -108,9 +108,9 @@ test('existing foreign files unrelated to the scaffold do not block init', async
   });
 });
 
-/** 생성된 rustra.json 을 읽어 파싱 — 통합 게이트에서 readConfigSync 검증에 재사용한다. */
+/** 생성된 unikit.json 을 읽어 파싱 — 통합 게이트에서 readConfigSync 검증에 재사용한다. */
 function readGeneratedConfig(project: string): Record<string, unknown> {
-  return JSON.parse(readFileSync(join(project, 'rustra.json'), 'utf-8')) as Record<string, unknown>;
+  return JSON.parse(readFileSync(join(project, 'unikit.json'), 'utf-8')) as Record<string, unknown>;
 }
 
 test('generated config carries a $schema reference to the shipped schema file', async () => {
@@ -120,9 +120,9 @@ test('generated config carries a $schema reference to the shipped schema file', 
     const config = readGeneratedConfig(project);
     assert.equal(config.$schema, INIT_CONFIG_SCHEMA_PATH);
     // 참조가 실제로 에디터에서 풀리는지 — 배포 패키지 루트의 스키마 파일과 이름이 일치해야 한다.
-    assert.match(INIT_CONFIG_SCHEMA_PATH, /@rustra\/cli\/rustra\.schema\.json$/);
-    const shippedSchema = fileURLToPath(new URL('../rustra.schema.json', import.meta.url));
-    assert.ok(existsSync(shippedSchema), 'shipped rustra.schema.json must exist');
+    assert.match(INIT_CONFIG_SCHEMA_PATH, /@unikit-bridge\/cli\/unikit\.schema\.json$/);
+    const shippedSchema = fileURLToPath(new URL('../unikit.schema.json', import.meta.url));
+    assert.ok(existsSync(shippedSchema), 'shipped unikit.schema.json must exist');
   });
 });
 
@@ -138,34 +138,34 @@ test('node-only detection emits only the node host section and passes full confi
       node: {},
     });
     // 통합 게이트 — 생성물이 Task 6의 L1+L2 검증을 통과해야 한다.
-    const loaded = readConfigSync(join(project, 'rustra.json'));
+    const loaded = readConfigSync(join(project, 'unikit.json'));
     assert.equal(loaded.schema, './generated/schema.json');
   });
 });
 
 test('Bun scaffold template selects the FFI host, dependency and native crate entry', () => {
-  const hosts = { bun: true, bunRange: cliManifest.rustraTemplate.bunRange, reactNative: false };
+  const hosts = { bun: true, bunRange: cliManifest.unikitTemplate.bunRange, reactNative: false };
   const files = renderInitProjectFiles(templateVersions('0.11.3', '^0.12.0', '^0.11.0'), hosts);
-  const config = JSON.parse(files.rustraJson);
+  const config = JSON.parse(files.unikitJson);
   const manifest = JSON.parse(files.packageJson);
   assert.deepEqual(config.bun, {});
   assert.equal(config.node, undefined);
-  assert.equal(manifest.dependencies['@rustra/bun'], cliManifest.rustraTemplate.bunRange);
-  assert.equal(manifest.dependencies['@rustra/node'], undefined);
+  assert.equal(manifest.dependencies['@unikit-bridge/bun'], cliManifest.unikitTemplate.bunRange);
+  assert.equal(manifest.dependencies['@unikit-bridge/node'], undefined);
   assert.match(files.cargoToml, /crate-type\s*=\s*\["rlib", "cdylib"\]/);
-  assert.match(files.libRs, /rustra::native_entry!\(package\)/);
+  assert.match(files.libRs, /unikit_bridge::native_entry!\(package\)/);
   assert.match(files.libRs, /OnceLock/);
-  assert.match(files.appTs, /import \{ echo, rustra \} from '\.\/generated\/bun\.js'/);
-  assert.match(files.appTs, /finally\s*\{\s*rustra\.dispose\(\)/);
+  assert.match(files.appTs, /import \{ echo, unikit \} from '\.\/generated\/bun\.js'/);
+  assert.match(files.appTs, /finally\s*\{\s*unikit\.dispose\(\)/);
 });
 
 test('Node and Bun scaffold templates offer setup/start and clean up the selected runtime', () => {
   for (const hosts of [{ reactNative: false }, { bun: true, reactNative: false }]) {
     const files = renderInitProjectFiles(templateVersions('0.11.3', '^0.12.0', '^0.11.0'), hosts);
     const manifest = JSON.parse(files.packageJson);
-    assert.equal(manifest.scripts.setup, 'rustra setup --config rustra.json');
-    assert.equal(manifest.scripts.start, 'rustra setup --config rustra.json --run');
-    assert.match(files.appTs, /finally\s*\{\s*rustra\.dispose\(\)/);
+    assert.equal(manifest.scripts.setup, 'unikit setup --config unikit.json');
+    assert.equal(manifest.scripts.start, 'unikit setup --config unikit.json --run');
+    assert.match(files.appTs, /finally\s*\{\s*unikit\.dispose\(\)/);
   }
 });
 
@@ -173,7 +173,7 @@ test('--host bun creates a validated Bun-only config and matching app entry', as
   await withTempDir(async (root) => {
     const project = join(root, 'app');
     await runInit([project, '--host', 'bun']);
-    const config = readConfigSync(join(project, 'rustra.json'));
+    const config = readConfigSync(join(project, 'unikit.json'));
     assert.deepEqual(config.bun, {});
     assert.equal(config.node, undefined);
     assert.equal(config.reactNative, undefined);
@@ -208,7 +208,7 @@ test('--host react-native includes the reactNative section and passes full confi
     assert.equal(config.$schema, INIT_CONFIG_SCHEMA_PATH);
     assert.deepEqual(config.reactNative, { rustManifest: './Cargo.toml' });
     assert.ok('node' in config, 'node section must stay for the shared scaffold entrypoint');
-    const loaded = readConfigSync(join(project, 'rustra.json'));
+    const loaded = readConfigSync(join(project, 'unikit.json'));
     assert.deepEqual(loaded.reactNative, { rustManifest: './Cargo.toml' });
   });
 });
@@ -297,7 +297,7 @@ test('react-native in the pre-existing package.json dependencies switches detect
     await runInit([project, '--force']);
     const config = readGeneratedConfig(project);
     assert.deepEqual(config.reactNative, { rustManifest: './Cargo.toml' });
-    const loaded = readConfigSync(join(project, 'rustra.json'));
+    const loaded = readConfigSync(join(project, 'unikit.json'));
     assert.ok(loaded.reactNative, 'detected RN config must pass full config validation');
   });
 });
@@ -308,7 +308,9 @@ test('unscoped react-native dependency is detected and node-only deps are not', 
     mkdirSync(project, { recursive: true });
     writeFileSync(
       join(project, 'package.json'),
-      JSON.stringify({ devDependencies: { 'react-native': '0.81.0', '@rustra/cli': '^0.6.0' } }),
+      JSON.stringify({
+        devDependencies: { 'react-native': '0.81.0', '@unikit-bridge/cli': '^0.6.0' },
+      }),
     );
     await runInit([project, '--force']);
     assert.ok(readGeneratedConfig(project).reactNative);
@@ -324,16 +326,16 @@ test('unscoped react-native dependency is detected and node-only deps are not', 
   });
 });
 
-test('pre-existing rustra.json still blocks init with the overwrite guidance', async () => {
+test('pre-existing unikit.json still blocks init with the overwrite guidance', async () => {
   await withTempDir(async (root) => {
     const project = join(root, 'app');
     mkdirSync(project, { recursive: true });
-    writeFileSync(join(project, 'rustra.json'), '{"schema":"./s.json","output":"./out"}');
-    await assert.rejects(() => runInit([project]), /Refusing to overwrite.*rustra\.json/);
+    writeFileSync(join(project, 'unikit.json'), '{"schema":"./s.json","output":"./out"}');
+    await assert.rejects(() => runInit([project]), /Refusing to overwrite.*unikit\.json/);
     await assert.rejects(() => runInit([project]), /--force/);
     // 기존 config 파일은 init이 절대 손대지 않는다.
     assert.equal(
-      readFileSync(join(project, 'rustra.json'), 'utf-8'),
+      readFileSync(join(project, 'unikit.json'), 'utf-8'),
       '{"schema":"./s.json","output":"./out"}',
     );
   });
@@ -354,7 +356,7 @@ test('a missing schema file gets an actionable hint instead of a raw ENOENT', as
         const message = error instanceof Error ? error.message : String(error);
         assert.match(message, /Schema file not found/);
         assert.match(message, /Rust contract probe/);
-        assert.match(message, /rustra generate/);
+        assert.match(message, /unikit generate/);
         assert.ok(!/ENOENT/.test(message), 'raw ENOENT must not leak to users');
         return true;
       },
@@ -393,8 +395,8 @@ test(
       await runInit([project, '--host', 'react-native']);
       const manifest = JSON.parse(readFileSync(join(project, 'package.json'), 'utf-8'));
       assert.equal(
-        manifest.dependencies['@rustra/react-native'],
-        cliManifest.rustraTemplate.reactNativeRange,
+        manifest.dependencies['@unikit-bridge/react-native'],
+        cliManifest.unikitTemplate.reactNativeRange,
       );
       assert.match(
         readFileSync(join(project, 'Cargo.toml'), 'utf-8'),
@@ -404,7 +406,7 @@ test(
       // RN 코드젠 계약 — 어댑터는 bun install 로 먼저 설치돼 있다(감사 A11).
       seedReactNativeAdapter(project);
       // cargo metadata --no-deps (오프라인 OK) → resolveReactNativeScaffold → RN 모듈 렌더까지 전 경로.
-      const written = await runGenerate(['--config', join(project, 'rustra.json')], undefined, {
+      const written = await runGenerate(['--config', join(project, 'unikit.json')], undefined, {
         quiet: true,
       });
       assert.ok(
@@ -423,7 +425,7 @@ test(
       const project = join(root, 'app');
       await runInit([project]);
       writeMinimalSchema(project);
-      const written = await runGenerate(['--config', join(project, 'rustra.json')], undefined, {
+      const written = await runGenerate(['--config', join(project, 'unikit.json')], undefined, {
         quiet: true,
       });
       assert.ok(written.some((file) => file.endsWith('node.ts')));
@@ -443,7 +445,7 @@ test(
       const project = join(root, 'app');
       await runInit([project]);
       writeMinimalSchema(project);
-      const written = await runGenerate(['--config', join(project, 'rustra.json')], undefined, {
+      const written = await runGenerate(['--config', join(project, 'unikit.json')], undefined, {
         quiet: true,
       });
       const generatedDir = join(project, 'src', 'generated');
@@ -451,11 +453,11 @@ test(
       assert.ok(files.length >= 5, `expected the full TS surface, got: ${files.join(', ')}`);
       for (const name of files) {
         const content = readFileSync(join(generatedDir, name), 'utf-8');
-        const markers = content.split('// ── rustra generated').length - 1;
+        const markers = content.split('// ── unikit generated').length - 1;
         assert.equal(markers, 1, `${name} must carry the self-describing header exactly once`);
-        assert.match(content, /^\/\/ ── rustra generated/);
+        assert.match(content, /^\/\/ ── unikit generated/);
         assert.match(content, /Source: schema\.json/);
-        assert.match(content, /Regen: {2}rustra codegen --config rustra\.json/);
+        assert.match(content, /Regen: {2}unikit codegen --config unikit\.json/);
         assert.match(content, /Stage: {2}/);
         assert.match(content, /DO NOT EDIT/);
       }
@@ -477,7 +479,7 @@ test(
         manifest,
         readFileSync(manifest, 'utf8') +
           '\n[patch.crates-io]\n' +
-          ['rustra', 'rustra-macros', 'rustra-naming']
+          ['unikit-bridge', 'unikit-bridge-macros', 'unikit-bridge-naming']
             .map(
               (name) =>
                 `${name} = { path = ${JSON.stringify(join(repo, 'crates', name).replaceAll('\\', '/'))} }`,
@@ -492,9 +494,9 @@ test(
           `
 #[test]
 fn native_entry_registers_echo() {
-    rustra_mobile_init();
-    rustra_mobile_init();
-    let package = rustra::ffi::get_package().expect("native entry must register FFI");
+    unikit_mobile_init();
+    unikit_mobile_init();
+    let package = unikit_bridge::ffi::get_package().expect("native entry must register FFI");
     let value = package.invoke_json("echo", serde_json::json!({ "message": "native init" })).unwrap();
     assert_eq!(value["message"], "native init");
 }
@@ -522,12 +524,12 @@ test(
       const repo = fileURLToPath(new URL('../../../', import.meta.url));
       const versions = templateVersions(
         cliManifest.version,
-        cliManifest.dependencies['@rustra/types'],
-        cliManifest.rustraTemplate.cargoRange,
+        cliManifest.dependencies['@unikit-bridge/types'],
+        cliManifest.unikitTemplate.cargoRange,
       );
       const files = renderInitProjectFiles(versions, {
         bun: true,
-        bunRange: cliManifest.rustraTemplate.bunRange,
+        bunRange: cliManifest.unikitTemplate.bunRange,
         reactNative: false,
       });
       const contents = {
@@ -537,7 +539,7 @@ test(
         'src/bin/generate.rs': files.generateRs,
         'src/index.ts': files.appTs,
         'package.json': files.packageJson,
-        'rustra.json': files.rustraJson,
+        'unikit.json': files.unikitJson,
       };
       for (const [name, content] of Object.entries(contents)) {
         const path = join(project, name);
@@ -551,7 +553,7 @@ test(
         manifest,
         readFileSync(manifest, 'utf8') +
           '\n[patch.crates-io]\n' +
-          ['rustra', 'rustra-macros', 'rustra-naming']
+          ['unikit-bridge', 'unikit-bridge-macros', 'unikit-bridge-naming']
             .map(
               (name) =>
                 `${name} = { path = ${JSON.stringify(join(repo, 'crates', name).replaceAll('\\', '/'))} }`,
@@ -559,7 +561,7 @@ test(
             .join('\n') +
           '\n',
       );
-      const adapters = join(project, 'node_modules/@rustra');
+      const adapters = join(project, 'node_modules/@unikit-bridge');
       mkdirSync(adapters, { recursive: true });
       for (const name of ['types', 'bun'])
         symlinkSync(join(repo, 'packages', name), join(adapters, name), 'dir');
@@ -582,7 +584,7 @@ test(
             `${result.error ?? ''}\n${result.stdout}\n${result.stderr}`,
           );
         }
-        const written = await runGenerate(['--config', join(project, 'rustra.json')], undefined, {
+        const written = await runGenerate(['--config', join(project, 'unikit.json')], undefined, {
           quiet: true,
         });
         assert.ok(written.some((file) => file.endsWith('bun.ts')));

@@ -4,7 +4,7 @@
 
 **Goal:** Phase 0(현장 랜딩+0.5.0) 이후 — 안정화 트랙(API 표면 고정·semver 정책·계약 보증 게이트·다중 타깃 매트릭스), 무중단 핸들러 주입(RN wasm3 우선), 인스펙터(덤프 API·inspect CLI·타임라인 리포트·계약 diff 진단)를 구현한다.
 
-**Architecture:** Phase 1은 단일 브랜치에서 게이트(스냅샷·정책·역호환)를 먼저 착지시키고, Phase 2는 병렬 워크트리 2트랙(무중단/인스펙터)으로 구동한다. 새 FFI·TS 표면은 Phase 1 정책 위에 설계된다. rustra.json에 `dev`/`inspector` 섹션을 신설해 관리 허브로 삼고, JSON Schema 발행으로 작성 UX를 제공한다.
+**Architecture:** Phase 1은 단일 브랜치에서 게이트(스냅샷·정책·역호환)를 먼저 착지시키고, Phase 2는 병렬 워크트리 2트랙(무중단/인스펙터)으로 구동한다. 새 FFI·TS 표면은 Phase 1 정책 위에 설계된다. unikit.json에 `dev`/`inspector` 섹션을 신설해 관리 허브로 삼고, JSON Schema 발행으로 작성 UX를 제공한다.
 
 **Tech Stack:** Rust workspace (cargo test/clippy), TypeScript NodeNext (Bun test), wasm32-unknown-unknown + wasm3, Node CLI, GitHub Actions.
 
@@ -42,9 +42,9 @@
 
 ```js
 // 수집 대상:
-// 1. Rust: crates/rustra/src/lib.rs의 pub mod/pub use 목록
+// 1. Rust: crates/unikit-bridge/src/lib.rs의 pub mod/pub use 목록
 //    (정규식: /^\s*pub (?:mod|use)\s+.../gm) + ffi*.rs의
-//    pub unsafe extern "C" fn rustra_* 이름 목록
+//    pub unsafe extern "C" fn unikit_* 이름 목록
 // 2. TS: packages/*/src/index.ts의 export 문
 //    (정규식으로 export 목록 추출, dist/*.d.ts 재수집 아님 — src 기준)
 // 출력: JSON { rustModules, ffiExports, tsExports: { "packages/types": [...] } }
@@ -91,7 +91,7 @@ git commit -m "feat(stability): API 표면 스냅샷 게이트 추가"
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs` (필요시 `#[doc(hidden)]` 보강)
+- Modify: `crates/unikit-bridge/src/lib.rs` (필요시 `#[doc(hidden)]` 보강)
 - Modify: `packages/types/src/index.ts` 등 (필요시 `@internal` JSDoc)
 
 **Step 1: 스냅샷 목록을 사람이 검토** — 내부용이지만 pub인 항목에
@@ -114,7 +114,7 @@ Expected: green
 **Step 1: 정책 문서 작성** — 설계 문서 §Phase 1-2 내용 그대로:
 호환 보증 대상(wire 포맷·계약 해시·FFI 시그니처·generated output), 폐기 절차
 (deprecated → 최소 1 minor → 제거), experimental 태그 규칙
-(`rustra_ffi_hot_reload` 등), MSRV(Rust 1.88) 정책.
+(`unikit_ffi_hot_reload` 등), MSRV(Rust 1.88) 정책.
 
 **Step 2: 링크 정합** — README Roadmap 및 docs/README에 링크 1줄 추가.
 Run: `bun run lint:links 2>/dev/null || ls docs/versioning-policy.md` (링크 검사
@@ -151,7 +151,7 @@ Expected: PASS (PINNED hex는 이미 green이므로 fixture 추가분이 FAIL �
 - Modify: `packages/cli/src/doctor-checks.ts`, `doctor-report.ts`, `doctor-format.ts`
 - Test: `packages/cli/src/doctor.test.ts`
 
-**Step 1: 실패 테스트** — `rustra.json`에 node+bun+reactNative 섹션 동시 존재 fixture
+**Step 1: 실패 테스트** — `unikit.json`에 node+bun+reactNative 섹션 동시 존재 fixture
 → doctor가 **세 섹션 모두** 검사 결과를 표로 수집. exit code는 최악 상태.
 한 섹션 red(예: bun rustLibrary 경로 부재)여도 다른 섹션 검사 계속.
 
@@ -174,14 +174,14 @@ Expected: PASS
 
 **Step 4: Commit** — `feat(cli): doctor 다중 타깃 매트릭스 + 교차 일관성 검사`
 
-### Task 6: rustra.json — dev/inspector 섹션 + 검증 사다리
+### Task 6: unikit.json — dev/inspector 섹션 + 검증 사다리
 
 **Files:**
 
 - Modify: `packages/cli/src/config.ts`
 - Modify: `packages/cli/src/generate.test.ts` (config 케이스 상당수 기존 위치) 또는
   Create: `packages/cli/src/config-validation.test.ts`
-- Create: `packages/cli/rustra.schema.json` (또는 packages/types — 발행 위치는
+- Create: `packages/cli/unikit.schema.json` (또는 packages/types — 발행 위치는
   npm files 필드와 정합)
 - Modify: `packages/cli/package.json` (files에 schema 포함)
 
@@ -199,16 +199,16 @@ Expected: PASS
 | L2 위반 복수                                   | **모두 수집해 나열** (첫 위반에서 중단 않음)     |
 | `dev.target: "native"` + wasm 섹션             | L2 에러 (wasm 섹션은 wasm 타깃에서만)            |
 
-**Step 2: config.ts 확장** — `RustraConfig`에 dev/inspector 타입 + L1 검증 확장 +
+**Step 2: config.ts 확장** — `UnikitConfig`에 dev/inspector 타입 + L1 검증 확장 +
 L2 `collectSemanticErrors(config)` 신설 (배열 반환, 로드 시 있으면 전부 나열 후 throw).
 
-**Step 3: schema 발행** — `rustra.schema.json` 수동 작성 (JSON Schema draft-07).
+**Step 3: schema 발행** — `unikit.schema.json` 수동 작성 (JSON Schema draft-07).
 스키마↔타입 동기화 게이트는 Task 6 범위에서 수동 대조 테스트 1개
 (필드 목록 대조)로 충분 — 전용 코드젠은 YAGNI.
 
-**Step 4: focused test green → Commit** — `feat(cli): rustra.json dev/inspector 섹션 + L2 의미 검증`
+**Step 4: focused test green → Commit** — `feat(cli): unikit.json dev/inspector 섹션 + L2 의미 검증`
 
-### Task 7: rustra init — $schema 삽입 + 호스트 감지 최소 템플릿
+### Task 7: unikit init — $schema 삽입 + 호스트 감지 최소 템플릿
 
 **Files:**
 
@@ -232,7 +232,7 @@ L2 `collectSemanticErrors(config)` 신설 (배열 반환, 로드 시 있으면 �
 
 ```bash
 rustup target add wasm32-unknown-unknown
-cargo check -p rustra --target wasm32-unknown-unknown
+cargo check -p unikit-bridge --target wasm32-unknown-unknown
 ```
 
 실패 시: worker pool/fs 의존 분석 → `#[cfg(target_arch = "wasm32")]` 축소 구현이
@@ -263,8 +263,8 @@ red base에서 시작하지 않는다).
 - Create: `examples/rn-wasm-spike/` (독립 예제 — 패키지 본체 오염 금지)
 - Modify: `docs/compatibility-matrix.md` (판정 기록)
 
-**Step 1: rustra core wasm32 빌드 스파이크** — examples/rn-wasm-spike/backend에서
-`rustra`를 dep로 wasm32 빌드 (worker pool 축소 필요 시 cfg 게이트 — **파일은 spike
+**Step 1: unikit core wasm32 빌드 스파이크** — examples/rn-wasm-spike/backend에서
+`unikit`를 dep로 wasm32 빌드 (worker pool 축소 필요 시 cfg 게이트 — **파일은 spike
 디렉토리 안에서만 패치, 본체 변경 시 설계 문서에 반영 후 진행**).
 피처 계산기 정도의 최소 백엔드 + postcard wire round-trip을 호스트 테스트로.
 
@@ -282,7 +282,7 @@ Expected: **바이트 동일** → 합격. 틀리거나 성능/안정성 문제�
 
 - 합격: compatibility-matrix에 기록하고 Task A1 착수
 - 불합격: 결과를 compatibility-matrix에 기록, Track A는 A0에서 종료.
-  대체 산출물: RN 경계 문서 + `@rustra/testing` 목업 가이드 (이 문서만 커밋)
+  대체 산출물: RN 경계 문서 + `@unikit-bridge/testing` 목업 가이드 (이 문서만 커밋)
 
 ### Task A1: Node/Bun/Tauri cdylib 핫스왑
 
@@ -302,13 +302,13 @@ reload 이벤트 훅. Node/Bun은 FFI 라이브러리 언로드가 안전하지 
 
 **Step 3: green → Commit** — `feat(dev): Node/Bun/Tauri cdylib 핫스왑 오케스트레이션`
 
-### Task A2: rustra_ffi_hot_reload + parity 게이트
+### Task A2: unikit_ffi_hot_reload + parity 게이트
 
 **Files:**
 
-- Create: `crates/rustra/src/ffi_hot_reload.rs`
-- Modify: `crates/rustra/src/lib.rs` (mod 선언)
-- Test: `crates/rustra/src/ffi_hot_reload_tests.rs` (또는 ffi_tests.rs 확장)
+- Create: `crates/unikit-bridge/src/ffi_hot_reload.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs` (mod 선언)
+- Test: `crates/unikit-bridge/src/ffi_hot_reload_tests.rs` (또는 ffi_tests.rs 확장)
 
 **Step 1: 실패 테스트** — 동일 스키마의 핸들러 집합 blob(이름→교체 핸들러) 주입 →
 `replace()` 경로로 command_id 유지 확인, 진행 중 컨텍스트의 live_schema 재계산,
@@ -321,8 +321,8 @@ frozen 레지스트리는 `registry.frozen` 에러.
 /// 실험적 표면 — versioning-policy의 experimental 규칙 적용.
 /// # Safety
 /// ptr/len은 유효한 blob을 가리켜야 하고, registry는 초기화된 엔진이어야 한다.
-pub unsafe extern "C" fn rustra_ffi_hot_reload(
-    registry: *mut RustraRegistry,
+pub unsafe extern "C" fn unikit_ffi_hot_reload(
+    registry: *mut UnikitRegistry,
     handlers_blob: *const u8,
     len: usize,
 ) -> i32;
@@ -332,12 +332,12 @@ blob 형식: postcard 직렬화된 (이름, wire 시그니처 해시) 목록 —
 건너뛰고 리포트에 포함 (loud, 조용한 스킵 아님).
 
 **Step 3: parity 게이트 연결** — `dev.wasm.parityGate: true`(기본)일 때 dev 루프가
-reload 전후 `rustra_ffi_contract_hash` + golden wire 호출을 대조, 불일치 시
+reload 전후 `unikit_ffi_contract_hash` + golden wire 호출을 대조, 불일치 시
 리로드 거부.
 
-**Step 4: green → Commit** — `feat(ffi): rustra_ffi_hot_reload (experimental)`
+**Step 4: green → Commit** — `feat(ffi): unikit_ffi_hot_reload (experimental)`
 
-### Task A3: rustra dev wasm 타깃 + doctor 고지
+### Task A3: unikit dev wasm 타깃 + doctor 고지
 
 **Files:**
 
@@ -362,7 +362,7 @@ doctor가 "협동형 취소만 유효 — 릴리스 전 native 검증 필수" �
 
 **Files:**
 
-- Create: `crates/rustra/src/ffi_snapshot.rs` + 테스트
+- Create: `crates/unikit-bridge/src/ffi_snapshot.rs` + 테스트
 - Modify: `packages/types/src/inspector.ts` (DumpedWire 타입 + 디코더)
 - Test: `packages/types/src/inspector.test.ts`
 
@@ -375,7 +375,7 @@ golden PINNED hex 케이스로 디코더 테스트.
 
 **Step 3: green → Commit** — `feat(inspector): 표준 스냅샷 FFI + DumpedWire 디코더`
 
-### Task B2: rustra inspect CLI
+### Task B2: unikit inspect CLI
 
 **Files:**
 
@@ -386,7 +386,7 @@ golden PINNED hex 케이스로 디코더 테스트.
 **Step 1: 실패 테스트** — dump 파일(hex 또는 raw) → 스키마 주도 파싱 → 필드 트리
 텍스트 출력. 잘못된 바이트는 위치+사유 에러 (loud).
 
-**Step 2: 구현 → green → Commit** — `feat(cli): rustra inspect 커맨드`
+**Step 2: 구현 → green → Commit** — `feat(cli): unikit inspect 커맨드`
 
 ### Task B3: 타임라인 리포트 생성기
 

@@ -9,11 +9,11 @@ export type SubscribeFn<T = unknown> = (
 ) => SubscribeResult;
 
 /**
- * Subscribes to a Rustra event stream and automatically unregisters on unmount.
+ * Subscribes to a Unikit event stream and automatically unregisters on unmount.
  *
  * @param eventName Name of the event to listen to (e.g. "progress.tick")
  * @param callback Handler called whenever the event fires
- * @param subscribe Optional subscription function (e.g., from `@rustra/react-native` `subscribeEvent`)
+ * @param subscribe Optional subscription function (e.g., from `@unikit-bridge/react-native` `subscribeEvent`)
  */
 export function useEvent<T = unknown>(
   eventName: string,
@@ -36,7 +36,7 @@ export function useEvent<T = unknown>(
         if (active) callbackRef.current(payload);
       });
     } catch (error) {
-      console.error(`Rustra: event subscription for "${eventName}" failed:`, error);
+      console.error(`Unikit: event subscription for "${eventName}" failed:`, error);
       return () => {
         active = false;
       };
@@ -48,7 +48,7 @@ export function useEvent<T = unknown>(
       },
       (error) => {
         if (active) {
-          console.error(`Rustra: event subscription for "${eventName}" failed:`, error);
+          console.error(`Unikit: event subscription for "${eventName}" failed:`, error);
         }
       },
     );

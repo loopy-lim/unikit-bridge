@@ -19,7 +19,7 @@ sanitizer 모드는 먼저 scriptc hello가 main까지 도달하는지 확인하
 링크하며 정상 consumer나 배포 라이브러리에 포함되지 않는다.
 
 `stress-fixture`는 테스트 전용 package와 worker 대기·해제 진입을 제공한다. 공개 ABI를
-추가하지 않는다. 실제 callback·async·취소·response free는 production rustra의 FFI다.
+추가하지 않는다. 실제 callback·async·취소·response free는 production unikit의 FFI다.
 스트레스 매니페스트는 코드젠된 `ffi.json`의 descriptor를 그대로 사용하며, 링크할
 fixture와 스케줄 제어 함수 3개만 추가한다. 기본 calculator consumer 스모크도 별도로
 유지하므로 fixture 실행만으로 실제 calculator package 검증을 대신하지 않는다.
@@ -48,3 +48,22 @@ trampoline이 반환한 뒤 실행되므로 별도이며 실제 async 완료 경
 
 2026-10-13의 release 반복 통과와 sanitizer 미완료 경계는
 [실제 native consumer 검증 기록](../../../docs/dev/research/2026-10-13-scriptc-native-stress.md)에 정리했다.
+
+## 대규모 할당 스트레스 (55k 상당)
+
+취소/해제 스트레스와 별개로, 대규모 객체 할당·해제가 정답과 메모리 상한을
+보존하는지 검사하는 게이트가 `run-alloc-stress.mjs`에 있다(11/1 플랜 후속
+"JS 런타임 대규모 메모리 스트레스 55k 스타일").
+
+```bash
+node examples/calculator/scriptc/run-alloc-stress.mjs
+```
+
+`alloc-stress-app.ts`가 11라운드 × 5,000노드 = 55,000 객체(nitro 벤치마크 55k
+상당)의 flat-arena 트리를 라운드마다 할당하고, `parityEcho`/`parityStore`/
+`parityResident`/`parityIndexed`/`parityFind` 엔진 왕복으로 전 필드 정답을
+단정한 뒤 1노드 대체 store로 해제를 검증한다. 각 실행은
+`/proc/self/statm`(scriptc 런타임은 `process.memoryUsage`가 없다)으로
+스스로 RSS를 측정해 시작 RSS의 12배(실측 peak 7.19–7.75×에 근거) 상한을
+즉시 검사하고, 러너가 출력을 다시 파싱해 상한·형식을 재검증한다. 영수증과
+로그는 `target/scriptc-alloc/<platform>-<arch>/release/`에 남는다.

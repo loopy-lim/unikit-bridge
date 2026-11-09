@@ -124,7 +124,7 @@ test('unknown, async, unfrozen and mismatched commands never dispatch through a 
     change(x);
     assert.throws(
       () => bind(),
-      (e: unknown) => e instanceof api.RustraCommandError && e.code === 'sync.unavailable',
+      (e: unknown) => e instanceof api.UnikitCommandError && e.code === 'sync.unavailable',
     );
     assert.equal(x.calls(), 0);
     x.release();
@@ -151,7 +151,7 @@ test('changed or unavailable native generation rejects before executing a handle
   x.state.execution = 'async';
   assert.throws(
     () => call({ a: 1, b: 2 }),
-    (e: unknown) => e instanceof api.RustraCommandError && e.code === 'sync.unavailable',
+    (e: unknown) => e instanceof api.UnikitCommandError && e.code === 'sync.unavailable',
   );
   assert.equal(x.calls(), 0);
   x.release();
@@ -189,7 +189,7 @@ test('native errors throw once synchronously and the existing API still rejects'
   const call = bind();
   assert.throws(
     () => call({ a: 1, b: 2 }),
-    (e: unknown) => e instanceof api.RustraCommandError && e.code === 'math.failed',
+    (e: unknown) => e instanceof api.UnikitCommandError && e.code === 'math.failed',
   );
   assert.equal(calls, 1);
   await assert.rejects(x.engine.invoke('add', { a: 1, b: 2 }));
@@ -201,7 +201,7 @@ test('a JS-codec-only host is refused rather than pretending its probes are atom
   const x = setup({ bindSyncCommand: undefined });
   assert.throws(
     () => bind(),
-    (e: unknown) => e instanceof api.RustraCommandError && e.code === 'sync.unavailable',
+    (e: unknown) => e instanceof api.UnikitCommandError && e.code === 'sync.unavailable',
   );
   assert.equal(x.calls(), 0);
   x.release();
@@ -211,7 +211,7 @@ test('a missing generated command has a command error and lazy setup is never co
   const x = setup();
   assert.throws(
     () => api.bindSync('absent'),
-    (e: unknown) => e instanceof api.RustraCommandError && e.code === 'command.not_found',
+    (e: unknown) => e instanceof api.UnikitCommandError && e.code === 'command.not_found',
   );
   x.release();
   let starts = 0;

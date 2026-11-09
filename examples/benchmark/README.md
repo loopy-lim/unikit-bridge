@@ -2,25 +2,25 @@ English | [한국어](./README.ko.md)
 
 # Benchmark
 
-rustra-bridge performance measurement: codegen speed, invoke overhead, payload scalability.
+unikit-bridge performance measurement: codegen speed, invoke overhead, payload scalability.
 
 ## Build
 
 ```sh
-cargo build --release -p rustra-benchmark
+cargo build --release -p unikit-benchmark
 ```
 
 ## Run
 
 ```sh
-cargo run --release -p rustra-benchmark
+cargo run --release -p unikit-benchmark
 ```
 
 During optimization iterations, you can quickly re-measure only the hot path
 without waiting for full payload scaling.
 
 ```sh
-cargo run --release -p rustra-benchmark -- --hot-path-only
+cargo run --release -p unikit-benchmark -- --hot-path-only
 ```
 
 ## What Is Measured

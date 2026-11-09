@@ -5,9 +5,9 @@ const output = execFileSync('bunx', ['--bun', 'react-native', 'config'], {
   encoding: 'utf8',
 });
 const config = JSON.parse(output);
-const dependency = config.dependencies?.['@rustra/generated-react-native'];
+const dependency = config.dependencies?.['@unikit-bridge/generated-react-native'];
 if (!dependency?.platforms?.ios?.podspecPath || !dependency?.platforms?.android?.sourceDir) {
-  throw new Error('Rustra generated module is not autolinked on both iOS and Android');
+  throw new Error('Unikit generated module is not autolinked on both iOS and Android');
 }
 if (config.dependencies?.expo) {
   throw new Error('Bare React Native fixture unexpectedly depends on Expo');

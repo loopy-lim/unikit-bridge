@@ -1,7 +1,7 @@
-import { parseRustraErrorString, RustraCommandError } from './errors.js';
+import { parseUnikitErrorString, UnikitCommandError } from './errors.js';
 import type { FrameEngineContext } from './frame-engine-context.js';
 
-const unavailable = (detail: string) => new RustraCommandError('sync.unavailable', detail);
+const unavailable = (detail: string) => new UnikitCommandError('sync.unavailable', detail);
 
 /** The host factory owns atomic validation+dispatch; a JS probe cannot prevent
  * concurrent hot-core replacement. Only native hosts providing that contract
@@ -14,7 +14,7 @@ export function createSyncBindingResolver(
   return (command) => {
     const codec = registry.get(command);
     if (!codec)
-      throw new RustraCommandError('command.not_found', `No generated codec for "${command}".`);
+      throw new UnikitCommandError('command.not_found', `No generated codec for "${command}".`);
     if (codec.execution !== 'sync')
       throw unavailable(`Command "${command}" is not declared synchronous.`);
     if (!expectedHash || !native.bindSyncCommand) {
@@ -23,8 +23,8 @@ export function createSyncBindingResolver(
       );
     }
     const normalize = (error: unknown): never => {
-      if (error instanceof RustraCommandError) throw error;
-      throw parseRustraErrorString(error instanceof Error ? error.message : String(error));
+      if (error instanceof UnikitCommandError) throw error;
+      throw parseUnikitErrorString(error instanceof Error ? error.message : String(error));
     };
     const keys = codec.syncFields;
     const byteKey = codec.syncByteField;

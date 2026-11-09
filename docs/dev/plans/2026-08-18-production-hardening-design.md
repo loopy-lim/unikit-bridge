@@ -4,7 +4,7 @@
 
 ## 배경
 
-rustra-bridge는 코어 엔진(FFI 메모리 안전성, 타입 안전성, 크로스 플랫폼 어댑터, 코드 생성기)이
+unikit-bridge는 코어 엔진(FFI 메모리 안전성, 타입 안전성, 크로스 플랫폼 어댑터, 코드 생성기)이
 검증된 상태. 프로덕션 투입 전 4개 갭을 순서대로 보강한다:
 
 1. AbortSignal ↔ CancellationToken 취소 파이프라인
@@ -16,25 +16,25 @@ rustra-bridge는 코어 엔진(FFI 메모리 안전성, 타입 안전성, 크로
 
 ### 현황
 
-- 취소 인프라 전무. `rustra_ffi_invoke_async` (ffi.rs:447)는 worker 스레드에서 실행되지만
+- 취소 인프라 전무. `unikit_ffi_invoke_async` (ffi.rs:447)는 worker 스레드에서 실행되지만
   invocation ID가 없어 개별 호출 식별/취소 불가.
 - JS측 `createRkyvV2Engine.invoke` (packages/types/src/index.ts:475)는 sync 호출을
   Promise로 감싼 구조 — abort가 프라미스를 거부해도 Rust 작업은 끝까지 실행.
 
 ### 설계
 
-1. **Rust 취소 레지스트리** (`crates/rustra/src/cancel.rs` 신설):
+1. **Rust 취소 레지스트리** (`crates/unikit-bridge/src/cancel.rs` 신설):
    `static REGISTRY: Mutex<BTreeMap<u64, CancelState>>` + atomic u64 카운터.
    `CancelState::{Running, Cancelled, Completed}` — 취소는 플래그 전환만, 스레드 강제 종료 없음.
 2. **FFI 확장**:
-   - `rustra_ffi_invoke_async` / `invoke_json_async` 시그니처에 `invocation_id: *mut u64`
+   - `unikit_ffi_invoke_async` / `invoke_json_async` 시그니처에 `invocation_id: *mut u64`
      out-param 추가 — Rust가 ID 발급, 워커 시작 전 레지스트리에 `Running` 등록.
-   - 신규 심볼 `rustra_ffi_invoke_cancel(invocation_id: u64)` — `Running`이면 `Cancelled` 전환.
-   - 신규 심볼 `rustra_ffi_cancellation_status(invocation_id: u64) -> u32` —
+   - 신규 심볼 `unikit_ffi_invoke_cancel(invocation_id: u64)` — `Running`이면 `Cancelled` 전환.
+   - 신규 심볼 `unikit_ffi_cancellation_status(invocation_id: u64) -> u32` —
      0=Unknown, 1=Running, 2=Cancelled, 3=Completed. 핸들러 내부 폴링용 공개 API.
 3. **협력적 취소 체크포인트**: dispatch 경로의 자연스러운 지점(capability 게이트 직후,
    핸들러 종료 후 응답 인코딩 전)에서 `is_cancelled(id)` 확인 → 취소됐으면
-   `RustraError::cancelled` (`retryable: true`) 응답. 핸들러가 이미 끝났다면 결과 정상 반환.
+   `UnikitError::cancelled` (`retryable: true`) 응답. 핸들러가 이미 끝났다면 결과 정상 반환.
 4. **JS측 배선** (`packages/types`): `invoke(command, args, { signal })` 옵션.
    abort 시 (a) JS 프라미스 즉시 거부 + (b) `native.invokeCancel(id)` 호출.
    `packages/react-native` `createAsyncEngine`에도 동일 옵션 전파.
@@ -42,7 +42,7 @@ rustra-bridge는 코어 엔진(FFI 메모리 안전성, 타입 안전성, 크로
 
 ### 테스트
 
-- Rust: `crates/rustra/tests/cancel_tests.rs` — 상태 전이(Running→Cancelled→완료 정리),
+- Rust: `crates/unikit-bridge/tests/cancel_tests.rs` — 상태 전이(Running→Cancelled→완료 정리),
   cancel 후 invoke 응답이 `cancelled` 에러, 완료 후 cancel은 no-op.
 - TS: `packages/types/src/index.test.ts` — mock 네이티브로 AbortSignal 즉시 거부 +
   invokeCancel 호출 검증.
@@ -50,7 +50,7 @@ rustra-bridge는 코어 엔진(FFI 메모리 안전성, 타입 안전성, 크로
 ### 트레이드오프
 
 취소는 핸들러 실행 전 체크포인트에서만 효력. 실행 중 강제 중단은 unsafe하므로 제외.
-무거운 핸들러는 `rustra_ffi_cancellation_status` 폴링으로 자체 협력 중단 구현 가능.
+무거운 핸들러는 `unikit_ffi_cancellation_status` 폴링으로 자체 협력 중단 구현 가능.
 
 ## 트랙 2: OTA 스키마 하위 호환 (명령별 폴백)
 
@@ -77,14 +77,14 @@ rustra-bridge는 코어 엔진(FFI 메모리 안전성, 타입 안전성, 크로
 
 ### 테스트
 
-- Rust: `crates/rustra/tests/ota_compat_tests.rs` — 서로 다른 command_id 매핑을 가진
+- Rust: `crates/unikit-bridge/tests/ota_compat_tests.rs` — 서로 다른 command_id 매핑을 가진
   두 Package 간 이름 라우팅 폴백, unknown 필드 무시 재확인.
 - TS: field-order-drift 패턴 확장 — unknown 필드 추가된 newer native 시뮬레이션 +
   onContractMismatch 콜백 경로.
 
 ### 트레이드오프
 
-postcard 필드 순서가 달라진 truly-breaking 변경은 여전히 깨짐 — 그건 `rustra diff` CI
+postcard 필드 순서가 달라진 truly-breaking 변경은 여전히 깨짐 — 그건 `unikit diff` CI
 게이트 영역. 런타임 폴백은 unknown-명령/unknown-optional-필드 조합에만 유효.
 
 ## 트랙 3: 동적 페이로드 한도 + 대여 슬라이스
@@ -98,8 +98,8 @@ postcard 필드 순서가 달라진 truly-breaking 변경은 여전히 깨짐 �
 
 ### 설계
 
-1. **동적 한도 API**: `rustra_ffi_set_max_payload(bytes: usize)` +
-   `rustra_ffi_get_max_payload() -> usize`. `AtomicUsize` (기본 1MB 유지).
+1. **동적 한도 API**: `unikit_ffi_set_max_payload(bytes: usize)` +
+   `unikit_ffi_get_max_payload() -> usize`. `AtomicUsize` (기본 1MB 유지).
    rkyv V2 진입점(`invoke_rkyv_v2` 호출부)에도 동일 검사 추가.
 2. **JS측 노출**: `RkyvV2EngineOptions.maxPayloadBytes` — 인코딩 직후 `byteLength` 검사로
    왕복 전 조기 실패 (네이티브 호출 절약, 에러 메시지에 컨텍스트 포함).
@@ -133,10 +133,10 @@ postcard 필드 순서가 달라진 truly-breaking 변경은 여전히 깨짐 �
 
 1. **ci.yml rust 잡 매트릭스화**: `os: [ubuntu-latest, macos-latest, windows-latest]`.
    gtk/webkit 의존 스텝은 `if: runner.os == 'Linux'`로 격리. Windows는 MSVC 툴체인.
-2. **프리미티브 빌드 게이트**: 각 OS에서 `cargo build -p rustra-calculator-example --release`
+2. **프리미티브 빌드 게이트**: 각 OS에서 `cargo build -p unikit-calculator-example --release`
    - JSON invoke 왕복 스모크 (cargo test로 대체 가능 — 플랫폼별 테스트 필터 조정).
 3. **아티팩트 업로드**: `actions/upload-artifact@v4` — 플랫폼별 cdylib 산출물
-   (`.so`/`.dylib`/`.dll`) + rustra crate 컴파일 검증.
+   (`.so`/`.dylib`/`.dll`) + unikit crate 컴파일 검증.
 4. **windows-experiment 승격은 문서화만**: 실제 게이트 승격은 별도 PR (리스크 분리).
 
 ### 트레이드오프

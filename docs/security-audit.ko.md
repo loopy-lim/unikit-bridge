@@ -36,7 +36,7 @@ runner/ 가 Lynx 제거로 삭제되어 제거됨 — 2026-08-20.)
 | bincode                                       | 2.0.1   | 제거         | 2025-0141 (필요한 v2 와이어를 자체 코덱으로 보존) |
 
 그 행의 의존성(`examples/calculator`, RN 네이티브 경로)이 유일한 직접 의존이었으며,
-이후 레거시 와이어 포맷과 함께 아예 제거됐다. `crates/rustra` 코어는 Frame 와이어를
+이후 레거시 와이어 포맷과 함께 아예 제거됐다. `crates/unikit-bridge` 코어는 Frame 와이어를
 수동으로 구현하며 서드파티 직렬화/아카이브 의존성을 갖지 않는다.
 
 ## Tauri 2 업스트림 예외와 경로
@@ -54,9 +54,9 @@ GTK3 경로는 Tauri Linux 호스트 런타임에 해당하므로 단순히 삭�
 
 영향 범위:
 
-- gtk-rs 계열은 `rustra-tauri-calculator` 예제가 Linux에서 링크
-- Rustra의 기본 FFI/JSI/N-API 배포물에는 Tauri 기능이 기본 활성화되지 않음
-- `glib::VariantStrIter`는 Rustra 또는 Tauri 어댑터 코드에서 직접 호출하지 않음
+- gtk-rs 계열은 `unikit-tauri-calculator` 예제가 Linux에서 링크
+- Unikit의 기본 FFI/JSI/N-API 배포물에는 Tauri 기능이 기본 활성화되지 않음
+- `glib::VariantStrIter`는 Unikit 또는 Tauri 어댑터 코드에서 직접 호출하지 않음
 
 예외 ID는 `scripts/audit-rust.sh` 한 곳에서 관리하며, cargo-audit 게이트에서는
 임의 패키지명이나 광범위한 경고 비활성화 정책으로 우회하지 않는다.

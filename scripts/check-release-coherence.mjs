@@ -133,18 +133,18 @@ export function checkReleaseCoherence(root = process.cwd()) {
     (group) =>
       Array.isArray(group) &&
       group.length > 1 &&
-      PUBLISHED_PACKAGES.every((name) => group.includes(`@rustra/${name}`)),
+      PUBLISHED_PACKAGES.every((name) => group.includes(`@unikit-bridge/${name}`)),
   );
   if (forcedPublicGroup) {
     failures.push(
-      'Changesets must not force all published @rustra/* packages into one fixed version group',
+      'Changesets must not force all published @unikit-bridge/* packages into one fixed version group',
     );
   }
 
-  const cargoRange = cli.rustraTemplate?.cargoRange;
+  const cargoRange = cli.unikitTemplate?.cargoRange;
   if (typeof cargoRange !== 'string' || !rangeContainsVersion(cargoRange, cargoVersion)) {
     failures.push(
-      `@rustra/cli rustraTemplate.cargoRange=${cargoRange} does not contain Rust ${cargoVersion}`,
+      `@unikit-bridge/cli unikitTemplate.cargoRange=${cargoRange} does not contain Rust ${cargoVersion}`,
     );
   }
 
@@ -153,22 +153,22 @@ export function checkReleaseCoherence(root = process.cwd()) {
   // 버전보다 먼저 움직이면 저장소 안 예제 코드젠이 깨진다(버전은 version PR 이,
   // 범위는 version-packages.mjs 가 같은 커밋에서 움직인다).
   const reactNativeVersion = readJson(root, 'packages/react-native/package.json').version;
-  const reactNativeRange = cli.rustraTemplate?.reactNativeRange;
+  const reactNativeRange = cli.unikitTemplate?.reactNativeRange;
   if (
     typeof reactNativeRange !== 'string' ||
     !rangeContainsVersion(reactNativeRange, reactNativeVersion)
   ) {
     failures.push(
-      `@rustra/cli rustraTemplate.reactNativeRange=${reactNativeRange} does not contain @rustra/react-native ${reactNativeVersion}`,
+      `@unikit-bridge/cli unikitTemplate.reactNativeRange=${reactNativeRange} does not contain @unikit-bridge/react-native ${reactNativeVersion}`,
     );
   }
 
   for (const host of ['node', 'bun', 'tauri']) {
     const hostVersion = readJson(root, `packages/${host}/package.json`).version;
-    const hostRange = cli.rustraTemplate?.[`${host}Range`];
+    const hostRange = cli.unikitTemplate?.[`${host}Range`];
     if (typeof hostRange !== 'string' || !rangeContainsVersion(hostRange, hostVersion)) {
       failures.push(
-        `@rustra/cli rustraTemplate.${host}Range=${hostRange} does not contain @rustra/${host} ${hostVersion}`,
+        `@unikit-bridge/cli unikitTemplate.${host}Range=${hostRange} does not contain @unikit-bridge/${host} ${hostVersion}`,
       );
     }
   }
@@ -201,19 +201,19 @@ export function checkReleaseCoherence(root = process.cwd()) {
     }
 
     if (name !== 'types') {
-      const dependencyRange = manifest.dependencies?.['@rustra/types'];
+      const dependencyRange = manifest.dependencies?.['@unikit-bridge/types'];
       if (
         typeof dependencyRange !== 'string' ||
         !rangeContainsVersion(dependencyRange, typesVersion)
       ) {
         failures.push(
-          `${manifest.name} depends on @rustra/types ${dependencyRange}, which does not contain ${typesVersion}`,
+          `${manifest.name} depends on @unikit-bridge/types ${dependencyRange}, which does not contain ${typesVersion}`,
         );
       }
-      const lockDependencyRange = block?.match(/"@rustra\/types"\s*:\s*"([^"]+)"/)?.[1];
+      const lockDependencyRange = block?.match(/"@unikit-bridge\/types"\s*:\s*"([^"]+)"/)?.[1];
       if (lockDependencyRange !== dependencyRange) {
         failures.push(
-          `${manifest.name} lock @rustra/types=${lockDependencyRange} but manifest=${dependencyRange}`,
+          `${manifest.name} lock @unikit-bridge/types=${lockDependencyRange} but manifest=${dependencyRange}`,
         );
       }
     }

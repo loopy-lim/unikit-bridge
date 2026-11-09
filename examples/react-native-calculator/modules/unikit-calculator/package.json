@@ -1,0 +1,16 @@
+{
+  "name": "unikit-calculator",
+  "version": "1.0.0",
+  "description": "React Native Expo module for unikit calculator example",
+  "main": "src/index.ts",
+  "private": true,
+  "author": "loopy-lim",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/loopy-lim/unikit-bridge.git"
+  },
+  "peerDependencies": {
+    "expo-modules-core": "*"
+  }
+}

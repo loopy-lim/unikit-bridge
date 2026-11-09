@@ -1,5 +1,5 @@
 // uniffi 코드젠 단계의 스폰 계약 e2e — uniffi 섹션이 있을 때 codegen 이 스폰하는
-// cargo 명령열(프로브 → cdylib build → uniffi-bindgen)과 env(RUSTRA_UNIFFI_OUT),
+// cargo 명령열(프로브 → cdylib build → uniffi-bindgen)과 env(UNIKIT_UNIFFI_OUT),
 // 그리고 check 모드의 비대칭(러스트 재빌드 없이 uniffi_generated.rs 바이트 비교만)을
 // 고정한다. uniffi 섹션이 없는 프로젝트는 스폰열이 이전과 동일해야 한다(기능 스위치
 // 의계약 — 무음 회귀를 여기서 잡는다).
@@ -65,7 +65,7 @@ function seedProject(root: string, options: SeedOptions = {}): string {
   mkdirSync(join(root, FAKE_BIN), { recursive: true });
   writeFileSync(join(project, 'Cargo.toml'), '[package]\nname = "x"\nversion = "0.1.0"\n');
   writeFileSync(
-    join(project, 'rustra.json'),
+    join(project, 'unikit.json'),
     JSON.stringify({
       schema: './generated/schema.json',
       output: './generated',
@@ -77,7 +77,7 @@ function seedProject(root: string, options: SeedOptions = {}): string {
   const fakeCargo = [
     '#!/bin/bash',
     '# 스파이 — 모든 호출의 첫 서브커맨드와 프로브 env 를 기록한다.',
-    'echo "$1 | RUO=${RUSTRA_UNIFFI_OUT:-}" >> "$FAKE_CARGO_LOG"',
+    'echo "$1 | RUO=${UNIKIT_UNIFFI_OUT:-}" >> "$FAKE_CARGO_LOG"',
     'if [ "$1" = "metadata" ]; then',
     '  manifest=""; prev=""',
     '  for a in "$@"; do [ "$prev" = "--manifest-path" ] && manifest="$a"; prev="$a"; done',
@@ -92,11 +92,11 @@ function seedProject(root: string, options: SeedOptions = {}): string {
     '  bin=""; prev=""',
     '  for a in "$@"; do [ "$prev" = "--bin" ] && bin="$a"; prev="$a"; done',
     '  if [ "$bin" = "generate" ]; then',
-    '    mkdir -p "$RUSTRA_SCHEMA_OUT"',
-    '    cp "$FAKE_SCHEMA_FILE" "$RUSTRA_SCHEMA_OUT/schema.json"',
-    '    if [ -n "$RUSTRA_UNIFFI_OUT" ]; then',
-    '      mkdir -p "$RUSTRA_UNIFFI_OUT"',
-    '      printf \'// uniffi mirror probe\\n\' > "$RUSTRA_UNIFFI_OUT/uniffi_generated.rs"',
+    '    mkdir -p "$UNIKIT_SCHEMA_OUT"',
+    '    cp "$FAKE_SCHEMA_FILE" "$UNIKIT_SCHEMA_OUT/schema.json"',
+    '    if [ -n "$UNIKIT_UNIFFI_OUT" ]; then',
+    '      mkdir -p "$UNIKIT_UNIFFI_OUT"',
+    '      printf \'// uniffi mirror probe\\n\' > "$UNIKIT_UNIFFI_OUT/uniffi_generated.rs"',
     '    fi',
     '    exit 0',
     '  fi',
@@ -187,14 +187,14 @@ function spawnSequence(logPath: string): string[] {
 }
 
 test('uniffi-configured codegen spawns probe → cdylib build → bindgen and writes bindings', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-uniffi-run-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-uniffi-run-'));
   const env = withFakeCargo(root, { uniffi: { output: './bindings/uniffi' } });
   try {
-    await runCodegen(['--config', join(env.project, 'rustra.json')]);
+    await runCodegen(['--config', join(env.project, 'unikit.json')]);
     // 스폰열: metadata(resolveCodegenTarget) → run(generate 프로브) → build →
     // run(uniffi-bindgen). TS 렌더는 cargo 를 스폰하지 않는다.
     assert.deepEqual(spawnSequence(env.logPath), ['metadata', 'run', 'build', 'run']);
-    // 프로브 env — RUSTRA_UNIFFI_OUT 은 커밋 위치(uniffi.srcOut 기본 "src")를 가리킨다.
+    // 프로브 env — UNIKIT_UNIFFI_OUT 은 커밋 위치(uniffi.srcOut 기본 "src")를 가리킨다.
     const log = readFileSync(env.logPath, 'utf8');
     assert.match(log, new RegExp(`run \\| RUO=${join(env.project, 'src').replace(/\\/g, '\\\\')}`));
     // 프로브가 커밋 위치에 uniffi_generated.rs 를 썼다.
@@ -216,14 +216,14 @@ test('uniffi-configured codegen spawns probe → cdylib build → bindgen and wr
 });
 
 test('uniffi codegen --check only byte-compares uniffi_generated.rs and never builds', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-uniffi-check-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-uniffi-check-'));
   const env = withFakeCargo(root, { uniffi: { output: './bindings/uniffi' } });
   try {
     // 1차 — 쓰기 코드젠으로 커밋 산출물(src/uniffi_generated.rs + manifest)을 만든다.
-    await runCodegen(['--config', join(env.project, 'rustra.json')]);
+    await runCodegen(['--config', join(env.project, 'unikit.json')]);
     writeFileSync(env.logPath, '');
     // 2차 — check 모드. cargo build/bindgen 스폰이 없어야 한다(비대칭 계약).
-    await runCodegen(['--config', join(env.project, 'rustra.json'), '--check']);
+    await runCodegen(['--config', join(env.project, 'unikit.json'), '--check']);
     // metadata 스폰은 cargo-metadata 캐시(mtime+size)로 흡수될 수 있으니 숫자가
     // 아니라 부재로 단언한다 — build 가 없고 run(generate 프로브)이 정확히 1회.
     const checkSeq = spawnSequence(env.logPath);
@@ -241,11 +241,11 @@ test('uniffi codegen --check only byte-compares uniffi_generated.rs and never bu
     const committed = join(env.project, 'src', UNIFFI_GENERATED_RS);
     writeFileSync(committed, readFileSync(committed, 'utf8') + '\n// drift probe\n');
     await assert.rejects(
-      () => runCodegen(['--config', join(env.project, 'rustra.json'), '--check']),
+      () => runCodegen(['--config', join(env.project, 'unikit.json'), '--check']),
       (error: unknown) => {
         const message = error instanceof Error ? error.message : String(error);
         assert.match(message, /uniffi drift \(disk changed\)/);
-        assert.match(message, /Run rustra codegen/);
+        assert.match(message, /Run unikit codegen/);
         return true;
       },
     );
@@ -256,18 +256,18 @@ test('uniffi codegen --check only byte-compares uniffi_generated.rs and never bu
 });
 
 test('check mode fails closed when the committed uniffi_generated.rs is absent', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-uniffi-miss-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-uniffi-miss-'));
   const env = withFakeCargo(root, { uniffi: { output: './bindings/uniffi' } });
   try {
-    await runCodegen(['--config', join(env.project, 'rustra.json')]);
+    await runCodegen(['--config', join(env.project, 'unikit.json')]);
     rmSync(join(env.project, 'src', UNIFFI_GENERATED_RS));
     writeFileSync(env.logPath, '');
     await assert.rejects(
-      () => runCodegen(['--config', join(env.project, 'rustra.json'), '--check']),
+      () => runCodegen(['--config', join(env.project, 'unikit.json'), '--check']),
       (error: unknown) => {
         const message = error instanceof Error ? error.message : String(error);
         assert.match(message, /uniffi drift \(missing\)/);
-        assert.match(message, /Run rustra codegen/);
+        assert.match(message, /Run unikit codegen/);
         return true;
       },
     );
@@ -278,12 +278,12 @@ test('check mode fails closed when the committed uniffi_generated.rs is absent',
 });
 
 test('bindgen failure exits non-zero with the wrapped context', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-uniffi-bindfail-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-uniffi-bindfail-'));
   const env = withFakeCargo(root, { uniffi: { output: './bindings/uniffi' } });
   process.env.FAKE_BINDGEN_FAIL = '1';
   try {
     await assert.rejects(
-      () => runCodegen(['--config', join(env.project, 'rustra.json')]),
+      () => runCodegen(['--config', join(env.project, 'unikit.json')]),
       (error: unknown) => {
         const message = error instanceof Error ? error.message : String(error);
         assert.match(message, /uniffi-bindgen failed for x/);
@@ -298,12 +298,12 @@ test('bindgen failure exits non-zero with the wrapped context', async () => {
 });
 
 test('a missing cdylib after the build step is a clear fail-closed error', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-uniffi-nolib-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-uniffi-nolib-'));
   const env = withFakeCargo(root, { uniffi: { output: './bindings/uniffi' } });
   process.env.FAKE_SKIP_DYLIB = '1';
   try {
     await assert.rejects(
-      () => runCodegen(['--config', join(env.project, 'rustra.json')]),
+      () => runCodegen(['--config', join(env.project, 'unikit.json')]),
       (error: unknown) => {
         const message = error instanceof Error ? error.message : String(error);
         assert.match(message, /did not produce .*libcustom_bridge\.so/);
@@ -318,13 +318,13 @@ test('a missing cdylib after the build step is a clear fail-closed error', async
 });
 
 test('projects without a uniffi section keep the pre-uniffi spawn sequence byte-for-byte', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-uniffi-off-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-uniffi-off-'));
   const env = withFakeCargo(root);
   try {
-    await runCodegen(['--config', join(env.project, 'rustra.json')]);
+    await runCodegen(['--config', join(env.project, 'unikit.json')]);
     // metadata + 프로브 스폰뿐 — build/bindgen 가 새는 없다.
     assert.deepEqual(spawnSequence(env.logPath), ['metadata', 'run']);
-    // 프로브에 RUSTRA_UNIFFI_OUT 을 흘리지 않는다(env 미설정 = RUO 빈 문자열).
+    // 프로브에 UNIKIT_UNIFFI_OUT 을 흘리지 않는다(env 미설정 = RUO 빈 문자열).
     const log = readFileSync(env.logPath, 'utf8');
     assert.match(log, /^run \| RUO=$/m);
     assert.ok(!existsSync(join(env.project, 'src', UNIFFI_GENERATED_RS)));
@@ -336,13 +336,13 @@ test('projects without a uniffi section keep the pre-uniffi spawn sequence byte-
 
 test('cli-uniffi helpers: dylib naming, output completeness, and drift comparison', async () => {
   // 플랫폼별 cdylib 파일명 관례 — 하이픈은 밑줄로.
-  const dylib = expectedDylibPath('/tgt', 'rustra-calculator-example', 'debug');
+  const dylib = expectedDylibPath('/tgt', 'unikit-calculator-example', 'debug');
   if (process.platform === 'darwin')
-    assert.equal(dylib, join('/tgt', 'debug', 'librustra_calculator_example.dylib'));
+    assert.equal(dylib, join('/tgt', 'debug', 'libunikit_calculator_example.dylib'));
   else if (process.platform === 'linux')
-    assert.equal(dylib, join('/tgt', 'debug', 'librustra_calculator_example.so'));
+    assert.equal(dylib, join('/tgt', 'debug', 'libunikit_calculator_example.so'));
   else if (process.platform === 'win32')
-    assert.equal(dylib, join('/tgt', 'debug', 'rustra_calculator_example.dll'));
+    assert.equal(dylib, join('/tgt', 'debug', 'unikit_calculator_example.dll'));
 
   // srcOut 기본값은 config 파일 디렉터리 기준 "src".
   assert.equal(resolveUniffiSrcOut('/cfg', { output: './b' }), join('/cfg', 'src'));
@@ -352,7 +352,7 @@ test('cli-uniffi helpers: dylib naming, output completeness, and drift compariso
   );
 
   // 산출물 완전성 — 4요소(.kt/.swift/.h/modulemap)가 모이면 통과.
-  const outDir = mkdtempSync(join(tmpdir(), 'rustra-uniffi-outs-'));
+  const outDir = mkdtempSync(join(tmpdir(), 'unikit-uniffi-outs-'));
   try {
     mkdirSync(join(outDir, 'kotlin'), { recursive: true });
     mkdirSync(join(outDir, 'swift'), { recursive: true });
@@ -369,8 +369,8 @@ test('cli-uniffi helpers: dylib naming, output completeness, and drift compariso
   }
 
   // 신선도 비교 — 동일 바이트는 통과, 변조는 drift, 커밋 부재는 missing,
-  // 프로브 무출력은 RUSTRA_UNIFFI_OUT 계약 위반.
-  const cmp = mkdtempSync(join(tmpdir(), 'rustra-uniffi-cmp-'));
+  // 프로브 무출력은 UNIKIT_UNIFFI_OUT 계약 위반.
+  const cmp = mkdtempSync(join(tmpdir(), 'unikit-uniffi-cmp-'));
   try {
     const tempRs = join(cmp, 'temp', UNIFFI_GENERATED_RS);
     const committedRs = join(cmp, 'committed', UNIFFI_GENERATED_RS);
@@ -390,7 +390,7 @@ test('cli-uniffi helpers: dylib naming, output completeness, and drift compariso
     );
     await assert.rejects(
       () => checkUniffiGeneratedRs(join(cmp, 'absent.rs'), committedRs),
-      /must honor RUSTRA_UNIFFI_OUT in check mode/,
+      /must honor UNIKIT_UNIFFI_OUT in check mode/,
     );
   } finally {
     rmSync(cmp, { recursive: true, force: true });
@@ -411,8 +411,8 @@ async function rmWatchTreeRetry(root: string): Promise<void> {
   }
 }
 
-test('config dev reloads paths from atomically replaced rustra.json and watches new sources', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-dev-refresh-'));
+test('config dev reloads paths from atomically replaced unikit.json and watches new sources', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'unikit-dev-refresh-'));
   const env = withFakeCargo(root);
   let handle: DevWatchHandle | undefined;
   const waitFor = async (predicate: () => boolean) => {
@@ -423,7 +423,7 @@ test('config dev reloads paths from atomically replaced rustra.json and watches 
   try {
     const { runDev } = await import('./dev.js');
     const { renameSync } = await import('node:fs');
-    const configPath = join(env.project, 'rustra.json');
+    const configPath = join(env.project, 'unikit.json');
     handle = await runDev(['--config', configPath]);
     const config = JSON.parse(readFileSync(configPath, 'utf8'));
     config.output = './next-generated';
@@ -443,15 +443,15 @@ test('config dev reloads paths from atomically replaced rustra.json and watches 
 });
 
 test('empty bindgen output cannot reuse old bindings and failure preserves the published tree', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-uniffi-empty-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-uniffi-empty-'));
   const env = withFakeCargo(root, { uniffi: { output: './bindings/uniffi' } });
   try {
-    await runCodegen(['--config', join(env.project, 'rustra.json')]);
+    await runCodegen(['--config', join(env.project, 'unikit.json')]);
     const swift = join(env.project, 'bindings/uniffi/swift/bridge.swift');
     const before = readFileSync(swift, 'utf8');
     process.env.FAKE_BINDGEN_EMPTY = '1';
     await assert.rejects(
-      () => runCodegen(['--config', join(env.project, 'rustra.json')]),
+      () => runCodegen(['--config', join(env.project, 'unikit.json')]),
       /incomplete/,
     );
     assert.equal(readFileSync(swift, 'utf8'), before);
@@ -462,10 +462,10 @@ test('empty bindgen output cannot reuse old bindings and failure preserves the p
 });
 
 test('--check-bindings detects actual Swift/Kotlin and extra-file drift without overwriting them', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-uniffi-drift-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-uniffi-drift-'));
   const env = withFakeCargo(root, { uniffi: { output: './bindings/uniffi' } });
   try {
-    const args = ['--config', join(env.project, 'rustra.json')];
+    const args = ['--config', join(env.project, 'unikit.json')];
     await runCodegen(args);
     await runCodegen([...args, '--check-bindings']);
     const binding = join(env.project, 'bindings/uniffi/kotlin/bridge.kt');
@@ -486,12 +486,12 @@ test('--check-bindings detects actual Swift/Kotlin and extra-file drift without 
 });
 
 test('config dev does not treat its generated UniFFI Rust mirror as a new source change', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-dev-uniffi-self-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-dev-uniffi-self-'));
   const env = withFakeCargo(root, { uniffi: { output: './bindings/uniffi' } });
   let handle: DevWatchHandle | undefined;
   try {
     const { runDev } = await import('./dev.js');
-    handle = await runDev(['--config', join(env.project, 'rustra.json')]);
+    handle = await runDev(['--config', join(env.project, 'unikit.json')]);
     const before = readFileSync(env.logPath, 'utf8');
     await new Promise((r) => setTimeout(r, 900));
     assert.equal(
@@ -508,7 +508,7 @@ test('config dev does not treat its generated UniFFI Rust mirror as a new source
 
 test('overlapping binding output is rejected before probe or any existing file changes', async () => {
   for (const output of ['./generated', '.', './src']) {
-    const root = mkdtempSync(join(tmpdir(), 'rustra-uniffi-overlap-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-uniffi-overlap-'));
     const env = withFakeCargo(root, { uniffi: { output } });
     try {
       const schema = join(env.project, 'generated/schema.json');
@@ -517,7 +517,7 @@ test('overlapping binding output is rejected before probe or any existing file c
       const source = join(env.project, 'src/lib.rs');
       writeFileSync(source, 'source sentinel');
       await assert.rejects(
-        runCodegen(['--config', join(env.project, 'rustra.json')]),
+        runCodegen(['--config', join(env.project, 'unikit.json')]),
         /dedicated.*binding|binding.*overlap/,
       );
       assert.equal(readFileSync(schema, 'utf8'), 'user sentinel');
@@ -534,12 +534,12 @@ test('overlapping binding output is rejected before probe or any existing file c
 });
 
 test('bindings inside src do not trigger their own dev rebuild loop', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-uniffi-self-watch-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-uniffi-self-watch-'));
   const env = withFakeCargo(root, { uniffi: { output: './src/bindings' } });
   let handle: DevWatchHandle | undefined;
   try {
     const { runDev } = await import('./dev.js');
-    handle = await runDev(['--config', join(env.project, 'rustra.json')]);
+    handle = await runDev(['--config', join(env.project, 'unikit.json')]);
     const builds = () => spawnSequence(env.logPath).filter((value) => value === 'build').length;
     const initial = builds();
     await new Promise((resolve) => setTimeout(resolve, 1100));

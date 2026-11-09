@@ -1,10 +1,10 @@
 English | [한국어](./architecture.ko.md)
 
-# rustra-bridge Architecture
+# unikit-bridge Architecture
 
 ## Overview
 
-rustra is a bridge framework that automatically generates a host-neutral TypeScript client once you define a Rust package. You write command functions on the Rust side and register them with a `Package`; the Rust probe publishes `schema.json` (`write_schema_to_dir`), and `rustra codegen` renders the TypeScript type definitions and command helper functions from that single file. The generated TypeScript code depends on no runtime (Node.js, Bun, Tauri, React Native); each host adapter receives an injected transport and wraps it behind the `EngineClient` interface.
+unikit is a bridge framework that automatically generates a host-neutral TypeScript client once you define a Rust package. You write command functions on the Rust side and register them with a `Package`; the Rust probe publishes `schema.json` (`write_schema_to_dir`), and `unikit codegen` renders the TypeScript type definitions and command helper functions from that single file. The generated TypeScript code depends on no runtime (Node.js, Bun, Tauri, React Native); each host adapter receives an injected transport and wraps it behind the `EngineClient` interface.
 
 ---
 
@@ -34,7 +34,7 @@ rustra is a bridge framework that automatically generates a host-neutral TypeScr
  │                                                                     │
  │  generated.write_schema_to_dir("./generated")                       │
  │                                                                     │
- │  rustra codegen  →  renders types.ts / commands.ts / contract.ts    │
+ │  unikit codegen  →  renders types.ts / commands.ts / contract.ts    │
  │                      (+ Frame codecs: own frames, postcard payloads)│
  └─────────────────────────────────────────────────────────────────────┘
                               │
@@ -97,13 +97,13 @@ and only when a native cancellation handle exists, does it propagate into Rust.
 ### Command Helper Usage Example
 
 Each command helper generated in `commands.ts` does not take an engine directly —
-it calls the generated paths from `@rustra/types` (`invokeGenerated*`). The default
+it calls the generated paths from `@unikit-bridge/types` (`invokeGenerated*`). The default
 platform entry point registers `configureLazy()`, and the first call installs the
 engine exactly once. Manual `configure(engine)` is an explicit override.
 
 ```ts
 // examples/calculator/generated/commands.ts (auto-generated, slightly simplified)
-import { createGeneratedFields2 } from '@rustra/types';
+import { createGeneratedFields2 } from '@unikit-bridge/types';
 
 export const addNumbers = createGeneratedFields2<AddNumbersInput, AddNumbersOutput>(
   1,
@@ -120,7 +120,7 @@ Usage example (Tauri):
 // examples/tauri-calculator/src/app.ts
 import { addNumbers } from '../../calculator/generated/commands.js';
 import { createTauriEngine } from '../../../packages/tauri/src/index.js';
-import { configure } from '@rustra/types';
+import { configure } from '@unikit-bridge/types';
 
 const engine = createTauriEngine({ invoke: window.__TAURI__.core.invoke });
 configure(engine); // installs the engine into the global invoke
@@ -177,14 +177,14 @@ How to call `configure()` is covered in the example above and in
 
 ```
 crates/
-├── rustra/              # core crate
+├── unikit/              # core crate
 │   └── src/lib.rs       # Package, PackageBuilder, GeneratedPackage, codegen, invoke, tauri_support
 │
-└── rustra-macros/       # proc-macro crate
+└── unikit-bridge-macros/       # proc-macro crate
     └── src/lib.rs       # #[command] attribute macro
 ```
 
-#### `crates/rustra` (core)
+#### `crates/unikit-bridge` (core)
 
 Provides the core types and logic.
 
@@ -192,29 +192,29 @@ Provides the core types and logic.
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Package`          | A collection of registered commands. Runtime dispatch via `invoke_json()`, code generation via `generate_typescript()`                                                                                                                                                          |
 | `PackageBuilder`   | Created with `Package::builder(id)`. Register commands with `.command_fn(handler)` / `.command(name, handler)`, then `.build()`                                                                                                                                                 |
-| `GeneratedPackage` | The result of `generate_typescript()`. Holds the `schema_json`, `types_ts`, `commands_ts`, `contract_hash` fields. `write_schema_to_dir()` publishes schema.json (deprecated: `write_to_dir()`, which also regenerated TS surfaces from Rust — `rustra codegen` owns those now) |
-| `RustraError`      | Implements `Serialize`. `command.not_found`, `command.invalid_args`, `internal` error codes + a `custom(code, message)` constructor + `code()` and `message()` getters                                                                                                          |
-| `build!`           | Provided by `rustra-macros`. Registers multiple commands in one go as `rustra::build!("id", fn1, fn2).done()`                                                                                                                                                                   |
-| `tauri_support`    | Provided when `cfg(feature = "tauri")` is enabled. `RustraState`, the single `rustra_dispatch` Tauri command, and the `register()` builder injection function                                                                                                                   |
+| `GeneratedPackage` | The result of `generate_typescript()`. Holds the `schema_json`, `types_ts`, `commands_ts`, `contract_hash` fields. `write_schema_to_dir()` publishes schema.json (deprecated: `write_to_dir()`, which also regenerated TS surfaces from Rust — `unikit codegen` owns those now) |
+| `UnikitError`      | Implements `Serialize`. `command.not_found`, `command.invalid_args`, `internal` error codes + a `custom(code, message)` constructor + `code()` and `message()` getters                                                                                                          |
+| `build!`           | Provided by `unikit-bridge-macros`. Registers multiple commands in one go as `unikit_bridge::build!("id", fn1, fn2).done()`                                                                                                                                                                   |
+| `tauri_support`    | Provided when `cfg(feature = "tauri")` is enabled. `UnikitState`, the single `unikit_dispatch` Tauri command, and the `register()` builder injection function                                                                                                                   |
 | `__private` module | The `CommandInput`, `CommandOutput` sealed traits. Used by the proc macro to verify command type constraints at compile time. Not exposed as public API                                                                                                                         |
 
-#### `crates/rustra-macros` (proc-macro)
+#### `crates/unikit-bridge-macros` (proc-macro)
 
 Provides the `#[command]` attribute macro. For the annotated function it:
 
 1. Verifies that the function has **at most one input data parameter** (zero is allowed as a `()` input); two or more data parameters are a compile error. Optional `State<T>` parameters are injected additionally (see the [Rust API guide](rust-api-guide.md#5-packagebuilder-methods))
-2. Statically verifies at compile time that the `rustra::__private::CommandInput` / `CommandOutput` trait bounds are satisfied
+2. Statically verifies at compile time that the `unikit_bridge::__private::CommandInput` / `CommandOutput` trait bounds are satisfied
 3. Requires an explicit `Result<O>` return type — bare returns (`-> i64`) and omitted unit returns are compile errors
 4. Allows an explicit command name via `#[command(name = "customName")]`. When omitted, the name is derived automatically by converting the function name with snake_to_lower_camel (the `_command` suffix is stripped)
 
 The same rules are documented with examples in the [Rust API guide — the `#[command]` macro](rust-api-guide.md#2-the-command-macro); that guide is the reference when the two documents could drift.
 
-The function body passes through unchanged (identity passthrough); only compile-time type checks are performed. It also generates the `const __RUstra_meta_{fn_name}: &str = "commandName"` constant so the `build!` macro can reference the command name.
+The function body passes through unchanged (identity passthrough); only compile-time type checks are performed. It also generates the `const __UNikit_meta_{fn_name}: &str = "commandName"` constant so the `build!` macro can reference the command name.
 
 The `build!` macro uses the metadata constants produced by `#[command]` to register several commands at once:
 
 ```rust
-rustra::build!("my.pkg", add_numbers, multiply)
+unikit_bridge::build!("my.pkg", add_numbers, multiply)
     .done()
 ```
 
@@ -225,7 +225,7 @@ packages/
 ├── node/           → generated node.ts + createNodeBootstrap
 ├── bun/            → generated bun.ts + createBunBootstrap
 ├── tauri/          → generated tauri.ts + createTauriBootstrap
-└── react-native/   → generated react-native.ts + createRustraBootstrap
+└── react-native/   → generated react-native.ts + createUnikitBootstrap
                      createReactNativeEngine({ invoke(ArrayBuffer) }): EngineClient (low-level JSON path)
 ```
 
@@ -238,7 +238,7 @@ examples/
 ├── calculator/                 # basic Rust library example
 │   ├── src/lib.rs              # command definitions + calculator_package() + C FFI entry point
 │   ├── src/main.rs             # stdio entry point + invoke demo (see src/bin/generate.rs for the probe)
-│   └── generated/              # rustra codegen output (from schema.json)
+│   └── generated/              # unikit codegen output (from schema.json)
 │       ├── types.ts            # EngineClient + AddNumbersInput/Output types
 │       ├── commands.ts         # addNumbers() helper
 │       ├── contract.ts         # GENERATED_CONTRACT_HASH constant
@@ -250,7 +250,7 @@ examples/
 │
 └── react-native-calculator/    # Expo React Native example
     ├── App.tsx                 # uses addNumbers from generated/react-native.ts
-    └── modules/rustra-calculator  # native module (Expo module)
+    └── modules/unikit-calculator  # native module (Expo module)
 ```
 
 ---
@@ -273,7 +273,7 @@ pub fn add_numbers(input: AddNumbersInput) -> Result<AddNumbersOutput> {
 }
 
 pub fn calculator_package() -> Package {
-    rustra::build!("examples.calculator", add_numbers).done()
+    unikit_bridge::build!("examples.calculator", add_numbers).done()
 }
 ```
 
@@ -313,7 +313,7 @@ Type conversion rules (`ts_type_from_schema`):
 
 ### File Structure of the Generated Output
 
-Files in the `generated/` directory — `write_schema_to_dir()` writes only `schema.json`; `rustra codegen` renders the rest:
+Files in the `generated/` directory — `write_schema_to_dir()` writes only `schema.json`; `unikit codegen` renders the rest:
 
 | File          | Content                                         | Purpose                                 |
 | ------------- | ----------------------------------------------- | --------------------------------------- |
@@ -324,25 +324,25 @@ Files in the `generated/` directory — `write_schema_to_dir()` writes only `sch
 
 ### scriptc native FFI stage (static link, experimental)
 
-A `scriptc` section in `rustra.json` enables an additional codegen stage —
+A `scriptc` section in `unikit.json` enables an additional codegen stage —
 presence is the feature switch, exactly like `uniffi`. It renders the
 static-link FFI surface into the configured `output` directory:
 
 | File               | Content                                                                   | Purpose                                                               |
 | ------------------ | ------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `scriptc/ffi.json` | ffi_format 7 manifest listing the rustra staticlib archive as its library | What `scriptc build` links at compile time (no runtime symbol lookup) |
+| `scriptc/ffi.json` | ffi_format 7 manifest listing the unikit staticlib archive as its library | What `scriptc build` links at compile time (no runtime symbol lookup) |
 | `scriptc-ffi.d.ts` | Signature-only declarations                                               | Legacy ambient declarations for synchronous consumers                 |
 | `scriptc-ffi.ts`   | Source entry with the callback signatures                                 | Retained-callback signatures a `.d.ts` mapping cannot express         |
 
 Symbols that write through out pointers or take function-pointer callbacks are
 excluded from the manifest surface, each with a recorded rationale
-(`scriptcExcludedSymbols`); `rustra_ffi_invoke_json_into_len` (returning the
+(`scriptcExcludedSymbols`); `unikit_ffi_invoke_json_into_len` (returning the
 length instead of an out pointer) serves as the caller-buffer envelope entry.
 Retained foreign callbacks are part of the surface: async JSON completion
-(`rustra_ffi_invoke_json_async_channel`), events
-(`rustra_ffi_event_sink_register_scriptc`/`rustra_ffi_event_sink_release_scriptc`)
-and bytes channels (`rustra_ffi_channel_create_bytes`/`rustra_ffi_channel_send_bytes`
-with identity-based `rustra_ffi_channel_release_scriptc`). `codegen --check`
+(`unikit_ffi_invoke_json_async_channel`), events
+(`unikit_ffi_event_sink_register_scriptc`/`unikit_ffi_event_sink_release_scriptc`)
+and bytes channels (`unikit_ffi_channel_create_bytes`/`unikit_ffi_channel_send_bytes`
+with identity-based `unikit_ffi_channel_release_scriptc`). `codegen --check`
 byte-compares committed artifacts against the fresh schema; the write mode fails
 closed with a `cargo build --release` hint when the archive is missing. A
 working example lives in [`examples/calculator/scriptc/`](../examples/calculator/scriptc/).
@@ -380,15 +380,15 @@ pub fn invoke_json(&self, name: &str, params: Value) -> Result<Value>
  │  host adapter (createXxxEngine)                          │
  │  - Node:      transport.invoke(command, args)            │
  │  - Bun:       transport.invoke(command, args)            │
- │  - Tauri:     invoke('rustra_dispatch', {command, args}) │
+ │  - Tauri:     invoke('unikit_dispatch', {command, args}) │
  │  - RN:        generated bootstrap → native.invokeFrame(buf)  │
  │          │                                               │
  │          ▼                                               │
  │  transport (created at app level)                         │
  │  - subprocess stdio  (examples/calculator/src/main.rs)   │
  │  - C FFI            (examples/calculator/src/lib.rs)     │
- │  - Tauri IPC        (rustra_support::rustra_dispatch)    │
- │  - RN JSI native    (@rustra/generated-react-native)     │
+ │  - Tauri IPC        (unikit_support::unikit_dispatch)    │
+ │  - RN JSI native    (@unikit-bridge/generated-react-native)     │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -400,24 +400,24 @@ Core principles:
 
 ### Tauri's Special Handling
 
-Unlike the other adapters, the Tauri adapter does not pass commands through directly; it wraps them behind the single `rustra_dispatch` entry point:
+Unlike the other adapters, the Tauri adapter does not pass commands through directly; it wraps them behind the single `unikit_dispatch` entry point:
 
 ```ts
 // packages/tauri/src/index.ts
-return (await options.invoke('rustra_dispatch', { command, args: args ?? {} })) as T;
+return (await options.invoke('unikit_dispatch', { command, args: args ?? {} })) as T;
 ```
 
-This is because Tauri's IPC can only invoke pre-registered commands. The Rust-side `tauri_support` module registers the `rustra_dispatch` Tauri command as a single entry point and routes internally through `Package::invoke_json()`:
+This is because Tauri's IPC can only invoke pre-registered commands. The Rust-side `tauri_support` module registers the `unikit_dispatch` Tauri command as a single entry point and routes internally through `Package::invoke_json()`:
 
 ```rust
-// crates/rustra/src/lib.rs (tauri_support module)
-pub struct RustraState {
+// crates/unikit-bridge/src/lib.rs (tauri_support module)
+pub struct UnikitState {
     pub package: Package,
 }
 
 #[tauri::command]
-pub fn rustra_dispatch(
-    state: State<'_, RustraState>,
+pub fn unikit_dispatch(
+    state: State<'_, UnikitState>,
     command: String,
     args: Value,
 ) -> Result<Value, Value> {
@@ -432,8 +432,8 @@ pub fn register<R: tauri::Runtime>(
     builder: tauri::Builder<R>,
 ) -> tauri::Builder<R> {
     builder
-        .manage(RustraState { package })
-        .invoke_handler(tauri::generate_handler![rustra_dispatch])
+        .manage(UnikitState { package })
+        .invoke_handler(tauri::generate_handler![unikit_dispatch])
 }
 ```
 
@@ -442,7 +442,7 @@ Usage example:
 ```rust
 // examples/tauri-calculator/src-tauri/src/main.rs
 let package = calculator_package();
-let builder = rustra::tauri_support::register(package, tauri::Builder::default());
+let builder = unikit_bridge::tauri_support::register(package, tauri::Builder::default());
 ```
 
 ---
@@ -509,7 +509,7 @@ At `build()` time, `frozen = !cfg!(debug_assertions)`:
   The codec decision is cached per live schema entry object, and when the generation
   gate re-checks (first call after a swap) commands whose schema changed are re-decided.
 
-**live schema**: `Package::live_schema()` / `rustra_ffi_get_schema()` / JSI `getSchema()` return the schemas of all static+dynamic commands (`{name, commandId, inputSchema, outputSchema, definitions?}`). TS (`getLiveSchema`) looks up dynamic command ids/types. Read-only — in both debug and release.
+**live schema**: `Package::live_schema()` / `unikit_ffi_get_schema()` / JSI `getSchema()` return the schemas of all static+dynamic commands (`{name, commandId, inputSchema, outputSchema, definitions?}`). TS (`getLiveSchema`) looks up dynamic command ids/types. Read-only — in both debug and release.
 
 > Design intent: the dynamic registry is for **dev (DX)** (slowness is acceptable). Release is frozen so no dynamic commands exist, and static commands keep the fast-path → no production performance impact.
 
@@ -517,10 +517,10 @@ At `build()` time, `frozen = !cfg!(debug_assertions)`:
 
 The dynamic import (Tier 3) + runtime registry path is covered by dedicated verification/measurement infrastructure across the full stack.
 
-- **Per-type Rust wire tests** — `crates/rustra/tests/frame_wire.rs`: round-trip verification of the static (postcard) Tier 1/2 and dynamic (Tier 3) paths over i64/f64/bool/String/Vec/HashMap/tuple/enum-with-data/Option/nested types + edge cases (empty collections, unicode, 10K payloads) + errors (truncated payload, unknown id, malformed JSON, frozen, invoke after unregister).
-- **Property-based fuzzing** — `crates/rustra/tests/frame_fuzz.rs` (proptest): round-trip preservation of random payloads.
-- **Concurrency smoke** — `crates/rustra/tests/frame_concurrency.rs`: no panics/deadlocks under mixed multi-threaded register/invoke/live_schema.
-- **Performance benchmarks** — `crates/rustra/benches/` (criterion): `tier_compare` (static/dynamic postcard vs Tier 3 JSON — operation-controlled), `dynamic_registry` (register/live_schema/frozen costs), `type_scaling` (dynamic postcard payload scaling). Dynamic commands are dev-only, so measured with `--profile dev`. Figures are in the "dynamic commands" section of `docs/benchmarks.md`.
+- **Per-type Rust wire tests** — `crates/unikit-bridge/tests/frame_wire.rs`: round-trip verification of the static (postcard) Tier 1/2 and dynamic (Tier 3) paths over i64/f64/bool/String/Vec/HashMap/tuple/enum-with-data/Option/nested types + edge cases (empty collections, unicode, 10K payloads) + errors (truncated payload, unknown id, malformed JSON, frozen, invoke after unregister).
+- **Property-based fuzzing** — `crates/unikit-bridge/tests/frame_fuzz.rs` (proptest): round-trip preservation of random payloads.
+- **Concurrency smoke** — `crates/unikit-bridge/tests/frame_concurrency.rs`: no panics/deadlocks under mixed multi-threaded register/invoke/live_schema.
+- **Performance benchmarks** — `crates/unikit-bridge/benches/` (criterion): `tier_compare` (static/dynamic postcard vs Tier 3 JSON — operation-controlled), `dynamic_registry` (register/live_schema/frozen costs), `type_scaling` (dynamic postcard payload scaling). Dynamic commands are dev-only, so measured with `--profile dev`. Figures are in the "dynamic commands" section of `docs/benchmarks.md`.
 - **TS unit tests** — `packages/types/src/index.test.ts`: `createFrameEngine` Tier 3 fallback + `getLiveSchema` (`bun run test:types`).
 - **RN E2E** — `examples/react-native-calculator/DynamicRegistryApp.tsx` invokes four kinds of dynamic commands (Vec/String/Map/Nested) through the single Frame engine and shows live schema commandIds. For the run procedure see `docs/dev/plans/2026-07-05-rn-verification-checklist.md`.
 
@@ -528,7 +528,7 @@ The dynamic import (Tier 3) + runtime registry path is covered by dedicated veri
 
 ## Contract Invariants
 
-rustra-bridge guarantees its host-neutral character through the following invariants:
+unikit-bridge guarantees its host-neutral character through the following invariants:
 
 1. **Generated TypeScript forbids host-specific imports**: `types.ts`, `commands.ts`, and `contract.ts` never import any host-specific module such as `node:`, `bun:`, `@tauri-apps`, `react-native`, or `expo-modules`. The only import is `commands.ts` referencing `types.js`.
 
@@ -542,11 +542,11 @@ rustra-bridge guarantees its host-neutral character through the following invari
 
 ## Error Model
 
-The Rust side represents errors with the `RustraError` struct. `Serialize` is implemented, so it can be serialized to JSON over Tauri IPC and similar channels:
+The Rust side represents errors with the `UnikitError` struct. `Serialize` is implemented, so it can be serialized to JSON over Tauri IPC and similar channels:
 
 ```rust
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct RustraError {
+pub struct UnikitError {
     code: &'static str,   // "command.not_found" | "command.invalid_args" | "internal" | custom
     message: String,
 }
@@ -556,10 +556,10 @@ pub struct RustraError {
 
 | Method                                 | Error code             | Raised when                                                                     |
 | -------------------------------------- | ---------------------- | ------------------------------------------------------------------------------- |
-| `RustraError::command_not_found(name)` | `command.not_found`    | `invoke_json()` cannot find a command with the given name in `Package.commands` |
-| `RustraError::invalid_args(error)`     | `command.invalid_args` | `serde_json::from_value` deserialization fails                                  |
-| `RustraError::internal(error)`         | `internal`             | `serde_json::to_value` serialization failure, I/O errors, etc.                  |
-| `RustraError::custom(code, message)`   | the given code         | user-defined errors                                                             |
+| `UnikitError::command_not_found(name)` | `command.not_found`    | `invoke_json()` cannot find a command with the given name in `Package.commands` |
+| `UnikitError::invalid_args(error)`     | `command.invalid_args` | `serde_json::from_value` deserialization fails                                  |
+| `UnikitError::internal(error)`         | `internal`             | `serde_json::to_value` serialization failure, I/O errors, etc.                  |
+| `UnikitError::custom(code, message)`   | the given code         | user-defined errors                                                             |
 
 **Getters:**
 
@@ -568,9 +568,9 @@ pub struct RustraError {
 | `error.code()`    | `&'static str` | Reads the error code    |
 | `error.message()` | `&str`         | Reads the error message |
 
-`std::io::Error` is converted automatically into `RustraError::internal` through the `From` trait.
+`std::io::Error` is converted automatically into `UnikitError::internal` through the `From` trait.
 
-In Tauri, `rustra_dispatch` serializes `RustraError` into a JSON value (`{ code, message }`) and returns it. The TypeScript-side `createTauriEngine` converts that value into a `RustraCommandError` and throws it.
+In Tauri, `unikit_dispatch` serializes `UnikitError` into a JSON value (`{ code, message }`) and returns it. The TypeScript-side `createTauriEngine` converts that value into a `UnikitCommandError` and throws it.
 
 ---
 
@@ -592,8 +592,8 @@ The typical development workflow:
    let package = my_package();
    package.generate_typescript()?.write_schema_to_dir("./generated")?;
    # then render the surfaces from schema.json:
-   #   rustra codegen --config rustra.json
-   # a `scriptc` section in rustra.json additionally renders the static-link
+   #   unikit codegen --config unikit.json
+   # a `scriptc` section in unikit.json additionally renders the static-link
    # FFI surface (scriptc/ffi.json + scriptc-ffi.d.ts + scriptc-ffi.ts)
 
 4. Use the generated code on the TypeScript side
@@ -613,7 +613,7 @@ generated.write_schema_to_dir(concat!(env!("CARGO_MANIFEST_DIR"), "/generated"))
 ### Experimental: native hot-core dev loop (dylib swap)
 
 The rebuild loop above has an experimental native shortcut: with the `hot-core`
-cargo feature, `rustra dev` (dylib target) builds the core as a cdylib and a
+cargo feature, `unikit dev` (dylib target) builds the core as a cdylib and a
 running host swaps it in without restart — the native (non-wasm) dev path,
 complementary to the wasm dev target. A working setup lives in the
 [tauri-calculator example](../examples/tauri-calculator/README.md); design and
@@ -633,4 +633,4 @@ The `#[command]` macro performs compile-time validation of the function signatur
 3. Statically verifies the input type satisfies `CommandInput` (`DeserializeOwned + JsonSchema + 'static`)
 4. Statically verifies the output type satisfies `CommandOutput` (`Serialize + JsonSchema + 'static`)
 
-This validation goes through the sealed traits in the `__private` module and is not exposed as public API. Beyond validation, `#[command]` generates the `const __RUstra_meta_{fn_name}: &str` constant holding the command name, which the `build!` macro references.
+This validation goes through the sealed traits in the `__private` module and is not exposed as public API. Beyond validation, `#[command]` generates the `const __UNikit_meta_{fn_name}: &str` constant holding the command name, which the `build!` macro references.

@@ -72,25 +72,25 @@ Suspense 대기 제한도 실제 엔진 호출의 취소를 의미하지 않는�
 
 | 검사                                               | 결과                                              | 로그                                                                      |
 | -------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------- |
-| `cargo test --workspace --locked`                  | 62 suites, 471 pass, 0 fail, 5 ignored            | `/tmp/rustra-final-cargo-tests.log`                                       |
-| workspace 전체 clippy, `-D warnings`               | 통과                                              | `/tmp/rustra-final-clippy.log`                                            |
-| Tauri 고정 후 `cargo check --workspace --locked`   | 통과                                              | `/tmp/rustra-final-locked-check.log`                                      |
-| `bun run test`                                     | 전체 exit 0                                       | `/tmp/rustra-final-js-tests-complete.log`                                 |
-| `bun run build`                                    | JS 9개 패키지 통과                                | `/tmp/rustra-final-build.log`                                             |
-| lint / format / Rust fmt                           | 오류·경고 없음, 통과                              | `/tmp/rustra-final-lint.log`, `/tmp/rustra-final-format-check.log`        |
-| 실제 API snapshot gate / 변형 테스트               | 통과 / 20개 통과                                  | `/tmp/rustra-final-api-gate.log`, `/tmp/rustra-final-api-tests.log`       |
-| 별도 Rust API parser fmt / clippy                  | 통과                                              | `/tmp/rustra-final-api-clippy.log`                                        |
-| architecture                                       | 4개 통과                                          | `/tmp/rustra-final-architecture.log`                                      |
-| Node cross-wire                                    | 69개 통과                                         | `/tmp/rustra-final-node-crosswire.log`                                    |
-| Node 실제 subprocess / Bun 실제 FFI                | 각각 결과 42                                      | `/tmp/rustra-final-runtime-node.log`, `/tmp/rustra-final-runtime-bun.log` |
-| Tauri release build / static probe / 실제 hot-core | build·결과 42·실제 dylib load와 watch thread 통과 | `/tmp/rustra-final-tauri-runtime.log`                                     |
-| RN injected adapter / 예제 typecheck               | 결과 42 / 통과                                    | `/tmp/rustra-final-adapters.log`                                          |
-| 9개 로컬 tarball 소비자                            | 14개 공개 진입점 import·CLI 실행 통과             | `/tmp/rustra-final-all-packed-consumer.log`                               |
-| RN native 패키지 / packed consumer                 | native 파일 5개·소비자 경로 확인 통과             | `/tmp/rustra-final-rn-package.log`, `/tmp/rustra-final-rn-consumer.log`   |
-| RN·RN bare·Tauri·NAPI frozen 설치                  | 4개 통과 (`--ignore-scripts`)                     | `/tmp/rustra-final-{rn,rn-bare,tauri,napi}-frozen.log`                    |
-| 문서 / release coherence                           | 통과                                              | `/tmp/rustra-final-docs.log`, `/tmp/rustra-final-release-coherence.log`   |
+| `cargo test --workspace --locked`                  | 62 suites, 471 pass, 0 fail, 5 ignored            | `/tmp/unikit-final-cargo-tests.log`                                       |
+| workspace 전체 clippy, `-D warnings`               | 통과                                              | `/tmp/unikit-final-clippy.log`                                            |
+| Tauri 고정 후 `cargo check --workspace --locked`   | 통과                                              | `/tmp/unikit-final-locked-check.log`                                      |
+| `bun run test`                                     | 전체 exit 0                                       | `/tmp/unikit-final-js-tests-complete.log`                                 |
+| `bun run build`                                    | JS 9개 패키지 통과                                | `/tmp/unikit-final-build.log`                                             |
+| lint / format / Rust fmt                           | 오류·경고 없음, 통과                              | `/tmp/unikit-final-lint.log`, `/tmp/unikit-final-format-check.log`        |
+| 실제 API snapshot gate / 변형 테스트               | 통과 / 20개 통과                                  | `/tmp/unikit-final-api-gate.log`, `/tmp/unikit-final-api-tests.log`       |
+| 별도 Rust API parser fmt / clippy                  | 통과                                              | `/tmp/unikit-final-api-clippy.log`                                        |
+| architecture                                       | 4개 통과                                          | `/tmp/unikit-final-architecture.log`                                      |
+| Node cross-wire                                    | 69개 통과                                         | `/tmp/unikit-final-node-crosswire.log`                                    |
+| Node 실제 subprocess / Bun 실제 FFI                | 각각 결과 42                                      | `/tmp/unikit-final-runtime-node.log`, `/tmp/unikit-final-runtime-bun.log` |
+| Tauri release build / static probe / 실제 hot-core | build·결과 42·실제 dylib load와 watch thread 통과 | `/tmp/unikit-final-tauri-runtime.log`                                     |
+| RN injected adapter / 예제 typecheck               | 결과 42 / 통과                                    | `/tmp/unikit-final-adapters.log`                                          |
+| 9개 로컬 tarball 소비자                            | 14개 공개 진입점 import·CLI 실행 통과             | `/tmp/unikit-final-all-packed-consumer.log`                               |
+| RN native 패키지 / packed consumer                 | native 파일 5개·소비자 경로 확인 통과             | `/tmp/unikit-final-rn-package.log`, `/tmp/unikit-final-rn-consumer.log`   |
+| RN·RN bare·Tauri·NAPI frozen 설치                  | 4개 통과 (`--ignore-scripts`)                     | `/tmp/unikit-final-{rn,rn-bare,tauri,napi}-frozen.log`                    |
+| 문서 / release coherence                           | 통과                                              | `/tmp/unikit-final-docs.log`, `/tmp/unikit-final-release-coherence.log`   |
 | `test:codegen-fresh` / `test:bindings-fresh`       | 12개 테스트·예제 6개 / 실제 UniFFI 예제 1개 통과  | 구현·검토 기록에 명령과 결과 보관                                         |
-| ASan seed replay                                   | 타깃 3개, 각 100개 시드 통과                      | `/tmp/rustra-audit-fuzz-{frame,value,serde}.log`                          |
+| ASan seed replay                                   | 타깃 3개, 각 100개 시드 통과                      | `/tmp/unikit-audit-fuzz-{frame,value,serde}.log`                          |
 
 위 `/tmp` 로그는 현재 로컬 세션의 증거이며 저장소에 포함하지 않는다. CI에서는 최종
 커밋으로 같은 검사들을 다시 실행해 장기 보관 가능한 실행 기록을 확보해야 한다.
@@ -99,7 +99,7 @@ Suspense 대기 제한도 실제 엔진 호출의 취소를 의미하지 않는�
 
 1. **대상 식별**: 사용자가 언급한 열린 “0.9.0” 항목의 링크·이름이 필요하다.
    조회한 현재 브랜치에는 PR이 없고, 관련 열린 기능 PR은
-   [#69](https://github.com/loopy-lim/rustra/pull/69)이며 다른 브랜치를 가리킨다.
+   [#69](https://github.com/loopy-lim/unikit-bridge/pull/69)이며 다른 브랜치를 가리킨다.
    이 PR에 현재 변경을 덮어쓰거나 임의로 병합하지 않았다.
 2. **기존 버전 보존**: 2026-09-10에 Rust와 types/node/bun/cli의 0.9.0이 이미 발행됐다.
    현재 manifest를 유지하며 버전을 재사용하지 않는다. changeset은 다음 버전의 제안이다.

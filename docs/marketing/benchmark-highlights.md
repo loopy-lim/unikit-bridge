@@ -1,6 +1,6 @@
 # Benchmark Highlights
 
-A one-page summary of rustra's verifiable performance claims for external
+A one-page summary of unikit's verifiable performance claims for external
 marketing (Show HN, README, blog posts). Every number below is quoted from
 existing, in-repo evidence — no new measurements were run for this page. Each
 claim lists its source document, the raw receipt behind it, its measured scope,
@@ -35,7 +35,7 @@ and **is not an end-to-end RTT claim**.
 - Evidence: [benchmarks.md wire benchmark table](../benchmarks.md#2026-08-22-full-re-measurement-030-preparation-checkout)
   (JSON request 47 B, Frame request 4 B) and the scoped write-up in
   [wire-format.md](../wire-format.md) ("The 11.8× / 47 B claim, scoped").
-- Reproduce: `cargo run -p rustra-calculator-example --bin wire-bench --release`
+- Reproduce: `cargo run -p unikit-calculator-example --bin wire-bench --release`
   (see [benchmarks.md](../benchmarks.md) and the measurement policy in
   [measurement-runbook.md](../measurement-runbook.md)).
 
@@ -49,7 +49,7 @@ is included.
 
 - Evidence: [benchmarks.md wire benchmark table](../benchmarks.md#2026-08-22-full-re-measurement-030-preparation-checkout),
   measured 2026-08-22, Rust release build.
-- Reproduce: `cargo run -p rustra-calculator-example --bin wire-bench --release`.
+- Reproduce: `cargo run -p unikit-calculator-example --bin wire-bench --release`.
   Host-level latencies (which include transport) are a separate table — see
   Claim 5.
 
@@ -119,7 +119,7 @@ different transports.
   (per-run warmup/iterations/repeats, p50/p95/p99, normalization), table and
   design conclusions in
   [benchmarks.md](../benchmarks.md#2026-08-24-real-host-api-performance-040-merge-candidate).
-- Reproduce: `bun run bench:hosts -- --output /tmp/rustra-host-matrix.json`
+- Reproduce: `bun run bench:hosts -- --output /tmp/unikit-host-matrix.json`
   (macOS; environment recorded in the receipt).
 
 ---

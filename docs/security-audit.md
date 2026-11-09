@@ -40,7 +40,7 @@ entries were removed when runner/ was deleted along with Lynx — 2026-08-20.)
 
 The dependency in that row (`examples/calculator`, the RN native path) was the
 only direct one, and it has since been dropped outright together with the legacy
-wire formats; the `crates/rustra` core implements the Frame wire by hand and
+wire formats; the `crates/unikit-bridge` core implements the Frame wire by hand and
 takes no third-party serialization/archive dependency.
 
 ## Tauri 2 upstream exceptions and paths
@@ -59,9 +59,9 @@ upstream Tauri/Wry work. The rust-unic path is the build/config parsing path in
 
 Impact scope:
 
-- The gtk-rs family is linked on Linux by the `rustra-tauri-calculator` example
-- Rustra's default FFI/JSI/N-API deliverables do not enable Tauri features by default
-- `glib::VariantStrIter` is never called directly from Rustra or Tauri adapter code
+- The gtk-rs family is linked on Linux by the `unikit-tauri-calculator` example
+- Unikit's default FFI/JSI/N-API deliverables do not enable Tauri features by default
+- `glib::VariantStrIter` is never called directly from Unikit or Tauri adapter code
 
 The exception IDs are managed in a single place, `scripts/audit-rust.sh`, and the
 cargo-audit gate never works around them with arbitrary package names or broad

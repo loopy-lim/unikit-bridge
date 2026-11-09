@@ -45,7 +45,7 @@ export function commandFunctionName(name: string): string {
 /**
  * 세그먼트 이름(`.`/`_` 등 비영숫자 구분)을 PascalCase 심볼로 바꾼다 —
  * 'math.divide_by_zero' → 'MathDivideByZero', 'divide' → 'Divide'.
- * `RustraErrorCode.TransportTimeout`('transport.timeout') 관례와 같은 매핑이며
+ * `UnikitErrorCode.TransportTimeout`('transport.timeout') 관례와 같은 매핑이며
  * 커맨드별 에러 코드 키/가드 심볼(errors.ts 코드젠)에 쓰인다.
  */
 export function pascalCaseName(name: string): string {

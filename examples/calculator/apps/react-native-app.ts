@@ -6,7 +6,7 @@ import { createReactNativeEngine } from '../../../packages/react-native/src/reac
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-const NativeRustraModule = {
+const NativeUnikitModule = {
   invoke(payload: ArrayBuffer): ArrayBuffer {
     const decoded: unknown = JSON.parse(decoder.decode(payload));
     if (
@@ -29,7 +29,7 @@ const NativeRustraModule = {
   },
 };
 
-const engine = createReactNativeEngine(NativeRustraModule);
+const engine = createReactNativeEngine(NativeUnikitModule);
 configure(engine);
 const result = await addNumbers({ a: 20, b: 22 });
 

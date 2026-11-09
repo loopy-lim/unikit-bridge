@@ -2,14 +2,14 @@
 //
 // Rust 측(payload_robustness.rs) 의 짝. 호스트가 내보낸 *비정상 응답 프레임* 이
 // TS codec.decode / engine 경로에서 절대 uncaught throw 를 내지 않고
-// clean 한 { ok:false, error:{code,message} } / RustraCommandError(code,message)
+// clean 한 { ok:false, error:{code,message} } / UnikitCommandError(code,message)
 // 로 정규화되는지 검증한다.
 //
 //   - 빈 버퍼 / 8바이트 미만 → { ok:false, error:{ code:'invoke.too_short' } }
 //   - 정상 success 프레임 → { ok:true, result }  (위 음성(음성 위양성) 방지용 대조)
 //   - 정상 error 프레임(divide-by-zero) → { ok:false, error:{ code,message } }
 //   - engine 경로: mock native 가 too-short / error 프레임을 반환 →
-//     Promise.reject(new RustraCommandError(code,message))
+//     Promise.reject(new UnikitCommandError(code,message))
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -19,7 +19,7 @@ import { dirname, join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { addNumbersCodec, divideCodec } from '../generated/frame-codecs.js';
 import { frameRegistry } from '../generated/frame-registry.js';
-import { createFrameEngine, RustraCommandError } from '@rustra/types';
+import { createFrameEngine, UnikitCommandError } from '@unikit-bridge/types';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // dist-ts/examples/calculator/ts → 저장소 루트 — transport-bench.test.ts 와 동일한
@@ -82,7 +82,7 @@ void test('divideCodec.decode empty buffer → too_short (codec 무관 동일 �
   assert.equal(r.error?.code, 'invoke.too_short');
 });
 
-// ── engine 경로 — 비정상 응답 → RustraCommandError ─────────────
+// ── engine 경로 — 비정상 응답 → UnikitCommandError ─────────────
 
 /// 모든 invoke 에 대해 동일한 canned 응답 프레임을 반환하는 mock native.
 function nativeReturning(frame: ArrayBuffer) {
@@ -93,26 +93,26 @@ function nativeReturning(frame: ArrayBuffer) {
   };
 }
 
-void test('engine: too-short response → reject RustraCommandError(invoke.too_short)', async () => {
+void test('engine: too-short response → reject UnikitCommandError(invoke.too_short)', async () => {
   const engine = createFrameEngine(nativeReturning(new ArrayBuffer(4)), frameRegistry);
   await assert.rejects(
     () => engine.invoke('addNumbers', { a: 2, b: 3 }),
     (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError, 'must be a RustraCommandError');
+      assert.ok(err instanceof UnikitCommandError, 'must be a UnikitCommandError');
       assert.equal(err.code, 'invoke.too_short');
       return true;
     },
   );
 });
 
-void test('engine: error response → reject RustraCommandError(command code)', async () => {
+void test('engine: error response → reject UnikitCommandError(command code)', async () => {
   // 호스트가 divide-by-zero error 프레임을 내면 engine 이 code/message 를
-  // RustraCommandError 로 투명하게 전달해야 한다.
+  // UnikitCommandError 로 투명하게 전달해야 한다.
   const engine = createFrameEngine(nativeReturning(hexToBytes(DIVIDE_RESPONSE)), frameRegistry);
   await assert.rejects(
     () => engine.invoke('addNumbers', { a: 2, b: 3 }),
     (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'math.divide_by_zero');
       assert.equal(err.message, 'cannot divide by zero');
       return true;
@@ -120,19 +120,19 @@ void test('engine: error response → reject RustraCommandError(command code)', 
   );
 });
 
-void test('engine: empty response → reject RustraCommandError(invoke.too_short)', async () => {
+void test('engine: empty response → reject UnikitCommandError(invoke.too_short)', async () => {
   const engine = createFrameEngine(nativeReturning(new ArrayBuffer(0)), frameRegistry);
   await assert.rejects(
     () => engine.invoke('addNumbers', { a: 2, b: 3 }),
     (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'invoke.too_short');
       return true;
     },
   );
 });
 
-// ── napi 와이어 — RustraError 가 평탄화(Display)되지 않고 구조로 건너는지 ──
+// ── napi 와이어 — UnikitError 가 평탄화(Display)되지 않고 구조로 건너는지 ──
 
 void test('napi: error crosses the wire as structured JSON (code preserved)', () => {
   const napiPath = join(
@@ -143,10 +143,10 @@ void test('napi: error crosses the wire as structured JSON (code preserved)', ()
     return; // 바이너리 없으면 스킵 — CI 는 build:napi 사전 빌드 후 실행
   }
   const native = createRequire(__dirname)(napiPath) as {
-    rustraInvoke: (cmd: string, args: string | undefined) => string;
+    unikitInvoke: (cmd: string, args: string | undefined) => string;
   };
   assert.throws(
-    () => native.rustraInvoke('definitelyNotACommand', JSON.stringify({})),
+    () => native.unikitInvoke('definitelyNotACommand', JSON.stringify({})),
     (e: unknown) => {
       const msg = e instanceof Error ? e.message : String(e);
       // code 가 JSON 구조로 보존되는지 — plain "code: msg" Display 는 retryable 유실

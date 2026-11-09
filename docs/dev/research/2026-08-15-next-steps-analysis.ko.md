@@ -3,7 +3,7 @@ date: 2026-08-15T22:27:32+09:00
 researcher: claude (loopy 세션)
 git_commit: f187c2774ce2f9e286492ba627e27a4b5910bd00
 branch: main
-repository: rustra-bridge (remote: loopy-lim/rustra)
+repository: unikit-bridge (remote: loopy-lim/unikit-bridge)
 topic: '다음 작업 후보 도출 — 갭 클로저 이후 상태, 발행(publish) 준비도, 미완료 항목 전수 조사'
 tags: [research, codebase, publish, npm, crates-io, windows, masterplan, next-steps]
 status: complete
@@ -16,7 +16,7 @@ last_updated_by: claude
 **날짜**: 2026-08-15T22:27:32+09:00
 **Git Commit**: f187c277
 **Branch**: main
-**Repository**: rustra-bridge (remote: loopy-lim/rustra)
+**Repository**: unikit-bridge (remote: loopy-lim/unikit-bridge)
 
 ## 연구 질문
 
@@ -32,7 +32,7 @@ last_updated_by: claude
   기준 9개 체크박스가 미체크**이고 impl/결과 기록 문서가 없다.
 - **발행(publish) 준비가 진행 중**: 미커밋 변경 8개 package.json(버전 0.1.1, repository URL
   수정, publishConfig.access public, directory 필드 수정).
-  (2026-08-20 갱신: hostra 개명은 철회되어 `loopy-lim/rustra` 유지, npm 스코프도 `@rustra/*` 유지)
+  (2026-08-20 갱신: hostra 개명은 철회되어 `loopy-lim/unikit-bridge` 유지, npm 스코프도 `@unikit-bridge/*` 유지)
   발행 전 필수: cli/types README, dist 빌드(dist는 gitignore), crates.io 이름
   선점 확인, examples 우발 발행 방지.
 - **기술적 하드 블로커는 Windows P1(FML PE 심볼) 하나뿐**이고 이는 Windows 머신 의존.
@@ -50,13 +50,13 @@ Task 1~7 결과물 전부 실재 확인:
 | 항목                                                                         | 상태 | 근거                                                                                                                                                                                                                        |
 | ---------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | desktop 셸 (src-tauri, lynx_desktop.mm, build-lynx-host.sh, TemplateApp.app) | ✅   | `runner/template/desktop/src-tauri/src/main.rs`, `lynx_desktop.mm`                                                                                                                                                          |
-| iOS 셸 (app/, modules/rustra-lynx, project.yml, Podfile)                     | ✅   | `runner/template/mobile-ios/`                                                                                                                                                                                               |
+| iOS 셸 (app/, modules/unikit-lynx, project.yml, Podfile)                     | ✅   | `runner/template/mobile-ios/`                                                                                                                                                                                               |
 | Android 셸 (app/, modules/, gradle wrapper 포함)                             | ✅   | `runner/template/mobile-android/`                                                                                                                                                                                           |
 | codegen 실경로화                                                             | ✅   | `runner/template/backend/src/bin/generate.rs`, `app/package.json:10` → `codegen.sh` (dual-path: Rust bin + TS CLI 2종, `codegen.sh:35-46`)                                                                                  |
-| capability 계층 B                                                            | ✅   | `backend/src/capabilities.rs` — MobileBridge 구조체(107행), MobileRegistry(118행), FFI `rustra_template_register_mobile_registry`(171행), 테스트 6개. iOS/Android 셸이 실제 호출(`RustraModule.m:94`, `rustra_jni.cpp:169`) |
+| capability 계층 B                                                            | ✅   | `backend/src/capabilities.rs` — MobileBridge 구조체(107행), MobileRegistry(118행), FFI `unikit_template_register_mobile_registry`(171행), 테스트 6개. iOS/Android 셸이 실제 호출(`UnikitModule.m:94`, `unikit_jni.cpp:169`) |
 | NDK 핀 + Windows 문서                                                        | ✅   | `build-rust-android.sh:25` (`27.1.12297006`), `desktop/WINDOWS.md` (111줄, 3포인트 포팅 가이드)                                                                                                                             |
 | 문서 정리                                                                    | ✅   | rkyv-command-id 헤더 "구현 완료", runner-template §7 갱신, P6 해소 표시, capabilities README "구현됨", 루트 README runner/ 포함                                                                                             |
-| create-runner.sh 절대경로 재작성                                             | ✅   | `create-runner.sh:68-87` — rustra path·@rustra file: 의존성을 원본 절대경로로 재작성                                                                                                                                        |
+| create-runner.sh 절대경로 재작성                                             | ✅   | `create-runner.sh:68-87` — unikit path·@unikit-bridge file: 의존성을 원본 절대경로로 재작성                                                                                                                                 |
 
 **유일 잔존**: `docs/plans/2026-08-14-gap-closure-production-ready-design.md:235-243` 완료
 기준 9개 체크박스 전부 `- [ ]` + 헤더가 "Design + Impl Plan" + impl/결과 문서 부재
@@ -65,34 +65,34 @@ Task 1~7 결과물 전부 실재 확인:
 ### 2. 발행(publish) 준비 상태
 
 **미커밋 변경** (8개 package.json): 버전 0.1.0→0.1.1, repository URL
-(과거 일시적 hostra 개명은 철회 — 현재 `loopy-lim/rustra`) 및 directory 필드 `"packages/"` → 정확한 하위경로로
-수정, types에는 신규 추가), `@rustra/*` 7개에 `publishConfig.access: public`, 내부 의존
-`@rustra/types ^0.1.1`. 루트는 `private: true` 유지.
+(과거 일시적 hostra 개명은 철회 — 현재 `loopy-lim/unikit-bridge`) 및 directory 필드 `"packages/"` → 정확한 하위경로로
+수정, types에는 신규 추가), `@unikit-bridge/*` 7개에 `publishConfig.access: public`, 내부 의존
+`@unikit-bridge/types ^0.1.1`. 루트는 `private: true` 유지.
 
 \*_npm (packages/_ 7종)\*\*:
 
 - 공통: files `["dist"]`, main/types/exports 구비, `type: module`, build=tsc.
 - `dist`는 gitignore → **발행 전 `npm run build` 필수** (`release` 스크립트가
   `build && changeset publish`로 처리).
-- **README 부재**: `packages/cli`(bin `rustra` + 5개 export 보유), `packages/types`.
+- **README 부재**: `packages/cli`(bin `unikit` + 5개 export 보유), `packages/types`.
 - changesets 도입됨(`.changeset/config.json`, access public, baseBranch main) — 단
   changeset 파일 0개, 0.1.1은 수동 범프.
-- (해소됨) 이름 불일치 — hostra 개명 철회로 `@rustra/*` 스코프와 저장소명 rustra 가 일치.
+- (해소됨) 이름 불일치 — hostra 개명 철회로 `@unikit-bridge/*` 스코프와 저장소명 unikit 가 일치.
 
-**crates.io (crates/rustra, crates/rustra-macros)**:
+**crates.io (crates/unikit-bridge, crates/unikit-bridge-macros)**:
 
 - workspace 상속으로 name/version/description/license/repository/readme 완비 —
   crates.io 필수 필드 충족. `publish = false` 없음.
 - **주의**: workspace members에 examples 6개 포함 → `cargo publish --workspace`로 실수
-  발행 위험. `-p rustra -p rustra-macros` 개별 발행 또는 examples에 publish=false 권장.
-- rustra가 rustra-macros를 path 의존 → **macros 먼저 발행**해야 함.
+  발행 위험. `-p unikit-bridge -p unikit-bridge-macros` 개별 발행 또는 examples에 publish=false 권장.
+- unikit가 unikit-bridge-macros를 path 의존 → **macros 먼저 발행**해야 함.
 - `crates/generated`는 크레이트가 아니라 TS 산출물 모음(발행 대상 아님).
-- `rustra` 크레이트명 crates.io 선점 여부 미확인.
+- `unikit` 크레이트명 crates.io 선점 여부 미확인.
 
 **CI/인프라**: `.github/workflows/`에 ci.yml 단 하나. release.yml·bench.yml 부재
 (masterplan 잔여). CHANGELOG.md 부재. LICENSE MIT.
 
-**저장소 정체**: `loopy-lim/rustra` (과거 일시적 hostra 개명은 철회 —
+**저장소 정체**: `loopy-lim/unikit-bridge` (과거 일시적 hostra 개명은 철회 —
 이름 변경 전환 중으로 보임).
 
 ### 3. 미완료 항목 카탈로그 (08-15 기준 최종)
@@ -101,9 +101,9 @@ Task 1~7 결과물 전부 실재 확인:
 | ----------------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Windows 런타임 (P1 FML PE 심볼 + P8 검증) | **open/deferred**           | Windows 머신 + `lynx_desktop_win.cpp` + `dumpbin /exports` 심볼 확인 → GetProcAddress(최선)→PE 오프셋 fallback. `verify-windows.ps1` 6패턴 준비됨                                         |
 | RN B1 디바이스 검증                       | **open (24/24 미체크)**     | Lynx 트랙 대체 여부 판단 보류. 단 §5 latency 목표는 `docs/benchmarks.md:180-194`에서 이미 달성(0.95µs vs Nitro 1.10µs) — 폐쇄 근거 존재                                                   |
-| P0-3 invokeAsync worker 큐                | **open — 설계만, 코드 0건** | `crates/rustra`·`packages/node`에 invokeAsync 부재. 현재 rkyv V2는 동기 JSI라 긴 Rust 연산 시 jank 가능                                                                                   |
+| P0-3 invokeAsync worker 큐                | **open — 설계만, 코드 0건** | `crates/unikit-bridge`·`packages/node`에 invokeAsync 부재. 현재 rkyv V2는 동기 JSI라 긴 Rust 연산 시 jank 가능                                                                            |
 | Trust test hardening                      | **closed**                  | F1(catch_unwind `ffi.rs:251`)/F2(debug allocator `ffi.rs:97`)/F8(null 체크) 전부 활성 테스트. Phase 0~3 완료                                                                              |
-| Masterplan (05-14)                        | **open 다수**               | release.yml/bench.yml, crates.io 발행, Set/Recursive/Discriminated unions, Streaming/Auth 예제, `rustra init`, 메모리 프로파일링, retryable 메타데이터(필드는 있으나 전부 false 하드코딩) |
+| Masterplan (05-14)                        | **open 다수**               | release.yml/bench.yml, crates.io 발행, Set/Recursive/Discriminated unions, Streaming/Auth 예제, `unikit init`, 메모리 프로파일링, retryable 메타데이터(필드는 있으나 전부 false 하드코딩) |
 | P1~P8 문제 카탈로그                       | 7/8 closed                  | P1(HIGH)+P8(종속)만 open                                                                                                                                                                  |
 | 벤치마크                                  | closed                      | 측정 풍부(어댑터/transport/온디바이스/페이로드). 추가 계획은 masterplan 4-2에만                                                                                                           |
 | 예제 문서화                               | 부분 open                   | `lynx-calculator`·`lynx-tauri-spike` README 부재, `calculator-napi`는 루트 README에 미언급                                                                                                |
@@ -113,13 +113,13 @@ Task 1~7 결과물 전부 실재 확인:
 ### 트랙 A — 발행(publish) 파이프라인 [미커밋 변경의 자연스러운 연장선, 최고 우선]
 
 1. 미커밋 package.json 8개 커밋.
-2. (해소됨) 스코프는 `@rustra/*` 로 확정 — hostra 개명 철회.
+2. (해소됨) 스코프는 `@unikit-bridge/*` 로 확정 — hostra 개명 철회.
 3. `packages/cli/README.md`, `packages/types/README.md` 작성.
-4. crates.io `rustra` 이름 선점 확인 + `cargo publish --dry-run`.
+4. crates.io `unikit` 이름 선점 확인 + `cargo publish --dry-run`.
 5. examples 6개 workspace 멤버에 `publish = false` (우발 발행 방지).
 6. CHANGELOG.md 작성 (0.1.1 첫 공개).
 7. `release.yml` (changesets npm + cargo publish) — masterplan 잔여 해소.
-8. rustra(→macros 먼저) crates.io 발행 → P7 근본 해소(템플릿 path 의존성 → version 핀).
+8. unikit(→macros 먼저) crates.io 발행 → P7 근본 해소(템플릿 path 의존성 → version 핀).
 
 ### 트랙 B — 문서 부채 (quick wins)
 
@@ -132,7 +132,7 @@ Task 1~7 결과물 전부 실재 확인:
 
 1. P0-3 invokeAsync worker 큐 구현 (설계 존재: `2026-08-09-rn-native-perf-b1-phase0-design.md:75`).
 2. codegen 타입: Set / Recursive / Discriminated unions.
-3. Streaming·Auth 예제, `rustra init` CLI.
+3. Streaming·Auth 예제, `unikit init` CLI.
 4. retryable 에러 메타데이터 실구현.
 
 ### 트랙 D — 환경 의존 (외부 전제)
@@ -151,7 +151,7 @@ Task 1~7 결과물 전부 실재 확인:
 - `docs/plans/2026-08-14-gap-closure-production-ready-design.md:235-243` — 미체크 완료 기준
 - `runner/template/backend/src/capabilities.rs:107,118,171` — MobileBridge/MobileRegistry/FFI 등록
 - `runner/template/create-runner.sh:68-87` — 절대경로 재작성 (이미 구현됨)
-- `runner/template/mobile-android/modules/rustra-lynx/build-rust-android.sh:25` — NDK 핀
+- `runner/template/mobile-android/modules/unikit-lynx/build-rust-android.sh:25` — NDK 핀
 - `runner/template/desktop/WINDOWS.md` — Windows 포팅 3포인트 가이드
 - `packages/cli/package.json` — bin + exports 보유하나 README 부재
 - `.changeset/config.json` — changesets 설정 (사용 안 됨)
@@ -166,7 +166,7 @@ Task 1~7 결과물 전부 실재 확인:
 
 ## 미해결 질문
 
-- npm 스코프: `@rustra/*` 유지 확정 (hostra 전환은 철회됨).
-- crates.io `rustra` 이름 가용성 (조회 필요).
+- npm 스코프: `@unikit-bridge/*` 유지 확정 (hostra 전환은 철회됨).
+- crates.io `unikit` 이름 가용성 (조회 필요).
 - RN 트랙 폐기 여부 — B1 체크리스트 24항목의 운명.
 - 런타임 verify 스크립트의 CI 통합 방식 (시뮬레이터/에뮬레이터 CI 실행 가능성).

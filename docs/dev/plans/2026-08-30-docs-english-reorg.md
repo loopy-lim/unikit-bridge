@@ -39,10 +39,10 @@
 
 - Create: `README.ko.md` (기존 README.md 원본)
 - Rewrite: `README.md` (영어)
-- Create: `crates/rustra/README.ko.md`
-- Rewrite: `crates/rustra/README.md` (영어, crates.io 발행분)
+- Create: `crates/unikit-bridge/README.ko.md`
+- Rewrite: `crates/unikit-bridge/README.md` (영어, crates.io 발행분)
 
-**Step 1:** 기존 README.md를 README.ko.md로 git mv, crates/rustra 동일
+**Step 1:** 기존 README.md를 README.ko.md로 git mv, crates/unikit-bridge 동일
 
 **Step 2:** 영어 README 작성 — 직역 금지, 표/코드블록/링크 구조 보존, 수치 무수정. 상단 언어 전환 링크: `English | [한국어](./README.ko.md)` 형식 (예시 텍스트이므로 실제 링크 아님)
 

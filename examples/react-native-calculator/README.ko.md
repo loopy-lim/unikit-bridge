@@ -1,6 +1,6 @@
 # React Native Calculator
 
-Expo development build에서 Rustra generated JSI bridge를 사용하고, 같은 Rust 코어를
+Expo development build에서 Unikit generated JSI bridge를 사용하고, 같은 Rust 코어를
 Nitro Modules와 Swift FFI 비교 경로에도 연결하는 성능·런타임 fixture입니다. 제품
 사용 경로는 Expo API에 의존하지 않으며 bare RN fixture와 같은 autolinking 모듈을
 사용합니다.
@@ -26,7 +26,7 @@ iOS Release 앱을 설치하고 측정 receipt를 추출하려면:
 
 ```bash
 bun run ios -- --configuration Release
-bun run bench:ios:receipt -- --output /tmp/rustra-rn-receipt.json
+bun run bench:ios:receipt -- --output /tmp/unikit-rn-receipt.json
 ```
 
 ## 앱 코드
@@ -55,7 +55,7 @@ bun run demo:functions
 
 `App.tsx`가 실제 실행 화면이며, 기본 진입은 계속 `BenchmarkApp`입니다.
 화면은 생성된 명령을 설치된 Rust 코어로 검증하고, iOS에서는 별도
-`Documents/rustra-function-receipt.json`에 결과를 남깁니다. Release 빌드는 예열과
+`Documents/unikit-function-receipt.json`에 결과를 남깁니다. Release 빌드는 예열과
 실행 순서를 번갈아 가며 함수 호출 및 요청 인코딩을 측정합니다. Rust를 변경하면
 네이티브 앱을 다시 빌드해야 합니다. Metro reload는 JS만 갱신합니다.
 등록 코드는 `../calculator/src/ordinary_functions.rs`에 있으며 기존 명령 뒤에 추가해
@@ -68,7 +68,7 @@ bun run verify:functions:ios --device booted --runs 3
 ```
 
 수집기는 이전 실행 결과, 소스·계약 불일치, 검증 실패를 거부합니다. 새 실행 ID와
-시각, 설치된 실행 파일·JS 번들 해시를 새로운 `/tmp/rustra-functions-*` 폴더에 저장합니다.
+시각, 설치된 실행 파일·JS 번들 해시를 새로운 `/tmp/unikit-functions-*` 폴더에 저장합니다.
 `--output <새-폴더>`로 저장 위치를 지정할 수 있습니다.
 
 ### 기존 command API
@@ -79,7 +79,7 @@ import { addNumbers } from './generated/react-native';
 const result = await addNumbers({ a: 42, b: 58 });
 ```
 
-`rustra.json`은 monorepo app crate의 위치만 지정합니다. Cargo package/library 이름,
+`unikit.json`은 monorepo app crate의 위치만 지정합니다. Cargo package/library 이름,
 TypeScript bootstrap, Podspec, Gradle,
 CMake와 JNI는 생성기가 소유합니다. 첫 명령이 JSI 설치, contract 검증, fast engine
 설정을 한 번만 수행하므로 앱 코드에 수동 `install`/`configure`가 없습니다.
@@ -92,21 +92,21 @@ react-native-calculator/
   BenchmarkApp.tsx
   generated/                         generated TypeScript entry/codecs
   modules/
-    rustra-jsi/                      generated @rustra/generated-react-native
-    rustra-calculator/               Swift FFI comparator
+    unikit-jsi/                      generated @unikit-bridge/generated-react-native
+    unikit-calculator/               Swift FFI comparator
     nitro-bench/nitro-bench/         Nitro comparator
 ```
 
-`rustra-jsi`라는 디렉터리명은 fixture의 기존 로컬 위치일 뿐 공개 package/module
+`unikit-jsi`라는 디렉터리명은 fixture의 기존 로컬 위치일 뿐 공개 package/module
 이름이 아닙니다. 실제 충돌 격리 이름은 다음과 같습니다.
 
-- package: `@rustra/generated-react-native`
-- iOS/React Native module: `RustraBridge`
-- Android namespace: `dev.rustra.bridge`
-- shared library: `rustra_bridge`
+- package: `@unikit-bridge/generated-react-native`
+- iOS/React Native module: `UnikitBridge`
+- Android namespace: `dev.unikit.bridge`
+- shared library: `unikit_bridge`
 
-Rustra generated package는 표준 React Native autolinking만 사용합니다. Expo module
-config, Podfile, `settings.gradle`, `MainApplication`의 수동 Rustra 패치는 없습니다.
+Unikit generated package는 표준 React Native autolinking만 사용합니다. Expo module
+config, Podfile, `settings.gradle`, `MainApplication`의 수동 Unikit 패치는 없습니다.
 Expo Go는 JSI native code를 포함할 수 없으므로 development build가 필요합니다.
 
 ## doctor
@@ -118,7 +118,7 @@ bun run doctor -- --json
 
 doctor는 읽기 전용이며 다음 층을 독립적으로 확인합니다.
 
-- 현재 checkout의 lockfile과 로컬 `@rustra/*` 패키지 조합
+- 현재 checkout의 lockfile과 로컬 `@unikit-bridge/*` 패키지 조합
 - Rust schema, TypeScript entry, C++ codec, build fingerprint 동기화
 - iOS/Android autolinking과 Pods
 - iOS static archive 최신성, architecture, 필수 FFI symbol
@@ -145,7 +145,7 @@ JS 재로드 없이 실행 중인 앱에 반영됩니다. 스모크는 `addNumbe
 
 전달 계약 — tmp + rename, 제자리 덮어쓰기 금지:
 
-- 앱은 `<filesDir>/rustra/hot` 에서 `*-hot-live.so` 를 감시합니다(Kotlin
+- 앱은 `<filesDir>/unikit/hot` 에서 `*-hot-live.so` 를 감시합니다(Kotlin
   `nativeConfigureHotCore` 가 `nativeInstall` 직후 호출되며, 파일이 없으면
   정적 코어로 머무릅니다).
 - 프로세스가 이미 `dlopen` 한 파일을 같은 경로로 제자리 덮어쓰면 Android 에서
@@ -169,12 +169,12 @@ JS 재로드 없이 실행 중인 앱에 반영됩니다. 스모크는 `addNumbe
 bun run demo:hot-core
 
 # 터미널 2 — 전체 스모크: cargo ndk cdylib → gradle assembleDebug + 설치
-# → 부팅 → [RustraHotCore] READY value=5 → push → addNumbers 5→105 관측
+# → 부팅 → [UnikitHotCore] READY value=5 → push → addNumbers 5→105 관측
 bun run test:hot-core:android
 
 # 또는 미리 빌드한 cdylib 를 수동 전달하고 로그를 감시합니다
-bun run push:hot-core:android -- <경로>/librustra_hot_core_variant.so
-adb logcat -v time | grep '[RustraHotCore]'
+bun run push:hot-core:android -- <경로>/libunikit_hot_core_variant.so
+adb logcat -v time | grep '[UnikitHotCore]'
 ```
 
 유용한 플래그: `--skip-cargo` / `--skip-gradle` 은 기존 산출물과 설치된 앱을
@@ -190,13 +190,13 @@ adb logcat -v time | grep '[RustraHotCore]'
 
 전달 계약 — env 로 디렉터 주입, tmp + rename, 제자리 덮어쓰기 금지:
 
-- iOS 어댑터는 JSI 모듈 설치 시 env `RUSTRA_HOT_CORE_DIR`(디렉터)을 읽고 그
+- iOS 어댑터는 JSI 모듈 설치 시 env `UNIKIT_HOT_CORE_DIR`(디렉터)을 읽고 그
   디렉터의 `*-hot-live.*` 를 폴링합니다. 스모크는 `SIMCTL_CHILD_` 접두사로
-  경로를 주입합니다(`SIMCTL_CHILD_RUSTRA_HOT_CORE_DIR=<디렉터> xcrun simctl
+  경로를 주입합니다(`SIMCTL_CHILD_UNIKIT_HOT_CORE_DIR=<디렉터> xcrun simctl
 launch …`) — `simctl` 이 이 환경변수를 앱 프로세스에 전파합니다(실측 확인).
   디렉터가 비어 있으면 정적 코어로 부팅됩니다. baseline(`READY value=5`)을
   정적 코어에서 관측해야 하므로 런치 전에 stale live 파일을 확실히 지웁니다.
-- 핫 디렉터는 앱 data 컨테이너 안의 `Documents/rustra/hot` 입니다. 런치 시와
+- 핫 디렉터는 앱 data 컨테이너 안의 `Documents/unikit/hot` 입니다. 런치 시와
   push 시 모두 `xcrun simctl get_app_container <udid> <bundle-id> data` 로
   조회합니다 — 앱을 재설치하면 컨테이너 경로가 바뀔 수 있고, env 경로와 push
   대상이 어긋나면 스왑이 영원히 관측되지 않습니다.
@@ -207,20 +207,20 @@ launch …`) — `simctl` 이 이 환경변수를 앱 프로세스에 전파합�
   기존 inode 가 보존됩니다. 기록된 바이트 수는 rename 전에 검증합니다.
 
 최초 1회 준비물: 부팅된 시뮬레이터(없으면 스모크가 기본 iPhone 17 을 부팅합니다.
-`--udid` 또는 `RUSTRA_SIM_UDID` 로 재정의), 핫 코어 분기를 서빙하는 Metro.
+`--udid` 또는 `UNIKIT_SIM_UDID` 로 재정의), 핫 코어 분기를 서빙하는 Metro.
 
 ```bash
 # 터미널 1 — 핫 코어 앱 분기를 서빙합니다
 bun run demo:hot-core
 
 # 터미널 2 — 전체 스모크: cargo ios-sim cdylib → xcodebuild + 설치
-# → 부팅 → [RustraHotCore] READY value=5 → push → addNumbers 5→105 관측
+# → 부팅 → [UnikitHotCore] READY value=5 → push → addNumbers 5→105 관측
 bun run test:hot-core:ios
 
 # 또는 미리 빌드한 cdylib 를 수동 전달하고 로그 스트림을 감시합니다
-bun run push:hot-core:ios -- <경로>/librustra_hot_core_variant.dylib
+bun run push:hot-core:ios -- <경로>/libunikit_hot_core_variant.dylib
 xcrun simctl spawn booted log stream --style compact \
-  --predicate 'eventMessage CONTAINS "[RustraHotCore]"'
+  --predicate 'eventMessage CONTAINS "[UnikitHotCore]"'
 ```
 
 유용한 플래그: `--skip-cargo` / `--skip-xcodebuild` 은 기존 산출물과 설치된 앱을
@@ -230,11 +230,11 @@ xcrun simctl spawn booted log stream --style compact \
 
 ## 성능 비교 계약
 
-Nitro, Rustra, FFI는 동일 입력과 결과 shape를 먼저 검증한 뒤 호출 단위로 순환
+Nitro, Unikit, FFI는 동일 입력과 결과 shape를 먼저 검증한 뒤 호출 단위로 순환
 측정합니다. runner는 3회 중앙값, paired 95% CI, p50/p95/p99, throughput과 생성
 helper/native 경로 진단을 receipt에 기록합니다.
 
-2026-08-24 저장된 Release 중앙값에서 Rustra/Nitro 비율은 add 1.0418x, string
+2026-08-24 저장된 Release 중앙값에서 Unikit/Nitro 비율은 add 1.0418x, string
 1.0281x, bytes64 0.9543x, pair 1.0535x, 64KiB 0.9338x, exact 1MiB 1.0129x였습니다.
 이는 세션 관측치이지 모든 기기의 보장이 아닙니다. 최신 결과와 기능 패리티는
 [벤치마크 문서](../../docs/benchmarks.md)를 따릅니다.

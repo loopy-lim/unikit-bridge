@@ -1,19 +1,23 @@
-import type { BatchEntry, EngineClient as EngineClientType, InvokeOptions } from '@rustra/types';
+import type {
+  BatchEntry,
+  EngineClient as EngineClientType,
+  InvokeOptions,
+} from '@unikit-bridge/types';
 import {
   CancelledError,
   invokeCallbackWithAbort,
   invokeWithTimeoutHandledSignal,
-  parseRustraErrorString,
-} from '@rustra/types';
+  parseUnikitErrorString,
+} from '@unikit-bridge/types';
 import {
   createFastEngine,
   REACT_NATIVE_FRAME_ENGINE_SUPPORTS,
   type FastEngineOptions,
   type ReactNativeEngine,
-  type RustraJSINative,
+  type UnikitJSINative,
 } from './react-native-core.js';
 
-export type RustraJSIAsyncNative = RustraJSINative & {
+export type UnikitJSIAsyncNative = UnikitJSINative & {
   invokeTypedAsync?(
     name: string,
     args: unknown,
@@ -35,13 +39,13 @@ export type RustraJSIAsyncNative = RustraJSINative & {
 };
 
 export function createAsyncEngine(
-  native: RustraJSIAsyncNative,
+  native: UnikitJSIAsyncNative,
   options: FastEngineOptions,
 ): ReactNativeEngine {
   const syncEngine = createFastEngine(native, options);
   if (typeof native.invokeTypedAsync !== 'function') {
     console.warn(
-      '[rustra/react-native] createAsyncEngine is using the synchronous fallback; rebuild the native module with invokeTypedAsync for JS-thread offload.',
+      '[unikit/react-native] createAsyncEngine is using the synchronous fallback; rebuild the native module with invokeTypedAsync for JS-thread offload.',
     );
     return syncEngine;
   }
@@ -72,13 +76,13 @@ export function createAsyncEngine(
               staticId,
               args,
               (result) => resolve(result as T),
-              (message) => reject(parseRustraErrorString(message)),
+              (message) => reject(parseUnikitErrorString(message)),
             )
           : invokeTypedAsync(
               command,
               args,
               (result) => resolve(result as T),
-              (message) => reject(parseRustraErrorString(message)),
+              (message) => reject(parseUnikitErrorString(message)),
             );
       if (!signal) {
         return new Promise<T>((resolve, reject) => {

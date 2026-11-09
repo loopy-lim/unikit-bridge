@@ -1,5 +1,5 @@
 [package]
-name = "rustra-wasm-spike-backend"
+name = "unikit-wasm-spike-backend"
 edition = "2024"
 license = "MIT"
 version = "0.0.0"
@@ -21,7 +21,7 @@ crate-type = ["rlib", "staticlib", "cdylib"]
 factor3 = []
 
 [dependencies]
-rustra = { path = "../../../crates/rustra" }
+unikit-bridge = { path = "../../../crates/unikit-bridge" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 schemars = { version = "0.8", features = ["derive", "preserve_order"] }

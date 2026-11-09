@@ -37,7 +37,7 @@
 
 ## 3. 컴포넌트
 
-### 3.1 Rust (`crates/rustra`)
+### 3.1 Rust (`crates/unikit-bridge`)
 
 1. **`build_command` force_tier3 옵션**
    - 새 인자 `force_tier3: bool`. true면:
@@ -54,14 +54,14 @@
 3. **`Package::live_schema() -> Value` (공개)**
    - 현재 명령 전체 스키마 반환 (`{name, commandId, inputSchema, outputSchema}`). 기존 private `schema()` 재사용.
 
-4. **`rustra_ffi_get_schema(out_len: *mut usize) -> *mut u8`** (ffi.rs)
-   - `get_package()`의 live schema를 JSON 바이트로 반환. read-only (debug/release 모두). 해제는 `rustra_ffi_free`.
+4. **`unikit_ffi_get_schema(out_len: *mut usize) -> *mut u8`** (ffi.rs)
+   - `get_package()`의 live schema를 JSON 바이트로 반환. read-only (debug/release 모두). 해제는 `unikit_ffi_free`.
 
-### 3.2 JSI bridge (`RustraJSIBridge.cpp`)
+### 3.2 JSI bridge (`UnikitJSIBridge.cpp`)
 
-5. `getSchema` → `rustra_ffi_get_schema` 노출 (`makeInvoke` 패턴, ArrayBuffer 반환).
+5. `getSchema` → `unikit_ffi_get_schema` 노출 (`makeInvoke` 패턴, ArrayBuffer 반환).
 
-### 3.3 TS (`@rustra/types`)
+### 3.3 TS (`@unikit-bridge/types`)
 
 6. **`getLiveSchema(native)`**
    - `native.getSchema()` → JSON parse → `Map<name, { commandId, inputSchema, outputSchema }>` (lazy 캐시, refresh 가능).
@@ -117,9 +117,9 @@ TS rkyvV2Engine.invoke('dynCmd', {a:1, b:2})
 
 ## 7. 영향 범위
 
-- `crates/rustra/src/lib.rs`: `build_command` force_tier3, register/register_fn 전달, `live_schema()` 추가.
-- `crates/rustra/src/ffi.rs`: `rustra_ffi_get_schema` 추가.
-- `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp`: `getSchema` 노출.
+- `crates/unikit-bridge/src/lib.rs`: `build_command` force_tier3, register/register_fn 전달, `live_schema()` 추가.
+- `crates/unikit-bridge/src/ffi.rs`: `unikit_ffi_get_schema` 추가.
+- `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp`: `getSchema` 노출.
 - `packages/types/src/...`: `getLiveSchema`, rkyvV2 엔진 Tier 3 fallback.
 - 예제 데마 확장.
 - prod(정적/fast-path) 영향 없음.

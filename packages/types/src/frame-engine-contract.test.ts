@@ -3,12 +3,12 @@
 //
 // 정규화 전에는 생성 코덱의 plain `Error` 가 `instanceof Error` 분기로 그대로
 // 통과해 `error.code === undefined` 로 새어나갔다(실측: 'varint out of bounds').
-// 여기서는 (1) code 부여, (2) 메시지 형태(명령명·오프셋·프레임 길이·RUSTRA_DEBUG
+// 여기서는 (1) code 부여, (2) 메시지 형태(명령명·오프셋·프레임 길이·UNIKIT_DEBUG
 // 힌트), (3) 원본 예외/프레임 보존, (4) 기존 정상 경로 무손상을 각각 고정한다.
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { tier2Outcome } from './frame-engine-contract.js';
-import { RustraCommandError } from './errors.js';
+import { UnikitCommandError } from './errors.js';
 import type { FrameCodec } from './public.js';
 
 /** decode 가 인자로 받은 예외를 그대로 던지는 최소 코덱. */
@@ -27,21 +27,21 @@ const fail = <T>(outcome: { ok: true; value: T } | { ok: false; error: Error }):
   return outcome.error;
 };
 
-void test("plain Error from decode normalizes to RustraCommandError('invoke.malformed')", () => {
+void test("plain Error from decode normalizes to UnikitCommandError('invoke.malformed')", () => {
   const frame = new Uint8Array([0xde, 0xad, 0xbe, 0xef]);
   const error = fail(
     tier2Outcome(codecWhoseDecodeThrows(new Error('varint out of bounds')), frame, 'addNumbers'),
   );
-  assert.ok(error instanceof RustraCommandError);
+  assert.ok(error instanceof UnikitCommandError);
   assert.equal(error.code, 'invoke.malformed');
   assert.equal(error.retryable, false); // 결정론적 클라이언트 조건 — 재시도 무의미
   // 코덱 에러가 위치를 싣지 않으면 실패 지점의 최선 추정은 프레임 끝(전체 길이).
   assert.equal(
     error.message,
     "decode failed for 'addNumbers' at offset 4: varint out of bounds (4-byte frame)" +
-      ' — set RUSTRA_DEBUG=1 to dump wire bytes',
+      ' — set UNIKIT_DEBUG=1 to dump wire bytes',
   );
-  // 원본 예외는 cause 로, 스택도 보존한다(normalizeRustraError 관례).
+  // 원본 예외는 cause 로, 스택도 보존한다(normalizeUnikitError 관례).
   assert.ok(error.cause instanceof Error);
   assert.equal(error.cause.message, 'varint out of bounds');
   assert.equal(error.stack, error.cause.stack);
@@ -51,10 +51,10 @@ void test('non-Error throws are normalized the same way (string throw)', () => {
   const error = fail(
     tier2Outcome(codecWhoseDecodeThrows('varint too long'), new ArrayBuffer(2), 'greet'),
   );
-  assert.ok(error instanceof RustraCommandError);
+  assert.ok(error instanceof UnikitCommandError);
   assert.equal(error.code, 'invoke.malformed');
   assert.match(error.message, /^decode failed for 'greet' at offset 2: varint too long/);
-  assert.ok(error.message.includes('set RUSTRA_DEBUG=1'));
+  assert.ok(error.message.includes('set UNIKIT_DEBUG=1'));
 });
 
 void test("offset hint in the codec error message ('at byte 42') is honored over the frame length", () => {
@@ -70,8 +70,8 @@ void test("offset hint in the codec error message ('at byte 42') is honored over
   assert.match(error.message, /^decode failed for 'addNumbers' at offset 42: /);
 });
 
-void test('already-structured RustraCommandError passes through unwrapped (code preserved)', () => {
-  const thrown = new RustraCommandError('math.divide_by_zero', 'division by zero');
+void test('already-structured UnikitCommandError passes through unwrapped (code preserved)', () => {
+  const thrown = new UnikitCommandError('math.divide_by_zero', 'division by zero');
   const error = fail(tier2Outcome(codecWhoseDecodeThrows(thrown), new ArrayBuffer(4), 'divide'));
   assert.equal(error, thrown); // 이중 래핑 금지 — 기존 error.code 분기 보존
 });
@@ -83,7 +83,7 @@ void test('structured failure responses keep their code/retryable contract uncha
     decode: () => ({ ok: false, error: { code: 'math.divide_by_zero', message: 'div by zero' } }),
   };
   const error = fail(tier2Outcome(codec, new ArrayBuffer(4), 'divide'));
-  assert.ok(error instanceof RustraCommandError);
+  assert.ok(error instanceof UnikitCommandError);
   assert.equal(error.code, 'math.divide_by_zero');
   assert.equal(error.retryable, false);
 });
@@ -105,7 +105,7 @@ void test('normalized error carries an independent copy of the response frame (M
   const error = fail(
     tier2Outcome(codecWhoseDecodeThrows(new Error('varint out of bounds')), view, 'addNumbers'),
   );
-  assert.ok(error instanceof RustraCommandError);
+  assert.ok(error instanceof UnikitCommandError);
   assert.ok(error.frameBytes instanceof Uint8Array);
   assert.deepEqual(Array.from(error.frameBytes), [0xde, 0xad, 0xbe, 0xef]);
   // 독립 복사본 — 원본 버퍼를 나중에 바꿔도 에러의 프레임은 변조되지 않는다.

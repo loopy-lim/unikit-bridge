@@ -1,7 +1,7 @@
 /**
- * @rustra/types — Rustra의 공개 타입과 런타임 facade.
+ * @unikit-bridge/types — Unikit의 공개 타입과 런타임 facade.
  *
- * 구현은 책임별 모듈에 있고, 이 파일은 기존 `@rustra/types` import path를
+ * 구현은 책임별 모듈에 있고, 이 파일은 기존 `@unikit-bridge/types` import path를
  * 유지하는 공개 진입점만 담당합니다.
  */
 

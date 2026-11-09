@@ -7,12 +7,12 @@
  * 헤더 문법은 파일 종류별로 판정한다(CI01 근원 — CI runs 33720307160,
  * 33776685582). 무조건 `//`을 찍던 이전 동작은 JSON(RFC 8259상 주석 불가),
  * Ruby podspec, XML, shebang 스크립트를 파괴했다. 판정 근거는 실측으로 확정했다:
- * - JSON: 주석 문법이 없다. 출처 추적은 .rustra-generated.json 매니페스트가
+ * - JSON: 주석 문법이 없다. 출처 추적은 .unikit-generated.json 매니페스트가
  *   단일 진실원으로 담당한다 — 파일 내 헤더를 넣지 않는다.
  * - CMake: `cmake -P`가 `//` 라인을 "Parse error. Expected a command name"으로
  *   죽인다. CMake의 줄 주석은 `#` 하나다.
  * - XML: 주석 본문에 `--`를 쓸 수 없다(xmllint "Double hyphen within comment").
- *   헤더 본문의 `--config` 플래그를 `[config: rustra.json]`으로 다시 표현한다.
+ *   헤더 본문의 `--config` 플래그를 `[config: unikit.json]`으로 다시 표현한다.
  * - shebang: 커널 exec 파서가 첫 두 바이트만 보므로 헤더는 반드시 그 뒤에 붙는다.
  */
 export function generatedFileHeader(fileName: string, stage: string, content?: string): string {
@@ -39,7 +39,7 @@ export function headerFor(content: string, fileName: string): string {
   // shebang 변형: 첫 줄은 헤더가 아니라 원문이다 — 벗겨내지 말고 보존한다.
   const shebang = syntax === 'hash' && allLines[0]?.startsWith('#!') ? allLines[0] : null;
   const lines = shebang === null ? allLines : allLines.slice(1);
-  // 헤더 블록의 경계는 대시 런 구분 라인이다 (첫 행만 'rustra generated' 각인).
+  // 헤더 블록의 경계는 대시 런 구분 라인이다 (첫 행만 'unikit generated' 각인).
   const isRuleLine = (line: string): boolean => /──{4,}/.test(line);
   const start = lines.findIndex(isRuleLine);
   if (start === -1) return content;
@@ -78,10 +78,10 @@ function headerLines(fileName: string, token: string, stage: string): string {
   if (token === '<!--') {
     // XML 주석 본문에는 `--` 가 금지다 — `--config` 를 `[config: ...]` 로 다시 표현한다.
     return [
-      `<!-- ── rustra generated ──────────────────────────────────── -->`,
+      `<!-- ── unikit generated ──────────────────────────────────── -->`,
       `<!-- File:   ${fileName} -->`,
       `<!-- Source: schema.json (single source of truth for this file) -->`,
-      `<!-- Regen:  rustra codegen [config: rustra.json] -->`,
+      `<!-- Regen:  unikit codegen [config: unikit.json] -->`,
       `<!-- Stage:  ${stage} -->`,
       `<!-- DO NOT EDIT — changes will be overwritten and fail codegen check. -->`,
       `<!-- ──────────────────────────────────────────────────────────── -->`,
@@ -90,10 +90,10 @@ function headerLines(fileName: string, token: string, stage: string): string {
     ].join('\n');
   }
   return [
-    `${token} ── rustra generated ────────────────────────────────────────`,
+    `${token} ── unikit generated ────────────────────────────────────────`,
     `${token} File:   ${fileName}`,
     `${token} Source: schema.json (single source of truth for this file)`,
-    `${token} Regen:  rustra codegen --config rustra.json`,
+    `${token} Regen:  unikit codegen --config unikit.json`,
     `${token} Stage:  ${stage}`,
     `${token} DO NOT EDIT — changes will be overwritten and fail codegen --check.`,
     `${token} ────────────────────────────────────────────────────────────`,

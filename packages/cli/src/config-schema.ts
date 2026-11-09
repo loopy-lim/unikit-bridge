@@ -1,7 +1,7 @@
-// rustra.json 계약의 데이터 절 — 허용 키 상수·파생 타입·섹션 인터페이스만 둔다.
+// unikit.json 계약의 데이터 절 — 허용 키 상수·파생 타입·섹션 인터페이스만 둔다.
 // 검증 로직은 config.ts(L1 진입)·config-sections.ts(L1 섹션)·config-semantic.ts(L2)가 담당한다.
 
-/** rustra.json 루트 허용 키 — L1 fail-closed의 단일 출처(스키마 대조 테스트가 함께 읽는다). */
+/** unikit.json 루트 허용 키 — L1 fail-closed의 단일 출처(스키마 대조 테스트가 함께 읽는다). */
 export const CONFIG_ROOT_KEYS = [
   '$schema',
   'schema',
@@ -74,7 +74,7 @@ export interface InspectorConfig {
  * (없으면 코드젠 흐름은 이전과 바이트 동일). 최소 옵션만 — 필요가 생기면 키를
  * 추가한다(선제적 옵션 금지).
  */
-export interface RustraUniffiConfig {
+export interface UnikitUniffiConfig {
   /** Kotlin/Swift 바인딩이 출력되는 디렉터리 — config 파일 위치 기준 상대경로. */
   output: string;
   /**
@@ -91,7 +91,7 @@ export interface RustraUniffiConfig {
  * scriptc 섹션 — scriptc Native FFI 코드젠(ffi.json + scriptc-ffi.d.ts, 정적 링크).
  * uniffi 와 같이 존재 자체가 기능 스위치다(없으면 코드젠 흐름은 이전과 바이트 동일).
  */
-export interface RustraScriptcConfig {
+export interface UnikitScriptcConfig {
   /** ffi.json·scriptc-ffi.d.ts 가 출력되는 디렉터리 — config 파일 위치 기준 상대경로. */
   output: string;
   /** 링크할 staticlib 빌드 프로필. 기본값 "release". */
@@ -103,7 +103,7 @@ export interface RustraScriptcConfig {
   archive?: string;
 }
 
-export interface RustraConfig {
+export interface UnikitConfig {
   /** JSON Schema 참조(init이 삽입) — 에디터 검증 전용이며 런타임은 읽지 않는다. */
   $schema?: string;
   schema: string;
@@ -137,6 +137,6 @@ export interface RustraConfig {
   tauri?: Record<string, never>;
   dev?: DevConfig;
   inspector?: InspectorConfig;
-  uniffi?: RustraUniffiConfig;
-  scriptc?: RustraScriptcConfig;
+  uniffi?: UnikitUniffiConfig;
+  scriptc?: UnikitScriptcConfig;
 }

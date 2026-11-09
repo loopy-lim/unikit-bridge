@@ -3,7 +3,7 @@ name: ThreadSanitizer
 # A09 보완 트랙 — ThreadSanitizer 야간 검증 (nitro 파리티 안전성 강화 2026-11-01).
 #
 # sanitizer.yml 의 ASan/LSan 이 메모리 오염·누수를 담당하는 반면 TSan 은
-# 데이터 경합(data race)을 담다. rustra 의 멀티스레드 표면은 ffi_pool 의 고정
+# 데이터 경합(data race)을 담다. unikit 의 멀티스레드 표면은 ffi_pool 의 고정
 # worker 풀과 events 채널이며, 경합은 ASan 이 못 잡는다. iOS 에서 TSan 을
 # 1급 CI 시민으로 돌리는 nitro(test-runtime-ios)의 설계를 따른다:
 # halt_on_error=1:abort_on_error=1 로 발견 즉시 치명 실패.
@@ -14,7 +14,7 @@ name: ThreadSanitizer
 #
 # 왜 build-std 인가(로컬 실측 2026-11-01, nightly 1.101.0): ASan 과 달리 TSan 은
 # std 의 원자연산·뮤텍스가 계측돼야 happens-before 엣지를 본다. 미계측 std +
-# 계측 app 조합에서는 std Mutex 내부의 rustra 코드가 전부 가짜 경합으로 보였다
+# 계측 app 조합에서는 std Mutex 내부의 unikit 코드가 전부 가짜 경합으로 보였다
 # (cancel.rs REGISTRY.lock 내부 BTreeMap 접근, libtest CompletedTest 채널).
 # std 를 소스에서 계측 빌드하는 build-std 로 이 문제를 근본 해거하고, 227개 lib
 # 테스트가 경고 0 으로 통과한다. -Cunsafe-allow-abi-mismatch=sanitizer 는
@@ -71,7 +71,7 @@ jobs:
           # nitro test-runtime 설계와 동일 — 발견 즉시 중단해 조용한 green 을 막는다.
           TSAN_OPTIONS: halt_on_error=1:abort_on_error=1:history_size=7:log_path=${{ github.workspace }}/target/safety/tsan/tsan
           RUST_TEST_THREADS: '1'
-        run: bash scripts/run-safety-check.sh tsan-lib cargo test -Z build-std -p rustra --lib --target x86_64-unknown-linux-gnu
+        run: bash scripts/run-safety-check.sh tsan-lib cargo test -Z build-std -p unikit-bridge --lib --target x86_64-unknown-linux-gnu
       - name: Upload sanitizer reports
         if: always()
         uses: actions/upload-artifact@v7

@@ -7,12 +7,12 @@ import {
   decodeUtf8,
   encodeUtf8,
   exactArrayBuffer,
-  RustraCommandError,
+  UnikitCommandError,
 } from './index.js';
 import type { FrameCodec } from './index.js';
 
 test('shared runtime helpers are available from the package facade', async () => {
-  const text = 'Rustra 한글 🚀';
+  const text = 'Unikit 한글 🚀';
   assert.equal(decodeUtf8(encodeUtf8(text)), text);
 
   const view = new Uint8Array([1, 2, 3]).subarray(1);
@@ -203,7 +203,7 @@ test('frame encodeInto releases reusable buffers after native and decode errors'
       kind === 'decode'
         ? // (M3) 디코드 throw 는 invoke.malformed 로 정규화된다 — 원본 예외와의
           // 동일성은 cause 로 확인한다(맨몸 Error 통로 제거).
-          actual instanceof RustraCommandError &&
+          actual instanceof UnikitCommandError &&
           actual.code === 'invoke.malformed' &&
           actual.cause === error
         : actual === error,

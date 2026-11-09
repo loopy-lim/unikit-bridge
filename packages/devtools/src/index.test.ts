@@ -32,7 +32,7 @@ void test('errors propagate unchanged after being recorded', async () => {
 });
 
 void test('failure logs capture frame forensics when the error carries frameBytes (M8)', async () => {
-  // tier2 디코드 실패 정규화(@rustra/types M3) 는 RustraCommandError.frameBytes 에
+  // tier2 디코드 실패 정규화(@unikit-bridge/types M3) 는 UnikitCommandError.frameBytes 에
   // 응답 프레임 복사본을 싣는다 — 계측기는 이를 hex 절단(앞 256B)과 전체 길이로
   // 실패 로그에 남긴다. 프로세스가 끝난 뒤 와이어를 재해석할 수 있는 유일한 흔적이다.
   const frame = new Uint8Array(300);

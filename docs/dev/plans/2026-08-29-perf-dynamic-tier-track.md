@@ -6,7 +6,7 @@
 
 **Architecture:** T0가 계약 기반(선행 필수) → T1은 독립(병렬 가능) → T2는 T0의 generation을 소비. T2의 TS 인터프리터는 live_schema만 있으면 동작하므로 코드젠 변경 없음.
 
-**Tech Stack:** Rust (postcard, serde_json, schemars), TypeScript (@rustra/types 런타임), criterion bench.
+**Tech Stack:** Rust (postcard, serde_json, schemars), TypeScript (@unikit-bridge/types 런타임), criterion bench.
 
 **Spec:** `docs/specs/2026-08-29-perf-five-tracks-design.md` (트랙 T 절)
 
@@ -26,8 +26,8 @@
 
 **Files:**
 
-- Modify: `crates/rustra/src/package.rs:37-52` (RegistryState 필드 추가), `crates/rustra/src/registry.rs:89-192` (register/replace/unregister에서 증가)
-- Test: `crates/rustra/src/runtime_registry_tests.rs` (기존 파일 확장)
+- Modify: `crates/unikit-bridge/src/package.rs:37-52` (RegistryState 필드 추가), `crates/unikit-bridge/src/registry.rs:89-192` (register/replace/unregister에서 증가)
+- Test: `crates/unikit-bridge/src/runtime_registry_tests.rs` (기존 파일 확장)
 
 **Steps:**
 
@@ -51,24 +51,24 @@ fn schema_generation_advances_on_register_replace_unregister() {
 }
 ```
 
-- [ ] **Step 2: 실패 확인** — `cargo test -p rustra schema_generation 2>&1 | tail -5` → FAIL (함수 부재)
+- [ ] **Step 2: 실패 확인** — `cargo test -p unikit-bridge schema_generation 2>&1 | tail -5` → FAIL (함수 부재)
 - [ ] **Step 3: 구현** — `RegistryState`에 `schema_generation: u64` 추가(초기 0). register/replace/unregister의 기존 `live_schema_cache = None` 지점(`registry.rs:122,162,191`)에서 함께 증가. frozen 전환(build) 시에는 증가 불요(정적 명령은 generation 무관)
-- [ ] **Step 4: 통과 확인** — `cargo test -p rustra` 전체
+- [ ] **Step 4: 통과 확인** — `cargo test -p unikit-bridge` 전체
 - [ ] **Step 5: 커밋** — `feat(core): schema generation — 치환 동기화 계약 기반`
 
 ### Task T0-2: live_schema에 generation 포함 + 저비용 FFI
 
 **Files:**
 
-- Modify: `crates/rustra/src/package_codegen.rs:4-31` (live_schema 응답에 `"schemaGeneration"` 필드), `crates/rustra/src/ffi.rs` (기존 `rustra_ffi_get_schema` 옆 `rustra_ffi_schema_generation` 신규 — u64 반환, 잠금 최소화)
-- Test: `crates/rustra/tests/` (FFI round-trip), `packages/node/src/index.test.ts` (FFI 노출)
+- Modify: `crates/unikit-bridge/src/package_codegen.rs:4-31` (live_schema 응답에 `"schemaGeneration"` 필드), `crates/unikit-bridge/src/ffi.rs` (기존 `unikit_ffi_get_schema` 옆 `unikit_ffi_schema_generation` 신규 — u64 반환, 잠금 최소화)
+- Test: `crates/unikit-bridge/tests/` (FFI round-trip), `packages/node/src/index.test.ts` (FFI 노출)
 
 **Steps:**
 
 - [ ] **Step 1: 실패하는 테스트** — (a) live_schema JSON에 `schemaGeneration` 포함 (b) FFI 호출이 현재 generation 반환. 기존 `live_schema_cache_tracks_replace_and_unregister` 테스트에 generation 단조 증가 assertion 추가
 - [ ] **Step 2: 실패 확인** → FAIL
 - [ ] **Step 3: 구현** — `live_schema()` 캐시 값에 generation을 함께 스냅샷(캐시된 schema 객체에 필드가 이미 있으므로 자동 일관). FFI는 read lock 1회 + u64 복사 — 호출 비용 수십 ns
-- [ ] **Step 4: 통과** — `cargo test -p rustra` + 노드 FFI 스모크
+- [ ] **Step 4: 통과** — `cargo test -p unikit-bridge` + 노드 FFI 스모크
 - [ ] **Step 5: 커밋** — `feat(core): live_schema/FFI에 schema generation 노출`
 
 ### Task T0-3: TS 엔진 generation 게이트 + 재동기화
@@ -80,7 +80,7 @@ fn schema_generation_advances_on_register_replace_unregister() {
 
 **Steps:**
 
-- [ ] **Step 1: 실패하는 테스트** — (a) 엔진이 live_schema 조회 시 generation을 캐시 (b) 동적 명령 호출 전(또는 N회 주기) `rustra_ffi_schema_generation` 비교 — FFI 미노출 호스트는 스킵(현상 유지) (c) 불일치 시 live_schema 재조회 → 미등록 명령은 `command.not_found`로 시끄럽게 실패 (d) 스키마 동일하면 캐시 유지
+- [ ] **Step 1: 실패하는 테스트** — (a) 엔진이 live_schema 조회 시 generation을 캐시 (b) 동적 명령 호출 전(또는 N회 주기) `unikit_ffi_schema_generation` 비교 — FFI 미노출 호스트는 스킵(현상 유지) (c) 불일치 시 live_schema 재조회 → 미등록 명령은 `command.not_found`로 시끄럽게 실패 (d) 스키마 동일하면 캐시 유지
 - [ ] **Step 2: 실패 확인** — `bun test packages/types` → FAIL
 - [ ] **Step 3: 구현** — Tier 3 동적 명령 진입점 앞에 generation 체크 삽입 (매 호출 u32/u64 FFI 읽기 1회 — dev 전용 경로라 오버헤드 허용). 불일치 시: live_schema 재조회 → 동적 명령 id/스키마 캐시 재구축 → 재진행. **호출 중 재동기화는 1회만** (재귀 방지)
 - [ ] **Step 4: 통과** — `bun test packages/types` + `bun run test:ts:node`
@@ -102,14 +102,14 @@ fn schema_generation_advances_on_register_replace_unregister() {
 
 **Files:**
 
-- Modify: `crates/rustra/benches/tier_compare.rs`, `crates/rustra/benches/common.rs`
+- Modify: `crates/unikit-bridge/benches/tier_compare.rs`, `crates/unikit-bridge/benches/common.rs`
 - Output: `docs/benchmarks.md` Tier 절 갱신
 
 **Steps:**
 
 - [ ] **Step 1: 벤치 설계** — 동일 의미 연산(echo: `{"v":7}`)을 3가지 wire로: (a) 정적 postcard (b) 동적 Tier 3 JSON (c) T2 완료 후 동적 postcard. 기존 add/greet/echo 혼합 구성을 교체 — 연산 효과를 통제해 wire 차이만 남김
 - [ ] **Step 2: 구현** — echo 타입을 빌더 명령으로도 등록(정적 postcard), 동일 타입을 register로도 등록. common.rs에 echo용 postcard/tier3 요청·응답 헬퍼 추가
-- [ ] **Step 3: 측정** — `cargo bench -p rustra --bench tier_compare --profile dev` + 필요 시 release 정적 비교선 병기 (동적은 dev-only이므로 절대 수치 비교 주석 필수)
+- [ ] **Step 3: 측정** — `cargo bench -p unikit-bridge --bench tier_compare --profile dev` + 필요 시 release 정적 비교선 병기 (동적은 dev-only이므로 절대 수치 비교 주석 필수)
 - [ ] **Step 4: 문서화** — `docs/benchmarks.md` "동적 명령" 절에 "연산 통제 비교" 표 추가, 기존 6.55x 표에 오독 주의 강화
 - [ ] **Step 5: 커밋** — `bench(core): tier_compare 연산 통제 재작성 — wire 순수 비교`
 
@@ -121,8 +121,8 @@ fn schema_generation_advances_on_register_replace_unregister() {
 
 **Files:**
 
-- Modify: `crates/rustra/src/registry.rs:118` (`force_tier3=true` → 게이트 판정), `crates/rustra/src/command.rs` (필요 시 force_tier3와 is_tier3 분기 정리)
-- Test: `crates/rustra/src/runtime_registry_tests.rs`, `crates/rustra/tests/rkyv_v2_wire.rs`
+- Modify: `crates/unikit-bridge/src/registry.rs:118` (`force_tier3=true` → 게이트 판정), `crates/unikit-bridge/src/command.rs` (필요 시 force_tier3와 is_tier3 분기 정리)
+- Test: `crates/unikit-bridge/src/runtime_registry_tests.rs`, `crates/unikit-bridge/tests/rkyv_v2_wire.rs`
 
 **Steps:**
 
@@ -140,7 +140,7 @@ fn dynamic_postcard_supported_command_gets_binary_handler() {
 
 - [ ] **Step 2: 실패 확인** → FAIL
 - [ ] **Step 3: 구현** — `register`/`register_fn`/`replace`에서 `force_tier3=false`로 `build_command` 호출 — `build_command` 내부의 기존 `js_codec_supported`/`complex_codec_supported`/`is_tier3` 게이트(`command.rs:86-97`)가 알아서 Tier를 결정. **와이어 정책 결정**: 미지원 스키마는 기존대로 Tier 3 (복합 폴백 유지). frozen 정적 명령의 wire는 전혀 변경 없음 (별도 게이트 — 기존 wire fixture 전수 재확인)
-- [ ] **Step 4: 전체 게이트** — `cargo test -p rustra` (wire/fuzz/concurrency 포함)
+- [ ] **Step 4: 전체 게이트** — `cargo test -p unikit-bridge` (wire/fuzz/concurrency 포함)
 - [ ] **Step 5: 커밋** — `feat(core): 동적 명령 postcard fast-path — 지원 스키마 binary 핸들러`
 
 ### Task T2-2: TS 스키마→postcard 코덱 인터프리터
@@ -176,7 +176,7 @@ fn dynamic_postcard_supported_command_gets_binary_handler() {
 
 **Steps:**
 
-- [ ] **Step 1:** T1의 교정된 벤치에 "동적 postcard" 라인 추가 — `cargo bench -p rustra --bench tier_compare --profile dev`
+- [ ] **Step 1:** T1의 교정된 벤치에 "동적 postcard" 라인 추가 — `cargo bench -p unikit-bridge --bench tier_compare --profile dev`
 - [ ] **Step 2:** 목표 확인: 동적 echo가 정적 echo 대비 근접(2x 이내) — 미달 시 성분 분석 기록
 - [ ] **Step 3:** `docs/benchmarks.md` 동적 명령 절 전면 갱신 (교정 표 + fast-path 표) + `docs/architecture.md:420-427`의 Tier 3 설명 갱신
 - [ ] **Step 4:** 전체 게이트 (`cargo test`, `bun run test:ts:node`) + 커밋 `perf(core): 동적 명령 postcard 실측 — dev 루프 Tier 1 근접`

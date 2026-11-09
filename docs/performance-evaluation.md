@@ -1,11 +1,11 @@
-# rustra 성능 종합 평가 보고서 (2026-09-24)
+# unikit 성능 종합 평가 보고서 (2026-09-24)
 
 한국어 요약 문서입니다. 영어 수치 원문은 [benchmarks.md](benchmarks.md)와
 [benchmark-receipts/](benchmark-receipts/)를 참고하세요.
 
 - 최초 측정일: 2026-09-24 (KST), 저장소 HEAD `58e1835e` (2026-09-24)
 - 방법: 전체 테스트 스위트 실행 + 벤치마크 전체 재실측(코덱·트랙B·함수 디스패치·트리·티어)
-- 본 문서의 모든 명령은 `env -u RUSTRA_BUN_LIBRARY`로 감싸 실행했다(워커 프로세스의
+- 본 문서의 모든 명령은 `env -u UNIKIT_BUN_LIBRARY`로 감싸 실행했다(워커 프로세스의
   loop 데몬 dylib 오염 제거 — 미제거 시 bun 어댑터가 무관한 dylib을 로드한다).
 
 2026-10-13 상태 정정: 아래 9월 수치는 역사적 측정이다. 현재 로컬 구현·검증은
@@ -36,12 +36,12 @@
 
 ## 2. 전체 테스트 통과 상태 요약
 
-실행: `env -u RUSTRA_BUN_LIBRARY cargo test --workspace`,
-`env -u RUSTRA_BUN_LIBRARY bun run test:all` (릴리스 게이트 스위트).
+실행: `env -u UNIKIT_BUN_LIBRARY cargo test --workspace`,
+`env -u UNIKIT_BUN_LIBRARY bun run test:all` (릴리스 게이트 스위트).
 
 | 스위트                                       | 결과                                  | 비고                                                                                                                                                         |
 | -------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Rust 워크스페이스 (`cargo test --workspace`) | **575 passed / 0 failed / 0 ignored** | `rustra` 237 단위 + 25개 통합 테스트 바이너리 + 예제 크레이트 + doctests 포함                                                                                |
+| Rust 워크스페이스 (`cargo test --workspace`) | **575 passed / 0 failed / 0 ignored** | `unikit` 237 단위 + 25개 통합 테스트 바이너리 + 예제 크레이트 + doctests 포함                                                                                |
 | TS 릴리스 게이트 (`bun run test:all`, 8단계) | **EXIT 0, 실패 0**                    | release-tools → types → ts:bun → packages(node/tauri/react-native/react/testing/devtools) → cli → complex-codec/track-b 벤치 테스트 → bench-gate → functions |
 | bun test 카운트 합계                         | **807 tests**                         | `(pass)` 마커 775건, `(fail)` 0건 — 나머지는 node 스타일 러너·통합 게이트                                                                                    |
 | 함수 통합 게이트 (`test:functions`)          | ok                                    | 18 commands / 308 checked / 7 라우트 전부 확인                                                                                                               |
@@ -227,8 +227,8 @@ C++ 직접 마샬링이 대체하는 JS 측 비용만 측정한다(네이티브 
 | Rust          | rustc/cargo 1.95.0 (`rust-toolchain.toml` 핀, CI와 동일)                                                                         |
 | Criterion     | 0.8.2                                                                                                                            |
 | Bun / Node    | 1.4.1 (repo 핀: bun@1.4.0) / v26.8.2                                                                                             |
-| rustra        | crates 0.11.0 (CHANGELOG 기준 0.11.0 + Unreleased hot-core 워치 변경)                                                            |
-| 환경 정화     | 모든 bun/cargo 명령 `env -u RUSTRA_BUN_LIBRARY` (loop 데몬 dylib 오염 제거)                                                      |
+| unikit        | crates 0.11.0 (CHANGELOG 기준 0.11.0 + Unreleased hot-core 워치 변경)                                                            |
+| 환경 정화     | 모든 bun/cargo 명령 `env -u UNIKIT_BUN_LIBRARY` (loop 데몬 dylib 오염 제거)                                                      |
 | 프로파일 구분 | release(bench): complex_route·tree_route·function_dispatch / dev: tier_compare·dynamic_registry·type_scaling (각 벤치 계약 준수) |
 
 ### 방법론 및 한계
@@ -252,7 +252,7 @@ C++ 직접 마샬링이 대체하는 JS 측 비용만 측정한다(네이티브 
 [선정 결정](dev/research/2026-09-24-optimization-decision.md),
 [A2 마이크로벤치](dev/research/2026-09-24-a2-microbench.md),
 [emit 전환 결정](dev/research/2026-09-24-emit-switch-decision.md),
-[@rustra/react-native CHANGELOG Unreleased](../packages/react-native/CHANGELOG.md).
+[@unikit-bridge/react-native CHANGELOG Unreleased](../packages/react-native/CHANGELOG.md).
 1~6절 수치(575 Rust / bun 807 마커)는 구현 이전 HEAD 기준이며, 아래 7.2의
 게이트 수치가 본 후보 반영 후의 최신 상태다.
 
@@ -264,17 +264,17 @@ C++ 직접 마샬링이 대체하는 JS 측 비용만 측정한다(네이티브 
 (요청 전체 probe 캐시 복사 → `largeBuf.resize()` zero-fill → 2차 FFI 요청 전체
 비교 + 응답 memcpy)를 제거한다.
 
-- Rust `crates/rustra/src/ffi_typed_buffer.rs`: dispatch 본문을 공용 코어
-  `frame_into_dispatch`로 추출하고, 신규 FFI `rustra_ffi_invoke_frame_owned` 가
+- Rust `crates/unikit-bridge/src/ffi_typed_buffer.rs`: dispatch 본문을 공용 코어
+  `frame_into_dispatch`로 추출하고, 신규 FFI `unikit_ffi_invoke_frame_owned` 가
   overflow 시 응답 `Vec` 소유권을 caller에 넘긴다(비동기 `owned=1` 프레임 계약의
   동기판). null 반환 = 제자리 기록, non-null 반환 = owned 핸드오프(free 짝은
-  `rustra_ffi_free_owned_bytes` 정확히 (ptr, len) 1회 — `rustra_ffi_invoke_buffer`와
-  동일한 짝). 기존 `rustra_ffi_invoke_frame_into`·probe 캐시는 구형 진입 폴백으로
+  `unikit_ffi_free_owned_bytes` 정확히 (ptr, len) 1회 — `unikit_ffi_invoke_buffer`와
+  동일한 짝). 기존 `unikit_ffi_invoke_frame_into`·probe 캐시는 구형 진입 폴백으로
   유지된다.
-- C++ `packages/react-native/native/cpp/RustraJSIBridge.{hpp,cpp}`: 코어 함수
+- C++ `packages/react-native/native/cpp/UnikitJSIBridge.{hpp,cpp}`: 코어 함수
   테이블에 **옵셔널 엔트리** `invoke_frame_owned` 추가(테이블 끝 — 구형 셸
   레이아웃 호환). 정적 코어는 셸과 함께 빌드되므로 항상 채우고, 핫코어 dlsym은
-  `RUSTRA_BIND_OPTIONAL`로 심볼 부재를 실패가 아닌 null(폴백 신호)로 처리한다.
+  `UNIKIT_BIND_OPTIONAL`로 심볼 부재를 실패가 아닌 null(폴백 신호)로 처리한다.
   `typedInvokeTail` 은 엔트리 유무로 owned/probe 경로를 분기하고,
   `OwnedFrameGuard` 가 decode 경로 throw 시에도 정확히 1회 free 짝을 지키며
   생산 코어의 allocator로 해제한다(테이블 생성 시점 고정).
@@ -298,11 +298,11 @@ C++ 직접 마샬링이 대체하는 JS 측 비용만 측정한다(네이티브 
 - `examples/rn-experiment`(신규, 워크스페이스 members·default-members 등록):
   3면 크레이트(rlib/cdylib/staticlib). `gzipCompress`/`gzipDecompress`(flate2,
   입력·출력이 정확히 하나의 `Vec<u8>` 필드인 bytes in/out 스키마 — Tier buffer
-  fast path `rustra_ffi_invoke_buffer` 광고)와 `uuidV7`(uuid v7, 문자열 스키마 —
+  fast path `unikit_ffi_invoke_buffer` 광고)와 `uuidV7`(uuid v7, 문자열 스키마 —
   JSON 경로 대조군). 워크스페이스 `[workspace.dependencies]` 에 `flate2`(default
   rust_backend — miniz_oxide, 모바일 타깃 안전)와 `uuid`(v7 feature) 추가.
 - 생성물: `generated/`(schema.json, TS 명령·코덱·레지스트리),
-  `modules/rustra-bridge/`(iOS podspec·build-rust-ios.sh, Android CMake·gradle·
+  `modules/unikit-bridge/`(iOS podspec·build-rust-ios.sh, Android CMake·gradle·
   Kotlin 브리지, RN autolink 진입) — 모두 CLI codegen 산출물.
 
 ### 7.2 검증 증거
@@ -311,12 +311,12 @@ C++ 직접 마샬링이 대체하는 JS 측 비용만 측정한다(네이티브 
 
 | 게이트            | 명령                                                       | 결과                                                                                                               |
 | ----------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Rust 워크스페이스 | `cargo test --workspace --exclude rustra-tauri-calculator` | **EXIT 0 — 551 passed / 0 failed / 2 ignored**(69개 결과 블록 전부 ok)                                             |
-| TS 릴리스 게이트  | `env -u RUSTRA_BUN_LIBRARY bun run test:all`(8단계)        | **EXIT 0 — 실패 0**, bun test `(pass)` 781 / `(fail)` 0, 함수 통합 게이트 ok(18 commands / 308 checked / 7 라우트) |
+| Rust 워크스페이스 | `cargo test --workspace --exclude unikit-tauri-calculator` | **EXIT 0 — 551 passed / 0 failed / 2 ignored**(69개 결과 블록 전부 ok)                                             |
+| TS 릴리스 게이트  | `env -u UNIKIT_BUN_LIBRARY bun run test:all`(8단계)        | **EXIT 0 — 실패 0**, bun test `(pass)` 781 / `(fail)` 0, 함수 통합 게이트 ok(18 commands / 308 checked / 7 라우트) |
 
 구현 태스크가 남긴 로컬 증거(의존 요약 인용):
 
-- **E1**: `cargo test -p rustra` 신규 4검사 — owned 와이어 동일성(overflow/여유
+- **E1**: `cargo test -p unikit-bridge` 신규 4검사 — owned 와이어 동일성(overflow/여유
   버퍼 모두 `invoke_frame` 과 바이트 일치), 핸들러 정확히 1회 실행, free 짝
   정확히 (ptr, len) 1회(debug `free_guard` 활성), 에러 프레임 와이어 보존,
   probe 폴백 경로 생존. Hermes 단언 스위트 **1,383 단언 0 실패**(신규 "owned
@@ -327,7 +327,7 @@ C++ 직접 마샬링이 대체하는 JS 측 비용만 측정한다(네이티브 
   1회, `configure` 재구성 후 라우트 재해결, 옵션 있으면 기존 경로, 필드 심볼
   부재 엔진은 이름 경로 폴백, lazy 구성 1회 초기화, 미구성 `transport.unavailable`).
 - **rn-experiment**: 크레이트 통합 5검사(typed 와이어 gzip 왕복 + 매직 넘버,
-  `rustra_ffi_has_buffer` 광고 + 버퍼 FFI 왕복, 잘못된 스트림 `args.invalid_args`,
+  `unikit_ffi_has_buffer` 광고 + 버퍼 FFI 왕복, 잘못된 스트림 `args.invalid_args`,
   uuid v7 버전/variant/정렬 계약, 스키마 3커맨드 선언)가 7.2 상단 워크스페이스
   게이트에 포함돼 통과했다.
 
@@ -360,12 +360,12 @@ C++ 직접 마샬링이 대체하는 JS 측 비용만 측정한다(네이티브 
 - **커맨드 계약**: `uuidV7`(id 1, 문자열 스키마·입력 없음), `gzipCompress`(id 2),
   `gzipDecompress`(id 3) — gzip 커맨드는 입력·출력이 정확히 하나의 required
   `Vec<u8>`(`data`) 필드여서 Tier buffer fast path가 광고된다.
-- **로컬**: `cargo test -p rustra-rn-experiment`, 스키마 재생성
-  `cargo run -p rustra-rn-experiment --bin generate`, 코드젠 검사
-  `cd examples/rn-experiment && env -u RUSTRA_BUN_LIBRARY bun run codegen:check`.
-- **기기**: `modules/rustra-bridge/ios/build-rust-ios.sh`(staticlib) ·
+- **로컬**: `cargo test -p unikit-rn-experiment`, 스키마 재생성
+  `cargo run -p unikit-rn-experiment --bin generate`, 코드젠 검사
+  `cd examples/rn-experiment && env -u UNIKIT_BUN_LIBRARY bun run codegen:check`.
+- **기기**: `modules/unikit-bridge/ios/build-rust-ios.sh`(staticlib) ·
   `android/build-rust-android.sh`(cdylib, `ANDROID_ABIS` 기본 x86_64+aarch64)로
-  `rustra_rn_experiment` 을 빌드하고 RN 앱에서 `installRustraJSI()` 후
+  `unikit_rn_experiment` 을 빌드하고 RN 앱에서 `installUnikitJSI()` 후
   `generated/commands.ts` 의 함수를 호출한다.
 
 ### 7.5 미해결 리스크
@@ -383,7 +383,7 @@ C++ 직접 마샬링이 대체하는 JS 측 비용만 측정한다(네이티브 
    실행 근거는 [현재 작업표](dev/research/2026-10-13-dx-safety-performance-next.md)를 따른다.
 3. **E1 호스트 효과는 추정치**(~1–2%, 전송·할당 몫) — 판정은 7.3의 실기기
    플랜 실행으로만 확정한다.
-4. 루트 `package.json` 의 `test` 스크립트 env 정화(`env -u RUSTRA_BUN_LIBRARY
+4. 루트 `package.json` 의 `test` 스크립트 env 정화(`env -u UNIKIT_BUN_LIBRARY
 bun run test:all` 위임)는 이번 루프의 환경 선행 변경으로 그대로 유지된다.
 
 ### 7.6 후속 루프(2) 완결 — A2 마이크로벤치·emit 전환·rn-experiment 어댑터 플로우 (2026-09-24)
@@ -419,13 +419,13 @@ emit 전환 → RN 어댑터 플로우 → 전체 회귀)의 결과다. 근거: 
   (`invokeGeneratedFields1` 직접 호출)에서 팩토리형(`createGeneratedFields1<In, Out>(id, 'name', "key", 'fn')` — 2-필드 `createGeneratedFields2` 선례와 동일
   형태)으로 전환. 3-필드 경로·bytes emit·옵션 폴백은 무변경.
 - 생성물 재생성 6건: calculator·auth·crud·streaming·react-native-calculator·
-  react-native-bare-calculator 의 `generated/commands.ts` + `.rustra-generated.json`.
+  react-native-bare-calculator 의 `generated/commands.ts` + `.unikit-generated.json`.
   재생성 후 어떤 예제 생성물에도 `invokeGeneratedFields1` 이 남지 않음을 확인했다
   (rn-experiment 생성물은 애초에 필드 헬퍼 미사용 — emit 불변).
 - 부수: CLI 신규 검사 "generateCommandsTs emits 1-field commands via
   createGeneratedFields1 factory", changeset `.changeset/a2-fields1-emit-factory.md`
-  (`@rustra/cli` minor — 생성물이 `createGeneratedFields1` 을 import하므로 이
-  헬퍼를 포함한 `@rustra/types` 와 함께 배포 필요, 호출 표면은 소스 호환),
+  (`@unikit-bridge/cli` minor — 생성물이 `createGeneratedFields1` 을 import하므로 이
+  헬퍼를 포함한 `@unikit-bridge/types` 와 함께 배포 필요, 호출 표면은 소스 호환),
   react-native-calculator 빌드 지문 갱신.
 - 순수 JS+코드젠 변경(ABI·네이티브·capability 마커 없음) — 단일 커밋 revert 후
   재생성으로 롤백 가능(결정 문서 롤백 전략 준용).
@@ -442,7 +442,7 @@ FfiFormat::Json 와이어)을 에뮬레이션하고, 생성 명령(`generated/co
    압축(65,536 B → 35,476 B, LCG 결정적 생성 — 네이티브 테스트와 동일 알파벳).
 2. `gzipDecompress` 왕복 — 원본 65,536 바이트와 정확히 일치.
 3. `uuidV7` — 하이픈 형식·ver 7 니블·RFC 변형·임베디드 ms 타임스탬프 정렬(±60s).
-4. 어댑터 에러 경로 — 잘못된 gzip 스트림이 `RustraCommandError`
+4. 어댑터 에러 경로 — 잘못된 gzip 스트림이 `UnikitCommandError`
    (`command.invalid_args`)로 정규화되는지.
 
 게이트 편입: 루트 `package.json` 에 `test:app:rn-experiment` 스크립트 추가 —
@@ -456,10 +456,10 @@ HEAD `58e1835e` + 위 작업 트리 변경(7.1 구현 + emit 전환 + 어댑터 
 
 | 게이트                 | 명령                                                                                 | 결과                                                                                                                                           |
 | ---------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Rust 워크스페이스      | `env -u RUSTRA_BUN_LIBRARY cargo test --workspace --exclude rustra-tauri-calculator` | **EXIT 0 — 551 passed / 0 failed / 2 ignored**(69개 결과 블록 전부 ok)                                                                         |
-| TS 릴리스 게이트       | `env -u RUSTRA_BUN_LIBRARY bun run test:all`(8단계)                                  | **EXIT 0 — 실패 0**, bun test `(pass)` 781 / `(fail)` 0(신규 emit 팩토리 검사 포함), 함수 통합 게이트 ok(18 commands / 308 checked / 7 라우트) |
-| 코드젠 신선도(보조)    | `env -u RUSTRA_BUN_LIBRARY bun run test:codegen-fresh:check`                         | **EXIT 0** — 7개 예제 커밋 생성물이 재생성 결과와 일치                                                                                         |
-| rn-experiment 앱(보조) | `env -u RUSTRA_BUN_LIBRARY bun run test:app:rn-experiment`                           | **EXIT 0 — 4 checks passed**                                                                                                                   |
+| Rust 워크스페이스      | `env -u UNIKIT_BUN_LIBRARY cargo test --workspace --exclude unikit-tauri-calculator` | **EXIT 0 — 551 passed / 0 failed / 2 ignored**(69개 결과 블록 전부 ok)                                                                         |
+| TS 릴리스 게이트       | `env -u UNIKIT_BUN_LIBRARY bun run test:all`(8단계)                                  | **EXIT 0 — 실패 0**, bun test `(pass)` 781 / `(fail)` 0(신규 emit 팩토리 검사 포함), 함수 통합 게이트 ok(18 commands / 308 checked / 7 라우트) |
+| 코드젠 신선도(보조)    | `env -u UNIKIT_BUN_LIBRARY bun run test:codegen-fresh:check`                         | **EXIT 0** — 7개 예제 커밋 생성물이 재생성 결과와 일치                                                                                         |
+| rn-experiment 앱(보조) | `env -u UNIKIT_BUN_LIBRARY bun run test:app:rn-experiment`                           | **EXIT 0 — 4 checks passed**                                                                                                                   |
 
 참고: `test:docs`(docs-gate)는 위 두 게이트 범위 밖에서 현재 3건 실패 중이며
 모두 이번 검증 태스크 편집 밖의 선행 변경에서 왔다 — (1) `docs/rust-api-guide.{md,ko.md}`
@@ -497,7 +497,7 @@ import 줄(신규 `createGeneratedFields1` 정렬)과 어긋남(impl-emit 범위
 
 [리시트](benchmark-receipts/2026-09-24-sim-hotswap.md) — `scripts/hot-swap-ios.sh --build`
 전체 경로가 부팅된 iPhone 17 시뮬레이터(iOS 26.2)에서 종단 동작함을 확인하고, 스왑 유닛
-`librustra_calculator_example.dylib`(기준) → `librustra_hot_core_variant.dylib`(add-cmd
+`libunikit_calculator_example.dylib`(기준) → `libunikit_hot_core_variant.dylib`(add-cmd
 변형)의 교체를 두 계층에서 증명했다:
 
 - **프로브(`simctl spawn`) 관점**: `PROBE SWAP e70c24c6… -> b0bf949c…` — 스키마 변화가
@@ -514,16 +514,16 @@ import 줄(신규 `createGeneratedFields1` 정렬)과 어긋남(impl-emit 범위
 ### 8.2 RN 계산기 Release에서 E1 owned 경로 Hermes 종단 검증 (sim-e1)
 
 [리시트](benchmark-receipts/2026-09-24-sim-e1-hermes.md) — `examples/react-native-calculator`를
-Release-iphonesimulator로 빌드해 iPhone 17 시뮬레이터에 설치·실행, `__RUSTRA_SMOKE_OK__
+Release-iphonesimulator로 빌드해 iPhone 17 시뮬레이터에 설치·실행, `__UNIKIT_SMOKE_OK__
 addNumbers(42,58)=100` 관측(pid 18114). 증명 체인: 앱 바이너리에
-`rustra_ffi_invoke_frame_owned`·`rustra_ffi_free_owned_bytes` 정의 확인(`nm`) → 코어 테이블
+`unikit_ffi_invoke_frame_owned`·`unikit_ffi_free_owned_bytes` 정의 확인(`nm`) → 코어 테이블
 옵셔널 엔트리 무조건 바인딩 → 이 실행의 모든 typed invoke가 E1 분기 통과(probe 폴백 도달
 불가). receipt(`jsEngine: "hermes"`, 정합성 게이트 통과)가 `invokeTypedPos` 직결 레인의 E1
 경로 측정을 수치로 남겼다.
 
 참고 수치(시뮬레이터, receipt 전문은 리시트 참조):
 
-| 레인                        | Nitro avg | rustra avg | rustra/Nitro [95% CI] |
+| 레인                        | Nitro avg | unikit avg | unikit/Nitro [95% CI] |
 | --------------------------- | --------: | ---------: | --------------------: |
 | add (소형, E1 분기)         |   2.44 µs |    2.75 µs | 1.128x [1.098, 1.158] |
 | string (소형, E1 분기)      |   2.51 µs |    2.78 µs | 1.111x [1.089, 1.133] |
@@ -539,11 +539,11 @@ addNumbers(42,58)=100` 관측(pid 18114). 증명 체인: 앱 바이너리에
 ### 8.3 rn-experiment 모바일 진입 크로스컴파일 (rn-experiment-ios)
 
 [연구 문서](dev/research/2026-09-24-rn-experiment-ios.md) — `cargo build -p
-rustra-rn-experiment --target aarch64-apple-ios-sim --release` 성공(8.01s, 에러/경고 0),
-`librustra_rn_experiment.a` 20MB arm64, `_rustra_mobile_init` Export, `vtool` 로
-`platform IOSSIMULATOR minos 14.0` 확인. 생성물 `build-rust-ios.sh`·`RustraBridge.podspec`
+unikit-rn-experiment --target aarch64-apple-ios-sim --release` 성공(8.01s, 에러/경고 0),
+`libunikit_rn_experiment.a` 20MB arm64, `_unikit_mobile_init` Export, `vtool` 로
+`platform IOSSIMULATOR minos 14.0` 확인. 생성물 `build-rust-ios.sh`·`UnikitBridge.podspec`
 계약 대조 **불일치 0건**(codegen 산출물 유지가 정답), 스크립트 end-to-end 재현으로 fat
-아카이브(x86_64 + arm64-sim, 40MB)까지 확인. 실기기 빌드는 `RUSTRA_IOS_TARGET=aarch64-apple-ios`
+아카이브(x86_64 + arm64-sim, 40MB)까지 확인. 실기기 빌드는 `UNIKIT_IOS_TARGET=aarch64-apple-ios`
 오버라이드로 동일 스크립트 재사용 — 런북 §3에 절차화됐다.
 
 ### 8.4 판정 규정과 후속
@@ -578,7 +578,7 @@ rustra-rn-experiment --target aarch64-apple-ios-sim --release` 성공(8.01s, 에
   runner 이미지 patch 차이는 자문으로 유지한다. mixed-changes(exit 3)만으로
   서로 다른 CPU의 비교 가능성을 보장할 수 없다.
 - 운용 규약은 런북 §0-7로 고정: 측정 세션마다
-  `env -u RUSTRA_BUN_LIBRARY bun scripts/benchmark-environment.mjs target/criterion` — 2회째
+  `env -u UNIKIT_BUN_LIBRARY bun scripts/benchmark-environment.mjs target/criterion` — 2회째
   호출부터 직전 기록이 restored 쌍이 된다. CI(`bench.yml`)는 이미 매 실행 앞에 기록하며,
   `comparison_ref` 워크플로우는 benchmark-comparison.mjs가 기준선 설치 전에 환경을 기록하므로
   (같은 러너) 그대로 통과한다.
@@ -590,7 +590,7 @@ rustra-rn-experiment --target aarch64-apple-ios-sim --release` 성공(8.01s, 에
   "하네스 가드 부재"를 해소한다. 빌드(`--no-run`)는 여전히 통과하므로 CI 캐시·빌드 검증에는
   영향이 없다.
 - 실증: release 빌드 바이너리 직접 실행 → 안내 출력 + exit 2 (양쪽 벤치),
-  `--profile dev -- --quick`은 정상 측정, `cargo clippy -p rustra --all-targets -- -D warnings`
+  `--profile dev -- --quick`은 정상 측정, `cargo clippy -p unikit-bridge --all-targets -- -D warnings`
   통과. 벤치 게이트 단위 테스트 35건 통과(provenance 신규 5케이스: 출처 불명 3형태, 시대 드리프트
   자문, 안정 섹션 경계 포함).
 

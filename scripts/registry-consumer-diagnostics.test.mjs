@@ -32,18 +32,18 @@ test('contract-mismatch judge rejects silent success and requires contract wordi
   assert.equal(pass.noSilentSuccess, true);
   const silent = judgeContractMismatch({
     status: 0,
-    stdout: '__RUSTRA_DIAG_RESULT__{"rejected":false,"value":{"message":"registry-node-result"}}',
+    stdout: '__UNIKIT_DIAG_RESULT__{"rejected":false,"value":{"message":"registry-node-result"}}',
     stderr: '',
   });
   assert.equal(silent.noSilentSuccess, false);
 });
 
 test('native-missing judge accepts marker-reported guidance and rejects quiet success', () => {
-  const binary = '/tmp/does-not-exist/rustra-app';
+  const binary = '/tmp/does-not-exist/unikit-app';
   // 프로브 경로 — rejected 결과가 마커로 보고되고 안내를 담는다.
   const marker = judgeNativeMissing({
     status: 0,
-    stdout: `__RUSTRA_DIAG_RESULT__{"rejected":true,"code":"contract.unenforceable","message":"Tried 1 runtime candidate (newest first): ${binary} — rebuild the Rust host"}`,
+    stdout: `__UNIKIT_DIAG_RESULT__{"rejected":true,"code":"contract.unenforceable","message":"Tried 1 runtime candidate (newest first): ${binary} — rebuild the Rust host"}`,
     stderr: '',
     binary,
   });
@@ -54,7 +54,7 @@ test('native-missing judge accepts marker-reported guidance and rejects quiet su
   const processFailure = judgeNativeMissing({
     status: 1,
     stdout: '',
-    stderr: `failed to start ${binary}: ENOENT — check RUSTRA_NODE_BINARY and build first`,
+    stderr: `failed to start ${binary}: ENOENT — check UNIKIT_NODE_BINARY and build first`,
     binary,
   });
   assert.equal(processFailure.actionable, true);
@@ -62,7 +62,7 @@ test('native-missing judge accepts marker-reported guidance and rejects quiet su
   assert.equal(
     judgeNativeMissing({
       status: 0,
-      stdout: `__RUSTRA_DIAG_RESULT__{"rejected":false,"value":{"message":"diag"}}`,
+      stdout: `__UNIKIT_DIAG_RESULT__{"rejected":false,"value":{"message":"diag"}}`,
       stderr: '',
       binary,
     }).failedLoudly,
@@ -101,19 +101,19 @@ test('doctor-sdk-missing judge requires structured fail checks with fix arrays',
 
 test('invalid-payload judge verifies wire cleanliness of the input whitelist', () => {
   const clean = judgeInvalidPayload({
-    stdout: '__RUSTRA_DIAG_RESULT__{"rejected":false,"value":{"message":"diag"}}',
+    stdout: '__UNIKIT_DIAG_RESULT__{"rejected":false,"value":{"message":"diag"}}',
   });
   assert.equal(clean.reported, true);
   assert.equal(clean.wireStaysClean, true);
   assert.equal(clean.loudlyRejected, false);
   // 결과가 선언된 필드 외 키를 실으면 와이어가 오염된 것이다.
   const dirty = judgeInvalidPayload({
-    stdout: '__RUSTRA_DIAG_RESULT__{"rejected":false,"value":{"message":"diag","surpriseField":true}}',
+    stdout: '__UNIKIT_DIAG_RESULT__{"rejected":false,"value":{"message":"diag","surpriseField":true}}',
   });
   assert.equal(dirty.wireStaysClean, false);
   // 서버가 invalid_args 로 거부해도 유효한 대안 관측으로 인정한다.
   const rejected = judgeInvalidPayload({
-    stdout: '__RUSTRA_DIAG_RESULT__{"rejected":true,"code":"command.invalid_args"}',
+    stdout: '__UNIKIT_DIAG_RESULT__{"rejected":true,"code":"command.invalid_args"}',
   });
   assert.equal(rejected.loudlyRejected, true);
   assert.equal(judgeInvalidPayload({ stdout: 'nothing' }).reported, false);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configure, RustraCommandError } from '@rustra/types';
+import { configure, UnikitCommandError } from '@unikit-bridge/types';
 import { divide } from '../generated/commands.js';
 import {
   DivideErrorCode,
@@ -13,7 +13,7 @@ import {
 function rejectingEngine(code: string, message: string): Parameters<typeof configure>[0] {
   return {
     async invoke(): Promise<never> {
-      throw new RustraCommandError(code, message);
+      throw new UnikitCommandError(code, message);
     },
   };
 }
@@ -41,13 +41,13 @@ void test('isDivideError rejects undeclared codes — the runtime contract stays
     (error: unknown) => {
       assert.equal(isDivideError(error), false);
       // 미선언 코드 폴백 — 기존 문자열 분기 패턴이 그대로 동작한다.
-      assert.ok(error instanceof RustraCommandError && error.code === 'math.future_code');
+      assert.ok(error instanceof UnikitCommandError && error.code === 'math.future_code');
       return true;
     },
   );
 });
 
-void test('isDivideError rejects non-RustraCommandError values', () => {
+void test('isDivideError rejects non-UnikitCommandError values', () => {
   assert.equal(isDivideError(new Error('plain')), false);
   assert.equal(isDivideError('math.divide_by_zero'), false);
   assert.equal(isDivideError(null), false);

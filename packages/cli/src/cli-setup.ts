@@ -4,7 +4,7 @@ import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { parseCliArgs } from './cli-arg-parser.js';
 import { runCodegen } from './cli-codegen.js';
 import { UsageError } from './cli-usage-error.js';
-import { readConfigSync, type RustraConfig } from './config.js';
+import { readConfigSync, type UnikitConfig } from './config.js';
 import { collectBaseChecks } from './doctor-base-checks.js';
 import { defaultDoctorRunner, type DoctorRunner } from './doctor-types.js';
 import { spawnInherit } from './process.js';
@@ -25,13 +25,13 @@ interface ProjectManifest {
 export interface SetupServices {
   preflight(
     configPath: string,
-    config: RustraConfig,
+    config: UnikitConfig,
     manager: PackageManager,
     needsManager: boolean,
   ): void;
-  bootstrap(configPath: string, config: RustraConfig): Promise<boolean>;
+  bootstrap(configPath: string, config: UnikitConfig): Promise<boolean>;
   codegen: typeof runCodegen;
-  native(configPath: string, config: RustraConfig, manager: PackageManager): Promise<string[]>;
+  native(configPath: string, config: UnikitConfig, manager: PackageManager): Promise<string[]>;
   builds: typeof resolveSetupBuilds;
   spawn: typeof spawnInherit;
 }
@@ -66,7 +66,7 @@ function packageManager(manifest: ProjectManifest, root: string): PackageManager
 
 export function checkSetupTools(
   configPath: string,
-  config: RustraConfig,
+  config: UnikitConfig,
   manager: PackageManager,
   needsManager: boolean,
   runner: DoctorRunner = defaultDoctorRunner,
@@ -75,7 +75,7 @@ export function checkSetupTools(
     { configPath, strict: false },
     runner,
     undefined,
-    // Mobile SDK/compiler checks belong to rustra:ios/rustra:android, not host preparation.
+    // Mobile SDK/compiler checks belong to unikit:ios/unikit:android, not host preparation.
     { node: config.node, bun: config.bun },
   ).filter((check) => check.required && check.status === 'fail');
   if (failed.length) {
@@ -90,9 +90,9 @@ export function checkSetupTools(
   }
 }
 
-function rnOptions(configPath: string, config: RustraConfig) {
+function rnOptions(configPath: string, config: UnikitConfig) {
   const appRoot = dirname(configPath);
-  const moduleDir = resolve(appRoot, config.reactNative?.moduleDir ?? 'modules/rustra-bridge');
+  const moduleDir = resolve(appRoot, config.reactNative?.moduleDir ?? 'modules/unikit-bridge');
   const moduleRelative = relative(appRoot, moduleDir);
   if (
     isAbsolute(moduleRelative) ||
@@ -104,18 +104,18 @@ function rnOptions(configPath: string, config: RustraConfig) {
   return { appRoot, moduleDir };
 }
 
-async function bootstrapAdapter(configPath: string, config: RustraConfig): Promise<boolean> {
+async function bootstrapAdapter(configPath: string, config: UnikitConfig): Promise<boolean> {
   if (!config.reactNative) return false;
   const result = await ensureReactNativeAdapter({
     ...rnOptions(configPath, config),
-    adapterRange: cliManifest.rustraTemplate.reactNativeRange,
+    adapterRange: cliManifest.unikitTemplate.reactNativeRange,
   });
   return result.needsInstall;
 }
 
 async function prepareNative(
   configPath: string,
-  config: RustraConfig,
+  config: UnikitConfig,
   manager: PackageManager,
 ): Promise<string[]> {
   const instructions: string[] = [];
@@ -149,7 +149,7 @@ export async function runSetup(
     booleanFlags: ['run', 'skip-install', 'help'],
   });
   if (parsed.flags.has('help')) return;
-  const configPath = resolve(parsed.values.get('config') ?? 'rustra.json');
+  const configPath = resolve(parsed.values.get('config') ?? 'unikit.json');
   const config = readConfigSync(configPath);
   const root = dirname(configPath);
   const run = parsed.flags.has('run');
@@ -181,10 +181,10 @@ export async function runSetup(
     ...overrides,
   };
   const quotedConfig = `'${configPath.replaceAll("'", "'\\''")}'`;
-  const retry = `rustra setup --config ${quotedConfig}${skipInstall ? ' --skip-install' : ''}${run ? ' --run' : ''}`;
+  const retry = `unikit setup --config ${quotedConfig}${skipInstall ? ' --skip-install' : ''}${run ? ' --run' : ''}`;
   let stage = 'preflight';
   try {
-    console.log('[rustra] Checking setup tools...');
+    console.log('[unikit] Checking setup tools...');
     services.preflight(configPath, config, manager, !skipInstall || run);
     if (!skipInstall) {
       stage = 'adapter bootstrap';
@@ -193,7 +193,7 @@ export async function runSetup(
       }
     }
     stage = 'generate';
-    console.log('[rustra] Generating the Rust contract and TypeScript calls...');
+    console.log('[unikit] Generating the Rust contract and TypeScript calls...');
     await services.codegen(['--config', configPath]);
     stage = 'native integration';
     const instructions = await services.native(configPath, config, manager);
@@ -220,8 +220,8 @@ export async function runSetup(
     }
     console.log(
       run
-        ? '[rustra] Setup complete — demo succeeded.'
-        : '[rustra] Rust contract, TypeScript calls and host Rust build are ready.',
+        ? '[unikit] Setup complete — demo succeeded.'
+        : '[unikit] Rust contract, TypeScript calls and host Rust build are ready.',
     );
     if (instructions.length) {
       console.log('\nNative app steps:');

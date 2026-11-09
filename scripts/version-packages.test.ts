@@ -17,13 +17,13 @@ void test('caretMinorRange tracks the minor on 0.x and keeps major bumps on 1.x+
 });
 
 void test('syncReactNativeRange rewrites only the range value and preserves formatting', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-version-packages-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-version-packages-'));
   try {
     const manifestPath = join(root, 'package.json');
     const original = [
       '{',
-      '  "name": "@rustra/cli",',
-      '  "rustraTemplate": {',
+      '  "name": "@unikit-bridge/cli",',
+      '  "unikitTemplate": {',
       '    "cargoRange": "^0.9.0",',
       '    "reactNativeRange": "^0.7.0"',
       '  }',
@@ -46,26 +46,26 @@ void test('syncReactNativeRange rewrites only the range value and preserves form
 });
 
 void test('syncLockWorkspaceMetadata rewrites workspace version and internal ranges only', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-version-packages-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-version-packages-'));
   try {
     const lockPath = join(root, 'bun.lock');
     const lock = [
       '{',
       '  "workspaces": {',
       '    "": {',
-      '      "name": "rustra-bridge",',
+      '      "name": "unikit-bridge",',
       '      "devDependencies": {',
       '        "typescript": "^5.9.0",',
       '      },',
       '    },',
       '    "packages/cli": {',
-      '      "name": "@rustra/cli",',
+      '      "name": "@unikit-bridge/cli",',
       '      "version": "0.8.0",',
       '      "bin": {',
-      '        "rustra": "./dist/index.js",',
+      '        "unikit": "./dist/index.js",',
       '      },',
       '      "dependencies": {',
-      '        "@rustra/types": "^0.8.0",',
+      '        "@unikit-bridge/types": "^0.8.0",',
       '      },',
       '    },',
       '  },',
@@ -80,12 +80,12 @@ void test('syncLockWorkspaceMetadata rewrites workspace version and internal ran
     writeFileSync(lockPath, lock);
 
     const manifests = {
-      'packages/cli': { version: '0.9.0', dependencies: { '@rustra/types': '^0.9.0' } },
+      'packages/cli': { version: '0.9.0', dependencies: { '@unikit-bridge/types': '^0.9.0' } },
     };
     assert.equal(syncLockWorkspaceMetadata(lockPath, manifests), true);
     const updated = readFileSync(lockPath, 'utf8');
-    assert.match(updated, /"@rustra\/cli",\n      "version": "0\.9\.0"/);
-    assert.match(updated, /"@rustra\/types": "\^0\.9\.0"/);
+    assert.match(updated, /"@unikit-bridge\/cli",\n      "version": "0\.9\.0"/);
+    assert.match(updated, /"@unikit-bridge\/types": "\^0\.9\.0"/);
     // 레지스트리 패키지 해석 영역과 무관 workspace 블록은 그대로.
     assert.match(updated, /"typescript@5\.9\.0": \{\n      "version": "5\.9\.0"/);
     assert.doesNotMatch(updated, /"typescript": "\^0\.9\.0"/);
@@ -98,7 +98,7 @@ void test('syncLockWorkspaceMetadata rewrites workspace version and internal ran
 
 void test('version step tracks each host independently of a CLI-only patch', async () => {
   const { syncHostRanges } = await import('./version-packages.mjs');
-  const root = mkdtempSync(join(tmpdir(), 'rustra-host-ranges-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-host-ranges-'));
   try {
     const path = join(root, 'package.json');
     writeFileSync(
@@ -106,7 +106,7 @@ void test('version step tracks each host independently of a CLI-only patch', asy
       JSON.stringify(
         {
           version: '0.10.1',
-          rustraTemplate: {
+          unikitTemplate: {
             cargoRange: '^0.10.0',
             nodeRange: '^0.8.0',
             bunRange: '^0.8.0',
@@ -129,7 +129,7 @@ void test('version step tracks each host independently of a CLI-only patch', asy
     );
     assert.deepEqual(JSON.parse(readFileSync(path, 'utf8')), {
       version: '0.10.1',
-      rustraTemplate: {
+      unikitTemplate: {
         cargoRange: '^0.10.0',
         nodeRange: '^0.10.0',
         bunRange: '^0.10.0',

@@ -25,13 +25,13 @@ perf 5트랙 스펙(`docs/specs/2026-08-29-perf-five-tracks-design.md`)이
 ### 파일 소유권 (엄격 분리)
 
 - **DX**: `packages/cli/**`, `docs/**`, `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `packages/types/src/errors.ts` + debug env
-- **Perf**: `crates/rustra/**`(complex_codec/command/executor), `packages/types/src/rkyv-engine.ts`·`complex-codec.ts`, `packages/bun/**`, node transport / tauri dispatch 영역, RN cpp
-- **Events**: `crates/rustra-macros` + 코드젠, node/bun/tauri `subscribeEvent` **신규 API**, `docs/compatibility-matrix.md`
+- **Perf**: `crates/unikit-bridge/**`(complex_codec/command/executor), `packages/types/src/rkyv-engine.ts`·`complex-codec.ts`, `packages/bun/**`, node transport / tauri dispatch 영역, RN cpp
+- **Events**: `crates/unikit-bridge-macros` + 코드젠, node/bun/tauri `subscribeEvent` **신규 API**, `docs/compatibility-matrix.md`
 
 ### 충돌 파일
 
 - `packages/node/src/index.ts`: Perf=NDJSON→바이너리 프레이밍(transport 내부) / Events=subscribeEvent 신규 export — 함수 단위 분리
-- `packages/tauri/src/index.ts`: Perf=rustra_dispatch_batch / Events=채널 subscribeEvent — 동일 분리
+- `packages/tauri/src/index.ts`: Perf=unikit_dispatch_batch / Events=채널 subscribeEvent — 동일 분리
 - `packages/types`: Perf=rkyv-engine.ts·complex-codec.ts / DX=errors.ts — 파일 단위 분리
 
 ### 머지 순서 고정
@@ -45,9 +45,9 @@ perf 5트랙 스펙(`docs/specs/2026-08-29-perf-five-tracks-design.md`)이
 1. CLI arg-parser 통일 (4중복 → 1헬퍼; --help/exit 2/--flag=value 동시 해소)
 2. CLI 인체공학: codegen 스피너+경과, init 덮어쓰기 차단+`--force`, 스캐폴드 .gitignore/tsconfig, config 오타키 loud-fail, help 보강
 3. errors.ts: cause 옵션+보존, Timeout/Cancelled 서브클래스
-4. `RUSTRA_DEBUG` 와이어 덤프 (node/bun/tauri 공통)
+4. `UNIKIT_DEBUG` 와이어 덤프 (node/bun/tauri 공통)
 5. 문서 HIGH 6건 (README init, rust-api-guide 예제 2건, CONTRIBUTING 릴리스, divide 시그니처, CHANGELOG 요약)
-6. Rust 저작면: 코드젠 unknown 폴백 loud-fail, `__RUstra_doc_` → TS JSDoc 전달 활성화
+6. Rust 저작면: 코드젠 unknown 폴백 loud-fail, `__UNikit_doc_` → TS JSDoc 전달 활성화
 
 ### Perf (`feat/perf-five-tracks`)
 
@@ -71,7 +71,7 @@ perf 5트랙 스펙(`docs/specs/2026-08-29-perf-five-tracks-design.md`)이
 사용자 목표: "테스트와 실제 성능 테스트까지, 완료 판정 시 열려 있는 PR에 통합, 버전 불일치로 막히는 일 없이 버전업 전부 진행".
 
 1. **버전 스큐 해소**: 대기 changeset(`.changeset/quiet-bridges-check.md`)이 전부 patch라
-   testing/devtools/react 0.4.1의 `@rustra/types ^0.5.0` 의존이 해소되지 않음 → `@rustra/types`
+   testing/devtools/react 0.4.1의 `@unikit-bridge/types ^0.5.0` 의존이 해소되지 않음 → `@unikit-bridge/types`
    minor(0.5.0)로 상향한 changeset으로 교체. 3트랙 변경분을 커버하는 changeset을 패키지별로
    작성(cli/types/node/bun/testing/devtools/react/tauri/react-native + crates).
 2. **검증**: 각 트랙 테스트 게이트 + Perf는 실측 벤치 영수증(세션 조건 기재)까지.

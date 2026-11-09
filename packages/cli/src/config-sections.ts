@@ -1,4 +1,4 @@
-// rustra.json 검증의 L1 공용 프리미티브 — fail-closed 키 검사, 섹션별 리프 값
+// unikit.json 검증의 L1 공용 프리미티브 — fail-closed 키 검사, 섹션별 리프 값
 // 검사(dev/inspector/uniffi), 허용값 벗어남 메시지 생성. readConfigSync(config.ts)의
 // L1 진입에서 호출되고, L2 수집(config-semantic.ts)은 unknownValueError 만 재사용한다.
 import { closestMatch } from './cli-suggest.js';
@@ -14,8 +14,8 @@ import {
   UNIFFI_CONFIG_KEYS,
   type DevConfig,
   type InspectorConfig,
-  type RustraScriptcConfig,
-  type RustraUniffiConfig,
+  type UnikitScriptcConfig,
+  type UnikitUniffiConfig,
 } from './config-schema.js';
 
 const BOOL_ERROR = 'must be a boolean';
@@ -59,7 +59,7 @@ export function assertInspectorSection(inspector: InspectorConfig | undefined): 
  * 필수(schema/output 과 같은 비어있지 않은 안전 경로 계약)이고, srcOut/dylibProfile
  * 은 선택 — 기본값은 소비자(cli-codegen)가 채운다.
  */
-export function assertUniffiSection(uniffi: RustraUniffiConfig | undefined): void {
+export function assertUniffiSection(uniffi: UnikitUniffiConfig | undefined): void {
   if (uniffi === undefined) return;
   assertKnownKeys(uniffi, UNIFFI_CONFIG_KEYS, 'config uniffi');
   if (
@@ -89,7 +89,7 @@ export function assertUniffiSection(uniffi: RustraUniffiConfig | undefined): voi
  * 필수(uniffi.output 과 같은 비어있지 않은 안전 경로 계약)이고, profile/archive 는
  * 선택 — 기본값은 소비자(cli-scriptc)가 채운다.
  */
-export function assertScriptcSection(scriptc: RustraScriptcConfig | undefined): void {
+export function assertScriptcSection(scriptc: UnikitScriptcConfig | undefined): void {
   if (scriptc === undefined) return;
   assertKnownKeys(scriptc, SCRIPTC_CONFIG_KEYS, 'config scriptc');
   if (

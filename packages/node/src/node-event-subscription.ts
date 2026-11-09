@@ -6,7 +6,7 @@
  *
  * 같은 "엔트리는 팩토리를 조립하고 `subscribeEvent` 를 export 한다" 계약. Bun 이
  * 라이브러리 후보를 `bunLibraryCandidates` 로 재해상하듯, Node 는 부트스트랩과
- * **동일한 런타임 해상**(`resolveNodeRuntime` — `command` → `RUSTRA_NODE_BINARY` →
+ * **동일한 런타임 해상**(`resolveNodeRuntime` — `command` → `UNIKIT_NODE_BINARY` →
  * `commandCandidates` → `binaryName` 부모 디렉터리 탐색)을 재사용해 이벤트 transport
  * 를 스폰한다. 엔트리가 같은 옵션을 두 팩토리에 넘기면 두 해상이 같은 런타임을
  * 가리킨다.
@@ -54,7 +54,7 @@ export type NodeEventSubscriptionOptions = Pick<
 
 export type NodeEventSubscription = {
   /**
-   * rustra 이벤트를 구독한다 — `(name, callback) => unsubscribe`(동기).
+   * unikit 이벤트를 구독한다 — `(name, callback) => unsubscribe`(동기).
    * 첫 구독에서 이벤트 transport(loop-stdio 계열)를 생성한다.
    */
   subscribeEvent(name: string, callback: (payload: never) => void): () => void;

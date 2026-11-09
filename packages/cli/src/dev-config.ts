@@ -103,7 +103,7 @@ export function readDevConfig(configPath: string): ResolvedDevConfig {
     ? resolve(root, config.codegen.rustManifest)
     : findCargoManifest(root);
   if (!manifestPath || !existsSync(manifestPath) || !statSync(manifestPath).isFile()) {
-    throw new Error('codegen.rust_manifest_missing: set codegen.rustManifest in rustra.json');
+    throw new Error('codegen.rust_manifest_missing: set codegen.rustManifest in unikit.json');
   }
   // dev 섹션을 **해석된** 형태로 노출한다 — reload 오케스트레이션(parity 게이트)이
   // 재판정 없이 곧장 읽을 수 있게 기본값을 채운다. 대상별 정규화: target=wasm 이면
@@ -150,7 +150,7 @@ export function findRepoCli(from: string): string | null {
 
 export function assertDirectory(path: string, label: string, hint: string): void {
   if (!existsSync(path) || !statSync(path).isDirectory()) {
-    throw new Error(`rustra dev requires ${label} at ${path}. Usage: ${hint}`);
+    throw new Error(`unikit dev requires ${label} at ${path}. Usage: ${hint}`);
   }
 }
 

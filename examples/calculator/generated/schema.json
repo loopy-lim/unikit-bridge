@@ -269,7 +269,7 @@
       "execution": "sync",
       "definitions": {
         "ChannelHandle": {
-          "description": "커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.\n\n코드젠은 이 타입을 인식하면 TS 를 `RustraChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).",
+          "description": "커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.\n\n코드젠은 이 타입을 인식하면 TS 를 `UnikitChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).",
           "type": "integer",
           "format": "uint32",
           "minimum": 0.0
@@ -327,7 +327,7 @@
       },
       "definitions": {
         "ChannelHandle": {
-          "description": "커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.\n\n코드젠은 이 타입을 인식하면 TS 를 `RustraChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).",
+          "description": "커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.\n\n코드젠은 이 타입을 인식하면 TS 를 `UnikitChannel` 마커 타입으로 발행한다(런타임 값은 여전히 number — wire 는 u32 varint).",
           "type": "integer",
           "format": "uint32",
           "minimum": 0.0
@@ -777,7 +777,7 @@
               "additionalProperties": false
             }
           ],
-          "x-rustra-variant-order": [
+          "x-unikit-variant-order": [
             "Clear",
             "Set"
           ]
@@ -1517,46 +1517,6 @@
       }
     },
     {
-      "name": "rustraRegistryDemo",
-      "commandId": 12,
-      "inputType": "RegistryDemoInput",
-      "outputType": "RegistryDemoOutput",
-      "inputSchema": {
-        "title": "RegistryDemoInput",
-        "type": "object",
-        "required": [
-          "op"
-        ],
-        "properties": {
-          "op": {
-            "type": "string"
-          }
-        }
-      },
-      "outputSchema": {
-        "title": "RegistryDemoOutput",
-        "type": "object",
-        "required": [
-          "frozen",
-          "message",
-          "ok"
-        ],
-        "properties": {
-          "ok": {
-            "type": "boolean"
-          },
-          "frozen": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      },
-      "execution": "sync",
-      "description": "런타임 registry 제어 명령. op:\n`register` / `unregister` / `replacePing` / `replaceAdd` / `restoreAdd` / `freeze` / `state`."
-    },
-    {
       "name": "safeDivide",
       "commandId": 41,
       "inputType": "Tuple_of_double_and_double",
@@ -1868,6 +1828,46 @@
         }
       },
       "execution": "sync"
+    },
+    {
+      "name": "unikitRegistryDemo",
+      "commandId": 12,
+      "inputType": "RegistryDemoInput",
+      "outputType": "RegistryDemoOutput",
+      "inputSchema": {
+        "title": "RegistryDemoInput",
+        "type": "object",
+        "required": [
+          "op"
+        ],
+        "properties": {
+          "op": {
+            "type": "string"
+          }
+        }
+      },
+      "outputSchema": {
+        "title": "RegistryDemoOutput",
+        "type": "object",
+        "required": [
+          "frozen",
+          "message",
+          "ok"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "frozen": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "execution": "sync",
+      "description": "런타임 registry 제어 명령. op:\n`register` / `unregister` / `replacePing` / `replaceAdd` / `restoreAdd` / `freeze` / `state`."
     },
     {
       "name": "wideAgg",

@@ -25,7 +25,7 @@
 
 - 최종 자료: [후보 측정 기록](../../benchmark-receipts/2026-09-16-nitro-parity-candidate.json), 플랫폼별 독립 5회 실행 × 90개 작업. Nitro/nitrogen 0.37.1, RN 0.81.5, Hermes Release. iOS는 M1 Max의 iPhone 17 / iOS 26.2 Simulator, Android는 TB710FU / Android 16 실기기다. 다른 iPhone·Android·Linux 성능은 입증하지 않는다.
 - 실제 측정 입력 fingerprint는 `5076bccabfa316aaa0102e44ee227563f5246115cf3b20f1897c94f78d5fdb08`이다. 커밋 훅의 서식 보정 후 현재 fingerprint는 `8d20cef383f74946a2f71f10fb2103c2f20fca1a0a2b9a3fc1f9b60441876ea2`다. 서식 변환과 후속 회귀 검증은 후보 기록의 `postMeasurementFormatting`에 있다. **현재 커밋 바이트로 네이티브 성능을 다시 측정한 것은 아니다.**
-- 비율은 독립 실행별 Rustra 평균 / Nitro 평균의 로그 Student-t 95% CI다. p50끼리 나눈 값이 아니다. p50/p95는 한 번의 시간 측정 구간에서 여러 호출을 평균한 값의 분포이며, 개별 호출 지연의 백분위가 아니다.
+- 비율은 독립 실행별 Unikit 평균 / Nitro 평균의 로그 Student-t 95% CI다. p50끼리 나눈 값이 아니다. p50/p95는 한 번의 시간 측정 구간에서 여러 호출을 평균한 값의 분포이며, 개별 호출 지연의 백분위가 아니다.
 - 31개 측정 round, 3개 warmup, 기존 batch 크기와 모든 표본을 유지했다. 측정된 자료는 변경하지 않았다. 새 기기 실행·프로파일 수집은 0회다.
 - 재계산 도구는 현재 후보 180개 집계와 이전 baseline 120개 집계를 원래 validator로 검증하고 저장값과 동일함을 확인한다. 분석 JSON에는 두 입력 파일의 SHA-256과 분석 시점 커밋을 기록한다.
 
@@ -35,7 +35,7 @@
 
 공개 동기 경로, batch 8, 프레임워크별 155개 표본이다.
 
-| 항목                                              |    Rustra |     Nitro |
+| 항목                                              |    Unikit |     Nitro |
 | ------------------------------------------------- | --------: | --------: |
 | p50                                               |  3.425 µs |  3.893 µs |
 | p95                                               | 33.555 µs | 34.531 µs |
@@ -43,26 +43,26 @@
 | 각자의 전체 p50의 5배 초과 표본                   |  49 / 155 |  10 / 155 |
 | 가장 긴 표본 5개가 전체 시간 합에서 차지하는 비율 |    11.15% |    20.44% |
 
-Rustra는 중앙값이 더 낮지만 긴 구간이 더 자주 발생해 평균 비율이 **1.797 [1.769, 1.827]**이다. p95의 크기는 비슷하다. 5배 기준은 분포를 설명하기 위해 사후에 계산했으며 어떤 표본도 제거하지 않았다. Rustra의 실행별 평균도 9.879–11.390 µs로 높다. 단일 이상값을 빼서 동급으로 만드는 접근은 이 패턴을 해결하지 않는다.
+Unikit는 중앙값이 더 낮지만 긴 구간이 더 자주 발생해 평균 비율이 **1.797 [1.769, 1.827]**이다. p95의 크기는 비슷하다. 5배 기준은 분포를 설명하기 위해 사후에 계산했으며 어떤 표본도 제거하지 않았다. Unikit의 실행별 평균도 9.879–11.390 µs로 높다. 단일 이상값을 빼서 동급으로 만드는 접근은 이 패턴을 해결하지 않는다.
 
 ### Android 약 1MiB의 큰 우위에는 실행 순서 연관성이 있다
 
-정확한 크기는 1,048,571 bytes, batch 1이다. 짝수 round는 Rustra가 먼저, 홀수는 Nitro가 먼저 실행된다.
+정확한 크기는 1,048,571 bytes, batch 1이다. 짝수 round는 Unikit가 먼저, 홀수는 Nitro가 먼저 실행된다.
 
-| 실행 순서                 |      Rustra 평균 |        Nitro 평균 |  Nitro p50 |
+| 실행 순서                 |      Unikit 평균 |        Nitro 평균 |  Nitro p50 |
 | ------------------------- | ---------------: | ----------------: | ---------: |
 | 해당 프레임워크가 먼저    | 23.904 µs (80개) |  28.390 µs (75개) |  28.489 µs |
 | 해당 프레임워크가 두 번째 | 24.918 µs (75개) | 377.619 µs (80개) | 394.323 µs |
 
-Nitro의 먼저 / 두 번째 평균은 각 실행에서도 **28.4 / 301.0**, **27.2 / 370.7**, **28.2 / 379.7**, **29.6 / 423.8**, **28.5 / 412.9 µs**였다. 한 실행만의 현상이 아니다. 전체 Nitro 평균 208.637 µs와 Rustra 24.395 µs의 차이를 그대로 “버퍼 구현 자체가 약 8배 빠름”으로 해석할 수 없다. 위 조건부 평균끼리 다시 공식 승패를 정하지도 않는다.
+Nitro의 먼저 / 두 번째 평균은 각 실행에서도 **28.4 / 301.0**, **27.2 / 370.7**, **28.2 / 379.7**, **29.6 / 423.8**, **28.5 / 412.9 µs**였다. 한 실행만의 현상이 아니다. 전체 Nitro 평균 208.637 µs와 Unikit 24.395 µs의 차이를 그대로 “버퍼 구현 자체가 약 8배 빠름”으로 해석할 수 없다. 위 조건부 평균끼리 다시 공식 승패를 정하지도 않는다.
 
 **확인된 것은 순서와 시간의 연관성**이다. GC 또는 allocator가 원인이라고 확정하려면 별도 관측이 필요하다. 한 프로세스의 공유 힙, 일정한 round 순서, 사전 검증과 고정 lane 순서가 섞여 있다. 실제 lane 순서는 `sync-internal-diagnostic → async-public → sync-public`이다.
 
-동일 Nitro 메서드도 Android 64KiB에서는 공개 동기 단계의 시간이 내부 진단 단계의 **0.693배 [0.653, 0.735]**였다. 다른 단계의 시간을 단순히 빼서 Rustra의 공개 API 보호 검사 비용으로 계산할 수 없는 추가 근거다. iOS 약 1MiB도 Rustra 실행별 평균이 38.79–64.60 µs이고 비율 CI가 [0.619, 1.080]으로 넓어 미확정 상태다.
+동일 Nitro 메서드도 Android 64KiB에서는 공개 동기 단계의 시간이 내부 진단 단계의 **0.693배 [0.653, 0.735]**였다. 다른 단계의 시간을 단순히 빼서 Unikit의 공개 API 보호 검사 비용으로 계산할 수 없는 추가 근거다. iOS 약 1MiB도 Unikit 실행별 평균이 38.79–64.60 µs이고 비율 CI가 [0.619, 1.080]으로 넓어 미확정 상태다.
 
-소스에서 양쪽 모두 새 소유 버퍼를 만들고 외부 메모리 사용량을 Hermes에 알리는 경로가 확인됐다. Rustra는 Rust 소유 버퍼를 JSI에 넘기며 finalizer가 **생성한 동일 코어**로 반환한다. 이 사실은 GC 발생 시점이나 비용이 같음을 뜻하지 않는다.
+소스에서 양쪽 모두 새 소유 버퍼를 만들고 외부 메모리 사용량을 Hermes에 알리는 경로가 확인됐다. Unikit는 Rust 소유 버퍼를 JSI에 넘기며 finalizer가 **생성한 동일 코어**로 반환한다. 이 사실은 GC 발생 시점이나 비용이 같음을 뜻하지 않는다.
 
-**다음 실험:** 동일 입력·출력 소유권·메모리 사용량 보고를 유지하고, (a) 작업 하나만 별도 프로세스에서 단독 실행, (b) 먼저 실행할 프레임워크를 사전 결정한 별도 AB/BA 순서로 실행한다. 진단용 실행에서만 할당·해제 수/bytes 및 사용 가능한 GC 이벤트를 수집한다. 순서 변경으로 긴 지연의 귀속이 바뀌면 순서 영향 가설을 지지한다. 분리 실행에서도 Rustra 64KiB의 긴 지연 빈도가 유지되면 Rustra의 할당·JS 버퍼 생성/해제 경로를 우선 조사한다. 원인 규명 없이 GC를 끄거나 메모리 보고를 줄이는 변경은 개선안이 아니다.
+**다음 실험:** 동일 입력·출력 소유권·메모리 사용량 보고를 유지하고, (a) 작업 하나만 별도 프로세스에서 단독 실행, (b) 먼저 실행할 프레임워크를 사전 결정한 별도 AB/BA 순서로 실행한다. 진단용 실행에서만 할당·해제 수/bytes 및 사용 가능한 GC 이벤트를 수집한다. 순서 변경으로 긴 지연의 귀속이 바뀌면 순서 영향 가설을 지지한다. 분리 실행에서도 Unikit 64KiB의 긴 지연 빈도가 유지되면 Unikit의 할당·JS 버퍼 생성/해제 경로를 우선 조사한다. 원인 규명 없이 GC를 끄거나 메모리 보고를 줄이는 변경은 개선안이 아니다.
 
 ## 2. 작은 호출: 공통 경로의 고정 비용 후보
 
@@ -71,7 +71,7 @@ Nitro의 먼저 / 두 번째 평균은 각 실행에서도 **28.4 / 301.0**, **2
 현재 경로를 확인한 결과:
 
 1. `global-sync.ts`는 engine generation을 확인하고 호출 단위의 route를 보존한다. `frame-engine-sync.ts`는 bind 시점에 인자 개수에 맞는 closure를 선택하고 getter를 한 번씩 읽으며 동기 오류를 정규화한다.
-2. `RustraSyncBinding.inc`는 현재 CoreTable을 원자적으로 선택한다. 계약 JSON은 binding 생성 또는 코어 변경 시 검증한다. 정상 호출마다 스키마를 다시 파싱하지 않는다.
+2. `UnikitSyncBinding.inc`는 현재 CoreTable을 원자적으로 선택한다. 계약 JSON은 binding 생성 또는 코어 변경 시 검증한다. 정상 호출마다 스키마를 다시 파싱하지 않는다.
 3. string/pair/resident/indexed의 command ID 24/26/37/38은 raw codec 목록에 없다. 이들은 positional codec → postcard → Rust handler → 출력 codec을 거친다. 이미 반영한 숫자 raw precheck 개선만으로 이 격차가 모두 사라지지는 않는다.
 4. 작은 요청은 128B inline Writer, 작은 응답은 512B stack buffer와 `postcard::to_slice`를 쓴다. 요청/응답마다 반드시 heap 할당하거나 두 번 FFI를 호출한다는 가정은 틀리다. 다만 소유 String 구성, 결과 이름 복사, JS 객체·문자열 생성 비용은 남는다.
 5. Nitro도 값 변환과 새 결과 객체를 만든다. 두 경로에 공통 작업이 있다는 사실만으로 비용이 동일하다고 가정할 수 없다.
@@ -86,7 +86,7 @@ A/B가 부족하면 String 소유권·할당과 출력 property 생성 비용을
 
 양쪽 모두 적재된 트리에 대해 잠금, DFS stack, 역순 child push, 범위 검사, id 비교, 결과 이름 복사를 수행한다. 매 조회마다 전체 트리를 다시 복사·해독하는 경로가 아니다.
 
-| 플랫폼  | 형태 / 노드 수 | Rustra / Nitro p50 (µs) | 평균 비율 [95% CI]   |
+| 플랫폼  | 형태 / 노드 수 | Unikit / Nitro p50 (µs) | 평균 비율 [95% CI]   |
 | ------- | -------------- | ----------------------: | -------------------- |
 | ios     | balanced255    |         2.2058 / 2.2083 | 1.003 [0.989, 1.017] |
 | ios     | balanced1023   |         8.5859 / 7.1641 | 1.160 [1.076, 1.250] |
@@ -117,7 +117,7 @@ iOS balanced 8,191 노드의 p50 차이 **9.484µs**를 indexed의 약 **0.168µ
 
 동일한 공개 비동기 작업의 baseline → 최종 후보 변화다. 음수는 p50 감소다.
 
-| 플랫폼 / 작업                         | Rustra p50 변화 | Nitro p50 변화 | 이전 → 현재 평균 비율 추정치 |
+| 플랫폼 / 작업                         | Unikit p50 변화 | Nitro p50 변화 | 이전 → 현재 평균 비율 추정치 |
 | ------------------------------------- | --------------: | -------------: | ---------------------------- |
 | ios / `balanced8191/echo`             |          -18.3% |          +0.6% | 1.329 → 1.057                |
 | ios / `balanced8191/input-dfs`        |          -26.5% |          -4.2% | 1.245 → 0.958                |
@@ -128,7 +128,7 @@ iOS balanced 8,191 노드의 p50 차이 **9.484µs**를 indexed의 약 **0.168µ
 | android / `balanced8191/resident-dfs` |           -8.5% |         -10.3% | 0.877 → 0.880                |
 | android / `balanced8191/indexed`      |          -11.2% |          -9.1% | 1.187 → 1.153                |
 
-큰 트리의 입력·출력 변환은 Rustra/Nitro 상대 비율도 줄었다. 반면 resident/indexed는 양쪽 시간이 함께 변한 부분이 있고 상대 격차가 대부분 남았다. 특히 Android Nitro 자체도 약 15–17.5% 빨라져 Rustra의 절대 p50 감소 31–35% 전부를 코드 변경의 인과적 효과로 돌릴 수 없다.
+큰 트리의 입력·출력 변환은 Unikit/Nitro 상대 비율도 줄었다. 반면 resident/indexed는 양쪽 시간이 함께 변한 부분이 있고 상대 격차가 대부분 남았다. 특히 Android Nitro 자체도 약 15–17.5% 빨라져 Unikit의 절대 p50 감소 31–35% 전부를 코드 변경의 인과적 효과로 돌릴 수 없다.
 
 두 자료는 독립 5회 실행 집단이며 v1/v2의 lane 구성이 다르다. 위 표는 서술적 비교이고 이전·이후 사이의 새 paired CI가 아니다. 과거 버퍼 비교는 메모리 사용량 보고 조건도 같지 않아 이 표에서 성능 개선 근거로 사용하지 않았다.
 
@@ -147,11 +147,11 @@ iOS balanced 8,191 노드의 p50 차이 **9.484µs**를 indexed의 약 **0.168µ
 
 ## 전체 공개 경로의 남은 항목
 
-† 감소 여유는 `max(0, 1 − 1.05 / 현재 CI 상한) × 100`이다. Nitro 시간과 실행별 log 분산이 그대로이고 Rustra 시간만 일률적으로 줄어든다는 가정 아래, 상한을 1.05로 이동시키는 **계획용 수치**다. 최적화 예상 효과나 다음 실행의 통과 보장이 아니다. p50 차이는 Rustra − Nitro이며 음수라도 평균 기반 판정은 느릴 수 있다.
+† 감소 여유는 `max(0, 1 − 1.05 / 현재 CI 상한) × 100`이다. Nitro 시간과 실행별 log 분산이 그대로이고 Unikit 시간만 일률적으로 줄어든다는 가정 아래, 상한을 1.05로 이동시키는 **계획용 수치**다. 최적화 예상 효과나 다음 실행의 통과 보장이 아니다. p50 차이는 Unikit − Nitro이며 음수라도 평균 기반 판정은 느릴 수 있다.
 
 ### 공개 동기: 23개
 
-| 플랫폼  | 작업                        | Rustra/Nitro 평균 비율 [95% CI] | p50 차이 (µs) | 상한 기준 감소 여유† | 판정   |
+| 플랫폼  | 작업                        | Unikit/Nitro 평균 비율 [95% CI] | p50 차이 (µs) | 상한 기준 감소 여유† | 판정   |
 | ------- | --------------------------- | ------------------------------- | ------------: | -------------------: | ------ |
 | ios     | `add`                       | 1.108348 [1.087519, 1.129575]   |        0.0641 |                7.04% | 느림   |
 | ios     | `string`                    | 1.124578 [1.108492, 1.140898]   |        0.1120 |                7.97% | 느림   |
@@ -179,7 +179,7 @@ iOS balanced 8,191 노드의 p50 차이 **9.484µs**를 indexed의 약 **0.168µ
 
 ### 공개 비동기: 22개
 
-| 플랫폼  | 작업                        | Rustra/Nitro 평균 비율 [95% CI] | p50 차이 (µs) | 상한 기준 감소 여유† | 판정   |
+| 플랫폼  | 작업                        | Unikit/Nitro 평균 비율 [95% CI] | p50 차이 (µs) | 상한 기준 감소 여유† | 판정   |
 | ------- | --------------------------- | ------------------------------- | ------------: | -------------------: | ------ |
 | ios     | `add`                       | 1.053286 [1.044956, 1.061683]   |        0.1112 |                1.10% | 미확정 |
 | ios     | `string`                    | 1.126516 [1.119024, 1.134057]   |        0.3377 |                7.41% | 느림   |
@@ -220,8 +220,8 @@ bun scripts/analyze-nitro-parity-gaps.ts --require-public-parity
 소스 대조 지점:
 
 - [공개 generation 보호와 route](../../../packages/types/src/global-sync.ts), [입력 전달·오류 정규화](../../../packages/types/src/frame-engine-sync.ts)
-- [native sync binding](../../../packages/react-native/native/cpp/RustraSyncBinding.inc), [caller-buffer/소유 버퍼](../../../packages/react-native/native/cpp/RustraJSIBridge.cpp), [Rust caller-buffer handler](../../../crates/rustra/src/command_into.rs)
-- [생성 C++ codec](../../../examples/react-native-calculator/modules/rustra-jsi/generated/rustra-generated-codecs.cpp)
+- [native sync binding](../../../packages/react-native/native/cpp/UnikitSyncBinding.inc), [caller-buffer/소유 버퍼](../../../packages/react-native/native/cpp/UnikitJSIBridge.cpp), [Rust caller-buffer handler](../../../crates/unikit-bridge/src/command_into.rs)
+- [생성 C++ codec](../../../examples/react-native-calculator/modules/unikit-jsi/generated/unikit-generated-codecs.cpp)
 - [Rust DFS/index](../../../examples/calculator/src/parity_bench.rs), [Nitro DFS/index와 fresh buffer](../../../examples/react-native-calculator/modules/nitro-bench/nitro-bench/ios/HybridNitroBench.cpp)
 - [fixture·조회 범위](../../../examples/react-native-calculator/src/nitro-parity/cases.ts), [측정 순서](../../../examples/react-native-calculator/src/nitro-parity/measurement.ts), [고정 lane 순서](../../../examples/react-native-calculator/src/nitro-parity/contract.ts)
 - [원래 후보 보고서](2026-09-16-nitro-parity-candidate.md), [baseline 보고서](2026-09-16-nitro-parity-baseline.md)

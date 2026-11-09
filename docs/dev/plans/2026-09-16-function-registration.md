@@ -20,7 +20,7 @@
 
 ### Task 1: Function registration and compatible generated codecs
 
-**Files:** Rust function adapter and builder modules under `crates/rustra/src/`; command metadata in `command_types.rs`, `command_build.rs`, `package_schema.rs`; Rust emitter `package_commands_gen.rs`; root support `frame_support.rs`; TS schema validation and generation under `packages/cli/src/`; live-schema codec under `packages/types/src/`; focused Rust/TS tests and package test-list wiring.
+**Files:** Rust function adapter and builder modules under `crates/unikit-bridge/src/`; command metadata in `command_types.rs`, `command_build.rs`, `package_schema.rs`; Rust emitter `package_commands_gen.rs`; root support `frame_support.rs`; TS schema validation and generation under `packages/cli/src/`; live-schema codec under `packages/types/src/`; focused Rust/TS tests and package test-list wiring.
 
 **Interfaces:**
 
@@ -38,7 +38,7 @@ assert_eq!(pkg.invoke_json("add", serde_json::json!([2, 3])).unwrap(), serde_jso
 assert_eq!(pkg.live_schema()["commands"][0]["functionArgs"], 2);
 ```
 
-- [x] Verify failure before adding the adapter. Use `cargo test -p rustra --test function_registration` with task-local target/cache as needed.
+- [x] Verify failure before adding the adapter. Use `cargo test -p unikit-bridge --test function_registration` with task-local target/cache as needed.
 - [x] Implement the adapter, metadata, both public emitters and validators. Use the approved bounds and explicit fallible mode. Add tests for 0/1/2/4/12 arguments, nested tuples, unit arguments, closures, return shapes, error mapping, duplicate registration and compile rejection of unsafe wrappers.
 - [x] Add cross-route root fixtures in the existing TS tests before changing codec routing. Pin `add(2,3)` request bytes to `[1,0,4,6]`; a success response carrying `5i32` is `[1,0,0,0,0,0,0,0,10]`. A unit success is the eight-byte header and decodes to `undefined`.
 - [x] Implement root-aware postcard field access for static TS, Rust support and generated C++. Keep the complex fallback for unsupported roots. Update live-schema null/root agreement. Generate direct reusable cursor encoding for primitive root tuples. Do not add raw native function routes or reuse the NaN fallback sentinel for root numeric returns.
@@ -47,11 +47,11 @@ assert_eq!(pkg.live_schema()["commands"][0]["functionArgs"], 2);
 
 ### Task 2: Executable cross-language and performance proof
 
-**Files:** Create `crates/rustra/examples/function_fixture.rs`, `crates/rustra/benches/function_dispatch.rs`, `crates/rustra/tests/function_allocations.rs`, `scripts/function-registration-integration.ts`; modify crate bench declarations and root package test/bench scripts as needed.
+**Files:** Create `crates/unikit-bridge/examples/function_fixture.rs`, `crates/unikit-bridge/benches/function_dispatch.rs`, `crates/unikit-bridge/tests/function_allocations.rs`, `scripts/function-registration-integration.ts`; modify crate bench declarations and root package test/bench scripts as needed.
 
 **Interfaces:** Consume Task 1 `.function`/`.try_function`, metadata and generated frame codecs; invoke the current Rust package through a small task-owned fixture process using hex request/response frames. Outputs remain local test artifacts, not published packages.
 
-- [x] Build one fixture package with `add(i32,i32)->i32`, `reset()->()`, `greet(String)->String`, nested tuple, `Option<i32>`, `Vec<i32>`, struct/map return and a domain error mapped to `RustraError`. Emit its real schema for CLI generation.
+- [x] Build one fixture package with `add(i32,i32)->i32`, `reset()->()`, `greet(String)->String`, nested tuple, `Option<i32>`, `Vec<i32>`, struct/map return and a domain error mapped to `UnikitError`. Emit its real schema for CLI generation.
 - [x] Generate TS from that schema, load actual generated codecs/wrappers against current types source/build, encode requests, run them through Rust and assert decoded results. Check malformed input/error and fallback once-only behavior. Compare `encode` and reusable `encodeInto` bytes.
 - [x] Add a focused allocation counter test around a warmed `invoke_frame_into` with stack request/response buffers; counting must exclude package construction, output assertions and harness work. Assert zero allocations and exactly one handler invocation. Test an exactly eight-byte unit response buffer.
 - [x] Benchmark equivalent work through ordinary function and legacy struct command using `black_box`. Include JSON, `invoke_frame`, `invoke_frame_into`; verify equal outputs outside measurement. Use Criterion warmup/measurement parameters suitable for repeatable short local runs and record CPU/toolchain/source identity.
@@ -65,7 +65,7 @@ assert_eq!(pkg.live_schema()["commands"][0]["functionArgs"], 2);
 
 - [x] Add an executable minimal authoring example and the generated TS call. Explain argument-name reflection, fallible errors and source/host verification limits without suggesting 1.0 is complete.
 - [x] Add an additive release note; no version bump/publication. Update the API surface snapshot after source additions are final.
-- [x] Run `cargo test -p rustra --locked`, CLI/types test and build scripts, `bun run test:api-surface`, `bun run test:architecture`, formatting/docs checks appropriate to changed files, and the cross-language integration test. Broaden only for unresolved risks.
+- [x] Run `cargo test -p unikit-bridge --locked`, CLI/types test and build scripts, `bun run test:api-surface`, `bun run test:architecture`, formatting/docs checks appropriate to changed files, and the cross-language integration test. Broaden only for unresolved risks.
 - [x] Obtain an independent whole-branch review of spec compliance and code quality, fix blockers and rerun affected tests.
 - [x] Record measured results and concrete remaining platform proof boundaries. Keep feature work isolated and ready for review; no push/merge/publish without an explicit request.
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * changesets version 스텝의 래퍼 — `changeset version` 이 패키지 버전을 올린
- * 뒤, @rustra/cli 의 호스트별 rustraTemplate 범위를 각 어댑터 버전에
+ * 뒤, @unikit-bridge/cli 의 호스트별 unikitTemplate 범위를 각 어댑터 버전에
  * 맞춘다. 독립 어댑터 버전은 version PR 과 같은 커밋에서 범위도 맞춘다 —
  * 범위가 뒤처지면 코드젠의 어댑터 버전 게이트가 새 버전을 거부해 main CI 가
  * 깨진다(2026-09-10 첫 RN 마이너 발행에서 실발). 범위와 버전은 같은 커밋에서
@@ -62,7 +62,7 @@ export function syncHostRanges(cliManifestPath, versions) {
 }
 
 /**
- * bun.lock 워크스페이스 블록의 메타데이터(version, @rustra/* 내부 의존 범위)를
+ * bun.lock 워크스페이스 블록의 메타데이터(version, @unikit-bridge/* 내부 의존 범위)를
  * manifest 로 맞춘다. bun install 은 이 필드들을 다시 쓰지 않는다(2026-09-10
  * 실측 — workspace 패키지의 version 이 올라가도 잠금은 그대로다) 그래서
  * changeset version 직후엔 manifest=0.9.0 / lock=0.8.0 어긋남이 남고
@@ -80,7 +80,7 @@ export function syncLockWorkspaceMetadata(lockPath, manifests) {
     if (!blockMatch) continue;
     let block = blockMatch[2];
     const rewritten = block.replace(
-      /("(?<depKey>@rustra\/[a-z-]+)"\s*:\s*")(?<depRange>[^"]+)(")|("version"\s*:\s*")(?<versionValue>[^"]+)(")/g,
+      /("(?<depKey>@unikit-bridge\/[a-z-]+)"\s*:\s*")(?<depRange>[^"]+)(")|("version"\s*:\s*")(?<versionValue>[^"]+)(")/g,
       (whole, ...groups) => {
         const named = groups[groups.length - 1];
         if (named.depKey !== undefined) {

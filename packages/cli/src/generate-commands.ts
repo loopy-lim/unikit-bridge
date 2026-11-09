@@ -15,7 +15,7 @@ import { collectRefTypeNames } from './codegen-definitions.js';
  * 어댑터에서 `signal` 은 JS 프라미스만 거부하고 Rust 실행은 계속되며,
  * `retryable: true`(`transport.timeout`·`cancelled`·`transport.error`)는
  * "재시도하면 실패 유형이 사라질 수 있음"이지 "재실행 안전"이 아니다. 이 경고가
- * 코어 타입 주석(@rustra/types public.ts)과 매트릭스 산문에만 있으면 생성
+ * 코어 타입 주석(@unikit-bridge/types public.ts)과 매트릭스 산문에만 있으면 생성
  * 파일만 열어보는 소비자에게 닿지 않으므로(DX_AUDIT M7) commands.ts 툴팁에
  * 그대로 삽입한다.
  */
@@ -32,7 +32,7 @@ const INVOKE_OPTIONS_JS_DOC = `/**
  * 시도가 반영되지 않았음을 확인한 뒤에만 하세요.
  *
  * 전체 의미론은 docs/compatibility-matrix.md "Signal semantics in detail" 및
- * 원본 타입(\`InvokeOptions\`(@rustra/types)) 문서를 참고하세요.
+ * 원본 타입(\`InvokeOptions\`(@unikit-bridge/types)) 문서를 참고하세요.
  */
 `;
 
@@ -128,10 +128,10 @@ export function generateCommandsTs(schema: PackageSchema): string {
       );
     }
   }
-  output += `import { ${[...generatedHelpers].sort().join(', ')} } from '@rustra/types';\n`;
+  output += `import { ${[...generatedHelpers].sort().join(', ')} } from '@unikit-bridge/types';\n`;
   // (M7) InvokeOptions 를 문서화된 별칭으로 재노출한다 — 생성 파일의 툴팁에서
-  // 얕은 취소·retryable 경고가 바로 보인다. 원본 계약은 @rustra/types 그대로다.
-  output += `import type { InvokeOptions as CoreInvokeOptions } from '@rustra/types';\n\n`;
+  // 얕은 취소·retryable 경고가 바로 보인다. 원본 계약은 @unikit-bridge/types 그대로다.
+  output += `import type { InvokeOptions as CoreInvokeOptions } from '@unikit-bridge/types';\n\n`;
   output += INVOKE_OPTIONS_JS_DOC;
   output += `export type InvokeOptions = CoreInvokeOptions;\n\n`;
 
@@ -196,7 +196,7 @@ export function generateCommandsTs(schema: PackageSchema): string {
       const fields = generatedFieldRoute(command, definitions);
       if (fields) {
         if (fields.length === 1) {
-          const fieldKey = JSON.stringify(fields[0].name);
+          const fieldKey = JSON.stringify(fields[0]!.name);
           output +=
             `export const ${fnName} = createGeneratedFields1<${inType}, ${outType}>` +
             `(${command.commandId}, '${command.name}', ${fieldKey}, '${fnName}');\n\n`;

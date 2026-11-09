@@ -7,13 +7,13 @@ import { devInputFingerprint } from './dev-fingerprint.js';
 import { withDevGeneratedInputExclusions } from './dev-generated-inputs.js';
 
 test('dev excludes only recorded files, including native outputs outside the TS directory', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-dev-generated-inputs-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-dev-generated-inputs-'));
   const outputPath = join(root, 'src');
   const native = join(root, 'native');
   const schemaPath = join(outputPath, 'schema.json');
   const mirror = join(outputPath, 'uniffi_generated.rs');
   const binding = join(outputPath, 'bindings');
-  const manifestPath = join(outputPath, '.rustra-generated.json');
+  const manifestPath = join(outputPath, '.unikit-generated.json');
   mkdirSync(outputPath);
   mkdirSync(native);
   mkdirSync(binding);
@@ -72,11 +72,11 @@ for (const [name, manifest] of [
   ],
 ] as const) {
   test(`dev preserves unrecorded files when the ownership manifest is ${name}`, () => {
-    const root = mkdtempSync(join(tmpdir(), 'rustra-dev-unrecorded-inputs-'));
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-unrecorded-inputs-'));
     const source = join(root, 'commands.ts');
     const schemaPath = join(root, 'schema.json');
     writeFileSync(source, 'handwritten content');
-    if (manifest !== undefined) writeFileSync(join(root, '.rustra-generated.json'), manifest);
+    if (manifest !== undefined) writeFileSync(join(root, '.unikit-generated.json'), manifest);
     try {
       const inputs = withDevGeneratedInputExclusions(
         { trees: [root], files: [] },

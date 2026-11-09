@@ -7,23 +7,23 @@ case "${1:-}" in
   rn)
     app_id="com.altshifted.reactnativecalculator"
     apk="examples/react-native-calculator/android/app/build/outputs/apk/release/app-release.apk"
-    ok_marker="__RUSTRA_SMOKE_OK__"
-    fail_marker="__RUSTRA_SMOKE_FAIL__"
-    log_name="rustra-logcat.txt"
+    ok_marker="__UNIKIT_SMOKE_OK__"
+    fail_marker="__UNIKIT_SMOKE_FAIL__"
+    log_name="unikit-logcat.txt"
     ;;
   uniffi)
-    app_id="dev.rustra.uniffi.smoke"
+    app_id="dev.unikit.uniffi.smoke"
     apk="examples/uniffi-android-smoke/app/build/outputs/apk/debug/app-debug.apk"
-    ok_marker="__RUSTRA_UNIFFI_OK__ addNumbers(20,22)=42"
-    fail_marker="__RUSTRA_UNIFFI_FAIL__"
-    log_name="rustra-uniffi-logcat.txt"
+    ok_marker="__UNIKIT_UNIFFI_OK__ addNumbers(20,22)=42"
+    fail_marker="__UNIKIT_UNIFFI_FAIL__"
+    log_name="unikit-uniffi-logcat.txt"
     ;;
   *) echo "usage: $0 rn|uniffi" >&2; exit 2 ;;
 esac
 
 log_path="${RUNNER_TEMP:?RUNNER_TEMP must be set}/$log_name"
-attempts="${RUSTRA_SMOKE_ATTEMPTS:-60}"
-delay="${RUSTRA_SMOKE_DELAY_SECONDS:-5}"
+attempts="${UNIKIT_SMOKE_ATTEMPTS:-60}"
+delay="${UNIKIT_SMOKE_DELAY_SECONDS:-5}"
 if [[ ! "$attempts" =~ ^[1-9][0-9]*$ || ! "$delay" =~ ^[0-9]+$ ]]; then
   echo "::error::smoke attempts must be positive and delay must be non-negative" >&2
   exit 2

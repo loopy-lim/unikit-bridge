@@ -8,7 +8,7 @@ set -euo pipefail
 # 이를 복사해 소비한다(스모크 디렉터리에 바인딩 사본을 커밋하지 않는다).
 #
 # 사전 조건:
-#   1. cargo build -p rustra-calculator-example --features uniffi \
+#   1. cargo build -p unikit-calculator-example --features uniffi \
 #        --target <android-triple>   (cargo-ndk 사용 권장 — CI 와 동일 링커 경로)
 #   2. NDK 링커 — cargo-ndk 는 NDK_HOME/ANDROID_NDK_HOME 환경변수를 요구한다.
 #
@@ -25,8 +25,8 @@ case "$PROFILE" in
 esac
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-KT_SRC="$ROOT/examples/calculator/uniffi/uniffi/rustra_calculator_example/rustra_calculator_example.kt"
-APP_SRC_UNIFFI="$ROOT/examples/uniffi-android-smoke/app/src/main/java/uniffi/rustra_calculator_example"
+KT_SRC="$ROOT/examples/calculator/uniffi/uniffi/unikit_calculator_example/unikit_calculator_example.kt"
+APP_SRC_UNIFFI="$ROOT/examples/uniffi-android-smoke/app/src/main/java/uniffi/unikit_calculator_example"
 JNILIBS="$ROOT/examples/uniffi-android-smoke/app/src/main/jniLibs"
 
 # ── 1. Kotlin 바인딩 사본 ────────────────────────────────────────────────────
@@ -36,11 +36,11 @@ if [ ! -f "$KT_SRC" ]; then
   exit 1
 fi
 mkdir -p "$APP_SRC_UNIFFI"
-cp "$KT_SRC" "$APP_SRC_UNIFFI/rustra_calculator_example.kt"
+cp "$KT_SRC" "$APP_SRC_UNIFFI/unikit_calculator_example.kt"
 echo "synced: $(basename "$KT_SRC") -> ${APP_SRC_UNIFFI#$ROOT/}/"
 
 # ── 1b. (제거됨) Kotlin 호환 shim ────────────────────────────────────────────
-# 예전 생성 바인딩은 RustraCommandFailure.Failure 의 `message` 필드가
+# 예전 생성 바인딩은 UnikitCommandFailure.Failure 의 `message` 필드가
 # Throwable.message 오버라이드와 충돌해 Kotlin 컴파일이 깨졌고, 이 스크립트가
 # 사본에 sed shim 을 발렀다. 근복 수정이 렌더러에 착지했다
 # (examples/calculator/src/uniffi_render.rs — 필드명 `detail` 회피, 2026-09-11),
@@ -50,14 +50,14 @@ echo "synced: $(basename "$KT_SRC") -> ${APP_SRC_UNIFFI#$ROOT/}/"
 sync_so() {
   triple=$1
   abi=$2
-  so="$ROOT/target/$triple/$PROFILE/librustra_calculator_example.so"
+  so="$ROOT/target/$triple/$PROFILE/libunikit_calculator_example.so"
   if [ ! -f "$so" ]; then
     echo "sync-bindings.sh: .so 가 없다: $so" >&2
-    echo "  먼저 실행: cargo ndk -t ${abi} -p $PROFILE -- build -p rustra-calculator-example --features uniffi" >&2
+    echo "  먼저 실행: cargo ndk -t ${abi} -p $PROFILE -- build -p unikit-calculator-example --features uniffi" >&2
     exit 1
   fi
   mkdir -p "$JNILIBS/$abi"
-  cp "$so" "$JNILIBS/$abi/librustra_calculator_example.so"
+  cp "$so" "$JNILIBS/$abi/libunikit_calculator_example.so"
   echo "synced: $triple/$PROFILE -> jniLibs/$abi/"
 }
 
@@ -65,7 +65,7 @@ sync_so() {
 for pair in "x86_64-linux-android:x86_64" "aarch64-linux-android:arm64-v8a"; do
   triple=${pair%%:*}
   abi=${pair##*:}
-  if [ -f "$ROOT/target/$triple/$PROFILE/librustra_calculator_example.so" ]; then
+  if [ -f "$ROOT/target/$triple/$PROFILE/libunikit_calculator_example.so" ]; then
     sync_so "$triple" "$abi"
   else
     echo "skip: target/$triple/$PROFILE .so 없음 (빌드하지 않았으면 정상)"

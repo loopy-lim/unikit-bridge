@@ -2,7 +2,7 @@ English | [한국어](./wire-format.ko.md)
 
 # Wire Format — Names and Real Measured Scope
 
-"Frame" is Rustra's own frame/protocol name (formerly "rkyv V2" — reader's note
+"Frame" is Unikit's own frame/protocol name (formerly "rkyv V2" — reader's note
 for anyone arriving from older posts or CHANGELOGs). The payload codec on the
 manifest/dispatch paths is postcard; it is unrelated to, and claims no
 compatibility with, the upstream `rkyv` archive format. This page separates the
@@ -12,7 +12,7 @@ names from the measured numbers so neither is quoted beyond its scope.
 
 | Name                 | What it actually is                                                                              |
 | -------------------- | ------------------------------------------------------------------------------------------------ |
-| Frame                | Rustra's binary frame protocol (V2 framing + command ids + postcard payload codec).              |
+| Frame                | Unikit's binary frame protocol (V2 framing + command ids + postcard payload codec).              |
 | postcard             | The payload codec used on the manifest/dispatch paths (serde-compatible compact format).         |
 | JSON wire            | The `invoke_json`/stdio line protocol used by adapters without codecs injected.                  |
 | zero-copy (JSI path) | The RN JSI fast path hands a native buffer view to the JS codec without an intermediate JS copy. |
@@ -91,4 +91,4 @@ error surface on the wire — there is no payload field and no declaration data.
 Command-scoped typed errors (see the [Rust API Guide](./rust-api-guide.md)) do not
 touch this: declarations live in schema.json and turn into generated TypeScript
 (`errors.ts` — literal unions + guards) at codegen time. The frame, the host
-promotions, and `RustraCommandError` are byte-for-byte what they were before.
+promotions, and `UnikitCommandError` are byte-for-byte what they were before.

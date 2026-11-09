@@ -19,26 +19,26 @@
 ### C1. Bun 어댑터 `_into` 바인딩
 
 - 위치: `packages/bun/src/index.ts:136-141, 194-200`
-- 현재: malloc 반환 `rustra_ffi_invoke_rkyv_v2` → `toArrayBuffer` 뷰 → owned 복사 → free.
-- 변경: `rustra_ffi_invoke_rkyv_v2_into` 바인딩 추가. C++ `typedInvokeTail`의 probe→512B 스택→heap 재시도 패턴 미러링.
+- 현재: malloc 반환 `unikit_ffi_invoke_rkyv_v2` → `toArrayBuffer` 뷰 → owned 복사 → free.
+- 변경: `unikit_ffi_invoke_rkyv_v2_into` 바인딩 추가. C++ `typedInvokeTail`의 probe→512B 스택→heap 재시도 패턴 미러링.
 - 주의: Bun `toArrayBuffer`는 zero-copy 뷰라 소유 이전 불가(기록된 함정) — caller-buffer가 정답.
 - 결과: Bun rkyv V2 경로 malloc/free 0회, JS 복사 0회.
 
 ### C2. Async 응답 `_into` 변형
 
-- 위치: `packages/react-native/native/cpp/RustraJSIBridge.cpp:1153-1209`
+- 위치: `packages/react-native/native/cpp/UnikitJSIBridge.cpp:1153-1209`
 - 현재: async 콜백이 malloc 버퍼 → `std::vector` 복사 → free (2중 복사).
-- 변경: `rustra_ffi_invoke_rkyv_v2_async_into` 추가. JS ArrayBuffer 포인터를 콜백 클로저가 캡처, Rust가 완료 시 직접 write, C++는 in-place decode. 수명 계약은 기존 `invokeTypedAsync` 프라미스 구조와 동일.
+- 변경: `unikit_ffi_invoke_rkyv_v2_async_into` 추가. JS ArrayBuffer 포인터를 콜백 클로저가 캡처, Rust가 완료 시 직접 write, C++는 in-place decode. 수명 계약은 기존 `invokeTypedAsync` 프라미스 구조와 동일.
 
 ### C3. Complex-route core into-handler ⭐
 
-- 위치: `crates/rustra/src/lib.rs:767` 게이트(js_codec_supported 한정), `:1610-1612` Buffered 폴백.
+- 위치: `crates/unikit-bridge/src/lib.rs:767` 게이트(js_codec_supported 한정), `:1610-1612` Buffered 폴백.
 - 변경: bounded writer 기반 `encode_into_slice` 추가 → complex 커맨드도 into-handler 생성.
 - 효과: C++ 네이티브 경로가 caller-buffer 상속. 트랙 B 엔드게임의 전제.
 
 ### 범위 밖
 
-- `rustra_ffi_invoke_json_into`(ffi.rs:619) 데드코드 — 외부 커스텀 호스트용 FFI 표면이므로 유지.
+- `unikit_ffi_invoke_json_into`(ffi.rs:619) 데드코드 — 외부 커스텀 호스트용 FFI 표면이므로 유지.
 
 ### 검증
 
@@ -46,7 +46,7 @@
 
 ## 트랙 A — bigint postcard fast-path
 
-와이어 포맷 변경 없음. Rust는 이미 풀 64-bit LEB128/zigzag(`crates/rustra/src/lib.rs:711-736`). 타입 선언은 이미 `number | bigint`(codegen.ts:78). 런타임만 따라잡는다.
+와이어 포맷 변경 없음. Rust는 이미 풀 64-bit LEB128/zigzag(`crates/unikit-bridge/src/lib.rs:711-736`). 타입 선언은 이미 `number | bigint`(codegen.ts:78). 런타임만 따라잡는다.
 
 ### A1. 64-bit 런타임 헬퍼
 
@@ -76,7 +76,7 @@
 
 ### B1. C++ 64-bit + JSI BigInt 스파이크 ⭐
 
-- 장벽: `rustra_u64/i64` 헬퍼(`generate.ts:2953-2973`)의 2^53 하드 가드(JSError).
+- 장벽: `unikit_u64/i64` 헬퍼(`generate.ts:2953-2973`)의 2^53 하드 가드(JSError).
 - 먼저 Hermes에서 `BigInt` 전역/`BigInt.asIntN` 사용 가능 여부 스파이크. JSI 호스트 경계의 bigint 전달 방식 검증.
 - 가능: decode가 number(safe)/BigInt(unsafe) 반환하도록 C++ 확장 → int64/uint64 제외 해소.
 - 불가: 현재 계약(number 한정) 명시적 문서화 유지 — 트랙 A가 이미 정밀도 문제 해결.

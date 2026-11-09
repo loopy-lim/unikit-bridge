@@ -1,7 +1,7 @@
-// ── rustra generated ────────────────────────────────────────
+// ── unikit generated ────────────────────────────────────────
 // File:   positional-facade.ts
 // Source: schema.json (single source of truth for this file)
-// Regen:  rustra codegen --config rustra.json
+// Regen:  unikit codegen --config unikit.json
 // Stage:  schema → positional facade
 // DO NOT EDIT — changes will be overwritten and fail codegen --check.
 // ────────────────────────────────────────────────────────────
@@ -21,14 +21,14 @@ export type PositionalNative = {
 
 let _native: PositionalNative | null = null;
 
-/** 앱 시작 시 JSI 네이티브를 주입한다 (installRustraJSI 이후). */
-export function installRustraPositional(native: PositionalNative): void {
+/** 앱 시작 시 JSI 네이티브를 주입한다 (installUnikitJSI 이후). */
+export function installUnikitPositional(native: PositionalNative): void {
   _native = native;
 }
 
 function requireNative(): PositionalNative {
   if (!_native) {
-    throw new Error('positional facade not installed — call installRustraPositional(native) first');
+    throw new Error('positional facade not installed — call installUnikitPositional(native) first');
   }
   return _native;
 }
@@ -162,10 +162,6 @@ export function resourceWrite(handle: number | bigint, key: string, value: strin
   return callPos<ResourceWriteOutput>(21, handle, key, value);
 }
 
-export function rustraRegistryDemo(op: string): Promise<RegistryDemoOutput> {
-  return callPos<RegistryDemoOutput>(12, op);
-}
-
 export function scoreTotal(input: ScoreTotalInput): Promise<ScoreTotalOutput> {
   return call<ScoreTotalOutput>(15, 'scoreTotal', input);
 }
@@ -188,6 +184,10 @@ export function sumList(input: SumListInput): Promise<SumListOutput> {
 
 export function toUpper(s: string): Promise<ToUpperOutput> {
   return callPos<ToUpperOutput>(7, s);
+}
+
+export function unikitRegistryDemo(op: string): Promise<RegistryDemoOutput> {
+  return callPos<RegistryDemoOutput>(12, op);
 }
 
 export function wideAgg(input: WideAggInput): Promise<WideAggOutput> {

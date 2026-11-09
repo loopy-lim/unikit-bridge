@@ -5,11 +5,11 @@
 //
 //   `#[command]` 매크로 → `register!(Package::builder(id), ...).build()` →
 //   `register_ffi_with_default(FfiFormat::Json)`(전역 FFI 컨텍스트 등록 —
-//   OnceLock first-wins) → `rustra::native_entry!` 가 `rustra_mobile_init`
+//   OnceLock first-wins) → `unikit_bridge::native_entry!` 가 `unikit_mobile_init`
 //   심볼과 Apple 로드 시점 constructor 를 설치.
 //
-// dlopen 측(`DylibCore::open`)은 `rustra_ffi_invoke_json` /
-// `rustra_ffi_contract_hash` / `rustra_ffi_free` 를 rustra rlib 의
+// dlopen 측(`DylibCore::open`)은 `unikit_ffi_invoke_json` /
+// `unikit_ffi_contract_hash` / `unikit_ffi_free` 를 unikit rlib 의
 // `#[no_mangle]` 표면에서 바인딩한다 — cdylib 은 의존 rlib 의 no_mangle 심볼을
 // 그대로 export 하므로 예제 측 재노출 래퍼가 필요 없다.
 //
@@ -23,7 +23,7 @@
 //   | rename-cmd  | addNumbers → addNumbersV2         | 변함      |
 //   | sig-change  | 입력에 c: i64 추가                | 변함      |
 
-use rustra::prelude::*;
+use unikit_bridge::prelude::*;
 
 /// addNumbers 입력. `sig-change` 에서만 필드 c 가 붙는다 — 스키마(나아가 계약
 /// 해시)가 변하는 시나리오 4의 유일한 지점이다.
@@ -115,15 +115,15 @@ pub fn variant_package() -> Package {
 
             let pkg = builder.build();
 
-            // FFI 전역 컨텍스트 등록 — rustra_ffi_invoke_json / contract_hash 가
+            // FFI 전역 컨텍스트 등록 — unikit_ffi_invoke_json / contract_hash 가
             // 읽는 상태다(calculator 와 동일, Json 기본 포맷).
-            pkg.register_ffi_with_default(rustra::ffi::FfiFormat::Json);
+            pkg.register_ffi_with_default(unikit_bridge::ffi::FfiFormat::Json);
 
             pkg
         })
         .clone()
 }
 
-// rustra_mobile_init 심볼 + Apple 로드 시점 constructor 설치. DylibCore::open 이
+// unikit_mobile_init 심볼 + Apple 로드 시점 constructor 설치. DylibCore::open 이
 // dlopen 직후 호출하는 엔트리다.
-rustra::native_entry!(variant_package);
+unikit_bridge::native_entry!(variant_package);

@@ -5,11 +5,11 @@ import {
   configureLazy,
   disposedBootstrapError,
   ensureConfigured,
-  RustraCommandError,
-  RustraErrorCode,
+  UnikitCommandError,
+  UnikitErrorCode,
   type BootstrapState,
   type EngineClientWithBatch,
-} from '@rustra/types';
+} from '@unikit-bridge/types';
 import {
   createNodeEngine,
   createNodeProcessTransport,
@@ -27,16 +27,16 @@ import {
 /** 계약 검증 기각 코드(감사 A1) — 다른 코드의 실패는 후보 폴백 없이 즉시 전파. */
 const CONTRACT_REJECTION_CODES = ['contract.mismatch', 'contract.unenforceable'];
 
-function isContractRejection(error: unknown): error is RustraCommandError {
-  return error instanceof RustraCommandError && CONTRACT_REJECTION_CODES.includes(error.code);
+function isContractRejection(error: unknown): error is UnikitCommandError {
+  return error instanceof UnikitCommandError && CONTRACT_REJECTION_CODES.includes(error.code);
 }
 
-function noNodeRuntimeError(options: NodeBootstrapOptions = {}): RustraCommandError {
+function noNodeRuntimeError(options: NodeBootstrapOptions = {}): UnikitCommandError {
   const checked = runtimeSearchPaths(options);
-  return new RustraCommandError(
-    RustraErrorCode.TransportUnavailable,
-    'No Rustra Node runtime was found. Build the inferred Cargo binary, or set ' +
-      `RUSTRA_NODE_BINARY to its absolute path. Working directory: ${runtimeDirectory(options)}. ` +
+  return new UnikitCommandError(
+    UnikitErrorCode.TransportUnavailable,
+    'No Unikit Node runtime was found. Build the inferred Cargo binary, or set ' +
+      `UNIKIT_NODE_BINARY to its absolute path. Working directory: ${runtimeDirectory(options)}. ` +
       `Checked: ${checked.length ? checked.join('; ') : 'no commandCandidates or binaryName configured'}.`,
   );
 }
@@ -93,7 +93,7 @@ function runtimeSearchPaths(options: NodeBootstrapOptions): string[] {
 
 /** Existing candidates, newest first; explicit commands preserve PATH lookup. */
 export function nodeRuntimeCandidates(options: NodeBootstrapOptions): string[] {
-  const explicit = process.env.RUSTRA_NODE_BINARY ?? options.command;
+  const explicit = process.env.UNIKIT_NODE_BINARY ?? options.command;
   if (explicit) return [explicit];
   return orderCandidatesNewestFirst(runtimeSearchPaths(options).filter((c) => existsSync(c)));
 }
@@ -105,8 +105,8 @@ export function resolveNodeRuntime(options: NodeBootstrapOptions): string {
 }
 
 /** (A6) Node 계약 불일치 — Bun 구현(frame-engine-contract)과 동일한 fix 안내. */
-function nodeContractMismatchError(nativeHash: string, expectedHash: string): RustraCommandError {
-  return new RustraCommandError(
+function nodeContractMismatchError(nativeHash: string, expectedHash: string): UnikitCommandError {
+  return new UnikitCommandError(
     'contract.mismatch',
     `contract hash mismatch: native="${nativeHash.slice(0, 16)}…" vs ` +
       `expected="${expectedHash.slice(0, 16)}…" — generated client and native binary are ` +
@@ -126,7 +126,7 @@ export async function selectVerifiedRuntime<T>(
   attempt: (candidate: string) => Promise<T> | T,
 ): Promise<{ value: T; candidate: string }> {
   const rejections: Array<{ candidate: string; reason: string }> = [];
-  let lastRejection: RustraCommandError | undefined;
+  let lastRejection: UnikitCommandError | undefined;
   for (const candidate of candidates) {
     try {
       return { value: await attempt(candidate), candidate };
@@ -140,7 +140,7 @@ export async function selectVerifiedRuntime<T>(
   const described = rejections
     .map(({ candidate, reason }) => `${candidate} (modified ${runtimeMtime(candidate)}): ${reason}`)
     .join('; ');
-  throw new RustraCommandError(
+  throw new UnikitCommandError(
     lastRejection.code,
     `${lastRejection.message} Tried ${rejections.length} runtime candidate${
       rejections.length === 1 ? '' : 's'
@@ -150,9 +150,9 @@ export async function selectVerifiedRuntime<T>(
   );
 }
 
-export type { BootstrapState } from '@rustra/types';
+export type { BootstrapState } from '@unikit-bridge/types';
 
-/** (A05) bootstrap 수명 상태 3종 — 상태 모델 계약은 @rustra/types 참고. */
+/** (A05) bootstrap 수명 상태 3종 — 상태 모델 계약은 @unikit-bridge/types 참고. */
 
 export function createNodeBootstrap(options: NodeBootstrapOptions = {}): NodeBootstrap {
   // await 경계 재검사용 — 클로저 변수를 직접 비교하면 TS 제어 흐름 분석이
@@ -170,13 +170,13 @@ export function createNodeBootstrap(options: NodeBootstrapOptions = {}): NodeBoo
       () => spawned.getContractHash(),
       spawned,
       options,
-      '__rustra_contract',
+      '__unikit_contract',
       'contract.unenforceable',
     );
     if (nativeHash !== options.contractHash) {
       if (options.contractVerification === 'warn') {
         console.warn(
-          `[rustra] contract hash mismatch: native="${nativeHash.slice(0, 16)}…" vs ` +
+          `[unikit] contract hash mismatch: native="${nativeHash.slice(0, 16)}…" vs ` +
             `expected="${options.contractHash.slice(0, 16)}…" — continuing in degraded mode ` +
             `(contractVerification: 'warn'); regenerate the client or rebuild the Rust host`,
         );
@@ -187,12 +187,12 @@ export function createNodeBootstrap(options: NodeBootstrapOptions = {}): NodeBoo
   };
   // handshake 중 비계약 실패(spawn 오류 등)의 기존 래핑 — 엔드포인트 자체가 없는
   // stale 바이너리도 unenforceable 기각으로 취급해 다음 후보를 시도한다.
-  const wrapUnenforceable = (error: unknown): RustraCommandError =>
+  const wrapUnenforceable = (error: unknown): UnikitCommandError =>
     isContractRejection(error)
       ? error
-      : new RustraCommandError(
+      : new UnikitCommandError(
           'contract.unenforceable',
-          'Node runtime does not expose the __rustra_contract endpoint; rebuild the Rust host with the current Rustra scaffold.',
+          'Node runtime does not expose the __unikit_contract endpoint; rebuild the Rust host with the current Unikit scaffold.',
           false,
           error,
         );
@@ -219,7 +219,7 @@ export function createNodeBootstrap(options: NodeBootstrapOptions = {}): NodeBoo
   const assertActive = () => {
     if (readState() === 'disposed') throw disposedBootstrapError('Node');
     if (!registration.isCurrent())
-      throw new RustraCommandError(
+      throw new UnikitCommandError(
         'transport.unavailable',
         'Node bootstrap registration was replaced',
       );
@@ -300,7 +300,7 @@ export function createNodeBootstrap(options: NodeBootstrapOptions = {}): NodeBoo
       const engine = (await ensureConfigured()) as EngineClientWithBatch;
       assertActive();
       if (requestedRegistration !== registration)
-        throw new RustraCommandError(
+        throw new UnikitCommandError(
           'transport.unavailable',
           'Node readiness was superseded by reload; call ready() again',
         );
@@ -323,7 +323,7 @@ export function createNodeBootstrap(options: NodeBootstrapOptions = {}): NodeBoo
     subscribeEvent(name, callback) {
       assertActive();
       if (!options.persistent && !options.createTransport)
-        throw new RustraCommandError(
+        throw new UnikitCommandError(
           'event.unavailable',
           'Node bootstrap events require persistent: true; one-shot invocations cannot share an event bus.',
         );

@@ -1,9 +1,9 @@
-// Import this entry from an installed RN release app that links modules/rustra-bridge.
-import { createReactNativeEngine } from '@rustra/react-native';
-import { decodeUtf8, parseLiveSchemaDocument } from '@rustra/types';
-import { rustra } from '../generated/react-native.js';
+// Import this entry from an installed RN release app that links modules/unikit-bridge.
+import { createReactNativeEngine } from '@unikit-bridge/react-native';
+import { decodeUtf8, parseLiveSchemaDocument } from '@unikit-bridge/types';
+import { unikit } from '../generated/react-native.js';
 import { GENERATED_CONTRACT_HASH } from '../generated/contract.js';
-import { getRustraNative } from '../modules/rustra-bridge/src/index.js';
+import { getUnikitNative } from '../modules/unikit-bridge/src/index.js';
 import {
   asBytes,
   collectBenchmark,
@@ -31,8 +31,8 @@ export async function runNativeBenchmark(
   }
   consumed = true;
   try {
-    await rustra.ready();
-    const native = getRustraNative();
+    await unikit.ready();
+    const native = getUnikitNative();
     if (
       typeof native.invokeTypedBuffer !== 'function' ||
       typeof native.getCodecCapabilities !== 'function'
@@ -72,6 +72,6 @@ export async function runNativeBenchmark(
       { ...options, runtimeInstanceId },
     );
   } finally {
-    rustra.dispose();
+    unikit.dispose();
   }
 }

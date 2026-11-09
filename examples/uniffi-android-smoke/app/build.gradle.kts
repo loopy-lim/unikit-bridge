@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "dev.rustra.uniffi.smoke"
+    namespace = "dev.unikit.uniffi.smoke"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "dev.rustra.uniffi.smoke"
+        applicationId = "dev.unikit.uniffi.smoke"
         minSdk = 21
         targetSdk = 34
         versionCode = 1
@@ -34,7 +34,7 @@ android {
 }
 
 dependencies {
-    // 생성 바인딩(rustra_calculator_example.kt)이 JNA 기반이다(com.sun.jna 임포트).
+    // 생성 바인딩(unikit_calculator_example.kt)이 JNA 기반이다(com.sun.jna 임포트).
     // kotlinx.coroutines 는 사용하지 않는다 — 바인딩 임포트 목록에서 확인됨.
     // Android 에서는 @aar 변형(libjnidispatch 네이티브 포함)이 필요하다.
     implementation("net.java.dev.jna:jna:5.14.0@aar")

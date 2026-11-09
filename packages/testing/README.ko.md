@@ -1,20 +1,20 @@
-# @rustra/testing
+# @unikit-bridge/testing
 
 Rust 백엔드 없이 생성된 TypeScript 클라이언트를 구동하는 mock 엔진과 계약
-게이트를 제공한다. 컴포넌트/훅 테스트에서 네이티브 모듈 없이 rustra 명령을
+게이트를 제공한다. 컴포넌트/훅 테스트에서 네이티브 모듈 없이 unikit 명령을
 검증할 수 있다.
 
 ## 설치
 
 ```bash
-bun add -d @rustra/testing
+bun add -d @unikit-bridge/testing
 ```
 
 ## createMockEngine
 
 ```ts
-import { createMockEngine } from '@rustra/testing';
-import { configure } from '@rustra/types';
+import { createMockEngine } from '@unikit-bridge/testing';
+import { configure } from '@unikit-bridge/types';
 import { addNumbers } from './generated/commands.js';
 
 const engine = createMockEngine()
@@ -42,15 +42,15 @@ const engine = createMockEngine().mock(addNumbers, ({ a, b }) => ({ value: a + b
 - **invokeBatch** — 항목별 `invoke` 라우팅으로 배치를 처리한다(각 항목의 옵션
   정책이 그대로 적용된다).
 - **에러 정규화** — 핸들러가 `{code, message}` 형태를 throw하면
-  `RustraCommandError`로 변환한다.
+  `UnikitCommandError`로 변환한다.
 
 ## 계약 게이트 (contract gate)
 
 `schema.json`의 명령 목록과 클라이언트가 노출하는 명령 목록의 드리프트를
-검출한다. CI에서 `rustra diff`(스키마 버전 간 breaking change)와 짝을 이룬다.
+검출한다. CI에서 `unikit diff`(스키마 버전 간 breaking change)와 짝을 이룬다.
 
 ```ts
-import { expectContractCurrent } from '@rustra/testing';
+import { expectContractCurrent } from '@unikit-bridge/testing';
 import schemaJson from './generated/schema.json' with { type: 'json' };
 import * as commands from './generated/commands.js';
 
@@ -65,5 +65,5 @@ test('client matches schema.json', () => {
 
 ## 관련 문서
 
-- [호환성 매트릭스](https://github.com/loopy-lim/rustra/blob/main/docs/compatibility-matrix.md)
-- [메인 README](https://github.com/loopy-lim/rustra#readme)
+- [호환성 매트릭스](https://github.com/loopy-lim/unikit-bridge/blob/main/docs/compatibility-matrix.md)
+- [메인 README](https://github.com/loopy-lim/unikit-bridge#readme)

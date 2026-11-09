@@ -42,7 +42,7 @@
 
 ### A. 계약 — Rust 표면과 스키마
 
-#### A.1 `CallbackHandle` newtype (crates/rustra/src/channels_handles.rs)
+#### A.1 `CallbackHandle` newtype (crates/unikit-bridge/src/channels_handles.rs)
 
 ```rust
 /// 커맨드 인자용 콜백 핸들 — wire 는 ChannelHandle 과 동일한 plain u32.
@@ -178,7 +178,7 @@ export type EngineSupports = {
 
 | 호스트                         | 단방향                                           | request/response                                                                | 근거                                                                                                                                                                                                |
 | ------------------------------ | ------------------------------------------------ | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tauri                          | 지원                                             | **지원** — emit 으로 호출, `rustra_callback_reply` 커맨드로 응답                | 커맨드가 별도 IPC 스레드 — JS 가 응답 대기 중에도 콜백 실행 가능(리서치 §5-2). emit 스레드 안전(tauri_support.rs:324-333). 근사 유니캐스트 한계는 채널과 동일(:345-350) — 시퀀스 검증으로 보강(§E). |
+| Tauri                          | 지원                                             | **지원** — emit 으로 호출, `unikit_callback_reply` 커맨드로 응답                | 커맨드가 별도 IPC 스레드 — JS 가 응답 대기 중에도 콜백 실행 가능(리서치 §5-2). emit 스레드 안전(tauri_support.rs:324-333). 근사 유니캐스트 한계는 채널과 동일(:345-350) — 시퀀스 검증으로 보강(§E). |
 | Node (loop-stdio)              | 지원                                             | **미지원(구조적)**                                                              | 단일 스레드 read-dispatch 루프(loop_stdio.rs:214-259) — 핸들러 대기 중 JS→Rust 응답 프레임을 읽을 수 없어 교착. 해소는 루프 재설계(대기 중 교차 읽기)가 필요 — 별도 트랙(오픈 질문 2).              |
 | Bun                            | 지원 — 단, **동기 FFI 체인 안의 핸들러만**       | **미지원(구조적)**                                                              | threadsafe:false 계약(bun-channels.ts:12-20) — JS 스레드가 invoke 안에 있으므로 응답 대기 불가. `call_wait` 사용 시 컴파일은 되고 런타임 `callback.timeout`으로 드러난다(§F).                       |
 | RN (async 경로)                | 지원                                             | **지원** — CallInvoker drain + `callbackReply(handle, seq, value)` HostFunction | JS 스레드가 자유로운 async 경로(invokeTypedAsync 선례, cpp:1239-1344).                                                                                                                              |
@@ -199,8 +199,8 @@ export type EngineSupports = {
   단조 증가. 단방향 `call` 은 `expectsReply` 없는 기존 형태 그대로(하위
   호환).
 - **응답 경로**(JS→Rust, 호스트별):
-  - Tauri: 신규 커맨드 `rustra_callback_reply { handle, seq, ok, value }` —
-    `rustra_dispatch` 계열의 동일 등록 지점(tauri_support.rs:208-214)에
+  - Tauri: 신규 커맨드 `unikit_callback_reply { handle, seq, ok, value }` —
+    `unikit_dispatch` 계열의 동일 등록 지점(tauri_support.rs:208-214)에
     추가.
   - RN: 신규 HostFunction `callbackReply(handle, seq, ok, valueJson)` —
     `createChannel`/`dropChannel` 과 같은 캐시 블록(cpp:870-930)에 추가.
@@ -214,7 +214,7 @@ export type EngineSupports = {
 
 ### E. 에러·취소 상호작용
 
-- **신규 에러 코드**(errors.ts `RustraErrorCode` 확장, 와이어 additive):
+- **신규 에러 코드**(errors.ts `UnikitErrorCode` 확장, 와이어 additive):
   - `callback.unavailable` — 호스트가 콜백 발급 불가(채널
     `channel.unavailable` 과 동일 철학의 loud-fail, errors.ts:187).
   - `callback.timeout` — `call_wait` 타임아웃(retryable 아님 — JS 가 늦게
@@ -259,7 +259,7 @@ export type EngineSupports = {
    ChannelDispatcher 큐도 drain(사전 발견 공백, 리서치 §3.5) + 채널/콜백
    `pollMs` 폴백. 이 트랙의 정당성: 콜백이 이 결함을 상속하지 않도록.
 3. **슬라이스 3 — request/response(Tauri)**: seq 프레임 확장, (handle, seq)
-   oneshot 레지스트리, `rustra_callback_reply` 커맨드, `call_wait` + 신규
+   oneshot 레지스트리, `unikit_callback_reply` 커맨드, `call_wait` + 신규
    에러 코드, 타임아웃 필수 계약.
 4. **슬라이스 4 — request/response(RN async)**: `callbackReply` HostFunction,
    async 워커 대기, reload 안전(entry 회수 — ChannelDispatcher reset 패턴

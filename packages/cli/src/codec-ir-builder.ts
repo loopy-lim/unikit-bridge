@@ -32,7 +32,7 @@ export function buildIr(
 
   if (schema.allOf) {
     if (schema.allOf.length !== 1) return { ok: false, reason: 'multi-entry allOf is unsupported' };
-    return buildIr(schema.allOf[0], definitions, refs, depth + 1);
+    return buildIr(schema.allOf[0]!, definitions, refs, depth + 1);
   }
 
   const inner = optionalInner(schema);
@@ -52,7 +52,7 @@ export function buildIr(
       if (!key)
         return {
           ok: false as const,
-          reason: 'oneOf variants require a stable key or x-rustra-variant-order',
+          reason: 'oneOf variants require a stable key or x-unikit-variant-order',
         };
       return { ok: true as const, key, node: result.node };
     });

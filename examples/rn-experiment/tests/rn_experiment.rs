@@ -2,11 +2,11 @@
 //!
 //! 세 면을 고정한다:
 //! 1. 타입 와이어(typed JSON invoke) gzip 왕복
-//! 2. 버퍼 와이어(`rustra_ffi_invoke_buffer`) gzip 왕복 — Tier buffer fast
+//! 2. 버퍼 와이어(`unikit_ffi_invoke_buffer`) gzip 왕복 — Tier buffer fast
 //!    path 가 실제로 광고되고 동작하는지의 증거(버퍼 우위 실측의 전제)
 //! 3. uuid v7 문자열 스키마(버전 비트, 시간 정렬, 코드젠 스키마)
 
-use rustra_rn_experiment::*;
+use unikit_rn_experiment::*;
 
 /// LCG 기반 결정적 페이로드 — 상위 니블만 사용해 16-심볼 알파벳의 반복+노이즈
 /// 혼합을 만든다(완전 랜덤은 gzip 이 압축 불가). 테스트 자체는 결정적이다.
@@ -68,7 +68,7 @@ fn gzip_rejects_invalid_stream_with_args_error() {
 fn gzip_rejects_decompression_beyond_payload_limit() {
     // A tiny valid gzip member must not cause unbounded expansion before FFI's
     // final output-length check. Exercise the typed path too, which bypasses FFI.
-    let limit = rustra::ffi::max_payload_bytes();
+    let limit = unikit_bridge::ffi::max_payload_bytes();
     let compressed = gzip_compress(GzipPayload {
         data: vec![0; limit + 1],
     })
@@ -89,8 +89,8 @@ fn gzip_round_trip_via_buffer_ffi() {
     let decompress_id = resolve_command_id("gzipDecompress");
 
     // buffer fast path 광고 확인 — 단일 Vec<u8> 필드 스키마 덕이다.
-    assert_eq!(rustra::ffi::rustra_ffi_has_buffer(compress_id), 1);
-    assert_eq!(rustra::ffi::rustra_ffi_has_buffer(decompress_id), 1);
+    assert_eq!(unikit_bridge::ffi::unikit_ffi_has_buffer(compress_id), 1);
+    assert_eq!(unikit_bridge::ffi::unikit_ffi_has_buffer(decompress_id), 1);
 
     let raw = pseudo_random_payload(32 * 1024);
 
@@ -98,7 +98,7 @@ fn gzip_round_trip_via_buffer_ffi() {
     let mut compressed = std::ptr::null_mut();
     let mut compressed_len = 0usize;
     let status = unsafe {
-        rustra::ffi::rustra_ffi_invoke_buffer(
+        unikit_bridge::ffi::unikit_ffi_invoke_buffer(
             compress_id,
             raw.as_ptr(),
             raw.len(),
@@ -110,14 +110,14 @@ fn gzip_round_trip_via_buffer_ffi() {
     assert!(!compressed.is_null());
     let compressed_bytes =
         unsafe { std::slice::from_raw_parts(compressed, compressed_len) }.to_vec();
-    unsafe { rustra::ffi::rustra_ffi_free_owned_bytes(compressed, compressed_len) };
+    unsafe { unikit_bridge::ffi::unikit_ffi_free_owned_bytes(compressed, compressed_len) };
     assert_eq!(&compressed_bytes[..3], &[0x1f, 0x8b, 0x08]);
 
     // decompress — 같은 버퍼 경로로 되돌린다.
     let mut restored = std::ptr::null_mut();
     let mut restored_len = 0usize;
     let status = unsafe {
-        rustra::ffi::rustra_ffi_invoke_buffer(
+        unikit_bridge::ffi::unikit_ffi_invoke_buffer(
             decompress_id,
             compressed_bytes.as_ptr(),
             compressed_bytes.len(),
@@ -130,7 +130,7 @@ fn gzip_round_trip_via_buffer_ffi() {
         unsafe { std::slice::from_raw_parts(restored, restored_len) },
         raw
     );
-    unsafe { rustra::ffi::rustra_ffi_free_owned_bytes(restored, restored_len) };
+    unsafe { unikit_bridge::ffi::unikit_ffi_free_owned_bytes(restored, restored_len) };
 }
 
 #[test]

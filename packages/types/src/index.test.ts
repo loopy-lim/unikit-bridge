@@ -21,17 +21,17 @@ import {
   invokeGeneratedFields2,
   invokeWithTimeout,
   isRetryableCode,
-  isRustraErrorCode,
+  isUnikitErrorCode,
   registerDeviceStatusProvider,
   raceAbort,
   resetDebugEnvForTests,
   resetDeviceStatusForTests,
-  RustraCommandError,
+  UnikitCommandError,
   CancelledError,
   TimeoutError,
-  RustraErrorCode,
-  parseRustraErrorString,
-  normalizeRustraError,
+  UnikitErrorCode,
+  parseUnikitErrorString,
+  normalizeUnikitError,
   withRetry,
   configureDebug,
   debugWire,
@@ -49,7 +49,7 @@ import { invokeByIdWithTimeout } from './cancel-by-id.js';
 import { invokeCallbackWithAbort } from './cancel.js';
 import { resetConfiguredRoutes, runtime } from './global-state.js';
 
-void test('lazy configuration lets the first generated command initialize Rustra once', async () => {
+void test('lazy configuration lets the first generated command initialize Unikit once', async () => {
   let initializations = 0;
   let calls = 0;
   configureLazy(async () => {
@@ -255,13 +255,13 @@ void test('getLiveSchema throws schema.unavailable when getSchema missing', () =
   const native = { invokeFrame: () => new ArrayBuffer(0) } as FrameSchemaNative;
   assert.throws(
     () => getLiveSchema(native),
-    (e: unknown) => e instanceof RustraCommandError && e.code === 'schema.unavailable',
+    (e: unknown) => e instanceof UnikitCommandError && e.code === 'schema.unavailable',
   );
   // 엔진의 tier-3 디스패치는 이를 흡수해 기존 command.not_found 계약 유지.
   const engine = createFrameEngine(native, new Map());
   return assert.rejects(
     engine.invoke('dynCmd', {}),
-    (e: unknown) => e instanceof RustraCommandError && e.code === 'command.not_found',
+    (e: unknown) => e instanceof UnikitCommandError && e.code === 'command.not_found',
   );
 });
 
@@ -417,7 +417,7 @@ void test('engine Tier 3 fallback propagates typed error wire', async () => {
       await engine.invoke('boom', {});
     },
     (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError, 'must be RustraCommandError');
+      assert.ok(err instanceof UnikitCommandError, 'must be UnikitCommandError');
       assert.equal(err.code, 'math.divide_by_zero');
       assert.match((err as Error).message, /handler exploded/);
       return true;
@@ -425,7 +425,7 @@ void test('engine Tier 3 fallback propagates typed error wire', async () => {
   );
 });
 
-void test('engine throws RustraCommandError for command absent from registry AND live schema (F4)', async () => {
+void test('engine throws UnikitCommandError for command absent from registry AND live schema (F4)', async () => {
   const native = makeNative({
     schema: schemaBytes([{ name: 'known', commandId: 1 }]),
     invokeImpl: () => tier3Success({}),
@@ -438,8 +438,8 @@ void test('engine throws RustraCommandError for command absent from registry AND
     (err: Error) => {
       assert.match(err.message, /no codec and not in live schema/);
       assert.ok(
-        err instanceof RustraCommandError,
-        'F4: unknown-command must be RustraCommandError',
+        err instanceof UnikitCommandError,
+        'F4: unknown-command must be UnikitCommandError',
       );
       assert.equal(
         err.code,
@@ -975,7 +975,7 @@ void test('generated one-field command falls back to the name route without fiel
   ]);
 });
 
-void test('lazy configuration lets the first one-field generated command initialize Rustra once', async () => {
+void test('lazy configuration lets the first one-field generated command initialize Unikit once', async () => {
   let initializations = 0;
   let calls = 0;
   configureLazy(async () => {
@@ -1019,7 +1019,7 @@ void test('unconfigured one-field generated command rejects with transport.unava
       'id',
     );
     await assert.rejects(parityIndexed({ id: 4 }), (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'transport.unavailable');
       assert.equal(err.retryable, false);
       return true;
@@ -1257,7 +1257,7 @@ void test('invokeBatch turns a synchronous native batch throw into a rejected Pr
     hasStaticCodec: () => true,
     invokeTyped: () => ({ value: 0 }),
     invokeTypedBatch: () => {
-      throw new RustraCommandError('transport.error', 'batch transport failed', true);
+      throw new UnikitCommandError('transport.error', 'batch transport failed', true);
     },
   });
   const engine = createFrameEngine(native, staticRegistry('add'));
@@ -1266,7 +1266,7 @@ void test('invokeBatch turns a synchronous native batch throw into a rejected Pr
   await assert.rejects(
     returned,
     (error: unknown) =>
-      error instanceof RustraCommandError &&
+      error instanceof UnikitCommandError &&
       error.code === 'transport.error' &&
       error.retryable === true,
   );
@@ -1320,7 +1320,7 @@ void test('invokeBatch entry signal routes the whole batch off the single crossi
   ac.abort();
 
   await assert.rejects(p, (err: unknown) => {
-    assert.ok(err instanceof RustraCommandError);
+    assert.ok(err instanceof UnikitCommandError);
     assert.equal(err.code, 'cancelled');
     return true;
   });
@@ -1368,7 +1368,7 @@ void test('invokeBatch entry cancel only rejects that entry independently (T1 fo
       { command: 'a', args: {} },
       { command: 'b', args: {}, options: { signal: ac.signal } },
     ]),
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'cancelled',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'cancelled',
   );
   // Promise.all 폴백에서 'a' 가 먼저 dispatch 될 수 있으나, pre-aborted 'b' 는
   // dispatch 되지 않는다. 'a' 호출 여부는 스케줄 순서와 무관하게 허용.
@@ -1579,7 +1579,7 @@ void test('invokeBatch rejects with the failing entry error (Task 3.3)', async (
   await assert.rejects(
     engine.invokeBatch(entries),
     (err: unknown) =>
-      err instanceof RustraCommandError && err.code === 'echo.fail.3' && /boom/.test(err.message),
+      err instanceof UnikitCommandError && err.code === 'echo.fail.3' && /boom/.test(err.message),
   );
 });
 
@@ -1591,7 +1591,7 @@ void test('F5: contractHash mismatch throws at engine creation (opt-in enforceme
   assert.throws(
     () => createFrameEngine(native, new Map(), { contractHash: 'b'.repeat(64) }),
     (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError, 'must be RustraCommandError');
+      assert.ok(err instanceof UnikitCommandError, 'must be UnikitCommandError');
       assert.equal(err.code, 'contract.mismatch', 'code must indicate schema drift');
       assert.match((err as Error).message, /mismatch/);
       return true;
@@ -1613,7 +1613,7 @@ void test('F5: contractHash option without native getContractHash throws contrac
   assert.throws(
     () => createFrameEngine(native, new Map(), { contractHash: 'd'.repeat(64) }),
     (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'contract.unenforceable');
       return true;
     },
@@ -1634,7 +1634,7 @@ void test('T2: mismatch + no callback still throws contract.mismatch (regression
   const native = makeNative({ contractHash: 'a'.repeat(64) });
   assert.throws(
     () => createFrameEngine(native, new Map(), { contractHash: 'b'.repeat(64) }),
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'contract.mismatch',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'contract.mismatch',
   );
 });
 
@@ -1666,7 +1666,7 @@ void test('T2: unenforceable + onContractMismatch still throws (nothing to verif
           throw new Error('callback must not be invoked for unenforceable');
         },
       }),
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'contract.unenforceable',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'contract.unenforceable',
   );
 });
 
@@ -1715,7 +1715,7 @@ void test('B4: ContractMismatchDiagnosis round-trips as a plain object', () => {
 // 곳에 모은다. strict(및 미설정)은 fail-fast, warn 은 절대 throw 하지 않고
 // 경고로 강등해 엔진 생성을 항상 보장하고(OTA degraded 배포), off 는 검증
 // 자체를 생략한다(생성 엔트리의 탈출구). 에러 코드는 기존 두 개만 재사용한다
-// — 새 RustraError 코드 없음(A3 제약).
+// — 새 UnikitError 코드 없음(A3 제약).
 
 void test('contract verification injection: strict + wrong hash throws contract.mismatch with the actionable message', () => {
   const native = makeNative({ contractHash: 'a'.repeat(64) });
@@ -1726,7 +1726,7 @@ void test('contract verification injection: strict + wrong hash throws contract.
         contractVerification: 'strict',
       }),
     (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError, 'must be RustraCommandError');
+      assert.ok(err instanceof UnikitCommandError, 'must be UnikitCommandError');
       assert.equal(err.code, 'contract.mismatch');
       // 실행 가능한 메시지 — 상태(양쪽 해시)와 처방(재생성·재빌드)을 함께 쓴다.
       assert.match((err as Error).message, /native="a{16}…"/);
@@ -1791,7 +1791,7 @@ void test('contract verification injection: strict + missing native getContractH
         contractVerification: 'strict',
       }),
     (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'contract.unenforceable');
       return true;
     },
@@ -1849,12 +1849,12 @@ void test('contract verification injection: undefined policy keeps the exact leg
   const mismatchNative = makeNative({ contractHash: 'a'.repeat(64) });
   assert.throws(
     () => createFrameEngine(mismatchNative, new Map(), { contractHash: 'b'.repeat(64) }),
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'contract.mismatch',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'contract.mismatch',
   );
   const unenforceableNative = makeNative({}); // getContractHash 미노출
   assert.throws(
     () => createFrameEngine(unenforceableNative, new Map(), { contractHash: 'd'.repeat(64) }),
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'contract.unenforceable',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'contract.unenforceable',
   );
 });
 
@@ -2003,62 +2003,62 @@ function mockConsoleWarn(): { calls: string[]; restore(): void } {
   };
 }
 
-// ── parseRustraErrorString (F4 — JSON fallback code/message 파싱) ──
+// ── parseUnikitErrorString (F4 — JSON fallback code/message 파싱) ──
 
-void test('parseRustraErrorString splits "code: message" into RustraCommandError', () => {
-  const err = parseRustraErrorString('command.not_found: command not found: add');
-  assert.ok(err instanceof RustraCommandError);
+void test('parseUnikitErrorString splits "code: message" into UnikitCommandError', () => {
+  const err = parseUnikitErrorString('command.not_found: command not found: add');
+  assert.ok(err instanceof UnikitCommandError);
   assert.equal(err.code, 'command.not_found');
   // message 자체에 ": " 가 있어도 첫 구분자만 사용한다.
   assert.equal(err.message, 'command not found: add');
 });
 
-void test('parseRustraErrorString handles dotless code (internal)', () => {
-  const err = parseRustraErrorString('internal: serde explode');
+void test('parseUnikitErrorString handles dotless code (internal)', () => {
+  const err = parseUnikitErrorString('internal: serde explode');
   assert.equal(err.code, 'internal');
   assert.equal(err.message, 'serde explode');
 });
 
-void test('parseRustraErrorString falls back to invoke.failed for non-code strings', () => {
+void test('parseUnikitErrorString falls back to invoke.failed for non-code strings', () => {
   // FFI 수준 에러 — code 토큰이 아님(공백 포함 / 구분자 없음).
-  const a = parseRustraErrorString('json decode failed: eof');
+  const a = parseUnikitErrorString('json decode failed: eof');
   assert.equal(a.code, 'invoke.failed');
   assert.equal(a.message, 'json decode failed: eof');
-  const b = parseRustraErrorString('payload exceeds size limit');
+  const b = parseUnikitErrorString('payload exceeds size limit');
   assert.equal(b.code, 'invoke.failed');
-  const c = parseRustraErrorString(undefined);
+  const c = parseUnikitErrorString(undefined);
   assert.equal(c.code, 'invoke.failed');
-  assert.equal(c.message, 'Rustra invoke failed');
+  assert.equal(c.message, 'Unikit invoke failed');
 });
 
-void test('parseRustraErrorString restores payload.too_large from unified Rust code (T3 follow-up)', () => {
-  // Rust FFI 게이트가 이제 RustraError::payload_too_large Display 형태를
+void test('parseUnikitErrorString restores payload.too_large from unified Rust code (T3 follow-up)', () => {
+  // Rust FFI 게이트가 이제 UnikitError::payload_too_large Display 형태를
   // 반환한다 — JS 사전 검사와 동일 원인이 같은 코드로 복원되어야 한다
   // (예전 평문 "payload exceeds size limit" → invoke.failed 강등 회귀 방지).
-  const err = parseRustraErrorString(
+  const err = parseUnikitErrorString(
     'payload.too_large: payload 1048577B exceeds max payload 1048576B',
   );
-  assert.ok(err instanceof RustraCommandError);
+  assert.ok(err instanceof UnikitCommandError);
   assert.equal(err.code, 'payload.too_large');
   assert.equal(err.message, 'payload 1048577B exceeds max payload 1048576B');
   assert.equal(err.retryable, false, 'payload.too_large is deterministic, not retryable');
 });
 
-void test('parseRustraErrorString parses JSON error objects and respects retryable', () => {
+void test('parseUnikitErrorString parses JSON error objects and respects retryable', () => {
   const jsonErr = JSON.stringify({
     code: 'database.unavailable',
     message: 'Connection pool exhausted',
     retryable: true,
   });
-  const err = parseRustraErrorString(jsonErr);
-  assert.ok(err instanceof RustraCommandError);
+  const err = parseUnikitErrorString(jsonErr);
+  assert.ok(err instanceof UnikitCommandError);
   assert.equal(err.code, 'database.unavailable');
   assert.equal(err.message, 'Connection pool exhausted');
   assert.equal(err.retryable, true);
 });
 
-void test('normalizeRustraError preserves retryable metadata from string rejections', () => {
-  const err = normalizeRustraError(
+void test('normalizeUnikitError preserves retryable metadata from string rejections', () => {
+  const err = normalizeUnikitError(
     '{"code":"transport.timeout","message":"request timed out","retryable":true}',
   );
   assert.equal(err.code, 'transport.timeout');
@@ -2066,33 +2066,33 @@ void test('normalizeRustraError preserves retryable metadata from string rejecti
   assert.equal(err.retryable, true);
 });
 
-void test('normalizeRustraError preserves the original cause and stack', () => {
+void test('normalizeUnikitError preserves the original cause and stack', () => {
   const original = new Error('native failure');
-  const normalized = normalizeRustraError(original);
+  const normalized = normalizeUnikitError(original);
   assert.equal(normalized.cause, original);
   assert.equal(normalized.stack, original.stack);
 });
 
 void test('timeout and cancel codes normalize into dedicated error subclasses', () => {
-  const timeout = normalizeRustraError({
+  const timeout = normalizeUnikitError({
     code: 'transport.timeout',
     message: 'request timed out',
   });
   assert.ok(timeout instanceof TimeoutError);
-  assert.ok(timeout instanceof RustraCommandError);
+  assert.ok(timeout instanceof UnikitCommandError);
   assert.equal(timeout.code, 'transport.timeout');
   assert.equal(timeout.retryable, true);
 
-  const cancelled = normalizeRustraError({ code: 'cancelled', message: 'aborted by host' });
+  const cancelled = normalizeUnikitError({ code: 'cancelled', message: 'aborted by host' });
   assert.ok(cancelled instanceof CancelledError);
-  assert.ok(cancelled instanceof RustraCommandError);
+  assert.ok(cancelled instanceof UnikitCommandError);
   assert.equal(cancelled.code, 'cancelled');
   assert.equal(cancelled.retryable, true);
 
-  const ordinary = normalizeRustraError({ code: 'internal', message: 'boom' });
+  const ordinary = normalizeUnikitError({ code: 'internal', message: 'boom' });
   assert.ok(!(ordinary instanceof TimeoutError));
   assert.ok(!(ordinary instanceof CancelledError));
-  assert.ok(ordinary instanceof RustraCommandError);
+  assert.ok(ordinary instanceof UnikitCommandError);
 });
 
 void test('TimeoutError and CancelledError constructors keep code mapping and cause', () => {
@@ -2109,12 +2109,12 @@ void test('TimeoutError and CancelledError constructors keep code mapping and ca
   assert.equal(cancelled.name, 'CancelledError');
 });
 
-void test('Display-string rejections keep the flat RustraCommandError contract', () => {
+void test('Display-string rejections keep the flat UnikitCommandError contract', () => {
   // 문자열 경로는 기존 평탄화 계약을 유지한다 — 서브클래스 승격은 구조화
   // {code, message} 경로에서만 일어난다(와이어 정합 영향 최소화).
-  const parsed = normalizeRustraError('transport.timeout: request timed out');
+  const parsed = normalizeUnikitError('transport.timeout: request timed out');
   assert.equal(parsed.code, 'transport.timeout');
-  assert.ok(parsed instanceof RustraCommandError);
+  assert.ok(parsed instanceof UnikitCommandError);
   assert.ok(!(parsed instanceof TimeoutError));
 });
 
@@ -2159,7 +2159,7 @@ void test('pre-aborted signal rejects immediately without native call (T1)', asy
   const ac = new AbortController();
   ac.abort();
   await assert.rejects(engine.invoke('dyn', {}, { signal: ac.signal }), (e: unknown) => {
-    assert.ok(e instanceof RustraCommandError);
+    assert.ok(e instanceof UnikitCommandError);
     assert.equal(e.code, 'cancelled');
     assert.equal(e.retryable, true);
     return true;
@@ -2183,7 +2183,7 @@ void test('abort mid-flight: shallow path rejects with cancelled (T1)', async ()
   const p = engine.invoke('dyn', {}, { signal: ac.signal });
   ac.abort();
   await assert.rejects(p, (e: unknown) => {
-    assert.ok(e instanceof RustraCommandError && e.code === 'cancelled');
+    assert.ok(e instanceof UnikitCommandError && e.code === 'cancelled');
     return true;
   });
   // 얕은 취소는 JS 프라미스만 거부한다 — dispatch 는 이미 동기적으로 일어났다.
@@ -2218,7 +2218,7 @@ void test('typed-path command falls back to shallow cancel even with invokeAsync
   const p = engine.invoke<{ value: number }>('echo', { tag: 1, msg: 'm' }, { signal: ac.signal });
   ac.abort();
   await assert.rejects(p, (e: unknown) => {
-    assert.ok(e instanceof RustraCommandError && e.code === 'cancelled');
+    assert.ok(e instanceof UnikitCommandError && e.code === 'cancelled');
     return true;
   });
   assert.equal(typedCalls, 1, 'typed path must have been dispatched (shallow cancel)');
@@ -2250,7 +2250,7 @@ void test('tier3 dynamic command propagates cancel via invokeAsync (semantic clo
   const p = engine.invoke<{ v: number }>('dyn', { x: 1 }, { signal: ac.signal });
   ac.abort();
   await assert.rejects(p, (e: unknown) => {
-    assert.ok(e instanceof RustraCommandError && e.code === 'cancelled');
+    assert.ok(e instanceof UnikitCommandError && e.code === 'cancelled');
     return true;
   });
   assert.equal(asyncCalls, 1, 'invokeAsync must carry the tier3 request for dynamic commands');
@@ -2282,7 +2282,7 @@ void test('abort mid-flight: propagate path calls invokeCancel and rejects (T1)'
   const p = engine.invoke<EchoOut>('echo', { tag: 1, msg: 'm' }, { signal: ac.signal });
   ac.abort();
   await assert.rejects(p, (e: unknown) => {
-    assert.ok(e instanceof RustraCommandError);
+    assert.ok(e instanceof UnikitCommandError);
     assert.equal(e.code, 'cancelled');
     assert.equal(e.retryable, true);
     return true;
@@ -2322,7 +2322,7 @@ void test('late invokeAsync delivery after abort is ignored (T1)', async () => {
   const p = engine.invoke<EchoOut>('echo', { tag: 1, msg: 'm' }, { signal: ac.signal });
   ac.abort();
   await assert.rejects(p, (e: unknown) => {
-    assert.ok(e instanceof RustraCommandError && e.code === 'cancelled');
+    assert.ok(e instanceof UnikitCommandError && e.code === 'cancelled');
     return true;
   });
   // abort 이후 유효한 성공 프레임이 늦게 도착해도 무시되어야 한다.
@@ -2360,15 +2360,15 @@ void test('propagate path settles when codec.decode throws on a malformed frame 
     engine.invoke<EchoOut>('echo', { tag: 1, msg: 'm' }, { signal: ac.signal }),
     (e: unknown) => {
       // (M3) 디코드 throw 는 맨몸 Error 가 아니라 invoke.malformed 로
-      // 정규화된다 — code 가 있고 메시지는 명령명·오프셋·RUSTRA_DEBUG 힌트를
+      // 정규화된다 — code 가 있고 메시지는 명령명·오프셋·UNIKIT_DEBUG 힌트를
       // 싣는다. 원본 코덱 예외는 cause 로 보존된다.
-      assert.ok(e instanceof RustraCommandError);
+      assert.ok(e instanceof UnikitCommandError);
       assert.equal(e.code, 'invoke.malformed');
       assert.match(
         (e as Error).message,
         /^decode failed for 'echo' at offset 0: malformed frame \(0-byte frame\)/,
       );
-      assert.ok((e as Error).message.includes('set RUSTRA_DEBUG=1'));
+      assert.ok((e as Error).message.includes('set UNIKIT_DEBUG=1'));
       assert.ok((e as { cause?: unknown }).cause instanceof Error);
       assert.equal((e as { cause: Error }).cause.message, 'malformed frame');
       return true;
@@ -2431,8 +2431,8 @@ void test('propagate path resolves normally when invokeAsync completes first (T1
   assert.equal(out.msg, 'late');
 });
 
-void test('cancelled code is retryable via RustraCommandError default (T1)', () => {
-  const e = parseRustraErrorString('cancelled: invocation cancelled before dispatch');
+void test('cancelled code is retryable via UnikitCommandError default (T1)', () => {
+  const e = parseUnikitErrorString('cancelled: invocation cancelled before dispatch');
   assert.equal(e.code, 'cancelled');
   assert.equal(e.retryable, true); // isRetryableCode 미러링 검증
 });
@@ -2498,7 +2498,7 @@ void test('global invokeGenerated forwards the generated id to capable engines',
   }
 });
 
-void test('global invokeGenerated uses one-Promise sync route for rustra engines', async () => {
+void test('global invokeGenerated uses one-Promise sync route for unikit engines', async () => {
   const native = makeTypedNative({
     hasStaticCodec: () => true,
     invokeTyped: () => {
@@ -2573,7 +2573,7 @@ void test('T3: over-limit tier-2 payload rejects payload.too_large without nativ
   await assert.rejects(
     engine.invoke<EchoOut>('echo', { tag: 1, msg: 'way over the limit' }),
     (e: unknown) => {
-      assert.ok(e instanceof RustraCommandError, 'must be RustraCommandError');
+      assert.ok(e instanceof UnikitCommandError, 'must be UnikitCommandError');
       assert.equal(e.code, 'payload.too_large');
       assert.equal(e.retryable, false, 'deterministic client condition');
       return true;
@@ -2614,7 +2614,7 @@ void test('T3: over-limit tier-3 dynamic payload rejects before native call', as
   const engine = createFrameEngine(native, new Map(), { maxPayloadBytes: 8 });
   // tier3 요청: 2(cmd_id) + JSON 본체 — 이 인자면 훨씬 8B 를 넘는다.
   await assert.rejects(engine.invoke('dyn', { padding: '0123456789abcdef' }), (e: unknown) => {
-    assert.ok(e instanceof RustraCommandError);
+    assert.ok(e instanceof UnikitCommandError);
     assert.equal(e.code, 'payload.too_large');
     return true;
   });
@@ -2677,7 +2677,7 @@ void test('T3: over-limit payload on propagate path rejects, invokeAsync never c
   await assert.rejects(
     engine.invoke<EchoOut>('echo', { tag: 1, msg: 'way over the limit' }, { signal: ac.signal }),
     (e: unknown) => {
-      assert.ok(e instanceof RustraCommandError);
+      assert.ok(e instanceof UnikitCommandError);
       assert.equal(e.code, 'payload.too_large');
       return true;
     },
@@ -2693,7 +2693,7 @@ void test('T3: payload.too_large message carries both actual and limit byte size
   await assert.rejects(
     engine.invoke<EchoOut>('echo', { tag: 1, msg: 'way over the limit' }),
     (e: unknown) => {
-      assert.ok(e instanceof RustraCommandError);
+      assert.ok(e instanceof UnikitCommandError);
       // echoCodec('way over the limit') = 2(cmd) + 1(tag) + 18(msg) = 21B.
       assert.match((e as Error).message, /21B/);
       assert.match((e as Error).message, /8B/);
@@ -2730,7 +2730,7 @@ void test('typed(tier 1) command propagates cancel via invokeAsync when codec is
   const p = engine.invoke<{ ok: boolean }>('typedCmd', {}, { signal: ac.signal });
   ac.abort();
   await assert.rejects(p, (e: unknown) => {
-    assert.ok(e instanceof RustraCommandError && e.code === 'cancelled');
+    assert.ok(e instanceof UnikitCommandError && e.code === 'cancelled');
     return true;
   });
   assert.equal(asyncCalls, 1);
@@ -2755,7 +2755,7 @@ void test('dynamic command without live schema keeps shallow cancel (no commandI
   const p = engine.invoke<{ v: number }>('ghost', {}, { signal: ac.signal });
   ac.abort();
   await assert.rejects(p, (e: unknown) => {
-    assert.ok(e instanceof RustraCommandError && e.code === 'cancelled');
+    assert.ok(e instanceof UnikitCommandError && e.code === 'cancelled');
     return true;
   });
   assert.equal(asyncCalls, 0, 'no commandId source → invokeAsync must not be used');
@@ -2763,14 +2763,14 @@ void test('dynamic command without live schema keeps shallow cancel (no commandI
 
 // ── InvokeOptions.timeoutMs — transport.timeout 타임아웃 레이스 ──
 // 네이티브가 응답하지 않는 hang(워커 패닉, FFI 데드락)의 JS 측 유일한 탈출구.
-// Rust RustraError::timeout(retryable)과 같은 코드/재시도 의미론.
+// Rust UnikitError::timeout(retryable)과 같은 코드/재시도 의미론.
 
 void test('invoke with timeoutMs rejects transport.timeout when engine never settles', async () => {
   const hanging: EngineClient = { invoke: () => new Promise(() => {}) };
   await assert.rejects(
     invokeWithTimeout(hanging, 'addNumbers', { a: 1 }, { timeoutMs: 50 }),
     (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'transport.timeout');
       assert.equal(err.retryable, true);
       return true;
@@ -2808,7 +2808,7 @@ void test('Frame engine applies timeoutMs to an async native dispatch', async ()
   await assert.rejects(
     engine.invoke('slow', {}, { signal: controller.signal, timeoutMs: 10 }),
     (error: unknown) =>
-      error instanceof RustraCommandError &&
+      error instanceof UnikitCommandError &&
       error.code === 'transport.timeout' &&
       error.retryable === true,
   );
@@ -2829,7 +2829,7 @@ void test('invokeWithTimeout rejects a pending call when its signal aborts', asy
   controller.abort();
   await assert.rejects(
     returned,
-    (error: unknown) => error instanceof RustraCommandError && error.code === 'cancelled',
+    (error: unknown) => error instanceof UnikitCommandError && error.code === 'cancelled',
   );
   resolveLate(42);
   await new Promise<void>((resolve) => queueMicrotask(resolve));
@@ -2860,13 +2860,13 @@ void test('invokeWithTimeout without timeout preserves the engine Promise identi
 void test('invokeWithTimeout converts a synchronous engine throw into a rejected Promise', async () => {
   const broken: EngineClient = {
     invoke(): Promise<never> {
-      throw new RustraCommandError('invoke.failed', 'sync failure');
+      throw new UnikitCommandError('invoke.failed', 'sync failure');
     },
   };
   const returned = invokeWithTimeout(broken, 'x');
   assert.ok(returned instanceof Promise, 'public invoke contract must remain Promise-based');
   await assert.rejects(returned, (error: unknown) => {
-    assert.ok(error instanceof RustraCommandError);
+    assert.ok(error instanceof UnikitCommandError);
     assert.equal(error.code, 'invoke.failed');
     return true;
   });
@@ -2886,7 +2886,7 @@ void test('global invoke applies timeoutMs from options', async () => {
   try {
     await assert.rejects(
       invoke('slow', undefined, { timeoutMs: 30 }),
-      (err: unknown) => (err as RustraCommandError).code === 'transport.timeout',
+      (err: unknown) => (err as UnikitCommandError).code === 'transport.timeout',
     );
   } finally {
     configure(sentinel);
@@ -2913,7 +2913,7 @@ void test('global invokeBatch applies batch timeout from min entry timeoutMs', a
         { command: 'b', options: { timeoutMs: 500 } },
       ]),
       (err: unknown) => {
-        assert.ok(err instanceof RustraCommandError);
+        assert.ok(err instanceof UnikitCommandError);
         assert.equal(err.code, 'transport.timeout');
         assert.equal(err.retryable, true);
         return true;
@@ -3032,7 +3032,7 @@ void test('stale cached dynamic command is not found after resync shows removal 
   generation = 2;
   await assert.rejects(
     engine.invoke('dyn', {}),
-    (error: unknown) => error instanceof RustraCommandError && error.code === 'command.not_found',
+    (error: unknown) => error instanceof UnikitCommandError && error.code === 'command.not_found',
   );
 });
 
@@ -3190,7 +3190,7 @@ void test('schema codec: String (greet) — PINNED request/response wire', () =>
   assert.equal(r.result && (r.result as { message: string }).message, 'Hello, Lynx!');
 });
 
-void test('schema codec: error frame (divide by zero) — PINNED wire → RustraError', () => {
+void test('schema codec: error frame (divide by zero) — PINNED wire → UnikitError', () => {
   const codec = schemaCodec(
     10,
     {
@@ -3524,7 +3524,7 @@ void test('engine routes dynamic oneOf commands through a compiled complex codec
   // 보내면 와이어가 어긋나므로 createComplexCodec 으로 응답해야 한다.
   // 스키마는 schemars 실제 형태(probe): oneOf 는 definitions.ShapeLabel 안에
   // 있고(Idle=enum, Active=단일 프로퍼티 래퍼), live schema 는
-  // x-rustra-variant-order 를 annotate 한다(키 정렬 — Active=0, Idle=1).
+  // x-unikit-variant-order 를 annotate 한다(키 정렬 — Active=0, Idle=1).
   const holder: { req: ArrayBuffer | null } = { req: null };
   const native = makeNative({
     schema: schemaBytes([
@@ -3558,7 +3558,7 @@ void test('engine routes dynamic oneOf commands through a compiled complex codec
                 required: ['Active'],
               },
             ],
-            'x-rustra-variant-order': ['Idle', 'Active'],
+            'x-unikit-variant-order': ['Idle', 'Active'],
           },
         },
       },
@@ -3750,7 +3750,7 @@ void test('withRetry rethrows the last error unchanged after retries are exhaust
 
 void test('withRetry rejects immediately without retrying non-retryable codes', async () => {
   let calls = 0;
-  const notFound = new RustraCommandError(RustraErrorCode.CommandNotFound, 'missing', false);
+  const notFound = new UnikitCommandError(UnikitErrorCode.CommandNotFound, 'missing', false);
   let caught: unknown;
   try {
     await withRetry(
@@ -3788,7 +3788,7 @@ void test('withRetry respects a custom retryIf in both directions', async () => 
 
   // 방향 2: 기본 판정은 non-retryable 코드인데 retryIf 가 true → 재시도됨.
   let callsB = 0;
-  const notFound = new RustraCommandError(RustraErrorCode.CommandNotFound, 'missing', false);
+  const notFound = new UnikitCommandError(UnikitErrorCode.CommandNotFound, 'missing', false);
   const out = await withRetry(
     () => {
       callsB++;
@@ -3838,7 +3838,7 @@ void test('withRetry promotes a mid-flight signal abort to CancelledError', asyn
   );
   await assert.rejects(
     pending,
-    (err: unknown) => err instanceof CancelledError && err.code === RustraErrorCode.Cancelled,
+    (err: unknown) => err instanceof CancelledError && err.code === UnikitErrorCode.Cancelled,
   );
   assert.deepEqual(attempts, [0], 'abort during backoff sleep must cancel before the next attempt');
 });
@@ -3870,7 +3870,7 @@ void test('withRetry aborts a pending backoff sleep via the registered listener 
   }
   const elapsed = Date.now() - startedAt;
   assert.ok(caught instanceof CancelledError, 'timer abort must promote to CancelledError');
-  assert.equal(caught.code, RustraErrorCode.Cancelled);
+  assert.equal(caught.code, UnikitErrorCode.Cancelled);
   assert.equal(caught.cause, cause, 'abort promotion must preserve the failed error as cause');
   assert.equal(attempts.length, 1, 'aborted sleep must cancel before the next attempt');
   assert.ok(elapsed < 5000, `abort must cut the 10s sleep short immediately, took ${elapsed}ms`);
@@ -3888,7 +3888,7 @@ void test('withRetry rejects with CancelledError immediately when the signal is 
       },
       { signal: controller.signal },
     ),
-    (err: unknown) => err instanceof CancelledError && err.code === RustraErrorCode.Cancelled,
+    (err: unknown) => err instanceof CancelledError && err.code === UnikitErrorCode.Cancelled,
   );
   assert.equal(calls, 0, 'pre-aborted signal must never invoke fn');
 });
@@ -3969,26 +3969,26 @@ void test('withRetry passes 0-based attempt numbers to fn', async () => {
   assert.deepEqual(attempts, [0, 1, 2]);
 });
 
-// ── 응답 셰이프 검증 경고 (readiness Task 8) — RUSTRA_DEBUG 버전 스큐 조기 감지 ──
+// ── 응답 셰이프 검증 경고 (readiness Task 8) — UNIKIT_DEBUG 버전 스큐 조기 감지 ──
 
 type ShapeDebugEvent = { kind?: string; reason?: string; command?: string; value?: unknown };
 
 /**
- * debug 모드 테스트 하네스 — `__RUSTRA_DEBUG__` 스위치를 켜고 console.debug
+ * debug 모드 테스트 하네스 — `__UNIKIT_DEBUG__` 스위치를 켜고 console.debug
  * 미러 출력을 흡수해 테스트 결과를 깨끗하게 유지한다(node-loop.test.ts 관례).
  * `resetDebugEnvForTests()` 로 모듈 메모이즈된 dump 게이트 캐시를 먼저 무효화해
- * 주변 환경의 `RUSTRA_DEBUG=1` 이 스위치 판정에 새지 않게 한다(양방향 — 테스트
+ * 주변 환경의 `UNIKIT_DEBUG=1` 이 스위치 판정에 새지 않게 한다(양방향 — 테스트
  * 시작 시 환경을 고정하고, cleanup 때도 무효화해 이후 테스트가 오염되지 않게
  * 한다). 반환된 cleanup 을 finally 에서 반드시 호출한다.
  */
 function enableShapeDebugHarness(): () => void {
   resetDebugEnvForTests();
-  (globalThis as { __RUSTRA_DEBUG__?: unknown }).__RUSTRA_DEBUG__ = true;
+  (globalThis as { __UNIKIT_DEBUG__?: unknown }).__UNIKIT_DEBUG__ = true;
   const originalDebug = console.debug;
   console.debug = () => {};
   return () => {
     console.debug = originalDebug;
-    delete (globalThis as { __RUSTRA_DEBUG__?: unknown }).__RUSTRA_DEBUG__;
+    delete (globalThis as { __UNIKIT_DEBUG__?: unknown }).__UNIKIT_DEBUG__;
     resetDebugEnvForTests();
   };
 }
@@ -4070,14 +4070,14 @@ void test('broken envelope ({ok:true} payload-less) emits envelope_missing_paylo
 });
 
 void test('debug disabled: no response.shape events (passthrough unchanged)', async () => {
-  // 모듈 메모이즈된 dump 게이트 캐시를 먼저 무효화해야 주변 RUSTRA_DEBUG=1 환경이
+  // 모듈 메모이즈된 dump 게이트 캐시를 먼저 무효화해야 주변 UNIKIT_DEBUG=1 환경이
   // 이 테스트로 새지 않는다(스위치 판정은 캐시 무효화 후 env 만 본다).
   resetDebugEnvForTests();
   const shapes: ShapeDebugEvent[] = [];
   const engine = createJsonEngine(envelopeTransport({ ok: true, result: { value: 1 } }));
   try {
-    // sink-only 설치는 debugRustra 의 기존 계약(싱크만으로도 요청/응답 이벤트 도달)
-    // 이지만, 셰이프 감지는 isRustraDebugEnabled 로만 게이트된다 — 감지 게이트는
+    // sink-only 설치는 debugUnikit 의 기존 계약(싱크만으로도 요청/응답 이벤트 도달)
+    // 이지만, 셰이프 감지는 isUnikitDebugEnabled 로만 게이트된다 — 감지 게이트는
     // 싱크 유무와 무관하게 debug 스위치만 본다. 여기선 스위치 없이 싱크만 설치.
     configureDebug((event) => {
       if ((event as ShapeDebugEvent).kind === 'response.shape') shapes.push(event);
@@ -4087,7 +4087,7 @@ void test('debug disabled: no response.shape events (passthrough unchanged)', as
     assert.equal(shapes.length, 0, 'debug off must suppress the shape warning entirely');
   } finally {
     configureDebug(undefined);
-    delete (globalThis as { __RUSTRA_DEBUG__?: unknown }).__RUSTRA_DEBUG__;
+    delete (globalThis as { __UNIKIT_DEBUG__?: unknown }).__UNIKIT_DEBUG__;
     resetDebugEnvForTests();
   }
 });
@@ -4134,7 +4134,7 @@ void test('detection never throws on exotic result objects (frozen, null-prototy
   }
 });
 
-// ── rejection 경로 회귀 가드 — createJsonEngine 의 normalizeRustraError 배선 ──
+// ── rejection 경로 회귀 가드 — createJsonEngine 의 normalizeUnikitError 배선 ──
 // 셰이프 감지는 resolve 경로 전용이다. rejection 이 왔을 때 감지가 조용하다는
 // 핀과, transport reject 값이 기존 정규화 계약으로 변환된다는 점을 함께 잠근다.
 
@@ -4150,7 +4150,7 @@ void test('json-engine rejection path normalizes errors and emits no shape event
       if ((event as ShapeDebugEvent).kind === 'response.shape') shapes.push(event);
     });
 
-    // 실패 엔벨로프 reject — 최상위 code/message 가 아니므로 normalizeRustraError 는
+    // 실패 엔벨로프 reject — 최상위 code/message 가 아니므로 normalizeUnikitError 는
     // 구조화 경로에 진입하지 않고 unknown 으로 정규화한다(기존 계약 — 코드가
     // error 키 안으로 감춰져 있어 평탄화할 근거가 없다). 셰이프 경고도 없다.
     let engine = createJsonEngine(
@@ -4159,7 +4159,7 @@ void test('json-engine rejection path normalizes errors and emits no shape event
     await assert.rejects(
       engine.invoke('boom', {}),
       (error: unknown) =>
-        error instanceof RustraCommandError && error.code === 'unknown' && error.message.length > 0,
+        error instanceof UnikitCommandError && error.code === 'unknown' && error.message.length > 0,
       'envelope-shaped rejection must normalize (not crash, not resolve)',
     );
 
@@ -4168,7 +4168,7 @@ void test('json-engine rejection path normalizes errors and emits no shape event
     await assert.rejects(
       engine.invoke('boom', {}),
       (error: unknown) =>
-        error instanceof RustraCommandError &&
+        error instanceof UnikitCommandError &&
         error.code === 'x' &&
         error.message === 'y' &&
         error.retryable === false,
@@ -4179,12 +4179,12 @@ void test('json-engine rejection path normalizes errors and emits no shape event
     engine = createJsonEngine(rejectTransport(new Error('plain boom')));
     await assert.rejects(
       engine.invoke('boom', {}),
-      (error: unknown) => error instanceof RustraCommandError && error.code === 'invoke.failed',
+      (error: unknown) => error instanceof UnikitCommandError && error.code === 'invoke.failed',
     );
     engine = createJsonEngine(rejectTransport('string boom'));
     await assert.rejects(
       engine.invoke('boom', {}),
-      (error: unknown) => error instanceof RustraCommandError && error.code === 'unknown',
+      (error: unknown) => error instanceof UnikitCommandError && error.code === 'unknown',
     );
 
     assert.equal(shapes.length, 0, 'rejection path never emits response.shape');
@@ -4205,7 +4205,7 @@ void test('timeout race rejects with TimeoutError instance across all timeout pa
     invokeWithTimeout(hanging, 'addNumbers', { a: 1 }, { timeoutMs: 20 }),
     (err: unknown) => {
       assert.ok(err instanceof TimeoutError, 'invokeWithTimeout must throw TimeoutError');
-      assert.ok(err instanceof RustraCommandError, 'TimeoutError must remain a RustraCommandError');
+      assert.ok(err instanceof UnikitCommandError, 'TimeoutError must remain a UnikitCommandError');
       assert.equal(err.code, 'transport.timeout');
       assert.equal(err.retryable, true);
       return true;
@@ -4348,7 +4348,7 @@ void test('engine-level pre-aborted invoke and invokeById reject with CancelledE
   });
 });
 
-void test('unconfigured invoke rejects with RustraCommandError transport.unavailable', async () => {
+void test('unconfigured invoke rejects with UnikitCommandError transport.unavailable', async () => {
   // sentinel이 호출되면 이전 테스트 오염을 즉시 드러낸다.
   const sentinel: EngineClient = {
     invoke(): Promise<never> {
@@ -4364,10 +4364,10 @@ void test('unconfigured invoke rejects with RustraCommandError transport.unavail
     const returned = invoke('dyn', { a: 1 });
     assert.ok(returned instanceof Promise, 'unconfigured invoke must return a Promise');
     await assert.rejects(returned, (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'transport.unavailable');
       assert.equal(err.retryable, false);
-      assert.match((err as Error).message, /Rustra not configured/);
+      assert.match((err as Error).message, /Unikit not configured/);
       return true;
     });
   } finally {
@@ -4395,7 +4395,7 @@ void test('unconfigured invokeGenerated and invokeGeneratedFields reject instead
     const gen = invokeGenerated<{ v: number }>(1, 'dyn');
     assert.ok(gen instanceof Promise, 'unconfigured invokeGenerated must return a Promise');
     await assert.rejects(gen, (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'transport.unavailable');
       assert.equal(err.retryable, false);
       return true;
@@ -4405,7 +4405,7 @@ void test('unconfigured invokeGenerated and invokeGeneratedFields reject instead
     const fields = invokeGeneratedFields2<{ v: number }>(1, 'dyn', { a: 1 }, 1, 2);
     assert.ok(fields instanceof Promise, 'unconfigured invokeFields must return a Promise');
     await assert.rejects(fields, (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'transport.unavailable');
       return true;
     });
@@ -4414,7 +4414,7 @@ void test('unconfigured invokeGenerated and invokeGeneratedFields reject instead
     const bytes = invokeGeneratedBytes(1, 'dyn', { data: new ArrayBuffer(0) }, new ArrayBuffer(0));
     assert.ok(bytes instanceof Promise, 'unconfigured invokeGeneratedBytes must return a Promise');
     await assert.rejects(bytes, (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'transport.unavailable');
       return true;
     });
@@ -4443,7 +4443,7 @@ void test('unconfigured invokeBatch and ensureConfigured reject with transport.u
     const batch = invokeBatch<{ v: number }>([{ command: 'a' }]);
     assert.ok(batch instanceof Promise, 'unconfigured invokeBatch must return a Promise');
     await assert.rejects(batch, (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'transport.unavailable');
       return true;
     });
@@ -4453,12 +4453,12 @@ void test('unconfigured invokeBatch and ensureConfigured reject with transport.u
     const settledP = invokeBatchSettled<{ v: number }>([{ command: 'a' }]);
     assert.ok(settledP instanceof Promise, 'unconfigured invokeBatchSettled must return a Promise');
     await assert.rejects(settledP, (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'transport.unavailable');
       return true;
     });
     await assert.rejects(invokeBatchSettled([]), (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'transport.unavailable');
       return true;
     });
@@ -4466,9 +4466,9 @@ void test('unconfigured invokeBatch and ensureConfigured reject with transport.u
     // ensureConfigured (global-config.ts) — 미구성 안내는 호스트 중립(감사 A8).
     // Node/Bun/Tauri 사용자에게 "React Native entry" 를 지시하지 않는다.
     await assert.rejects(ensureConfigured(), (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'transport.unavailable');
-      assert.match((err as Error).message, /Rustra not configured/);
+      assert.match((err as Error).message, /Unikit not configured/);
       assert.match(
         (err as Error).message,
         /import your generated host entry \(node\.ts\/bun\.ts\/tauri\.ts\/react-native\.ts\)/,
@@ -4545,7 +4545,7 @@ void test('wire batch options object without timeoutMs still rides the single cr
 
 void test('wire batch turns a synchronous transport throw into a rejected Promise (R04-b)', async () => {
   // 단건 경로(json-engine invoke)는 transport 동기 throw 를 catch 해서
-  // Promise.reject(normalizeRustraError(error)) 로 정규화한다. 배치 경로도
+  // Promise.reject(normalizeUnikitError(error)) 로 정규화한다. 배치 경로도
   // 동일해야 한다 — 동기 throw 는 호출자의 try/catch 를 건너뛰는 계약 위반이다.
   const engine = createJsonEngine({
     invoke: () => Promise.resolve('unused'),
@@ -4558,14 +4558,14 @@ void test('wire batch turns a synchronous transport throw into a rejected Promis
   const returned = engine.invokeBatch([{ command: 'a' }, { command: 'b' }]);
   assert.ok(returned instanceof Promise, 'sync throw must not escape invokeBatch');
   await assert.rejects(returned, (err: unknown) => {
-    assert.ok(err instanceof RustraCommandError, 'must pass through normalizeRustraError');
+    assert.ok(err instanceof UnikitCommandError, 'must pass through normalizeUnikitError');
     assert.equal(err.code, 'transport.error');
     assert.equal(err.message, 'wire batch blew up');
     assert.equal(err.retryable, true);
     return true;
   });
 
-  // plain Error 동기 throw — normalizeRustraError 의 fallback 계약(invoke.failed).
+  // plain Error 동기 throw — normalizeUnikitError 의 fallback 계약(invoke.failed).
   const plainEngine = createJsonEngine({
     invoke: () => Promise.resolve('unused'),
     invokeBatch: () => {
@@ -4574,7 +4574,7 @@ void test('wire batch turns a synchronous transport throw into a rejected Promis
   });
   await assert.rejects(
     plainEngine.invokeBatch([{ command: 'a' }]),
-    (err: unknown) => err instanceof RustraCommandError && err.code === 'invoke.failed',
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'invoke.failed',
   );
 });
 
@@ -4594,7 +4594,7 @@ void test('wire batch throwing custom normalizer converges to a rejection like t
   const returned = engine.invokeBatch([{ command: 'a' }]);
   assert.ok(returned instanceof Promise, 'normalizer sync throw must not escape invokeBatch');
   await assert.rejects(returned, (err: unknown) => {
-    assert.ok(err instanceof RustraCommandError, 'must pass through normalizeRustraError');
+    assert.ok(err instanceof UnikitCommandError, 'must pass through normalizeUnikitError');
     assert.equal(err.code, 'invoke.failed');
     assert.match((err as Error).message, /normalizer exploded/);
     return true;
@@ -4763,7 +4763,7 @@ void test('global invokeBatch matches the wire batch on timeout 0, sync throw, a
     const returned = invokeBatch([{ command: 'a' }]);
     assert.ok(returned instanceof Promise, 'global path: sync throw must not escape');
     await assert.rejects(returned, (err: unknown) => {
-      assert.ok(err instanceof RustraCommandError);
+      assert.ok(err instanceof UnikitCommandError);
       assert.equal(err.code, 'transport.error');
       assert.equal(err.message, 'wire batch blew up');
       assert.equal(err.retryable, true);
@@ -5163,7 +5163,7 @@ void test('R06 핵심: native cancel 이 throw 해도 rejection 으로 정착하
     (err: unknown) => {
       settled = 'cancelled';
       assert.ok(err instanceof CancelledError, 'abort settle must be a CancelledError');
-      assert.equal(err.code, RustraErrorCode.Cancelled);
+      assert.equal(err.code, UnikitErrorCode.Cancelled);
       assert.equal(
         err.cause,
         cancelError,
@@ -5198,7 +5198,7 @@ void test('R06 회귀 가드: 정상 cancel 은 기존대로 rejection 으로 �
     pending,
     (err: unknown) => {
       assert.ok(err instanceof CancelledError);
-      assert.equal(err.code, RustraErrorCode.Cancelled);
+      assert.equal(err.code, UnikitErrorCode.Cancelled);
       assert.equal(err.cause, undefined, 'successful cancel must not fabricate a cause');
       return true;
     },
@@ -5364,7 +5364,7 @@ void test('R06 실제 신호: AbortController 로도 핵심 사례가 동일하�
 // 고정한다 — 승격 로직 자체는 errors.ts 기존 구현 그대로(회귀 고정).
 
 void test('R07 도착: wire 구조화 transport.timeout rejection 을 전역 invoke 파사드가 TimeoutError 로 승격한다', async () => {
-  // json-engine 의 .catch(normalizeRustraError) 배선 → errors.ts 승격 →
+  // json-engine 의 .catch(normalizeUnikitError) 배선 → errors.ts 승격 →
   // cancel.ts 레이스 경유. instanceof 분기가 파사드 경로 끝까지 살아있는지.
   const sentinel: EngineClient = {
     invoke(): Promise<never> {
@@ -5380,7 +5380,7 @@ void test('R07 도착: wire 구조화 transport.timeout rejection 을 전역 inv
     );
     await assert.rejects(invoke('slow', { a: 1 }), (err: unknown) => {
       assert.ok(err instanceof TimeoutError, 'wire timeout must surface as TimeoutError');
-      assert.ok(err instanceof RustraCommandError, 'TimeoutError must stay a RustraCommandError');
+      assert.ok(err instanceof UnikitCommandError, 'TimeoutError must stay a UnikitCommandError');
       assert.equal(err.code, 'transport.timeout');
       assert.equal(err.retryable, true, 'wire retryable must be derived');
       assert.match((err as Error).message, /wire timed out/);
@@ -5430,28 +5430,28 @@ void test('R07 도착: 승격된 서브클래스도 cause 와 retryable 을 보�
   // errors.ts 승격 경로 — 원본 wire 객체가 cause 로 남고 retryable 유실이
   // 없어야 재시도·원인 추적 코드가 instanceof 경로에서도 동작한다.
   const wire = { code: 'transport.timeout', message: 'backend died', retryable: true };
-  const promoted = normalizeRustraError(wire);
+  const promoted = normalizeUnikitError(wire);
   assert.ok(promoted instanceof TimeoutError);
   assert.equal(promoted.cause, wire, 'the original wire object must remain the cause');
   assert.equal(promoted.retryable, true);
   assert.equal(promoted.code, 'transport.timeout');
 
   const cancelledWire = { code: 'cancelled', message: 'host aborted' };
-  const cancelled = normalizeRustraError(cancelledWire);
+  const cancelled = normalizeUnikitError(cancelledWire);
   assert.ok(cancelled instanceof CancelledError);
   assert.equal(cancelled.cause, cancelledWire);
   assert.equal(cancelled.retryable, true, 'cancelled code implies retryable');
   assert.equal(cancelled.code, 'cancelled');
 });
 
-void test('R07 회귀: 사용자 code 커스텀 RustraCommandError 는 normalize 를 통과해도 원본이 보존된다', async () => {
-  // 정책 — normalizeRustraError 의 instanceof fast-path: 이미 RustraCommandError
+void test('R07 회귀: 사용자 code 커스텀 UnikitCommandError 는 normalize 를 통과해도 원본이 보존된다', async () => {
+  // 정책 — normalizeUnikitError 의 instanceof fast-path: 이미 UnikitCommandError
   // (및 서브클래스)인 값은 절대 재생성하지 않는다. 사용자가 code 를 커스텀한
   // 인스턴스를 transport 가 그대로 reject 해도 객체 동일성·코드·retryable 이
   // 유지된다. json-engine 배선을 통해서도 동일(정규화 관통).
-  const custom = new RustraCommandError('order.conflict', 'order 42 already shipped', true);
-  const passedThrough = normalizeRustraError(custom);
-  assert.equal(passedThrough, custom, 'RustraCommandError instances must pass through untouched');
+  const custom = new UnikitCommandError('order.conflict', 'order 42 already shipped', true);
+  const passedThrough = normalizeUnikitError(custom);
+  assert.equal(passedThrough, custom, 'UnikitCommandError instances must pass through untouched');
   assert.equal(passedThrough.code, 'order.conflict');
   assert.equal(passedThrough.retryable, true);
 
@@ -5703,7 +5703,7 @@ void test('A04 와이어 배치 무시: invokeBatch 를 지원해도 settled 은
 });
 
 // ── 디바이스 역량 조회 표면 (디바이스 역량 계약 레이어 D/E절) ──────────────
-// 선언과 조회는 rustra 몫, OS 권한 요청은 호스트 몫 — JS 표면은 provider
+// 선언과 조회는 unikit 몫, OS 권한 요청은 호스트 몫 — JS 표면은 provider
 // 등록/조회만 갖는다(요청 API 없음). 미등록·provider 예외 모두 fail-open
 // (조회가 부수효과를 만들지 않는다). provider 슬롯은 configure 관례의
 // 모듈 전역 1-slot — 테스트 간 오염 방지를 위해 resetDeviceStatusForTests 로 정리.
@@ -5831,10 +5831,10 @@ void test('duplicate package copies share the registered provider', async () => 
 });
 
 void test('device error codes are registered and non-retryable (E절)', () => {
-  assert.equal(RustraErrorCode.DeviceUnavailable, 'device.unavailable');
-  assert.equal(RustraErrorCode.DevicePermissionDenied, 'device.permission_denied');
-  assert.equal(isRustraErrorCode('device.unavailable'), true);
-  assert.equal(isRustraErrorCode('device.permission_denied'), true);
+  assert.equal(UnikitErrorCode.DeviceUnavailable, 'device.unavailable');
+  assert.equal(UnikitErrorCode.DevicePermissionDenied, 'device.permission_denied');
+  assert.equal(isUnikitErrorCode('device.unavailable'), true);
+  assert.equal(isUnikitErrorCode('device.permission_denied'), true);
   // 역량 부재와 사용자·정책 거부는 재시도로 해결되지 않는다.
   assert.equal(isRetryableCode('device.unavailable'), false);
   assert.equal(isRetryableCode('device.permission_denied'), false);

@@ -1,12 +1,12 @@
 [package]
-name = "rustra-auth-example"
+name = "unikit-auth-example"
 edition.workspace = true
 license.workspace = true
 version.workspace = true
 publish = false
 
 [dependencies]
-rustra.workspace = true
+unikit-bridge.workspace = true
 schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -14,9 +14,9 @@ sha2.workspace = true
 hex.workspace = true
 
 [[bin]]
-name = "rustra-auth-generate"
+name = "unikit-auth-generate"
 path = "src/bin/generate.rs"
 
 [[bin]]
-name = "rustra-auth-invoke"
+name = "unikit-auth-invoke"
 path = "src/bin/invoke.rs"

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Rust 1.98.0, Criterion 0.8, Bun 1.4.1, Git worktree, GitHub Actions
 
-**Spec:** `docs/specs/2026-09-14-rustra-roadmap.md`
+**Spec:** `docs/specs/2026-09-14-unikit-roadmap.md`
 
 ## Global Constraints
 
@@ -25,7 +25,7 @@
 
 **Files:**
 
-- Modify: `crates/rustra/benches/complex_route.rs`
+- Modify: `crates/unikit-bridge/benches/complex_route.rs`
 - Create: `scripts/benchmark-workflow.test.mjs`
 - Modify: `.github/workflows/bench.yml`
 
@@ -53,7 +53,7 @@
 - Modify: `docs/benchmarks.md`
 - Modify: `docs/benchmarks.ko.md`
 - Modify: `docs/verification/2026-09-14-m0-safety-release.md`
-- Modify: `docs/specs/2026-09-14-rustra-roadmap.md`
+- Modify: `docs/specs/2026-09-14-unikit-roadmap.md`
 
 - [x] A/B 수치와 안전성/성능 trade-off를 EN/KO에 기록한다.
 - [x] 코어 microbenchmark, host, 실제 소비자, 실기기를 서로 다른 증거 수준으로 표시한다.

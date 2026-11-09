@@ -2,9 +2,9 @@
 
 # 플랫폼 권한 가이드 (호스트 앱 대상)
 
-## 1. 범위: rustra-bridge가 하는 일과 하지 않는 일
+## 1. 범위: unikit-bridge가 하는 일과 하지 않는 일
 
-rustra-bridge는 Rust 엔진과 JS/React Native 브릿지 라이브러리입니다. **운영체제 권한(카메라, 마이크, 위치, 파일 시스템, 네트워크 등)을 요청하지 않으며**, 자체적인 플랫폼 권한 선언도 포함하지 않습니다.
+unikit-bridge는 Rust 엔진과 JS/React Native 브릿지 라이브러리입니다. **운영체제 권한(카메라, 마이크, 위치, 파일 시스템, 네트워크 등)을 요청하지 않으며**, 자체적인 플랫폼 권한 선언도 포함하지 않습니다.
 
 설계상 호스트 앱이 플랫폼 권한 UX를 소유합니다:
 
@@ -18,20 +18,20 @@ Native bridge owns only engine lifecycle and platform permission UX.
 
 라이브러리 자체의 인가 계층은 **명령 단위 capability 시스템**(Runtime Authority)입니다: 기본 거부(deny-by-default), 빌더에서 `require_capability`, 런타임에 `grant_capability`. 이 시스템은 *누가 브릿지 명령을 호출할 수 있는가*를 다루며, OS 수준 권한 프롬프트와는 독립적이고 이를 대체하지도 않습니다. [Rust API 가이드](./rust-api-guide.ko.md)의 "Runtime Authority (capabilities)" 부분과 빌더의 `.require_capability(name, cap)` 항목을 참고하세요.
 
-이 가이드는 rustra를 임베딩하는 호스트 앱이 소유해야 할 플랫폼 권한 영역을 안내합니다.
+이 가이드는 unikit를 임베딩하는 호스트 앱이 소유해야 할 플랫폼 권한 영역을 안내합니다.
 
 ---
 
 ## 2. 어떤 계층이 어떤 질문에 답하는가?
 
-| 질문                                                       | OS 권한 (iOS/Android/Windows/macOS)      | Tauri ACL (capabilities/permissions) | rustra capability 시스템                   |
+| 질문                                                       | OS 권한 (iOS/Android/Windows/macOS)      | Tauri ACL (capabilities/permissions) | unikit capability 시스템                   |
 | ---------------------------------------------------------- | ---------------------------------------- | ------------------------------------ | ------------------------------------------ |
 | 앱이 하드웨어(카메라, 마이크, 위치)에 접근해도 되는가?     | **예** — 선언 + 런타임 프롬프트          | 아니오 (일부 Tauri 플러그인 제외)    | 아니오                                     |
 | 이 윈도우/웹뷰가 이 Tauri 명령/플러그인을 호출해도 되는가? | 아니오                                   | **예**                               | `tauri_support`를 경유하는 명령에 한해서만 |
 | 런타임에 누가 이 브릿지 명령을 호출할 수 있는가?           | 아니오                                   | 아니오                               | **예** — 기본 거부, `grant_capability`     |
 | 앱이 원격 코드를 로드하거나 임의 origin에 연결해도 되는가? | 부분적으로 (ATS, cleartext, 앱 수준 CSP) | **예** — `tauri.conf.json`의 CSP     | 아니오                                     |
 
-요약: OS 권한은 **하드웨어와 시스템 리소스**를, Tauri ACL은 **어떤 웹뷰가 어떤 Tauri 플러그인 명령을 호출할 수 있는지**를, rustra capability는 **부여되기 전까지 어떤 브릿지 명령도 호출 불가**임을 다룹니다.
+요약: OS 권한은 **하드웨어와 시스템 리소스**를, Tauri ACL은 **어떤 웹뷰가 어떤 Tauri 플러그인 명령을 호출할 수 있는지**를, unikit capability는 **부여되기 전까지 어떤 브릿지 명령도 호출 불가**임을 다룹니다.
 
 ---
 
@@ -39,7 +39,7 @@ Native bridge owns only engine lifecycle and platform permission UX.
 
 ### 3-1. Tauri ACL
 
-Tauri v2는 ACL(Access Control List) 시스템을 사용합니다: capabilities 파일(`src-tauri/capabilities/*.json`)이 어떤 윈도우가 어떤 플러그인 권한을 쓸 수 있는지 선언합니다. `rustra::tauri_support`(`tauri_support::register(pkg, builder)` / `register_with_events(pkg, builder)`)로만 디스패치하는 rustra 호스트는 보통 기본값 이외의 ACL 부여가 거의 필요 없습니다 — rustra 명령은 플러그인이 아니라 Tauri의 invoke 핸들러를 탑니다. 전체 모델은 공식 Tauri "Capabilities" / "Permissions" 문서를 참고하세요.
+Tauri v2는 ACL(Access Control List) 시스템을 사용합니다: capabilities 파일(`src-tauri/capabilities/*.json`)이 어떤 윈도우가 어떤 플러그인 권한을 쓸 수 있는지 선언합니다. `unikit_bridge::tauri_support`(`tauri_support::register(pkg, builder)` / `register_with_events(pkg, builder)`)로만 디스패치하는 unikit 호스트는 보통 기본값 이외의 ACL 부여가 거의 필요 없습니다 — unikit 명령은 플러그인이 아니라 Tauri의 invoke 핸들러를 탑니다. 전체 모델은 공식 Tauri "Capabilities" / "Permissions" 문서를 참고하세요.
 
 참고: `examples/tauri-calculator`의 `gen/schemas/capabilities.json`은 비어 있습니다 — 계산기 명령에는 추가 ACL 항목이 필요 없습니다.
 
@@ -47,9 +47,9 @@ Tauri v2는 ACL(Access Control List) 시스템을 사용합니다: capabilities 
 
 `tauri.conf.json > app.security.csp`는 웹뷰가 로드할 수 있는 것을 제어합니다. 예제는 `"csp": null`로 배포됩니다(개발 편의용, 프로덕션 비권장). 특히 프론트엔드가 `invoke`로 브릿지와 통신한다면 프로덕션에서는 제한적인 CSP를 설정하세요.
 
-### 3-3. rustra capability 시스템 (별개의 계층)
+### 3-3. unikit capability 시스템 (별개의 계층)
 
-Tauri 안에서도 `require_capability`로 보호된 rustra 명령은 라이브러리 자체의 기본 거부 검사를 따릅니다(`grant_capability` 전까지 `capability.denied`). Tauri ACL과 rustra capability는 조합되며 서로를 대체하지 않습니다. [Rust API 가이드](./rust-api-guide.ko.md) 참고.
+Tauri 안에서도 `require_capability`로 보호된 unikit 명령은 라이브러리 자체의 기본 거부 검사를 따릅니다(`grant_capability` 전까지 `capability.denied`). Tauri ACL과 unikit capability는 조합되며 서로를 대체하지 않습니다. [Rust API 가이드](./rust-api-guide.ko.md) 참고.
 
 ---
 
@@ -58,7 +58,7 @@ Tauri 안에서도 `require_capability`로 보호된 rustra 명령은 라이브�
 - **WebView2 런타임**: Windows의 Tauri는 Microsoft Edge WebView2에서 렌더링됩니다. 대부분의 Windows 10/11에는 이미 포함되어 있고, 없다면 부트스트래퍼/런타임 설치가 필요합니다(Tauri 번들러는 고정 WebView2 런타임 다운로드를 지원). 권한이 아니라 환경 요구사항입니다.
 - **MSIX / 패키지 아이덴티티**: 일부 Windows capability(일부 디바이스 접근, 광범위 파일 시스템 접근 등)는 앱에 패키지 아이덴티티가 있을 때(MSIX 패키징 또는 적절한 서명)만 의미가 있습니다. 서명되지 않은 실행 파일은 capability 선택지는 적지만 일반적인 파일/네트워크 접근의 제약은 더 적습니다. 배포 모델(MSIX, 서명된 MSI/NSIS 인스톨러, 포터블 EXE)에 따라 결정하세요.
 - **호스트가 필요할 수 있는 전형적 권한**: 순수 계산 브릿지에는 아무것도 필요 없습니다(계산기 예제는 아무것도 요청하지 않음). 브릿지 명령이 파일·카메라·마이크를 다룬다면 패키징 매니페스트에 해당 Windows capability를 선언하거나 Windows 프라이버시 설정 프롬프트를 처리해야 합니다.
-- **SmartScreen**: 서명되지 않은 인스톨러/EXE는 SmartScreen 경고를 유발합니다. 코드 서명(EV 인증서 포함)은 rustra가 아닌 배포 측 관심사입니다.
+- **SmartScreen**: 서명되지 않은 인스톨러/EXE는 SmartScreen 경고를 유발합니다. 코드 서명(EV 인증서 포함)은 unikit가 아닌 배포 측 관심사입니다.
 
 ---
 
@@ -75,7 +75,7 @@ Tauri 안에서도 `require_capability`로 보호된 rustra 명령은 라이브�
 
 iOS는 Info.plist 사용 설명과 런타임 프롬프트로 하드웨어를 보호합니다. 브릿지 명령이 실제로 다루는 것에 대해서만 키를 추가하세요. 자주 쓰는 항목:
 
-| 키                                    | 리소스               | rustra 호스트가 필요한 시점    |
+| 키                                    | 리소스               | unikit 호스트가 필요한 시점    |
 | ------------------------------------- | -------------------- | ------------------------------ |
 | `NSCameraUsageDescription`            | 카메라               | 사진/동영상 촬영 브릿지 명령   |
 | `NSMicrophoneUsageDescription`        | 마이크               | 오디오 녹음 브릿지 명령        |
@@ -106,13 +106,13 @@ iOS는 Info.plist 사용 설명과 런타임 프롬프트로 하드웨어를 보
 
 - `INTERNET`은 개발 서버에서 번들을 로드하거나 원격 리소스를 가져오는 모든 앱의 기본선입니다.
 - Cleartext 트래픽은 별도로 제어됩니다(`android:usesCleartextTraffic`); RN wasm 스파이크는 빌드 타입별로 템플릿화합니다.
-- 런타임 프롬프트 순서: 매니페스트 선언 → 런타임 요청 → 그 후에야 해당 리소스를 쓰는 브릿지 명령 호출. rustra의 `grant_capability`는 OS 승인을 확인한 뒤 명령을 활성화하는 자연스러운 지점입니다.
+- 런타임 프롬프트 순서: 매니페스트 선언 → 런타임 요청 → 그 후에야 해당 리소스를 쓰는 브릿지 명령 호출. unikit의 `grant_capability`는 OS 승인을 확인한 뒤 명령을 활성화하는 자연스러운 지점입니다.
 
 ---
 
-## 8. 디바이스 역량 계약 (rustra 측)
+## 8. 디바이스 역량 계약 (unikit 측)
 
-OS 권한은 계속 호스트 소관이다. 대신 rustra 는 커맨드가 전제하는 디바이스
+OS 권한은 계속 호스트 소관이다. 대신 unikit 는 커맨드가 전제하는 디바이스
 역량을 **선언**하고 JS 에서 상태를 **조회**하는 표준 표면을 제공한다 —
 호스트 앱마다 ad-hoc 배선이 갈라지는 것을 막는다.
 
@@ -134,14 +134,14 @@ OS/플러그인/라이브러리 교차표는
 [docs/dev/research/2026-09-08-device-capabilities.md](./dev/research/2026-09-08-device-capabilities.md)에
 있다.
 
-선언은 계약 문서이지 런타임 게이팅이 아니다 — rustra 는 invoke 를 막지 않고
+선언은 계약 문서이지 런타임 게이팅이 아니다 — unikit 는 invoke 를 막지 않고
 프롬프트도 띄우지 않는다. `devices` 선언은 schema.json(따라서 계약 해시)을
-바꾼다 — 의도된 진화이며 `rustra diff` 가 잡는다.
+바꾼다 — 의도된 진화이며 `unikit diff` 가 잡는다.
 
 **조회 (TypeScript)** — 앱 전체에서 등록된 provider 1개가 응답한다:
 
 ```ts
-import { registerDeviceStatusProvider, getDeviceStatus } from '@rustra/types';
+import { registerDeviceStatusProvider, getDeviceStatus } from '@unikit-bridge/types';
 
 registerDeviceStatusProvider(async (capability) => {
   if (capability === 'camera') return { availability: 'available', permission: 'granted' };
@@ -155,11 +155,11 @@ const status = await getDeviceStatus('camera');
 
 provider 미등록 시 조회는 fail-open(`unknown`/`unknown`, 1회 debug 안내)이다 —
 이후 동작은 호스트 앱이 정한다. 강제하고 싶은 호스트는 스스로
-`device.unavailable` / `device.permission_denied` 를 발행한다 — rustra 코어는
+`device.unavailable` / `device.permission_denied` 를 발행한다 — unikit 코어는
 이 코드들을 반환하는 경로가 없다.
 
 **계층의 조합**: OS 는 하드웨어를 게이트하고(선언+런타임 프롬프트), Tauri ACL 은
-어떤 웹뷰가 플러그인을 호출할 수 있는지, rustra capability 는 누가 브릿지
+어떤 웹뷰가 플러그인을 호출할 수 있는지, unikit capability 는 누가 브릿지
 명령을 호출할 수 있는지를 게이팅하며, 디바이스 선언은 그 명령이 하드웨어를
 **왜** 필요로 하는지를 문서화한다 — §2 참조.
 

@@ -54,12 +54,12 @@ export async function ensureReactNativeAdapter(
         'Restore that generated workspace before installing, or explicitly remove its stale dependency and rerun setup. Existing files were preserved.',
     );
   }
-  if (sections.some((section) => section?.['@rustra/react-native'] !== undefined)) {
+  if (sections.some((section) => section?.['@unikit-bridge/react-native'] !== undefined)) {
     return { changedFiles: [], needsInstall };
   }
   manifest.dependencies = {
     ...(manifest.dependencies ?? {}),
-    '@rustra/react-native': options.adapterRange,
+    '@unikit-bridge/react-native': options.adapterRange,
   };
   const next = `${JSON.stringify(manifest, null, 2)}\n`;
   if (next !== raw) await writeFile(path, next);
@@ -80,13 +80,13 @@ export async function prepareReactNativeHost(
   const artifact = join(resolve(options.moduleDir), 'scripts/prepare-native.cjs');
   if (!existsSync(artifact)) {
     throw new Error(
-      `Generated native preparation entry is missing at ${artifact}. Run rustra codegen first, then rerun setup.`,
+      `Generated native preparation entry is missing at ${artifact}. Run unikit codegen first, then rerun setup.`,
     );
   }
   const { path, raw, manifest } = await readManifest(options.appRoot);
   const scripts = ['ios', 'android'].map((platform) => ({
-    name: `rustra:${platform}`,
-    command: `node -e "require('@rustra/generated-react-native/scripts/prepare-native.cjs').prepare('${platform}')"`,
+    name: `unikit:${platform}`,
+    command: `node -e "require('@unikit-bridge/generated-react-native/scripts/prepare-native.cjs').prepare('${platform}')"`,
   }));
   const conflicts: ReactNativeHostPreparation['conflicts'] = [];
   const current = { ...(manifest.scripts ?? {}) };
@@ -111,8 +111,8 @@ export async function prepareReactNativeHost(
     scripts,
     conflicts,
     followup: [
-      'Run rustra:ios to prepare Pods, or rustra:android to build the debug APK. These commands do not install or launch an app.',
-      'Then rebuild/launch the native app with its existing React Native or Expo command and import typed commands from the generated react-native entry. Expo Go cannot load Rustra JSI.',
+      'Run unikit:ios to prepare Pods, or unikit:android to build the debug APK. These commands do not install or launch an app.',
+      'Then rebuild/launch the native app with its existing React Native or Expo command and import typed commands from the generated react-native entry. Expo Go cannot load Unikit JSI.',
     ],
   };
 }

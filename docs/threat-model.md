@@ -10,15 +10,15 @@ backed by code is listed under [Open gaps](#open-gaps).
 
 ## Scope
 
-rustra-bridge is a Rust engine plus a TypeScript bridge layer that lets JS
+unikit-bridge is a Rust engine plus a TypeScript bridge layer that lets JS
 runtimes (Node, Bun, Tauri WebView, React Native) call into compiled Rust
 command handlers over a binary FFI boundary. The assets and boundaries below
-cover the repository as shipped: `crates/rustra`, `packages/*`, generated
+cover the repository as shipped: `crates/unikit-bridge`, `packages/*`, generated
 clients, and the CI/CD surface.
 
 Out of scope: the security of the host OS, the WebView engine, or the JS
 runtime itself; application-level authz inside user command handlers
-(rustra's capability system is the boundary rustra owns).
+(unikit's capability system is the boundary unikit owns).
 
 ## Assets
 
@@ -27,47 +27,47 @@ runtime itself; application-level authz inside user command handlers
 | A1  | Rust command handlers (native logic, file/net/process access the host grants) | Highest-privilege code in the process                                       |
 | A2  | Process memory across the FFI boundary                                        | A single wrong-length free or OOB read is memory corruption in the host app |
 | A3  | The wire protocol (Frame / JSON frames)                                       | Parser bugs = memory safety bugs in Rust                                    |
-| A4  | The event channel (`rustra://…`)                                              | Leaks handler output; spoofable broadcasts confuse app state                |
+| A4  | The event channel (`unikit://…`)                                              | Leaks handler output; spoofable broadcasts confuse app state                |
 | A5  | The global engine slot (versioned `Symbol.for` keys)                          | Whoever owns it routes every `invoke` in the JS realm                       |
 | A6  | Supply chain (crates.io deps, npm deps, generated code)                       | Compromise ships inside every consumer app                                  |
 
 ## Trust boundaries
 
-1. **JS → Rust FFI entry points** (`rustra_ffi_invoke*` family,
-   `crates/rustra/src/ffi*.rs`). Every byte arriving here is untrusted,
+1. **JS → Rust FFI entry points** (`unikit_ffi_invoke*` family,
+   `crates/unikit-bridge/src/ffi*.rs`). Every byte arriving here is untrusted,
    including lengths: the payload size gate runs _before_ the copy
    (`ffi_async_entries.rs`, `max_payload_bytes()` in `limits.rs`).
 2. **JSI boundary** (React Native, `packages/react-native/src/`). The JSI
-   surface (`RustraJSINative`: `invoke(ArrayBuffer)`, `onEvent`, `createChannel`,
+   surface (`UnikitJSINative`: `invoke(ArrayBuffer)`, `onEvent`, `createChannel`,
    `dropChannel`) has no origin/permission isolation — any JS loaded into the
-   RN context can call it. rustra's defense is on the Rust side (A1
+   RN context can call it. unikit's defense is on the Rust side (A1
    capability checks), not the JS side.
 3. **Rust → JS event push** (`events.rs`, Tauri `emit`, RN
    `DeviceEventEmitter`). Broadcast trust model: every listener in the JS
-   realm receives every `rustra://` event.
+   realm receives every `unikit://` event.
 4. **Deserializer** (`frame_decode.rs`, JSON paths in adapters). Untrusted
    input by definition — the Frame decoder is a hand-written, bounds-checked
    cursor decoder (length prefixes checked against `payload.len()` before
    every slice, `from_utf8` validation).
 5. **Codegen / build pipeline** (`packages/cli`). `schema.json` is the single
    source of truth; generated files are guarded by codegen `--check` and the
-   `.rustra-generated.json` manifest.
+   `.unikit-generated.json` manifest.
 
 ## STRIDE mapping
 
 | Threat (STRIDE)                                                   | Where                                           | Mitigated by (actual code)                                                                                                                                                                                                                                                                                                                                                            | Residual                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **S** — Spoofing: forged event delivery                           | JS listeners on `rustra://` channels            | `event_channel()` prefixes every channel with `rustra://` and `sanitize_event_name()` (`tauri_support.rs`) whitelists Unicode alphanumerics + `-/:/_`; events carry only handler-emitted payloads                                                                                                                                                                                     | Any JS in the realm can _listen_ and, via the host emitter, _emit_ onto the namespace — no per-event origin authentication. Same-realm trust assumption — **open**                                                                                                                                                                                                                                                                                            |
-| **S** — Spoofing: hijacking the global engine slot                | `Symbol.for` globals (`global-state.ts`)        | Keys are **versioned** (`dev.rustra.types.v0.4.0.*`) so mismatched versions do not cross-talk                                                                                                                                                                                                                                                                                         | Last-registered bootstrap wins (R08 in the stabilization doc); cross-library slot squatting within one realm is **open**                                                                                                                                                                                                                                                                                                                                      |
+| **S** — Spoofing: forged event delivery                           | JS listeners on `unikit://` channels            | `event_channel()` prefixes every channel with `unikit://` and `sanitize_event_name()` (`tauri_support.rs`) whitelists Unicode alphanumerics + `-/:/_`; events carry only handler-emitted payloads                                                                                                                                                                                     | Any JS in the realm can _listen_ and, via the host emitter, _emit_ onto the namespace — no per-event origin authentication. Same-realm trust assumption — **open**                                                                                                                                                                                                                                                                                            |
+| **S** — Spoofing: hijacking the global engine slot                | `Symbol.for` globals (`global-state.ts`)        | Keys are **versioned** (`dev.unikit.types.v0.4.0.*`) so mismatched versions do not cross-talk                                                                                                                                                                                                                                                                                         | Last-registered bootstrap wins (R08 in the stabilization doc); cross-library slot squatting within one realm is **open**                                                                                                                                                                                                                                                                                                                                      |
 | **T** — Tampering: malformed invoke frames                        | FFI entry points                                | Size gate before copy (`payload.too_large`, default 1 MiB, `limits.rs`); `command_id` resolved against the frozen registry (`command.not_found`, `invoke_dispatch.rs`); args decoded with per-field validation (`command.invalid_args`)                                                                                                                                               | None known on these paths                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **T** — Tampering: crafted Frame payloads                         | `frame_decode.rs`                               | Hand-written bounds-checked cursor decode (no `unchecked` transmutes of untrusted bytes); UTF-8 validation per string field; weekly fuzz (`fuzz.yml`, seeded corpus, 10-min runs on three Frame/complex targets plus a separate large-boundary campaign); weekly miri on core logic (`miri.yml`)                                                                                      | Scheduled failures are visible (no continue-on-error). Release requires fresh Miri/ASan/Fuzz/TSan success for the candidate SHA. Since 2026-11-01 the Miri/Sanitizer/Fuzz trio also runs at PR time as `ci.yml` `gate` jobs aggregated by `scripts/ci-gate.sh` (docs-only PRs skip via the path filter), alongside a weekly ThreadSanitizer track (`tsan.yml`) over the `ffi_pool`/events thread paths. Bounded coverage is not a whole-program safety proof. |
 | **T** — Tampering: OTA/client mismatch routing                    | command_id aliasing (`builder_capabilities.rs`) | Aliases that would shadow another command's real id are rejected at declaration/build time (panic — loud, not silent)                                                                                                                                                                                                                                                                 | None known                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| **R** — Repudiation                                               | invoke/audit trail                              | Out of scope: rustra is a library; no built-in audit log. Hosts that need repudiation evidence must log at their own boundary                                                                                                                                                                                                                                                         | **Open by design**                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **R** — Repudiation                                               | invoke/audit trail                              | Out of scope: unikit is a library; no built-in audit log. Hosts that need repudiation evidence must log at their own boundary                                                                                                                                                                                                                                                         | **Open by design**                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | **I** — Information disclosure                                    | error frames, event payloads                    | Error frames carry structured `code` + message (`error.rs`) — no raw pointers, no heap addresses, no backtraces cross the boundary                                                                                                                                                                                                                                                    | Handler-authored messages flow through verbatim; leak discipline is the handler author's responsibility — **open (documented expectation)**                                                                                                                                                                                                                                                                                                                   |
 | **D** — DoS: overload of the native side                          | async FFI pool                                  | Fixed pool (2 workers) + bounded queue (256) with immediate `invoke.backpressure` rejection — no hang, no thread explosion (`ffi_pool.rs`); payload size gate; event bus drop-oldest with `dropped` counter (1024 cap, `events.rs`)                                                                                                                                                   | Pool/queue constants are fixed, not per-host tunable; no overload _telemetry_ existed until the A08 counters (`async_pool_stats()`). Executor tuning deferred pending measurements — **open (A08 remainder)**                                                                                                                                                                                                                                                 |
 | **D** — DoS: memory exhaustion via buffers                        | caller-buffer `_into` paths                     | Capacity-checked writes with heap-frame fallback (`ffi_typed_async.rs`); `payload.too_large` pre-copy                                                                                                                                                                                                                                                                                 | None known                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | **E** — Elevation of privilege: calling capability-gated commands | Registry dispatch                               | **Deny-by-default**: a command with `required_capability` returns `capability.denied` _before_ the handler runs (`registry.rs`); grants only via `Package::grant_capability`; registry frozen after `build()` (structural mutation rejected, grants allowed)                                                                                                                          | Capability gating is **opt-in per command** — commands declared without `capability = "…"` are callable by any JS that reaches the bridge. This is the documented contract, but it means the default posture of a fresh package is allow — **open (design decision, revisit with isolation requirements)**                                                                                                                                                    |
-| **E** — Memory-safety EoP via FFI misuse                          | `rustra_ffi_free`                               | Debug-only allocation tracker classifies wrong-len / double-free / foreign-pointer frees and aborts loudly (`ffi_free_guard.rs`)                                                                                                                                                                                                                                                      | Tracker compiles out in release — release builds cannot soundly defend against a hostile _caller_ misusing `unsafe` FFI. **Open (fundamental FFI limitation, documented in-source)**                                                                                                                                                                                                                                                                          |
+| **E** — Memory-safety EoP via FFI misuse                          | `unikit_ffi_free`                               | Debug-only allocation tracker classifies wrong-len / double-free / foreign-pointer frees and aborts loudly (`ffi_free_guard.rs`)                                                                                                                                                                                                                                                      | Tracker compiles out in release — release builds cannot soundly defend against a hostile _caller_ misusing `unsafe` FFI. **Open (fundamental FFI limitation, documented in-source)**                                                                                                                                                                                                                                                                          |
 | **E** — Supply chain compromise                                   | crates.io / npm deps                            | CI gates: `cargo audit --deny warnings` with a fixed upstream-exception list (`scripts/audit-rust.sh`, both lockfiles), `cargo-deny` for licenses/bans/sources (`ci.yml`); lockfiles committed; npm prod-dependency advisories at `high`+ fail the CI `ts-checks` job (`bun run audit:prod`, gated since commit `514d2390`, 2026-08-18) and re-run in `release.yml` before publishing | The npm gate is severity-thresholded (`high`+), not exhaustive; generated-code integrity relies on git + manifest, no signing — **open**                                                                                                                                                                                                                                                                                                                      |
 
 ## Boundary-by-boundary summary
@@ -76,11 +76,11 @@ runtime itself; application-level authz inside user command handlers
   → capability check → handler. Each failure mode has a stable error code
   (`payload.too_large`, `command.not_found`, `command.invalid_args`,
   `capability.denied`, `invoke.backpressure`, `transport.*`, `cancelled`)
-  so the JS layer can normalize without guessing (`normalizeRustraError`,
+  so the JS layer can normalize without guessing (`normalizeUnikitError`,
   `errors.ts`).
 - **Deserialization (Frame / JSON)**: Frame decode is fully manual and
   bounds-checked; JSON paths live in the adapters and go through standard
-  parsers plus `parseRustraErrorString` for error frames. The Frame path is
+  parsers plus `parseUnikitErrorString` for error frames. The Frame path is
   the fuzz target; JSON parsing errors surface as typed errors, not
   exceptions across FFI.
 - **RN JSI**: the JSI module is intentionally thin; all trust decisions are
@@ -96,7 +96,7 @@ runtime itself; application-level authz inside user command handlers
 ## Open gaps
 
 1. **Same-realm trust**: any JS in the WebView/RN context can invoke the
-   bridge and subscribe to (or, via the host emitter, emit onto) `rustra://`
+   bridge and subscribe to (or, via the host emitter, emit onto) `unikit://`
    channels. Mitigating this requires per-realm isolation requirements that
    do not exist yet — exactly why A06 was deferred ("격리 요건이 생길 때").
 2. **Capability gating is opt-in**: no global "deny un-gated commands"
@@ -117,7 +117,7 @@ runtime itself; application-level authz inside user command handlers
    See [release procedure](release-procedure.md).
 6. **Data-race coverage is new and narrow**: a ThreadSanitizer track exists
    (`.github/workflows/tsan.yml`, weekly Wednesday cron) running nightly
-   `-Zsanitizer=thread` with `-Z build-std` over `-p rustra --lib` — TSan needs an
+   `-Zsanitizer=thread` with `-Z build-std` over `-p unikit-bridge --lib` — TSan needs an
    instrumented std because uninstrumented std hides mutex happens-before edges.
    Release publishing additionally requires a fresh TSan success (`release.yml`
    reuses the workflow, and `tsan.yml` is in `check-release-gates`' default
@@ -126,14 +126,14 @@ runtime itself; application-level authz inside user command handlers
    races, so TSan is not a whole-program race proof. The sanitizer track also
    gained a C++ codec job (`sanitizer.yml` `cpp-codec`: generated C++ codec
    tests, low-level codec tests and sync-core under ASan+LSan+UBSan via
-   `RUSTRA_CPP_SANITIZERS` in
-   `examples/react-native-calculator/modules/rustra-jsi/ios/run-cpp-codec-tests.sh`;
-   `RustraJSIBridge.cpp` itself still needs real folly/JSI headers and stays in
+   `UNIKIT_CPP_SANITIZERS` in
+   `examples/react-native-calculator/modules/unikit-jsi/ios/run-cpp-codec-tests.sh`;
+   `UnikitJSIBridge.cpp` itself still needs real folly/JSI headers and stays in
    the device/Xcode manual-checklist area), and both sanitizer workflows pass
    `-Cunsafe-allow-abi-mismatch=sanitizer` — required since nightly 1.101.0,
    where precompiled std vs `-Zsanitizer` became a hard error.
 7. **Overload telemetry beyond counters**: A08's minimal slice
-   (`rustra::ffi::async_pool_stats()`) measures submit/reject/complete
+   (`unikit_bridge::ffi::async_pool_stats()`) measures submit/reject/complete
    counts; queue-depth histograms, per-command attribution, and executor
    tuning remain future work pending measurement evidence.
 

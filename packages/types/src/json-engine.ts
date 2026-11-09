@@ -1,5 +1,5 @@
-import { normalizeRustraError, RustraCommandError, RustraErrorCode } from './errors.js';
-import { debugRustra, isRustraDebugEnabled } from './debug.js';
+import { normalizeUnikitError, UnikitCommandError, UnikitErrorCode } from './errors.js';
+import { debugUnikit, isUnikitDebugEnabled } from './debug.js';
 import { invokeWithTimeout } from './cancel.js';
 import type {
   BatchEntry,
@@ -18,7 +18,7 @@ export type JsonWireBatchTransport = {
   // T | unknown ≡ unknown 동치지만 api-surface 스냅샷 계약이라 원형을 유지한다.
   // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents -- 스냅샷 고정(재생성 태스크가 인수할 때 정리)
   invoke(command: string, args?: unknown): Promise<unknown> | unknown;
-  /** 와이어 배치 — `rustra_dispatch_batch` 커맨드 한 번으로 N 개 명령 실행. */
+  /** 와이어 배치 — `unikit_dispatch_batch` 커맨드 한 번으로 N 개 명령 실행. */
   invokeBatch?(requests: BatchEntry[]): Promise<unknown[]> | unknown[];
 };
 
@@ -26,7 +26,7 @@ export type JsonWireBatchTransport = {
  * 응답 셰이프 이탈 보고 — debug 모드에서만 버전 스크의 조기 신호를 싱크로 보낸다
  * (`kind: 'response.shape'`, 규칙 식별은 `reason`). json-engine 은 스키마가 없어
  * `undefined`/원시형 응답은 판정할 수 없고(void 커맨드가 존재), reject 경로의
- * `{ok:false,error}` 는 이미 `normalizeRustraError` 가 정규화한다. 따라서
+ * `{ok:false,error}` 는 이미 `normalizeUnikitError` 가 정규화한다. 따라서
  * **resolve 경로에서 관찰되는 엔벨로프 왜곡**만 보수적으로 검사한다:
  *
  * - `double_envelope`: `{ok:true, result}` 엔벨로프가 원시 결과에 또 보이면
@@ -47,7 +47,7 @@ export type JsonWireBatchTransport = {
  * 발행 전체를 try 로 감싼다.
  */
 function reportResponseShape(command: string, result: unknown): void {
-  if (!isRustraDebugEnabled()) return;
+  if (!isUnikitDebugEnabled()) return;
   try {
     if (typeof result !== 'object' || result === null) return;
     const ok = (result as { ok?: unknown }).ok;
@@ -65,7 +65,7 @@ function reportResponseShape(command: string, result: unknown): void {
       reason = 'resolved_error_envelope';
     }
     if (reason === undefined) return;
-    debugRustra({
+    debugUnikit({
       direction: 'response',
       transport: 'json',
       command,
@@ -91,20 +91,20 @@ export function createJsonEngine(
     invoke<T>(command: string, args?: unknown): Promise<T> {
       try {
         const normalizedArgs = normalizeArgs(args);
-        debugRustra({ direction: 'request', transport: 'json', command, value: normalizedArgs });
+        debugUnikit({ direction: 'request', transport: 'json', command, value: normalizedArgs });
         return Promise.resolve(rawTransport.invoke(command, normalizedArgs))
           .then((result) => {
-            debugRustra({ direction: 'response', transport: 'json', command, value: result });
+            debugUnikit({ direction: 'response', transport: 'json', command, value: result });
             reportResponseShape(command, result);
             return result as T;
           })
           .catch((error: unknown) => {
-            debugRustra({ direction: 'error', transport: 'json', command, error: String(error) });
-            throw normalizeRustraError(error);
+            debugUnikit({ direction: 'error', transport: 'json', command, error: String(error) });
+            throw normalizeUnikitError(error);
           });
       } catch (error: unknown) {
-        debugRustra({ direction: 'error', transport: 'json', command, error: String(error) });
-        return Promise.reject(normalizeRustraError(error));
+        debugUnikit({ direction: 'error', transport: 'json', command, error: String(error) });
+        return Promise.reject(normalizeUnikitError(error));
       }
     },
   };
@@ -140,8 +140,8 @@ export function createJsonEngine(
           return Promise.resolve(rawTransport.invokeBatch(normalized))
             .then((responses) => {
               if (!Array.isArray(responses) || responses.length !== entries.length) {
-                throw new RustraCommandError(
-                  RustraErrorCode.InvokeMalformed,
+                throw new UnikitCommandError(
+                  UnikitErrorCode.InvokeMalformed,
                   `Invalid batch response: expected ${entries.length} entries, received ${
                     Array.isArray(responses) ? responses.length : 'a non-array value'
                   }`,
@@ -150,25 +150,25 @@ export function createJsonEngine(
               return responses as T[];
             })
             .catch((error: unknown) => {
-              debugRustra({
+              debugUnikit({
                 direction: 'error',
                 transport: 'json',
                 command: `invokeBatch(${entries.length} entries)`,
                 error: String(error),
               });
-              throw normalizeRustraError(error);
+              throw normalizeUnikitError(error);
             });
         } catch (error: unknown) {
           // transport/normalizer 의 동기 throw 도 단건 경로와 동일하게 rejected
           // Promise 로 정규화한다(R04-b) — 동기 throw 는 `.catch()` 기반 호출자를
           // 우회한다. 단건 경로와 같은 debug 에러 이벤트를 배치 라벨로 남긴다.
-          debugRustra({
+          debugUnikit({
             direction: 'error',
             transport: 'json',
             command: `invokeBatch(${entries.length} entries)`,
             error: String(error),
           });
-          return Promise.reject(normalizeRustraError(error));
+          return Promise.reject(normalizeUnikitError(error));
         }
       }
       return Promise.all(

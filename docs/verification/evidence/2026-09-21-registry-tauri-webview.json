@@ -5,19 +5,19 @@
   "completedAt": "2026-09-21T06:00:52.461Z",
   "durationMs": 43667,
   "evidenceBoundary": "automated public-registry Tauri consumer cycle with real macOS WebView; does not close G1 or G2",
-  "gate": "rustra-public-registry-tauri-consumer",
+  "gate": "unikit-public-registry-tauri-consumer",
   "configuration": {
-    "manifestPath": "/Users/loopy/dev/ll3/rustra-bridge/scripts/registry-consumer/versions.json",
+    "manifestPath": "/Users/loopy/dev/ll3/unikit-bridge/scripts/registry-consumer/versions.json",
     "versions": {
       "npm": {
-        "@rustra/cli": "0.11.3",
-        "@rustra/types": "0.12.0",
-        "@rustra/tauri": "0.9.3"
+        "@unikit-bridge/cli": "0.11.3",
+        "@unikit-bridge/types": "0.12.0",
+        "@unikit-bridge/tauri": "0.9.3"
       },
       "rust": {
-        "rustra": "0.11.0",
-        "rustra-macros": "0.11.0",
-        "rustra-naming": "0.11.0"
+        "unikit": "0.11.0",
+        "unikit-bridge-macros": "0.11.0",
+        "unikit-bridge-naming": "0.11.0"
       }
     }
   },
@@ -40,8 +40,8 @@
   "journey": {
     "scaffold": ["published CLI init", "exact-pin npm install (frozen lock)", "doctor"],
     "tauri": [
-      "rustra =0.11.0 (tauri feature) from crates.io",
-      "@rustra/tauri + @rustra/types exact from npm",
+      "unikit =0.11.0 (tauri feature) from crates.io",
+      "@unikit-bridge/tauri + @unikit-bridge/types exact from npm",
       "CLI codegen (tauri host entry)",
       "bun frontend bundle",
       "cargo build embedding frontend assets",
@@ -67,49 +67,49 @@
   },
   "provenance": {
     "npm": {
-      "@rustra/cli": {
+      "@unikit-bridge/cli": {
         "version": "0.11.3",
-        "resolved": "https://registry.npmjs.org/@rustra/cli/-/cli-0.11.3.tgz",
+        "resolved": "https://registry.npmjs.org/@unikit-bridge/cli/-/cli-0.11.3.tgz",
         "integrity": "sha512-UvNFy9Y/6UMRurYteAFrP8XcnTplFlQOX4+xLi2D8NnTceGF2jVH0DbNZUtwNAh55dXJEukmwwsjmBn/4WpAHg==",
         "packageJsonSha256": "a58f8452b946c6a3d61ecf3e9d365c6e56f7ce79c5b04257b0cbe38519fdf203",
-        "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-registry-tauri-Mn5WEe/registry-tauri-consumer/node_modules/@rustra/cli"
+        "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-tauri-Mn5WEe/registry-tauri-consumer/node_modules/@unikit-bridge/cli"
       },
-      "@rustra/types": {
+      "@unikit-bridge/types": {
         "version": "0.12.0",
-        "resolved": "https://registry.npmjs.org/@rustra/types/-/types-0.12.0.tgz",
+        "resolved": "https://registry.npmjs.org/@unikit-bridge/types/-/types-0.12.0.tgz",
         "integrity": "sha512-5EYgbNrbFMuMyZ8HNO3rQKmApGANGEfq1jC3gqsbiwkf1CRYzaNQTcadUkQCEm2A5S8d/ynMP15uy50EEKIGWg==",
         "packageJsonSha256": "f805840302a87e41e43c4809e30f06090f6f1eb10645149ad13f83dccd24609a",
-        "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-registry-tauri-Mn5WEe/registry-tauri-consumer/node_modules/@rustra/types"
+        "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-tauri-Mn5WEe/registry-tauri-consumer/node_modules/@unikit-bridge/types"
       },
-      "@rustra/tauri": {
+      "@unikit-bridge/tauri": {
         "version": "0.9.3",
-        "resolved": "https://registry.npmjs.org/@rustra/tauri/-/tauri-0.9.3.tgz",
+        "resolved": "https://registry.npmjs.org/@unikit-bridge/tauri/-/tauri-0.9.3.tgz",
         "integrity": "sha512-HCrhDwFOwSJDTaKtDQlnaDS+xlAeii4nTRv9a5Tn+c8POaGXAztKzro1jHBdSnN+3KlCHeJ0uFSClZQ0fudXAQ==",
         "packageJsonSha256": "8729bc5cb68d9138a7e11d67b687989fd0ccc20fe7d908b11beacccb764f18e0",
-        "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-registry-tauri-Mn5WEe/registry-tauri-consumer/node_modules/@rustra/tauri"
+        "realpath": "/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-tauri-Mn5WEe/registry-tauri-consumer/node_modules/@unikit-bridge/tauri"
       }
     },
     "cargo": {
-      "rustra": {
+      "unikit": {
         "version": "0.11.0",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "lockSource": "registry+https://github.com/rust-lang/crates.io-index",
         "checksum": "323b830a0786c234ef4c893197ac757b78292620451a97ac07f1be9aa00238f2",
-        "manifestPath": "/Users/loopy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustra-0.11.0/Cargo.toml"
+        "manifestPath": "/Users/loopy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unikit-0.11.0/Cargo.toml"
       },
-      "rustra-macros": {
+      "unikit-bridge-macros": {
         "version": "0.11.0",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "lockSource": "registry+https://github.com/rust-lang/crates.io-index",
         "checksum": "d3f7141341d0581323dbc8f4921b304c3cd4a415015fcfa18a9ccbdb3b23490b",
-        "manifestPath": "/Users/loopy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustra-macros-0.11.0/Cargo.toml"
+        "manifestPath": "/Users/loopy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unikit-bridge-macros-0.11.0/Cargo.toml"
       },
-      "rustra-naming": {
+      "unikit-bridge-naming": {
         "version": "0.11.0",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "lockSource": "registry+https://github.com/rust-lang/crates.io-index",
         "checksum": "e988bbbea26f89ef74677a7820fc4a377a92ee0d47b6592b0830798f11eb3e43",
-        "manifestPath": "/Users/loopy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustra-naming-0.11.0/Cargo.toml"
+        "manifestPath": "/Users/loopy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unikit-bridge-naming-0.11.0/Cargo.toml"
       }
     }
   },
@@ -154,15 +154,15 @@
   },
   "snapshots": {
     "baseline": {
-      "root": "/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-registry-tauri-Mn5WEe/evidence/baseline",
+      "root": "/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-tauri-Mn5WEe/evidence/baseline",
       "files": {
         "Cargo.lock": "64a9269ea1b66911ad4e78211037a97e0f9dfa9271f8bb5b9844ec46f84a5e50",
         "Cargo.toml": "1c29c1afe29b9ce9c59bfdcd3555e1f5a8459c19cba4cc6ef6dbf5c9db359b3b",
         "package-lock.json": "ce20c69d0b1bcdf390d93db3ed83cd2198d7d167e078ffdc558fef0860042c1b",
         "package.json": "5ad91e27ac4b2986cf105d0e05b08213d18a7b0d99b2ff1443b11641945d7004",
-        "rustra.json": "610455dbb21ad2bbc15a5725c18db3b185ed41c0cd20d8e0f48450ee694b9fda",
+        "unikit.json": "610455dbb21ad2bbc15a5725c18db3b185ed41c0cd20d8e0f48450ee694b9fda",
         "src/app.ts": "d1e31d31721d7100257fbb927aad73dd718d16ea5fa000935c08fca9b2b2ce9f",
-        "src/generated/.rustra-generated.json": "0a110cb46ff10c746a9430192295c044ee11bce0bdad14af70799fd060941acf",
+        "src/generated/.unikit-generated.json": "0a110cb46ff10c746a9430192295c044ee11bce0bdad14af70799fd060941acf",
         "src/generated/commands.ts": "f971e1a926ff6210c71dfd427ea588cc2458747b6f6090b785b957c0c612b29f",
         "src/generated/contract.ts": "9705b2c92ac470613c3d8da66c58bdca71522c56c0173ad507b8f3d47e809042",
         "src/generated/frame-codecs.ts": "66a6267f8149e3fa23a0528261ee324343f2df4de8566e72e6d7339d2e7ed8f0",
@@ -174,15 +174,15 @@
       }
     },
     "mutated": {
-      "root": "/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-registry-tauri-Mn5WEe/evidence/mutated",
+      "root": "/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-tauri-Mn5WEe/evidence/mutated",
       "files": {
         "Cargo.lock": "64a9269ea1b66911ad4e78211037a97e0f9dfa9271f8bb5b9844ec46f84a5e50",
         "Cargo.toml": "1c29c1afe29b9ce9c59bfdcd3555e1f5a8459c19cba4cc6ef6dbf5c9db359b3b",
         "package-lock.json": "ce20c69d0b1bcdf390d93db3ed83cd2198d7d167e078ffdc558fef0860042c1b",
         "package.json": "5ad91e27ac4b2986cf105d0e05b08213d18a7b0d99b2ff1443b11641945d7004",
-        "rustra.json": "610455dbb21ad2bbc15a5725c18db3b185ed41c0cd20d8e0f48450ee694b9fda",
+        "unikit.json": "610455dbb21ad2bbc15a5725c18db3b185ed41c0cd20d8e0f48450ee694b9fda",
         "src/app.ts": "d1e31d31721d7100257fbb927aad73dd718d16ea5fa000935c08fca9b2b2ce9f",
-        "src/generated/.rustra-generated.json": "1daff2bd17579a3eebbf0f98c28c6fa00609c5f641614cef3c0964f909dc3891",
+        "src/generated/.unikit-generated.json": "1daff2bd17579a3eebbf0f98c28c6fa00609c5f641614cef3c0964f909dc3891",
         "src/generated/commands.ts": "ea053d11fe1043ca4b1f120704510cfc5342166b3787b2530a167f99fcf79e04",
         "src/generated/contract.ts": "92c09ea195d762a65d213b8d46aa98eb827b2e13b4dc14e2fff83178a4d3511f",
         "src/generated/frame-codecs.ts": "fd774ece3aef7ddf1b8133dc3ba2d34ba7276faa538c4373f250f883b21aa571",
@@ -194,7 +194,7 @@
       }
     }
   },
-  "scratchRoot": "/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-registry-tauri-Mn5WEe",
+  "scratchRoot": "/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-registry-tauri-Mn5WEe",
   "steps": [
     {
       "name": "environment-node",
@@ -203,7 +203,7 @@
       "durationMs": 19,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/001-environment-node.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/001-environment-node.log"
     },
     {
       "name": "environment-npm",
@@ -212,7 +212,7 @@
       "durationMs": 88,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/002-environment-npm.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/002-environment-npm.log"
     },
     {
       "name": "environment-bun",
@@ -221,7 +221,7 @@
       "durationMs": 7,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/003-environment-bun.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/003-environment-bun.log"
     },
     {
       "name": "environment-cargo",
@@ -230,7 +230,7 @@
       "durationMs": 25,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/004-environment-cargo.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/004-environment-cargo.log"
     },
     {
       "name": "environment-rustc",
@@ -239,7 +239,7 @@
       "durationMs": 32,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/005-environment-rustc.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/005-environment-rustc.log"
     },
     {
       "name": "environment-sw-vers",
@@ -248,7 +248,7 @@
       "durationMs": 14,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/006-environment-sw-vers.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/006-environment-sw-vers.log"
     },
     {
       "name": "runner-git-head",
@@ -257,7 +257,7 @@
       "durationMs": 17,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/007-runner-git-head.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/007-runner-git-head.log"
     },
     {
       "name": "prepare-bootstrap-manifest",
@@ -266,7 +266,7 @@
       "durationMs": 1,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/008-prepare-bootstrap-manifest.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/008-prepare-bootstrap-manifest.log"
     },
     {
       "name": "install-published-cli",
@@ -275,7 +275,7 @@
       "durationMs": 342,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/009-install-published-cli.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/009-install-published-cli.log"
     },
     {
       "name": "verify-published-cli-source",
@@ -284,7 +284,7 @@
       "durationMs": 1,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/010-verify-published-cli-source.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/010-verify-published-cli-source.log"
     },
     {
       "name": "published-cli-init",
@@ -293,7 +293,7 @@
       "durationMs": 75,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/011-published-cli-init.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/011-published-cli-init.log"
     },
     {
       "name": "pin-consumer-versions",
@@ -302,7 +302,7 @@
       "durationMs": 0,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/012-pin-consumer-versions.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/012-pin-consumer-versions.log"
     },
     {
       "name": "verify-clean-fixture-before-install",
@@ -311,7 +311,7 @@
       "durationMs": 1,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/013-verify-clean-fixture-before-install.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/013-verify-clean-fixture-before-install.log"
     },
     {
       "name": "resolve-exact-npm-lock",
@@ -320,7 +320,7 @@
       "durationMs": 960,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/014-resolve-exact-npm-lock.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/014-resolve-exact-npm-lock.log"
     },
     {
       "name": "install-frozen-npm-lock",
@@ -329,7 +329,7 @@
       "durationMs": 311,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/015-install-frozen-npm-lock.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/015-install-frozen-npm-lock.log"
     },
     {
       "name": "verify-exact-npm-sources",
@@ -338,7 +338,7 @@
       "durationMs": 1,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/016-verify-exact-npm-sources.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/016-verify-exact-npm-sources.log"
     },
     {
       "name": "doctor",
@@ -347,7 +347,7 @@
       "durationMs": 184,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/017-doctor.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/017-doctor.log"
     },
     {
       "name": "write-tauri-sources",
@@ -356,7 +356,7 @@
       "durationMs": 1,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/018-write-tauri-sources.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/018-write-tauri-sources.log"
     },
     {
       "name": "baseline-codegen",
@@ -365,7 +365,7 @@
       "durationMs": 31712,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/019-baseline-codegen.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/019-baseline-codegen.log"
     },
     {
       "name": "baseline-frontend-bundle",
@@ -374,7 +374,7 @@
       "durationMs": 1284,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/020-baseline-frontend-bundle.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/020-baseline-frontend-bundle.log"
     },
     {
       "name": "baseline-cargo-build",
@@ -383,7 +383,7 @@
       "durationMs": 1266,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/020-baseline-cargo-build.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/020-baseline-cargo-build.log"
     },
     {
       "name": "baseline-cargo-metadata",
@@ -392,7 +392,7 @@
       "durationMs": 277,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/022-baseline-cargo-metadata.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/022-baseline-cargo-metadata.log"
     },
     {
       "name": "baseline-provenance",
@@ -401,7 +401,7 @@
       "durationMs": 24,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/023-baseline-provenance.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/023-baseline-provenance.log"
     },
     {
       "name": "baseline-webview-launch",
@@ -410,7 +410,7 @@
       "durationMs": 0,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/024-baseline-webview-launch.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/024-baseline-webview-launch.log"
     },
     {
       "name": "baseline-webview-evidence",
@@ -419,7 +419,7 @@
       "durationMs": 2260,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/baseline-webview-evidence.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/baseline-webview-evidence.log"
     },
     {
       "name": "baseline-observation-verification",
@@ -428,7 +428,7 @@
       "durationMs": 0,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/026-baseline-observation-verification.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/026-baseline-observation-verification.log"
     },
     {
       "name": "mutate-contract",
@@ -437,7 +437,7 @@
       "durationMs": 1,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/027-mutate-contract.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/027-mutate-contract.log"
     },
     {
       "name": "mutated-codegen",
@@ -446,7 +446,7 @@
       "durationMs": 2293,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/028-mutated-codegen.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/028-mutated-codegen.log"
     },
     {
       "name": "mutated-frontend-bundle",
@@ -455,7 +455,7 @@
       "durationMs": 1191,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/029-mutated-frontend-bundle.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/029-mutated-frontend-bundle.log"
     },
     {
       "name": "mutated-cargo-build",
@@ -464,7 +464,7 @@
       "durationMs": 1173,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/029-mutated-cargo-build.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/029-mutated-cargo-build.log"
     },
     {
       "name": "mutated-contract-hash-verification",
@@ -473,7 +473,7 @@
       "durationMs": 0,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/031-mutated-contract-hash-verification.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/031-mutated-contract-hash-verification.log"
     },
     {
       "name": "mutated-webview-launch",
@@ -482,7 +482,7 @@
       "durationMs": 0,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/032-mutated-webview-launch.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/032-mutated-webview-launch.log"
     },
     {
       "name": "mutated-webview-evidence",
@@ -491,7 +491,7 @@
       "durationMs": 2510,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/mutated-webview-evidence.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/mutated-webview-evidence.log"
     },
     {
       "name": "mutated-observation-verification",
@@ -500,7 +500,7 @@
       "durationMs": 0,
       "status": 0,
       "signal": null,
-      "rawLogPath": "/tmp/rustra-roadmap-20260921/registry-tauri-logs/034-mutated-observation-verification.log"
+      "rawLogPath": "/tmp/unikit-roadmap-20260921/registry-tauri-logs/034-mutated-observation-verification.log"
     }
   ]
 }

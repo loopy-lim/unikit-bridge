@@ -16,7 +16,7 @@ PACKAGE=${shellSingleQuoted(options.rustPackage)}
 LIBRARY=${shellSingleQuoted(options.rustLibrary)}
 TARGET_DIR="$MODULE_DIR/build/target"
 CARGO_BIN=\${CARGO_BIN:-cargo}
-PROFILE=\${RUSTRA_PROFILE:-release}
+PROFILE=\${UNIKIT_PROFILE:-release}
 REL_FLAG=""
 if [ "$PROFILE" = "release" ]; then REL_FLAG="--release"; fi
 mkdir -p "$MODULE_DIR/ios/rust/lib"
@@ -26,9 +26,9 @@ build_target() {
     $REL_FLAG --target-dir "$TARGET_DIR" --target "$1"
 }
 
-if [ -n "\${RUSTRA_IOS_TARGET:-}" ]; then
-  build_target "$RUSTRA_IOS_TARGET"
-  cp "$TARGET_DIR/$RUSTRA_IOS_TARGET/$PROFILE/lib$LIBRARY.a" \\
+if [ -n "\${UNIKIT_IOS_TARGET:-}" ]; then
+  build_target "$UNIKIT_IOS_TARGET"
+  cp "$TARGET_DIR/$UNIKIT_IOS_TARGET/$PROFILE/lib$LIBRARY.a" \\
     "$MODULE_DIR/ios/rust/lib/lib$LIBRARY.a"
 else
   build_target aarch64-apple-ios-sim
@@ -55,7 +55,7 @@ PACKAGE=${shellSingleQuoted(options.rustPackage)}
 LIBRARY=${shellSingleQuoted(options.rustLibrary)}
 TARGET_DIR="$MODULE_DIR/build/target"
 CARGO_BIN=\${CARGO_BIN:-cargo}
-PROFILE=\${RUSTRA_PROFILE:-release}
+PROFILE=\${UNIKIT_PROFILE:-release}
 REL_FLAG=""
 if [ "$PROFILE" = "release" ]; then REL_FLAG="--release"; fi
 ABIS=\${ANDROID_ABIS:-"x86_64-linux-android aarch64-linux-android"}

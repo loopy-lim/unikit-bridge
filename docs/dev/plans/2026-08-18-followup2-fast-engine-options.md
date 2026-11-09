@@ -4,7 +4,7 @@
 
 ## 개요
 
-production hardening에서 core 엔진(`@rustra/types` `createRkyvV2Engine`)에 4개 신규 옵션이 추가됐다: `onContractMismatch`(OTA degraded 모드), `schemaVersion`+`onSchemaStale`(stale 경고), `maxPayloadBytes`(JS 사전 크기 검사). Node/Bun/Tauri 패키지는 core 팩토리를 re-export 하므로 자동 전달되지만, **RN(`@rustra/react-native`)과 Lynx(`@rustra/lynx`)은 `FastEngineOptions`를 별도 타입으로 수작업 재정의**해 `contractHash`만 전달하고 나머지 4개가 조용히 탈락한다. 이 plan은 누락 4개 옵션을 양 패키지에 전달하고, 같은 누수가 다시 생기지 않게 타입 수준에서 구조를 고정한다.
+production hardening에서 core 엔진(`@unikit-bridge/types` `createRkyvV2Engine`)에 4개 신규 옵션이 추가됐다: `onContractMismatch`(OTA degraded 모드), `schemaVersion`+`onSchemaStale`(stale 경고), `maxPayloadBytes`(JS 사전 크기 검사). Node/Bun/Tauri 패키지는 core 팩토리를 re-export 하므로 자동 전달되지만, **RN(`@unikit-bridge/react-native`)과 Lynx(`@unikit-bridge/lynx`)은 `FastEngineOptions`를 별도 타입으로 수작업 재정의**해 `contractHash`만 전달하고 나머지 4개가 조용히 탈락한다. 이 plan은 누락 4개 옵션을 양 패키지에 전달하고, 같은 누수가 다시 생기지 않게 타입 수준에서 구조를 고정한다.
 
 ## 현재 상태 분석
 
@@ -45,10 +45,10 @@ production hardening에서 core 엔진(`@rustra/types` `createRkyvV2Engine`)에 
 
 ## 구현 접근 방식
 
-누수의 근본 원인은 "수작업 재정의 + 선택적 전달"이다. 각 패키지가 core 옵션 타입을 **구조적으로 참조**하게 만들면(필드 복붙이 아니라 타입 연산), core에 옵션이 추가될 때마다 pass-through 누락이 타입 에러/테스트로 드러난다. RN은 `import('@rustra/types')` 인라인 타입을 이미 쓰고 있고(infer 스타일), Lynx는 명시 import — 두 패키지 모두 다음 형태로 통일한다:
+누수의 근본 원인은 "수작업 재정의 + 선택적 전달"이다. 각 패키지가 core 옵션 타입을 **구조적으로 참조**하게 만들면(필드 복붙이 아니라 타입 연산), core에 옵션이 추가될 때마다 pass-through 누락이 타입 에러/테스트로 드러난다. RN은 `import('@unikit-bridge/types')` 인라인 타입을 이미 쓰고 있고(infer 스타일), Lynx는 명시 import — 두 패키지 모두 다음 형태로 통일한다:
 
 ```ts
-import type { RkyvV2EngineOptions } from '@rustra/types';
+import type { RkyvV2EngineOptions } from '@unikit-bridge/types';
 
 export type FastEngineOptions = {
   rkyvV2Codecs: Map<string, RkyvV2Codec<unknown, unknown>>;
@@ -91,7 +91,7 @@ const _exhaustivePassThrough: RkyvV2EngineOptions = {
 
 **변경사항**:
 
-- import 에 `RkyvV2EngineOptions` 타입 추가 (기존 `import type { … } from '@rustra/types'` 라인).
+- import 에 `RkyvV2EngineOptions` 타입 추가 (기존 `import type { … } from '@unikit-bridge/types'` 라인).
 - `FastEngineOptions` 재정의(81-88):
 
 ```ts
@@ -103,7 +103,7 @@ const _exhaustivePassThrough: RkyvV2EngineOptions = {
  * onContractMismatch/schemaVersion/onSchemaStale(OTA, T2), maxPayloadBytes(T3).
  */
 export type FastEngineOptions = {
-  rkyvV2Codecs: Map<string, import('@rustra/types').RkyvV2Codec<unknown, unknown>>;
+  rkyvV2Codecs: Map<string, import('@unikit-bridge/types').RkyvV2Codec<unknown, unknown>>;
 } & RkyvV2EngineOptions;
 ```
 
@@ -111,7 +111,7 @@ export type FastEngineOptions = {
 
 ```ts
 export function createFastEngine(
-  native: RustraJSINative,
+  native: UnikitJSINative,
   options: FastEngineOptions,
 ): EngineClientType {
   // 명시 나열 + satisfies — core 에 옵션이 추가되면 이 객체 리터럴이 누락
@@ -159,7 +159,7 @@ test('createFastEngine forwards maxPayloadBytes to core pre-check', async () => 
   });
   await assert.rejects(
     engine.invoke('big', {}),
-    (err) => err instanceof RustraCommandError && err.code === 'payload.too_large',
+    (err) => err instanceof UnikitCommandError && err.code === 'payload.too_large',
   );
 });
 
@@ -212,7 +212,7 @@ test('createFastEngine forwards onContractMismatch (degraded mode entry)', () =>
 - [ ] `npm run test:types` green (core 무변경이므로 회귀만)
 - [ ] `npx tsc -p packages/react-native --noEmit` / `npx tsc -p packages/lynx --noEmit` (또는 각 패키지 빌드 타입체크) 통과 — `satisfies` 가드 포함
 - [ ] `npm run lint` 0 warn
-- [ ] `npm run test -w @rustra/cli` green (무관하나 전체 게이트)
+- [ ] `npm run test -w @unikit-bridge/cli` green (무관하나 전체 게이트)
 - [ ] `npm run test:ts:node` green (무관하나 전체 게이트)
 
 #### 수동 검증:

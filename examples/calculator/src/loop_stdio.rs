@@ -6,14 +6,14 @@
 //! - 요청: `[len u32 LE][cmd_id u16 LE + postcard 본문]`
 //! - 응답: `[len u32 LE][[ok u8][pad 3B][len u32 LE][body]]`
 //! - drain(0xfffe) / push(0xfffd) 는 예약 cmd id — id 부여 대상이 아니다.
-//! - 채널(0xfffb 발급 / 0xfffa 해제 / 0xfffc 푸시 프레임)도 예약 — `@rustra/node`
+//! - 채널(0xfffb 발급 / 0xfffa 해제 / 0xfffc 푸시 프레임)도 예약 — `@unikit-bridge/node`
 //!   `createNodeChannel` 계약(0.7 채널 트랙).
 
-use rustra::Package;
 use serde_json::{Value, json};
 use std::io::{Read, Write};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
+use unikit_bridge::Package;
 
 /// 이벤트 drain 예약 커맨드 id (바이너리 모드). 자동 부여 id(등록 순서)와
 /// 충돌하지 않는 u16 상한부다.
@@ -31,7 +31,7 @@ pub const BINARY_PUSH_EVENTS_CMD: u16 = 0xFFFD;
 pub const BINARY_CHANNEL_PUSH_CMD: u16 = 0xFFFC;
 
 /// 채널 **발급** 예약 cmd id (바이너리 모드). 본문 없음. 응답은
-/// `[ok=1][pad][len][{"handle": u32}]` JSON — Tauri `rustra_channel_create`
+/// `[ok=1][pad][len][{"handle": u32}]` JSON — Tauri `unikit_channel_create`
 /// 와 동일 페이로드 셰이프다. NDJSON 모드엔 대응 경로가 없다(콜백 함수 값은
 /// 라인 JSON 으로 전송 불가 — 채널은 바이너리 모드 전용).
 pub const BINARY_CHANNEL_CREATE_CMD: u16 = 0xFFFB;
@@ -106,12 +106,12 @@ pub fn encode_channel_push_frame(handle: u32, payload: &str) -> Vec<u8> {
 /// 핸들 공간 소진 시 0 — 호출자(bin)는 ok=0 응답으로 되돌리고 JS 어댑터가
 /// loud-fail 한다(Tauri `create_channel_for` 계약과 동일).
 pub fn issue_channel() -> u32 {
-    let host = rustra::channels::host();
+    let host = unikit_bridge::channels::host();
     let handle = host.reserve_handle();
     if handle == 0 {
         return 0;
     }
-    let sender: rustra::channels::ChannelSender = Arc::new(move |payload: &str| {
+    let sender: unikit_bridge::channels::ChannelSender = Arc::new(move |payload: &str| {
         let frame = encode_channel_push_frame(handle, payload);
         write_push_frame_to_stdout(&frame);
     });
@@ -140,7 +140,7 @@ fn channel_create_response(handle: u32) -> Vec<u8> {
 
 /// 채널을 해제한다 — 코어 `drop_channel` 계약(이후 동일 핸들 send 는 false).
 fn channel_drop(handle: u32) -> bool {
-    rustra::channels::host().drop_channel(handle)
+    unikit_bridge::channels::host().drop_channel(handle)
 }
 
 /// postcard varint u32 디코딩 — drop 요청 본문(1..=5바이트)용. postcard u32
@@ -188,7 +188,7 @@ fn write_push_frame_to_stdout(frame: &[u8]) {
     let _ = out
         .write_all(frame)
         .and_then(|_| out.flush())
-        .inspect_err(|error| eprintln!("rustra: event push write failed: {error}"));
+        .inspect_err(|error| eprintln!("unikit: event push write failed: {error}"));
 }
 
 /// 푸시 싱크 설치 — `writer` 는 완성된 프레임 바이트를 전달 채널에 쓴다(bin 은
@@ -224,7 +224,7 @@ pub fn run_binary<R: Read, W: Write>(
     package: &Package,
     reader: &mut R,
     out: &mut W,
-) -> rustra::Result<()> {
+) -> unikit_bridge::Result<()> {
     let mut len_bytes = [0u8; 4];
     // 재사용 출력 버퍼 — 64KB. 초과 응답은 DirectResponse::Buffered 경로.
     let mut out_buffer: Vec<u8> = vec![0u8; 64 * 1024];
@@ -233,7 +233,7 @@ pub fn run_binary<R: Read, W: Write>(
         match reader.read_exact(&mut len_bytes) {
             Ok(()) => {}
             Err(e) if e.kind() == ErrorKind::UnexpectedEof => return Ok(()),
-            Err(e) => return Err(rustra::RustraError::internal(e.to_string())),
+            Err(e) => return Err(unikit_bridge::UnikitError::internal(e.to_string())),
         }
         let len = u32::from_le_bytes(len_bytes) as usize;
         if len == 0 {
@@ -241,7 +241,7 @@ pub fn run_binary<R: Read, W: Write>(
         }
         let mut payload = vec![0u8; len];
         if let Err(e) = reader.read_exact(&mut payload) {
-            return Err(rustra::RustraError::internal(e.to_string()));
+            return Err(unikit_bridge::UnikitError::internal(e.to_string()));
         }
 
         // 예약 cmd 분기용 head — 1회만 계산한다. len<2 프레임은 0 으로 두어
@@ -263,9 +263,9 @@ pub fn run_binary<R: Read, W: Write>(
                 vec![u8::from(ok), 0, 0, 0]
             }
             _ => match package.invoke_frame_into(&payload, &mut out_buffer) {
-                Ok(rustra::DirectResponse::Written(n)) => out_buffer[..n].to_vec(),
-                Ok(rustra::DirectResponse::Buffered(bytes)) => bytes,
-                Err(error) => rustra::encode_frame_error(&error),
+                Ok(unikit_bridge::DirectResponse::Written(n)) => out_buffer[..n].to_vec(),
+                Ok(unikit_bridge::DirectResponse::Buffered(bytes)) => bytes,
+                Err(error) => unikit_bridge::encode_frame_error(&error),
             },
         };
 
@@ -279,7 +279,7 @@ pub fn run_binary<R: Read, W: Write>(
             .and_then(|_| out.write_all(&response))
             .and_then(|_| out.flush());
         drop(guard);
-        written.map_err(rustra::RustraError::internal)?;
+        written.map_err(unikit_bridge::UnikitError::internal)?;
     }
 }
 

@@ -1,17 +1,17 @@
-/** @rustra/bun — Bun JSON transport and FFI adapter. */
+/** @unikit-bridge/bun — Bun JSON transport and FFI adapter. */
 export type {
   EngineClient,
   BootstrapState,
-  RustraError,
+  UnikitError,
   FrameCodec,
   FrameNative,
   FrameEngineOptions,
   InvokeOptions,
   FrameEngine,
   EngineSupports,
-} from '@rustra/types';
+} from '@unikit-bridge/types';
 export {
-  RustraCommandError,
+  UnikitCommandError,
   configure,
   configureLazy,
   disposedBootstrapError,
@@ -19,8 +19,8 @@ export {
   invoke,
   createFrameEngine,
   createJsonEngine,
-} from '@rustra/types';
-import { createJsonEngine } from '@rustra/types';
+} from '@unikit-bridge/types';
+import { createJsonEngine } from '@unikit-bridge/types';
 import { BUN_ENGINE_SUPPORTS } from './bun-ffi.js';
 export { BUN_ENGINE_SUPPORTS, BUN_FRAME_ENGINE_SUPPORTS } from './bun-ffi.js';
 

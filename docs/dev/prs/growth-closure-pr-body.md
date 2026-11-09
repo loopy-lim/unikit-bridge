@@ -20,8 +20,8 @@
 ### 이벤트 스토리 완결 ("한 번 정의하면 어디서든"의 절반 공백 해소)
 
 - Rust `PackageBuilder::event::<E>("name")` → schema.json `events` 섹션 (미선언 시 섹션 부재 = 하위호환)
-- TS CLI `generateEventsTs`: 페이로드 타입 + `RustraEventName` 유니언 + `onRustraEvent` 타입 안전 구독 헬퍼 (dual-path)
-- `@rustra/tauri` `subscribeEvent`/`rustraEventChannel` — Rust `register_with_events`와 짝 (채널 규칙 정합)
+- TS CLI `generateEventsTs`: 페이로드 타입 + `UnikitEventName` 유니언 + `onUnikitEvent` 타입 안전 구독 헬퍼 (dual-path)
+- `@unikit-bridge/tauri` `subscribeEvent`/`unikitEventChannel` — Rust `register_with_events`와 짝 (채널 규칙 정합)
 
 ### 비동기 스토리
 
@@ -33,17 +33,17 @@
 
 - caller-buffer **probe 캐시** — 비멱등 핸들러 사이드 이펙트 2회 실행 방지(카운터 테스트 고정)
 - `$ref` 지원 판정이 definitions까지 재귀 검증 — map/oneOf를 가리키는 $ref의 와이어 불일치 제거
-- 코어 `rustra_ffi_invoke_rkyv_v2[_into][_async]` 심볼 — calculator의 복제 패닉 가드+버퍼 프로토콜 제거 (free 심볼 레이아웃 분리 `free_rkyv_v2_buffer`)
+- 코어 `unikit_ffi_invoke_rkyv_v2[_into][_async]` 심볼 — calculator의 복제 패닉 가드+버퍼 프로토콜 제거 (free 심볼 레이아웃 분리 `free_rkyv_v2_buffer`)
 - `Command` 스키마 `Arc<Value>`화(매 invoke deep copy 제거) + `id_to_command` 단일 조회
 - **할당 카운팅 측정 신설**: `invoke_json` 9 vs `invoke_rkyv_v2` **4 allocs/call**, 콜드스타트 8.6x — benchmarks.md에 0.2.0 기준선 섹션 추가
 - 패닉 메시지 포맷 경로 전체 단일화, async spawn 가드, payload 복사 전 선검사, emit 직렬화 경고, 에러 잘림 마커
 
 ### JS 패키지
 
-- `RustraErrorCode` 19종 상수 레지스트리 + `isRustraErrorCode` 가드
+- `UnikitErrorCode` 19종 상수 레지스트리 + `isUnikitErrorCode` 가드
 - mock 엔진: options 기록/pre-aborted `cancelled`/`invokeBatch` 라우팅/`reset`
 - `expectContractCurrent` (러너 무관 expect-스타일 계약 게이트)
-- `RustraJSINative` 3중 수동 미러링 → `RkyvV2SchemaNative` 상속 단일화
+- `UnikitJSINative` 3중 수동 미러링 → `RkyvV2SchemaNative` 상속 단일화
 - `_utf8Encode` TextEncoder 폴백 + 사전 크기 추정 Writer / useCommand 세대 가드(StrictMode 경쟁) / positional facade byId 진입
 
 ### CI·인프라·시장
@@ -56,8 +56,8 @@
 
 전 게이트 로컬 green:
 
-- [x] `cargo test -p rustra -p rustra-macros` — 16 스위트 ok (신규 테스트 ~15건)
-- [x] `cargo test -p rustra-calculator-example` — 8 스위트 ok (rkyv V2 위임 후 free 심볼 교체 반영)
+- [x] `cargo test -p unikit-bridge -p unikit-bridge-macros` — 16 스위트 ok (신규 테스트 ~15건)
+- [x] `cargo test -p unikit-calculator-example` — 8 스위트 ok (rkyv V2 위임 후 free 심볼 교체 반영)
 - [x] `cargo clippy --all-targets -- -D warnings` — 0 에러
 - [x] `npm run test:packages` — 7패키지 fail 0
 - [x] `npm run test:ts:node` — green (crud wire round-trip 포함)
@@ -76,5 +76,5 @@
 ## Notes for reviewers
 
 - **signal 정책 변화**: node/bun/tauri 엔진이 미abort signal을 더 이상 에러로 거부하지 않습니다(얕은 취소). abort 시 `cancelled`는 유지 — `docs/compatibility-matrix.md`가 유일한 정합 소스입니다.
-- **rkyv V2 심볼 위임**: calculator `rustra_calculator_invoke_rkyv_v2`는 코어 위임으로 바뀌었고, 응답 버퍼가 **코어 FFI 레이아웃**(8B 헤더)이 되어 해제 심볼이 `rustra_calculator_free_rkyv_v2_buffer`로 분리됐습니다. JSI C++ 동기 경로도 함께 교체 — 두 free 심볼은 교환 불가입니다.
+- **rkyv V2 심볼 위임**: calculator `unikit_calculator_invoke_rkyv_v2`는 코어 위임으로 바뀌었고, 응답 버퍼가 **코어 FFI 레이아웃**(8B 헤더)이 되어 해제 심볼이 `unikit_calculator_free_rkyv_v2_buffer`로 분리됐습니다. JSI C++ 동기 경로도 함께 교체 — 두 free 심볼은 교환 불가입니다.
 - **별트랙 명시 유보** (SPEC 범위 제외): 배치 항목별 취소 네이티브, WASM/Electron, 프리빌트 배포, 무중단 주입, async 핸들러 trait 비동기화, JSI caller-buffer 기기 측정.

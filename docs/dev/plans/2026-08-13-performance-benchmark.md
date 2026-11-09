@@ -1,9 +1,9 @@
-# rustra-bridge 성능 벤치마크
+# unikit-bridge 성능 벤치마크
 
-- **상태:** Benchmark. rustra-bridge 전송 계층 + 와이어포맷 직렬화 계층의 측정 결과.
+- **상태:** Benchmark. unikit-bridge 전송 계층 + 와이어포맷 직렬화 계층의 측정 결과.
 - **날짜:** 2026-08-13
 - **환경:** Apple M1 Max (10 cores), macOS, rustc 1.95.0, Node.js v22.21.1, Bun 1.3.6.
-- **재현:** `node scripts/transport-bench.mjs` / `bun scripts/transport-bench.mjs` / `cargo run -p rustra-calculator-example --bin wire-bench --release`.
+- **재현:** `node scripts/transport-bench.mjs` / `bun scripts/transport-bench.mjs` / `cargo run -p unikit-calculator-example --bin wire-bench --release`.
 
 > 모든 수치는 `addNumbers(42, 58) → 100` 단일 호출. release 빌드. 2회 실행으로 안정성 확인.
 
@@ -72,7 +72,7 @@ Node napi-rs 전체      15.3 µs  ███████████████
 | 현실적 기준선 | napi/FFI 15–19µs     | Lynx/Tauri 네이티브 경로의 상한 추정치      |
 | Lynx 런타임   | ~50µs/call (QuickJS) | Node(V8) 15.3µs 의 ~3.3x; 코어 1.3µs(~2.6%) |
 
-rustra-bridge 의 rkyv V2 fast-path(spike 9/52/95 바이트 시퀀스로 4플랫폼 증명)는 속도·크기 양쪽에서 JSON 경로를 일관되게 상회하며, 코어 비용 1.30µs / 770K ops/s 로 네이티브 UI 프레임의 per-frame 호출 예산(16ms @60fps)에 여유.
+unikit-bridge 의 rkyv V2 fast-path(spike 9/52/95 바이트 시퀀스로 4플랫폼 증명)는 속도·크기 양쪽에서 JSON 경로를 일관되게 상회하며, 코어 비용 1.30µs / 770K ops/s 로 네이티브 UI 프레임의 per-frame 호출 예산(16ms @60fps)에 여유.
 
 ---
 
@@ -106,7 +106,7 @@ Lynx QuickJS end-to-end   ~50 µs  ███████████████
 
 **결론:**
 
-- **Lynx(QuickJS) end-to-end ~50µs/call ≈ Node(V8) 15.3µs 의 ~3.3x.** 차이의 대부분(~43µs) 은 QuickJS 해석 실행 + Promise 마이크로태스크 스케줄링 + weak-N-API 값 마샬링이지, Rust/rustra 코어(1.3µs) 가 아니다.
+- **Lynx(QuickJS) end-to-end ~50µs/call ≈ Node(V8) 15.3µs 의 ~3.3x.** 차이의 대부분(~43µs) 은 QuickJS 해석 실행 + Promise 마이크로태스크 스케줄링 + weak-N-API 값 마샬링이지, Rust/unikit 코어(1.3µs) 가 아니다.
 - **host 핸들러 본체 p50 7.0µs** 중 Rust 코어(rkyv V2) 는 1.3µs(~18%). 나머지 ~5.7µs 가 N-API 인자 언팩 + ArrayBuffer 2회 alloc/copy + free — Lynx desktop 의 weak-N-API 가 ArrayBuffer 한 왕복에 지불하는 비용.
 - **코어 비용(1.3µs)은 Lynx end-to-end(50µs) 의 ~2.6% 로 Node(8%) 보다 더 작다.** 즉 Lynx desktop 에선 직렬화 포맷 선택(rkyv vs JSON, 1.3µs 차)이 end-to-end 에 미치는 영향이 더 작다. **단, 페이로드 4B vs 47B(11.75x) 크기 이점은 벤치마크 머신과 무관하게 독립적 가치**(네트워크/IPC/배터리)로 그대로 성립.
 - **모바일(iOS JSI / Android JNI) 은 본 데스크톱 N-API 경로보다 얕은 브릿지** → 코어 비용 비중이 더 크므로 rkyv V2 우위가 직접 드러날 것으로 예상. 본 macOS 머신에서는 측정 불가(정직 연기).
@@ -121,7 +121,7 @@ npm run bench
 # 전송 계층 (Bun FFI)
 npm run bench:bun
 # 와이어포맷 코어 (★ 본 세션 추가)
-cargo run -p rustra-calculator-example --bin wire-bench --release
+cargo run -p unikit-calculator-example --bin wire-bench --release
 # Lynx 런타임(QuickJS) end-to-end (★ 본 세션 추가)
 cd examples/lynx-tauri-spike && npm run build && bash build-lynx-host.sh && ./verify.sh
 #  → stderr 에서 [bench] js.* (end-to-end) / [bench] host.* (핸들러 본체 p50/p99) 확인

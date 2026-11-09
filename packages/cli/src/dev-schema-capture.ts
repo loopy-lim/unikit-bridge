@@ -1,6 +1,6 @@
 /**
  * 빌드타임 parity 캡처 — schema.json 의 SHA-256. cd243cec 단일 소싱 계약상 이
- * 해시는 `rustra_ffi_contract_hash` 및 생성물 `GENERATED_CONTRACT_HASH` 와 같은
+ * 해시는 `unikit_ffi_contract_hash` 및 생성물 `GENERATED_CONTRACT_HASH` 와 같은
  * 원본(schema 직렬화)을 해시하므로, dev 루프는 라이브 엔진 없이도 "reload 전후
  * 계약이 갈라졌는가"를 판정할 수 있다. golden wire 상태는 호스트 훅(A1
  * onReload)이 주입하는 영역이라 여기서는 undefined 다.
@@ -22,7 +22,7 @@ export async function captureSchemaParity(schemaPath: string): Promise<ParitySna
     if (code === 'ENOENT') {
       throw new Error(
         `Schema file not found: ${resolve(schemaPath)} — the codegen stage did not produce it. ` +
-          `Check codegen.schema in rustra.json, then re-run "rustra codegen --config <config>".`,
+          `Check codegen.schema in unikit.json, then re-run "unikit codegen --config <config>".`,
         { cause: error },
       );
     }

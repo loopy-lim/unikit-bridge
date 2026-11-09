@@ -1,12 +1,12 @@
 English | [한국어](./README.ko.md)
 
-# @rustra/node
+# @unikit-bridge/node
 
-Adapter that auto-discovers the Rustra runtime in Node environments and connects it to the shared `EngineClient`.
+Adapter that auto-discovers the Unikit runtime in Node environments and connects it to the shared `EngineClient`.
 
 ## Zero-config default path
 
-Leave only an empty host block in `rustra.json`.
+Leave only an empty host block in `unikit.json`.
 
 ```json
 { "schema": "./generated/schema.json", "output": "./src/generated", "node": {} }
@@ -25,7 +25,7 @@ Runtime candidates are ordered by modification time and checked against the gene
 contract, falling back to the next compatible candidate. After transpile/bundle, the client
 additionally looks for the same Cargo target in the parent of the current working
 directory. If the deployment layout differs, just set
-`RUSTRA_NODE_BINARY=/absolute/path/to/app`.
+`UNIKIT_NODE_BINARY=/absolute/path/to/app`.
 
 For manual bootstraps, relative `commandCandidates` and `binaryName` discovery start
 from `spawnOptions.cwd` (a string or file URL), defaulting to `process.cwd()`.
@@ -37,15 +37,15 @@ errors show the working directory and checked candidate paths.
 The default `node: {}` invokes a fresh process for each command. For stateful services,
 use `node: { "persistent": true }`; the generated entry starts one `serve` process and
 reuses it. Set `node.args` for a custom daemon flag, such as `["--serve"]`. The producer
-must implement NDJSON request ids, `__rustra_contract`, `__rustra_capabilities`, and
-`__drainEvents`; the current `rustra init` scaffold includes this protocol.
+must implement NDJSON request ids, `__unikit_contract`, `__unikit_capabilities`, and
+`__drainEvents`; the current `unikit init` scaffold includes this protocol.
 
 Schemas declaring events automatically select a persistent client. Import its
 `subscribeEvent` alongside generated commands; invocation and subscription share the
-contract-verified runtime. `rustra.subscribeEvent()` is also available on a manually
+contract-verified runtime. `unikit.subscribeEvent()` is also available on a manually
 created `createNodeBootstrap({ persistent: true, ... })`.
 
-Call `rustra.dispose()` when the service ends; it releases the process and subscriptions.
+Call `unikit.dispose()` when the service ends; it releases the process and subscriptions.
 `reload()` preserves subscriptions while replacing the process. Contract/capability
 probes time out after 5 seconds by default; `readinessTimeoutMs` changes that bound.
 
@@ -68,7 +68,7 @@ function createNodeEngine(transport: NodeInvokeTransport): NodeEngineClient;
 ### subprocess-based
 
 ```ts
-import { createNodeEngine } from '@rustra/node';
+import { createNodeEngine } from '@unikit-bridge/node';
 import { spawn } from 'node:child_process';
 
 const engine = createNodeEngine({
@@ -83,7 +83,7 @@ const engine = createNodeEngine({
 ### napi-rs-based
 
 ```ts
-import { createNodeEngine } from '@rustra/node';
+import { createNodeEngine } from '@unikit-bridge/node';
 import { invoke as nativeInvoke } from 'my-crate-napi';
 
 const engine = createNodeEngine({

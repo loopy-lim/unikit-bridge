@@ -14,18 +14,18 @@
 
 **Files:**
 
-- Modify: `crates/rustra-macros/src/lib.rs`
-- Modify: `crates/rustra/src/lib.rs` (prelude, re-export)
-- Test: `crates/rustra/tests/public_authoring_api_tests.rs`
+- Modify: `crates/unikit-bridge-macros/src/lib.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs` (prelude, re-export)
+- Test: `crates/unikit-bridge/tests/public_authoring_api_tests.rs`
 
 **Step 1: Write the failing test**
 
-Add to `crates/rustra/tests/public_authoring_api_tests.rs`:
+Add to `crates/unikit-bridge/tests/public_authoring_api_tests.rs`:
 
 ```rust
 #[test]
 fn bridge_type_derive_replaces_four_derives() {
-    use rustra::BridgeType;
+    use unikit_bridge::BridgeType;
 
     #[derive(Debug, BridgeType)]
     struct BridgedInput {
@@ -55,12 +55,12 @@ fn bridge_type_derive_replaces_four_derives() {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cargo test -p rustra bridge_type_derive_replaces_four_derives`
+Run: `cargo test -p unikit-bridge bridge_type_derive_replaces_four_derives`
 Expected: FAIL — `BridgeType` not found
 
 **Step 3: Implement `BridgeType` derive macro**
 
-Add to `crates/rustra-macros/src/lib.rs`:
+Add to `crates/unikit-bridge-macros/src/lib.rs`:
 
 ````rust
 /// Derive macro that combines `Debug + Serialize + Deserialize + JsonSchema`
@@ -168,7 +168,7 @@ pub fn bridge_type(_attr: TokenStream, item: TokenStream) -> TokenStream {
 ```rust
 #[test]
 fn bridge_type_replaces_four_derives() {
-    #[rustra::bridge_type]
+    #[unikit_bridge::bridge_type]
     struct BridgedInput {
         pub name: String,
         pub age: Option<u32>,
@@ -177,10 +177,10 @@ fn bridge_type_replaces_four_derives() {
 }
 ```
 
-**Step 4: Update re-exports in `crates/rustra/src/lib.rs`**
+**Step 4: Update re-exports in `crates/unikit-bridge/src/lib.rs`**
 
 ```rust
-pub use rustra_macros::bridge_type;
+pub use unikit_bridge_macros::bridge_type;
 ```
 
 Add to prelude:
@@ -191,13 +191,13 @@ pub use crate::bridge_type;
 
 **Step 5: Run test to verify it passes**
 
-Run: `cargo test -p rustra bridge_type_replaces_four_derives`
+Run: `cargo test -p unikit-bridge bridge_type_replaces_four_derives`
 Expected: PASS
 
 **Step 6: Commit**
 
 ```bash
-git add crates/rustra-macros/src/lib.rs crates/rustra/src/lib.rs crates/rustra/tests/
+git add crates/unikit-bridge-macros/src/lib.rs crates/unikit-bridge/src/lib.rs crates/unikit-bridge/tests/
 git commit -m "feat(macros): add #[bridge_type] attribute macro"
 ```
 
@@ -207,16 +207,16 @@ git commit -m "feat(macros): add #[bridge_type] attribute macro"
 
 **Files:**
 
-- Modify: `crates/rustra-macros/src/lib.rs`
+- Modify: `crates/unikit-bridge-macros/src/lib.rs`
 
 **Step 1: Write the failing test**
 
-Add to `crates/rustra/tests/public_authoring_api_tests.rs`:
+Add to `crates/unikit-bridge/tests/public_authoring_api_tests.rs`:
 
 ```rust
 #[test]
 fn command_macro_accepts_scalar_params_with_scalar_return() {
-    use rustra::prelude::*;
+    use unikit_bridge::prelude::*;
 
     #[command]
     fn add_numbers(a: i64, b: i64) -> i64 {
@@ -224,7 +224,7 @@ fn command_macro_accepts_scalar_params_with_scalar_return() {
     }
 
     // The generated handler should be callable
-    let pkg = rustra::build("test.scalar")
+    let pkg = unikit_bridge::build("test.scalar")
         .register(add_numbers)
         .done();
 
@@ -234,18 +234,18 @@ fn command_macro_accepts_scalar_params_with_scalar_return() {
 
 #[test]
 fn command_macro_accepts_scalar_params_with_result_return() {
-    use rustra::prelude::*;
+    use unikit_bridge::prelude::*;
 
     #[command]
     fn divide(a: i64, b: i64) -> Result<i64> {
         if b == 0 {
-            Err(RustraError::invalid_args("division by zero"))
+            Err(UnikitError::invalid_args("division by zero"))
         } else {
             Ok(a / b)
         }
     }
 
-    let pkg = rustra::build("test.scalar")
+    let pkg = unikit_bridge::build("test.scalar")
         .register(divide)
         .done();
 
@@ -256,12 +256,12 @@ fn command_macro_accepts_scalar_params_with_result_return() {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cargo test -p rustra command_macro_accepts_scalar_params`
+Run: `cargo test -p unikit-bridge command_macro_accepts_scalar_params`
 Expected: FAIL — `#[command]` rejects functions with != 1 params
 
 **Step 3: Rewrite `#[command]` macro**
 
-Replace the `command` proc-macro in `crates/rustra-macros/src/lib.rs`:
+Replace the `command` proc-macro in `crates/unikit-bridge-macros/src/lib.rs`:
 
 ```rust
 #[proc_macro_attribute]
@@ -275,7 +275,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         snake_to_lower_camel(raw.trim_end_matches("_command"))
     });
     let meta_ident = Ident::new(
-        &format!("__RUstra_meta_{}", fn_name),
+        &format!("__UNikit_meta_{}", fn_name),
         proc_macro2::Span::call_site(),
     );
 
@@ -309,7 +309,7 @@ fn expand_struct_param_command(
 ) -> TokenStream2 {
     let fn_name = &func.sig.ident;
     let handler_ident = Ident::new(
-        &format!("__rustra_{}_handler", fn_name),
+        &format!("__unikit_{}_handler", fn_name),
         proc_macro2::Span::call_site(),
     );
 
@@ -331,15 +331,15 @@ fn expand_struct_param_command(
         const #meta_ident: &str = #command_name;
 
         #[allow(dead_code)]
-        fn #handler_ident(__input: #input_type) -> rustra::Result<#output_type> {
+        fn #handler_ident(__input: #input_type) -> unikit_bridge::Result<#output_type> {
             #fn_name(__input)
         }
 
         #[allow(dead_code)]
         const _: () = {
             fn _assert_bounds<
-                __I: rustra::__private::CommandInput,
-                __O: rustra::__private::CommandOutput,
+                __I: unikit_bridge::__private::CommandInput,
+                __O: unikit_bridge::__private::CommandOutput,
             >() {}
             fn _check() { _assert_bounds::<#input_type, #output_type>(); }
         };
@@ -380,7 +380,7 @@ fn expand_scalar_param_command(
         proc_macro2::Span::call_site(),
     );
     let handler_ident = Ident::new(
-        &format!("__rustra_{}_handler", fn_name),
+        &format!("__unikit_{}_handler", fn_name),
         proc_macro2::Span::call_site(),
     );
 
@@ -418,7 +418,7 @@ fn expand_scalar_param_command(
         const #meta_ident: &str = #command_name;
 
         #[allow(dead_code)]
-        fn #handler_ident(__input: #input_struct_name) -> rustra::Result<#output_type> {
+        fn #handler_ident(__input: #input_struct_name) -> unikit_bridge::Result<#output_type> {
             let #input_struct_name { #(#access),* } = __input;
             #handler_body
         }
@@ -426,8 +426,8 @@ fn expand_scalar_param_command(
         #[allow(dead_code)]
         const _: () = {
             fn _assert_bounds<
-                __I: rustra::__private::CommandInput,
-                __O: rustra::__private::CommandOutput,
+                __I: unikit_bridge::__private::CommandInput,
+                __O: unikit_bridge::__private::CommandOutput,
             >() {}
             fn _check() { _assert_bounds::<#input_struct_name, #output_type>(); }
         };
@@ -453,23 +453,23 @@ fn snake_to_upper_camel(name: &str) -> String {
 
 **Step 4: Run test to verify it passes**
 
-Run: `cargo test -p rustra command_macro_accepts_scalar_params`
+Run: `cargo test -p unikit-bridge command_macro_accepts_scalar_params`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra-macros/src/lib.rs crates/rustra/tests/
+git add crates/unikit-bridge-macros/src/lib.rs crates/unikit-bridge/tests/
 git commit -m "feat(macros): support scalar params in #[command] macro"
 ```
 
 ---
 
-### Task 3: Add `rustra::build()` API and `.register()` + `.generate_to()`
+### Task 3: Add `unikit_bridge::build()` API and `.register()` + `.generate_to()`
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs`
 
 **Step 1: Write the failing test**
 
@@ -482,7 +482,7 @@ fn build_api_registers_and_generates_in_one_chain() {
     }
 
     let dir = tempfile::tempdir().unwrap();
-    rustra::build("test.greet")
+    unikit_bridge::build("test.greet")
         .register(greet)
         .generate_to(dir.path())
         .unwrap();
@@ -499,12 +499,12 @@ fn build_api_registers_and_generates_in_one_chain() {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cargo test -p rustra build_api_registers_and_generates`
-Expected: FAIL — `rustra::build` not found
+Run: `cargo test -p unikit-bridge build_api_registers_and_generates`
+Expected: FAIL — `unikit_bridge::build` not found
 
 **Step 3: Implement `build()`, `.register()`, `.generate_to()`, `.done()`**
 
-Add to `crates/rustra/src/lib.rs`:
+Add to `crates/unikit-bridge/src/lib.rs`:
 
 ```rust
 /// Creates a new [`PackageBuilder`] with the given package ID.
@@ -548,7 +548,7 @@ Update prelude to include `build`:
 
 ```rust
 pub mod prelude {
-    pub use crate::{build, GeneratedPackage, Package, PackageBuilder, Result, RustraError, command, register};
+    pub use crate::{build, GeneratedPackage, Package, PackageBuilder, Result, UnikitError, command, register};
     pub use schemars::JsonSchema;
     pub use serde::{Deserialize, Serialize};
 }
@@ -556,13 +556,13 @@ pub mod prelude {
 
 **Step 4: Run test to verify it passes**
 
-Run: `cargo test -p rustra build_api_registers_and_generates`
+Run: `cargo test -p unikit-bridge build_api_registers_and_generates`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add crates/rustra/src/lib.rs crates/rustra/tests/
+git add crates/unikit-bridge/src/lib.rs crates/unikit-bridge/tests/
 git commit -m "feat(api): add build().register().generate_to() chain"
 ```
 
@@ -572,7 +572,7 @@ git commit -m "feat(api): add build().register().generate_to() chain"
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs` (`__private` module)
+- Modify: `crates/unikit-bridge/src/lib.rs` (`__private` module)
 
 **Step 1: Update `__private` module**
 
@@ -584,7 +584,7 @@ pub mod __private {
     #[diagnostic::on_unimplemented(
         message = "`{Self}` cannot be used as a command parameter",
         label = "command parameters require Serialize + Deserialize + JsonSchema",
-        note = "add `#[rustra::bridge_type]` to `{Self}`"
+        note = "add `#[unikit_bridge::bridge_type]` to `{Self}`"
     )]
     pub trait CommandInput: DeserializeOwned + JsonSchema + 'static {}
     impl<T: DeserializeOwned + JsonSchema + 'static> CommandInput for T {}
@@ -592,7 +592,7 @@ pub mod __private {
     #[diagnostic::on_unimplemented(
         message = "`{Self}` cannot be used as a command return type",
         label = "command return types require Serialize + JsonSchema",
-        note = "add `#[rustra::bridge_type]` to `{Self}`"
+        note = "add `#[unikit_bridge::bridge_type]` to `{Self}`"
     )]
     pub trait CommandOutput: Serialize + JsonSchema + 'static {}
     impl<T: Serialize + JsonSchema + 'static> CommandOutput for T {}
@@ -601,13 +601,13 @@ pub mod __private {
 
 **Step 2: Verify it compiles**
 
-Run: `cargo build -p rustra`
+Run: `cargo build -p unikit-bridge`
 Expected: PASS (no runtime test — this is a compile-time diagnostic improvement)
 
 **Step 3: Commit**
 
 ```bash
-git add crates/rustra/src/lib.rs
+git add crates/unikit-bridge/src/lib.rs
 git commit -m "feat(api): add descriptive error messages for trait bounds"
 ```
 
@@ -617,16 +617,16 @@ git commit -m "feat(api): add descriptive error messages for trait bounds"
 
 **Files:**
 
-- Modify: `crates/rustra/tests/public_authoring_api_tests.rs`
+- Modify: `crates/unikit-bridge/tests/public_authoring_api_tests.rs`
 
 **Step 1: Update test file**
 
-Replace all test functions that use the old API (`Package::builder()`, `register!()`) with the new API (`rustra::build()`, `.register()`). Key changes:
+Replace all test functions that use the old API (`Package::builder()`, `register!()`) with the new API (`unikit_bridge::build()`, `.register()`). Key changes:
 
-- `Package::builder("...")` → `rustra::build("...")`
+- `Package::builder("...")` → `unikit_bridge::build("...")`
 - `.command_fn(fn)` / `.command("name", fn)` → `.register(fn)`
-- `register!(Package::builder("..."), fn1, fn2).build()` → `rustra::build("...").register(fn1).register(fn2).done()`
-- `pkg.generate_typescript()?.write_to_dir(dir)` → replace with `rustra::build("...").register(fn).generate_to(dir)`
+- `register!(Package::builder("..."), fn1, fn2).build()` → `unikit_bridge::build("...").register(fn1).register(fn2).done()`
+- `pkg.generate_typescript()?.write_to_dir(dir)` → replace with `unikit_bridge::build("...").register(fn).generate_to(dir)`
 
 Where tests need just the Package for invocation, use `.done()` instead of `.build()`.
 
@@ -634,13 +634,13 @@ Keep struct definitions using `#[derive(Debug, Serialize, Deserialize, JsonSchem
 
 **Step 2: Run all tests**
 
-Run: `cargo test -p rustra`
+Run: `cargo test -p unikit-bridge`
 Expected: ALL PASS
 
 **Step 3: Commit**
 
 ```bash
-git add crates/rustra/tests/
+git add crates/unikit-bridge/tests/
 git commit -m "test: update tests to new build().register() API"
 ```
 
@@ -684,7 +684,7 @@ fn add_numbers(a: i64, b: i64) -> i64 { a + b }
 fn multiply(a: i64, b: i64) -> i64 { a * b }
 
 fn main() -> Result<()> {
-    rustra::build("examples.calculator")
+    unikit_bridge::build("examples.calculator")
         .register(add_numbers)
         .register(multiply)
         .generate_to("generated")?
@@ -709,17 +709,17 @@ git commit -m "feat(examples): migrate calculator to new API"
 
 **Files:**
 
-- Modify: `crates/rustra-macros/src/lib.rs`
-- Modify: `crates/rustra/src/lib.rs` (remove `register` re-export)
+- Modify: `crates/unikit-bridge-macros/src/lib.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs` (remove `register` re-export)
 
 **Step 1: Remove `register!` proc macro**
 
-Delete the `register` function and `RegisterInput` struct from `crates/rustra-macros/src/lib.rs`.
+Delete the `register` function and `RegisterInput` struct from `crates/unikit-bridge-macros/src/lib.rs`.
 
-Remove from `crates/rustra/src/lib.rs`:
+Remove from `crates/unikit-bridge/src/lib.rs`:
 
 ```rust
-pub use rustra_macros::register;
+pub use unikit_bridge_macros::register;
 ```
 
 Remove from prelude:
@@ -751,18 +751,18 @@ git commit -m "chore: remove deprecated register! macro"
 
 **Files:**
 
-- Modify: `crates/rustra/src/lib.rs` (module-level doc)
-- Modify: `crates/rustra-macros/src/lib.rs` (macro doc comments)
+- Modify: `crates/unikit-bridge/src/lib.rs` (module-level doc)
+- Modify: `crates/unikit-bridge-macros/src/lib.rs` (macro doc comments)
 
 **Step 1: Update module-level doc example**
 
-Replace the old example in `crates/rustra/src/lib.rs` with:
+Replace the old example in `crates/unikit-bridge/src/lib.rs` with:
 
 ````rust
 //! ## 빠른 예제
 //!
 //! ```rust
-//! use rustra::prelude::*;
+//! use unikit_bridge::prelude::*;
 //!
 //! #[command]
 //! fn add_numbers(a: i64, b: i64) -> i64 {
@@ -770,7 +770,7 @@ Replace the old example in `crates/rustra/src/lib.rs` with:
 //! }
 //!
 //! fn main() -> Result<()> {
-//!     rustra::build("example.calculator")
+//!     unikit_bridge::build("example.calculator")
 //!         .register(add_numbers)
 //!         .generate_to("../generated")?
 //! }
@@ -779,7 +779,7 @@ Replace the old example in `crates/rustra/src/lib.rs` with:
 
 **Step 2: Run doc tests**
 
-Run: `cargo test --doc -p rustra`
+Run: `cargo test --doc -p unikit-bridge`
 Expected: PASS
 
 **Step 3: Commit**

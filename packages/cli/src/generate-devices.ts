@@ -1,8 +1,8 @@
 /**
- * @rustra/cli — 커맨드별 디바이스 역량 렌더러
+ * @unikit-bridge/cli — 커맨드별 디바이스 역량 렌더러
  *
  * 스키마 명령 항목의 `devices` 선언에서 `devices.ts`를 생성한다 — 패키지가
- * 선언에 사용한 토큰의 리터럴 유니언(`RustraDeviceCapability`) + 커맨드별
+ * 선언에 사용한 토큰의 리터럴 유니언(`UnikitDeviceCapability`) + 커맨드별
  * `{FN}_DEVICES` 상수. 선언은 계약 문서다 — 런타임 자동 게이팅이나 OS 권한
  * 요청은 없고, 가용성/권한 조회는 호스트가 등록한 provider 표면
  * (`getDeviceStatus`) 몫이다(설계 B/D절).
@@ -24,13 +24,13 @@ export function generateDevicesTs(schema: PackageSchema): string {
   const declared = schema.commands.filter((command) => (command.devices?.length ?? 0) > 0);
   if (declared.length === 0) return '';
 
-  // 카탈로그 단일소싱 — 구버전 rustra 스키마(필드 없음)에 선언이 있으면
+  // 카탈로그 단일소싱 — 구버전 unikit 스키마(필드 없음)에 선언이 있으면
   // 정렬·검증 자체가 불가능하므로 fail-closed로 재생성을 안내한다.
   const catalog = schema.deviceCapabilities ?? [];
   if (catalog.length === 0) {
     throw new Error(
       'Invalid schema: schema.json lacks the top-level deviceCapabilities catalog while ' +
-        'commands declare devices — regenerate schema.json with a current rustra ' +
+        'commands declare devices — regenerate schema.json with a current unikit ' +
         '(the catalog is emitted alongside device declarations)',
     );
   }
@@ -62,13 +62,13 @@ export function generateDevicesTs(schema: PackageSchema): string {
     .map((token) => `'${token}'`)
     .join(' | ');
   let output = `/** 이 패키지가 선언에 사용한 디바이스 역량 토큰 (Rust 카탈로그 기준). */\n`;
-  output += `export type RustraDeviceCapability = ${union};\n`;
+  output += `export type UnikitDeviceCapability = ${union};\n`;
   // 마커는 미지 토큰이 있을 때만 — 카탈로그 내 토큰만 쓰는 패키지의
   // devices.ts는 바이트 불변(기존 재생성 출력과 동일).
   if (unknownTokens.size > 0) {
     const unknownAll = [...unknownTokens].sort();
     output += `// 카탈로그 밖 토큰 ${unknownAll.length}개 — debug 빌드에서만 등록 가능하다(release 빌드는\n`;
-    output += `// 패닉, rustra doctor codegen.device_catalog 검사가 릴리스 벽이다): ${unknownAll
+    output += `// 패닉, unikit doctor codegen.device_catalog 검사가 릴리스 벽이다): ${unknownAll
       .map((token) => `'${token}'`)
       .join(', ')}\n`;
   }
@@ -76,7 +76,7 @@ export function generateDevicesTs(schema: PackageSchema): string {
     const list = surface.tokens.map((token) => `'${token}'`).join(', ');
     output += `\n`;
     output += `/** ${surface.fnName} 가 전제하는 디바이스 역량 (Rust 선언 기준 — getDeviceStatus(토큰)로 사전 조회). */\n`;
-    output += `export const ${surface.constant}: readonly RustraDeviceCapability[] = [${list}];\n`;
+    output += `export const ${surface.constant}: readonly UnikitDeviceCapability[] = [${list}];\n`;
   }
   return finishGeneratedText(output);
 }

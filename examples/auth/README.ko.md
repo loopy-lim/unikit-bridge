@@ -18,7 +18,7 @@ auth/
 ## 실행 (end-to-end)
 
 ```bash
-cargo build -p rustra-auth-example
+cargo build -p unikit-auth-example
 bunx tsc -p examples/auth/tsconfig.json
 node dist-ts/examples/auth/apps/node-app.js
 ```
@@ -44,5 +44,5 @@ node dist-ts/examples/auth/apps/node-app.js
 - 토큰: `role-<sha256-8bytes>` (실제로는 JWT/opaque token + 만료)
 - 세션 저장: 프로세스 내 `BTreeMap` (실제로는 Redis/DB)
 
-capability 게이트 패턴 자체(`RustraError::capability_denied`)는 그대로
-프로덕션 적용이 가능하다 — `crates/rustra`의 Runtime Authority 참조.
+capability 게이트 패턴 자체(`UnikitError::capability_denied`)는 그대로
+프로덕션 적용이 가능하다 — `crates/unikit-bridge`의 Runtime Authority 참조.

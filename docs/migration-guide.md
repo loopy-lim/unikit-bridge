@@ -4,10 +4,10 @@ English | [한국어](./migration-guide.ko.md)
 
 When the contract (schema) shared by the Rust backend and TypeScript clients changes over time, this guide describes how to roll out breaking changes safely.
 
-## Where to start (by your rustra version)
+## Where to start (by your unikit version)
 
 - **From 0.3.x** — follow [migrating from 0.3 to 0.4](migrations/0.3-to-0.4.md) first, then use this guide.
-- **From 0.5.x** — follow [migrating from 0.5 to 0.6](migrations/0.5-to-0.6.md) first. Old schemas may also fail CLI validation with a "generic type name" error (see the [Rust API guide — user-defined generics](rust-api-guide.md#user-defined-generic-types)); rebuild `schema.json` with the current rustra before running `rustra diff`.
+- **From 0.5.x** — follow [migrating from 0.5 to 0.6](migrations/0.5-to-0.6.md) first. Old schemas may also fail CLI validation with a "generic type name" error (see the [Rust API guide — user-defined generics](rust-api-guide.md#user-defined-generic-types)); rebuild `schema.json` with the current unikit before running `unikit diff`.
 - **From 0.6–0.9** — include the [Frame/API migration](migrations/post-0.9-frame-and-audit.md) when crossing the Rust 0.10 release boundary, then use the recipes below.
 - **From 0.11.x** — follow [migrating from 0.11 to 0.12](migrations/0.11-to-0.12.md) first, then use this guide.
 - **The rkyv V2 → Frame rename (0.10.0 release)** — see [the rename table](#frame-rename-rkyv-v2--frame) below; a pure rename, the wire format is unchanged.
@@ -23,8 +23,8 @@ symbols do change: regenerate clients and rebuild native libraries/shells togeth
 as described in the [release migration](migrations/post-0.9-frame-and-audit.md).
 Package versions are independent, so the rename belongs to
 the release, not to one version number: the Rust workspace and
-`@rustra/types`/`@rustra/node`/`@rustra/bun`/`@rustra/cli` shipped it as 0.10.0,
-while `@rustra/tauri` and `@rustra/react-native` carried the same rename in
+`@unikit-bridge/types`/`@unikit-bridge/node`/`@unikit-bridge/bun`/`@unikit-bridge/cli` shipped it as 0.10.0,
+while `@unikit-bridge/tauri` and `@unikit-bridge/react-native` carried the same rename in
 their own 0.9.0 — a 0.9.x adapter version alone therefore does not mean
 pre-rename. Update the identifiers you reference:
 
@@ -39,7 +39,7 @@ pre-rename. Update the identifiers you reference:
 | `rkyv-codecs.ts`                       | `frame-codecs.ts`                    |
 | `rkyv-registry.ts`                     | `frame-registry.ts`                  |
 | `rkyv-engine`                          | `frame-engine`                       |
-| `rustra_ffi_invoke_rkyv_v2*`           | `rustra_ffi_invoke_frame*`           |
+| `unikit_ffi_invoke_rkyv_v2*`           | `unikit_ffi_invoke_frame*`           |
 | `decode_rkyv_v2_response`              | `decode_frame_response`              |
 | `encode_rkyv_v2_error`                 | `encode_frame_error`                 |
 | `decode_rkyv_v2_error_parts`           | `decode_frame_error_parts`           |
@@ -50,10 +50,10 @@ pre-rename. Update the identifiers you reference:
 
 The RN JSI host method follows the same rename (`invokeRkyvV2` → `invokeFrame`),
 and codegen output files land under the new names (`frame-codecs.ts`,
-`frame-registry.ts`) — re-run `rustra codegen` and update imports.
+`frame-registry.ts`) — re-run `unikit codegen` and update imports.
 
 Published CLI 0.12.0 removes obsolete generated files only when their bytes match
-ownership hashes in the previous `.rustra-generated.json`. CLI 0.11.3 and earlier
+ownership hashes in the previous `.unikit-generated.json`. CLI 0.11.3 and earlier
 do not include this fix: also check for leftover
 `rkyv-codecs.ts`/`rkyv-registry.ts` when running the type checker. If an earlier
 CLI already replaced the manifest, restore the pre-upgrade generated files and
@@ -68,16 +68,16 @@ and remove the unintended change. The CLI does not delete user-defined workspace
 
 ## Tools
 
-### `rustra diff`
+### `unikit diff`
 
 Compares two schema versions and detects breaking changes. It returns exit 1 when there is a breaking change so it can be used as a CI gate; exit 2 means the command itself was invoked wrong (for example a missing `--old`/`--new`), so a CI job can tell a misconfigured step from a real breaking change.
 
 ```bash
 # text output
-rustra diff --old ./generated/schema.v1.json --new ./generated/schema.json
+unikit diff --old ./generated/schema.v1.json --new ./generated/schema.json
 
 # machine-readable — { "schemaVersion": 1, "breaking": [...], "clean": boolean }
-rustra diff --old ./generated/schema.v1.json --new ./generated/schema.json --format json
+unikit diff --old ./generated/schema.v1.json --new ./generated/schema.json --format json
 ```
 
 ### Detected breaking change types
@@ -135,7 +135,7 @@ safe for a new decoder.
 2. Align CLI, runtime adapters and Rust dependencies using the
    [compatibility table](compatibility-matrix.md). Regenerate the contract and
    all bindings, then rebuild the app-specific native library and host shell.
-3. Run `rustra diff`, `rustra doctor` and `rustra codegen --check`. Exercise first
+3. Run `unikit diff`, `unikit doctor` and `unikit codegen --check`. Exercise first
    call, changed fields, declared errors, event subscribe/unsubscribe and disposal
    in the intended host. A clean diff alone is not runtime acceptance.
 4. Ship JS, generated output and the matching native build as a set. For staged
@@ -152,13 +152,13 @@ Whether a schema change is breaking is checked automatically in the PR:
 # add to .github/workflows/ci.yml
 - uses: actions/checkout@v4
   with:
-    fetch-depth: 0 # rustra diff compares against the base commit
+    fetch-depth: 0 # unikit diff compares against the base commit
 - uses: oven-sh/setup-bun@v2
-- run: bun install -g @rustra/cli # or: bun add -d @rustra/cli + bunx --bun rustra
+- run: bun install -g @unikit-bridge/cli # or: bun add -d @unikit-bridge/cli + bunx --bun unikit
 - name: Check schema compatibility
   run: |
     git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q schema.json \
-      && rustra diff --old <(git show ${{ github.event.before }}:generated/schema.json) \
+      && unikit diff --old <(git show ${{ github.event.before }}:generated/schema.json) \
                      --new generated/schema.json
 ```
 

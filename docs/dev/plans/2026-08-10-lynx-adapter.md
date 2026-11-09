@@ -2,16 +2,16 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** rustra 지원 host에 Lynx(ReactLynx) 어댑터를 추가한다. rkyv V2 바이너리 fast-path를 처음부터 내장하며, iOS + Android 모바일을 타겟팅한다.
+**Goal:** unikit 지원 host에 Lynx(ReactLynx) 어댑터를 추가한다. rkyv V2 바이너리 fast-path를 처음부터 내장하며, iOS + Android 모바일을 타겟팅한다.
 
-**Architecture:** Rust FFI 심볼(`rustra_calculator_invoke_rkyv_v2`)과 host-neutral `createRkyvV2Engine`(`@rustra/types`)을 재사용한다. 새로 작성할 것은 (1) TS 어댑터 `packages/lynx`(RN 어댑터 복사, 글로벌만 `NativeModules.RustraModule`로 교체), (2) Lynx Native Module(iOS Obj-C `<LynxModule>` + Android Kotlin `@LynxMethod`) 두 개뿐이다. 상세 설계는 `docs/plans/2026-08-10-lynx-adapter-design.md`를 참조.
+**Architecture:** Rust FFI 심볼(`unikit_calculator_invoke_rkyv_v2`)과 host-neutral `createRkyvV2Engine`(`@unikit-bridge/types`)을 재사용한다. 새로 작성할 것은 (1) TS 어댑터 `packages/lynx`(RN 어댑터 복사, 글로벌만 `NativeModules.UnikitModule`로 교체), (2) Lynx Native Module(iOS Obj-C `<LynxModule>` + Android Kotlin `@LynxMethod`) 두 개뿐이다. 상세 설계는 `docs/plans/2026-08-10-lynx-adapter-design.md`를 참조.
 
 **Tech Stack:** TypeScript(어댑터), Objective-C(Lynx Module iOS), Kotlin/JNI(Android), Rust staticlib(재사용), ReactLynx + rspeedy(예시).
 
 **참조 API (재사용, 변경 금지):**
 
 ```ts
-// @rustra/types
+// @unikit-bridge/types
 export type RkyvV2SchemaNative = {
   invokeRkyvV2(payload: ArrayBuffer): ArrayBuffer;
   getSchema?(): ArrayBuffer;
@@ -38,9 +38,9 @@ export function createRkyvV2Engine(
 
 ```json
 {
-  "name": "@rustra/lynx",
+  "name": "@unikit-bridge/lynx",
   "version": "0.1.0",
-  "description": "Lynx (ReactLynx) adapter for rustra-bridge",
+  "description": "Lynx (ReactLynx) adapter for unikit-bridge",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -57,16 +57,16 @@ export function createRkyvV2Engine(
     "clean": "rm -rf dist",
     "test": "tsc --noEmit"
   },
-  "dependencies": { "@rustra/types": "^0.1.0" },
+  "dependencies": { "@unikit-bridge/types": "^0.1.0" },
   "devDependencies": { "typescript": "^5.9.0" },
-  "keywords": ["rustra", "bridge", "lynx", "reactlynx", "adapter"],
+  "keywords": ["unikit", "bridge", "lynx", "reactlynx", "adapter"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/loopy-lim/rustra.git",
+    "url": "https://github.com/loopy-lim/unikit-bridge.git",
     "directory": "packages/"
   },
-  "bugs": { "url": "https://github.com/loopy-lim/rustra/issues" },
-  "homepage": "https://github.com/loopy-lim/rustra#readme"
+  "bugs": { "url": "https://github.com/loopy-lim/unikit-bridge/issues" },
+  "homepage": "https://github.com/loopy-lim/unikit-bridge#readme"
 }
 ```
 
@@ -81,7 +81,7 @@ export function createRkyvV2Engine(
 }
 ```
 
-**Step 3: README.md** (RN 것을 Lynx로 변환 — `NativeModules.RustraModule` 예시)
+**Step 3: README.md** (RN 것을 Lynx로 변환 — `NativeModules.UnikitModule` 예시)
 
 ### Task 2: 어댑터 + 실패 테스트 작성 (TDD)
 
@@ -96,7 +96,7 @@ export function createRkyvV2Engine(
 
 - fast engine이 codec 인코딩 → native.invokeRkyvV2 → codec 디코딩으로 라우팅
 - 에러 응답(`ok:false`) throw
-- `getRustraNative()` — `globalThis.NativeModules.RustraModule` 없을 때 throw
+- `getUnikitNative()` — `globalThis.NativeModules.UnikitModule` 없을 때 throw
 
 **Step 2: 테스트 실행해 실패 확인**
 
@@ -110,41 +110,46 @@ import type {
   EngineClient as EngineClientType,
   RkyvV2Codec,
   RkyvV2SchemaNative,
-} from '@rustra/types';
-import { RustraCommandError, configure, invoke, createRkyvV2Engine } from '@rustra/types';
+} from '@unikit-bridge/types';
+import { UnikitCommandError, configure, invoke, createRkyvV2Engine } from '@unikit-bridge/types';
 
-export type { EngineClient, RustraError, RkyvV2Codec, RkyvV2SchemaNative } from '@rustra/types';
-export { RustraCommandError, configure, invoke, createRkyvV2Engine } from '@rustra/types';
+export type {
+  EngineClient,
+  UnikitError,
+  RkyvV2Codec,
+  RkyvV2SchemaNative,
+} from '@unikit-bridge/types';
+export { UnikitCommandError, configure, invoke, createRkyvV2Engine } from '@unikit-bridge/types';
 
-export type RustraLynxNative = RkyvV2SchemaNative;
+export type UnikitLynxNative = RkyvV2SchemaNative;
 
 export type FastEngineOptions = {
   rkyvV2Codecs: Map<string, RkyvV2Codec<any, any>>;
 };
 
-export function getRustraNative(): RustraLynxNative {
+export function getUnikitNative(): UnikitLynxNative {
   const mods = (globalThis as Record<string, unknown>).NativeModules as
-    Record<string, RustraLynxNative> | undefined;
-  const native = mods?.RustraModule;
+    Record<string, UnikitLynxNative> | undefined;
+  const native = mods?.UnikitModule;
   if (!native) {
     throw new Error(
-      'Lynx NativeModules.RustraModule not registered. Register RustraModule via [globalConfig register_module:] (iOS) or Lynx module setup (Android).',
+      'Lynx NativeModules.UnikitModule not registered. Register UnikitModule via [globalConfig register_module:] (iOS) or Lynx module setup (Android).',
     );
   }
   return native;
 }
 
 export function createFastEngine(
-  native: RustraLynxNative,
+  native: UnikitLynxNative,
   options: FastEngineOptions,
 ): EngineClientType {
   return createRkyvV2Engine(native, options.rkyvV2Codecs);
 }
 
 // JSON 폴백(옵션) — Lynx 네이티브 모듈이 JSON invokeRaw도 노출할 때 사용
-export type RustraLynxJsonNative = { invoke(payload: ArrayBuffer): ArrayBuffer };
+export type UnikitLynxJsonNative = { invoke(payload: ArrayBuffer): ArrayBuffer };
 
-export function createLynxEngine(native: RustraLynxJsonNative): EngineClientType {
+export function createLynxEngine(native: UnikitLynxJsonNative): EngineClientType {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   return {
@@ -155,7 +160,7 @@ export function createLynxEngine(native: RustraLynxJsonNative): EngineClientType
         result?: T;
         error?: string;
       };
-      if (!resp.ok) throw new Error(resp.error ?? 'Rustra invoke failed');
+      if (!resp.ok) throw new Error(resp.error ?? 'Unikit invoke failed');
       return Promise.resolve(resp.result as T);
     },
   };
@@ -183,7 +188,7 @@ Expected: `dist/` 생성
 
 ```bash
 git add packages/lynx
-git commit -m "feat(lynx): @rustra/lynx 어댑터 — rkyv V2 fast-path + JSON 폴백"
+git commit -m "feat(lynx): @unikit-bridge/lynx 어댑터 — rkyv V2 fast-path + JSON 폴백"
 ```
 
 ---
@@ -196,23 +201,23 @@ git commit -m "feat(lynx): @rustra/lynx 어댑터 — rkyv V2 fast-path + JSON �
 
 **Files:**
 
-- Create: `examples/lynx-calculator/modules/rustra-lynx/ios/build-rust-ios.sh` (RN의 `rustra-jsi/ios/build-rust-ios.sh` 복사)
+- Create: `examples/lynx-calculator/modules/unikit-lynx/ios/build-rust-ios.sh` (RN의 `unikit-jsi/ios/build-rust-ios.sh` 복사)
 
 **Step 1:** RN 스크립트 복사 → crate 경로/출력 확인. `aarch64-apple-ios-sim` + `aarch64-apple-ios` 타겟.
-**Step 2:** `cargo build -p rustra-calculator-example --lib --release` for iOS targets → `rust/lib/librustra_calculator_example.a`.
-**Step 3:** FFI free 심볼 확인 — `rustra_ffi_free` 또는 `rustra_calculator_free_*`가 staticlib에 노출되는지 `nm`로 검증.
+**Step 2:** `cargo build -p unikit-calculator-example --lib --release` for iOS targets → `rust/lib/libunikit_calculator_example.a`.
+**Step 3:** FFI free 심볼 확인 — `unikit_ffi_free` 또는 `unikit_calculator_free_*`가 staticlib에 노출되는지 `nm`로 검증.
 
-### Task 4: Obj-C `RustraModule <LynxModule>`
+### Task 4: Obj-C `UnikitModule <LynxModule>`
 
 **Files:**
 
-- Create: `examples/lynx-calculator/modules/rustra-lynx/ios/RustraModule.h`
-- Create: `examples/lynx-calculator/modules/rustra-lynx/ios/RustraModule.m`
-- Create: `examples/lynx-calculator/modules/rustra-lynx/ios/RustraLynx.podspec`
+- Create: `examples/lynx-calculator/modules/unikit-lynx/ios/UnikitModule.h`
+- Create: `examples/lynx-calculator/modules/unikit-lynx/ios/UnikitModule.m`
+- Create: `examples/lynx-calculator/modules/unikit-lynx/ios/UnikitLynx.podspec`
 
-**Step 1:** design doc의 Obj-C 스니펫으로 `RustraModule` 구현 — `+name`, `+methodLookup`(`invokeRkyvV2`), `-invokeRkyvV2:(NSData*)` → `rustra_calculator_invoke_rkyv_v2` → `NSData` 반환 + free.
-**Step 2:** podspec — `vendored_libraries = 'rust/lib/librustra_calculator_example.a'`, `force_load`.
-**Step 3:** `setupLynxEnv`에서 `[globalConfig register_module:RustraModule.class]`.
+**Step 1:** design doc의 Obj-C 스니펫으로 `UnikitModule` 구현 — `+name`, `+methodLookup`(`invokeRkyvV2`), `-invokeRkyvV2:(NSData*)` → `unikit_calculator_invoke_rkyv_v2` → `NSData` 반환 + free.
+**Step 2:** podspec — `vendored_libraries = 'rust/lib/libunikit_calculator_example.a'`, `force_load`.
+**Step 3:** `setupLynxEnv`에서 `[globalConfig register_module:UnikitModule.class]`.
 **Step 4 (리스크 검증):** Lynx Native Module의 **동기 반환** 지원 확인. `invokeRkyvV2`가 `NSData*`를 직접 반환하는지, callback만 지원하는지. callback 전용이면 TS 어댑터의 엔진 팩토리를 Promise 래핑으로 조정.
 **Step 5:** 빌드 + Lynx Explorer에서 `addNumbers` 호출 → 42 확인.
 
@@ -222,43 +227,43 @@ git commit -m "feat(lynx): @rustra/lynx 어댑터 — rkyv V2 fast-path + JSON �
 
 - Create: `examples/lynx-calculator/` (ReactLynx + rspeedy 스캐폴드)
 - Create: `examples/lynx-calculator/src/App.tsx`
-- Create: `examples/lynx-calculator/src/typing.d.ts` (`declare let NativeModules: { RustraModule: { invokeRkyvV2(...): ArrayBuffer } }`)
+- Create: `examples/lynx-calculator/src/typing.d.ts` (`declare let NativeModules: { UnikitModule: { invokeRkyvV2(...): ArrayBuffer } }`)
 
 **Step 1:** `npm create rspeedy@latest` 기반 스캐폴드.
-**Step 2:** `App.tsx`에서 `configure(createFastEngine(getRustraNative(), { rkyvV2Codecs: registry }))` 후 `addNumbers({a:20,b:22})`.
+**Step 2:** `App.tsx`에서 `configure(createFastEngine(getUnikitNative(), { rkyvV2Codecs: registry }))` 후 `addNumbers({a:20,b:22})`.
 **Step 3:** Lynx Explorer QR 스캔 → 결과 42.
 **Step 4:** Commit.
 
 ```bash
 git add examples/lynx-calculator
-git commit -m "feat(lynx): iOS 예시 앱 + Obj-C RustraModule (Lynx Module API)"
+git commit -m "feat(lynx): iOS 예시 앱 + Obj-C UnikitModule (Lynx Module API)"
 ```
 
 ---
 
 ## Phase 3: Android 네이티브 모듈 — 환경 의존 (Android SDK, NDK, cargo-ndk)
 
-> rustra-bridge에 Android 레퍼런스 없음. JNI + cargo-ndk를 새로 잡아야 함.
+> unikit-bridge에 Android 레퍼런스 없음. JNI + cargo-ndk를 새로 잡아야 함.
 
 ### Task 6: Rust Android 크로스컴파일
 
 **Files:**
 
-- Create: `examples/lynx-calculator/modules/rustra-lynx/android/build-rust-android.sh`
+- Create: `examples/lynx-calculator/modules/unikit-lynx/android/build-rust-android.sh`
 
-**Step 1:** `cargo ndk`로 `aarch64-linux-android`, `armv7-linux-androideabi`, `x86_64-linux-android` 타겟 빌드 → `librustra_calculator_example.a`.
+**Step 1:** `cargo ndk`로 `aarch64-linux-android`, `armv7-linux-androideabi`, `x86_64-linux-android` 타겟 빌드 → `libunikit_calculator_example.a`.
 **Step 2:** JNI 링크 확인 (`CMakeLists.txt`에서 `find_library` + static lib).
 
-### Task 7: Kotlin `RustraModule` + JNI
+### Task 7: Kotlin `UnikitModule` + JNI
 
 **Files:**
 
-- Create: `examples/lynx-calculator/modules/rustra-lynx/android/src/main/java/.../RustraModule.kt`
-- Create: `examples/lynx-calculator/modules/rustra-lynx/android/src/main/cpp/rustra_jni.cpp`
-- Create: `examples/lynx-calculator/modules/rustra-lynx/android/src/main/cpp/CMakeLists.txt`
+- Create: `examples/lynx-calculator/modules/unikit-lynx/android/src/main/java/.../UnikitModule.kt`
+- Create: `examples/lynx-calculator/modules/unikit-lynx/android/src/main/cpp/unikit_jni.cpp`
+- Create: `examples/lynx-calculator/modules/unikit-lynx/android/src/main/cpp/CMakeLists.txt`
 
-**Step 1:** `RustraModule.kt` — `@LynxMethod fun invokeRkyvV2(payload: ByteArray): ByteArray`, `com.lynx.react.bridge` 매핑.
-**Step 2:** `rustra_jni.cpp` — `JNI_OnLoad`/정적 메서드 → `rustra_calculator_invoke_rkyv_v2` + `rustra_ffi_free`.
+**Step 1:** `UnikitModule.kt` — `@LynxMethod fun invokeRkyvV2(payload: ByteArray): ByteArray`, `com.lynx.react.bridge` 매핑.
+**Step 2:** `unikit_jni.cpp` — `JNI_OnLoad`/정적 메서드 → `unikit_calculator_invoke_rkyv_v2` + `unikit_ffi_free`.
 **Step 3:** 기기/에뮬레이터에서 `addNumbers` → 42 확인.
 **Step 4:** Commit.
 

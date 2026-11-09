@@ -20,7 +20,7 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
-import type { RustraScriptcConfig } from './config.js';
+import type { UnikitScriptcConfig } from './config.js';
 import {
   SCRIPTC_DECLARATIONS_FILE,
   SCRIPTC_MANIFEST_FILE,
@@ -39,7 +39,7 @@ export type ScriptcTargetContext = {
 
 export type ScriptcStageInput = {
   configPath: string;
-  scriptc: RustraScriptcConfig;
+  scriptc: UnikitScriptcConfig;
   target: ScriptcTargetContext;
   /**
    * 신선한 스키마 디렉터리 — write 모드는 커밋 위치(config.schema 의 디렉터리),
@@ -50,7 +50,7 @@ export type ScriptcStageInput = {
 };
 
 /** scriptc 출력 디렉터리 — config 파일 위치 기준 상대경로(schema/output 과 같은 관례). */
-export function resolveScriptcOutDir(configDir: string, scriptc: RustraScriptcConfig): string {
+export function resolveScriptcOutDir(configDir: string, scriptc: UnikitScriptcConfig): string {
   return resolve(configDir, scriptc.output);
 }
 
@@ -130,7 +130,7 @@ function renderScriptcPair(input: ScriptcStageInput): RenderedScriptc {
   } catch (error) {
     throw new Error(
       `scriptc stage could not read the fresh schema at ${schemaPath}; the schema probe ` +
-        `must honor RUSTRA_SCHEMA_OUT before the scriptc stage runs`,
+        `must honor UNIKIT_SCHEMA_OUT before the scriptc stage runs`,
       { cause: error },
     );
   }
@@ -188,14 +188,14 @@ export function checkScriptcStage(input: ScriptcStageInput): void {
       committed = readFileSync(committedPath, 'utf8');
     } catch {
       throw new Error(
-        `scriptc drift (missing): ${committedPath}. Run rustra codegen --config <rustra.json> ` +
+        `scriptc drift (missing): ${committedPath}. Run unikit codegen --config <unikit.json> ` +
           `to generate the committed scriptc artifacts`,
       );
     }
     if (generated !== committed) {
       throw new Error(
         `scriptc drift (disk changed): ${committedPath} differs from the regenerated ` +
-          `artifact. Run rustra codegen --config <rustra.json> to update the committed ` +
+          `artifact. Run unikit codegen --config <unikit.json> to update the committed ` +
           `scriptc artifacts`,
       );
     }

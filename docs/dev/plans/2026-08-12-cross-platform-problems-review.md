@@ -10,13 +10,13 @@
 
 | 게이트                                    | 결과              | 비고                                                                  |
 | ----------------------------------------- | ----------------- | --------------------------------------------------------------------- |
-| `test:types`                              | 24/24 PASS        | @rustra/types                                                         |
+| `test:types`                              | 24/24 PASS        | @unikit-bridge/types                                                         |
 | `test:ts:node`                            | 32/32 PASS        | adapter/cross-wire/payload/field-order/generated-client               |
-| `test:packages`                           | 24/24 PASS        | node/bun/tauri/react-native/**lynx** (getRustraNative 회귀 픽스 포함) |
-| `cargo test --workspace`                  | 144 PASS (0 fail) | rustra + macros + examples (trust/fuzz/concurrency)                   |
+| `test:packages`                           | 24/24 PASS        | node/bun/tauri/react-native/**lynx** (getUnikitNative 회귀 픽스 포함) |
+| `cargo test --workspace`                  | 144 PASS (0 fail) | unikit + macros + examples (trust/fuzz/concurrency)                   |
 | `cargo clippy` (spike + template backend) | clean             | `-D warnings` 통과 (본 Phase 변경분)                                  |
 | macOS spike 런타임                        | 7/7 PASS          | SetParent NSView + rkyv 왕복 (이전 세션)                              |
-| iOS spike 런타임                          | 7/7 PASS          | RustraModule + rkyv 왕복 (이전 세션)                                  |
+| iOS spike 런타임                          | 7/7 PASS          | UnikitModule + rkyv 왕복 (이전 세션)                                  |
 | Android spike 런타임                      | 7/7 PASS          | JNI_OnLoad init + 3대 갭 해결 (이전 세션)                             |
 | Windows 런타임                            | ⏳ DEFERRED       | Windows 머신 필요 (MSVC/PE). 코드·크로스컴파일·계획은 완료.           |
 
@@ -38,27 +38,27 @@
 ### P2. ELF/PE 생성자 비대칭 — 패키지 자동등록 (해결됨, 문서화됨)
 
 - **현상:** Rust 패키지의 FFI 레지스트리 등록이 Apple 만 `__mod_init_func` 로 자동. Windows(PE)/Android(ELF) 는 생성자가 없어 명시 init 필요.
-- **해결:** 공개 `rustra_*_init()` (OnceLock 로 idempotent) 를 각 플랫폼 셸 로드 시점에 명시 호출.
-  - macOS spike: `lynx_spike_init` 시작부에서 `rustra_calculator_init()` 호출 (최근 크로스플랫폼 수정).
-  - template: `rustra_template_init()` 노출, create-runner.sh 가 prefix 치환.
+- **해결:** 공개 `unikit_*_init()` (OnceLock 로 idempotent) 를 각 플랫폼 셸 로드 시점에 명시 호출.
+  - macOS spike: `lynx_spike_init` 시작부에서 `unikit_calculator_init()` 호출 (최근 크로스플랫폼 수정).
+  - template: `unikit_template_init()` 노출, create-runner.sh 가 prefix 치환.
   - iOS/Android: JNI_OnLoad / JSI install 시점 호출 (spike 7/7 로 증명).
 - **심각도:** LOW (해결됨). 다만 플랫폼 추가 시 "init 을 명시 호출했는가" 체크리스트 필수 — template README·capabilities/README 에 명시.
 
-### P3. NativeModule 위상 차이 — getRustraNative 회귀 (해결됨)
+### P3. NativeModule 위상 차이 — getUnikitNative 회귀 (해결됨)
 
 - **현상:** NativeModules 접근이 플랫폼마다 다르다.
   - Mobile(공식 SDK): webpack-wrapper 클로저 변수 (globalThis.NativeModules 비어있음).
-  - Desktop host: globalThis.NativeModules.RustraModule + globalThis.RustraModule 에 주입 (full surface, invokeRkyvV2 + ackResult).
-  - Desktop Lynx NAPI: 클로저 NativeModules.RustraModule 은 method-map 프록시 (invokeRkyvV2 만).
-- **회귀:** 모바일 스파이크(Phase A/B) 중 getRustraNative() 를 "클로저 우선"으로 바꿨더니 데스크톱에서 NAPI 프록시(ackResult 없음)가 가려 ackResult=FAIL. 단위 테스트가 런타임을 안 타서 놓침.
+  - Desktop host: globalThis.NativeModules.UnikitModule + globalThis.UnikitModule 에 주입 (full surface, invokeRkyvV2 + ackResult).
+  - Desktop Lynx NAPI: 클로저 NativeModules.UnikitModule 은 method-map 프록시 (invokeRkyvV2 만).
+- **회귀:** 모바일 스파이크(Phase A/B) 중 getUnikitNative() 를 "클로저 우선"으로 바꿨더니 데스크톱에서 NAPI 프록시(ackResult 없음)가 가려 ackResult=FAIL. 단위 테스트가 런타임을 안 타서 놓침.
 - **해결:** 우선순위를 **globalThis-first, closure-fallback** 으로 복구 (`packages/lynx/src/index.ts`). 3플랫폼 7/7 재검증 + test:packages 24/24.
 - **심각도:** LOW (해결됨). **교훈:** 클로저 vs globalThis 우선순위는 런타임 회귀 테스트(desktop verify.sh) 로만 잡힘 — 단위 테스트 불가. capability/플랫폼 추가 시 데스크톱 verify.sh 를 회귀 게이트로 유지.
 
 ### P4. schemars 메이저 버전 커플링 (해결됨, 문서화됨)
 
-- **현상:** rustra 가 `JsonSchema` trait 를 schemars 0.8 에서 re-export. 컨슈머가 다른 메이저(schemars 1.x) 를 쓰면 derive 충돌로 빌드 붕괴 (template backend 최초 `schemars="1"` → 20 errors).
-- **해결:** template backend Cargo.toml 을 rustra/calculator 가 검증한 핀과 동일하게 (`schemars = { version="0.8", features=["derive","preserve_order"] }`). 코멘트로 경고.
-- **심각도:** LOW (해결됨). **근본:** rustra 0.8 → 향후 schemars 1.x 마이그레이션 시 모든 컨슈머 동시 업그레이드 필요 (ABI debt 의 한 형태).
+- **현상:** unikit 가 `JsonSchema` trait 를 schemars 0.8 에서 re-export. 컨슈머가 다른 메이저(schemars 1.x) 를 쓰면 derive 충돌로 빌드 붕괴 (template backend 최초 `schemars="1"` → 20 errors).
+- **해결:** template backend Cargo.toml 을 unikit/calculator 가 검증한 핀과 동일하게 (`schemars = { version="0.8", features=["derive","preserve_order"] }`). 코멘트로 경고.
+- **심각도:** LOW (해결됨). **근본:** unikit 0.8 → 향후 schemars 1.x 마이그레이션 시 모든 컨슈머 동시 업그레이드 필요 (ABI debt 의 한 형태).
 
 ### P5. postcard 필드순서 드리프트 (완화됨, Task 3.5 F7)
 
@@ -70,13 +70,13 @@
 
 - **현상:** JNI staticlib 4아키텍처(aarch64/armv7/x86_64/i686) 빌드가 특정 NDK 버전에 민감. rustup target 과 NDK toolchain 정렬 필요.
 - **현재:** spike 7/7 로 특정 환경에서 동작 증명. 단, "다른 개발자의 NDK" 에서의 재현성은 미검증.
-- **심각도:** LOW (해결됨). runner/template/mobile-android/modules/rustra-lynx/build-rust-android.sh 이 NDK_VERSION 핀(27.1.12297006) + $SDK/ndk/<ver> 결정론 선택 + rustup target 사전 검증을 구현했다. app/build.gradle.kts 도 동일 ndkVersion 핀.
+- **심각도:** LOW (해결됨). runner/template/mobile-android/modules/unikit-lynx/build-rust-android.sh 이 NDK_VERSION 핀(27.1.12297006) + $SDK/ndk/<ver> 결정론 선택 + rustup target 사전 검증을 구현했다. app/build.gradle.kts 도 동일 ndkVersion 핀.
 
 ### P7. Template path 의존성 카피아웃 파손 (문서화됨, 설계적)
 
-- **현상:** template backend Cargo.toml 이 `rustra = { path = "../../../crates/rustra" }`. in-repo 검증엔 동작하지만 create-runner.sh 로 외부 디렉토리에 복사하면 path 가 깨짐 (cargo "No such file or directory").
+- **현상:** template backend Cargo.toml 이 `unikit = { path = "../../../crates/unikit-bridge" }`. in-repo 검증엔 동작하지만 create-runner.sh 로 외부 디렉토리에 복사하면 path 가 깨짐 (cargo "No such file or directory").
 - **의도:** template 은 복사-수정-빌드 시작점. path 는 published crate 또는 로컬 path 로 재작성 전제.
-- **심각도:** LOW (설계적). README·create-runner.sh 안내. rustra crate 가 published 되면 version 핀으로 전환 권장.
+- **심각도:** LOW (설계적). README·create-runner.sh 안내. unikit crate 가 published 되면 version 핀으로 전환 권장.
 
 ### P8. Windows 런타임 검증 연기 (정직한 연기)
 
@@ -94,4 +94,4 @@
 | Android | ✅ 7/7            | NDK 핀 재현성(P6, 환경의존) |
 | Windows | ⏳ 코드·계획 완료 | FML PE 심볼 해석(P1, HIGH)  |
 
-**결론:** 3/4 플랫폼 런타임 증명 완료. Windows 는 단일 크럭스(P1 FML) 만 남았고, 그 외 모든 문제점은 해결·완화·문서화됨. rustra runner 템플릿(Phase 5)은 본 머신에서 `cargo check` + capability 단위 테스트(3 PASS) 로 자체 검증되었고, instantiation(create-runner.sh)은 치환·빌드 게이트까지 확인됨.
+**결론:** 3/4 플랫폼 런타임 증명 완료. Windows 는 단일 크럭스(P1 FML) 만 남았고, 그 외 모든 문제점은 해결·완화·문서화됨. unikit runner 템플릿(Phase 5)은 본 머신에서 `cargo check` + capability 단위 테스트(3 PASS) 로 자체 검증되었고, instantiation(create-runner.sh)은 치환·빌드 게이트까지 확인됨.

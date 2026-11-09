@@ -23,7 +23,7 @@ proceeds only after separate approval.
    `ffi_scriptc`;
    seed replay and 600 seconds for each Fuzz target invoke_frame,
    invoke_complex_value and invoke_complex_serde; TSan — nightly
-   `-Zsanitizer=thread` with `-Z build-std` over `-p rustra --lib`
+   `-Zsanitizer=thread` with `-Z build-std` over `-p unikit-bridge --lib`
    (Linux x86_64, `halt_on_error=1`). Weekly checks remain separate
    from PR required checks.
 4. `bun run test:api-surface` — the public TS/Rust export surface is diffed
@@ -39,7 +39,7 @@ requires child SIGABRT and diagnostics; release tests correct ownership only. Th
 scope is separate from RN native sanitizer coverage. The sanitizer workflow also
 runs its `cpp-codec` job at release: the generated C++ codec tests, the low-level
 codec tests and the sync-core tests under ASan+LSan+UBSan
-(`RUSTRA_CPP_SANITIZERS=address,undefined`). TSan artifacts land in
+(`UNIKIT_CPP_SANITIZERS=address,undefined`). TSan artifacts land in
 `target/safety/tsan/`; TSan needs `-Z build-std` because an uninstrumented std
 hides the mutex happens-before edges data-race detection depends on.
 
@@ -52,7 +52,7 @@ eligible run for the candidate counts; an old success cannot hide a newer failur
 Provide `GH_TOKEN` through the existing authenticated environment without printing it.
 
 ```bash
-node scripts/check-release-gates.mjs --repository loopy-lim/rustra --sha "$(git rev-parse HEAD)" > release-gates.json
+node scripts/check-release-gates.mjs --repository loopy-lim/unikit-bridge --sha "$(git rev-parse HEAD)" > release-gates.json
 ```
 
 Release uses `--ci-only` only because its `needs` dependencies require fresh safety
@@ -65,19 +65,19 @@ Release. Publishing remains blocked until the new safety checks succeed.
 
 ## Step 1 — finalize changesets
 
-The 9 public `@rustra/*` packages are independent release lines. Put only the
-changed packages in the changeset and keep the `@rustra/types` compatibility range
-each adapter/CLI requires. The Rust `rustra`/`rustra-macros` pair must remain
+The 9 public `@unikit-bridge/*` packages are independent release lines. Put only the
+changed packages in the changeset and keep the `@unikit-bridge/types` compatibility range
+each adapter/CLI requires. The Rust `unikit`/`unikit-bridge-macros` pair must remain
 compatible with each other inside the Cargo workspace, but it does not need to
-match the npm package versions. `@rustra/cli`'s `rustraTemplate` carries explicit
+match the npm package versions. `@unikit-bridge/cli`'s `unikitTemplate` carries explicit
 semver ranges for the generated Rust crate and the RN adapter.
 `bun run test:release-coherence` checks per-package versions, lockfiles, internal
 dependency ranges, the CLI's Rust and RN-adapter ranges, LICENSE, and fixed groups.
 
-The two `rustraTemplate` ranges move at different points, both enforced by the
+The two `unikitTemplate` ranges move at different points, both enforced by the
 coherence check: `cargoRange` moves in the same feature commit that bumps the
 Cargo workspace version (the Rust line is not changesets-managed), while
-`reactNativeRange` is synced to the freshly bumped `@rustra/react-native`
+`reactNativeRange` is synced to the freshly bumped `@unikit-bridge/react-native`
 version inside the version PR (`bun run version` → `scripts/version-packages.mjs`).
 The same script refreshes `bun.lock` after `changeset version` — version bumps
 that leave the lock stale fail `test:release-coherence` on the version PR
@@ -117,8 +117,8 @@ Consumer verification:
 
 ```bash
 mkdir /tmp/canary-check && cd /tmp/canary-check && bun init -y
-bun add @rustra/node@canary @rustra/types@canary
-bun -e "import * as n from '@rustra/node'; console.log(Object.keys(n))"
+bun add @unikit-bridge/node@canary @unikit-bridge/types@canary
+bun -e "import * as n from '@unikit-bridge/node'; console.log(Object.keys(n))"
 ```
 
 The React Native adapter checks both the native files in the publish tarball and
@@ -136,8 +136,8 @@ stable only.
 
 1. Merge the Version Packages PR → release.yml runs automatically (9 npm packages)
 2. crates manual job: Actions → Release → Run workflow re-verifies CI success for
-   the same SHA on `main`, requires fresh Miri/Sanitizer/Fuzz/TSan success, then publishes in the order rustra-naming → rustra-macros →
-   rustra, waiting for the index after each dependency.
+   the same SHA on `main`, requires fresh Miri/Sanitizer/Fuzz/TSan success, then publishes in the order unikit-bridge-naming → unikit-bridge-macros →
+   unikit, waiting for the index after each dependency.
 
 Use the manual workflow above so the safety dependencies run. Local `cargo publish`
 or `changeset publish` does not execute GitHub job dependencies and is not the
@@ -165,8 +165,8 @@ as the publication evidence.
   `scripts/ci-gate.sh` — the aggregate is the merge contract now. Verify or
   restore the protection with:
   ```bash
-  gh api repos/loopy-lim/rustra/branches/main/protection --jq '.required_status_checks.contexts'
-  gh api --method PUT repos/loopy-lim/rustra/branches/main/protection --input - <<'EOF'
+  gh api repos/loopy-lim/unikit-bridge/branches/main/protection --jq '.required_status_checks.contexts'
+  gh api --method PUT repos/loopy-lim/unikit-bridge/branches/main/protection --input - <<'EOF'
   {
     "required_status_checks": {
       "strict": false,
@@ -183,7 +183,7 @@ as the publication evidence.
 - **Rollback — restore the pre-2026-09-20 individual contexts** (the state
   documented by the 2026-09-20 morning audit):
   ```bash
-  gh api --method PUT repos/loopy-lim/rustra/branches/main/protection --input - <<'EOF'
+  gh api --method PUT repos/loopy-lim/unikit-bridge/branches/main/protection --input - <<'EOF'
   {
     "required_status_checks": {
       "strict": false,
@@ -228,7 +228,7 @@ recorded here as the follow-up only; no workflow change in this repo enables it.
 ## Step 4 — rollback
 
 - **npm registry**: Bun has no dist-tag change command, so run only this management
-  task via `bunx --bun npm dist-tag add @rustra/node@<previous> latest` — reverting the dist-tag
+  task via `bunx --bun npm dist-tag add @unikit-bridge/node@<previous> latest` — reverting the dist-tag
   rolls back immediately (the package itself is not deleted). Apply the same to all packages.
 - **crates.io**: not possible (versions are permanent). Use `cargo update --precise <previous>` as user guidance.
 - **git**: revert the version commit, then republish as the next patch version (the same version cannot be republished).
@@ -236,7 +236,7 @@ recorded here as the follow-up only; no workflow change in this repo enables it.
 ## Post-publish checks
 
 ```bash
-node scripts/audit-release-registry.mjs --output /tmp/rustra-release-matrix.json
+node scripts/audit-release-registry.mjs --output /tmp/unikit-release-matrix.json
 ```
 
 Keep the [release matrix](release-matrix.md) JSON/Markdown before and after release.

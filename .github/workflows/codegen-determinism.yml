@@ -1,0 +1,155 @@
+name: Codegen determinism
+
+# Windows 크로스 OS 코드젠 결정론 검증 (2026-11-07 플랜 T5-3 · AC-9 ·
+# docs/dev/plans/2026-11-07-next-steps-batch.md).
+#
+# 목적: windows-latest 러너에서 unikit.json 보유 예제 전체(auth, calculator,
+# crud, react-native-bare-calculator, react-native-calculator, rn-experiment,
+# streaming)의 코드젠을 실제로 재실행하고, committed examples/*/generated/ 가
+# 그대로 재현되는지 git diff --exit-code 로 단언한다. Linux CI 의 codegen-fresh 게이트
+# (ci.yml ts-checks 잡)가 검사하는 같은 산출물을 다른 OS 에서 재생성해 교차
+# 검증하는 것이 이 잡의 유일한 관심사다.
+#
+# 첫 실행은 "실패도 정보"다 (플랜 T5-3). CRLF·경로 구분자·플랫폼 의존 값이
+# 생성물에 스며들면 git diff --exit-code 가 red 로 관측된다 — 그 차이 자체가
+# 이 워크플로의 1차 산출물이므로 실패를 continue-on-error 로 은폐하지 않는다.
+# 참고: 저장소는 .gitattributes `* text=auto` 로 생성물을 LF 정규화 저장한다
+# (2026-11-07 실측: 생성물 102개 전부 i/lf, ODB 에 CR 포함 파일 0개). 따라서
+# 순수 줄바꿈 차이만으로는 clean 필터가 git diff 를 통과시킬 수 있다 — 그래서
+# diagnostics 스텝이 재생성 직후 생성물 원시 바이트의 CR 존재와 git status 를
+# 별도 기록한다. core.autocrlf 등을 인위로 강제하지 않는다: 미래의 Windows
+# 소비자가 마주할 러너 기본 환경 그대로를 관측하는 것이 목적이다.
+#
+# 범위: react-native-calculator 의 `bun run codegen` 은 build:fingerprint 까지
+# 돌리지만 이 잡은 codegen-fresh 게이트와 동일하게 CLI codegen 본체만 재생성
+# 한다(게이트의 고정 --check 호출도 fingerprint 를 검사하지 않는다 —
+# scripts/check-codegen-fresh.mjs 주석 참조).
+#
+# BLOCKED — Windows 러너 실제 실행은 이 파일 푸시 전에는 불가하다(로컬 환경은
+# Linux, 원격 트리거 금지 — Windows 머신 에뮬레이션도 하지 않는다). 푸시 후
+# 확인 절차:
+#   1. Actions 탭 > Codegen determinism > Run workflow(main) 수동 트리거.
+#   2. 첫 실행 결과 — 성공이든 diff 실패든 — 를 플랜 문서 V9 칸에 기록한다.
+#   3. 차이 발견 시: Step summary 의 CR 스캔·git status·failure-logs 아티팩트
+#      의 diff 전문으로 원인을 판별한다(CRLF materialization 인지 실제 내용
+#      드리프트인지). CRLF 기반이면 제너레이터 EOL 정책(LF 고정 여부)을 별도
+#      태스크로 결정한다.
+#   4. 워크플로 정의 자체는 ci.yml gate 잡의 actionlint 스텝이 푸시 후 첫 CI
+#      실행부터 자동으로 검사한다(인자 없는 ./actionlint 는 신규 파일 포함
+#      전수 대상).
+#   5. 이 잡은 workflow_dispatch 전용이라 PR/push 게이트(gate 집계)에 영향이
+#      없다 — 필수 체크 승격 여부는 첫 실행 결과를 본 뒤 판단한다.
+#
+# 로컬 검증(2026-11-07, 푸시 전): actionlint v1.7.12 핀 다운로드 후 본 파일
+# 대상 실행 통과 + node yaml 파서(ci-gate.test.ts 와 동일 패키지) 스키마·관례
+# 대조 통과 — 결과는 플랜 문서 V9 에 기록.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  codegen-determinism:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      # codegen 은 Rust schema 발행에 cargo run 을, 설정 해석에 cargo-metadata
+      # 를 쓴다(packages/cli/src/cli-codegen.ts) — ts-checks 잡의 codegen-fresh
+      # 스텝과 동일한 Rust 툴체인/캐시 요구사항이다.
+      - uses: dtolnay/rust-toolchain@1.95.0
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build workspace packages
+        # 예제 codegen 은 bun ../../packages/cli/src/index.ts 를 실행하고 그
+        # 의존(@unikit-bridge/* exports)은 dist 를 가리킨다 — 재생성 전에 워크스페이스를
+        # 빌드한다(ts-checks·rn-android 잡과 동일 순서 계약).
+        run: bun run build
+      - name: Regenerate every example
+        # auth 는 package.json codegen 스크립트가 없어 `bun run codegen` 으로는
+        # 도달할 수 없다 — codegen-fresh 게이트와 동일하게 unikit.json 보유
+        # 디렉터리를 발견해, 예제 스크립트와 동일한 CLI 호출을 직접 실행한다.
+        # codegen 실패 시 이 스텝에서 실패한다(실패한 생성으로 diff 를 단언할
+        # 수는 없다).
+        shell: bash
+        run: |
+          shopt -s nullglob
+          found=0
+          for config in examples/*/unikit.json; do
+            dir=$(dirname "$config")
+            echo "::group::codegen $dir"
+            (cd "$dir" && bun ../../packages/cli/src/index.ts codegen --config unikit.json)
+            echo "::endgroup::"
+            found=$((found + 1))
+          done
+          # 예제 0개는 게이트(check-codegen-fresh.mjs)와 동일하게 loud 실패.
+          if [ "$found" -eq 0 ]; then
+            echo 'examples/*/unikit.json 이 0개다 — 발견 로직이 깨졌다' >&2
+            exit 1
+          fi
+          echo "regenerated $found examples"
+      - name: Diagnose EOL and worktree state (informational)
+        # git diff 는 text=auto clean 필터로 순수 CRLF 차이를 마스킹할 수 있다.
+        # 재생성 직후 생성물 원시 바이트의 CR 존재와 git status(untracked 포함)
+        # 를 Step summary 에 기록해 첫 실행 판정 자료로 쓴다. 이 스텝은 정보
+        # 수집이며 실패로 이어지지 않는다.
+        shell: bash
+        run: |
+          {
+            echo '## Codegen determinism diagnostics'
+            echo
+            echo "- runner git: $(git --version)"
+            echo "- core.autocrlf: $(git config --get core.autocrlf || echo '(unset)')"
+            echo "- core.eol: $(git config --get core.eol || echo '(unset)')"
+            echo '- CR bytes in regenerated outputs (raw scan):'
+            cr_files=$(grep -rlI $'\r' examples/*/generated 2>/dev/null | sort || true)
+            if [ -n "$cr_files" ]; then
+              while IFS= read -r f; do echo "  - $f"; done <<< "$cr_files"
+            else
+              echo '  - (none — regenerated outputs contain no CR bytes)'
+            fi
+            echo '- git status --porcelain (post-codegen):'
+            status=$(git status --porcelain)
+            if [ -n "$status" ]; then
+              while IFS= read -r line; do echo "  - $line"; done <<< "$status"
+            else
+              echo '  - (clean)'
+            fi
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Assert deterministic codegen output (git diff --exit-code)
+        # 재생성 뒤 트래킹 파일이 하나라도 다르면 실패. diff 전문은 아티팩트로
+        # 보존하고 잡 로그에는 --stat 요약만 남긴다. || true 는 bash -e 가 diff
+        # 의 exit 1 에서 스텝을 조기 종료하는 것을 막는다(마지막 exit-code
+        # 단언이 실제 판정이다). git diff 는 추적 파일만 보므로, 경로 구분자
+        # 차이로 코드젠이 '새 파일'을 만드는 경우를 잡기 위해 git status
+        # --porcelain 이 비었음을 함께 단언한다(untracked 공백 방어).
+        shell: bash
+        run: |
+          git diff --stat || true
+          git diff > "$RUNNER_TEMP/unikit-codegen-diff.patch" || true
+          git diff --exit-code
+          status=$(git status --porcelain)
+          if [ -n "$status" ]; then
+            echo 'worktree is not clean after regeneration (untracked or modified):' >&2
+            printf '%s\n' "$status" >&2
+            exit 1
+          fi
+      - name: Upload failure diff
+        # 진단 가치가 있는 실패 로그 보존 관례(ci.yml 각 잡의 failure-logs-*
+        # 업로드와 동일). 성공 시 업로드하지 않는다.
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: failure-logs-codegen-determinism
+          path: ${{ runner.temp }}/unikit-codegen-diff.patch
+          if-no-files-found: ignore
+          retention-days: 14

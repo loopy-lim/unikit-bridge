@@ -1,4 +1,4 @@
-import { addNumbers, rustra } from '../generated/bun.js';
+import { addNumbers, unikit } from '../generated/bun.js';
 import { benchmarkCommand } from './performance-stats.js';
 
 const result = await benchmarkCommand({
@@ -8,8 +8,8 @@ const result = await benchmarkCommand({
   warmup: 500,
   iterations: 10_000,
 });
-rustra.dispose();
+unikit.dispose();
 
 console.log(
-  `RUSTRA_HOST_BENCH_JSON=${JSON.stringify({ runtime: `Bun ${Bun.version}`, results: [result] })}`,
+  `UNIKIT_HOST_BENCH_JSON=${JSON.stringify({ runtime: `Bun ${Bun.version}`, results: [result] })}`,
 );

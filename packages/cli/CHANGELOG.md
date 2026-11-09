@@ -1,18 +1,18 @@
-# @rustra/cli
+# @unikit-bridge/cli
 
 ## 0.13.0
 
 ### Minor Changes
 
-- 403b6a4: `rustra.json`에 `scriptc` 섹션을 추가해 `rustra codegen`의 scriptc 스테이지를 켠다.
+- 403b6a4: `unikit.json`에 `scriptc` 섹션을 추가해 `unikit codegen`의 scriptc 스테이지를 켠다.
   스테이지는 정적 링크 계약의 아티팩트 두 벌을 렌더한다: `scriptc/ffi.json`
-  (ffi_format 7 매니페스트 — rustra staticlib 아카이브를 libraries로)와
+  (ffi_format 7 매니페스트 — unikit staticlib 아카이브를 libraries로)와
   `scriptc/scriptc-ffi.d.ts`(시그니처-only 선언). scriptc는 napi 애드온과 dlopen을
   지원하지 않아 기존 Node/Bun 호스트 코드젠을 재사용할 수 없으므로 별도 경로다.
 
   매니페스트는 scriptc 직접 호출 세계가 실제로 공급할 수 있는 인자만 싣는다(scriptc
   형태 표면): out 포인터에 쓰는 심볼과 콜백 함수 포인터(async·이벤트·채널) 심볼은
-  사유와 함께 제외되고, 그 대체로 코어의 `rustra_ffi_invoke_json_into_len`(길이를
+  사유와 함께 제외되고, 그 대체로 코어의 `unikit_ffi_invoke_json_into_len`(길이를
   out 포인터 대신 반환)이 caller-buffer envelope 진입으로 포함된다. 설정은 필수인
   `output` 외에 `profile`(기본 release)과 `archive`(명시적 경로 재정의)를 받는다.
   아카이브가 없는 쓰기 모드는 `cargo build --release` 힌트와 함께 fail-closed 하고,
@@ -29,7 +29,7 @@
 
 - 5eb1110: Rebuild configured Node and Bun runtime producers before reporting a successful dev reload. Watch separate host crates as well as the schema crate, and suppress reload when the runtime build fails so implementation-only edits cannot silently invoke an older binary. Invalidate the successful-input cache before regenerating so restoring earlier source after a failed build or parity rejection repairs partially updated generated artifacts.
 - Updated dependencies [9d9e501]
-  - @rustra/types@0.13.0
+  - @unikit-bridge/types@0.13.0
 
 ## 0.12.0
 
@@ -44,10 +44,10 @@
   builds without displaying a successful completion marker.
 - 58e1835: M9(호스트 엔트리 계약 검증 옵션 기본값 정합화)과 S1(코드젠 타입명 정화)을 적용한다.
   두 항목 모두 코드젠 **생성기** 변경이며, 버전이 올라가는 npm 패키지는
-  `@rustra/cli`뿐이다. Rust 크레이트 `rustra`(매크로 측 시그니처 정화)도 함께
+  `@unikit-bridge/cli`뿐이다. Rust 크레이트 `unikit`(매크로 측 시그니처 정화)도 함께
   바뀌었지만 changesets 관리 대상이 아니므로 워크스페이스 Cargo 버전으로 올린다.
 
-  **무엇이 바뀌었나** — `rustra codegen`/`generate`가 생성하는 4개 호스트
+  **무엇이 바뀌었나** — `unikit codegen`/`generate`가 생성하는 4개 호스트
   엔트리(node/bun/tauri/react-native)가 동일한 계약 검증 기본값과 옵션명을
   명시하고, 명령 시그니처가 Rust 내부 타입명 누출(`String`, `int32`,
   `Tuple_of_*` 등) 대신 인라인 타입으로 렌더링된다. 생성 `commands.ts`에는
@@ -59,13 +59,13 @@
   react-native 엔트리에 `contractVerification: 'strict'`가 명시적으로 추가되고
   (이전에는 생략), node·bun은 기존 명시를 유지한다. tauri는 JSON 엔진 경로라
   `contractVerification`/`schemaVersion` 옵션을 받지 않으며 계약 드리프트는
-  네이티브 `rustra_dispatch` 실행 오류로 표면화된다. 옵션명 변경·제거는 없다.
+  네이티브 `unikit_dispatch` 실행 오류로 표면화된다. 옵션명 변경·제거는 없다.
 
   **마이그레이션** — 기존에 커밋된 generated 파일은 그대로 동작하고, 재생성해도
   정화된 시그니처 타입은 기존 alias와 동일한 타입(`type int32 = number` 등)이라
   소스 호환이다. 다음 경우에만 손이 간다: (1) generated 아티팩트를 체크인하는
-  저장소는 CLI 업그레이드 후 `rustra codegen` 재실행으로 생성물을 갱신하고
-  `rustra codegen --check`로 드리프트를 해소해야 한다. (2) deprecated
+  저장소는 CLI 업그레이드 후 `unikit codegen` 재실행으로 생성물을 갱신하고
+  `unikit codegen --check`로 드리프트를 해소해야 한다. (2) deprecated
   alias(`int32`, `String`, `Tuple_of_int32_and_int32` 등)를 타입 import로 직접
   쓰던 코드는 계속 컴파일되지만 `@deprecated` 경고가 뜬다 — 특히 `String`은 JS
   내장 타입과 충돌하므로 직접 import를 피하고, 명령 시그니처의 인라인 타입
@@ -130,19 +130,19 @@
   prevent channel callbacks from being invoked twice when user code throws.
 
 - Updated dependencies [89cf9c4]
-  - @rustra/types@0.12.1
+  - @unikit-bridge/types@0.12.1
 
 ## 0.11.3
 
 ### Patch Changes
 
-- 16d54e4: `rustra dev`의 cargo 스폰(스키마 generate bin, dylib 빌드)에 증분 컴파일을 기본 활성화한다 — 스폰 env로 `CARGO_INCREMENTAL=1`을 주입해 웜 루프의 cargo 단계를 단축한다(비증분 대비 대형 크레이트 약 4.4배, 2026-09-20 소비자 레이아웃 실측). 사용자가 세팅한 `CARGO_INCREMENTAL`은 항상 존중한다(rust-cache CI의 0 포함). 직접 실행하는 `cargo build`/`test`는 워크스페이스 프로필을 그대로 따르며, 증분 여부는 cargo 핑거프린트에 없어 루프 진입/이탈 시 재컴파일도 없다. 웜 루프 튜닝용 프로필 가이드(`debug = 1` + 의존성 debuginfo off)를 CLI README 에 추가했다.
+- 16d54e4: `unikit dev`의 cargo 스폰(스키마 generate bin, dylib 빌드)에 증분 컴파일을 기본 활성화한다 — 스폰 env로 `CARGO_INCREMENTAL=1`을 주입해 웜 루프의 cargo 단계를 단축한다(비증분 대비 대형 크레이트 약 4.4배, 2026-09-20 소비자 레이아웃 실측). 사용자가 세팅한 `CARGO_INCREMENTAL`은 항상 존중한다(rust-cache CI의 0 포함). 직접 실행하는 `cargo build`/`test`는 워크스페이스 프로필을 그대로 따르며, 증분 여부는 cargo 핑거프린트에 없어 루프 진입/이탈 시 재컴파일도 없다. 웜 루프 튜닝용 프로필 가이드(`debug = 1` + 의존성 debuginfo off)를 CLI README 에 추가했다.
 
 ## 0.11.2
 
 ### Patch Changes
 
-- 23e5bc5: 동일 Rust 입력에 대한 반복 트리거에서 cargo 코드젠·엔진 재빌드를 건너뛰는 지문 스킵(내용 해시 기반, 실패 시 전체 파이프라인 fail-safe). `rustra dev --config` 루프가 마지막 **성공** 파이프라인 이후 감시 대상 Rust 입력(src 트리, Cargo.toml, Cargo.lock)이 바이트 동일하고 생성된 schema.json 이 살아 있으면, 해당 틱의 cargo 프로브와 엔진 재빌드를 생략합니다. 지문은 판정 시점에 디스크에서 다시 계산되며(mtime 이 아닌 내용 해시), 스킵 틱에도 패리티 게이트와 reload 훅은 기존과 같이 돕니다. 계산 실패·프로세스 시작 직후 첫 틱·schema 부재는 언제나 전체 파이프라인입니다.
+- 23e5bc5: 동일 Rust 입력에 대한 반복 트리거에서 cargo 코드젠·엔진 재빌드를 건너뛰는 지문 스킵(내용 해시 기반, 실패 시 전체 파이프라인 fail-safe). `unikit dev --config` 루프가 마지막 **성공** 파이프라인 이후 감시 대상 Rust 입력(src 트리, Cargo.toml, Cargo.lock)이 바이트 동일하고 생성된 schema.json 이 살아 있으면, 해당 틱의 cargo 프로브와 엔진 재빌드를 생략합니다. 지문은 판정 시점에 디스크에서 다시 계산되며(mtime 이 아닌 내용 해시), 스킵 틱에도 패리티 게이트와 reload 훅은 기존과 같이 돕니다. 계산 실패·프로세스 시작 직후 첫 틱·schema 부재는 언제나 전체 파이프라인입니다.
 
 ## 0.11.1
 
@@ -150,7 +150,7 @@
 
 - 8669395: schema.json 부재 시 Node 원문 ENOENT 대신 재생성 힌트를 노출한다 — generate·codegen·diff·dev 패리티 캡처 전 경로에 "Schema file not found: <경로>. Run the Rust contract probe first ..." 형태의 실행 가능 메시지로 통일하고, generate 서브커맨드 헬프에 탑레벨과 동일한 --watch 항목을 보강한다.
 - Updated dependencies [8669395]
-  - @rustra/types@0.12.0
+  - @unikit-bridge/types@0.12.0
 
 ## 0.11.0
 
@@ -158,7 +158,7 @@
 
 - 7e2f543: Generate positional TypeScript clients for ordinary Rust functions registered with
   `PackageBuilder::function` and `try_function`. Support zero through twelve arguments,
-  plain and unit returns, and explicit domain-error mapping without a Rustra command macro.
+  plain and unit returns, and explicit domain-error mapping without a Unikit command macro.
 
   Align root tuple/scalar/collection binary codecs with Rust, preserve unit return values,
   and reuse cursor request encoding and Rust caller-provided response buffers. Function
@@ -170,16 +170,16 @@
 
 ### Patch Changes
 
-- 53d3656: First-run and error-surface DX polish. `rustra init` next steps now include
+- 53d3656: First-run and error-surface DX polish. `unikit init` next steps now include
   `bun run doctor`. The missing-config error names the default that was tried and
   the recovery path; `--format` errors echo the rejected value; value-flag errors
   point at `--help`. `generate --watch` prints that Rust sources are not watched
-  and names `rustra dev`; `dev --inspect` hints are English; top-level help fixes
+  and names `unikit dev`; `dev --inspect` hints are English; top-level help fixes
   option alignment and lists `dev --inspect`. Release coherence failures print the
   version-PR remediation path.
 - 5fec893: Preserve exact compatible host dependency pins during code generation. Use independently versioned Node, Bun and Tauri compatibility ranges so a CLI-only patch does not require unpublished adapter versions, and keep those defaults synchronized during versioning. The init renderer accepts an optional Node compatibility range while preserving existing callers. Includes the previously unreleased watch regeneration fix.
 - Updated dependencies [7e2f543]
-  - @rustra/types@0.11.0
+  - @unikit-bridge/types@0.11.0
 
 ## 0.10.0
 
@@ -198,15 +198,15 @@
 ### Patch Changes
 
 - Updated dependencies [8079239]
-  - @rustra/types@0.10.0
+  - @unikit-bridge/types@0.10.0
 
 ## 0.9.0
 
 ### Minor Changes
 
-- 5032afd: `rustra dev` gains `dev.target: "dylib"` — an experimental native hot-core dev
+- 5032afd: `unikit dev` gains `dev.target: "dylib"` — an experimental native hot-core dev
   loop. The Rust core is built as a cdylib and the running host swaps it without
-  restart (the host is launched with the `RUSTRA_HOT_CORE` artifact path; see the
+  restart (the host is launched with the `UNIKIT_HOT_CORE` artifact path; see the
   tauri-calculator example). The schema parity gate that guards wasm reloads now
   also guards dylib swaps, fail-closed: builds land on a scratch cargo target
   path, and only a gate-passing build is published — via temp-file + atomic
@@ -216,34 +216,34 @@
   `dev.target: "native" | "wasm" | "dylib"` and `dev.dylib.parityGate`
   (default `true`).
 
-  Generated apps now require Rust crate `rustra` ^0.9.0
-  (`rustraTemplate.cargoRange` updated with the workspace bump). The RN Android
+  Generated apps now require Rust crate `unikit` ^0.9.0
+  (`unikitTemplate.cargoRange` updated with the workspace bump). The RN Android
   template passes a `filesDir` hot-core path via `nativeConfigureHotCore`
   (debuggable builds only — release builds never gain an appdata dlopen
   surface), which needs the adapter's hot-core native surface;
-  `rustraTemplate.reactNativeRange` is now synced to the adapter version in the
+  `unikitTemplate.reactNativeRange` is now synced to the adapter version in the
   version PR itself (`scripts/version-packages.mjs`), so it can no longer lag
   behind an adapter release and break generated-app installs or repo codegen.
 
-- 88fd00b: `rustra codegen` now emits `devices.ts` — a device token union plus
+- 88fd00b: `unikit codegen` now emits `devices.ts` — a device token union plus
   required-capability constants per command — single-sourced from the schema's
   `deviceCapabilities` catalog instead of a hand-maintained mirror (tokens
-  outside the catalog render with dev markers). `rustra doctor` gains a
+  outside the catalog render with dev markers). `unikit doctor` gains a
   `codegen.device_catalog` check that walls off out-of-catalog device tokens
   before release: `skip` when no command declares devices, `warn` when the
-  schema lacks the catalog (regenerate with a current rustra), and `fail` when
+  schema lacks the catalog (regenerate with a current unikit), and `fail` when
   declared commands use tokens the catalog does not know — release builds of
   the Rust engine panic on such tokens at registration time, so the check
   surfaces them earlier from the JS side.
 - 88fd00b: Code generation now emits `errors.ts` when commands declare `errors`
   (sourced from `#[command(error(...))]` / the `command_errors` builder):
-  per-command error-code literal unions (`{Fn}ErrorCode`), `RustraCommandError`
+  per-command error-code literal unions (`{Fn}ErrorCode`), `UnikitCommandError`
   intersection types (`{Fn}Error`), and type guards (`is{Fn}Error`). This only
   narrows the generated TS surface — the runtime error contract is unchanged,
   and packages with no declared errors get byte-identical output as before.
 - 1f99eca: The `reactNative.legacyBenchmarks` config key is removed, along with the
-  `RUSTRA_LEGACY_BENCHMARKS` / `RUSTRA_ENABLE_LEGACY_BENCHMARKS` build flags from
-  generated modules. `rustra init` scaffolds now write `schema.json` only
+  `UNIKIT_LEGACY_BENCHMARKS` / `UNIKIT_ENABLE_LEGACY_BENCHMARKS` build flags from
+  generated modules. `unikit init` scaffolds now write `schema.json` only
   (`write_schema_to_dir`) instead of the stale dual pass that also regenerated
   TS surfaces from Rust.
 
@@ -253,7 +253,7 @@
 - Updated dependencies [1f99eca]
 - Updated dependencies [88fd00b]
 - Updated dependencies [88fd00b]
-  - @rustra/types@0.9.0
+  - @unikit-bridge/types@0.9.0
 
 ## 0.8.0
 
@@ -266,7 +266,7 @@
 - Updated dependencies [e420f92]
 - Updated dependencies [582d740]
 - Updated dependencies [f2c7980]
-  - @rustra/types@0.8.0
+  - @unikit-bridge/types@0.8.0
 
 ## 0.7.0
 
@@ -279,7 +279,7 @@
   runtime failures (exit 1, e.g. a missing config file) via `instanceof` instead
   of matching error-message regexes. `--help`
   handling follows a single convention: parsers only fill a `help` flag
-  (`-h` normalizes to it) while `cli-main` owns all usage output — `rustra dev
+  (`-h` normalizes to it) while `cli-main` owns all usage output — `unikit dev
 --help` no longer enters the watch loop and `codegen/generate/init/diff/inspect`
   keep returning silently without touching domain validation. `codegen --format
 json` and `diff --format json` now follow the doctor's `{ schemaVersion: 1, … }`
@@ -296,11 +296,11 @@ configPath, files }`) is replaced by that shape — automation consuming
   of `drift: true`), and `path (unchanged)` means the content was already
   current. `dev` stays text-only (long-running watcher, JSON adds no value).
 - 23c2f17: Single-arrow codegen: the Rust bin is a contract probe that publishes `schema.json`
-  only (`GeneratedPackage::write_schema_to_dir`, honoring `RUSTRA_SCHEMA_OUT`), and
-  `rustra codegen` renders every TS/C++ surface from that single file — the dual-pass
+  only (`GeneratedPackage::write_schema_to_dir`, honoring `UNIKIT_SCHEMA_OUT`), and
+  `unikit codegen` renders every TS/C++ surface from that single file — the dual-pass
   trap of two writers producing the same files is gone. `GeneratedPackage::write_to_dir`
   is deprecated (documentation-only; kept at least one minor per the versioning policy).
-  DX additions in `@rustra/cli`: self-describing headers on every generated file
+  DX additions in `@unikit-bridge/cli`: self-describing headers on every generated file
   (file, source, regen command, stage), a `codegen.generated_freshness` doctor check
   (manifest-based stale detection: missing manifest, schema drift, generator drift),
   `codegen --explain` surface map (text or `--format json`), and a CI onboarding gate
@@ -312,48 +312,48 @@ configPath, files }`) is replaced by that shape — automation consuming
   `inputType`/`outputType` are pinned to the schemars `JsonSchema::schema_name`
   (monomorphized names like `Wrapper_for_String`) instead of Rust's `type_name`,
   which leaked invalid `Wrapper<String >` identifiers for generic payloads.
-  The Rust `rustra` crate ships the same minor in its own Cargo workspace release
+  The Rust `unikit` crate ships the same minor in its own Cargo workspace release
   (crates.io is manual — see docs/release-procedure.md): schema.json contract entries
   change for generic and `serde_json::Value` payloads (`Value` → `AnyValue`), so the
   contract hash shifts for packages using them — regenerate schema.json and TS
   clients together (same minor release, per the versioning policy). CLI: friendlier
-  schema validation — missing config files point at `rustra init`, broken
+  schema validation — missing config files point at `unikit init`, broken
   schema.json names the file and the regen command, and generic type names get a
   rebuild hint.
 
 - 62763e9: Generated `node.ts`/`bun.ts` host entries now export `subscribeEvent` when the
   schema declares events — same one-line import surface as the RN/Tauri entries.
-  New adapter factories back it: `createBunEventSubscription` (`@rustra/bun`)
+  New adapter factories back it: `createBunEventSubscription` (`@unikit-bridge/bun`)
   resolves the cdylib with the exact same candidate computation as the bootstrap
-  (`RUSTRA_BUN_LIBRARY` included), keeps the synchronous
+  (`UNIKIT_BUN_LIBRARY` included), keeps the synchronous
   `(name, callback) => unsubscribe` signature by queueing subscribers until the
   FFI bridge (with polling fallback) is ready, and fails fast on initialization
-  failure; `createNodeEventSubscription` (`@rustra/node`) lazily spawns an event
+  failure; `createNodeEventSubscription` (`@unikit-bridge/node`) lazily spawns an event
   transport resolved like the bootstrap and delegates to the existing polling
   `subscribeEvent`. Schemas without events keep byte-identical entry output.
 - a23a4d6: Next-cycle integration: hot-reload track + inspector track.
 
-  **Hot-reload track (dev-time):** `rustra dev` gains a reload hook on its watch
+  **Hot-reload track (dev-time):** `unikit dev` gains a reload hook on its watch
   handle, a parity gate for the wasm dev target (fail-closed, rejects reloads on
   contract drift), wasm32 engine build orchestration (`[dev:wasm]` artifact
   logging; device push is the host's integration point), a doctor notice for the
   experimental wasm target (cooperative cancellation only — verify natively
   before release) plus a required `wasm32-unknown-unknown` rustup target check,
   and a release-coherence rule excluding the wasm backend from release artifacts.
-  `@rustra/node` adds `NodeLoopTransport.drain(timeoutMs)` (optional member) and
+  `@unikit-bridge/node` adds `NodeLoopTransport.drain(timeoutMs)` (optional member) and
   reload support on both bootstraps (loop hosts: graceful drain; one-shot:
-  shallow cancel); `@rustra/bun` reload re-initializes engine state in-process
-  with a loud dlopen-cache warning. The experimental `rustra_ffi_hot_reload` FFI
-  (replace semantics, loud skip report) lands in `rustra` — Rust-only, no npm
+  shallow cancel); `@unikit-bridge/bun` reload re-initializes engine state in-process
+  with a loud dlopen-cache warning. The experimental `unikit_ffi_hot_reload` FFI
+  (replace semantics, loud skip report) lands in `unikit` — Rust-only, no npm
   surface.
 
-  **Inspector track:** `rustra_ffi_capture_snapshot` FFI plus
-  `parseSnapshot`/`serializeSnapshot` in `@rustra/types`, the `rustra inspect`
+  **Inspector track:** `unikit_ffi_capture_snapshot` FFI plus
+  `parseSnapshot`/`serializeSnapshot` in `@unikit-bridge/types`, the `unikit inspect`
   CLI for dump files, a self-contained `renderTimelineReport` HTML generator in
-  `@rustra/devtools`, and contract-diff diagnosis in the existing
+  `@unikit-bridge/devtools`, and contract-diff diagnosis in the existing
   `onContractMismatch` info.
 
-  **Type-level breaking changes in `@rustra/cli` (pre-1.0 minor, no migration
+  **Type-level breaking changes in `@unikit-bridge/cli` (pre-1.0 minor, no migration
   action required beyond recompiling):**
 
   1. The `BreakingChange` union gains a new member `command_id_changed`.
@@ -364,7 +364,7 @@ configPath, files }`) is replaced by that shape — automation consuming
      `in`-checks or exact-shape comparisons must drop the optionality
      assumption.
 
-- 5777d57: 0.6 완성도 트랙 — `rustra diff` 이벤트 게이트(event_removed/event_payload_changed,
+- 5777d57: 0.6 완성도 트랙 — `unikit diff` 이벤트 게이트(event_removed/event_payload_changed,
   이벤트 추가는 non-breaking), Node 푸시 이벤트(0xfffd 프레임 + 능력 재판정 폴링
   폴백, 2-모드 dispatch), Bun FFI 이벤트 브릿지 자동배선, 생성 엔트리
   subscribeEvent export(node/bun, 이벤트 없으면 바이트 불변), `codegen`/`diff
@@ -372,7 +372,7 @@ configPath, files }`) is replaced by that shape — automation consuming
 - be29e0d: Behavior-preserving cleanup pass (Rust side): the serde struct/variant
   serializers share one core (`complex_serde_ser_core`), `register!`/`build!`
   expand to the same `PackageBuilder` command chain, and the command
-  function-name rule lives in `rustra-naming::snake_to_lower_camel`.
+  function-name rule lives in `unikit-bridge-naming::snake_to_lower_camel`.
 
   No wire-format or error-message changes.
 
@@ -380,7 +380,7 @@ configPath, files }`) is replaced by that shape — automation consuming
 
 - Updated dependencies [23c2f17]
 - Updated dependencies [a23a4d6]
-  - @rustra/types@0.7.0
+  - @unikit-bridge/types@0.7.0
 
 ## 0.6.0
 
@@ -390,18 +390,18 @@ configPath, files }`) is replaced by that shape — automation consuming
 
   **Events surface complete**: `subscribeEvent` now exists on every host — Node (`drainEvents` polling adapter), Bun (`createBunEventBridge`: FFI push sink with polling fallback), joining Tauri and React Native. Signatures are pinned to the codegen `SubscribeFn` contract by compile-time probes.
 
-  **Performance five tracks**: complex-route core dispatch stops rebuilding `serde_json::Value` trees three times per call (schema IR precompilation + direct serde), dynamic commands gain a `schema_generation` replacement contract and a postcard fast-path (472–488 ns vs 4.7 µs Tier 3), the Node persistent loop speaks binary framing, Tauri gets batched `rustra_dispatch_batch` and corrected IPC measurements (246 µs with a 709 ns native component), and RN async dispatch enters by command id.
+  **Performance five tracks**: complex-route core dispatch stops rebuilding `serde_json::Value` trees three times per call (schema IR precompilation + direct serde), dynamic commands gain a `schema_generation` replacement contract and a postcard fast-path (472–488 ns vs 4.7 µs Tier 3), the Node persistent loop speaks binary framing, Tauri gets batched `unikit_dispatch_batch` and corrected IPC measurements (246 µs with a 709 ns native component), and RN async dispatch enters by command id.
 
-  **Developer experience**: the CLI has one shared arg parser (`--help`, exit codes, `--flag=value`, "did you mean" suggestions), refuses to overwrite existing files on `init` without `--force`, fails loudly on unknown config keys, and reports codegen `unknown` fallbacks as warnings. `RUSTRA_DEBUG=wire` dumps wire bytes; errors preserve `cause` and distinguish `TimeoutError`/`CancelledError`. Six documentation examples that failed to compile or run were corrected, and the changelog covers 0.3 → 0.5.
+  **Developer experience**: the CLI has one shared arg parser (`--help`, exit codes, `--flag=value`, "did you mean" suggestions), refuses to overwrite existing files on `init` without `--force`, fails loudly on unknown config keys, and reports codegen `unknown` fallbacks as warnings. `UNIKIT_DEBUG=wire` dumps wire bytes; errors preserve `cause` and distinguish `TimeoutError`/`CancelledError`. Six documentation examples that failed to compile or run were corrected, and the changelog covers 0.3 → 0.5.
 
-  `@rustra/types` is minor. Packages keep independent release lines: prior 0.5.x packages move to 0.6.0 and prior 0.4.x packages move to 0.5.0; adapter ranges now require `^0.6.0`.
+  `@unikit-bridge/types` is minor. Packages keep independent release lines: prior 0.5.x packages move to 0.6.0 and prior 0.4.x packages move to 0.5.0; adapter ranges now require `^0.6.0`.
 
-  Rust crates (`rustra`, `rustra-macros`): schema generation contract for hot-replace sync, dynamic-command postcard handlers, Tauri `rustra_dispatch_batch`, precompiled complex-codec IR, direct serde encoding, and codegen warning collection surfaced on `GeneratedPackage.warnings`.
+  Rust crates (`unikit`, `unikit-bridge-macros`): schema generation contract for hot-replace sync, dynamic-command postcard handlers, Tauri `unikit_dispatch_batch`, precompiled complex-codec IR, direct serde encoding, and codegen warning collection surfaced on `GeneratedPackage.warnings`.
 
 ### Patch Changes
 
 - Updated dependencies [8266d23]
-  - @rustra/types@0.6.0
+  - @unikit-bridge/types@0.6.0
 
 ## 0.5.0
 
@@ -425,7 +425,7 @@ configPath, files }`) is replaced by that shape — automation consuming
     benchEchoBytes/Pair/echoGroups id 를 시프트한 것을 수정 — generated id 는
     원래 값 25/26/27 유지). 양쪽 생성물(Rust bin + TS CLI)을 함께 재생성할 것.
   - wire fixture: `TAGSET_REQUEST/RESPONSE` PINNED hex (Rust wire_fixtures.rs ↔
-    TS cross-wire.test.ts ↔ C++ test-rustra-generated-codecs.cpp 3면 동일).
+    TS cross-wire.test.ts ↔ C++ test-unikit-generated-codecs.cpp 3면 동일).
     와이어 자체는 순서 보존 postcard seq 로 기존과 동일 — BTreeSet 은 정렬 순서로
     직렬화되고 Set 복원 후 순서는 관측되지 않는다.
   - test-jsi-shim: Function/global()/instanceOf/getPropertyAsFunction 최소 표면
@@ -461,7 +461,7 @@ configPath, files }`) is replaced by that shape — automation consuming
 ### Patch Changes
 
 - Updated dependencies [6deb659]
-  - @rustra/types@0.5.0
+  - @unikit-bridge/types@0.5.0
 
 ## 0.4.1
 
@@ -470,19 +470,19 @@ configPath, files }`) is replaced by that shape — automation consuming
 - Keep React Native generated native paths valid for hoisted npm/Bun workspaces and verify that published adapter tarballs contain the Android, iOS, and C++ bridge sources.
 - Allow the CLI template and release validation to use compatible Rust and types versions independently from the CLI package version.
 - Updated dependencies
-  - @rustra/types@0.4.1
+  - @unikit-bridge/types@0.4.1
 
 ## 0.4.0
 
 ### Minor Changes
 
 - Node, Bun, Tauri, React Native와 Expo의 생성 진입점이 lazy zero-config bootstrap을
-  소유하며, 전용 byte-buffer 경로와 모든 Rustra 패키지의 0.4 lockstep release를 제공합니다.
+  소유하며, 전용 byte-buffer 경로와 모든 Unikit 패키지의 0.4 lockstep release를 제공합니다.
 
 ### Patch Changes
 
 - Updated dependencies
-  - @rustra/types@0.4.0
+  - @unikit-bridge/types@0.4.0
 
 ## 0.3.0
 
@@ -500,20 +500,20 @@ configPath, files }`) is replaced by that shape — automation consuming
   - JSON 엔진(Node/Bun/Tauri) signal 정책 통일 — 미abort signal 정상 실행
     (얕은 취소), abort 시에만 `cancelled`
   - devtools instrumented 엔진이 options(signal/timeoutMs)를 보존
-  - `RustraErrorCode` 상수 레지스트리 (19종) + `isRustraErrorCode` 가드
+  - `UnikitErrorCode` 상수 레지스트리 (19종) + `isUnikitErrorCode` 가드
 
   **이벤트 계약 (양방향 타입 안전)**
   - Rust `PackageBuilder::event::<E>("name")` → schema.json `events` 섹션
-  - TS 코드젠이 `events.ts` 생성 — 페이로드 타입 + `RustraEventName` 유니언 +
-    `onRustraEvent` 타입 안전 구독 헬퍼 (dual-path 정합)
-  - `@rustra/tauri` `subscribeEvent`/`rustraEventChannel` — Rust
+  - TS 코드젠이 `events.ts` 생성 — 페이로드 타입 + `UnikitEventName` 유니언 +
+    `onUnikitEvent` 타입 안전 구독 헬퍼 (dual-path 정합)
+  - `@unikit-bridge/tauri` `subscribeEvent`/`unikitEventChannel` — Rust
     `register_with_events` 와 짝 (과거 JS 구독 API 부재)
 
   **비동기·런타임**
   - async invoke 3종 엔트리가 고정 워커 풀(2워커/256큐)로 — 호출당
     `thread::spawn` 제거, 풀 가득 시 `invoke.backpressure` 즉시 거부
   - caller-buffer probe 캐시 — 비멱등 핸들러의 사이드 이펙트 2회 실행 방지
-  - `rustra_ffi_invoke_rkyv_v2[_into][_async]` 코어 심볼 — 소비자별 복제
+  - `unikit_ffi_invoke_rkyv_v2[_into][_async]` 코어 심볼 — 소비자별 복제
     래퍼 제거 (calculator 예제가 위임으로 전환)
   - Node `createNodeLoopTransport` + Rust 루프형 stdio 런타임(`loop-stdio`
     bin) — persistent 프로세스 + NDJSON id 상관 + 이벤트 drain
@@ -523,7 +523,7 @@ configPath, files }`) is replaced by that shape — automation consuming
   **성능**
   - `Command` 스키마 `Arc<Value>`화 — 매 invoke 스키마 deep copy 제거
   - `id_to_command` 직접 캐시 — rkyv V2 디스패치 이중 HashMap 조회 제거
-  - napi `rustraInvokeBuffer` — String UTF-16 이중 복사 회피
+  - napi `unikitInvokeBuffer` — String UTF-16 이중 복사 회피
   - `_utf8Encode` TextEncoder 폴백 계층 + 사전 크기 추정 Writer
   - 벤치 통계 정밀화(트림드 평균/stddev/p99) + 할당 카운팅/콜드스타트 측정
 
@@ -536,14 +536,14 @@ configPath, files }`) is replaced by that shape — automation consuming
   **패키지 완결**
   - mock 엔진: options 기록/pre-aborted `cancelled`/`invokeBatch` 라우팅/`reset`
   - `expectContractCurrent` expect-스타일 계약 게이트 (러너 무관)
-  - `RustraJSINative` 타입 3중 수동 미러링 → `RkyvV2SchemaNative` 상속 단일화
+  - `UnikitJSINative` 타입 3중 수동 미러링 → `RkyvV2SchemaNative` 상속 단일화
   - positional facade `invokeTypedById` 우선 진입 + options 파라미터
-  - `@rustra/testing`·`@rustra/devtools` README
+  - `@unikit-bridge/testing`·`@unikit-bridge/devtools` README
 
 ### Patch Changes
 
 - Updated dependencies [48a0b01]
-  - @rustra/types@0.3.1
+  - @unikit-bridge/types@0.3.1
 
 ## 0.2.1
 
@@ -552,19 +552,19 @@ configPath, files }`) is replaced by that shape — automation consuming
 - f77c2b8: chore(meta): npm 패키지 메타데이터 위생 정리 — sideEffects/engines 및 배포 산출물에서 테스트 파일 제외
 - f77c2b8: feat: InvokeOptions.timeoutMs — 네이티브 무응답 hang의 JS 측 탈출구. 만료 시 `transport.timeout`(retryable)으로 reject 하고 지각 응답은 흡수한다(unhandled rejection 방지).
 
-  fix: 스키마 식별자 화이트리스트로 생성 TS 코드 주입 방어(name/inputType/outputType/definitions 키). napi 경로 RustraError를 JSON 와이어로 보존 — code/retryable이 소실 없이 JS까지 전달된다(기존 unknown 래핑 개선).
+  fix: 스키마 식별자 화이트리스트로 생성 TS 코드 주입 방어(name/inputType/outputType/definitions 키). napi 경로 UnikitError를 JSON 와이어로 보존 — code/retryable이 소실 없이 JS까지 전달된다(기존 unknown 래핑 개선).
 
 ## 0.2.0
 
 ### Minor Changes
 
-- ecbe69c: Lynx support removed: `@rustra/lynx` is deprecated on npm and the Lynx examples/runner template are deleted from the repo. rustra now targets Node, Bun, Tauri, and React Native. The rkyv V2 binary fast-path is unaffected (shared with the React Native JSI adapter).
+- ecbe69c: Lynx support removed: `@unikit-bridge/lynx` is deprecated on npm and the Lynx examples/runner template are deleted from the repo. unikit now targets Node, Bun, Tauri, and React Native. The rkyv V2 binary fast-path is unaffected (shared with the React Native JSI adapter).
 - 5935b0a: #### Codegen correctness (fix)
   - The rkyv postcard codec no longer silently drops unsupported fields (`Option<T>`, `Vec<String>`, `Vec<Struct>`, string enums) from generated codecs — the crud example's `updateItem`/`getItem`/`listItems` wire frames were silently truncated. All four shapes now encode/decode correctly, verified by byte-exact round-trip tests against an independent postcard implementation.
   - Commands with genuinely unsupported field types (maps, data-carrying enums) are excluded from the rkyv registry and the C++ `has_static_codec` dispatch with a `WARN` at generation time; the engine routes them through the Tier 3 JSON-in-binary fallback. Rust mirrors the same support set (`js_postcard_codec_supported`) so both sides agree on the wire — no more partial-codec preemption.
   - `allOf` maps to `A & B` intersections and integer enums map to `1 | 2 | 3` literal unions in both the Rust codegen and the TS CLI (dual-path parity).
-  - Field-order drift warning: when schema properties appear alphabetically sorted, `rustra generate` warns that postcard requires declaration order (preserve_order).
-  - `rustra init` templates reference `^0.1.3` (was pinned to `^0.1.1`).
+  - Field-order drift warning: when schema properties appear alphabetically sorted, `unikit generate` warns that postcard requires declaration order (preserve_order).
+  - `unikit init` templates reference `^0.1.3` (was pinned to `^0.1.1`).
 
   #### Cancellation & semantics
   - AbortSignal propagation now reaches the Rust checkpoint on typed (tier 1) and Tier 3 dynamic commands when the native module exposes `invokeAsync`/`invokeCancel` — previously only JS-codec (tier 2) commands propagated. Commands without a commandId source keep shallow cancel.
@@ -573,13 +573,13 @@ configPath, files }`) is replaced by that shape — automation consuming
   - `invokeBatch` single-traversal cancel semantics documented as an explicit contract (signal-bearing entries route per-item).
 
   #### Onboarding / DX
-  - `createNodeProcessTransport` in `@rustra/node`: subprocess transport speaking the standard `<bin> invoke` stdio JSON protocol — the getting-started Node quickstart is now copy-paste complete. The crud example ships the same `invoke` entrypoint as the calculator.
+  - `createNodeProcessTransport` in `@unikit-bridge/node`: subprocess transport speaking the standard `<bin> invoke` stdio JSON protocol — the getting-started Node quickstart is now copy-paste complete. The crud example ships the same `invoke` entrypoint as the calculator.
   - New `docs/compatibility-matrix.md`: signal/cancel/batch/events × adapter support table.
-  - New `examples/reference-app`: a React app using `@rustra/react` hooks (`useCommand`/`useMutation`/`useEvent`/`RustraProvider`) over the crud package, with a runnable smoke (`npm run test:app:reference`).
+  - New `examples/reference-app`: a React app using `@unikit-bridge/react` hooks (`useCommand`/`useMutation`/`useEvent`/`UnikitProvider`) over the crud package, with a runnable smoke (`npm run test:app:reference`).
 
   #### Performance follow-ups
-  - `rustra_ffi_invoke_json_into`: caller-buffer FFI variant eliminating the Rust malloc → copy → caller-memcpy triple copy (size-probe → write two-phase protocol).
-  - `rustra generate --positional`: emits `positional-facade.ts` wrapping static commands as positional signatures (`addNumbers(a, b)`) calling JSI `invokeTyped` directly.
+  - `unikit_ffi_invoke_json_into`: caller-buffer FFI variant eliminating the Rust malloc → copy → caller-memcpy triple copy (size-probe → write two-phase protocol).
+  - `unikit generate --positional`: emits `positional-facade.ts` wrapping static commands as positional signatures (`addNumbers(a, b)`) calling JSI `invokeTyped` directly.
 
   #### Misc
   - RN JSI bridge exposes `getContractHash` — the `contractHash` engine option works on React Native now.
@@ -591,18 +591,18 @@ configPath, files }`) is replaced by that shape — automation consuming
 ### Patch Changes
 
 - 5002b07: #### Added
-  - `@rustra/react` — hooks 패키지 첫 공개 (`useEngine`/`useCommand`/`useEvent`).
+  - `@unikit-bridge/react` — hooks 패키지 첫 공개 (`useEngine`/`useCommand`/`useEvent`).
   - Rust → JS 이벤트 푸시: `Package::set_event_sink`/`EventSink`(즉시 콜백, 폴링 불필요),
-    `tauri_support::register_with_events`(Tauri `rustra://{event}` 푸시),
-    FFI `rustra_ffi_event_sink_register`(C-unwind ABI, 패닉 격리),
+    `tauri_support::register_with_events`(Tauri `unikit://{event}` 푸시),
+    FFI `unikit_ffi_event_sink_register`(C-unwind ABI, 패닉 격리),
     RN JSI `onEvent`/`offEvent`(CallInvoker drain, 1024 drop-oldest 큐) +
-    `@rustra/react-native` `subscribeEvent` 래퍼.
-  - `@rustra/testing` — `createMockEngine`(계약 동일 mock + 호출 기록) / `assertContractCurrent`.
-  - `@rustra/devtools` — `createInstrumentedEngine` 관측성 래퍼.
-  - `rustra dev` — Rust 소스 감시 hot codegen, `rustra init` — 프로젝트 스캐폴딩,
+    `@unikit-bridge/react-native` `subscribeEvent` 래퍼.
+  - `@unikit-bridge/testing` — `createMockEngine`(계약 동일 mock + 호출 기록) / `assertContractCurrent`.
+  - `@unikit-bridge/devtools` — `createInstrumentedEngine` 관측성 래퍼.
+  - `unikit dev` — Rust 소스 감시 hot codegen, `unikit init` — 프로젝트 스캐폴딩,
     Vite 코드젠 플러그인.
   - codegen: `Set<T>` 지원(`BTreeSet`/`HashSet` → `uniqueItems`), 스키마 doc 주석 →
-    JSDoc 전파, `RustraCommandError.retryable`, `createAsyncEngine`(async offload).
+    JSDoc 전파, `UnikitCommandError.retryable`, `createAsyncEngine`(async offload).
   - Rust 코어: `State`/`executor` 모듈, rkyv V2 에러 와이어 파싱 공유 헬퍼.
 
   #### Changed

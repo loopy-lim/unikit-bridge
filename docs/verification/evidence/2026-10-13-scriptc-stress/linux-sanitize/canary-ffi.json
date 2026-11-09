@@ -2,8 +2,8 @@
   "ffi_format": 7,
   "functions": [
     {
-      "name": "rustra_stress_asan_canary",
-      "symbol": "rustra_stress_asan_canary",
+      "name": "unikit_stress_asan_canary",
+      "symbol": "unikit_stress_asan_canary",
       "params": [],
       "returns": "u32"
     }

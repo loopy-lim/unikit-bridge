@@ -1,27 +1,27 @@
 {
-  "name": "@rustra/example-rn-experiment",
+  "name": "@unikit-bridge/example-rn-experiment",
   "private": true,
   "packageManager": "bun@1.4.0",
   "type": "module",
   "scripts": {
-    "generate:schema": "cargo run -p rustra-rn-experiment --bin generate",
-    "codegen": "bun ../../packages/cli/src/index.ts codegen --config rustra.json",
-    "codegen:check": "bun ../../packages/cli/src/index.ts codegen --config rustra.json --check",
+    "generate:schema": "cargo run -p unikit-rn-experiment --bin generate",
+    "codegen": "bun ../../packages/cli/src/index.ts codegen --config unikit.json",
+    "codegen:check": "bun ../../packages/cli/src/index.ts codegen --config unikit.json --check",
     "test": "bun test apps/benchmark.test.ts apps/native-benchmark.test.ts scripts/benchmark-receipts.test.ts",
     "test:adapter": "bun apps/react-native-app.ts",
-    "test:node": "cargo build -p rustra-rn-experiment --bin rustra-rn-experiment && bun apps/node-app.ts",
+    "test:node": "cargo build -p unikit-rn-experiment --bin unikit-rn-experiment && bun apps/node-app.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "typecheck:native": "tsc --noEmit -p tsconfig.native.json"
   },
   "dependencies": {
-    "@rustra/generated-react-native": "workspace:*",
-    "@rustra/node": "file:../../packages/node",
-    "@rustra/react-native": "file:../../packages/react-native",
-    "@rustra/types": "file:../../packages/types"
+    "@unikit-bridge/generated-react-native": "workspace:*",
+    "@unikit-bridge/node": "file:../../packages/node",
+    "@unikit-bridge/react-native": "file:../../packages/react-native",
+    "@unikit-bridge/types": "file:../../packages/types"
   },
   "overrides": {
-    "@rustra/types": "file:../../packages/types",
-    "@rustra/react-native": "file:../../packages/react-native"
+    "@unikit-bridge/types": "file:../../packages/types",
+    "@unikit-bridge/react-native": "file:../../packages/react-native"
   },
   "peerDependencies": {
     "react-native": ">=0.76"
@@ -30,6 +30,6 @@
     "react-native": "0.81.5"
   },
   "workspaces": [
-    "modules/rustra-bridge"
+    "modules/unikit-bridge"
   ]
 }

@@ -66,7 +66,7 @@ export function runQuickStart(
   const root = mkdtempSync(join(repo, 'target', `quick-start-${options.host}-${options.manager}-`));
   const app = join(root, 'app');
   const cli = join(repo, 'packages/cli/dist/index.js');
-  // file: 로 주입된 @rustra/cli 의 .bin/rustra 심링크는 이 파일을 가리킨다 —
+  // file: 로 주입된 @unikit-bridge/cli 의 .bin/unikit 심링크는 이 파일을 가리킨다 —
   // tsc 출력은 644 라 Linux 에서 exec 하면 126 이 된다. shebang 이 있으므로
   // 실행 비트만 부여하면 모든 매니저 경로가 해소된다.
   if (existsSync(cli)) chmodSync(cli, 0o755);
@@ -171,7 +171,7 @@ export function runQuickStart(
         .filter(Boolean),
       native: benchmarkArtifact(targetDir, scaffoldNativeArtifactPath(options.host)),
       installedPackages: ['cli', 'types', options.host].map((name) =>
-        onboardingPackageArtifact(join(app, 'node_modules/@rustra', name)),
+        onboardingPackageArtifact(join(app, 'node_modules/@unikit-bridge', name)),
       ),
     });
   try {
@@ -185,10 +185,10 @@ export function runQuickStart(
         ['devDependencies', ['cli']],
       ]) {
         for (const name of names)
-          manifest[section][`@rustra/${name}`] = `file:${join(repo, 'packages', name)}`;
+          manifest[section][`@unikit-bridge/${name}`] = `file:${join(repo, 'packages', name)}`;
       }
       // The transitive types dependency must resolve to the same candidate under every manager.
-      const override = { '@rustra/types': `file:${join(repo, 'packages/types')}` };
+      const override = { '@unikit-bridge/types': `file:${join(repo, 'packages/types')}` };
       if (options.manager === 'pnpm') manifest.pnpm = { overrides: override };
       else if (options.manager === 'yarn') manifest.resolutions = override;
       else manifest.overrides = override;
@@ -196,15 +196,15 @@ export function runQuickStart(
       mkdirSync(join(app, '.cargo'), { recursive: true });
       writeFileSync(
         join(app, '.cargo/config.toml'),
-        `[build]\ntarget-dir = ${JSON.stringify(targetDir)}\n\n[patch.crates-io]\n${['rustra', 'rustra-macros', 'rustra-naming'].map((name) => `${name} = { path = ${JSON.stringify(join(repo, 'crates', name))} }`).join('\n')}\n`,
+        `[build]\ntarget-dir = ${JSON.stringify(targetDir)}\n\n[patch.crates-io]\n${['unikit-bridge', 'unikit-bridge-macros', 'unikit-bridge-naming'].map((name) => `${name} = { path = ${JSON.stringify(join(repo, 'crates', name))} }`).join('\n')}\n`,
       );
     });
     const manifestBefore = JSON.parse(readFileSync(join(app, 'package.json'), 'utf8'));
-    const configBefore = readFileSync(join(app, 'rustra.json'), 'utf8');
+    const configBefore = readFileSync(join(app, 'unikit.json'), 'utf8');
     run(
       'first-call',
       process.execPath,
-      [cli, 'setup', '--config', join(app, 'rustra.json'), '--run'],
+      [cli, 'setup', '--config', join(app, 'unikit.json'), '--run'],
       app,
       'hello from TypeScript',
     );
@@ -235,7 +235,7 @@ export function runQuickStart(
       run(
         'implementation-verify',
         process.execPath,
-        [cli, 'setup', '--config', join(app, 'rustra.json'), '--skip-install', '--run'],
+        [cli, 'setup', '--config', join(app, 'unikit.json'), '--skip-install', '--run'],
         app,
         'HELLO FROM TYPESCRIPT',
       );
@@ -255,7 +255,7 @@ export function runQuickStart(
       run(
         'verify',
         process.execPath,
-        [cli, 'setup', '--config', join(app, 'rustra.json'), '--skip-install', '--run'],
+        [cli, 'setup', '--config', join(app, 'unikit.json'), '--skip-install', '--run'],
         app,
         '"repeat":3',
       );
@@ -264,9 +264,9 @@ export function runQuickStart(
     const manifestAfter = JSON.parse(readFileSync(join(app, 'package.json'), 'utf8'));
     if (
       JSON.stringify(manifestBefore.scripts) !== JSON.stringify(manifestAfter.scripts) ||
-      configBefore !== readFileSync(join(app, 'rustra.json'), 'utf8')
+      configBefore !== readFileSync(join(app, 'unikit.json'), 'utf8')
     )
-      throw new Error('setup changed user scripts or rustra.json');
+      throw new Error('setup changed user scripts or unikit.json');
     report.ok = true;
     if (!options.clean)
       console.log(

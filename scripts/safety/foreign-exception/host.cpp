@@ -3,7 +3,7 @@
 #include <cstring>
 #include <stdexcept>
 
-extern "C" void rustra_safety_callback_probe(
+extern "C" void unikit_safety_callback_probe(
     void (*callback)(void *, const char *, const char *), void *data);
 
 struct State { int calls = 0; int caught = 0; bool abort_on_error = false; };
@@ -18,9 +18,9 @@ extern "C" void contained_callback(void *data, const char *name, const char *pay
             throw std::runtime_error("injected C++ exception");
     } catch (...) {
         ++state.caught;
-        std::fputs("rustra safety: caught C++ exception in host callback\n", stderr);
+        std::fputs("unikit safety: caught C++ exception in host callback\n", stderr);
         if (state.abort_on_error) {
-            std::fputs("rustra safety: host explicitly aborting\n", stderr);
+            std::fputs("unikit safety: host explicitly aborting\n", stderr);
             std::fflush(stderr);
             std::abort();
         }
@@ -30,7 +30,7 @@ extern "C" void contained_callback(void *data, const char *name, const char *pay
 int main(int argc, char **argv) {
     State state;
     state.abort_on_error = argc == 2 && std::strcmp(argv[1], "abort") == 0;
-    rustra_safety_callback_probe(contained_callback, &state);
+    unikit_safety_callback_probe(contained_callback, &state);
     if (state.calls != 2 || state.caught != 1) return 2;
     std::puts("C++ exception contained; second Rust event delivered; unregister returned");
     return 0;

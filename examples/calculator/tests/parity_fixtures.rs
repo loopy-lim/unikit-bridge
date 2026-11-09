@@ -1,5 +1,5 @@
-use rustra_calculator_example::parity_bench::*;
 use std::collections::BTreeMap;
+use unikit_calculator_example::parity_bench::*;
 fn tree() -> ParityTree {
     ParityTree {
         nodes: (0..3)
@@ -68,7 +68,7 @@ fn parity_resident_index_and_replacement() {
 
 #[test]
 fn parity_commands_preserve_ids_and_declare_original_sync_execution() {
-    let schema = rustra_calculator_example::calculator_package().live_schema();
+    let schema = unikit_calculator_example::calculator_package().live_schema();
     let commands = schema["commands"].as_array().unwrap();
     for (name, id) in [
         ("benchAdd", 23),

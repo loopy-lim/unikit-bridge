@@ -4,7 +4,7 @@
 
 ## 1. UniFFI 전송이란?
 
-UniFFI 는 rustra 의 네 번째 호스트 표면으로, 기존 tier(JSI/Tauri/Bun/Node)와
+UniFFI 는 unikit 의 네 번째 호스트 표면으로, 기존 tier(JSI/Tauri/Bun/Node)와
 **병존**한다. 기존 tier 가 TS 엔진이 postcard/Frame blob 을 왕복시키는 모델이라면,
 UniFFI 는 **native value transfer** 다: Mozilla UniFFI 가 생성한 Kotlin/Swift
 바인딩이 uniffi 자체의 RustBuffer lift/lower 로 값을 건네고, 커맨드 하나당 타입
@@ -21,26 +21,26 @@ uniffi 가 생성하기 때문이다.
 | Tauri 앱 — 웹뷰가 Rust 호출                                        | Tauri adapter([Tauri 셋업](tauri-setup.ko.md))    |
 | Node/Bun 백엔드                                                    | 생성 엔트리([시작하기](../getting-started.ko.md)) |
 
-UniFFI 표면의 계약 정합성은 rustra 가 아니라 **uniffi 자체의 체크섬 + 계약
+UniFFI 표면의 계약 정합성은 unikit 가 아니라 **uniffi 자체의 체크섬 + 계약
 버전**이 담당한다(ADR 0001 의 Track A 철학을 캐리어가 그대로 적용한 형태).
-rustra 의 `contract_hash`/`contract.mismatch` 게이트는 blob 전송
+unikit 의 `contract_hash`/`contract.mismatch` 게이트는 blob 전송
 (JSI/Tauri/Bun/Node) 범위에 머문다 — 결정 기록은
 [ADR 0002](../adr/0002-uniffi-track-b1-carrier.ko.md).
 
 ## 2. 아키텍처 — 코어는 uniffi-free
 
-`crates/rustra` 는 uniffi 의존을 갖지 않는다. 코어에 착지한 것은 평범한 Rust
+`crates/unikit-bridge` 는 uniffi 의존을 갖지 않는다. 코어에 착지한 것은 평범한 Rust
 두 조각이다:
 
 - `Package::invoke_typed<I: Serialize, O: DeserializeOwned>(name, &input)`
-  (`crates/rustra/src/invoke_typed.rs`) — 이름으로 커맨드를 조회해
+  (`crates/unikit-bridge/src/invoke_typed.rs`) — 이름으로 커맨드를 조회해
   commandId + postcard 로 Frame 요청 프레임을 조립하고
   `invoke_frame` 의 **단일 dispatch 경로**로 실행한다. 별도의 JSON 실행
   경로를 이원화하지 않으므로, TS 코덱이 보는 와이어와 Rust 내부 호출 와이어가
   바이트 수준에서 같은 원천이다.
 - `decode_frame_response(frame)` / `decode_frame_error_parts(frame)`
-  (`crates/rustra/src/frame_error.rs`) — 응답 프레임을 성공 본문/에러
-  `{code, message}` 로 분리하는 공용 헬퍼. 알려진 한계: `RustraError` 의
+  (`crates/unikit-bridge/src/frame_error.rs`) — 응답 프레임을 성공 본문/에러
+  `{code, message}` 로 분리하는 공용 헬퍼. 알려진 한계: `UnikitError` 의
   `code` 는 `&'static str` 이라 와이어의 동적 코드를 무할당 재구성할 수
   없으므로, 통합 디코더(`decode_frame_response`)는 에러를
   `internal: "<code>: <message>"` 형태로 합쳐 전달한다 — 정확한 부분이 필요한
@@ -59,7 +59,7 @@ include!("uniffi_generated.rs");
 기본 빌드에는 uniffi 가 전혀 개입하지 않는다 — `--features uniffi` 빌드에서만
 cdylib 에 스캐폴딩이 얹힌다.
 
-## 3. 설정 — `rustra.json` 의 `uniffi` 섹션
+## 3. 설정 — `unikit.json` 의 `uniffi` 섹션
 
 ```json
 {
@@ -86,15 +86,15 @@ uniffi 섹션의 **존재 자체가 기능 스위치**다 — 없으면 코드�
 2. `uniffi = ["dep:uniffi"]` 피처(워크스페이스 의존은 exact pin — §8).
 3. `src/bin/uniffi-bindgen.rs`:
    `fn main() { uniffi::uniffi_bindgen_main() }`.
-4. 프로브 바이너리가 `RUSTRA_UNIFFI_OUT` 환경변수를 존중해 미러 소스를
+4. 프로브 바이너리가 `UNIKIT_UNIFFI_OUT` 환경변수를 존중해 미러 소스를
    렌더링한다(`examples/calculator/src/bin/generate.rs` 참고).
 5. lib.rs 의 `#[cfg(feature = "uniffi")] include!(...)` 접합(§2).
 
 ## 4. 코드젠 흐름
 
-`rustra codegen --config rustra.json`(쓰기 모드)의 uniffi 단계:
+`unikit codegen --config unikit.json`(쓰기 모드)의 uniffi 단계:
 
-1. **스키마 프로브** — 기존 프로브를 `RUSTRA_UNIFFI_OUT=<srcOut>` 환경변수와
+1. **스키마 프로브** — 기존 프로브를 `UNIKIT_UNIFFI_OUT=<srcOut>` 환경변수와
    함께 스폰한다. 프로브는 미러 소스를 `uniffi_generated.rs` 로 렌더링해
    srcOut 에 쓴다(커밋 대상).
 2. **cdylib 빌드** — `cargo build --package <pkg> --lib --features uniffi
@@ -108,7 +108,7 @@ uniffi 섹션의 **존재 자체가 기능 스위치**다 — 없으면 코드�
 
 `--check`는 UniFFI의 `uniffi_generated.rs`만 비교하는 저비용 검사이며,
 **Kotlin/Swift 신선도를 증명하지 않는다**. 전체 바인딩 CI 게이트는
-`rustra codegen --check-bindings`로 명시 실행한다. 이 옵션은 `--check`를 포함하며
+`unikit codegen --check-bindings`로 명시 실행한다. 이 옵션은 `--check`를 포함하며
 라이브러리 빌드와 빈 임시 디렉터리의 bindgen 생성을 거쳐 전체 경로와 바이트를 비교한다.
 Swift·Kotlin·헤더·modulemap과 오래된 추가 파일까지 검사하고 커밋된 출력은 교체하지 않는다.
 Cargo 타깃 디렉터리에 빌드 산출물은 쓸 수 있으며, 네이티브 빌드와 bindgen 실행 비용이 든다.
@@ -123,16 +123,16 @@ Cargo 타깃 디렉터리에 빌드 산출물은 쓸 수 있으며, 네이티브
 커맨드별 타입 함수가 최상위 함수로 생성된다. calculator 예제 기준(커밋된
 바인딩: `examples/calculator/uniffi/`):
 
-Kotlin(패키지 `uniffi.rustra_calculator_example`):
+Kotlin(패키지 `uniffi.unikit_calculator_example`):
 
 ```kotlin
-import uniffi.rustra_calculator_example.*
+import uniffi.unikit_calculator_example.*
 
 val sum = addNumbers(AddNumbersInput(a = 2, b = 3)) // AddNumbersOutput(value = 5)
 
 try {
     divide(DivideInput(a = 10.0, b = 0.0))
-} catch (e: RustraCommandFailure.Failure) {
+} catch (e: UnikitCommandFailure.Failure) {
     println(e.code) // "math.divide_by_zero"
 }
 ```
@@ -144,7 +144,7 @@ let sum = try addNumbers(input: AddNumbersInput(a: 2, b: 3)) // AddNumbersOutput
 
 do {
     _ = try divide(input: DivideInput(a: 10, b: 0))
-} catch let failure as RustraCommandFailure {
+} catch let failure as UnikitCommandFailure {
     if case let .Failure(code, detail, retryable) = failure {
         print(code) // "math.divide_by_zero"
     }
@@ -152,8 +152,8 @@ do {
 ```
 
 **에러 모델** — 단일 변형 실패 record
-`RustraCommandFailure.Failure { code, detail, retryable }`(TS 의
-`RustraCommandError` 와 동일 형태). rustra 의 에러 코드 공간은 열려 있으므로
+`UnikitCommandFailure.Failure { code, detail, retryable }`(TS 의
+`UnikitCommandError` 와 동일 형태). unikit 의 에러 코드 공간은 열려 있으므로
 (커스텀 코드 무제한), 코드를 폐쇄해야 하는 uniffi enum 매핑은 기각됐다.
 
 제네릭 표면 3개도 함께 생성된다:
@@ -162,7 +162,7 @@ do {
   의 문자열 경계 래퍼).
 - `getSchema()` — 라이브 스키마(`Package::live_schema`). TS 쪽 스키마와 달리
   **세대 카운터가 포함**된다(핫스왑 관측용).
-- `contractHash()` — FFI `rustra_ffi_contract_hash` 와 동일 단일 소스.
+- `contractHash()` — FFI `unikit_ffi_contract_hash` 와 동일 단일 소스.
 
 **로딩 모델** — uniffi 바인딩은 로드 시점에 cdylib 심볼을 바인딩한다. 따라서
 이 표면은 **정적/릴리스 빌드 전용**이고, dylib 핫스왑(`hot-core`)과는 조합할
@@ -174,10 +174,10 @@ do {
 하네스로 증명되며, 둘 다 CI 잡으로 연결돼 있다(`.github/workflows/ci.yml`):
 
 - **Android** — `examples/uniffi-android-smoke`: 생성된 Kotlin 바인딩
-  (`uniffi.rustra_calculator_example`, JNA 기반)과 cargo-ndk 로 빌드한 Rust
+  (`uniffi.unikit_calculator_example`, JNA 기반)과 cargo-ndk 로 빌드한 Rust
   `.so` 를 로드하는 최소 Gradle 앱. 행복 경로 `addNumbers(20, 22) == 42` 와
   타입 에러 경로 `divide(10, 0)` → 코드 `"math.divide_by_zero"` 를 모두 증명한
-  뒤에야 `__RUSTRA_UNIFFI_OK__ addNumbers(20,22)=42` 마커를 `Log.w` 로 찍는다.
+  뒤에야 `__UNIKIT_UNIFFI_OK__ addNumbers(20,22)=42` 마커를 `Log.w` 로 찍는다.
   `uniffi-android` CI 잡이 x86_64 에뮬레이터를 부팅해 APK 를 설치하고 로그에서
   마커를 단언한다.
 - **iOS** — `examples/uniffi-ios-smoke`: `build-and-run.sh` 가

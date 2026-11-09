@@ -1,8 +1,8 @@
 English | [한국어](./README.ko.md)
 
-# @rustra/types
+# @unikit-bridge/types
 
-The core types package of rustra-bridge. Provides the `EngineClient` interface shared by
+The core types package of unikit-bridge. Provides the `EngineClient` interface shared by
 all platform adapters (Node, Bun, Tauri, React Native), error types, the Frame codec,
 and Tauri-like global invoke.
 
@@ -10,8 +10,8 @@ and Tauri-like global invoke.
 
 ```ts
 // Configure the platform engine once
-import { configure } from '@rustra/types';
-import { createFrameEngine } from '@rustra/react-native';
+import { configure } from '@unikit-bridge/types';
+import { createFrameEngine } from '@unikit-bridge/react-native';
 configure(createFrameEngine(native, registry));
 
 // Type-safe invocations from anywhere (used inside generated clients)
@@ -35,13 +35,13 @@ Key exports:
   (`retries` default 2, `baseDelayMs` default 100, `retryIf` replaces the default
   judgment, `signal` aborts mid-backoff as `CancelledError`); the last error is re-thrown
   as-is
-- `configureDebug(sink)` / `RustraDebugEvent` — opt-in structured diagnostics sink.
-  `RUSTRA_DEBUG=1|true|verbose` additionally logs every event as `[rustra:debug]` and
-  dumps wire bytes as hex to stderr (`[rustra:wire]`); on React Native
-  `globalThis.__RUSTRA_DEBUG__ = true` enables the event log. Diagnostic events carry
+- `configureDebug(sink)` / `UnikitDebugEvent` — opt-in structured diagnostics sink.
+  `UNIKIT_DEBUG=1|true|verbose` additionally logs every event as `[unikit:debug]` and
+  dumps wire bytes as hex to stderr (`[unikit:wire]`); on React Native
+  `globalThis.__UNIKIT_DEBUG__ = true` enables the event log. Diagnostic events carry
   optional `kind`/`reason` (`response.shape` from the JSON engine, `ndjson.unparsed`
-  from `@rustra/node`)
-- `RustraCommandError` — serializable error + `parseRustraErrorString`
+  from `@unikit-bridge/node`)
+- `UnikitCommandError` — serializable error + `parseUnikitErrorString`
 - Frame codec — pure-JS encoder/decoder for the Rust `invoke_frame` round trip
 - `contractHash` verification — checks that the build-time contract matches the runtime
   contract
@@ -55,5 +55,5 @@ Key exports:
 
 ## Related docs
 
-- [rustra-bridge](https://github.com/loopy-lim/rustra#readme)
+- [unikit-bridge](https://github.com/loopy-lim/unikit-bridge#readme)
 - `docs/architecture.md`, `docs/compatibility-contract.md`

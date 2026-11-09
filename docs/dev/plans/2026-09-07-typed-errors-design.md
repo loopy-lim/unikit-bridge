@@ -2,14 +2,14 @@
 
 상태: 설계 확정. 리서치 근거: `docs/research/2026-09-07-typed-error-codesgen.md`.
 경쟁 격차 정의: `docs/research/2026-09-07-competitive-landscape.md` #2 — "경쟁
-대부분이 에러를 타입으로 노출, rustra 는 제네릭 `{code,message}` → string 비교
+대부분이 에러를 타입으로 노출, unikit 는 제네릭 `{code,message}` → string 비교
 분기. 구현 비용 대비 가치 최고."
 
 ## 문제
 
-Rust 핸들러는 `RustraError::custom("math.divide_by_zero", …)`처럼 **도메인 코드를
+Rust 핸들러는 `UnikitError::custom("math.divide_by_zero", …)`처럼 **도메인 코드를
 이미 반환하고 있고** 와이어(rkyv V2 postcard `{code,message}`, JSON 폴백 Display
-재분할)와 4개 호스트 전부가 코드를 손실 없이 `RustraCommandError.code`까지
+재분할)와 4개 호스트 전부가 코드를 손실 없이 `UnikitCommandError.code`까지
 전달한다(리서치 1.3/3.3). 그러나:
 
 1. **선언 부재** — `Command` 구조체와 schema.json 명령 항목에는 "이 커맨드가 어떤
@@ -22,7 +22,7 @@ Rust 핸들러는 `RustraError::custom("math.divide_by_zero", …)`처럼 **도�
    실제 예제 코드(`math.divide_by_zero`)와 어긋나는 오타 코드 `"division.by_zero"`
    를 게시 중이다(리서치 3.2).
 
-해결 목표: **런타임 에러 계약(와이어/호스트/`RustraCommandError`/`normalizeRustraError`)
+해결 목표: **런타임 에러 계약(와이어/호스트/`UnikitCommandError`/`normalizeUnikitError`)
 은 한 글자도 바꾸지 않고**, 선언→스키마→코드젠 화살을 추가해 커맨드별 에러 코드를
 TS 리터럴 유니언 + 타입 가드로 좁힌다.
 
@@ -98,7 +98,7 @@ impl PackageBuilder {
 - **런타임 검증은 하지 않는다**(YAGNI — E절): 선언은 계약 문서이지 핸들러 반환값
   검사기가 아니다. 핸들러가 미선언 코드를 반환해도 와이어는 그대로 흘러간다
   (모르는 코드 수신 정책은 E절).
-- 배치: `crates/rustra/src/builder_errors.rs` 신설 + `builder.rs` include
+- 배치: `crates/unikit-bridge/src/builder_errors.rs` 신설 + `builder.rs` include
   (builder_platform.rs 패턴), `CommandErrorVariant`는 `error.rs`에 정의하고
   prelude 재수출(`Platform` 재수출 관례, prelude.rs:5). `platform_command_impl`이
   스텁 교체 시 `platforms`를 보존하듯(builder_platform.rs:109,123),
@@ -118,7 +118,7 @@ fn divide(input: DivideInput) -> Result<DivideOutput> { … }
 //   .errors_meta_if(#meta_ident, #errors_ident)
 ```
 
-- `__RUstra_errors_{fn}` 상수(`&'static [CommandErrorVariant]`)를 심고
+- `__UNikit_errors_{fn}` 상수(`&'static [CommandErrorVariant]`)를 심고
   register!/build! 체인에 `.errors_meta_if(...)` 1줄 추가(macro_register.rs:102,
   macro_build.rs:99 체인에 병렬).
 - 지원 키 안내 메시지 갱신("unsupported `#[command]` key; supported keys: `name`,
@@ -133,10 +133,10 @@ fn divide(input: DivideInput) -> Result<DivideOutput> { … }
 만들지 않는다(선언 없는 패키지는 기존 출력과 바이트 동일 — 재생성 유발 없음).
 
 커맨드당 3종 출력(이름 규칙: `math.divide_by_zero` → `MathDivideByZero`
-— `RustraErrorCode.TransportTimeout`('transport.timeout') 관례, errors.ts:155-156):
+— `UnikitErrorCode.TransportTimeout`('transport.timeout') 관례, errors.ts:155-156):
 
 ```ts
-import { RustraCommandError } from '@rustra/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 
 const divideErrorCodes: ReadonlySet<string> = new Set(['math.divide_by_zero']);
 
@@ -148,11 +148,11 @@ export const DivideErrorCode = {
 export type DivideErrorCode = (typeof DivideErrorCode)[keyof typeof DivideErrorCode];
 
 /** code 리터럴로 좁혀진 divide의 에러 (discriminated by `code`). */
-export type DivideError = RustraCommandError & { readonly code: DivideErrorCode };
+export type DivideError = UnikitCommandError & { readonly code: DivideErrorCode };
 
 /** catch 분기용 타입 가드 — 미선언 코드(신규 네이티브 등)는 false. */
 export function isDivideError(error: unknown): error is DivideError {
-  return error instanceof RustraCommandError && divideErrorCodes.has(error.code);
+  return error instanceof UnikitCommandError && divideErrorCodes.has(error.code);
 }
 ```
 
@@ -161,11 +161,11 @@ export function isDivideError(error: unknown): error is DivideError {
 DivideErrorCode.MathDivideByZero)` 분기는 리터럴 좁힘이 되고, 오타는 컴파일
   에러난다.
 - **`commands.ts`/`types.ts`는 바이트 불변** — 에러 표면은 별도 파일로. 생성
-  헬퍼(`invokeGenerated*`)와 `RustraCommandError`/`normalizeRustraError`/
-  `parseRustraErrorString`/`isRetryableCode` 런타임은 전부 무변경(기존 에러 계약
+  헬퍼(`invokeGenerated*`)와 `UnikitCommandError`/`normalizeUnikitError`/
+  `parseUnikitErrorString`/`isRetryableCode` 런타임은 전부 무변경(기존 에러 계약
   무변경 원칙).
-- 가드의 `instanceof RustraCommandError` 전제는 리서치 3.2/3.3에서 검증: 모든
-  호스트 경로가 `RustraCommandError`(또는 그 서브클래스)로 승격한다.
+- 가드의 `instanceof UnikitCommandError` 전제는 리서치 3.2/3.3에서 검증: 모든
+  호스트 경로가 `UnikitCommandError`(또는 그 서브클래스)로 승격한다.
   TimeoutError/CancelledError도 서브클래스라 `instanceof` 성립(errors.ts:26-42).
 - CLI `CommandSchema` 타입에 `errors?: CommandErrorSchema[]` 추가
   (packages/cli/src/schema.ts). `parsePackageSchema`는 알 수 없는 필드를 이미
@@ -183,7 +183,7 @@ DivideErrorCode.MathDivideByZero)` 분기는 리터럴 좁힘이 되고, 오타�
    `capability.denied`, `platform.unavailable` — error.rs 코드 테이블 및 JS 전용
    코드군, errors.ts:138-205)는 어느 커맨드에서든 발생할 수 있으므로 유니언에
    자동 포함하지 **않는다**(포함시 모든 유니언이 동일 접두 블록으로 부풀고
-   버전 결합만 생긴다). 프레임워크 코드 분기는 기존대로 `RustraErrorCode`
+   버전 결합만 생긴다). 프레임워크 코드 분기는 기존대로 `UnikitErrorCode`
    상수 비교.
 2. **빌트인 코드 재선언은 허용** — 커맨드가 도메인 의미로 `payload.too_large`
    계열을 명시적으로 돌려주는 경우 유니언에 그대로 들어간다(중복은 B절 패닉의
@@ -192,11 +192,11 @@ DivideErrorCode.MathDivideByZero)` 분기는 리터럴 좁힘이 되고, 오타�
    애초에 가드가 없어 문제 없음. 그 반대(구 네이티브 + 신 JS)는 스키마에 errors가
    없어 errors.ts가 생성되지 않는다. **동일 계약 내에서 핸들러가 미선언 코드를
    반환하는 경우** 가드는 false — 호출자는 폴백으로 `err.code` 문자열 분기(기존
-   패턴) 또는 `RustraErrorCode` 비교. 타입은 폐쇄 유니언이지만 런타임은 개방
+   패턴) 또는 `UnikitErrorCode` 비교. 타입은 폐쇄 유니언이지만 런타임은 개방
    계약임을 가드 JSDoc에 명시한다.
 4. **계약 해시**: errors 추가는 schema.json 변경 → 계약 해시·핫리로드 와이어
    서명 변경(package_schema.rs:60-77, 193-196). 의도된 계약 진화로,
-   `contract.mismatch` 게이트와 `rustra diff`가 기존대로 검출한다.
+   `contract.mismatch` 게이트와 `unikit diff`가 기존대로 검출한다.
 
 ### F. 하지 않을 것 (YAGNI)
 
@@ -204,12 +204,12 @@ DivideErrorCode.MathDivideByZero)` 분기는 리터럴 좁힘이 되고, 오타�
   가능하게 하려면 에러 프레임 확장(후보: `err_len` 뒤 postcard 필드 추가)이
   필요하다. 별도 트랙.
 - **런타임 코드 검증** — 핸들러 반환값을 선언 집합과 대조하지 않는다. 계약
-  수준 드리프트는 `rustra diff`/contract 게이트 몫.
+  수준 드리프트는 `unikit diff`/contract 게이트 몫.
 - **폐쇄 유니언에 프레임워크 코드 자동 포함** — E-1 근거로 불가.
 - **`isRetryableCode`/retryable 와이어 의미 변경** — 선언의 `retryable`은
   문서/코드젠 메타데이터로만 소비. 커스텀 코드의 인스턴스 retryable은 여전히
   코드 기반 도출 외길(리서치 1.3).
-- **에러 클래스 상속 체계/커스텀 서브클래스 팩토리** — `RustraCommandError`
+- **에러 클래스 상속 체계/커스텀 서브클래스 팩토리** — `UnikitCommandError`
   단일 클래스 + 가드 원칙. TimeoutError/CancelledError 선례는 "와이어 값 유지 +
   서브클래스"였지만 그 수혜는 범용 코드에 국한한다는 판단(커맨드별 서브클래스
   N개는 번들링·트리셰이킹·직렬화 표면 손해).
@@ -221,7 +221,7 @@ DivideErrorCode.MathDivideByZero)` 분기는 리터럴 좁힘이 되고, 오타�
 ## 남는 일 (후보 후속)
 
 - 에러 payload 와이어 확장 + payload 스키마 타이핑 (F절 1항의 후속)
-- 커맨드별 에러 선언을 `rustra inspect`/devtools 표면에 노출
+- 커맨드별 에러 선언을 `unikit inspect`/devtools 표면에 노출
 - 생성 가드의 배치 헬퍼(여러 커맨드 에러를 한 번에 좁히는 유틸) — 수요 실증 후
 - platforms의 TS 코드젠 소비(리서치 2.1의 미착지 슬라이스)와 동시 진행 가능
 

@@ -43,10 +43,10 @@ bun run start
 개발 CLI에는 아래 명령을 추가했다. 발행된 CLI의 기능이라고 주장하지 않는다.
 
 ```bash
-rustra init my-project --setup
-rustra init my-bun-project --host bun --setup
-rustra setup --run
-rustra setup --skip-install
+unikit init my-project --setup
+unikit init my-bun-project --host bun --setup
+unikit setup --run
+unikit setup --skip-install
 ```
 
 - `setup`은 생성, 설치, 빌드 순서를 지킨다. `--run`은 Node/Bun 프로젝트의 `demo` 스크립트를 실행한다.
@@ -59,11 +59,11 @@ rustra setup --skip-install
 - 새 Cargo scaffold에 독립 workspace 경계를 넣어 기존 Cargo workspace 내부에서도 바로 시작한다.
 - Tauri helper는 사용자 Rust 진입점과 Cargo manifest를 보존한다. 수정된 생성 adapter는 덮어쓰지 않는다.
 
-RN의 실제 Expo·bare 예제에는 `rustra:ios` / `rustra:android`를 연결했다.
+RN의 실제 Expo·bare 예제에는 `unikit:ios` / `unikit:android`를 연결했다.
 준비 스크립트는 필요한 Expo prebuild, iOS Pods 또는 Android debug build를 처리한다.
 기존 사용자 스크립트가 있으면 보존하고 직접 실행할 대체 명령을 안내한다.
 
-Tauri는 `rustra_setup.rs`에 기본 등록과 앱 명령 합성을 제공한다.
+Tauri는 `unikit_setup.rs`에 기본 등록과 앱 명령 합성을 제공한다.
 실제 생성된 등록 코드로 `echo`·계약 해시·기존 앱 명령·상태·플러그인·이벤트 보존을 검증했다.
 
 ## 검증

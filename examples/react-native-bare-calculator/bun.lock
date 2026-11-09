@@ -3,11 +3,11 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "rustra-bare-rn-calculator",
+      "name": "unikit-bare-rn-calculator",
       "dependencies": {
-        "@rustra/generated-react-native": "workspace:*",
-        "@rustra/react-native": "file:../../packages/react-native",
-        "@rustra/types": "file:../../packages/types",
+        "@unikit-bridge/generated-react-native": "workspace:*",
+        "@unikit-bridge/react-native": "file:../../packages/react-native",
+        "@unikit-bridge/types": "file:../../packages/types",
         "react": "19.1.0",
         "react-native": "0.81.5",
       },
@@ -19,18 +19,18 @@
         "typescript": "~5.9.2",
       },
     },
-    "modules/rustra-bridge": {
-      "name": "@rustra/generated-react-native",
+    "modules/unikit-bridge": {
+      "name": "@unikit-bridge/generated-react-native",
       "version": "0.0.0",
       "peerDependencies": {
-        "@rustra/react-native": "^0.9.0",
+        "@unikit-bridge/react-native": "^0.9.0",
         "react-native": ">=0.76",
       },
     },
   },
   "overrides": {
-    "@rustra/react-native": "file:../../packages/react-native",
-    "@rustra/types": "file:../../packages/types",
+    "@unikit-bridge/react-native": "file:../../packages/react-native",
+    "@unikit-bridge/types": "file:../../packages/types",
   },
   "packages": {
     "@babel/code-frame": ["@babel/code-frame@7.29.7", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.29.7", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw=="],
@@ -183,11 +183,11 @@
 
     "@react-native/virtualized-lists": ["@react-native/virtualized-lists@0.81.5", "", { "dependencies": { "invariant": "^2.2.4", "nullthrows": "^1.1.1" }, "peerDependencies": { "@types/react": "^19.1.0", "react": "*", "react-native": "*" }, "optionalPeers": ["@types/react"] }, "sha512-UVXgV/db25OPIvwZySeToXD/9sKKhOdkcWmmf4Jh8iBZuyfML+/5CasaZ1E7Lqg6g3uqVQq75NqIwkYmORJMPw=="],
 
-    "@rustra/generated-react-native": ["@rustra/generated-react-native@workspace:modules/rustra-bridge"],
+    "@unikit-bridge/generated-react-native": ["@unikit-bridge/generated-react-native@workspace:modules/unikit-bridge"],
 
-    "@rustra/react-native": ["@rustra/react-native@file:../../packages/react-native", { "dependencies": { "@rustra/types": "^0.10.0" }, "devDependencies": { "typescript": "^5.9.0" }, "peerDependencies": { "react-native": ">=0.76" }, "optionalPeers": ["react-native"] }],
+    "@unikit-bridge/react-native": ["@unikit-bridge/react-native@file:../../packages/react-native", { "dependencies": { "@unikit-bridge/types": "^0.10.0" }, "devDependencies": { "typescript": "^5.9.0" }, "peerDependencies": { "react-native": ">=0.76" }, "optionalPeers": ["react-native"] }],
 
-    "@rustra/types": ["@rustra/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
+    "@unikit-bridge/types": ["@unikit-bridge/types@file:../../packages/types", { "devDependencies": { "typescript": "^5.9.0" } }],
 
     "@sideway/address": ["@sideway/address@4.1.5", "", { "dependencies": { "@hapi/hoek": "^9.0.0" } }, "sha512-IqO/DUQHUkPeixNQ8n0JA6102hT9CmaljNTPmQ1u8MEhBo/R4Q8eKLN/vGZxuebwOroDB4cbpjheD4+/sKFK4Q=="],
 
@@ -873,9 +873,9 @@
 
     "@react-native/dev-middleware/open": ["open@7.4.2", "", { "dependencies": { "is-docker": "^2.0.0", "is-wsl": "^2.1.1" } }, "sha512-MVHddDVweXZF3awtlAS+6pgKLlm/JgxZ90+/NBurBoQctVOOB/zDdVjcyPzQ+0laDGbsWgrRkflI65sQeOgT9Q=="],
 
-    "@rustra/generated-react-native/@rustra/react-native": ["@rustra/react-native@file:../../packages/react-native", { "dependencies": { "@rustra/types": "^0.10.0" }, "devDependencies": { "typescript": "^5.9.0" }, "peerDependencies": { "react-native": ">=0.76" }, "optionalPeers": ["react-native"] }],
+    "@unikit-bridge/generated-react-native/@unikit-bridge/react-native": ["@unikit-bridge/react-native@file:../../packages/react-native", { "dependencies": { "@unikit-bridge/types": "^0.10.0" }, "devDependencies": { "typescript": "^5.9.0" }, "peerDependencies": { "react-native": ">=0.76" }, "optionalPeers": ["react-native"] }],
 
-    "@rustra/react-native/@rustra/types": ["@rustra/types@file:../../packages/types", {}],
+    "@unikit-bridge/react-native/@unikit-bridge/types": ["@unikit-bridge/types@file:../../packages/types", {}],
 
     "accepts/mime-types": ["mime-types@2.1.35", "", { "dependencies": { "mime-db": "1.52.0" } }, "sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw=="],
 
@@ -947,7 +947,7 @@
 
     "@react-native/dev-middleware/open/is-wsl": ["is-wsl@2.2.0", "", { "dependencies": { "is-docker": "^2.0.0" } }, "sha512-fKzAra0rGJUUBwGBgNkHZuToZcn+TtXHpeCgmkMJMMYx1sQDYaCSyjJBSCa2nH1DGm7s3n1oBnohoVTBaN7Lww=="],
 
-    "@rustra/generated-react-native/@rustra/react-native/@rustra/types": ["@rustra/types@file:../../packages/types", {}],
+    "@unikit-bridge/generated-react-native/@unikit-bridge/react-native/@unikit-bridge/types": ["@unikit-bridge/types@file:../../packages/types", {}],
 
     "accepts/mime-types/mime-db": ["mime-db@1.52.0", "", {}, "sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg=="],
 

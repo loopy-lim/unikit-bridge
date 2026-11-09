@@ -1,14 +1,14 @@
-// ── rustra generated ────────────────────────────────────────
+// ── unikit generated ────────────────────────────────────────
 // File:   frame-registry.ts
 // Source: schema.json (single source of truth for this file)
-// Regen:  rustra codegen --config rustra.json
+// Regen:  unikit codegen --config unikit.json
 // Stage:  schema → ts codec renderer
 // DO NOT EDIT — changes will be overwritten and fail codegen --check.
 // ────────────────────────────────────────────────────────────
 
-import { addCodec, addNumbersCodec, benchAddCodec, benchEchoBytesCodec, benchEchoPairCodec, benchEchoStringCodec, channelDemoCodec, channelDemoBytesCodec, clampCodec, createItemCodec, deviceDemoCodec, divideCodec, echoGroupsComplexCodec, emitDemoCodec, gaugeCodec, greetCodec, greetPersonCodec, isEvenCodec, kindEchoComplexCodec, multiplyCodec, parityEchoCodec, parityFindCodec, parityIndexedCodec, parityResidentCodec, parityStoreCodec, platformNativeInfoCodec, processItemCodec, readRememberedCodec, rememberCodec, resetCodec, resourceCloseCodec, resourceOpenCodec, resourceReadCodec, resourceWriteCodec, rustraRegistryDemoCodec, safeDivideCodec, scoreTotalCodec, secureComputeCodec, sizeOfCodec, spanCodec, sumListCodec, tagSetComplexCodec, toUpperCodec, wideAggCodec } from './frame-codecs.js';
+import { addCodec, addNumbersCodec, benchAddCodec, benchEchoBytesCodec, benchEchoPairCodec, benchEchoStringCodec, channelDemoCodec, channelDemoBytesCodec, clampCodec, createItemCodec, deviceDemoCodec, divideCodec, echoGroupsComplexCodec, emitDemoCodec, gaugeCodec, greetCodec, greetPersonCodec, isEvenCodec, kindEchoComplexCodec, multiplyCodec, parityEchoCodec, parityFindCodec, parityIndexedCodec, parityResidentCodec, parityStoreCodec, platformNativeInfoCodec, processItemCodec, readRememberedCodec, rememberCodec, resetCodec, resourceCloseCodec, resourceOpenCodec, resourceReadCodec, resourceWriteCodec, safeDivideCodec, scoreTotalCodec, secureComputeCodec, sizeOfCodec, spanCodec, sumListCodec, tagSetComplexCodec, toUpperCodec, unikitRegistryDemoCodec, wideAggCodec } from './frame-codecs.js';
 
-export const frameRegistry = new Map<string, import('@rustra/types').FrameCodec<any, any>>([
+export const frameRegistry = new Map<string, import('@unikit-bridge/types').FrameCodec<any, any>>([
   // route: postcard
   ['add', addCodec],
   // route: postcard
@@ -78,8 +78,6 @@ export const frameRegistry = new Map<string, import('@rustra/types').FrameCodec<
   // route: postcard
   ['resourceWrite', resourceWriteCodec],
   // route: postcard
-  ['rustraRegistryDemo', rustraRegistryDemoCodec],
-  // route: postcard
   ['safeDivide', safeDivideCodec],
   // route: postcard
   ['scoreTotal', scoreTotalCodec],
@@ -95,6 +93,8 @@ export const frameRegistry = new Map<string, import('@rustra/types').FrameCodec<
   ['tagSet', tagSetComplexCodec],
   // route: postcard
   ['toUpper', toUpperCodec],
+  // route: postcard
+  ['unikitRegistryDemo', unikitRegistryDemoCodec],
   // route: postcard
   ['wideAgg', wideAggCodec],
 ]);

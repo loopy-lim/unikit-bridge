@@ -6,7 +6,7 @@
 
 ## 재현한 결함
 
-첫 재현에서는 Rust 구현의 문자열 반환만 대문자로 바꾸었다. `rustra dev`는
+첫 재현에서는 Rust 구현의 문자열 반환만 대문자로 바꾸었다. `unikit dev`는
 `regenerated`와 reload를 알렸지만 실제 호출은 계속 소문자를 반환했다. schema
 generator만 빌드하고 invoke 바이너리/cdylib를 재빌드하지 않아 생긴 문제다. 구현만
 바뀌면 계약 hash가 같아서 strict 계약 검증으로도 오래된 구현을 구분할 수 없다.
@@ -51,7 +51,7 @@ CARGO_NET_OFFLINE=true node scripts/onboarding-watch.mjs --host bun \
 3. 정확히 이전 성공 소스로 복구하고 다시 호출한다. 임의의 세 번째 수정으로 지문
    결함을 가리지 않는다.
 4. 계약에 `repeat` 필드를 추가하고 새 계약·native hash 및 실제 반환 `repeat:3`을
-   확인한다. `rustra.json`과 package scripts를 포함한 manifest hash는 보존한다.
+   확인한다. `unikit.json`과 package scripts를 포함한 manifest hash는 보존한다.
 
 receipt는 edit→watch run 시작, run 시작→호출, edit→호출, 실패 감지, repair→호출을
 단조 시계로 기록한다. 첫 구간에는 100ms polling과 300ms debounce가 포함된다.

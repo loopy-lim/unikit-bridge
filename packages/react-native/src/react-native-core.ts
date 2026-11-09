@@ -7,8 +7,8 @@ import type {
   FrameEngine,
   FrameEngineOptions,
   FrameSchemaNative,
-  RustraNative,
-} from '@rustra/types';
+  UnikitNative,
+} from '@unikit-bridge/types';
 import {
   CancelledError,
   configureLazy,
@@ -19,16 +19,16 @@ import {
   ensureConfigured,
   exactArrayBuffer,
   invokeWithTimeout,
-  parseRustraErrorString,
+  parseUnikitErrorString,
   raceAbort,
-  RustraCommandError,
-  RustraErrorCode,
-} from '@rustra/types';
+  UnikitCommandError,
+  UnikitErrorCode,
+} from '@unikit-bridge/types';
 
 export type ReactNativeEngine = EngineClientType & {
   invokeBatch<T>(entries: BatchEntry[]): Promise<T[]>;
 };
-export type RustraJSINative = FrameSchemaNative & {
+export type UnikitJSINative = FrameSchemaNative & {
   invoke(payload: ArrayBuffer): ArrayBuffer;
   onEvent?(name: string, callback: (payloadJson: string) => void): void;
   offEvent?(name: string): void;
@@ -106,7 +106,7 @@ export function createReactNativeEngine(native: {
           result?: T;
           error?: string;
         };
-        if (!response.ok) return Promise.reject(parseRustraErrorString(response.error));
+        if (!response.ok) return Promise.reject(parseUnikitErrorString(response.error));
         const result = Promise.resolve(response.result as T);
         return options?.signal ? raceAbort(result, options.signal, command) : result;
       } catch (error) {
@@ -130,15 +130,15 @@ export function createReactNativeEngine(native: {
 }
 
 export type FastEngineOptions = {
-  frameCodecs: Map<string, import('@rustra/types').FrameCodec<unknown, unknown>>;
+  frameCodecs: Map<string, import('@unikit-bridge/types').FrameCodec<unknown, unknown>>;
 } & FrameEngineOptions;
-export type RustraBootstrapOptions = FastEngineOptions & {
+export type UnikitBootstrapOptions = FastEngineOptions & {
   install(): Promise<void>;
-  getNative(): RustraJSINative;
+  getNative(): UnikitJSINative;
 };
-export type RustraBootstrap = {
+export type UnikitBootstrap = {
   /**
-   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@rustra/types).
+   * bootstrap 수명 상태(A05) — 공용 `BootstrapState`(@unikit-bridge/types).
    * dispose 는 멱등이고 dispose 후 ready 는 loud-fail 한다.
    */
   readonly state: BootstrapState;
@@ -147,18 +147,18 @@ export type RustraBootstrap = {
   dispose(): void;
 };
 
-export function createRustraBootstrap(options: RustraBootstrapOptions): RustraBootstrap {
+export function createUnikitBootstrap(options: UnikitBootstrapOptions): UnikitBootstrap {
   let state: BootstrapState = 'initializing';
   const disposed = () =>
     disposedBootstrapError(
-      'Rustra (React Native)',
+      'Unikit (React Native)',
       'A JS reload cannot repair native drift — remount the React Native screen/app to create a fresh bootstrap.',
     );
   const requireActive = () => {
     if (state === 'disposed') throw disposed();
     if (!registration.isCurrent()) {
-      throw new RustraCommandError(
-        RustraErrorCode.RegistryFrozen,
+      throw new UnikitCommandError(
+        UnikitErrorCode.RegistryFrozen,
         'React Native bootstrap registration was replaced by another engine',
       );
     }
@@ -172,12 +172,12 @@ export function createRustraBootstrap(options: RustraBootstrapOptions): RustraBo
         return guardBootstrapEngine(createFastEngine(options.getNative(), options), requireActive);
       } catch (error) {
         requireActive();
-        if (error instanceof RustraCommandError) throw error;
+        if (error instanceof UnikitCommandError) throw error;
         // 설정 경계 실패도 오류 분류 체계를 통과하게 한다 — 소비자가
         // error.code 로 invoke 오류와 같은 방식으로 분기할 수 있음.
-        throw new RustraCommandError(
-          RustraErrorCode.BootstrapFailed,
-          `[rustra:bootstrap] Native setup failed: ${error instanceof Error ? error.message : String(error)}. Rebuild the native app after checking autolinking, generated codecs, and Rust FFI symbols.`,
+        throw new UnikitCommandError(
+          UnikitErrorCode.BootstrapFailed,
+          `[unikit:bootstrap] Native setup failed: ${error instanceof Error ? error.message : String(error)}. Rebuild the native app after checking autolinking, generated codecs, and Rust FFI symbols.`,
           false,
           error instanceof Error ? error : undefined,
         );
@@ -245,23 +245,23 @@ function guardBootstrapEngine(engine: FrameEngine, requireActive: () => void): F
   return guarded;
 }
 
-export function getRustraNative(): RustraJSINative & RustraNative {
-  const native = (globalThis as Record<string, unknown>).__rustraNative;
+export function getUnikitNative(): UnikitJSINative & UnikitNative {
+  const native = (globalThis as Record<string, unknown>).__unikitNative;
   if (!native) {
     // 미설치도 분류된 오류(native.not_installed)로 — invoke 계열과 동일한
-    // error.code 분기를 제공한다. RustraCommandError 는 Error 확현이므로
+    // error.code 분기를 제공한다. UnikitCommandError 는 Error 확현이므로
     // 기존 catch (Error) 소비 코드는 그대로 동작한다.
-    throw new RustraCommandError(
-      RustraErrorCode.NativeNotInstalled,
-      'JSI native module not installed. Call installRustraJSI() from your native module first. ' +
+    throw new UnikitCommandError(
+      UnikitErrorCode.NativeNotInstalled,
+      'JSI native module not installed. Call installUnikitJSI() from your native module first. ' +
         'Expo Go cannot load JSI; rebuild the native app after checking autolinking, the Rust static archive, ' +
         'and required extern "C" FFI symbols. A JavaScript reload cannot repair native drift.',
     );
   }
-  return native as RustraJSINative & RustraNative;
+  return native as UnikitJSINative & UnikitNative;
 }
 
-export function createFastEngine(native: RustraJSINative, options: FastEngineOptions): FrameEngine {
+export function createFastEngine(native: UnikitJSINative, options: FastEngineOptions): FrameEngine {
   assertNativeTransport(native, 'createFastEngine', 'invokeFrame');
   const engineOptions = {
     contractHash: options.contractHash,
@@ -288,11 +288,11 @@ function assertNativeTransport(
     typeof Reflect.get(native, method) === 'function'
   )
     return;
-  throw new RustraCommandError(
+  throw new UnikitCommandError(
     'native.incompatible',
-    `[rustra/react-native] ${engine} requires native.${method}(); the installed native bridge ` +
+    `[unikit/react-native] ${engine} requires native.${method}(); the installed native bridge ` +
       'is incompatible with the selected engine. Regenerate the React Native bridge with ' +
-      '`rustra codegen --config <path>`, rebuild the Rust archive and the native app, then ' +
-      'await installRustraJSI() before creating the engine. A JavaScript reload cannot update native bindings.',
+      '`unikit codegen --config <path>`, rebuild the Rust archive and the native app, then ' +
+      'await installUnikitJSI() before creating the engine. A JavaScript reload cannot update native bindings.',
   );
 }

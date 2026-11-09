@@ -37,28 +37,28 @@ ok 6 - cargo metadata cache invalidates Cargo home configuration edits
   duration_ms: 143.962958
   type: 'test'
   ...
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-codegen-drift-B9bE0I/proj/Cargo.toml --package x --bin generate
-# [rustra] ⠋ Rust schema generation (x/generate)...
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-codegen-drift-B9bE0I/proj/Cargo.toml --package x --bin generate
+# [unikit] ⠋ Rust schema generation (x/generate)...
 # Subtest: codegen --explain --format json carries the schemaVersion:1 surface map
 ok 7 - codegen --explain --format json carries the schemaVersion:1 surface map
   ---
   duration_ms: 5.521375
   type: 'test'
   ...
-# [rustra] ✓ Rust schema generation (x/generate) done in 0.1s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-codegen-drift-B9bE0I/proj/rustra.json
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-codegen-drift-B9bE0I/proj/Cargo.toml --package x --bin generate
-# [rustra] ⠋ Rust schema generation (x/generate)...
-# [rustra] ✓ Rust schema generation (x/generate) done in 0.0s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-codegen-drift-B9bE0I/proj/rustra.json
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-codegen-drift-B9bE0I/proj/Cargo.toml --package x --bin generate
-# [rustra] ⠋ Rust schema generation (x/generate)...
-# [rustra] ✓ Rust schema generation (x/generate) done in 0.0s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-codegen-drift-B9bE0I/proj/rustra.json
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-codegen-drift-B9bE0I/proj/Cargo.toml --package x --bin generate
-# [rustra] ⠋ Rust schema generation (x/generate)...
-# [rustra] ✓ Rust schema generation (x/generate) done in 0.0s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-codegen-drift-B9bE0I/proj/rustra.json
+# [unikit] ✓ Rust schema generation (x/generate) done in 0.1s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-codegen-drift-B9bE0I/proj/unikit.json
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-codegen-drift-B9bE0I/proj/Cargo.toml --package x --bin generate
+# [unikit] ⠋ Rust schema generation (x/generate)...
+# [unikit] ✓ Rust schema generation (x/generate) done in 0.0s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-codegen-drift-B9bE0I/proj/unikit.json
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-codegen-drift-B9bE0I/proj/Cargo.toml --package x --bin generate
+# [unikit] ⠋ Rust schema generation (x/generate)...
+# [unikit] ✓ Rust schema generation (x/generate) done in 0.0s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-codegen-drift-B9bE0I/proj/unikit.json
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-codegen-drift-B9bE0I/proj/Cargo.toml --package x --bin generate
+# [unikit] ⠋ Rust schema generation (x/generate)...
+# [unikit] ✓ Rust schema generation (x/generate) done in 0.0s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-codegen-drift-B9bE0I/proj/unikit.json
 # Subtest: codegen --format json reports drift:true when regeneration rewrites existing files
 ok 8 - codegen --format json reports drift:true when regeneration rewrites existing files
   ---
@@ -126,8 +126,8 @@ ok 18 - cli-uniffi helpers: dylib naming, output completeness, and drift compari
   duration_ms: 3.784084
   type: 'test'
   ...
-# Subtest: config dev reloads paths from atomically replaced rustra.json and watches new sources
-ok 19 - config dev reloads paths from atomically replaced rustra.json and watches new sources
+# Subtest: config dev reloads paths from atomically replaced unikit.json and watches new sources
+ok 19 - config dev reloads paths from atomically replaced unikit.json and watches new sources
   ---
   duration_ms: 1051.317459
   type: 'test'
@@ -240,18 +240,18 @@ ok 37 - retained foreign callbacks have identity-paired release and omit native 
   duration_ms: 0.380875
   type: 'test'
   ...
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-1g2HW1/app:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-1g2HW1/app:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-1g2HW1/app
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-1g2HW1/app
 #   bun install
 #   bun run start
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-1g2HW1/app:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-1g2HW1/app:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-1g2HW1/app
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-1g2HW1/app
 #   bun install
 #   bun run start
 # Subtest: runInit refuses to overwrite an existing scaffold and --force replaces it
@@ -278,11 +278,11 @@ ok 41 - runInit --help exits without creating anything
   duration_ms: 0.239791
   type: 'test'
   ...
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-6jIPVa/app:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-6jIPVa/app:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-6jIPVa/app
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-6jIPVa/app
 #   bun install
 #   bun run start
 # Subtest: existing foreign files unrelated to the scaffold do not block init
@@ -291,11 +291,11 @@ ok 42 - existing foreign files unrelated to the scaffold do not block init
   duration_ms: 118.436833
   type: 'test'
   ...
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-YVwECs/app:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-YVwECs/app:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-YVwECs/app
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-YVwECs/app
 #   bun install
 #   bun run start
 # Subtest: generated config carries a $schema reference to the shipped schema file
@@ -304,11 +304,11 @@ ok 43 - generated config carries a $schema reference to the shipped schema file
   duration_ms: 9.191167
   type: 'test'
   ...
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-5SX9ml/app:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-5SX9ml/app:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-5SX9ml/app
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-5SX9ml/app
 #   bun install
 #   bun run start
 # Subtest: node-only detection emits only the node host section and passes full config validation
@@ -329,11 +329,11 @@ ok 46 - Node and Bun scaffold templates offer setup/start and clean up the selec
   duration_ms: 0.385584
   type: 'test'
   ...
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-O2pH6T/app:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-O2pH6T/app:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: bun (--host)
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-O2pH6T/app
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-O2pH6T/app
 #   bun install
 #   bun run start
 # Subtest: --host bun creates a validated Bun-only config and matching app entry
@@ -342,25 +342,25 @@ ok 47 - --host bun creates a validated Bun-only config and matching app entry
   duration_ms: 23.861625
   type: 'test'
   ...
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-iIxmHk/apps/node:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-iIxmHk/apps/node:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node (--host)
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-iIxmHk/apps/node
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-iIxmHk/apps/node
 #   bun install
 #   bun run start
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-iIxmHk/apps/bun:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-iIxmHk/apps/bun:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: bun (--host)
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-iIxmHk/apps/bun
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-iIxmHk/apps/bun
 #   bun install
 #   bun run start
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-iIxmHk/apps/react-native:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-iIxmHk/apps/react-native:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node, react-native (--host)
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-iIxmHk/apps/react-native
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-iIxmHk/apps/react-native
 #   bun install
 #   bun run setup
 # Subtest: init scaffolds remain standalone when nested inside another Cargo workspace
@@ -369,11 +369,11 @@ ok 48 - init scaffolds remain standalone when nested inside another Cargo worksp
   duration_ms: 380.757917
   type: 'test'
   ...
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-fCSakc/app:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-fCSakc/app:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node, react-native (--host)
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-fCSakc/app
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-fCSakc/app
 #   bun install
 #   bun run setup
 # Subtest: --host react-native includes the reactNative section and passes full config validation
@@ -406,11 +406,11 @@ ok 53 - Next steps reduce the first call to entering the project, installing and
   duration_ms: 5.160583
   type: 'test'
   ...
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-k3Tz0p/app:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-k3Tz0p/app:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node, react-native (package.json)
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-k3Tz0p/app
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-k3Tz0p/app
 #   bun install
 #   bun run setup
 # Subtest: react-native in the pre-existing package.json dependencies switches detection to RN
@@ -419,18 +419,18 @@ ok 54 - react-native in the pre-existing package.json dependencies switches dete
   duration_ms: 11.00125
   type: 'test'
   ...
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-nhCS4i/app:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-nhCS4i/app:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node, react-native (package.json)
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-nhCS4i/app
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-nhCS4i/app
 #   bun install
 #   bun run setup
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-nhCS4i/plain:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-nhCS4i/plain:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-nhCS4i/plain
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-nhCS4i/plain
 #   bun install
 #   bun run start
 # Subtest: unscoped react-native dependency is detected and node-only deps are not
@@ -439,8 +439,8 @@ ok 55 - unscoped react-native dependency is detected and node-only deps are not
   duration_ms: 65.85925
   type: 'test'
   ...
-# Subtest: pre-existing rustra.json still blocks init with the overwrite guidance
-ok 56 - pre-existing rustra.json still blocks init with the overwrite guidance
+# Subtest: pre-existing unikit.json still blocks init with the overwrite guidance
+ok 56 - pre-existing unikit.json still blocks init with the overwrite guidance
   ---
   duration_ms: 1.326292
   type: 'test'
@@ -451,11 +451,11 @@ ok 57 - a missing schema file gets an actionable hint instead of a raw ENOENT
   duration_ms: 9.445583
   type: 'test'
   ...
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-pvjbC7/app:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-pvjbC7/app:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node, react-native (--host)
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-pvjbC7/app
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-pvjbC7/app
 #   bun install
 #   bun run setup
 # Subtest: RN scaffold passes the real codegen path — staticlib target exists and runGenerate succeeds
@@ -464,11 +464,11 @@ ok 58 - RN scaffold passes the real codegen path — staticlib target exists and
   duration_ms: 257.660875
   type: 'test'
   ...
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-MmrTaN/app:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-MmrTaN/app:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-MmrTaN/app
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-MmrTaN/app
 #   bun install
 #   bun run start
 # Subtest: node-only scaffold passes the real codegen path — lib target does not break node entries
@@ -477,11 +477,11 @@ ok 59 - node-only scaffold passes the real codegen path — lib target does not 
   duration_ms: 170.756542
   type: 'test'
   ...
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-SNM2fa/app:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-SNM2fa/app:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-SNM2fa/app
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-SNM2fa/app
 #   bun install
 #   bun run start
 # Subtest: every generated file carries the self-describing header exactly once
@@ -490,11 +490,11 @@ ok 60 - every generated file carries the self-describing header exactly once
   duration_ms: 101.593166
   type: 'test'
   ...
-# Created rustra project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-eCX4wJ/app:
-#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, rustra.json, .gitignore, tsconfig.json
+# Created unikit project in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-eCX4wJ/app:
+#   Cargo.toml, src/lib.rs, src/main.rs, src/bin/generate.rs, src/index.ts, package.json, unikit.json, .gitignore, tsconfig.json
 #   Config host sections: node, react-native (--host)
 # Next steps:
-#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-init-eCX4wJ/app
+#   cd /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-init-eCX4wJ/app
 #   bun install
 #   bun run setup
 # Subtest: RN scaffold native entry registers its actual FFI package
@@ -587,20 +587,20 @@ ok 75 - setup is a real CLI command and reports the missing project config
   duration_ms: 19.175875
   type: 'test'
   ...
-# [rustra] Checking setup tools...
-# [rustra] Generating the Rust contract and TypeScript calls...
-# [rustra] Setup complete — demo succeeded.
-# [rustra] Checking setup tools...
-# [rustra] Generating the Rust contract and TypeScript calls...
-# [rustra] Setup complete — demo succeeded.
+# [unikit] Checking setup tools...
+# [unikit] Generating the Rust contract and TypeScript calls...
+# [unikit] Setup complete — demo succeeded.
+# [unikit] Checking setup tools...
+# [unikit] Generating the Rust contract and TypeScript calls...
+# [unikit] Setup complete — demo succeeded.
 # Subtest: setup generates local workspaces before installing, builds before calling, and can be repeated
 ok 76 - setup generates local workspaces before installing, builds before calling, and can be repeated
   ---
   duration_ms: 318.283
   type: 'test'
   ...
-# [rustra] Checking setup tools...
-# [rustra] Generating the Rust contract and TypeScript calls...
+# [unikit] Checking setup tools...
+# [unikit] Generating the Rust contract and TypeScript calls...
 # Subtest: failed build stops the first call and gives the same safe retry command
 ok 77 - failed build stops the first call and gives the same safe retry command
   ---
@@ -619,9 +619,9 @@ ok 79 - setup refuses arbitrary package-manager executables before mutating file
   duration_ms: 3.751208
   type: 'test'
   ...
-# [rustra] Checking setup tools...
-# [rustra] Generating the Rust contract and TypeScript calls...
-# [rustra] Rust contract, TypeScript calls and host Rust build are ready.
+# [unikit] Checking setup tools...
+# [unikit] Generating the Rust contract and TypeScript calls...
+# [unikit] Rust contract, TypeScript calls and host Rust build are ready.
 # Native app steps:
 #   Launch the existing app
 # Subtest: a fresh RN adapter is installed before codegen, then its generated module is installed
@@ -648,18 +648,18 @@ ok 83 - RN setup selects the same static library from a virtual workspace as cod
   duration_ms: 206.453375
   type: 'test'
   ...
-# [rustra] Checking setup tools...
-# [rustra] Generating the Rust contract and TypeScript calls...
-# [rustra] Rust contract, TypeScript calls and host Rust build are ready.
+# [unikit] Checking setup tools...
+# [unikit] Generating the Rust contract and TypeScript calls...
+# [unikit] Rust contract, TypeScript calls and host Rust build are ready.
 # Subtest: setup keeps the selected Cargo invocation directory for a separate RN core
 ok 84 - setup keeps the selected Cargo invocation directory for a separate RN core
   ---
   duration_ms: 2.294
   type: 'test'
   ...
-# [rustra] Checking setup tools...
-# [rustra] Generating the Rust contract and TypeScript calls...
-# [rustra] Rust contract, TypeScript calls and host Rust build are ready.
+# [unikit] Checking setup tools...
+# [unikit] Generating the Rust contract and TypeScript calls...
+# [unikit] Rust contract, TypeScript calls and host Rust build are ready.
 # Subtest: setup respects an existing package-manager lockfile when packageManager is omitted
 ok 85 - setup respects an existing package-manager lockfile when packageManager is omitted
   ---
@@ -804,14 +804,14 @@ ok 108 - a config without a uniffi section loads exactly as before (feature swit
   duration_ms: 2.13475
   type: 'test'
   ...
-# Subtest: a missing config file points at rustra init instead of a raw ENOENT
-ok 109 - a missing config file points at rustra init instead of a raw ENOENT
+# Subtest: a missing config file points at unikit init instead of a raw ENOENT
+ok 109 - a missing config file points at unikit init instead of a raw ENOENT
   ---
   duration_ms: 3.374833
   type: 'test'
   ...
-# Subtest: rustra.schema.json stays in sync with the config field lists
-ok 110 - rustra.schema.json stays in sync with the config field lists
+# Subtest: unikit.schema.json stays in sync with the config field lists
+ok 110 - unikit.schema.json stays in sync with the config field lists
   ---
   duration_ms: 1.632792
   type: 'test'
@@ -906,23 +906,23 @@ ok 125 - CLI patch versions do not require an unpublished Node adapter patch
   duration_ms: 0.369292
   type: 'test'
   ...
-# [rustra] ⠋ dylib core build (x)...
+# [unikit] ⠋ dylib core build (x)...
 # Subtest: Cargo progress stays with the output owner captured at command creation
 ok 126 - Cargo progress stays with the output owner captured at command creation
   ---
   duration_ms: 33.776
   type: 'test'
   ...
-# [rustra] ✓ dylib core build (x) done in 0.0s
-# [rustra] ⠋ dylib core build (x)...
+# [unikit] ✓ dylib core build (x) done in 0.0s
+# [unikit] ⠋ dylib core build (x)...
 # Subtest: buildDylibCore returns the cdylib artifact cargo reported and pins the JSON build flags
 ok 127 - buildDylibCore returns the cdylib artifact cargo reported and pins the JSON build flags
   ---
   duration_ms: 63.967292
   type: 'test'
   ...
-# [rustra] ✓ dylib core build (x) done in 0.0s
-# [rustra] ⠋ dylib core build (x)...
+# [unikit] ✓ dylib core build (x) done in 0.0s
+# [unikit] ⠋ dylib core build (x)...
 # Subtest: buildDylibCore passes -p when rustPackage is resolved
 ok 128 - buildDylibCore passes -p when rustPackage is resolved
   ---
@@ -935,7 +935,7 @@ ok 129 - pickCdylibArtifact prefers the freshest message over stale artifacts
   duration_ms: 0.26125
   type: 'test'
   ...
-# [rustra] ✓ dylib core build (x) done in 0.0s
+# [unikit] ✓ dylib core build (x) done in 0.0s
 # Subtest: buildDylibCore fails loudly when no cdylib artifact message appears
 ok 130 - buildDylibCore fails loudly when no cdylib artifact message appears
   ---
@@ -1147,183 +1147,183 @@ ok 164 - dev preserves unrecorded files when the ownership manifest is directory
   duration_ms: 2.180292
   type: 'test'
   ...
-# [dev] initial → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/rustra.json
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/generator/Cargo.toml --package generator --bin generate
-# [rustra] ⠋ Rust schema generation (generator/generate)...
-# [rustra] ✓ Rust schema generation (generator/generate) done in 0.1s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/rustra.json
-# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/generated:
+# [dev] initial → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/unikit.json
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/generator/Cargo.toml --package generator --bin generate
+# [unikit] ⠋ Rust schema generation (generator/generate)...
+# [unikit] ✓ Rust schema generation (generator/generate) done in 0.1s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/unikit.json
+# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/generated:
 #   types.ts
 #   commands.ts
 #   contract.ts
 #   frame-codecs.ts
 #   frame-registry.ts
 #   node.ts
-# [rustra] ⠋ Dev runtime (generator)...
-# [rustra] ✓ Dev runtime (generator) done in 0.0s
-# [rustra] ⠋ Dev runtime (runtime)...
-# [rustra] ✓ Dev runtime (runtime) done in 0.0s
+# [unikit] ⠋ Dev runtime (generator)...
+# [unikit] ✓ Dev runtime (generator) done in 0.0s
+# [unikit] ⠋ Dev runtime (runtime)...
+# [unikit] ✓ Dev runtime (runtime) done in 0.0s
 # [dev] 1:40:03 PM regenerated
-# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/generator and /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/rustra.json for changes...
-# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/rustra.json
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/generator/Cargo.toml --package generator --bin generate
-# [rustra] ⠋ Rust schema generation (generator/generate)...
-# [rustra] ✓ Rust schema generation (generator/generate) done in 0.0s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/rustra.json
-# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/generated:
+# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/generator and /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/unikit.json for changes...
+# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/unikit.json
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/generator/Cargo.toml --package generator --bin generate
+# [unikit] ⠋ Rust schema generation (generator/generate)...
+# [unikit] ✓ Rust schema generation (generator/generate) done in 0.0s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/unikit.json
+# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/generated:
 #   types.ts (unchanged)
 #   commands.ts (unchanged)
 #   contract.ts (unchanged)
 #   frame-codecs.ts (unchanged)
 #   frame-registry.ts (unchanged)
 #   node.ts (unchanged)
-# [rustra] ⠋ Dev runtime (generator)...
-# [rustra] ✓ Dev runtime (generator) done in 0.1s
-# [rustra] ⠋ Dev runtime (runtime)...
-# [rustra] ✓ Dev runtime (runtime) done in 0.1s
+# [unikit] ⠋ Dev runtime (generator)...
+# [unikit] ✓ Dev runtime (generator) done in 0.1s
+# [unikit] ⠋ Dev runtime (runtime)...
+# [unikit] ✓ Dev runtime (runtime) done in 0.1s
 # [dev] 1:40:03 PM regenerated
-# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/rustra.json
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/generator/Cargo.toml --package generator --bin generate
-# [rustra] ⠋ Rust schema generation (generator/generate)...
-# [rustra] ✓ Rust schema generation (generator/generate) done in 0.1s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/rustra.json
-# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/generated:
+# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/unikit.json
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/generator/Cargo.toml --package generator --bin generate
+# [unikit] ⠋ Rust schema generation (generator/generate)...
+# [unikit] ✓ Rust schema generation (generator/generate) done in 0.1s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/unikit.json
+# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/generated:
 #   types.ts (unchanged)
 #   commands.ts (unchanged)
 #   contract.ts (unchanged)
 #   frame-codecs.ts (unchanged)
 #   frame-registry.ts (unchanged)
 #   node.ts (unchanged)
-# [rustra] ⠋ Dev runtime (generator)...
-# [rustra] ✓ Dev runtime (generator) done in 0.0s
-# [rustra] ⠋ Dev runtime (runtime)...
+# [unikit] ⠋ Dev runtime (generator)...
+# [unikit] ✓ Dev runtime (generator) done in 0.0s
+# [unikit] ⠋ Dev runtime (runtime)...
 # runtime compilation failed
-# [rustra] ✗ Dev runtime (runtime) failed in 0.0s
-# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/rustra.json
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/generator/Cargo.toml --package generator --bin generate
-# [rustra] ⠋ Rust schema generation (generator/generate)...
-# [rustra] ✓ Rust schema generation (generator/generate) done in 0.1s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/rustra.json
-# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/generated:
+# [unikit] ✗ Dev runtime (runtime) failed in 0.0s
+# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/unikit.json
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/generator/Cargo.toml --package generator --bin generate
+# [unikit] ⠋ Rust schema generation (generator/generate)...
+# [unikit] ✓ Rust schema generation (generator/generate) done in 0.1s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/unikit.json
+# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/generated:
 #   types.ts (unchanged)
 #   commands.ts (unchanged)
 #   contract.ts (unchanged)
 #   frame-codecs.ts (unchanged)
 #   frame-registry.ts (unchanged)
 #   node.ts (unchanged)
-# [rustra] ⠋ Dev runtime (generator)...
-# [rustra] ✓ Dev runtime (generator) done in 0.1s
-# [rustra] ⠋ Dev runtime (runtime)...
-# [rustra] ✓ Dev runtime (runtime) done in 0.1s
+# [unikit] ⠋ Dev runtime (generator)...
+# [unikit] ✓ Dev runtime (generator) done in 0.1s
+# [unikit] ⠋ Dev runtime (runtime)...
+# [unikit] ✓ Dev runtime (runtime) done in 0.1s
 # [dev] 1:40:05 PM regenerated
-# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/rustra.json
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/generator/Cargo.toml --package generator --bin generate
-# [rustra] ⠋ Rust schema generation (generator/generate)...
-# [rustra] ✓ Rust schema generation (generator/generate) done in 0.1s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/rustra.json
-# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-Qt9rCY/generated:
+# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/unikit.json
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/generator/Cargo.toml --package generator --bin generate
+# [unikit] ⠋ Rust schema generation (generator/generate)...
+# [unikit] ✓ Rust schema generation (generator/generate) done in 0.1s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/unikit.json
+# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-Qt9rCY/generated:
 #   types.ts (unchanged)
 #   commands.ts (unchanged)
 #   contract.ts (unchanged)
 #   frame-codecs.ts (unchanged)
 #   frame-registry.ts (unchanged)
 #   node.ts (unchanged)
-# [rustra] ⠋ Dev runtime (generator)...
-# [rustra] ✓ Dev runtime (generator) done in 0.1s
-# [rustra] ⠋ Dev runtime (runtime)...
-# [rustra] ✓ Dev runtime (runtime) done in 0.1s
+# [unikit] ⠋ Dev runtime (generator)...
+# [unikit] ✓ Dev runtime (generator) done in 0.1s
+# [unikit] ⠋ Dev runtime (runtime)...
+# [unikit] ✓ Dev runtime (runtime) done in 0.1s
 # [dev] 1:40:05 PM regenerated
-# [dev] initial → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/rustra.json
+# [dev] initial → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/unikit.json
 # Subtest: dev rebuilds a separate node producer and suppresses reload until runtime recovery
 ok 165 - dev rebuilds a separate node producer and suppresses reload until runtime recovery
   ---
   duration_ms: 3319.656041
   type: 'test'
   ...
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/generator/Cargo.toml --package generator --bin generate
-# [rustra] ⠋ Rust schema generation (generator/generate)...
-# [rustra] ✓ Rust schema generation (generator/generate) done in 0.1s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/rustra.json
-# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/generated:
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/generator/Cargo.toml --package generator --bin generate
+# [unikit] ⠋ Rust schema generation (generator/generate)...
+# [unikit] ✓ Rust schema generation (generator/generate) done in 0.1s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/unikit.json
+# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/generated:
 #   types.ts
 #   commands.ts
 #   contract.ts
 #   frame-codecs.ts
 #   frame-registry.ts
 #   bun.ts
-# [rustra] ⠋ Dev runtime (generator)...
-# [rustra] ✓ Dev runtime (generator) done in 0.0s
-# [rustra] ⠋ Dev runtime (runtime)...
-# [rustra] ✓ Dev runtime (runtime) done in 0.1s
+# [unikit] ⠋ Dev runtime (generator)...
+# [unikit] ✓ Dev runtime (generator) done in 0.0s
+# [unikit] ⠋ Dev runtime (runtime)...
+# [unikit] ✓ Dev runtime (runtime) done in 0.1s
 # [dev] 1:40:06 PM regenerated
-# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/generator and /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/rustra.json for changes...
-# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/rustra.json
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/generator/Cargo.toml --package generator --bin generate
-# [rustra] ⠋ Rust schema generation (generator/generate)...
-# [rustra] ✓ Rust schema generation (generator/generate) done in 0.0s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/rustra.json
-# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/generated:
+# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/generator and /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/unikit.json for changes...
+# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/unikit.json
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/generator/Cargo.toml --package generator --bin generate
+# [unikit] ⠋ Rust schema generation (generator/generate)...
+# [unikit] ✓ Rust schema generation (generator/generate) done in 0.0s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/unikit.json
+# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/generated:
 #   types.ts (unchanged)
 #   commands.ts (unchanged)
 #   contract.ts (unchanged)
 #   frame-codecs.ts (unchanged)
 #   frame-registry.ts (unchanged)
 #   bun.ts (unchanged)
-# [rustra] ⠋ Dev runtime (generator)...
-# [rustra] ✓ Dev runtime (generator) done in 0.0s
-# [rustra] ⠋ Dev runtime (runtime)...
-# [rustra] ✓ Dev runtime (runtime) done in 0.1s
+# [unikit] ⠋ Dev runtime (generator)...
+# [unikit] ✓ Dev runtime (generator) done in 0.0s
+# [unikit] ⠋ Dev runtime (runtime)...
+# [unikit] ✓ Dev runtime (runtime) done in 0.1s
 # [dev] 1:40:06 PM regenerated
-# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/rustra.json
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/generator/Cargo.toml --package generator --bin generate
-# [rustra] ⠋ Rust schema generation (generator/generate)...
-# [rustra] ✓ Rust schema generation (generator/generate) done in 0.0s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/rustra.json
-# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/generated:
+# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/unikit.json
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/generator/Cargo.toml --package generator --bin generate
+# [unikit] ⠋ Rust schema generation (generator/generate)...
+# [unikit] ✓ Rust schema generation (generator/generate) done in 0.0s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/unikit.json
+# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/generated:
 #   types.ts (unchanged)
 #   commands.ts (unchanged)
 #   contract.ts (unchanged)
 #   frame-codecs.ts (unchanged)
 #   frame-registry.ts (unchanged)
 #   bun.ts (unchanged)
-# [rustra] ⠋ Dev runtime (generator)...
-# [rustra] ✓ Dev runtime (generator) done in 0.0s
-# [rustra] ⠋ Dev runtime (runtime)...
+# [unikit] ⠋ Dev runtime (generator)...
+# [unikit] ✓ Dev runtime (generator) done in 0.0s
+# [unikit] ⠋ Dev runtime (runtime)...
 # runtime compilation failed
-# [rustra] ✗ Dev runtime (runtime) failed in 0.0s
-# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/rustra.json
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/generator/Cargo.toml --package generator --bin generate
-# [rustra] ⠋ Rust schema generation (generator/generate)...
-# [rustra] ✓ Rust schema generation (generator/generate) done in 0.0s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/rustra.json
-# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/generated:
+# [unikit] ✗ Dev runtime (runtime) failed in 0.0s
+# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/unikit.json
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/generator/Cargo.toml --package generator --bin generate
+# [unikit] ⠋ Rust schema generation (generator/generate)...
+# [unikit] ✓ Rust schema generation (generator/generate) done in 0.0s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/unikit.json
+# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/generated:
 #   types.ts (unchanged)
 #   commands.ts (unchanged)
 #   contract.ts (unchanged)
 #   frame-codecs.ts (unchanged)
 #   frame-registry.ts (unchanged)
 #   bun.ts (unchanged)
-# [rustra] ⠋ Dev runtime (generator)...
-# [rustra] ✓ Dev runtime (generator) done in 0.0s
-# [rustra] ⠋ Dev runtime (runtime)...
-# [rustra] ✓ Dev runtime (runtime) done in 0.0s
+# [unikit] ⠋ Dev runtime (generator)...
+# [unikit] ✓ Dev runtime (generator) done in 0.0s
+# [unikit] ⠋ Dev runtime (runtime)...
+# [unikit] ✓ Dev runtime (runtime) done in 0.0s
 # [dev] 1:40:08 PM regenerated
-# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/rustra.json
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/generator/Cargo.toml --package generator --bin generate
-# [rustra] ⠋ Rust schema generation (generator/generate)...
-# [rustra] ✓ Rust schema generation (generator/generate) done in 0.1s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/rustra.json
-# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-runtime-GOpxtc/generated:
+# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/unikit.json
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/generator/Cargo.toml --package generator --bin generate
+# [unikit] ⠋ Rust schema generation (generator/generate)...
+# [unikit] ✓ Rust schema generation (generator/generate) done in 0.1s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/unikit.json
+# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-runtime-GOpxtc/generated:
 #   types.ts (unchanged)
 #   commands.ts (unchanged)
 #   contract.ts (unchanged)
 #   frame-codecs.ts (unchanged)
 #   frame-registry.ts (unchanged)
 #   bun.ts (unchanged)
-# [rustra] ⠋ Dev runtime (generator)...
-# [rustra] ✓ Dev runtime (generator) done in 0.0s
-# [rustra] ⠋ Dev runtime (runtime)...
-# [rustra] ✓ Dev runtime (runtime) done in 0.1s
+# [unikit] ⠋ Dev runtime (generator)...
+# [unikit] ✓ Dev runtime (generator) done in 0.0s
+# [unikit] ⠋ Dev runtime (runtime)...
+# [unikit] ✓ Dev runtime (runtime) done in 0.1s
 # [dev] 1:40:08 PM regenerated
 # Subtest: dev rebuilds a separate bun producer and suppresses reload until runtime recovery
 ok 166 - dev rebuilds a separate bun producer and suppresses reload until runtime recovery
@@ -1331,32 +1331,32 @@ ok 166 - dev rebuilds a separate bun producer and suppresses reload until runtim
   duration_ms: 2845.736166
   type: 'test'
   ...
-# [dev] initial → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-owned-output-q0kGHB/project/rustra.json
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-owned-output-q0kGHB/project/Cargo.toml --package app --bin generate
-# [rustra] ⠋ Rust schema generation (app/generate)...
-# [rustra] ✓ Rust schema generation (app/generate) done in 0.0s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-owned-output-q0kGHB/project/rustra.json
-# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-owned-output-q0kGHB/project/src:
+# [dev] initial → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-owned-output-q0kGHB/project/unikit.json
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-owned-output-q0kGHB/project/Cargo.toml --package app --bin generate
+# [unikit] ⠋ Rust schema generation (app/generate)...
+# [unikit] ✓ Rust schema generation (app/generate) done in 0.0s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-owned-output-q0kGHB/project/unikit.json
+# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-owned-output-q0kGHB/project/src:
 #   types.ts
 #   commands.ts
 #   contract.ts
 #   frame-codecs.ts
 #   frame-registry.ts
 # [dev] 1:40:02 PM regenerated
-# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-owned-output-q0kGHB/project and /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-owned-output-q0kGHB/project/rustra.json for changes...
-# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-owned-output-q0kGHB/project/rustra.json
-# [rustra] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-owned-output-q0kGHB/project/Cargo.toml --package app --bin generate
-# [rustra] ⠋ Rust schema generation (app/generate)...
-# [rustra] ✓ Rust schema generation (app/generate) done in 0.1s
-# [rustra] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-owned-output-q0kGHB/project/rustra.json
-# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-owned-output-q0kGHB/project/src:
+# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-owned-output-q0kGHB/project and /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-owned-output-q0kGHB/project/unikit.json for changes...
+# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-owned-output-q0kGHB/project/unikit.json
+# [unikit] Rust schema: cargo run --manifest-path /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-owned-output-q0kGHB/project/Cargo.toml --package app --bin generate
+# [unikit] ⠋ Rust schema generation (app/generate)...
+# [unikit] ✓ Rust schema generation (app/generate) done in 0.1s
+# [unikit] TypeScript/C++: generate --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-owned-output-q0kGHB/project/unikit.json
+# Generated TypeScript files in /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-owned-output-q0kGHB/project/src:
 #   types.ts (unchanged)
 #   commands.ts (unchanged)
 #   contract.ts (unchanged)
 #   frame-codecs.ts (unchanged)
 #   frame-registry.ts (unchanged)
 # [dev] 1:40:04 PM regenerated
-# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-owned-output-q0kGHB/project/rustra.json
+# [dev] Rust change → codegen --config /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-owned-output-q0kGHB/project/unikit.json
 # [dev] rust inputs unchanged — skipping cargo stage (fingerprint match)
 # [dev] 1:40:05 PM regenerated
 # Subtest: config dev preserves handwritten Rust beside manifest-owned output in src
@@ -1428,8 +1428,8 @@ ok 177 - disposing while parity verification is pending prevents publication and
   duration_ms: 835.866
   type: 'test'
   ...
-# Subtest: runConfigDev dylib target builds the cdylib core, announces RUSTRA_HOT_CORE, and reloads
-ok 178 - runConfigDev dylib target builds the cdylib core, announces RUSTRA_HOT_CORE, and reloads
+# Subtest: runConfigDev dylib target builds the cdylib core, announces UNIKIT_HOT_CORE, and reloads
+ok 178 - runConfigDev dylib target builds the cdylib core, announces UNIKIT_HOT_CORE, and reloads
   ---
   duration_ms: 571.184625
   type: 'test'
@@ -1544,8 +1544,8 @@ ok 196 - runDev enables incremental compilation for its cargo spawns unless the 
   duration_ms: 0.774333
   type: 'test'
   ...
-# error: could not find `Cargo.toml` in `/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-reload-os8oNP/backend` or any parent directory
-# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-dev-reload-os8oNP/backend for changes...
+# error: could not find `Cargo.toml` in `/private/var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-reload-os8oNP/backend` or any parent directory
+# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-dev-reload-os8oNP/backend for changes...
 # Subtest: runDev suppresses the reload hook when regeneration fails
 ok 197 - runDev suppresses the reload hook when regeneration fails
   ---
@@ -1708,8 +1708,8 @@ ok 223 - doctor formatters expose stable JSON and readable fixes
   duration_ms: 0.207083
   type: 'test'
   ...
-# Subtest: doctor args default to rustra.json and text output
-ok 224 - doctor args default to rustra.json and text output
+# Subtest: doctor args default to unikit.json and text output
+ok 224 - doctor args default to unikit.json and text output
   ---
   duration_ms: 0.380625
   type: 'test'
@@ -1918,8 +1918,8 @@ ok 258 - complex dispatch retains empty layouts and unit raw output stays undefi
   duration_ms: 30.214375
   type: 'test'
   ...
-# Subtest: generateTypesTs re-exports EngineClient and RustraError
-ok 259 - generateTypesTs re-exports EngineClient and RustraError
+# Subtest: generateTypesTs re-exports EngineClient and UnikitError
+ok 259 - generateTypesTs re-exports EngineClient and UnikitError
   ---
   duration_ms: 3.058875
   type: 'test'
@@ -2748,7 +2748,7 @@ ok 396 - decodeDump converges hex text and raw bytes to the identical byte array
   ...
 # [dev] initial → codegen
 # [dev] 1:40:03 PM regenerated
-# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-legacy-dev-rlGoN2/backend for changes...
+# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-legacy-dev-rlGoN2/backend for changes...
 # [dev] Rust change → codegen
 # [dev] 1:40:04 PM regenerated
 # [dev] initial → codegen
@@ -2759,7 +2759,7 @@ ok 397 - legacy dev watches handwritten Rust adjacent to generated files
   type: 'test'
   ...
 # [dev] 1:40:05 PM regenerated
-# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-legacy-dev-i8RWMY/backend for changes...
+# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-legacy-dev-i8RWMY/backend for changes...
 # [dev] Cargo change → codegen
 # [dev] 1:40:05 PM regenerated
 # [dev] initial → codegen
@@ -2770,7 +2770,7 @@ ok 398 - legacy dev rebuilds and reloads after Cargo.toml changes
   type: 'test'
   ...
 # [dev] 1:40:06 PM regenerated
-# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-legacy-dev-wgA3gs/backend for changes...
+# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-legacy-dev-wgA3gs/backend for changes...
 # [dev] Cargo change → codegen
 # [dev] 1:40:07 PM regenerated
 # [dev] initial → codegen
@@ -2781,7 +2781,7 @@ ok 399 - legacy dev rebuilds and reloads after Cargo.lock changes
   type: 'test'
   ...
 # [dev] 1:40:07 PM regenerated
-# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-legacy-dev-JtL9OP/backend for changes...
+# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-legacy-dev-JtL9OP/backend for changes...
 # [dev] Cargo change → codegen
 # [dev] 1:40:08 PM regenerated
 # [dev] initial → codegen
@@ -2792,7 +2792,7 @@ ok 400 - legacy dev rebuilds and reloads after build.rs changes
   type: 'test'
   ...
 # [dev] 1:40:09 PM regenerated
-# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-legacy-dev-jpQGvJ/backend for changes...
+# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-legacy-dev-jpQGvJ/backend for changes...
 # [dev] Rust change → codegen
 # [dev] 1:40:09 PM regenerated
 # [dev] initial → codegen
@@ -2803,7 +2803,7 @@ ok 401 - legacy dev rebuilds and reloads after same-mtime Rust content changes
   type: 'test'
   ...
 # [dev] 1:40:10 PM regenerated
-# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-legacy-dev-H7lPZk/backend for changes...
+# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-legacy-dev-H7lPZk/backend for changes...
 # [dev] Rust change → codegen
 # [dev] 1:40:10 PM regenerated
 # [dev] initial → codegen
@@ -2814,7 +2814,7 @@ ok 402 - legacy dev rebuilds and reloads after Rust source deletion changes
   type: 'test'
   ...
 # [dev] 1:40:11 PM regenerated
-# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-legacy-dev-C6oIBn/backend for changes...
+# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-legacy-dev-C6oIBn/backend for changes...
 # [dev] Rust change → codegen
 # [dev] 1:40:11 PM regenerated
 # [dev] initial → codegen
@@ -2825,7 +2825,7 @@ ok 403 - legacy dev rebuilds and reloads after local dependency source changes
   type: 'test'
   ...
 # [dev] 1:40:12 PM regenerated
-# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-legacy-dev-HOoiBM/backend for changes...
+# [dev] watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-legacy-dev-HOoiBM/backend for changes...
 # Subtest: legacy dev skips unchanged touches and excludes owned/custom target output
 ok 404 - legacy dev skips unchanged touches and excludes owned/custom target output
   ---
@@ -3367,14 +3367,14 @@ ok 487 - Tauri setup reports the exact missing native manifest and skips other h
   duration_ms: 5.37625
   type: 'test'
   ...
-# Subtest: rustraPlugin returns vite plugin with name and hooks
-ok 488 - rustraPlugin returns vite plugin with name and hooks
+# Subtest: unikitPlugin returns vite plugin with name and hooks
+ok 488 - unikitPlugin returns vite plugin with name and hooks
   ---
   duration_ms: 0.492708
   type: 'test'
   ...
-# Subtest: rustraPlugin handles buildStart gracefully when directory is absent
-ok 489 - rustraPlugin handles buildStart gracefully when directory is absent
+# Subtest: unikitPlugin handles buildStart gracefully when directory is absent
+ok 489 - unikitPlugin handles buildStart gracefully when directory is absent
   ---
   duration_ms: 0.312458
   type: 'test'
@@ -3457,8 +3457,8 @@ ok 502 - polling reports transient read failures and recovers without dropping t
   duration_ms: 216.293917
   type: 'test'
   ...
-# Watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-schema-watch-ihcK0s/first.json for changes...
-# Only the schema file is watched — Rust edits need a regenerate source (cargo run … generate) or "rustra dev".
+# Watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-schema-watch-ihcK0s/first.json for changes...
+# Only the schema file is watched — Rust edits need a regenerate source (cargo run … generate) or "unikit dev".
 # [1:40:11 PM] Regenerated
 # [1:40:12 PM] Regenerated
 # Subtest: schema watch reloads config and follows a newly selected schema file
@@ -3467,11 +3467,11 @@ ok 503 - schema watch reloads config and follows a newly selected schema file
   duration_ms: 530.665459
   type: 'test'
   ...
-# Watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-schema-recover-hIzpdj/first.json for changes...
-# Only the schema file is watched — Rust edits need a regenerate source (cargo run … generate) or "rustra dev".
-# Regeneration failed: Schema file not found: /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-schema-recover-hIzpdj/missing.json. Run the Rust contract probe first (e.g. "cargo run" with the package's generate bin) or point --schema/--config at the right file in rustra.json, then re-run "rustra generate".
+# Watching /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-schema-recover-hIzpdj/first.json for changes...
+# Only the schema file is watched — Rust edits need a regenerate source (cargo run … generate) or "unikit dev".
+# Regeneration failed: Schema file not found: /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-schema-recover-hIzpdj/missing.json. Run the Rust contract probe first (e.g. "cargo run" with the package's generate bin) or point --schema/--config at the right file in unikit.json, then re-run "unikit generate".
 # [1:40:12 PM] Regenerated
-# Regeneration failed: Invalid schema.json at /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/rustra-schema-recover-hIzpdj/malformed.json: Expected property name or '}' in JSON at position 1 (line 1 column 2). The file must be valid JSON; regenerate it with "cargo run" (the package's generate bin) or fix it manually.
+# Regeneration failed: Invalid schema.json at /var/folders/z8/h16kj6d16t53dj0lfvlkxf0h0000gn/T/unikit-schema-recover-hIzpdj/malformed.json: Expected property name or '}' in JSON at position 1 (line 1 column 2). The file must be valid JSON; regenerate it with "cargo run" (the package's generate bin) or fix it manually.
 # [1:40:13 PM] Regenerated
 # Subtest: schema watch follows a new path even while it is missing or malformed
 ok 504 - schema watch follows a new path even while it is missing or malformed
@@ -3511,7 +3511,7 @@ src/cli-arg-parser.test.ts:
 (pass) parseCliArgs > usage errors are UsageError instances (exit-2 contract) [0.35ms]
 (pass) parseCliArgs > runtime failures are NOT UsageError instances (exit-1 contract) [0.01ms]
 (pass) parseCliArgs > command-level missing-required-argument errors are UsageError instances [0.54ms]
-(pass) parseCliArgs > parseCodegenArgs adopts ./rustra.json as the default config when present [0.54ms]
+(pass) parseCliArgs > parseCodegenArgs adopts ./unikit.json as the default config when present [0.54ms]
 (pass) parseCliArgs > unknown top-level command rejects with UsageError and a did-you-mean [11.62ms]
 (pass) parseCliArgs > supports --flag=value [0.03ms]
 (pass) parseCliArgs > preserves equals signs inside inline option values [0.02ms]

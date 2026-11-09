@@ -43,7 +43,7 @@ if (
   launches > 5
 )
   throw Error('invalid bounded diagnostic plan');
-const app = 'com.rustra.nitroparity',
+const app = 'com.unikit.nitroparity',
   output = resolve(values.output);
 function adb(args: string[]) {
   const proc = Bun.spawnSync(['adb', '-s', values.device!, ...args], {
@@ -101,7 +101,7 @@ try {
           pid = '';
         try {
           adb(['shell', 'am', 'force-stop', app]);
-          const url = `rustra://diagnostic?case=${caseId}&schedule=${schedule}&run=${runId}`;
+          const url = `unikit://diagnostic?case=${caseId}&schedule=${schedule}&run=${runId}`;
           adb([
             'shell',
             'am',

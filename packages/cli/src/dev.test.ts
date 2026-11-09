@@ -20,8 +20,8 @@ test('parseDevArgs parses backend dir and app dir', () => {
 });
 
 test('parseDevArgs accepts config mode without requiring legacy directories', () => {
-  const opts = parseDevArgs(['--config', './rustra.json', '--inspect']);
-  assert.equal(opts.configPath, './rustra.json');
+  const opts = parseDevArgs(['--config', './unikit.json', '--inspect']);
+  assert.equal(opts.configPath, './unikit.json');
   assert.equal(opts.inspect, true);
 });
 
@@ -47,16 +47,16 @@ test('runDev --help returns a dummy handle instead of entering the watch loop', 
   // 출력은 cli-main 이 담당하므로 서브커맨드는 조용히 return 이 통일 관례다.
   const handle = await runDev([
     '--backend',
-    '/nonexistent-rustra-help-probe',
+    '/nonexistent-unikit-help-probe',
     '--app',
-    '/nonexistent-rustra-help-probe',
+    '/nonexistent-unikit-help-probe',
     '--help',
   ]);
   handle.dispose();
 });
 
 test('runDev fails fast instead of silently watching a missing layout', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-layout-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-layout-'));
   try {
     await assert.rejects(
       () => runDev(['--backend', join(dir, 'backend'), '--app', join(dir, 'app')]),
@@ -71,7 +71,7 @@ test('runDev fails fast instead of silently watching a missing layout', async ()
 // 사용자가 이미 세팅한 CARGO_INCREMENTAL 이 있으면 존중한다(디스크 방어,
 // rust-cache CI 의 0 포함). env 누수가 이후 테스트에 번지지 않게 복원한다.
 test('runDev enables incremental compilation for its cargo spawns unless the user set it', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-incremental-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-incremental-'));
   const hadBefore = process.env.CARGO_INCREMENTAL;
   try {
     delete process.env.CARGO_INCREMENTAL;
@@ -115,10 +115,10 @@ function seedLegacyLayout(dir: string): { backend: string; app: string } {
 }
 
 test('runDev suppresses the reload hook when regeneration fails', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-reload-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-reload-'));
   try {
     seedLegacyLayout(dir);
-    process.env.RUSTRA_CLI = process.execPath; // tsCli 용 스텁 — rustBin 이 먼저 실패한다.
+    process.env.UNIKIT_CLI = process.execPath; // tsCli 용 스텁 — rustBin 이 먼저 실패한다.
     const reloads: string[] = [];
     const errors: string[] = [];
     const originalError = console.error;
@@ -134,7 +134,7 @@ test('runDev suppresses the reload hook when regeneration fails', async () => {
     } finally {
       await handle?.dispose();
       console.error = originalError;
-      delete process.env.RUSTRA_CLI;
+      delete process.env.UNIKIT_CLI;
     }
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -163,7 +163,7 @@ test('createWatchLoop does not fire reload hooks when shouldRun skips the perfor
 });
 
 test('runDev logs "clean — nothing to do" and skips codegen on an up-to-date tree', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-clean-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-clean-'));
   try {
     // 완전한 clean 플랜을 시드한다: rust 소스는 schema 보다 과거, codecs 는 schema
     // 보다 새로 — perform 이 '[dev] clean — nothing to do' 로 조기 반환하는 경로.
@@ -189,7 +189,7 @@ test('runDev logs "clean — nothing to do" and skips codegen on an up-to-date t
       new Date('2026-08-16T12:00:10Z'),
       new Date('2026-08-16T12:00:10Z'),
     );
-    process.env.RUSTRA_CLI = process.execPath;
+    process.env.UNIKIT_CLI = process.execPath;
     const logs: string[] = [];
     const originalLog = console.log;
     console.log = (line: unknown) => logs.push(String(line));
@@ -204,7 +204,7 @@ test('runDev logs "clean — nothing to do" and skips codegen on an up-to-date t
     } finally {
       await handle?.dispose();
       console.log = originalLog;
-      delete process.env.RUSTRA_CLI;
+      delete process.env.UNIKIT_CLI;
     }
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -214,11 +214,11 @@ test('runDev logs "clean — nothing to do" and skips codegen on an up-to-date t
 // ── parity gate wiring (Task A2) — dev.target=wasm + parityGate ─────────────
 
 test('readDevConfig exposes wasm dev settings including parityGate default', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-parity-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-parity-'));
   try {
     mkdirSync(join(dir, 'src'), { recursive: true });
     writeFileSync(join(dir, 'Cargo.toml'), '[package]\nname = "x"\nversion = "0.1.0"\n');
-    const configPath = join(dir, 'rustra.json');
+    const configPath = join(dir, 'unikit.json');
     writeFileSync(
       configPath,
       JSON.stringify({
@@ -237,11 +237,11 @@ test('readDevConfig exposes wasm dev settings including parityGate default', () 
 });
 
 test('readDevConfig honors an explicit parityGate false and native default', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-parity-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-parity-'));
   try {
     mkdirSync(join(dir, 'src'), { recursive: true });
     writeFileSync(join(dir, 'Cargo.toml'), '[package]\nname = "x"\nversion = "0.1.0"\n');
-    const configPath = join(dir, 'rustra.json');
+    const configPath = join(dir, 'unikit.json');
     writeFileSync(
       configPath,
       JSON.stringify({
@@ -266,11 +266,11 @@ test('readDevConfig honors an explicit parityGate false and native default', () 
 test('readDevConfig fills the parityGate default when target=wasm omits the wasm section', () => {
   // target=wasm + wasm 섹션 생략(L1/L2 검증상 유효)도 게이트 기본 on 이어야
   // 한다 — 섹션 생략이 게이트 무음 스킵으로 이어지던 fail-open 회귀의 고정.
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-parity-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-parity-'));
   try {
     mkdirSync(join(dir, 'src'), { recursive: true });
     writeFileSync(join(dir, 'Cargo.toml'), '[package]\nname = "x"\nversion = "0.1.0"\n');
-    const configPath = join(dir, 'rustra.json');
+    const configPath = join(dir, 'unikit.json');
     writeFileSync(
       configPath,
       JSON.stringify({
@@ -295,7 +295,7 @@ test('readDevConfig fills the parityGate default when target=wasm omits the wasm
 // ── devWasm 매니페스트·패키지 해석 (Task A3) — RN 어댑터와 동일 우선순위 ─────
 
 test('readDevConfig resolves devWasm from reactNative first, then codegen, then the codegen manifest', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-wasm-resolve-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-wasm-resolve-'));
   try {
     mkdirSync(join(dir, 'src'), { recursive: true });
     writeFileSync(join(dir, 'Cargo.toml'), '[package]\nname = "x"\nversion = "0.1.0"\n');
@@ -368,11 +368,11 @@ test('readDevConfig resolves devWasm from reactNative first, then codegen, then 
 
 test('readDevConfig leaves devWasm undefined for the native target', () => {
   // 절대 음성 — 네이티브 타깃에는 wasm 오케스트레이션 입력 자체가 없다.
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-wasm-native-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-wasm-native-'));
   try {
     mkdirSync(join(dir, 'src'), { recursive: true });
     writeFileSync(join(dir, 'Cargo.toml'), '[package]\nname = "x"\nversion = "0.1.0"\n');
-    const configPath = join(dir, 'rustra.json');
+    const configPath = join(dir, 'unikit.json');
     writeFileSync(
       configPath,
       JSON.stringify({
@@ -444,9 +444,9 @@ test('createWatchLoop parity orchestration rejects a drifted reload and keeps th
 });
 
 test('readDevConfig rejects a config without a Cargo manifest', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-config-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-config-'));
   try {
-    const configPath = join(dir, 'rustra.json');
+    const configPath = join(dir, 'unikit.json');
     writeFileSync(configPath, JSON.stringify({ schema: 'schema.json', output: 'generated' }));
     assert.throws(() => readDevConfig(configPath), /rust_manifest_missing/);
   } finally {
@@ -455,9 +455,9 @@ test('readDevConfig rejects a config without a Cargo manifest', () => {
 });
 
 test('readDevConfig rejects unsafe path values before resolving them', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-config-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-config-'));
   try {
-    const configPath = join(dir, 'rustra.json');
+    const configPath = join(dir, 'unikit.json');
     writeFileSync(configPath, JSON.stringify({ schema: `schema\u0000.json`, output: 'generated' }));
     assert.throws(() => readDevConfig(configPath), /safe path/);
   } finally {
@@ -482,7 +482,7 @@ test('planPipeline skips rust bin when only codecs are stale', () => {
 });
 
 test('detectDirty: rust src newer than schema.json → rustNewerThanSchema', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-'));
   try {
     const backend = join(dir, 'backend');
     const generated = join(dir, 'app', 'generated');
@@ -502,7 +502,7 @@ test('detectDirty: rust src newer than schema.json → rustNewerThanSchema', () 
 });
 
 test('detectDirty: schema newer → not dirty (rust)', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'rustra-dev-'));
+  const dir = mkdtempSync(join(tmpdir(), 'unikit-dev-'));
   try {
     const backend = join(dir, 'backend');
     const generated = join(dir, 'app', 'generated');

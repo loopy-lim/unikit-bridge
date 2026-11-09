@@ -41,7 +41,7 @@ A1은 A2 착지 후의 상위 후보로 남는다(A2가 A1의 폴백 기반이 �
 **검증 방법(로컬).**
 
 1. `packages/types` 회귀: `bind-sync.test.ts`, `invoke-loose.test.ts`, `runtime-boundaries.test.ts` 통과 + 세대 무효화 케이스 추가(엔진 재구성 후 라우트 재해결, lazy `ensureConfigured` 경로, `options` 존재 시 기존 `invokeGenerated` 경로 유지, route null 폴백).
-2. `env -u RUSTRA_BUN_LIBRARY bun run test:codegen-fresh:check` 및 `--bindings` — 재생성 일관성.
+2. `env -u UNIKIT_BUN_LIBRARY bun run test:codegen-fresh:check` 및 `--bindings` — 재생성 일관성.
 3. `run-hermes-sync-tests.sh` Hermes 스위트 — 네이티브 경로 무변경 확인(공개 경로 무회귀).
 4. **채택 근거(호스트)**: 옵션 없는 생성 필드 명령 1종(예: `parityIndexed`)에 대해 emit 변경 전후를 호스트/Hermes 마이크로벤치로 비교해 호출당 조회·문자열 비교 제거를 확인한다. 동시에 호출 수 불변을 검증해 closure 선례 기각 사유와 구분한다. 기기 AB/BA 플랜은 후보 문서 A2 절의 플랜을 문서화만 수행한다.
 
@@ -53,15 +53,15 @@ A1은 A2 착지 후의 상위 후보로 남는다(A2가 A1의 폴백 기반이 �
 
 **구현 위치(파일).**
 
-- `packages/react-native/native/cpp/RustraJSIBridge.cpp` — `typedInvokeTail`(282–337행)의 large 폴백 분기(308–317행)를 owned 진입 사용으로 교체. free 짝 계약은 동일 파일 1596–1660행 비동기 owned 콜백과 `rustra_ffi_free_owned_bytes`(2175행)의 선례를 재사용한다.
-- `crates/rustra/src/command_into.rs` — 44–80행의 `DirectResponse::Buffered(response)` 생산은 유지하고, 이 Vec의 소유권을 caller에 넘기는 owned 반환 계약으로 연결.
-- `crates/rustra/src/ffi_typed_buffer.rs`·`ffi_buffer_entries.rs` — 신규 owned 응답 FFI 진입(응답 Vec → (ptr, len, owned=1) 핸드오프). 62–98행 probe 캐시는 구형 코어/진입 부재 폴백으로 유지.
-- **capability 마커**: 이름 재사용 선례(`RUSTRA_GENERATED_BOUND_CODEC_CONTEXT`, `packages/cli/src/generate-cpp-hpp.ts` emit) 준용 — 신규 진입은 코어 함수 테이블의 옵셔널 엔트리(null 검사)로 노출하고, 마커·진입 부재 시 기존 probe 경로로 컴파일·동작하는 폴백을 유지한다.
+- `packages/react-native/native/cpp/UnikitJSIBridge.cpp` — `typedInvokeTail`(282–337행)의 large 폴백 분기(308–317행)를 owned 진입 사용으로 교체. free 짝 계약은 동일 파일 1596–1660행 비동기 owned 콜백과 `unikit_ffi_free_owned_bytes`(2175행)의 선례를 재사용한다.
+- `crates/unikit-bridge/src/command_into.rs` — 44–80행의 `DirectResponse::Buffered(response)` 생산은 유지하고, 이 Vec의 소유권을 caller에 넘기는 owned 반환 계약으로 연결.
+- `crates/unikit-bridge/src/ffi_typed_buffer.rs`·`ffi_buffer_entries.rs` — 신규 owned 응답 FFI 진입(응답 Vec → (ptr, len, owned=1) 핸드오프). 62–98행 probe 캐시는 구형 코어/진입 부재 폴백으로 유지.
+- **capability 마커**: 이름 재사용 선례(`UNIKIT_GENERATED_BOUND_CODEC_CONTEXT`, `packages/cli/src/generate-cpp-hpp.ts` emit) 준용 — 신규 진입은 코어 함수 테이블의 옵셔널 엔트리(null 검사)로 노출하고, 마커·진입 부재 시 기존 probe 경로로 컴파일·동작하는 폴백을 유지한다.
 
 **검증 방법(로컬).**
 
-1. `cargo test -p rustra` — owned 계약 검사 추가: free 짝이 정확히 (ptr, resp_len)로 1회 불릴 것, 핸들러 1회 실행, 오류 프레임·malformed 응답의 기존 예외 메시지 보존, 폴백 경로(진입 부재)에서 probe 캐시 동작 유지.
-2. `cargo bench -p rustra --bench tree_route` 교대 A/B(독립 프로세스, [codec-scratch 프로토콜](2026-09-16-codec-scratch-and-frame.md) 준용) — 소형 응답 무회귀.
+1. `cargo test -p unikit-bridge` — owned 계약 검사 추가: free 짝이 정확히 (ptr, resp_len)로 1회 불릴 것, 핸들러 1회 실행, 오류 프레임·malformed 응답의 기존 예외 메시지 보존, 폴백 경로(진입 부재)에서 probe 캐시 동작 유지.
+2. `cargo bench -p unikit-bridge --bench tree_route` 교대 A/B(독립 프로세스, [codec-scratch 프로토콜](2026-09-16-codec-scratch-and-frame.md) 준용) — 소형 응답 무회귀.
 3. `run-cpp-codec-tests.sh` — 대형 응답 소유권·free 짝·에러 프레임 케이스 추가.
 4. `run-hermes-sync-tests.sh` Hermes 스위트 — 공개 경로 무회귀 + 구형 헤더/코어 폴백 검증.
 5. AddressSanitizer 실행(소유권·이중 free).

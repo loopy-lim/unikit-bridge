@@ -30,16 +30,16 @@
 앱 재시작 루프가 실제 앱 개발의 주 마찰.
 
 기존 기반: debug 빌드 런타임 레지스트리(`register_fn`/`replace`/`unregister`,
-release 자동 freeze), `rustra generate --watch` CLI, codegen dual-path 검증.
+release 자동 freeze), `unikit generate --watch` CLI, codegen dual-path 검증.
 
 목표 UX:
 
 ```
-rustra dev
+unikit dev
   1. cargo watch로 backend 재컴파일 감지
   2. 재빌드 → 실행 중 호스트에 핸들러 주입 (레지스트리 replace 경우)
   3. TS 클라이언트 재생성 → 빌드 체인 전파
-  4. 스키마 드리프트 시 rustra diff 경고
+  4. 스키마 드리프트 시 unikit diff 경고
 ```
 
 핵심 기술 결정(구현 시 검증): dylib hot-swap vs 프로세스 재시작 vs
@@ -52,15 +52,15 @@ macOS desktop + iOS 시뮬 두 환경.
 
 ### Sprint 2 — 테스팅 프레임워크
 
-- `@rustra/testing` 패키지: `createMockEngine()` — 순수 TS, Rust 의존 없음.
+- `@unikit-bridge/testing` 패키지: `createMockEngine()` — 순수 TS, Rust 의존 없음.
   핸들러 등록(`.on(command, handler)`)으로 생성된 클라이언트를 그대로 테스트.
-- 계약 게이트: `rustra diff`로 생성 코드 vs 커밋된 schema.json 정합성 CI 추가.
+- 계약 게이트: `unikit diff`로 생성 코드 vs 커밋된 schema.json 정합성 CI 추가.
 - Rust 쪽은 cargo test 이미 갖춰짐 — JS 사이드 승리 중심.
 
 ### Sprint 3 — Devtools
 
-- `@rustra/devtools`: engine 래퍼로 호출 로그·지연·에러 수집.
-- CLI: `rustra dev --inspect` — 명령별 p50/p95, 에러율, 슬로우 콜 타임라인.
+- `@unikit-bridge/devtools`: engine 래퍼로 호출 로그·지연·에러 수집.
+- CLI: `unikit dev --inspect` — 명령별 p50/p95, 에러율, 슬로우 콜 타임라인.
 - `Package::emit`/EventBus 이벤트 스트림 재활용.
 
 ## 백그라운드 트랙 (~30%)

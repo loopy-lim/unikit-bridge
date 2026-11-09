@@ -1,5 +1,5 @@
-use rustra_calculator_example::calculator_package;
 use serde_json::json;
+use unikit_calculator_example::calculator_package;
 
 #[test]
 fn ordinary_functions_keep_values_void_side_effects_and_domain_errors() {

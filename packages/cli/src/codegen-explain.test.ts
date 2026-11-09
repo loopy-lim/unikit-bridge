@@ -31,13 +31,13 @@ test('explain lists every surface with source and stage', () => {
     ),
   );
   // manifest sidecar
-  assert.ok(rows.some((row) => row.output === '.rustra-generated.json'));
+  assert.ok(rows.some((row) => row.output === '.unikit-generated.json'));
 });
 
 test('explain text mentions the single input and the regen command', () => {
   const text = formatExplainText(explainCodegenSurfaces(FULL));
   assert.match(text, /schema\.json/);
-  assert.match(text, /rustra codegen/);
+  assert.match(text, /unikit codegen/);
 });
 
 test('explain honors config without cpp/rn sections', () => {

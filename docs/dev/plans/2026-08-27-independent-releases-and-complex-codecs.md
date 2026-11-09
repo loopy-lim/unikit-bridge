@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Close the 0.4 release candidate, allow independently versioned Rustra packages, and support complex recursive data contracts through a tested binary codec path.
+**Goal:** Close the 0.4 release candidate, allow independently versioned Unikit packages, and support complex recursive data contracts through a tested binary codec path.
 
 **Architecture:** Keep the existing postcard fast path for its proven schema subset. Add a schema-driven complex codec selected per command, with one CLI codec IR and explicit schema metadata shared by Rust, TypeScript, and C++. Release validation moves from exact lockstep versions to dependency compatibility and packed-consumer evidence.
 
@@ -34,7 +34,7 @@ embedded JS bundle on an iPhone 17 Simulator.
       sets, tuples, and data enums with bounded readers/writers.
 - [x] TypeScript/Rust golden byte tests, malformed-input tests, and a machine-readable
       JS benchmark receipt.
-- [x] Shared recursive codec IR and explicit `x-rustra-variant-order` metadata;
+- [x] Shared recursive codec IR and explicit `x-unikit-variant-order` metadata;
       TS generators now share one recursive IR and both TS/C++ paths consume the
       explicit stable variant keys.
 - [x] Generated C++ complex marshalling for native-safe schemas; Set and
@@ -66,13 +66,13 @@ embedded JS bundle on an iPhone 17 Simulator.
   behavior, JSI installation, and benchmark output with no `Benchmark failed`,
   `No script URL`, or `FATAL EXCEPTION` marker.
 - Packed consumer: the CLI tarball explicitly includes `dist/codec-ir.*`, the
-  `@rustra/types` tarball includes `dist/complex-codec.*`, and
+  `@unikit-bridge/types` tarball includes `dist/complex-codec.*`, and
   `bun run verify:consumer:react-native` imports `createComplexCodec` from the
   packed dependency before checking native source resolution.
 - Default local iOS archive: restored to the Simulator slices after the device
   link receipt. Reproduce the device check with
-  `RUSTRA_IOS_TARGET=aarch64-apple-ios RUSTRA_PROFILE=release sh
-modules/rustra-jsi/ios/build-rust-ios.sh` before a device-target build.
+  `UNIKIT_IOS_TARGET=aarch64-apple-ios UNIKIT_PROFILE=release sh
+modules/unikit-jsi/ios/build-rust-ios.sh` before a device-target build.
 - Follow-up backlog: keep a packed RN native smoke in both platform CI jobs and
   publish only with explicit authorization.
 - No npm or crates.io publication was performed. The working tree remains
@@ -89,8 +89,8 @@ modules/rustra-jsi/ios/build-rust-ios.sh` before a device-target build.
 - Modify: `package.json`
 - Modify: `packages/cli/package.json`
 - Modify: `Cargo.toml`
-- Modify: `crates/rustra/Cargo.toml`
-- Modify: `crates/rustra-macros/Cargo.toml`
+- Modify: `crates/unikit-bridge/Cargo.toml`
+- Modify: `crates/unikit-bridge-macros/Cargo.toml`
 - Modify: `packages/bun/package.json`
 - Modify: `packages/devtools/package.json`
 - Modify: `packages/node/package.json`
@@ -108,7 +108,7 @@ modules/rustra-jsi/ios/build-rust-ios.sh` before a device-target build.
 - [ ] **Step 1: Write the failing validator fixtures**
 
 Create a temporary test fixture or test helper that changes one adapter package
-version while keeping its `@rustra/types` range valid, and assert the validator
+version while keeping its `@unikit-bridge/types` range valid, and assert the validator
 accepts it. Add a second fixture with an incompatible types range and assert a
 failure naming both packages and the invalid range.
 
@@ -129,7 +129,7 @@ set.
 
 - [ ] **Step 4: Make generated Rust compatibility explicit**
 
-Replace the CLI's version-derived `rustraTemplate.cargoMinor` contract with a
+Replace the CLI's version-derived `unikitTemplate.cargoMinor` contract with a
 named compatibility field/range. Update generated template assertions and
 fixtures so a newer CLI can generate a project against a compatible Rust pair
 without requiring the CLI npm version to equal the crate version.
@@ -143,7 +143,7 @@ existing RN changeset does not implicitly bump unrelated packages.
 - [ ] **Step 6: Commit the release-boundary change**
 
 ```bash
-git add .changeset/config.json scripts/check-release-coherence.mjs package.json packages/*/package.json packages/cli/src packages/cli/package.json Cargo.toml crates/rustra/Cargo.toml crates/rustra-macros/Cargo.toml scripts/check-release-coherence.test.mjs
+git add .changeset/config.json scripts/check-release-coherence.mjs package.json packages/*/package.json packages/cli/src packages/cli/package.json Cargo.toml crates/unikit-bridge/Cargo.toml crates/unikit-bridge-macros/Cargo.toml scripts/check-release-coherence.test.mjs
 git commit -m "feat(release): allow independent package versions"
 ```
 
@@ -185,7 +185,7 @@ when installation has not happened yet.
 
 - [ ] **Step 4: Add packed consumer verification**
 
-Pack `@rustra/react-native` and its generated module into a clean temporary
+Pack `@unikit-bridge/react-native` and its generated module into a clean temporary
 consumer, install from the archive, run codegen, and verify that native source
 paths resolve from the installed package. The script must fail if it silently
 uses a workspace source path.
@@ -209,15 +209,15 @@ syntax/format checks.
 - Modify: `packages/cli/src/generate.ts`
 - Modify: `packages/cli/src/schema.ts`
 - Modify: `packages/cli/src/index.ts`
-- Modify: `crates/rustra/src/schema.rs`
-- Modify: `crates/rustra/src/lib.rs`
-- Test: `packages/cli/src/codec-ir.test.ts`, `crates/rustra/src/schema.rs` tests, schema fixture files
+- Modify: `crates/unikit-bridge/src/schema.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs`
+- Test: `packages/cli/src/codec-ir.test.ts`, `crates/unikit-bridge/src/schema.rs` tests, schema fixture files
 
 **Interfaces:**
 
 - `buildCodecIr(schema: PackageSchema): CodecPackageIr` returns recursively typed nodes with stable field and variant order.
 - `CodecPackageIr` exposes command route eligibility and exact unsupported reasons.
-- Rust schema output includes explicit `x-rustra-variant-order` metadata for supported enum definitions.
+- Rust schema output includes explicit `x-unikit-variant-order` metadata for supported enum definitions.
 
 - [x] **Step 1: Add failing IR tests for complex fixtures**
 
@@ -255,16 +255,16 @@ green.
 - [x] **Step 6: Run Rust and CLI tests and commit**
 
 Run `bun test packages/cli/src/codec-ir.test.ts packages/cli/src/generate.test.ts`
-and `cargo test -p rustra`. Commit the IR independently from codec emission.
+and `cargo test -p unikit-bridge`. Commit the IR independently from codec emission.
 
 ## Task 4: Rust complex codec
 
 **Files:**
 
-- Create: `crates/rustra/src/complex_codec.rs`
-- Modify: `crates/rustra/src/lib.rs`
-- Modify: `crates/rustra/src/rkyv_codec.rs`
-- Test: `crates/rustra/src/complex_codec.rs` tests and golden fixtures under `crates/rustra/tests/fixtures/`
+- Create: `crates/unikit-bridge/src/complex_codec.rs`
+- Modify: `crates/unikit-bridge/src/lib.rs`
+- Modify: `crates/unikit-bridge/src/rkyv_codec.rs`
+- Test: `crates/unikit-bridge/src/complex_codec.rs` tests and golden fixtures under `crates/unikit-bridge/tests/fixtures/`
 
 **Interfaces:**
 
@@ -281,13 +281,13 @@ serde Value round trips for all fixtures.
 
 - [ ] **Step 2: Run the tests and verify the expected failure**
 
-Run `cargo test -p rustra complex_codec`. The module and functions must be
+Run `cargo test -p unikit-bridge complex_codec`. The module and functions must be
 absent or fail the new byte/round-trip assertions.
 
 - [ ] **Step 3: Implement bounded writer and reader primitives**
 
 Implement checked cursor operations, scalar tags, bounded lengths, UTF-8
-validation, and recursion accounting. Return `RustraError::invalid_args` for
+validation, and recursion accounting. Return `UnikitError::invalid_args` for
 malformed input and never allocate from an untrusted length without checking
 the configured limits.
 
@@ -306,8 +306,8 @@ encodes the complex response. Keep Tier 3 for routes rejected by IR validation.
 
 - [ ] **Step 6: Run the full Rust verification**
 
-Run `cargo test -p rustra`, `cargo test --workspace`, and `cargo clippy -p
-rustra -p rustra-macros --all-targets -- -D warnings`.
+Run `cargo test -p unikit-bridge`, `cargo test --workspace`, and `cargo clippy -p
+unikit -p unikit-bridge-macros --all-targets -- -D warnings`.
 
 ## Task 5: Generated TypeScript complex codecs
 
@@ -355,7 +355,7 @@ calculator fixture tests under both Node and Bun where supported.
 **Files:**
 
 - Modify: `packages/cli/src/generate.ts`
-- Modify: `packages/react-native/native/cpp/rustra-codec.hpp` only for shared safe primitives
+- Modify: `packages/react-native/native/cpp/unikit-codec.hpp` only for shared safe primitives
 - Test: generated C++ fixture compilation and React Native native build jobs
 
 **Interfaces:**
@@ -402,7 +402,7 @@ available Android/iOS native build gates.
 **Interfaces:**
 
 - `bun run bench:complex` emits a machine-readable receipt with payload shape, route, bytes, encode/decode timings, and allocation mode.
-- `rustra doctor` reports missing tools and actionable remediation without assuming `rustup` is on PATH.
+- `unikit doctor` reports missing tools and actionable remediation without assuming `rustup` is on PATH.
 
 - [ ] **Step 1: Add failing benchmark receipt tests**
 

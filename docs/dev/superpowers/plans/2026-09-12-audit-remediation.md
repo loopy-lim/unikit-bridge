@@ -25,7 +25,7 @@ Files: packages/types/src/global-config.ts 및 관련 lazy/registry 파일·테�
 
 ### Task 2: Rust 경로 일치 및 진단 (F03/F04/F12/F23/F24)
 
-Files: crates/rustra/src/{invoke_frame,state,command_handlers,command_into,channels_host,hot_core*}.rs 및 해당 테스트.
+Files: crates/unikit-bridge/src/{invoke_frame,state,command_handlers,command_into,channels_host,hot_core*}.rs 및 해당 테스트.
 
 - [ ] raw State, 빈 inner 상태, 단순 응답의 direct/fallback 한도, bytes 채널 진단 회귀 테스트를 먼저 실패시킨다.
 - [ ] 최소한의 컨텍스트/크기/계수 수정을 적용한다. hot-core는 안전한 retained-library 계수를 제공한다.
@@ -41,7 +41,7 @@ Files: packages/react/src 및 tests; React package dev dependencies; docs React 
 
 ### Task 4: Tauri 채널 소유권 (F05)
 
-Files: crates/rustra/src/tauri_channels.rs 및 Tauri command/plugin wiring, 관련 테스트와 문서.
+Files: crates/unikit-bridge/src/tauri_channels.rs 및 Tauri command/plugin wiring, 관련 테스트와 문서.
 
 - [ ] WebView 별 채널 수신·drop 권한을 실제 Tauri mock runtime 또는 동등 경계 테스트로 고정한다.
 - [ ] JS 호출자 WebView에 송신·종료·파괴 정리를 귀속한다. 신뢰된 host helper는 명확한 정책을 유지한다.
@@ -51,7 +51,7 @@ Files: crates/rustra/src/tauri_channels.rs 및 Tauri command/plugin wiring, 관�
 
 Files: packages/cli/src/{watch,dev,cli-uniffi,cli-codegen}.ts 및 관련 모듈·테스트.
 
-- [ ] rustra.json 재해석, 새 디렉터리, watcher error의 테스트 후 복구 가능한 감시를 구현한다.
+- [ ] unikit.json 재해석, 새 디렉터리, watcher error의 테스트 후 복구 가능한 감시를 구현한다.
 - [ ] Cargo lib target 및 compiler-artifact를 기준으로 실제 경로를 선택한다.
 - [ ] 빈 임시 경로에 UniFFI를 생성한 후 실제 Swift/Kotlin 파일을 비교하고 성공한 산출물만 교체한다. 별도 check 옵션과 gate를 제공한다.
 - [ ] CLI 테스트·예제 codegen 검사를 통과시킨다.

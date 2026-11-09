@@ -7,7 +7,7 @@
 // 시나리오:
 //   1. stale-generated   — 계약 변경 후 미재생성, codegen --check 의 드리프트 거부
 //   2. contract-mismatch — 낡은 생성 클라이언트 + 새 바이너리의 엄격 계약 거부
-//   3. native-missing    — RUSTRA_NODE_BINARY 경로 부재의 안내적 실패
+//   3. native-missing    — UNIKIT_NODE_BINARY 경로 부재의 안내적 실패
 //   4. doctor-sdk-missing — PATH 비움 상태의 doctor 구조화 검사(fix 포함)
 //   5. invalid-payload   — 정의 밖 필드의 invalid_args 거부(조용한 성공 금지)
 
@@ -70,10 +70,10 @@ export function judgeNativeMissing({ status, stdout, stderr, binary }) {
   // (rejected + 대상 경로 + 다음 조치 안내)와 프로세스 실패 둘 다 인정한다.
   const output = `${stdout}\n${stderr}`;
   let reported = null;
-  const line = stdout.split('\n').find((entry) => entry.startsWith('__RUSTRA_DIAG_RESULT__'));
+  const line = stdout.split('\n').find((entry) => entry.startsWith('__UNIKIT_DIAG_RESULT__'));
   if (line) {
     try {
-      reported = JSON.parse(line.slice('__RUSTRA_DIAG_RESULT__'.length));
+      reported = JSON.parse(line.slice('__UNIKIT_DIAG_RESULT__'.length));
     } catch {
       reported = null;
     }
@@ -123,9 +123,9 @@ export function judgeDoctorSdkMissing({ status, stdout }) {
 export function judgeInvalidPayload({ stdout }) {
   let result = null;
   try {
-    const line = stdout.split('\n').find((entry) => entry.startsWith('__RUSTRA_DIAG_RESULT__'));
+    const line = stdout.split('\n').find((entry) => entry.startsWith('__UNIKIT_DIAG_RESULT__'));
     if (!line) return { reported: false, rawOutput: stdout.slice(-2000) };
-    result = JSON.parse(line.slice('__RUSTRA_DIAG_RESULT__'.length));
+    result = JSON.parse(line.slice('__UNIKIT_DIAG_RESULT__'.length));
   } catch {
     return { reported: false, rawOutput: stdout.slice(-2000) };
   }
@@ -160,21 +160,21 @@ function capture(name, cwd, argv, extraEnv = {}) {
 }
 
 function probeFile(instruction) {
-  return `import { echo, rustra } from './generated/node.js';
+  return `import { echo, unikit } from './generated/node.js';
 const DIAG = ${JSON.stringify(instruction)};
 try {
-  await rustra.ready();
+  await unikit.ready();
   let result;
   try {
     result = { rejected: false, value: await echo(DIAG.input) };
   } catch (error) {
     result = { rejected: true, code: error?.code ?? null, message: String(error?.message ?? error) };
   }
-  console.log('__RUSTRA_DIAG_RESULT__' + JSON.stringify(result));
+  console.log('__UNIKIT_DIAG_RESULT__' + JSON.stringify(result));
 } catch (error) {
-  console.log('__RUSTRA_DIAG_RESULT__' + JSON.stringify({ rejected: true, code: error?.code ?? null, message: String(error?.message ?? error) }));
+  console.log('__UNIKIT_DIAG_RESULT__' + JSON.stringify({ rejected: true, code: error?.code ?? null, message: String(error?.message ?? error) }));
 } finally {
-  rustra.dispose();
+  unikit.dispose();
 }
 `;
 }
@@ -205,7 +205,7 @@ async function main(argv) {
   const startedAt = new Date();
   const receipt = {
     schemaVersion: 1,
-    gate: 'rustra-public-registry-diagnostics',
+    gate: 'unikit-public-registry-diagnostics',
     ok: false,
     startedAt: startedAt.toISOString(),
     evidenceBoundary:
@@ -214,14 +214,14 @@ async function main(argv) {
     steps: [],
   };
   const versions = validateVersionManifest(readJson(VERSIONS_PATH));
-  const scratchRoot = mkdtempSync(join(tmpdir(), 'rustra-registry-diagnostics-'));
+  const scratchRoot = mkdtempSync(join(tmpdir(), 'unikit-registry-diagnostics-'));
   const projectDir = join(scratchRoot, PROJECT_NAME);
   try {
     // 공개 CLI 부트스트랩 → init → 정확 핀 설치 → 빌드·코드젠 (Node 소비자).
     writeJson(join(scratchRoot, 'package.json'), {
-      name: 'rustra-registry-diagnostics-bootstrap',
+      name: 'unikit-registry-diagnostics-bootstrap',
       private: true,
-      dependencies: { '@rustra/cli': versions.npm['@rustra/cli'] },
+      dependencies: { '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'] },
     });
     assertNoConsumerContamination(scratchRoot);
     let run = await runOrderedSteps({
@@ -240,7 +240,7 @@ async function main(argv) {
             cwd: scratchRoot,
             argv: [
               process.execPath,
-              join(scratchRoot, 'node_modules', '@rustra', 'cli', 'dist', 'index.js'),
+              join(scratchRoot, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js'),
               'init',
               PROJECT_NAME,
             ],
@@ -252,10 +252,10 @@ async function main(argv) {
     const packagePath = join(projectDir, 'package.json');
     const packageJson = readJson(packagePath);
     packageJson.dependencies = {
-      '@rustra/node': versions.npm['@rustra/node'],
-      '@rustra/types': versions.npm['@rustra/types'],
+      '@unikit-bridge/node': versions.npm['@unikit-bridge/node'],
+      '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
     };
-    packageJson.devDependencies = { '@rustra/cli': versions.npm['@rustra/cli'] };
+    packageJson.devDependencies = { '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'] };
     writeJson(packagePath, packageJson);
     pinCargoVersions(projectDir, versions.phases.candidate);
     run = await runOrderedSteps({
@@ -273,8 +273,8 @@ async function main(argv) {
               '--ignore-scripts',
               '--no-audit',
               '--no-fund',
-              `@rustra/types@${versions.npm['@rustra/types']}`,
-              `@rustra/node@${versions.npm['@rustra/node']}`,
+              `@unikit-bridge/types@${versions.npm['@unikit-bridge/types']}`,
+              `@unikit-bridge/node@${versions.npm['@unikit-bridge/node']}`,
             ],
           },
         },
@@ -296,10 +296,10 @@ async function main(argv) {
             cwd: projectDir,
             argv: [
               process.execPath,
-              join(projectDir, 'node_modules', '@rustra', 'cli', 'dist', 'index.js'),
+              join(projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js'),
               'codegen',
               '--config',
-              'rustra.json',
+              'unikit.json',
             ],
           },
         },
@@ -307,12 +307,12 @@ async function main(argv) {
     });
     if (!run.ok) throw new Error(`consumer setup failed: ${run.error.message}`);
     assertExactNpmProvenance(projectDir, {
-      '@rustra/cli': versions.npm['@rustra/cli'],
-      '@rustra/types': versions.npm['@rustra/types'],
-      '@rustra/node': versions.npm['@rustra/node'],
+      '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'],
+      '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
+      '@unikit-bridge/node': versions.npm['@unikit-bridge/node'],
     });
-    const projectCli = join(projectDir, 'node_modules', '@rustra', 'cli', 'dist', 'index.js');
-    const binary = join(scratchRoot, 'cargo-target', 'debug', 'rustra-app');
+    const projectCli = join(projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js');
+    const binary = join(scratchRoot, 'cargo-target', 'debug', 'unikit-app');
     if (!existsSync(binary)) throw new Error(`native binary missing: ${binary}`);
 
     const scenarios = receipt.scenarios;
@@ -332,7 +332,7 @@ async function main(argv) {
         projectCli,
         'codegen',
         '--config',
-        'rustra.json',
+        'unikit.json',
         '--check',
       ]);
       const verdict = judgeStaleGeneratedCheck(observed);
@@ -353,7 +353,7 @@ async function main(argv) {
       steps: [
         {
           name: 'restore-codegen',
-          command: { cwd: projectDir, argv: [process.execPath, projectCli, 'codegen', '--config', 'rustra.json'] },
+          command: { cwd: projectDir, argv: [process.execPath, projectCli, 'codegen', '--config', 'unikit.json'] },
         },
       ],
     });
@@ -387,7 +387,7 @@ async function main(argv) {
       ]);
       if (bundle.status !== 0) throw new Error(`bundle failed: ${bundle.stderr.slice(-500)}`);
       const observed = capture('contract-mismatch', projectDir, [process.execPath, '.diag-probe.mjs'], {
-        RUSTRA_NODE_BINARY: binary,
+        UNIKIT_NODE_BINARY: binary,
       });
       const verdict = judgeContractMismatch(observed);
       record(
@@ -409,21 +409,21 @@ async function main(argv) {
         projectCli,
         'codegen',
         '--config',
-        'rustra.json',
+        'unikit.json',
       ]);
       if (regen.status !== 0) throw new Error(`restore regen failed: ${regen.stderr.slice(-500)}`);
     }
 
     // 3) native-missing — 존재하지 않는 네이티브 바이너리 경로.
     {
-      const missingBinary = join(scratchRoot, 'does-not-exist', 'rustra-app');
+      const missingBinary = join(scratchRoot, 'does-not-exist', 'unikit-app');
       const observed = capture('native-missing', projectDir, [process.execPath, '.diag-probe.mjs'], {
-        RUSTRA_NODE_BINARY: missingBinary,
+        UNIKIT_NODE_BINARY: missingBinary,
       });
       const verdict = judgeNativeMissing({ ...observed, binary: missingBinary });
       record(
         'native-missing',
-        'RUSTRA_NODE_BINARY 를 부재 경로로 지정 후 호출',
+        'UNIKIT_NODE_BINARY 를 부재 경로로 지정 후 호출',
         observed,
         verdict,
         verdict.failedLoudly && verdict.mentionsTarget && verdict.actionable,
@@ -437,7 +437,7 @@ async function main(argv) {
         projectCli,
         'doctor',
         '--config',
-        'rustra.json',
+        'unikit.json',
         '--format',
         'json',
       ], { PATH: '' });
@@ -466,7 +466,7 @@ async function main(argv) {
       ]);
       if (bundle.status !== 0) throw new Error(`bundle failed: ${bundle.stderr.slice(-500)}`);
       const observed = capture('invalid-payload', projectDir, [process.execPath, '.diag-invalid.mjs'], {
-        RUSTRA_NODE_BINARY: binary,
+        UNIKIT_NODE_BINARY: binary,
       });
       const verdict = judgeInvalidPayload(observed);
       record(

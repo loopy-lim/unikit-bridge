@@ -1,14 +1,10 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "strict": true,
     "rootDir": "../..",
     "outDir": "../../dist-ts",
     "tsBuildInfoFile": "../../dist-ts/rn-experiment.tsbuildinfo",
-    "incremental": true,
-    "skipLibCheck": true
+    "incremental": true
   },
   "include": ["apps/benchmark.ts", "apps/react-native-app.ts", "apps/node-app.ts"],
   "exclude": ["node_modules"]

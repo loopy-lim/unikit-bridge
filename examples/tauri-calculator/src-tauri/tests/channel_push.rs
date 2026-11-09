@@ -2,21 +2,21 @@
 //!
 //! `create_channel_for` 가 reserve→insert 2단계(ffi_channel.rs 관용)로
 //! AppHandle 캡처 sender를 `ChannelHost`에 등록하고, Rust
-//! `ChannelHandle::send`가 `app.emit("rustra://channel/{handle}")` 로
+//! `ChannelHandle::send`가 `app.emit("unikit://channel/{handle}")` 로
 //! 도달하는지 증명한다. `tauri::test::MockRuntime` 으로 웹뷰/이벤트 루프
 //! 없이 실행한다(event_push.rs 패턴).
 //!
 //! JS 어댑터 계약(`packages/tauri` createChannel)과의 대응:
-//! 1. 발급 — JS `invoke('rustra_channel_create')` ↔ 테스트는 본체 함수 직접 호출
-//! 2. 수신 — JS `listen('rustra://channel/{handle}')` ↔ 테스트는 같은 규칙으로 listen
+//! 1. 발급 — JS `invoke('unikit_channel_create')` ↔ 테스트는 본체 함수 직접 호출
+//! 2. 수신 — JS `listen('unikit://channel/{handle}')` ↔ 테스트는 같은 규칙으로 listen
 //! 3. 왕복 — JS 어댑터 핸들을 `channelDemo` 인자로 통과 ↔ `invoke_json` 동일 경로
 
-use rustra::channels;
-use rustra::prelude::*;
-use rustra::tauri_support::{self, CHANNEL_EVENT_PREFIX};
 use std::sync::{Arc, Mutex};
 use tauri::Listener;
 use tauri::test::{MockRuntime, mock_builder, mock_context, noop_assets};
+use unikit_bridge::channels;
+use unikit_bridge::prelude::*;
+use unikit_bridge::tauri_support::{self, CHANNEL_EVENT_PREFIX};
 
 type Received = Arc<Mutex<Vec<String>>>;
 
@@ -131,7 +131,7 @@ fn channel_demo_package() -> Package {
     #[derive(Debug, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
     #[serde(rename_all = "camelCase")]
     struct ChannelDemoInput {
-        channel: rustra::channels::ChannelHandle,
+        channel: unikit_bridge::channels::ChannelHandle,
         ticks: i32,
     }
     #[derive(Debug, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
@@ -143,7 +143,7 @@ fn channel_demo_package() -> Package {
     Package::builder("example.channel-demo")
         .command(
             "channelDemo",
-            |input: ChannelDemoInput| -> rustra::Result<ChannelDemoOutput> {
+            |input: ChannelDemoInput| -> unikit_bridge::Result<ChannelDemoOutput> {
                 let mut sent = 0;
                 let mut dropped = 0;
                 for step in 0..input.ticks.max(0) {

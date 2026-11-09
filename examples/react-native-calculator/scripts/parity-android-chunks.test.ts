@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { extractAndroidReceipt } from './parity-android-chunks';
 
-const marker = 'RUSTRA_PARITY_CHUNK=';
+const marker = 'UNIKIT_PARITY_CHUNK=';
 const line = (index: number, text: string, total = 2, runId = 'run-a') =>
   marker + JSON.stringify({ index, text, total, runId });
 
@@ -39,7 +39,7 @@ test('rejects invalid indices, malformed envelopes and mismatched payload identi
 });
 
 test('surfaces native preflight failures immediately', () => {
-  expect(() => extractAndroidReceipt('RUSTRA_PARITY_FAILED=Error: wrong output')).toThrow(
+  expect(() => extractAndroidReceipt('UNIKIT_PARITY_FAILED=Error: wrong output')).toThrow(
     'wrong output',
   );
 });

@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { collectAndroid, requireDedicatedApp, type AndroidHost } from './parity-android-host';
 import type { ExperimentManifest } from '../src/nitro-parity/receipt';
 
-const appId = 'com.rustra.nitroparity';
+const appId = 'com.unikit.nitroparity';
 const options = {
   appId,
   component: `${appId}/.MainActivity`,
@@ -23,9 +23,9 @@ function scenario(kind: string) {
     stops = 0;
   const raw =
     kind === 'native'
-      ? 'RUSTRA_PARITY_FAILED=wrong output'
+      ? 'UNIKIT_PARITY_FAILED=wrong output'
       : kind === 'parser'
-        ? 'RUSTRA_PARITY_CHUNK=invalid'
+        ? 'UNIKIT_PARITY_CHUNK=invalid'
         : 'progress before failure';
   const host: AndroidHost = {
     now: () => tick,
@@ -59,7 +59,7 @@ function scenario(kind: string) {
           throw Object.assign(new Error('logcat adb failed'), {
             stdout: 'partial returned raw log',
           });
-        return kind === 'native-cleanup' ? 'RUSTRA_PARITY_FAILED=original native failure' : raw;
+        return kind === 'native-cleanup' ? 'UNIKIT_PARITY_FAILED=original native failure' : raw;
       }
       if (command.includes('getprop')) {
         if (kind === 'environment') throw new Error('getprop adb failed');
@@ -149,20 +149,20 @@ function completedScenario(fault?: 'apk' | 'summary' | 'cleanup') {
         generatedContract: manifest.generatedContract,
         nitroVersion: '0.37.1',
         nitrogenVersion: '0.37.1',
-        rustraVersion: '0.10.2',
+        unikitVersion: '0.10.2',
         representation: 'flat-arena',
         setupLifecycle: 'warm-full-build-and-replacement',
         baseline: manifest.baseline,
         cases: manifest.cases.map(({ rounds, ...c }) => ({
           ...c,
           verified: true,
-          rustra: Array(rounds).fill(100),
+          unikit: Array(rounds).fill(100),
           nitro: Array(rounds).fill(100),
           checksum: 2,
         })),
       };
       return (
-        'RUSTRA_PARITY_CHUNK=' +
+        'UNIKIT_PARITY_CHUNK=' +
         JSON.stringify({ runId: receipt.runId, index: 0, total: 1, text: JSON.stringify(receipt) })
       );
     }

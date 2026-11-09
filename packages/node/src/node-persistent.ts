@@ -1,4 +1,4 @@
-import { RustraCommandError } from '@rustra/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 import type { NodeBootstrapOptions, NodeProcessTransport } from './node-core.js';
 import { createNodeLoopTransport } from './node-loop.js';
 
@@ -13,9 +13,9 @@ export function createNodePersistentTransport(
   });
   return Object.assign(loop, {
     async getContractHash() {
-      const hash = await loop.invoke('__rustra_contract');
+      const hash = await loop.invoke('__unikit_contract');
       if (typeof hash !== 'string' || !hash)
-        throw new RustraCommandError(
+        throw new UnikitCommandError(
           'contract.unenforceable',
           'Persistent Node runtime returned an invalid contract hash',
         );
@@ -33,7 +33,7 @@ export async function awaitNodeReadiness<T>(
 ): Promise<T> {
   const timeoutMs = options.readinessTimeoutMs ?? 5_000;
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0)
-    throw new RustraCommandError(
+    throw new UnikitCommandError(
       'command.invalid_args',
       'readinessTimeoutMs must be a positive finite number',
     );
@@ -44,9 +44,9 @@ export async function awaitNodeReadiness<T>(
       new Promise<never>((_resolve, reject) => {
         timer = setTimeout(() => {
           reject(
-            new RustraCommandError(
+            new UnikitCommandError(
               code,
-              `Node runtime ${endpoint} probe timed out after ${timeoutMs}ms; rebuild a compatible Rustra serve host or adjust readinessTimeoutMs.`,
+              `Node runtime ${endpoint} probe timed out after ${timeoutMs}ms; rebuild a compatible Unikit serve host or adjust readinessTimeoutMs.`,
             ),
           );
           transport.dispose();
@@ -64,19 +64,19 @@ export async function verifyNodeEventRuntime(
 ) {
   try {
     const capabilities = (await awaitNodeReadiness(
-      () => transport.invoke('__rustra_capabilities'),
+      () => transport.invoke('__unikit_capabilities'),
       transport,
       options,
-      '__rustra_capabilities',
+      '__unikit_capabilities',
       'event.unavailable',
     )) as { events?: unknown };
     if (capabilities?.events !== 'polling' && capabilities?.events !== 'push')
       throw new Error('runtime did not advertise event delivery');
   } catch (error) {
-    if (error instanceof RustraCommandError && error.code === 'event.unavailable') throw error;
-    throw new RustraCommandError(
+    if (error instanceof UnikitCommandError && error.code === 'event.unavailable') throw error;
+    throw new UnikitCommandError(
       'event.unavailable',
-      'Persistent Node events require a Rustra serve runtime with __rustra_capabilities and __drainEvents; rebuild the Rust host with the current scaffold.',
+      'Persistent Node events require a Unikit serve runtime with __unikit_capabilities and __drainEvents; rebuild the Rust host with the current scaffold.',
       false,
       error,
     );

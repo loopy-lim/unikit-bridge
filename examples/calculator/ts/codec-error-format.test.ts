@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { addNumbersCodec } from '../generated/frame-codecs.js';
 
-// 생성 코덱 디코드 오류 계약 — 'rustra: <원인> (offset N)' 고정 형식.
+// 생성 코덱 디코드 오류 계약 — 'unikit: <원인> (offset N)' 고정 형식.
 // tier2 엔진 정규화(packages/types DECODE_OFFSET_HINT)가 이 오프셋을 그대로
 // 소비한다: 가짜 코덱 단위 테스트(frame-engine-contract.test.ts)가 추출 규칙을
 // 검증하고, 이 테스트는 실제 생성 코덱이 같은 형식을 내는지 고정한다.
@@ -27,10 +27,10 @@ function truncatedAddNumbersFrame(): ArrayBuffer {
   return bytes.buffer;
 }
 
-void test('generated codec decode errors carry the rustra: prefix and a real offset', () => {
+void test('generated codec decode errors carry the unikit: prefix and a real offset', () => {
   assert.throws(
     () => addNumbersCodec.decode(truncatedAddNumbersFrame()),
-    /rustra: varint out of bounds \(offset \d+\)/,
+    /unikit: varint out of bounds \(offset \d+\)/,
   );
 });
 

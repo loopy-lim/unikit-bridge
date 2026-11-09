@@ -1,20 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { rustraPlugin } from './vite.js';
+import { unikitPlugin } from './vite.js';
 
-test('rustraPlugin returns vite plugin with name and hooks', () => {
-  const plugin = rustraPlugin({
+test('unikitPlugin returns vite plugin with name and hooks', () => {
+  const plugin = unikitPlugin({
     backendDir: 'custom-backend',
     generatedDir: 'custom-gen',
   });
 
-  assert.equal(plugin.name, 'vite-plugin-rustra');
+  assert.equal(plugin.name, 'vite-plugin-unikit');
   assert.equal(typeof plugin.buildStart, 'function');
   assert.equal(typeof plugin.handleHotUpdate, 'function');
 });
 
-test('rustraPlugin handles buildStart gracefully when directory is absent', async () => {
-  const plugin = rustraPlugin({
+test('unikitPlugin handles buildStart gracefully when directory is absent', async () => {
+  const plugin = unikitPlugin({
     backendDir: 'non-existent-dir-1234',
   });
 

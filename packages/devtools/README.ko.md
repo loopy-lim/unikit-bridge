@@ -1,20 +1,20 @@
-# @rustra/devtools
+# @unikit-bridge/devtools
 
-rustra 호출 관측성 엔진 래퍼. 어떤 `EngineClient`든 감싸 호출 수/에러 수/누적
+unikit 호출 관측성 엔진 래퍼. 어떤 `EngineClient`든 감싸 호출 수/에러 수/누적
 지연을 기록한다.
 
 ## 설치
 
 ```bash
-bun add @rustra/devtools
+bun add @unikit-bridge/devtools
 ```
 
 ## createInstrumentedEngine
 
 ```ts
-import { createInstrumentedEngine } from '@rustra/devtools';
-import { configure } from '@rustra/types';
-import { createNodeEngine } from '@rustra/node';
+import { createInstrumentedEngine } from '@unikit-bridge/devtools';
+import { configure } from '@unikit-bridge/types';
+import { createNodeEngine } from '@unikit-bridge/node';
 
 const engine = createInstrumentedEngine(createNodeEngine({ invoke: myTransport }));
 configure(engine);
@@ -46,5 +46,5 @@ options)`의 options(signal/timeoutMs)를 inner 엔진에 그대로 전달하고
 
 ## 관련 문서
 
-- [호환성 매트릭스](https://github.com/loopy-lim/rustra/blob/main/docs/compatibility-matrix.md)
-- [메인 README](https://github.com/loopy-lim/rustra#readme)
+- [호환성 매트릭스](https://github.com/loopy-lim/unikit-bridge/blob/main/docs/compatibility-matrix.md)
+- [메인 README](https://github.com/loopy-lim/unikit-bridge#readme)

@@ -19,7 +19,7 @@
 
 1.0 = 이 문장의 모든 명사가 예외 없이 증명된 상태:
 
-- **"계약이 검증된"**: `rustra diff` CI 게이트 + contract hash 런타임 감지 + OTA 스키마
+- **"계약이 검증된"**: `unikit diff` CI 게이트 + contract hash 런타임 감지 + OTA 스키마
   호환이 기본값
 - **"어디서든"**: 4호스트가 전부 Runtime verified + 실기기 증거까지
 - **"한 줄도 쓰지 않는다"**: 단일 화살 코드젠(생성 진입점 규칙)이 모든 호스트에서 동일
@@ -30,7 +30,7 @@
    CI에서 항상 green이고, 스크래치→첫 호출이 문서대로만 따라가면 되는 상태.
 2. **증거의 등급화** — "지원한다"와 "증명됐다"의 거리를 계속 좁힌다. 호환성 매트릭스의
    증거 수준이 거짓말을 하지 않는 것. iOS 실기기, Windows host 수준 실증이 과제.
-3. **생태계 개방** — 확장이 rustra 내부가 아니라 안정된 API로 이뤄지는 것. 서드파티가
+3. **생태계 개방** — 확장이 unikit 내부가 아니라 안정된 API로 이뤄지는 것. 서드파티가
    adding-host 가이드만 따라 호스트를 추가할 수 있는 수준.
 
 ### 보조 지표 3개
@@ -55,7 +55,7 @@
 
 ### T1. 버전 스큐 해소 + 발행 (즉시, 저위험 고임금)
 
-- testing/devtools/react 0.4.1이 `@rustra/types ^0.5.0`에 의존하는 스큐를 changeset(minor)
+- testing/devtools/react 0.4.1이 `@unikit-bridge/types ^0.5.0`에 의존하는 스큐를 changeset(minor)
   으로 해소. 대기 중 changeset과 함께 발행 PR #51 처리.
 - 루트 CHANGELOG 0.2.0 정지분 정리 (0.3→0.6 와이어 breaking 요약).
 - 성공 기준: npm 설치 → 어댑터 조합이 peer resolution 에러 없이 통과.
@@ -63,7 +63,7 @@
 ### T2. 이벤트 표면 완결 (가장 큰 사용자 가치 갭)
 
 - Node/Bun `subscribeEvent` — node는 현재 drainEvents 폴링만 제공 → push 지원.
-- 타입 안전 이벤트 코드젠 — schema.json에 events 섹션 추가. `rustra diff`가 이벤트
+- 타입 안전 이벤트 코드젠 — schema.json에 events 섹션 추가. `unikit diff`가 이벤트
   breaking change도 잡도록 계약 게이트와 정합 (open question: events 섹션과 diff 게이트
   정합 방식).
 - Tauri 채널 표면.
@@ -92,12 +92,12 @@
 
 ### 착지 항목
 
-- **에러 품질**: normalizeRustraError cause 체인 보존, 에러 클래스 계층(Timeout/Cancelled
+- **에러 품질**: normalizeUnikitError cause 체인 보존, 에러 클래스 계층(Timeout/Cancelled
   서브클래스, minor 내 opt-in 설계로 breaking 회피), retryable 소비 유틸(withRetry).
-- **디버깅 지원**: RUSTRA_DEBUG 계열 env — 와이어 덤프, NDJSON 파싱 실패 라인 보존,
+- **디버깅 지원**: UNIKIT_DEBUG 계열 env — 와이어 덤프, NDJSON 파싱 실패 라인 보존,
   응답 셰이프 검증 경고.
 - **Rust 저작면 진단**: 코드젠 unknown 폴백 무경고 제거(타입명·명령명 보고), fn doc comment
-  → TS JSDoc 전달(죽은 `__RUstra_doc_` 상수 살리기), 커스텀 에러 enum → TS 코드 매핑
+  → TS JSDoc 전달(죽은 `__UNikit_doc_` 상수 살리기), 커스텀 에러 enum → TS 코드 매핑
   (thiserror 패턴 문서화).
 - **검증 커버리지**: mock 엔진 출력 검증, 계약 게이트가 필드 추가/삭제·타입 변경 감지로
   강화, iOS 실기기 증거 격상.

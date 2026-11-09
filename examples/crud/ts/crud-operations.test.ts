@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configure } from '@rustra/types';
+import { configure } from '@unikit-bridge/types';
 import { createItem, deleteItem, getItem, listItems, updateItem } from '../generated/commands.js';
 import type { EngineClient } from '../generated/types.js';
 
@@ -41,7 +41,7 @@ void test('listItems returns filtered items', async () => {
   configure(mockEngine(responses));
   const result = await listItems({ minValue: 5 });
   assert.equal(result.items.length, 1);
-  assert.equal(result.items[0].name, 'A');
+  assert.equal(result.items[0]!.name, 'A');
 });
 
 void test('updateItem patches name and value', async () => {

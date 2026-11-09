@@ -1,6 +1,6 @@
-use rustra::prelude::*;
 use serde_json::Value;
 use std::time::Instant;
+use unikit_bridge::prelude::*;
 
 // ── (측정 인프라) 할당 카운팅 global_allocator ───────────────
 // 호출당 malloc 횟수를 잰다 — caller-buffer/Arc 같은 복사 제거 최적화의 효과를
@@ -42,7 +42,7 @@ fn alloc_delta<R>(f: impl FnOnce() -> R) -> (R, usize, usize) {
 
 fn main() {
     println!("╔══════════════════════════════════════════════════════════╗");
-    println!("║           rustra-bridge Performance Benchmark           ║");
+    println!("║           unikit-bridge Performance Benchmark           ║");
     println!("╚══════════════════════════════════════════════════════════╝");
     println!();
 
@@ -157,7 +157,7 @@ fn bench_allocations_per_invoke(package: &Package) {
         for _ in 0..1000 {
             let mut out_len = 0usize;
             let written = unsafe {
-                rustra::ffi::rustra_ffi_invoke_frame_into(
+                unikit_bridge::ffi::unikit_ffi_invoke_frame_into(
                     v2_req.as_ptr(),
                     v2_req.len(),
                     caller_buffer.as_mut_ptr(),
@@ -246,7 +246,7 @@ fn process_payload(input: PayloadInput) -> Result<PayloadOutput> {
     Ok(PayloadOutput { count, total_score })
 }
 
-fn build_benchmark_package() -> rustra::Package {
+fn build_benchmark_package() -> unikit_bridge::Package {
     register!(Package::builder("benchmark"), add_numbers, process_payload).build()
 }
 
@@ -286,7 +286,7 @@ fn bench_package_creation() -> f64 {
     avg_ns
 }
 
-fn bench_command_invocation(package: &rustra::Package) -> f64 {
+fn bench_command_invocation(package: &unikit_bridge::Package) -> f64 {
     println!("┌─ Command Invocation (addNumbers) ──────────────────────┐");
     let iterations = 100_000;
     let input = SimpleInput { a: 42, b: 58 };
@@ -399,7 +399,7 @@ fn bench_deserialization() {
     println!();
 }
 
-fn bench_json_roundtrip(package: &rustra::Package) {
+fn bench_json_roundtrip(package: &unikit_bridge::Package) {
     println!("┌─ JSON Roundtrip (invoke_json) ─────────────────────────┐");
 
     let cases: Vec<(&str, &str, Value)> = vec![
@@ -467,7 +467,7 @@ fn bench_json_roundtrip(package: &rustra::Package) {
     println!();
 }
 
-fn bench_ts_generation(package: &rustra::Package) -> f64 {
+fn bench_ts_generation(package: &unikit_bridge::Package) -> f64 {
     println!("┌─ TypeScript Code Generation ───────────────────────────┐");
 
     let iterations = 1_000;
@@ -498,7 +498,7 @@ fn bench_ts_generation(package: &rustra::Package) -> f64 {
     avg_ns
 }
 
-fn bench_payload_scaling(package: &rustra::Package) {
+fn bench_payload_scaling(package: &unikit_bridge::Package) {
     println!("┌─ Payload Size Scaling (processPayload) ────────────────┐");
 
     let sizes = [1, 5, 10, 50, 100, 500, 1000];
@@ -552,7 +552,7 @@ fn bench_payload_scaling(package: &rustra::Package) {
     println!();
 }
 
-fn bench_concurrent_invocation(package: &rustra::Package) {
+fn bench_concurrent_invocation(package: &unikit_bridge::Package) {
     println!("┌─ Throughput (single-threaded) ─────────────────────────┐");
 
     let iterations = 500_000;
@@ -585,7 +585,7 @@ fn bench_concurrent_invocation(package: &rustra::Package) {
 /// 실제 병렬 invoke — N 스레드 × iterations. 일반 typed(JSON Value) 경로와 RN
 /// JSI가 쓰는 Frame binary 경로를 함께 측정한다. 안전성은
 /// tests/frame_concurrency.rs가 증명하고 여기서는 확장성만 본다.
-fn bench_parallel_invocation(package: &rustra::Package) {
+fn bench_parallel_invocation(package: &unikit_bridge::Package) {
     println!("┌─ Throughput (multi-threaded, std::thread::scope) ───────┐");
 
     let v2_request = add_numbers_v2_request(package, 42, 58);
@@ -644,7 +644,7 @@ fn bench_parallel_invocation(package: &rustra::Package) {
                     for _ in 0..iterations_per_thread {
                         let mut out_len = 0usize;
                         let written = unsafe {
-                            rustra::ffi::rustra_ffi_invoke_frame_into(
+                            unikit_bridge::ffi::unikit_ffi_invoke_frame_into(
                                 request.as_ptr(),
                                 request.len(),
                                 caller_buffer.as_mut_ptr(),
@@ -673,7 +673,7 @@ fn bench_parallel_invocation(package: &rustra::Package) {
 /// 메모리 사용량 — invoke 와이어 할당 관점의 근사 측정.
 /// 의존성 없이 /proc 또는 mach API 대신, 할당 크기를 직렬화 결과 크기로 환산하는
 /// Rust 표준만으로 측정한다: payload별 직렬화 버퍼 크기 + invoke 전후 프로세스 RSS.
-fn bench_memory_usage(package: &rustra::Package) {
+fn bench_memory_usage(package: &unikit_bridge::Package) {
     println!("┌─ Memory (wire size + RSS delta) ────────────────────────┐");
 
     // 1) payload 크기별 직렬화 버퍼 크기 — 와이어 예산.

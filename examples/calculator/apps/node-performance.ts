@@ -7,9 +7,9 @@ import {
   createNodeEngine,
   createNodeLoopTransport,
   createNodeProcessTransport,
-} from '@rustra/node';
-import { createFrameEngine } from '@rustra/types';
-import { addNumbers, rustra } from '../generated/node.js';
+} from '@unikit-bridge/node';
+import { createFrameEngine } from '@unikit-bridge/types';
+import { addNumbers, unikit } from '../generated/node.js';
 import { frameRegistry } from '../generated/frame-registry.js';
 import { benchmarkCommand } from './performance-stats.js';
 
@@ -24,10 +24,10 @@ const generated = await benchmarkCommand({
   warmup: 10,
   iterations: 200,
 });
-rustra.dispose();
+unikit.dispose();
 
 const oneShotTransport = createNodeProcessTransport({
-  command: resolve(root, 'target/release/rustra-calculator-example'),
+  command: resolve(root, 'target/release/unikit-calculator-example'),
   args: ['invoke'],
 });
 const oneShotEngine = createNodeEngine(oneShotTransport);
@@ -41,7 +41,7 @@ const oneShot = await benchmarkCommand({
 oneShotTransport.dispose();
 
 const persistentBootstrap = createNodeBootstrap({
-  command: resolve(root, 'target/release/rustra-calculator-example'),
+  command: resolve(root, 'target/release/unikit-calculator-example'),
   persistent: true,
 });
 const persistentEngine = await persistentBootstrap.ready();
@@ -81,12 +81,12 @@ if (!addonName) {
   throw new Error(`Node N-API addon not found: tried ${addonNames.join(', ')}`);
 }
 const native = createRequire(import.meta.url)(resolve(addonDirectory, addonName)) as {
-  rustraInvokeFrame(payload: Buffer): Buffer;
+  unikitInvokeFrame(payload: Buffer): Buffer;
 };
 const napiEngine = createFrameEngine(
   {
     invokeFrame(payload: ArrayBuffer): ArrayBuffer {
-      const response = native.rustraInvokeFrame(Buffer.from(payload));
+      const response = native.unikitInvokeFrame(Buffer.from(payload));
       const owned = new ArrayBuffer(response.byteLength);
       new Uint8Array(owned).set(response);
       return owned;
@@ -103,5 +103,5 @@ const napi = await benchmarkCommand({
 });
 
 console.log(
-  `RUSTRA_HOST_BENCH_JSON=${JSON.stringify({ runtime: `Node ${process.version}`, results: [generated, oneShot, persistent, loop, napi] })}`,
+  `UNIKIT_HOST_BENCH_JSON=${JSON.stringify({ runtime: `Node ${process.version}`, results: [generated, oneShot, persistent, loop, napi] })}`,
 );

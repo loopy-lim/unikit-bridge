@@ -2,7 +2,7 @@
  * 코드젠 경고 수집기 — TS CLI 코드젠이 스키마를 `"unknown"` 폴백으로 매핑할 때
  * 타입 컨텍스트(정의/명령명 + 스키마 type 발췌)를 잃지 않게 모은다.
  *
- * Rust 측 `crates/rustra/src/codegen.rs` 의 thread-local 수집기와 동일한 계약:
+ * Rust 측 `crates/unikit-bridge/src/codegen.rs` 의 thread-local 수집기와 동일한 계약:
  * 생성 세션 진입에서 clear → 명령/정의 루프에서 컨텍스트 설정 → 종료에서 take.
  * 경고는 생성 파일(types.ts 등)의 바이트 출력에 영향을 주지 않는다 — CLI가
  * stderr 로 별도 출력하는 진행 채널이다.
@@ -50,5 +50,5 @@ export function takeCodegenWarnings(): string[] {
 
 /** CLI가 stderr로 출력하는 진단 라인. */
 export function formatCodegenWarning(warning: string): string {
-  return `[rustra:codegen] warning: ${warning}`;
+  return `[unikit:codegen] warning: ${warning}`;
 }

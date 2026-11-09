@@ -63,8 +63,8 @@ export function assertExactVersion(value, label) {
 export function validateVersionManifest(manifest) {
   if (!manifest || manifest.schemaVersion !== 1)
     throw new Error('version manifest schemaVersion must be 1');
-  const npmNames = ['@rustra/cli', '@rustra/types', '@rustra/node', '@rustra/bun'];
-  const rustNames = ['rustra', 'rustra-macros', 'rustra-naming'];
+  const npmNames = ['@unikit-bridge/cli', '@unikit-bridge/types', '@unikit-bridge/node', '@unikit-bridge/bun'];
+  const rustNames = ['unikit-bridge', 'unikit-bridge-macros', 'unikit-bridge-naming'];
   if (
     !manifest.npm ||
     Object.keys(manifest.npm).sort().join('\n') !== [...npmNames].sort().join('\n')
@@ -91,7 +91,7 @@ export function validateVersionManifest(manifest) {
   }
   // hosts — GUI/모바일 여정(tauri, react-native)이 쓰는 선택 정확 핀. Node/Bun CLI
   // 게이트는 이 섹션 없이도 그대로 통과해야 한다(키 검사는 엄격 유지).
-  const hostNames = ['@rustra/tauri', '@rustra/react-native'];
+  const hostNames = ['@unikit-bridge/tauri', '@unikit-bridge/react-native'];
   if (manifest.hosts !== undefined) {
     if (!manifest.hosts || typeof manifest.hosts !== 'object' || Array.isArray(manifest.hosts))
       throw new Error('version manifest hosts must be an object when present');
@@ -138,13 +138,13 @@ export function assertNoConsumerContamination(
       }
       if (/^(?:workspace:|file:|link:|git(?:\+|:)|https?:\/\/.*\.git(?:#|$))/.test(spec)) {
         // RN 코드젠 계약 — 생성된 네이티브 모듈은 workspace:* 로 등록된다
-        // (ensureReactNativeDependency). 로컬 Rustra 소스 우회가 아니라 코드젠
+        // (ensureReactNativeDependency). 로컬 Unikit 소스 우회가 아니라 코드젠
         // 산출물이므로 여정마다 명시적으로 허용 목록에 넣어 쓴다.
         const isGeneratedWorkspace =
           spec === 'workspace:*' && allowedWorkspacePackages.includes(name);
         if (!isGeneratedWorkspace) violations.push(`${name} uses forbidden dependency source ${spec}`);
       }
-      if (name.startsWith('@rustra/')) {
+      if (name.startsWith('@unikit-bridge/')) {
         const canonicalCliRange = expectedNpm?.[name] ? `^${expectedNpm[name]}` : null;
         if (!EXACT_SEMVER.test(spec) && spec !== canonicalCliRange && spec !== 'workspace:*')
           violations.push(`${name} uses unsupported version spec ${spec}`);
@@ -158,9 +158,9 @@ export function assertNoConsumerContamination(
     if (/^\s*\[replace\]/m.test(cargo)) violations.push('Cargo.toml contains [replace]');
     if (cargoDependencyBlocks(cargo).some((block) => /\b(?:path|git)\s*=/.test(block)))
       violations.push('Cargo.toml contains a path/git dependency');
-    for (const name of ['rustra', 'rustra-macros', 'rustra-naming']) {
+    for (const name of ['unikit-bridge', 'unikit-bridge-macros', 'unikit-bridge-naming']) {
       const escaped = name.replaceAll('-', '\\-');
-      // 두 표기 모두 잡는다 — `rustra = "x"` 와 `rustra = { version = "x", … }`.
+      // 두 표기 모두 잡는다 — `unikit-bridge = "x"` 와 `unikit-bridge = { version = "x", … }`.
       // brace 형태를 파싱하지 않으면 features 지정 소비자가 핀 없이 통과하고,
       // version 키 자체가 없으면(워크스페이스 상속 등) 최신 해석으로 뜬다.
       const stringMatch = cargo.match(new RegExp(`^${escaped}\\s*=\\s*"([^"]+)"`, 'm'));
@@ -176,7 +176,7 @@ export function assertNoConsumerContamination(
     }
   }
   for (const name of ['cli', 'types', 'node', 'bun']) {
-    const path = join(projectDir, 'node_modules', '@rustra', name);
+    const path = join(projectDir, 'node_modules', '@unikit-bridge', name);
     if (existsSync(path) && lstatSync(path).isSymbolicLink())
       violations.push(`${path} is a symlink`);
   }

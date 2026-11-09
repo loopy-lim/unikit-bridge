@@ -17,28 +17,28 @@
 
 | Member 경로                           | 패키지명                    | 역할                                                             |
 | ------------------------------------- | --------------------------- | ---------------------------------------------------------------- |
-| `crates/rustra-naming`                | `rustra-naming`             | Rust·proc-macro 코드젠이 공유하는 식별자 네이밍 규칙             |
-| `crates/rustra`                       | `rustra`                    | 핵심 라이브러리. Package 빌더, TypeScript 코드생성, command 등록 |
-| `crates/rustra-macros`                | `rustra-macros`             | `#[command]` proc macro. 컴파일 타임 시그니처 검증               |
-| `examples/calculator`                 | `rustra-calculator-example` | 예제 계산기. rlib/cdylib/staticlib으로 빌드하여 RN/FFI에서 사용  |
-| `examples/crud`                       | `rustra-crud-example`       | CRUD 패턴 예시 (create/get/list/update/delete)                   |
-| `examples/calculator-napi`            | `rustra-calculator-napi`    | napi-rs transport 예시                                           |
-| `examples/tauri-calculator/src-tauri` | (Tauri 앱)                  | Tauri 백엔드. rustra의 `tauri` feature 사용 (macOS 전용 빌드)    |
-| `examples/benchmark`                  | `rustra-benchmark`          | 성능 벤치마크 예시                                               |
-| `examples/streaming`                  | `rustra-streaming-example`  | 이벤트 스트리밍 예시                                             |
-| `examples/auth`                       | `rustra-auth-example`       | 세션/capability 게이트 예시                                      |
+| `crates/unikit-bridge-naming`                | `unikit-bridge-naming`             | Rust·proc-macro 코드젠이 공유하는 식별자 네이밍 규칙             |
+| `crates/unikit-bridge`                       | `unikit`                    | 핵심 라이브러리. Package 빌더, TypeScript 코드생성, command 등록 |
+| `crates/unikit-bridge-macros`                | `unikit-bridge-macros`             | `#[command]` proc macro. 컴파일 타임 시그니처 검증               |
+| `examples/calculator`                 | `unikit-calculator-example` | 예제 계산기. rlib/cdylib/staticlib으로 빌드하여 RN/FFI에서 사용  |
+| `examples/crud`                       | `unikit-crud-example`       | CRUD 패턴 예시 (create/get/list/update/delete)                   |
+| `examples/calculator-napi`            | `unikit-calculator-napi`    | napi-rs transport 예시                                           |
+| `examples/tauri-calculator/src-tauri` | (Tauri 앱)                  | Tauri 백엔드. unikit의 `tauri` feature 사용 (macOS 전용 빌드)    |
+| `examples/benchmark`                  | `unikit-benchmark`          | 성능 벤치마크 예시                                               |
+| `examples/streaming`                  | `unikit-streaming-example`  | 이벤트 스트리밍 예시                                             |
+| `examples/auth`                       | `unikit-auth-example`       | 세션/capability 게이트 예시                                      |
 
 `default-members`(기본 `cargo build`/`test`가 빌드하는 범위)는
-`crates/rustra-naming`과 macOS 전용 `examples/tauri-calculator/src-tauri`를
+`crates/unikit-bridge-naming`과 macOS 전용 `examples/tauri-calculator/src-tauri`를
 제외한다 — 전체 멤버는 `--workspace`로 빌드한다.
 
 ### Workspace Dependencies
 
 ```toml
 [workspace.dependencies]
-rustra-naming = { path = "crates/rustra-naming" }
-rustra-macros = { path = "crates/rustra-macros" }
-rustra = { path = "crates/rustra" }
+unikit-bridge-naming = { path = "crates/unikit-bridge-naming" }
+unikit-bridge-macros = { path = "crates/unikit-bridge-macros" }
+unikit-bridge = { path = "crates/unikit-bridge" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 schemars = { version = "0.8", features = ["derive", "preserve_order"] }
@@ -54,16 +54,16 @@ postcard = { version = "1", default-features = false, features = ["alloc"] }
 ## 빌드 의존성 그래프
 
 ```
-rustra-macros (proc-macro)
+unikit-bridge-macros (proc-macro)
   ├─ syn 2 (full)
   ├─ quote 1
   ├─ proc-macro2 1
-  └─ rustra-naming (workspace)
+  └─ unikit-bridge-naming (workspace)
         │
         ▼
-rustra
-  ├─ rustra-macros (workspace)
-  ├─ rustra-naming (workspace)
+unikit
+  ├─ unikit-bridge-macros (workspace)
+  ├─ unikit-bridge-naming (workspace)
   ├─ schemars 0.8 (derive)
   ├─ serde 1 (derive)
   ├─ serde_json 1
@@ -73,22 +73,22 @@ rustra
   └─ tauri 2 (optional, feature = "tauri")
         │
         ▼
-rustra-calculator-example
-  ├─ rustra (workspace)
+unikit-calculator-example
+  ├─ unikit (workspace)
   ├─ schemars (workspace)
   ├─ serde (workspace)
   └─ serde_json (workspace)
         │
         ▼
 tauri-calculator (src-tauri)
-  └─ rustra (workspace, features = ["tauri"])
+  └─ unikit (workspace, features = ["tauri"])
 ```
 
 ---
 
 ## Crate 상세
 
-### rustra (`crates/rustra`)
+### unikit (`crates/unikit-bridge`)
 
 핵심 라이브러리. 사용자가 Package를 구성하고 TypeScript 클라이언트를 생성하는 진입점이다.
 
@@ -107,11 +107,11 @@ tauri-calculator (src-tauri)
 | `GeneratedPackage`                        | struct                 | 생성된 TS 클라이언트 (4개 파일)                                                                        |
 | `GeneratedPackage::write_to_dir()`        | method                 | 디렉토리에 파일 쓰기 — deprecated (single-arrow)                                                       |
 | `GeneratedPackage::write_schema_to_dir()` | method                 | schema.json 만 쓰기 (계약 프로브)                                                                      |
-| `RustraError`                             | struct                 | 에러 타입. `Serialize` 구현. `code + message` 필드 + `custom()` 생성자 + `code()` / `message()` getter |
-| `command`                                 | macro (re-export)      | `rustra_macros::command`                                                                               |
-| `register`                                | macro (re-export)      | `rustra_macros::register`. 다중 command 일괄 등록                                                      |
+| `UnikitError`                             | struct                 | 에러 타입. `Serialize` 구현. `code + message` 필드 + `custom()` 생성자 + `code()` / `message()` getter |
+| `command`                                 | macro (re-export)      | `unikit_bridge_macros::command`                                                                               |
+| `register`                                | macro (re-export)      | `unikit_bridge_macros::register`. 다중 command 일괄 등록                                                      |
 | `prelude`                                 | module                 | 자주 쓰는 항목 일괄 import (`command`, `register` 포함)                                                |
-| `tauri_support`                           | module (feature-gated) | `RustraState`, `rustra_dispatch`, `register()` — Tauri 연동 헬퍼                                       |
+| `tauri_support`                           | module (feature-gated) | `UnikitState`, `unikit_dispatch`, `register()` — Tauri 연동 헬퍼                                       |
 | `__private`                               | module (sealed)        | `CommandInput`, `CommandOutput` trait. proc macro 전용                                                 |
 
 **Features:**
@@ -133,7 +133,7 @@ tauri-calculator (src-tauri)
 
 ---
 
-### rustra-macros (`crates/rustra-macros`)
+### unikit-bridge-macros (`crates/unikit-bridge-macros`)
 
 `#[command]` 속성 매크로와 `register!` 매크로를 제공하는 proc-macro crate.
 
@@ -156,16 +156,16 @@ tauri-calculator (src-tauri)
 **`#[command]` 생성물:**
 
 - 원본 함수 (그대로 통과)
-- `const __RUstra_meta_{fn_name}: &str` — command 이름을 저장하는 상수. `register!` 매크로에서 참조
+- `const __UNikit_meta_{fn_name}: &str` — command 이름을 저장하는 상수. `register!` 매크로에서 참조
 - `_assert_command_bounds::<I, O>()` — 컴파일 타임 trait bound 검증 함수
 
 **`register!` 동작:**
 
 ```rust
-rustra::register!(Package::builder("pkg"), add_numbers, multiply)
+unikit_bridge::register!(Package::builder("pkg"), add_numbers, multiply)
 ```
 
-위 코드는 각 함수의 `__RUstra_meta_*` 상수를 읽어 `.command(name, fn)` 체인으로 확장한다.
+위 코드는 각 함수의 `__UNikit_meta_*` 상수를 읽어 `.command(name, fn)` 체인으로 확장한다.
 
 ---
 
@@ -181,9 +181,9 @@ rustra::register!(Package::builder("pkg"), add_numbers, multiply)
 | `packages/tauri/src/index.ts`        | `createTauriEngine({ invoke })`        | `TauriEngineClient` | `TauriInvoke`           |
 | `packages/react-native/src/index.ts` | generated bootstrap / low-level engine | `EngineClient`      | JSI + caller-buffer FFI |
 
-모든 클라이언트는 `EngineClient` 인터페이스(`invoke<T>(command, args?)`)를 구현한다. Tauri adapter만 내부적으로 `rustra_dispatch`로 명령을 래핑하고, 나머지는 transport의 `invoke`를 직접 호출한다.
+모든 클라이언트는 `EngineClient` 인터페이스(`invoke<T>(command, args?)`)를 구현한다. Tauri adapter만 내부적으로 `unikit_dispatch`로 명령을 래핑하고, 나머지는 transport의 `invoke`를 직접 호출한다.
 
-Tauri adapter는 추가로 `RustraError` 타입과 `RustraCommandError` 클래스를 export한다. `createTauriEngine`은 `rustra_dispatch` 에러 응답을 `RustraCommandError`로 변환하여 throw한다.
+Tauri adapter는 추가로 `UnikitError` 타입과 `UnikitCommandError` 클래스를 export한다. `createTauriEngine`은 `unikit_dispatch` 에러 응답을 `UnikitCommandError`로 변환하여 throw한다.
 
 ---
 
@@ -195,13 +195,13 @@ Tauri adapter는 추가로 `RustraError` 타입과 `RustraCommandError` 클래�
 
 ```
 examples/calculator/
-├── Cargo.toml          # rustra-calculator-example (rlib + cdylib + staticlib)
+├── Cargo.toml          # unikit-calculator-example (rlib + cdylib + staticlib)
 ├── src/lib.rs          # add_numbers command + calculator_package() + FFI export
 ├── ts/
 │   ├── adapter-compat.test.ts    # 4개 adapter 동작 + host-specific import 없음
 │   ├── generated-client.test.ts  # command helper 동작 + banned import 체크
 │   └── runtime-contract.test.ts  # host 앱들의 zero-config 엔트리 사용 + RN FFI
-├── generated/          # codegen 출력 (schema.json, types.ts, commands.ts, contract.ts, frame-codecs.ts, frame-registry.ts, errors.ts, devices.ts, 호스트 엔트리, .rustra-generated.json)
+├── generated/          # codegen 출력 (schema.json, types.ts, commands.ts, contract.ts, frame-codecs.ts, frame-registry.ts, errors.ts, devices.ts, 호스트 엔트리, .unikit-generated.json)
 ├── apps/
 │   ├── node-app.ts     # Node.js 런타임 앱
 │   └── bun-app.ts      # Bun 런타임 앱
@@ -215,8 +215,8 @@ Tauri 데스크톱 앱 예제.
 examples/tauri-calculator/
 ├── src/app.ts                # 프론트엔드, createTauriEngine 사용
 ├── src-tauri/
-│   ├── Cargo.toml            # rustra (features = ["tauri"]) 의존
-│   └── src/main.rs           # rustra_support::register로 Tauri에 연동
+│   ├── Cargo.toml            # unikit (features = ["tauri"]) 의존
+│   └── src/main.rs           # unikit_support::register로 Tauri에 연동
 ```
 
 ### react-native-calculator (`examples/react-native-calculator/`)
@@ -227,6 +227,6 @@ React Native 모바일 앱 예제.
 examples/react-native-calculator/
 ├── App.tsx                           # createReactNativeEngine 사용
 ├── metro.config.js                   # watchFolders로 generated/ 공유
-├── modules/rustra-calculator/
-│   └── ios/RustraCalculatorModule.swift  # Expo Module, FFI로 Rust 호출
+├── modules/unikit-calculator/
+│   └── ios/UnikitCalculatorModule.swift  # Expo Module, FFI로 Rust 호출
 ```

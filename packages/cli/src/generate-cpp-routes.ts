@@ -11,16 +11,17 @@ export function bufferCommandResultField(
 ): PostcardField | null {
   if (!bufferCommandField(command, definitions)) return null;
   const { fields } = collectPostcardFields(command.outputSchema, definitions);
+  const field = fields[0];
   const properties = command.outputSchema.properties;
   const required = command.outputSchema.required;
   return fields.length === 1 &&
-    fields[0].kind === 'bytes' &&
+    field?.kind === 'bytes' &&
     properties &&
     Object.keys(properties).length === 1 &&
     Array.isArray(required) &&
     required.length === 1 &&
-    required[0] === fields[0].name
-    ? fields[0]
+    required[0] === field.name
+    ? field
     : null;
 }
 
@@ -41,7 +42,7 @@ export function rawCommandShape(
   const { fields: outputFields } = collectPostcardFields(command.outputSchema, definitions);
   if (outputFields.length > 1) return null;
   if (outputFields.length === 0 && command.outputType !== '()') return null;
-  if (outputFields.length === 1 && !rawKinds.has(outputFields[0].kind)) return null;
+  if (outputFields.length === 1 && !rawKinds.has(outputFields[0]!.kind)) return null;
   return { inputFields, outputField: outputFields[0] };
 }
 
@@ -69,7 +70,7 @@ export function cppEncodePosCommand(
     `static void encode_pos_${fnName}(jsi::Runtime& rt, const jsi::Value* argv, size_t argc, rc::Writer& w) {`,
   );
   lines.push(
-    `  if (argc != ${fields.length}) throw jsi::JSError(rt, "rustra: ${command.name} expects ${fields.length} positional argument(s), got " + std::to_string(argc));`,
+    `  if (argc != ${fields.length}) throw jsi::JSError(rt, "unikit: ${command.name} expects ${fields.length} positional argument(s), got " + std::to_string(argc));`,
   );
   lines.push(`  w.push_u8(${id & 0xff}); w.push_u8(${(id >> 8) & 0xff}); // cmd_id = ${id} LE`);
   fields.forEach((f, i) => {
@@ -77,17 +78,17 @@ export function cppEncodePosCommand(
     switch (f.kind) {
       case 'zigzag':
       case 'zigzag64':
-        lines.push(`  w.push_i64(rustra_i64(rt, ${v}, "${f.name}"));`);
+        lines.push(`  w.push_i64(unikit_i64(rt, ${v}, "${f.name}"));`);
         break;
       case 'uvar':
       case 'uvar64':
-        lines.push(`  w.push_uvar(rustra_u64(rt, ${v}, "${f.name}"));`);
+        lines.push(`  w.push_uvar(unikit_u64(rt, ${v}, "${f.name}"));`);
         break;
       case 'f64':
-        lines.push(`  w.push_f64(rustra_f64(rt, ${v}, "${f.name}"));`);
+        lines.push(`  w.push_f64(unikit_f64(rt, ${v}, "${f.name}"));`);
         break;
       case 'f32':
-        lines.push(`  w.push_f32(rustra_f32(rt, ${v}, "${f.name}"));`);
+        lines.push(`  w.push_f32(unikit_f32(rt, ${v}, "${f.name}"));`);
         break;
       case 'bool':
         lines.push(`  w.push_bool(${v}.asBool());`);

@@ -389,7 +389,7 @@ fn items(
 fn run() -> Result<Surface, String> {
     let root = PathBuf::from(std::env::args().nth(1).ok_or("expected repository root")?);
     let mut out = Surface::new();
-    for name in ["rustra", "rustra-macros"] {
+    for name in ["unikit-bridge", "unikit-bridge-macros"] {
         let src = root.join("crates").join(name).join("src");
         source(
             &mut out,

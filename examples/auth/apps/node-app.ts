@@ -4,16 +4,16 @@
  * Rust 를 `--serve` 라인 데몬으로 띄운다 — 세션 상태가 프로세스에 유지되므로
  * 시나리오(signIn → grant → adminStats → signOut → denied)가 성립한다.
  *
- * 실행: cargo build -p rustra-auth-example && \
+ * 실행: cargo build -p unikit-auth-example && \
  *       bunx tsc -p examples/auth/tsconfig.json && \
  *       node dist-ts/examples/auth/apps/node-app.js
  */
 import { spawn } from 'node:child_process';
 import { signIn, signOut, grant, adminStats } from '../generated/commands.js';
-import { configure } from '@rustra/types';
-import { createNodeEngine } from '@rustra/node';
+import { configure } from '@unikit-bridge/types';
+import { createNodeEngine } from '@unikit-bridge/node';
 
-const RUST_BIN = 'target/debug/rustra-auth-invoke';
+const RUST_BIN = 'target/debug/unikit-auth-invoke';
 
 // ── 라인 데몬 프로토콜 ─────────────────────────────────────────
 const child = spawn(RUST_BIN, ['--serve'], { stdio: ['pipe', 'pipe', 'inherit'] });
@@ -41,7 +41,7 @@ child.stdout.on('data', (chunk: Buffer) => {
       waiter.resolve(response.result);
     } else {
       // 구조화된 에러({code, message})면 코드를 보존해 전달 — 어댑터의
-      // RustraCommandError 복원 경로가 활성화된다.
+      // UnikitCommandError 복원 경로가 활성화된다.
       const e = response.error;
       if (typeof e === 'object' && e !== null) {
         const err = new Error(e.message) as Error & { code: string };
@@ -104,7 +104,7 @@ async function expectCapabilityDenied(promise: Promise<unknown>, label: string):
     await promise;
     throw new Error(`${label}: expected capability.denied but succeeded`);
   } catch (e) {
-    // RustraCommandError 면 code 필드로 판별 (instanceof 대신 duck-typing —
+    // UnikitCommandError 면 code 필드로 판별 (instanceof 대신 duck-typing —
     // 모듈 인스턴스 차이에도 견고).
     const err = e as { code?: string; message?: string };
     if (typeof err.code === 'string') {

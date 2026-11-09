@@ -154,9 +154,9 @@ as part of a verification run; this item confirms the procedure is written and
 findable.
 
 1. After the npm publish workflow completes green, install the published
-   `@rustra/*` versions in a scratch project outside this workspace.
-2. Generate the client from the published CLI (`rustra codegen`) against the
-   contract of the published `@rustra/types` — not the workspace sources.
+   `@unikit-bridge/*` versions in a scratch project outside this workspace.
+2. Generate the client from the published CLI (`unikit codegen`) against the
+   contract of the published `@unikit-bridge/types` — not the workspace sources.
 3. Run the calculator example's generated-client test against those artifacts.
 4. Record versions used and the registry consumer output in the block below.
 

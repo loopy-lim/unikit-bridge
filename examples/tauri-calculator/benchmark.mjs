@@ -5,9 +5,9 @@ import { dirname, resolve } from 'node:path';
 import process from 'node:process';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const defaultBinary = resolve(root, 'target/release/rustra-tauri-calculator');
+const defaultBinary = resolve(root, 'target/release/unikit-tauri-calculator');
 const corsHeaders = {
-  'access-control-allow-headers': 'content-type, x-rustra-benchmark',
+  'access-control-allow-headers': 'content-type, x-unikit-benchmark',
   'access-control-allow-methods': 'POST, OPTIONS',
   'access-control-allow-origin': '*',
 };
@@ -16,17 +16,17 @@ const corsHeaders = {
 export async function runTauriBenchmark(options = {}) {
   const startedAt = Date.now();
   const timeoutMs =
-    options.timeoutMs ?? Number(process.env.RUSTRA_TAURI_BENCH_TIMEOUT_MS ?? 60_000);
+    options.timeoutMs ?? Number(process.env.UNIKIT_TAURI_BENCH_TIMEOUT_MS ?? 60_000);
   if (!Number.isInteger(timeoutMs) || timeoutMs < 1000 || timeoutMs > 600_000) {
     throw new Error(
-      'Tauri benchmark timeout must be an integer between 1000 and 600000 ms (RUSTRA_TAURI_BENCH_TIMEOUT_MS).',
+      'Tauri benchmark timeout must be an integer between 1000 and 600000 ms (UNIKIT_TAURI_BENCH_TIMEOUT_MS).',
     );
   }
   const onProgress =
     options.onProgress ??
     ((progress) =>
       console.error(
-        `RUSTRA_TAURI_BENCH_PROGRESS=${JSON.stringify({ ...progress, elapsedMs: Date.now() - startedAt })}`,
+        `UNIKIT_TAURI_BENCH_PROGRESS=${JSON.stringify({ ...progress, elapsedMs: Date.now() - startedAt })}`,
       ));
   const onNativeCheckpoint =
     options.onNativeCheckpoint ??
@@ -49,9 +49,9 @@ export async function runTauriBenchmark(options = {}) {
       const contentLength = Number(request.headers.get('content-length') ?? 0);
       if (
         request.method !== 'POST' ||
-        url.pathname !== '/rustra-benchmark' ||
+        url.pathname !== '/unikit-benchmark' ||
         request.headers.get('content-type') !== 'application/json' ||
-        request.headers.get('x-rustra-benchmark') !== 'receipt-v1' ||
+        request.headers.get('x-unikit-benchmark') !== 'receipt-v1' ||
         contentLength > 100_000
       ) {
         return new Response('not found', { status: 404, headers: corsHeaders });
@@ -93,8 +93,8 @@ export async function runTauriBenchmark(options = {}) {
       env: {
         ...process.env,
         ...options.env,
-        RUSTRA_BENCH: '1',
-        RUSTRA_BENCH_RECEIPT_URL: `http://127.0.0.1:${server.port}/rustra-benchmark`,
+        UNIKIT_BENCH: '1',
+        UNIKIT_BENCH_RECEIPT_URL: `http://127.0.0.1:${server.port}/unikit-benchmark`,
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -107,7 +107,7 @@ export async function runTauriBenchmark(options = {}) {
         const lines = pendingLines.split('\n');
         pendingLines = lines.pop() ?? '';
         for (const line of lines) {
-          if (line.startsWith('RUSTRA_TAURI_BENCH_NATIVE=')) onNativeCheckpoint(line);
+          if (line.startsWith('UNIKIT_TAURI_BENCH_NATIVE=')) onNativeCheckpoint(line);
         }
       });
     }
@@ -150,5 +150,5 @@ export async function runTauriBenchmark(options = {}) {
 
 if (import.meta.main) {
   const receipt = await runTauriBenchmark();
-  console.log(`RUSTRA_HOST_BENCH_JSON=${JSON.stringify(receipt)}`);
+  console.log(`UNIKIT_HOST_BENCH_JSON=${JSON.stringify(receipt)}`);
 }

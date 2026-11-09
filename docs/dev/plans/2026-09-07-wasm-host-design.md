@@ -15,7 +15,7 @@
    초기화라 미도달 가능) / `block_on`의 `thread::park`가 no-op로 즉시 반환해
    Pending future는 무한 busy-spin(본 리서치 실험 신규 확인) / 함수 포인터 인자
    (이벤트·채널·async 완료 콜백)는 호스트 import가 필요.
-3. 32개 `rustra_ffi_*` 심볼이 수정 없이 wasm exports로 노출된다(실험 2) — 바이너리
+3. 32개 `unikit_ffi_*` 심볼이 수정 없이 wasm exports로 노출된다(실험 2) — 바이너리
    와이어(rkyv V2/postcard) 경계는 유효하며 JS 생성 코덱을 그대로 재사용한다(§7.2).
 4. 실측: 2-커맨드 엔진 raw 881 KiB / gzip 217 KiB(§6.4). 동기 왕복 1.56 µs —
    Node napi rkyv V2 기준선(2.91 µs)보다 빠른 수준.
@@ -25,7 +25,7 @@
 ### 1.1 1차 목표 환경
 
 **"표준 `WebAssembly` JS API를 갖는 범용 JS 환경"** — 동일 glue로 다음 전부를
-커버하는 단일 패키지(`@rustra/wasm`)를 목표로 한다:
+커버하는 단일 패키지(`@unikit-bridge/wasm`)를 목표로 한다:
 
 | 환경                                | 위치                           | 비고                                                                                                                                                      |
 | ----------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -40,7 +40,7 @@ wasm3에서도 표준 프로토콜이 성립함을 증명 — 경계 계약이 �
 ### 1.2 non-goals (명시적 제외)
 
 1. **WASI(wasm32-wasip1)** — napi-rs의 "WASM(WASI)" 경로(competitive-landscape.md:34)와
-   달리 rustra는 파일/프로세스 표면이 없어 WASI 부가가치가 없고, 별도 타깃
+   달리 unikit는 파일/프로세스 표면이 없어 WASI 부가가치가 없고, 별도 타깃
    유지비만 생긴다. 필요성 제기 시 별도 트랙.
 2. **SharedArrayBuffer 멀티스레드(atomics 빌드)** — COOP/COEP 배포 헤더 요구로
    채택 장벽(리서치 §6.2, 미확인 외부 사실). 2.3의 확장 경로로만 남긴다.
@@ -88,50 +88,50 @@ wasm3에서도 표준 프로토콜이 성립함을 증명 — 경계 계약이 �
 `#[cfg(target_family = "wasm")]`으로 게이트한다.** 이는 스파이크 NOTES의
 production 권고 #1·#3(리서치 §2.1, §4.2)을 구현화한 것이다.
 
-### 3.1 스테이징 ABI 코어 승격 — `rustra_wasm_alloc` / `rustra_wasm_unstage`
+### 3.1 스테이징 ABI 코어 승격 — `unikit_wasm_alloc` / `unikit_wasm_unstage`
 
 - 신규 wasm 전용 export 2개(스파이크 `spike_alloc`/`spike_unstage`의 일반화 —
   NOTES production 항목 3):
-  - `rustra_wasm_alloc(len: usize) -> usize` — 정렬 16 `std::alloc` 스테이징
-    영역 오프셋 반환. 해제 책임은 호스트의 `rustra_wasm_unstage(offset, len)`
+  - `unikit_wasm_alloc(len: usize) -> usize` — 정렬 16 `std::alloc` 스테이징
+    영역 오프셋 반환. 해제 책임은 호스트의 `unikit_wasm_unstage(offset, len)`
     호출(동일 len) — 누락 시 의도적 누수(스파이크와 동일 계약, 리서치 §2.3).
-  - `rustra_wasm_unstage(offset: usize, len: usize)`.
-- **invoke 진입은 기존 심볼을 그대로 재사용한다**: `rustra_ffi_invoke_rkyv_v2`의
+  - `unikit_wasm_unstage(offset: usize, len: usize)`.
+- **invoke 진입은 기존 심볼을 그대로 재사용한다**: `unikit_ffi_invoke_rkyv_v2`의
   시그니처 `(payload: *const u8, payload_len: usize, out_len: *mut usize) -> *mut u8`은
   wasm에서 `(i32, i32, i32) -> i32`로 컴파일되고, 포인터 인자는 곧 선형 메모리
   오프셋이다(wasm32는 포인터/usize 4바이트 — 스파이크가 4바이트 out-len 슬롯으로
   실증). 따라서 `spike_invoke` 같은 wasm 래퍼는 불필요하고, 스파이크 프로토콜의
   1·2·3·5·6단계(alloc→기록→out-len 슬롯→뷰 재동기화→free/unstage)만 JS glue
   책임이 된다(§5).
-- 해제는 기존 `rustra_ffi_free`(헤더 복원, ffi_lifecycle_entries.rs:111)·
-  `rustra_ffi_free_owned_bytes`를 그대로 쓴다 — 8바이트 헤더("RUST" 매직+u32 LE
+- 해제는 기존 `unikit_ffi_free`(헤더 복원, ffi_lifecycle_entries.rs:111)·
+  `unikit_ffi_free_owned_bytes`를 그대로 쓴다 — 8바이트 헤더("RUST" 매직+u32 LE
   길이, ffi_prelude.rs:97-115)와 debug free_guard(ffi_free_guard.rs) 검증은
   오프셋 주소에서도 동일 작동(usize 키).
-- 스키마/해시 표면도 재사용: `rustra_ffi_get_schema`·`rustra_ffi_contract_hash`·
-  `rustra_ffi_schema_generation`(RkyvV2SchemaNative 옵션 멤버와 1:1, 리서치 §7.1).
+- 스키마/해시 표면도 재사용: `unikit_ffi_get_schema`·`unikit_ffi_contract_hash`·
+  `unikit_ffi_schema_generation`(RkyvV2SchemaNative 옵션 멤버와 1:1, 리서치 §7.1).
 
 ### 3.2 async 엔트리 — 즉시 실패 프레임 전달(스폰 경로 원천 봉쇄)
 
-- 게이트 대상: `rustra_ffi_invoke_async`, `rustra_ffi_invoke_json_async`,
-  `rustra_ffi_invoke_rkyv_v2_async`, `rustra_ffi_invoke_rkyv_v2_async_into`
+- 게이트 대상: `unikit_ffi_invoke_async`, `unikit_ffi_invoke_json_async`,
+  `unikit_ffi_invoke_rkyv_v2_async`, `unikit_ffi_invoke_rkyv_v2_async_into`
   (및 이들이 닿는 `ffi_pool.rs`/`ffi_workers.rs` 본문 — 게이트된 엔트리에서만
   참조되므로 wasm 바이너리에서 제거된다).
 - 동작: wasm에서는 풀 제출 대신 **완료 콜백을 동기적으로 정확히 1회** 호출하되
   페이로드는 `invoke.unsupported_on_wasm` 에러 프레임이다. 구현은 기존
   `deliver_spawn_failure`(ffi_lifecycle_entries.rs:6-26 — "spawn 실패 시 완료를
   에러 프레임으로 전달"하는 정확히 이 계약의 헬퍼)을 재사용한다. 콜백 계약
-  (정확히 1회, 버퍼는 rustra_ffi_free)이 보존되므로 호스트는 별도 분기 없이
+  (정확히 1회, 버퍼는 unikit_ffi_free)이 보존되므로 호스트는 별도 분기 없이
   기존 디코딩으로 처리한다.
-- 에러 코드: `RustraErrorCode`에 `InvokeUnsupportedOnWasm: 'invoke.unsupported_on_wasm'`
+- 에러 코드: `UnikitErrorCode`에 `InvokeUnsupportedOnWasm: 'invoke.unsupported_on_wasm'`
   추가(패키지 슬라이스에서 — NOTES 권고 문구 존중, 리서치 §7.4).
-- 취소 표면: `rustra_ffi_invoke_cancel`/`_cancellation_status`는 동작 불변
+- 취소 표면: `unikit_ffi_invoke_cancel`/`_cancellation_status`는 동작 불변
   (레지스트리만 조작, 스레드 무관 — cancel.rs는 AtomicU64+Mutex BTreeMap,
   리서치 §2.1)이지만 발급될 일이 없어 사멸한다. 시맨틱은 §2.2의 'pre-abort'로
   문서화.
 
-### 3.3 이벤트 drain export 신설 — `rustra_wasm_take_pending_events`
+### 3.3 이벤트 drain export 신설 — `unikit_wasm_take_pending_events`
 
-- `rustra_wasm_take_pending_events(out_len: *mut usize) -> *mut u8`
+- `unikit_wasm_take_pending_events(out_len: *mut usize) -> *mut u8`
   (cfg wasm) — 기존 `EventBus::take_pending_events_with_stats`
   (events_bus.rs:60, 드랍-올데스트 capacity 1024 + 드랍 카운터 포함)을
   `alloc_response` 프레임(JSON)으로 반환. 페이로드 셰이프는 기존 drain 소비자와
@@ -140,7 +140,7 @@ production 권고 #1·#3(리서치 §2.1, §4.2)을 구현화한 것이다.
   1회 — 이벤트 싱크의 기존 철학(ffi_event_entries.rs:6-7).
 - 필요성 근거: `take_pending_events`는 현재 Rust API일 뿐이고 `__drainEvents`는
   엔진 바이너리(loop_stdio.rs)가 자체 구현한다 — wasm엔 그 층이 없다(리서치 §2.5).
-- 푸시(`rustra_ffi_event_sink_register`)·채널(ffi_channel.rs) 진입은 그대로
+- 푸시(`unikit_ffi_event_sink_register`)·채널(ffi_channel.rs) 진입은 그대로
   export되지만 1차 glue는 호출하지 않는다 — 함수 포인터 인자는 JS가 import
   없이는 공급할 수 없어(리서치 §2.3) 미사용 심볼로 남는다. 콜백 import 재설계는
   후속 트랙.
@@ -176,7 +176,7 @@ async fn 커맨드를 sync 엔트리로 호출하면 매크로 생성 래퍼
 
 ### 4.1 결정
 
-**wasm-bindgen/wasm-pack 도입하지 않는다.** JS glue는 `@rustra/wasm` 패키지가
+**wasm-bindgen/wasm-pack 도입하지 않는다.** JS glue는 `@unikit-bridge/wasm` 패키지가
 스파이크 프로토콜 기반으로 손수 구현한다. 근거(리서치 §4 전체):
 
 1. **경계가 JsValue가 아니라 바이너리다** — 4호스트 공통 와이어(rkyv V2/postcard)
@@ -187,7 +187,7 @@ async fn 커맨드를 sync 엔트리로 호출하면 매크로 생성 래퍼
    wasm-bindgen 의존을 붙이면 네이티브 호스트 전부가 그 비용(컴파일·심볼·
    audit 표면)을 공유한다 — "최소 의존/명시적 계약" 성향 위반. 반대로 raw
    exports는 코어 수정 0베이스에서 시작함을 실험으로 확인했다(리서치 §2.3).
-3. **해제 경계 단일화**: 기존 `rustra_ffi_free`/free_guard 헤더 계약(리서치 §4.3)이
+3. **해제 경계 단일화**: 기존 `unikit_ffi_free`/free_guard 헤더 계약(리서치 §4.3)이
    그대로 wasm의 메모리 계약이 된다. wasm-bindgen의 자동 메모리 관리는 이
    계약과 이중화된다.
 4. **선례 일관성**: Bun 어댑터가 이미 손수 정의한 FFI 테이블(bun-ffi.ts:51-66)과
@@ -210,14 +210,14 @@ web-sys 상호운용 표면 부재(향후 브라우저 API 연동이 필요해�
   구조적으로 재발하지 않는다(리서치 §7.2). postcard 경로의 바이트 동일성은
   스파이크가 기기에서 증명(리서치 §1.3).
 - 경계 계약(호출 1회, JS glue 내부):
-  1. `off = rustra_wasm_alloc(reqLen)` → `new Uint8Array(memory.buffer)`에 기록.
-  2. `lenOff = rustra_wasm_alloc(4)` → 0으로 초기화.
-  3. `respOff = rustra_ffi_invoke_rkyv_v2(off, reqLen, lenOff)` — 응답은
-     `rustra_ffi_free` 계약 버퍼(8바이트 헤더 포함 할당, user_ptr 반환).
+  1. `off = unikit_wasm_alloc(reqLen)` → `new Uint8Array(memory.buffer)`에 기록.
+  2. `lenOff = unikit_wasm_alloc(4)` → 0으로 초기화.
+  3. `respOff = unikit_ffi_invoke_rkyv_v2(off, reqLen, lenOff)` — 응답은
+     `unikit_ffi_free` 계약 버퍼(8바이트 헤더 포함 할당, user_ptr 반환).
   4. **memory.buffer 뷰 재취득**(grow 가능성 — 스파이크 5단계, wasm3-smoke-main.c),
      `respLen = DataView.getUint32(lenOff, true)` 판독, JS로 복사.
-  5. `rustra_ffi_free(respOff, respLen)`; `rustra_wasm_unstage(off, reqLen)`;
-     `rustra_wasm_unstage(lenOff, 4)`.
+  5. `unikit_ffi_free(respOff, respLen)`; `unikit_wasm_unstage(off, reqLen)`;
+     `unikit_wasm_unstage(lenOff, 4)`.
   - 재사용 버퍼 최적화: 요청 스테이징 영역을 glue가 캐시해 매 호출 alloc/unstage를
     건너뛴다(부족 시 재할당 — `encodeInto` 재사용 버퍼 철학, public.ts:135-141과
     동형). 응답은 JS 소유 ArrayBuffer로 복사되므로 `RkyvV2SchemaNative`의
@@ -227,11 +227,11 @@ web-sys 상호운용 표면 부재(향후 브라우저 API 연동이 필요해�
   증명 프로토콜이 단순 1단계다. Bun의 재시도 프로토콜(bun-ffi.ts:104-142)은
   참고 선례로만 남긴다.
 
-## 5. `@rustra/wasm` 패키지 — 엔진 조합
+## 5. `@unikit-bridge/wasm` 패키지 — 엔진 조합
 
 ### 5.1 구조
 
-- 신규 패키지 `packages/wasm`(`@rustra/wasm`), 의존 `@rustra/types`만.
+- 신규 패키지 `packages/wasm`(`@unikit-bridge/wasm`), 의존 `@unikit-bridge/types`만.
   배포물은 **순수 ESM JS + d.ts**(브라우저/Node/Bun/Deno 공용). `.wasm`은
   사용자 엔진 빌드 산물 — 패키지에 싣지 않는다(§8 release guard 정합).
 - 공개 표면:
@@ -248,9 +248,9 @@ glue의 네이티브 어댑터는 `RkyvV2SchemaNative`(live-schema.ts:20-41)만 
 
 ```
 invokeRkyvV2(payload) → §4.2 5단계 프로토콜
-getSchema()           → rustra_ffi_get_schema 스테이징
-getSchemaGeneration() → rustra_ffi_schema_generation (스칼라 반환, 스테이징 불요)
-getContractHash()     → rustra_ffi_contract_hash 스테이징
+getSchema()           → unikit_ffi_get_schema 스테이징
+getSchemaGeneration() → unikit_ffi_schema_generation (스칼라 반환, 스테이징 불요)
+getContractHash()     → unikit_ffi_contract_hash 스테이징
 ```
 
 이 인스턴스를 `createRkyvV2Engine(native, rkyvV2Codecs, options)`
@@ -261,7 +261,7 @@ getContractHash()     → rustra_ffi_contract_hash 스테이징
 
 ### 5.3 이벤트 — pollMs 패턴 이식(731bbae9 선례)
 
-- `rustra_wasm_take_pending_events`(§3.3)을 drain 원천으로, RN
+- `unikit_wasm_take_pending_events`(§3.3)을 drain 원천으로, RN
   `react-native-events.ts:94-116`의 폴링 소비자 패턴(인스턴스당 타이머 1개,
   마지막 구독 해제 시 정지, drain 실패는 로그)을 이식한다. `pollMs` 기본값은
   명시적 요구 시에만 폴링이 켜지도록(기본 off — RN과 동일 정책) 하되, 이벤트를
@@ -297,7 +297,7 @@ dispose 멱등/dispose 후 ready loud-fail)을 그대로 준수한다. 4호스�
 export const WASM_ENGINE_SUPPORTS: EngineSupports = {
   cancellation: 'pre-abort', // dispatch 전 abort만 관측 — 동기 호출엔 in-flight가 없음 (§2.2)
   batch: 'per-entry', // createRkyvV2Engine의 invokeBatch가 항목별 invokeRkyvV2로 실행
-  events: 'polling', // rustra_wasm_take_pending_events 폴링 drain
+  events: 'polling', // unikit_wasm_take_pending_events 폴링 drain
   channels: false, // 1차 non-goal — 콜백 import 후속 트랙
   timeoutPreemption: false, // 동기 export는 실행 중 선점 불가 (RN JSON과 동일 셀)
 };
@@ -318,11 +318,11 @@ export const WASM_ENGINE_SUPPORTS: EngineSupports = {
    런타임 스모크"를 1차 증거로 추가하고, 기존 "wasm spike's emulator/simulator
    runs" 문구는 RN/wasm3 스파이크 국한으로 정확화한다.
 3. `docs/extending/adding-host.md` 의사결정나무에 "브라우저/범용 JS? →
-   @rustra/wasm(WebAssembly exports + 선형 메모리 스테이징)" 가지 추가.
-4. release guard(compatibility-matrix.md:209-213): **유지**. `@rustra/wasm`은
+   @unikit-bridge/wasm(WebAssembly exports + 선형 메모리 스테이징)" 가지 추가.
+4. release guard(compatibility-matrix.md:209-213): **유지**. `@unikit-bridge/wasm`은
    JS 전용 배포물이라 `*.wasm` 배제 규칙과 무충돌 — dev-only wasm 백엔드(wasm3)
    규정은 그대로 살아있다. 버전 발행은 versioning-policy 0.x 마이너 레인 +
-   changeset(`@rustra/wasm` minor, 최초 0.8.x 진입).
+   changeset(`@unikit-bridge/wasm` minor, 최초 0.8.x 진입).
 
 ## 8. 바이너리 크기 예산과 측정 방법
 
@@ -348,7 +348,7 @@ export const WASM_ENGINE_SUPPORTS: EngineSupports = {
 | R1  | async fn Pending → busy-spin(호출 스레드 영구 점유, 리서치 §2.2)          | 지원 계약 명문화(§3.4) + doctor 경고 강화 + 오픈 질문(Q1)                                                                                                                    |
 | R2  | memory.buffer grow 후 stale 뷰 → 잘린 응답/오독                           | glue가 매 호출 뷰 재취득(스파이크 5단계) + 대형 페이로드 왕복 테스트                                                                                                         |
 | R3  | 메인 스레드 블록(긴 핸들러)                                               | `timeoutPreemption:false` 정직 노출 + Worker 권장 가이드                                                                                                                     |
-| R4  | 크기 드리프트(rustra 0.5.0 기록 848 KB → 0.8.0 실측 881 KiB, 리서치 §6.4) | §8 receipt + 예산 상한 리뷰                                                                                                                                                  |
+| R4  | 크기 드리프트(unikit 0.5.0 기록 848 KB → 0.8.0 실측 881 KiB, 리서치 §6.4) | §8 receipt + 예산 상한 리뷰                                                                                                                                                  |
 | R5  | free/unstage 오용(누수·double-free)                                       | debug free_guard 계약 그대로 적용(트랩으로 조기 발견) + glue 계약 테스트(Bun 패키지가 FFI caller-buffer 계약의 유일 자동 검증이던 선례 — ci.yml:249-253 교훈: 게이트로 승격) |
 | R6  | 폴링 이벤트의 지연/백그라운드 스로틀                                      | pollMs 문서화 + Worker 안내; 푸시(콜백 import)는 후속                                                                                                                        |
 | R7  | 게이트된 wasm 코드의 네이티브 클래퍼 사각                                 | §3.5 미러링 전략(공용 본문은 네이티브 단위테스트)                                                                                                                            |
@@ -362,8 +362,8 @@ export const WASM_ENGINE_SUPPORTS: EngineSupports = {
    cfg(target_family="wasm"). 검증: `cargo check/build --target
 wasm32-unknown-unknown` + 스파이크 백엔드 경유 Node 런타임 왕복(바이트 동일
    PINNED 게이트 선례 적용).
-2. **S2 `@rustra/wasm` 패키지** — §5 glue + `createWasmBootstrap` + WASM_ENGINE_SUPPORTS
-   - 계약 테스트(실 .wasm 로드, R2/R5 시나리오 포함). RustraErrorCode 확장.
+2. **S2 `@unikit-bridge/wasm` 패키지** — §5 glue + `createWasmBootstrap` + WASM_ENGINE_SUPPORTS
+   - 계약 테스트(실 .wasm 로드, R2/R5 시나리오 포함). UnikitErrorCode 확장.
 3. **S3 코드젠·CLI 연결** — `generated/wasm.ts` 엔트리포인트(§5.1 팩토리 주입,
    bun.ts/react-native.ts와 동일 패턴) + dev.target="wasm" 산출 경로를 부트스트랩
    기본 후보로 연결.
@@ -381,7 +381,7 @@ wasm32-unknown-unknown` + 스파이크 백엔드 경유 Node 런타임 왕복(�
    진단할 수 있는가(경고 수준)? (§3.4)
 2. 이벤트 drain export의 범용화 — wasm 게이트가 아니라 전 호스트 공개로 올려
    Node one-shot 호스트의 커스텀 `__drainEvents` 구현을 대체할 가치가 있는가?
-3. `single-crossing` 배치 — wire 배치 export(rustra_dispatch_batch 선례,
+3. `single-crossing` 배치 — wire 배치 export(unikit_dispatch_batch 선례,
    compatibility-matrix.md:103-104)의 wasm 버전을 몇 슬라이스 뒤에 검토할 것인가.
 4. 채널 콜백 import 설계 — wasm import 함수 테이블(호스트 JS 콜백)의 안전한
    수명 관리(unregister 시점, quiescence 계약의 import 판) — 후속 트랙 설계 과제.

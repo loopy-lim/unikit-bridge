@@ -14,7 +14,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { suffix } from 'bun:ffi';
-import { RustraCommandError } from '@rustra/types';
+import { UnikitCommandError } from '@unikit-bridge/types';
 import { bunLibraryCandidates, selectVerifiedLibrary } from './bun-ffi-library.js';
 import { createBunFfiEngine } from './bun-ffi.js';
 
@@ -35,9 +35,9 @@ function seedStaleReleaseFixture(prefix: string): { root: string; stale: string;
 }
 
 void test('bunLibraryCandidates orders existing candidates newest-build-first', () => {
-  const { root, stale, fresh } = seedStaleReleaseFixture('rustra-bun-candidates-');
-  const previous = process.env.RUSTRA_BUN_LIBRARY;
-  delete process.env.RUSTRA_BUN_LIBRARY;
+  const { root, stale, fresh } = seedStaleReleaseFixture('unikit-bun-candidates-');
+  const previous = process.env.UNIKIT_BUN_LIBRARY;
+  delete process.env.UNIKIT_BUN_LIBRARY;
   try {
     // 최신 빌드(debug) 우선 + 부재 후보 제거 — stale release 가 첫 존재 후보로
     // 잡히는 함정이 후보 열거 단계에서부터 해소된다.
@@ -49,23 +49,23 @@ void test('bunLibraryCandidates orders existing candidates newest-build-first', 
     );
     // 명시 지정은 존재 검사·정렬 없이 단일 후보.
     assert.deepEqual(bunLibraryCandidates({ library: './anywhere.dylib' }), ['./anywhere.dylib']);
-    process.env.RUSTRA_BUN_LIBRARY = fresh;
+    process.env.UNIKIT_BUN_LIBRARY = fresh;
     assert.deepEqual(bunLibraryCandidates({}), [fresh]);
   } finally {
-    if (previous === undefined) delete process.env.RUSTRA_BUN_LIBRARY;
-    else process.env.RUSTRA_BUN_LIBRARY = previous;
+    if (previous === undefined) delete process.env.UNIKIT_BUN_LIBRARY;
+    else process.env.UNIKIT_BUN_LIBRARY = previous;
     rmSync(root, { recursive: true, force: true });
   }
 });
 
 void test('selectVerifiedLibrary falls back past a contract-mismatched candidate', async () => {
-  const { root, stale, fresh } = seedStaleReleaseFixture('rustra-bun-select-');
+  const { root, stale, fresh } = seedStaleReleaseFixture('unikit-bun-select-');
   try {
     const attempts: string[] = [];
     const selection = await selectVerifiedLibrary([stale, fresh], async (candidate) => {
       attempts.push(candidate);
       if (candidate === stale)
-        throw new RustraCommandError('contract.mismatch', 'contract hash mismatch: stale');
+        throw new UnikitCommandError('contract.mismatch', 'contract hash mismatch: stale');
       return `engine@${candidate}`;
     });
     assert.ok('runtime' in selection, 'fresh 후보에서 성공해야 한다');
@@ -78,9 +78,9 @@ void test('selectVerifiedLibrary falls back past a contract-mismatched candidate
 });
 
 void test('selectVerifiedLibrary records probe failures and keeps scanning', async () => {
-  // dlopen/rustra_mobile_init 실패(plain Error)는 후보 기각 — 기존 ABI probe
+  // dlopen/unikit_mobile_init 실패(plain Error)는 후보 기각 — 기존 ABI probe
   // 건너뛰기와 동일하게 다음 후보로 진행한다.
-  const { root, stale, fresh } = seedStaleReleaseFixture('rustra-bun-probe-');
+  const { root, stale, fresh } = seedStaleReleaseFixture('unikit-bun-probe-');
   try {
     const attempts: string[] = [];
     const selection = await selectVerifiedLibrary([stale, fresh], async (candidate) => {
@@ -96,16 +96,16 @@ void test('selectVerifiedLibrary records probe failures and keeps scanning', asy
 });
 
 void test('selectVerifiedLibrary rethrows non-contract engine failures without fallback', async () => {
-  const { root, stale, fresh } = seedStaleReleaseFixture('rustra-bun-fatal-');
+  const { root, stale, fresh } = seedStaleReleaseFixture('unikit-bun-fatal-');
   try {
     const attempts: string[] = [];
     await assert.rejects(
       selectVerifiedLibrary([stale, fresh], async (candidate) => {
         attempts.push(candidate);
-        throw new RustraCommandError('invoke.failed', 'codec registry broken');
+        throw new UnikitCommandError('invoke.failed', 'codec registry broken');
       }),
       (error: unknown) => {
-        assert.ok(error instanceof RustraCommandError);
+        assert.ok(error instanceof UnikitCommandError);
         assert.equal(error.code, 'invoke.failed');
         return true;
       },
@@ -117,14 +117,14 @@ void test('selectVerifiedLibrary rethrows non-contract engine failures without f
 });
 
 void test('selectVerifiedLibrary reports all candidate paths with mtime when every library is stale', async () => {
-  const { root, stale, fresh } = seedStaleReleaseFixture('rustra-bun-allstale-');
+  const { root, stale, fresh } = seedStaleReleaseFixture('unikit-bun-allstale-');
   try {
     await assert.rejects(
       selectVerifiedLibrary([stale, fresh], async () => {
-        throw new RustraCommandError('contract.mismatch', 'contract hash mismatch: stale');
+        throw new UnikitCommandError('contract.mismatch', 'contract hash mismatch: stale');
       }),
       (error: unknown) => {
-        if (!(error instanceof RustraCommandError)) return false;
+        if (!(error instanceof UnikitCommandError)) return false;
         assert.equal(error.code, 'contract.mismatch');
         assert.match(error.message, /Tried 2 cdylib candidates \(newest first\)/);
         assert.ok(error.message.includes(stale), `보고에 stale 경로 포함: ${error.message}`);
@@ -139,7 +139,7 @@ void test('selectVerifiedLibrary reports all candidate paths with mtime when eve
 });
 
 void test('selectVerifiedLibrary surfaces probe-only failures for the TransportUnavailable path', async () => {
-  const { root, stale, fresh } = seedStaleReleaseFixture('rustra-bun-probeonly-');
+  const { root, stale, fresh } = seedStaleReleaseFixture('unikit-bun-probeonly-');
   try {
     const selection = await selectVerifiedLibrary([stale, fresh], async (candidate) => {
       throw new Error(`dlopen failed at ${candidate}`);
@@ -157,8 +157,8 @@ void test('selectVerifiedLibrary surfaces probe-only failures for the TransportU
 // ── 실 dylib 종단 — 최종 실패 보고가 실제 경로·mtime 을 나열한다 ────────────
 
 void test('createBunFfiEngine reports all attempted cdylib paths when the contract matches none', async () => {
-  const release = resolve(repoRoot, `target/release/librustra_calculator_example.${suffix}`);
-  const debug = resolve(repoRoot, `target/debug/librustra_calculator_example.${suffix}`);
+  const release = resolve(repoRoot, `target/release/libunikit_calculator_example.${suffix}`);
+  const debug = resolve(repoRoot, `target/debug/libunikit_calculator_example.${suffix}`);
   if (!existsSync(release) || !existsSync(debug)) return; // 빌드되지 않은 트리 — 스킵
   const runtime = createBunFfiEngine({
     libraryCandidates: [release, debug],
@@ -166,7 +166,7 @@ void test('createBunFfiEngine reports all attempted cdylib paths when the contra
     contractHash: '0'.repeat(64),
   });
   await assert.rejects(runtime, (error: unknown) => {
-    if (!(error instanceof RustraCommandError)) return false;
+    if (!(error instanceof UnikitCommandError)) return false;
     assert.equal(error.code, 'contract.mismatch');
     // A1 — 어느 후보를 시도했는지 경로+mtime 으로 보고한다.
     assert.match(error.message, /Tried 2 cdylib candidates \(newest first\)/);

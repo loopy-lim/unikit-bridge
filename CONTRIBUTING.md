@@ -2,7 +2,7 @@ English | [한국어](./CONTRIBUTING.ko.md)
 
 # Contributing Guide
 
-This guide describes how to contribute to rustra.
+This guide describes how to contribute to unikit.
 
 ---
 
@@ -27,7 +27,7 @@ toolchains). Only repo-development specifics are added here:
 
 The everyday umbrellas — `test:fast`, `test`, `test:compat`, and `test:local` —
 run on every platform (Linux included) without extra system libraries: their
-Rust steps exclude the `rustra-tauri-calculator` crate, whose Tauri/WebKit
+Rust steps exclude the `unikit-tauri-calculator` crate, whose Tauri/WebKit
 dependencies only matter to the commands below.
 
 - `cargo build/test --workspace` (full workspace) and
@@ -52,7 +52,7 @@ rely on CI for it: the PR-required `test:compat` chain no longer includes it.
 ### Initial Setup
 
 ```bash
-git clone <repo-url> && cd rustra-bridge
+git clone <repo-url> && cd unikit-bridge
 bun install                 # workspace deps
 
 bun run test:fast           # first signal in ~15 s warm (first run is longer): cargo check + calculator tsc + cli unit tests
@@ -94,7 +94,7 @@ When changing Rust code:
 cargo test --workspace
 
 # Regenerate the generated TS (calculator example)
-cargo run -p rustra-calculator-example --bin generate   # contract probe: schema.json
+cargo run -p unikit-calculator-example --bin generate   # contract probe: schema.json
 bun run --cwd examples/calculator codegen                # render TS surfaces
 
 # Fast dev loop: cargo check + calculator tsc + cli unit tests
@@ -121,7 +121,7 @@ Write commit messages centered on the **reason** for the change:
 ```
 feat: add tuple type support in TS codegen
 
-fix: handle null args in rustra_dispatch
+fix: handle null args in unikit_dispatch
 
 docs: add debugging guide to contributing
 
@@ -164,7 +164,7 @@ libraries — CI's `ts-runtime` job runs it on every PR, and locally it needs
 the [system prerequisites](#system-prerequisites-for-local-gates) above.
 
 The onboarding gate inside `test:local` opts into a shared cargo target cache
-(`RUSTRA_ONBOARDING_CARGO_TARGET_DIR=target/onboarding-shared` on its
+(`UNIKIT_ONBOARDING_CARGO_TARGET_DIR=target/onboarding-shared` on its
 `test:onboarding:check` leg) so repeated runs skip the cold scaffold build;
 running `node scripts/onboarding-gate.mjs` without the variable keeps the cold
 fresh-scaffold verification.
@@ -210,7 +210,7 @@ bun run test:runtime:tauri   # needs the Tauri system prerequisites above
 
 | File                                                | Role                         |
 | --------------------------------------------------- | ---------------------------- |
-| `crates/rustra/tests/public_authoring_api_tests.rs` | Rust public API tests (48)   |
+| `crates/unikit-bridge/tests/public_authoring_api_tests.rs` | Rust public API tests (48)   |
 | `examples/calculator/tests/example_contract.rs`     | End-to-end contract test (1) |
 | `examples/calculator/ts/generated-client.test.ts`   | TS client behavior (2)       |
 | `examples/calculator/ts/adapter-compat.test.ts`     | 4-adapter compatibility (5)  |
@@ -258,13 +258,13 @@ Every change must satisfy the [compatibility contract](docs/compatibility-contra
 
 - Public APIs are re-exported from the `prelude` module
 - The `#[command]` macro only performs signature validation and trait bound assertions (the body is an identity passthrough)
-- Errors are unified under `RustraError`
+- Errors are unified under `UnikitError`
 
 ### TypeScript
 
 - Adapter packages are pure TypeScript with no external dependencies
 - Only the `EngineClient` interface (`invoke<T>`) is exposed
-- Only Tauri wraps `rustra_dispatch`; the others call the transport directly
+- Only Tauri wraps `unikit_dispatch`; the others call the transport directly
 
 ---
 
@@ -274,7 +274,7 @@ Every change must satisfy the [compatibility contract](docs/compatibility-contra
 
 1. Check `schema.json` — inspect whether the JSON Schema produced by schemars matches your intent
 2. Check `types.ts` — for the JSON Schema → TS type mapping rules, see the [codegen documentation](docs/dev/internal/codegen.md)
-3. Conditional JSON Schema that rustra does not generate falls back to `unknown`, and data enums or nested collections whose wire order postcard cannot prove fall back to per-command Tier 3
+3. Conditional JSON Schema that unikit does not generate falls back to `unknown`, and data enums or nested collections whose wire order postcard cannot prove fall back to per-command Tier 3
 
 ### Contract Hash Mismatch
 
@@ -282,7 +282,7 @@ Every change must satisfy the [compatibility contract](docs/compatibility-contra
 
 ```bash
 # Regenerate
-cargo run -p rustra-calculator-example --bin generate   # contract probe: schema.json
+cargo run -p unikit-calculator-example --bin generate   # contract probe: schema.json
 bun run --cwd examples/calculator codegen                # render TS surfaces
 
 # Verify with a diff
@@ -313,10 +313,10 @@ const engine = createNodeEngine({
 
 ### Tauri Runtime Debugging
 
-When a Tauri app returns an error from `rustra_dispatch`:
+When a Tauri app returns an error from `unikit_dispatch`:
 
-1. Rust side: `RustraError` is serialized as `{ code, message }` JSON
-2. TS side: `createTauriEngine` converts it into a `RustraCommandError` and throws
+1. Rust side: `UnikitError` is serialized as `{ code, message }` JSON
+2. TS side: `createTauriEngine` converts it into a `UnikitCommandError` and throws
 3. Inspect `e.code` and `e.message` in the console
 
 ### React Native Notes
@@ -357,7 +357,7 @@ umbrella from drifting.
 ### Version Management (changesets)
 
 - The current versions are determined by the Rust workspace `Cargo.toml` and each
-  `packages/*/package.json`. The public `@rustra/*` packages are **independent
+  `packages/*/package.json`. The public `@unikit-bridge/*` packages are **independent
   release lines**, so they are not assumed to share one version.
 - Breaking changes are allowed during `0.x`, so any public API change must state
   the affected packages and the bump kind in a changeset:

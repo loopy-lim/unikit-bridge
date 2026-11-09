@@ -160,14 +160,14 @@ function compileOneOf(
   refs: Map<string, CompiledNode>,
   depth: number,
 ): CompiledNode {
-  const explicit = schema['x-rustra-variant-order'];
+  const explicit = schema['x-unikit-variant-order'];
   const choices = schema.oneOf ?? [];
   if (
     explicit &&
     (explicit.length !== choices.length || new Set(explicit).size !== explicit.length)
   ) {
     throw new ComplexCodecError(
-      'x-rustra-variant-order must contain unique keys for every variant',
+      'x-unikit-variant-order must contain unique keys for every variant',
     );
   }
   const keyed = choices.map((variant, index) => {

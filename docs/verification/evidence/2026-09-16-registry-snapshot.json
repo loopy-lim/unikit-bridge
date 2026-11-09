@@ -7,7 +7,7 @@
   },
   "npm": [
     {
-      "name": "@rustra/bun",
+      "name": "@unikit-bridge/bun",
       "workspaceVersion": "0.10.0",
       "exactVersion": "0.10.0",
       "latestVersion": "0.10.0",
@@ -17,11 +17,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40rustra%2Fbun",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Fbun",
       "error": null
     },
     {
-      "name": "@rustra/cli",
+      "name": "@unikit-bridge/cli",
       "workspaceVersion": "0.10.0",
       "exactVersion": "0.10.0",
       "latestVersion": "0.10.0",
@@ -31,11 +31,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40rustra%2Fcli",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Fcli",
       "error": null
     },
     {
-      "name": "@rustra/devtools",
+      "name": "@unikit-bridge/devtools",
       "workspaceVersion": "0.7.0",
       "exactVersion": "0.7.0",
       "latestVersion": "0.7.0",
@@ -45,11 +45,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40rustra%2Fdevtools",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Fdevtools",
       "error": null
     },
     {
-      "name": "@rustra/node",
+      "name": "@unikit-bridge/node",
       "workspaceVersion": "0.10.0",
       "exactVersion": "0.10.0",
       "latestVersion": "0.10.0",
@@ -59,11 +59,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40rustra%2Fnode",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Fnode",
       "error": null
     },
     {
-      "name": "@rustra/react",
+      "name": "@unikit-bridge/react",
       "workspaceVersion": "0.8.0",
       "exactVersion": "0.8.0",
       "latestVersion": "0.8.0",
@@ -73,11 +73,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40rustra%2Freact",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Freact",
       "error": null
     },
     {
-      "name": "@rustra/react-native",
+      "name": "@unikit-bridge/react-native",
       "workspaceVersion": "0.9.0",
       "exactVersion": "0.9.0",
       "latestVersion": "0.9.0",
@@ -87,11 +87,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40rustra%2Freact-native",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Freact-native",
       "error": null
     },
     {
-      "name": "@rustra/tauri",
+      "name": "@unikit-bridge/tauri",
       "workspaceVersion": "0.9.0",
       "exactVersion": "0.9.0",
       "latestVersion": "0.9.0",
@@ -101,11 +101,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40rustra%2Ftauri",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Ftauri",
       "error": null
     },
     {
-      "name": "@rustra/testing",
+      "name": "@unikit-bridge/testing",
       "workspaceVersion": "0.7.0",
       "exactVersion": "0.7.0",
       "latestVersion": "0.7.0",
@@ -115,11 +115,11 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40rustra%2Ftesting",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Ftesting",
       "error": null
     },
     {
-      "name": "@rustra/types",
+      "name": "@unikit-bridge/types",
       "workspaceVersion": "0.10.0",
       "exactVersion": "0.10.0",
       "latestVersion": "0.10.0",
@@ -129,13 +129,13 @@
         "relation": "different",
         "dirty": null
       },
-      "registryUrl": "https://registry.npmjs.org/%40rustra%2Ftypes",
+      "registryUrl": "https://registry.npmjs.org/%40unikit-bridge%2Ftypes",
       "error": null
     }
   ],
   "crates": [
     {
-      "name": "rustra",
+      "name": "unikit-bridge",
       "workspaceVersion": "0.10.1",
       "exactVersion": "0.10.1",
       "exactYanked": false,
@@ -146,8 +146,8 @@
         "relation": "exact",
         "dirty": false
       },
-      "registryUrl": "https://index.crates.io/ru/st/rustra",
-      "archiveUrl": "https://static.crates.io/crates/rustra/rustra-0.10.1.crate",
+      "registryUrl": "https://index.crates.io/ru/st/unikit",
+      "archiveUrl": "https://static.crates.io/crates/unikit-bridge/unikit-0.10.1.crate",
       "checksum": {
         "expected": "618da08d21c4c649a2fbd88c22e691f1146d4dad315a501f848d4d898bdb6a08",
         "actual": "618da08d21c4c649a2fbd88c22e691f1146d4dad315a501f848d4d898bdb6a08",
@@ -156,7 +156,7 @@
       "error": null
     },
     {
-      "name": "rustra-macros",
+      "name": "unikit-bridge-macros",
       "workspaceVersion": "0.10.1",
       "exactVersion": "0.10.1",
       "exactYanked": false,
@@ -167,8 +167,8 @@
         "relation": "exact",
         "dirty": false
       },
-      "registryUrl": "https://index.crates.io/ru/st/rustra-macros",
-      "archiveUrl": "https://static.crates.io/crates/rustra-macros/rustra-macros-0.10.1.crate",
+      "registryUrl": "https://index.crates.io/ru/st/unikit-bridge-macros",
+      "archiveUrl": "https://static.crates.io/crates/unikit-bridge-macros/unikit-bridge-macros-0.10.1.crate",
       "checksum": {
         "expected": "fffacb3c1239e14f83f933b5a4b54c6cbb5bef2f5d36303133d9d2f05a9ed219",
         "actual": "fffacb3c1239e14f83f933b5a4b54c6cbb5bef2f5d36303133d9d2f05a9ed219",
@@ -177,7 +177,7 @@
       "error": null
     },
     {
-      "name": "rustra-naming",
+      "name": "unikit-bridge-naming",
       "workspaceVersion": "0.10.1",
       "exactVersion": "0.10.1",
       "exactYanked": false,
@@ -188,8 +188,8 @@
         "relation": "exact",
         "dirty": false
       },
-      "registryUrl": "https://index.crates.io/ru/st/rustra-naming",
-      "archiveUrl": "https://static.crates.io/crates/rustra-naming/rustra-naming-0.10.1.crate",
+      "registryUrl": "https://index.crates.io/ru/st/unikit-bridge-naming",
+      "archiveUrl": "https://static.crates.io/crates/unikit-bridge-naming/unikit-bridge-naming-0.10.1.crate",
       "checksum": {
         "expected": "d4772360dcdf7c157cd4bc2f494532174f8cfa549318745ceef0d77f569d42fc",
         "actual": "d4772360dcdf7c157cd4bc2f494532174f8cfa549318745ceef0d77f569d42fc",

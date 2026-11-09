@@ -20,7 +20,7 @@ auth/
 ## Run (end-to-end)
 
 ```bash
-cargo build -p rustra-auth-example
+cargo build -p unikit-auth-example
 bunx tsc -p examples/auth/tsconfig.json
 node dist-ts/examples/auth/apps/node-app.js
 ```
@@ -46,5 +46,5 @@ Output:
 - Token: `role-<sha256-8bytes>` (in reality, JWT/opaque token + expiration)
 - Session storage: in-process `BTreeMap` (in reality, Redis/DB)
 
-The capability gate pattern itself (`RustraError::capability_denied`) can be applied to
-production as-is — see the Runtime Authority in `crates/rustra`.
+The capability gate pattern itself (`UnikitError::capability_denied`) can be applied to
+production as-is — see the Runtime Authority in `crates/unikit-bridge`.

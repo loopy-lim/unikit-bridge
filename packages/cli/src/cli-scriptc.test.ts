@@ -9,7 +9,7 @@ import { mkdtempSync, mkdirSync, existsSync, readFileSync, writeFileSync, rmSync
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { RustraScriptcConfig } from './config.js';
+import type { UnikitScriptcConfig } from './config.js';
 import {
   SCRIPTC_DECLARATIONS_FILE,
   SCRIPTC_MANIFEST_FILE,
@@ -27,9 +27,9 @@ const CALCULATOR_SCHEMA_PATH = fileURLToPath(
   new URL('../../../examples/calculator/generated/schema.json', import.meta.url),
 );
 
-function makeInput(root: string, overrides: Partial<RustraScriptcConfig> = {}): ScriptcStageInput {
-  const scriptc: RustraScriptcConfig = { output: 'out', archive: 'libs/libface.a', ...overrides };
-  const configPath = join(root, 'rustra.json');
+function makeInput(root: string, overrides: Partial<UnikitScriptcConfig> = {}): ScriptcStageInput {
+  const scriptc: UnikitScriptcConfig = { output: 'out', archive: 'libs/libface.a', ...overrides };
+  const configPath = join(root, 'unikit.json');
   const schemaOutDir = join(root, 'schema');
   mkdirSync(schemaOutDir, { recursive: true });
   mkdirSync(join(root, 'libs'), { recursive: true });
@@ -47,12 +47,12 @@ function makeInput(root: string, overrides: Partial<RustraScriptcConfig> = {}): 
 }
 
 test('resolveScriptcOutDir resolves relative to the config directory', () => {
-  const scriptc: RustraScriptcConfig = { output: 'native/scriptc' };
+  const scriptc: UnikitScriptcConfig = { output: 'native/scriptc' };
   assert.equal(resolveScriptcOutDir('/app/config', scriptc), resolve('/app/config/native/scriptc'));
 });
 
 test('resolveScriptcArchive override yields a manifest-relative forward-slash libraryRef', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-scriptc-archive-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-scriptc-archive-'));
   try {
     const input = makeInput(root);
     const outDir = resolveScriptcOutDir(resolve(root), input.scriptc);
@@ -65,7 +65,7 @@ test('resolveScriptcArchive override yields a manifest-relative forward-slash li
 });
 
 test('runScriptcStage writes manifest, source declarations and legacy declarations; checkScriptcStage accepts them', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-scriptc-roundtrip-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-scriptc-roundtrip-'));
   try {
     const input = makeInput(root);
     const written = runScriptcStage(input);
@@ -77,7 +77,7 @@ test('runScriptcStage writes manifest, source declarations and legacy declaratio
     assert.ok(written.every((path) => existsSync(path)));
     assert.match(
       readFileSync(written[2]!, 'utf8'),
-      /export declare function rustra_ffi_channel_create_bytes/,
+      /export declare function unikit_ffi_channel_create_bytes/,
     );
     assert.doesNotMatch(readFileSync(written[1]!, 'utf8'), /export declare/);
     // 매니페스트의 libraries 는 out 디렉터리 기준 상대경로로 커밋된다.
@@ -93,7 +93,7 @@ test('runScriptcStage writes manifest, source declarations and legacy declaratio
 });
 
 test('checkScriptcStage fails closed on tampered and missing committed files', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-scriptc-drift-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-scriptc-drift-'));
   try {
     const input = makeInput(root);
     runScriptcStage(input);
@@ -103,11 +103,11 @@ test('checkScriptcStage fails closed on tampered and missing committed files', (
       manifestPath,
       readFileSync(manifestPath, 'utf8').replace('"ffi_format"', '"ffiFormat"'),
     );
-    assert.throws(() => checkScriptcStage(input), /scriptc drift \(disk changed\).*rustra codegen/);
+    assert.throws(() => checkScriptcStage(input), /scriptc drift \(disk changed\).*unikit codegen/);
     // restore → pass, then remove → missing drift
     runScriptcStage(input);
     rmSync(manifestPath);
-    assert.throws(() => checkScriptcStage(input), /scriptc drift \(missing\).*rustra codegen/);
+    assert.throws(() => checkScriptcStage(input), /scriptc drift \(missing\).*unikit codegen/);
     rmSync(join(root, 'out', SCRIPTC_DECLARATIONS_FILE));
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -115,7 +115,7 @@ test('checkScriptcStage fails closed on tampered and missing committed files', (
 });
 
 test('runScriptcStage refuses to write when the archive is absent (write mode only)', () => {
-  const root = mkdtempSync(join(tmpdir(), 'rustra-scriptc-noarchive-'));
+  const root = mkdtempSync(join(tmpdir(), 'unikit-scriptc-noarchive-'));
   try {
     const input = makeInput(root);
     rmSync(join(root, 'libs', 'libface.a'));

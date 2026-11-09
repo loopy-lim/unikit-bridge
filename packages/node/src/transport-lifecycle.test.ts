@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import { RustraCommandError, type FrameCodec } from '@rustra/types';
+import { UnikitCommandError, type FrameCodec } from '@unikit-bridge/types';
 import { createNodeLoopTransport } from './index.js';
 
 const processTest = process.versions.bun ? test.skip : test;
@@ -11,7 +11,7 @@ void processTest('a missing loop runtime rejects without crashing the host proce
   const script = `
     import assert from 'node:assert/strict';
     import { createNodeLoopTransport } from ${JSON.stringify(adapterUrl)};
-    const transport = createNodeLoopTransport({ command: '/missing-rustra-loop-runtime' });
+    const transport = createNodeLoopTransport({ command: '/missing-unikit-loop-runtime' });
     await assert.rejects(transport.invoke('ping'), (error) => error.code === 'transport.error');
     transport.dispose();
   `;
@@ -200,7 +200,7 @@ void processTest(
     ]) {
       await assert.rejects(
         Promise.resolve().then(operation),
-        (error: unknown) => error instanceof RustraCommandError && /disposed/.test(error.message),
+        (error: unknown) => error instanceof UnikitCommandError && /disposed/.test(error.message),
       );
     }
     assert.equal(transport.pid, null);
@@ -218,7 +218,7 @@ void processTest(
     try {
       await assert.rejects(
         transport.ready(),
-        (error: unknown) => error instanceof RustraCommandError && error.code === 'transport.error',
+        (error: unknown) => error instanceof UnikitCommandError && error.code === 'transport.error',
       );
     } finally {
       transport.dispose();

@@ -27,9 +27,9 @@
 // 종료 코드 0 = 전 단계 통과. 어떤 단계든 실패하면 stderr 에 단계명과 함께
 // exit 1 — CI/스크립트에서 판정 가능하게 loud fail 이다.
 
-use rustra::hot_core::{self, DylibCore, DylibWatchConfig, HotCoreHandle, JsonDispatch};
 use serde_json::{Value, json};
 use std::{path::PathBuf, process, sync::Arc, time::Duration};
+use unikit_bridge::hot_core::{self, DylibCore, DylibWatchConfig, HotCoreHandle, JsonDispatch};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -48,7 +48,7 @@ fn main() {
     };
 
     // 1. open + invoke — Bun 어댑터/호스트 앱과 동일 초기화(dlopen →
-    //    rustra_mobile_init → 디스패치).
+    //    unikit_mobile_init → 디스패치).
     let core = DylibCore::open(&artifact).unwrap_or_else(|e| fail("open", &e.to_string()));
 
     // --watch 모드에서는 동기 검증(2~6)을 건너뛴다 — 두 가지 계약이다:

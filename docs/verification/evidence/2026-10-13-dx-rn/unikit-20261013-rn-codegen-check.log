@@ -1,0 +1,9 @@
+$ bun ../../packages/cli/src/index.ts codegen --config unikit.json --check
+[unikit] Rust schema: cargo run --manifest-path /Users/loopy/dev/ll3/unikit-bridge/examples/rn-experiment/Cargo.toml --package unikit-rn-experiment --bin generate
+[unikit] ⠋ Rust schema generation (unikit-rn-experiment/generate)...
+    Blocking waiting for file lock on artifact directory
+[unikit] ⠋ Rust schema generation (unikit-rn-experiment/generate) still running (1s)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.98s
+     Running `/Users/loopy/dev/ll3/unikit-bridge/target/debug/generate`
+[unikit] ✓ Rust schema generation (unikit-rn-experiment/generate) done in 1.0s
+[unikit] TypeScript/C++: generate --config /Users/loopy/dev/ll3/unikit-bridge/examples/rn-experiment/unikit.json --check

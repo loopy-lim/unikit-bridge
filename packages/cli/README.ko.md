@@ -1,34 +1,34 @@
-# @rustra/cli
+# @unikit-bridge/cli
 
-rustra-bridge의 TypeScript 코드 제너레이션 CLI입니다. Rust 백엔드가 내보낸
+unikit-bridge의 TypeScript 코드 제너레이션 CLI입니다. Rust 백엔드가 내보낸
 `schema.json`으로부터 타입 안전 클라이언트(commands/types/contract/frame codec)를 생성합니다.
 
 ## 사용법
 
 ```sh
 # 1. schema + TS/C++/RN 통합 생성
-rustra codegen --config rustra.json
+unikit codegen --config unikit.json
 
 # 2. schema만 이미 있고 생성물을 다시 렌더링
-rustra generate --schema ./generated/schema.json --output ./src/generated
+unikit generate --schema ./generated/schema.json --output ./src/generated
 
 # 3. C++ 코덱(RN JSI fast path용) 동시 생성
-rustra generate --schema ./gen/schema.json --output ./src/generated --cpp-output ./ios
+unikit generate --schema ./gen/schema.json --output ./src/generated --cpp-output ./ios
 
 # 4. 개발 모드 (Rust 소스 변경 감시 + 통합 codegen)
-rustra dev --config rustra.json
+unikit dev --config unikit.json
 
 # 5. 생성물 동기화 검증 (CI 게이트용)
-rustra generate --config rustra.json --check
+unikit generate --config unikit.json --check
 
 # 6. 스키마 버전 간 breaking change 검증 (CI 게이트용)
-rustra diff --old ./schema.v1.json --new ./schema.v2.json
+unikit diff --old ./schema.v1.json --new ./schema.v2.json
 
 # 7. 새 프로젝트 스캐폴드 초기화
-rustra init my-app
+unikit init my-app
 
 # 8. 도구·Cargo 설정·레지스트리 연결 상태 진단 (--format json, --strict 지원)
-rustra doctor --config rustra.json
+unikit doctor --config unikit.json
 ```
 
 Doctor는 Node 프로세스 어댑터에서 Node 18+ 또는 Bun 1.4+를 허용합니다.
@@ -36,20 +36,20 @@ Doctor는 Node 프로세스 어댑터에서 Node 18+ 또는 Bun 1.4+를 허용�
 Node/Bun 전용 프로젝트는 C++·CMake 필수 검사를 생략합니다. C++은
 React Native 또는 명시한 `cppOutput`, CMake는 React Native에서 검사합니다.
 
-전체 옵션은 `rustra --help`로 확인하세요.
+전체 옵션은 `unikit --help`로 확인하세요.
 
-**실험적 dylib dev 타깃**: `rustra dev`에서 `dev.target: "dylib"`를 쓰면 엔진
+**실험적 dylib dev 타깃**: `unikit dev`에서 `dev.target: "dylib"`를 쓰면 엔진
 코어를 cdylib 으로 빌드해 네이티브 hot-core 스왑 루프에 쓸 수 있습니다 — 호스트가
-`RUSTRA_HOT_CORE`로 아티팩트를 받아 재시작 없이 반영합니다(parity 게이트는 wasm
+`UNIKIT_HOT_CORE`로 아티팩트를 받아 재시작 없이 반영합니다(parity 게이트는 wasm
 타깃과 동일하게 결합). 동작 예제는
 [tauri-calculator 예제](../../examples/tauri-calculator/README.ko.md)와
 [hot-core 설계](../../docs/dev/plans/2026-09-09-native-hot-core-design.md)를
 참고하세요. dylib 루프는 별도 config 파일로 유지하고(예: `dev.target: "dylib"`를
-넣은 `rustra.hot.json`) `rustra dev --config rustra.hot.json`으로 실행하세요 —
+넣은 `unikit.hot.json`) `unikit dev --config unikit.hot.json`으로 실행하세요 —
 공유 config는 기본 `native` 타깃을 유지합니다(tauri-calculator 예제가 쓰는
 패턴).
 
-**웜 루프 속도**: `rustra dev`는 자신이 도리는 cargo 단계(스키마 `generate`
+**웜 루프 속도**: `unikit dev`는 자신이 도리는 cargo 단계(스키마 `generate`
 bin, dylib 빌드)에 한해 증분 컴파일을 켭니다 — 해당 스폰에만
 `CARGO_INCREMENTAL=1`을 주입하며, env는 프로필을 우선하므로
 `incremental = false` 설정을 무시합니다. 직접 실행하는 `cargo build`/`test`는
@@ -75,7 +75,7 @@ debug = 0 # 의존성 debuginfo 끄기 — 디스크·시간 절감이 가장 �
 CLI와 동일한 생성기를 프로그램에서 직접 사용할 수 있습니다:
 
 ```ts
-import { generateTypesTs, generateCommandsTs, diffSchemas } from '@rustra/cli';
+import { generateTypesTs, generateCommandsTs, diffSchemas } from '@unikit-bridge/cli';
 ```
 
 | 모듈              | 내용                                                     |
@@ -87,16 +87,16 @@ import { generateTypesTs, generateCommandsTs, diffSchemas } from '@rustra/cli';
 
 ## 관련 문서
 
-- [rustra-bridge](https://github.com/loopy-lim/rustra#readme)
+- [unikit-bridge](https://github.com/loopy-lim/unikit-bridge#readme)
 - `docs/getting-started.md` — 전체 파이프라인 (Rust `generate_typescript` → CLI)
 
-`rustra dev --config rustra.json`은 설정 변경을 다시 읽고 새로 생기거나 삭제·교체된
+`unikit dev --config unikit.json`은 설정 변경을 다시 읽고 새로 생기거나 삭제·교체된
 소스 경로를 감시합니다. 100 ms마다 파일 상태를 비교하므로 Node/Bun에서
 `fs.watch` 감시 자원이 부족해져도 네이티브 감시 핸들에 의존하지 않습니다.
 
-`uniffi` 프로젝트의 `rustra codegen --check`는 Rust mirror와
+`uniffi` 프로젝트의 `unikit codegen --check`는 Rust mirror와
 schema/TypeScript/C++ 생성물을 검사합니다. 실제 Kotlin·Swift·헤더·modulemap까지
-검사하는 별도 CI 게이트는 `rustra codegen --check-bindings`입니다. 이 옵션은
+검사하는 별도 CI 게이트는 `unikit codegen --check-bindings`입니다. 이 옵션은
 `--check`를 포함하며 라이브러리를 빌드하고 빈 임시 디렉터리에서 bindgen을 실행한 뒤
 `uniffi.output`의 전체 경로와 바이트를 비교합니다. 커밋된 파일은 바꾸지 않습니다.
 일반 생성도 새 산출물 검증을 마친 뒤에만 바인딩 디렉터리를 교체하며 오래된 파일을
@@ -121,7 +121,7 @@ UniFFI 설정 예제만 골라 실제 Swift/Kotlin 생성을 검사한다.
 ### Hot-core 라이브러리 보관 진단
 
 hot-core는 이미 로드한 라이브러리의 심볼 안전성을 위해 프로세스 종료까지 라이브러리를
-보관한다. `rustra::hot_core::retained_library_stats()`의 `libraries`는 실패한 심볼
+보관한다. `unikit_bridge::hot_core::retained_library_stats()`의 `libraries`는 실패한 심볼
 바인딩을 포함한 누적 보관 로드 수, `artifact_bytes`는 로드한 파일 크기의 합이다.
 메모리 상주량(RSS)을 측정한 값이 아니다. `restart_recommended()`는 누적 32회부터
 true이며, 32회마다 로그로 호스트 재시작을 권고한다. 메모리를 해제하려면 개발 호스트를

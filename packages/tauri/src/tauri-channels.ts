@@ -1,11 +1,11 @@
 import { createChannelFrameDecoder } from './tauri-channel-frames.js';
 import {
-  debugRustra,
-  RustraCommandError,
-  RustraErrorCode,
-  type RustraDebugEvent,
-  type RustraErrorCodeValue,
-} from '@rustra/types';
+  debugUnikit,
+  UnikitCommandError,
+  UnikitErrorCode,
+  type UnikitDebugEvent,
+  type UnikitErrorCodeValue,
+} from '@unikit-bridge/types';
 import type { TauriInvoke, TauriListen } from './index.js';
 import { requireTauriInvoke, requireTauriIpcChannel } from './tauri-globals.js';
 
@@ -18,35 +18,35 @@ export type TauriChannelIo = {
   /** @deprecated Channel frames no longer use app-wide events. */
   listen?: TauriListen;
 };
-export type RustraTauriChannel = {
+export type UnikitTauriChannel = {
   readonly handle: number;
   /** Suppress future callbacks and release the native handle; idempotent. */
   close(): Promise<boolean>;
 };
-export type RustraTauriBytesChannel = RustraTauriChannel;
+export type UnikitTauriBytesChannel = UnikitTauriChannel;
 
 /** Event name for trusted Rust host helpers, not JS-issued IPC channels. */
-export function rustraChannelEventChannel(handle: number): string {
-  return `rustra://channel/${handle}`;
+export function unikitChannelEventChannel(handle: number): string {
+  return `unikit://channel/${handle}`;
 }
 /** Bytes event name for trusted Rust host helpers. */
-export function rustraChannelBytesEventChannel(handle: number): string {
-  return `rustra://channel-bytes/${handle}`;
+export function unikitChannelBytesEventChannel(handle: number): string {
+  return `unikit://channel-bytes/${handle}`;
 }
 
 async function createOwnedChannel(
   callback: (payload: unknown, handle: number) => void,
   io: TauriChannelIo,
   command: string,
-  code: RustraErrorCodeValue,
-): Promise<RustraTauriChannel> {
+  code: UnikitErrorCodeValue,
+): Promise<UnikitTauriChannel> {
   const invoke = io.invoke ?? requireTauriInvoke(code);
   let closed = false;
   let handle = 0;
   const frames = createChannelFrameDecoder((bytes) => {
     if (closed) return;
     callback(
-      command === 'rustra_channel_create_bytes'
+      command === 'unikit_channel_create_bytes'
         ? bytes
         : JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)),
       handle,
@@ -58,11 +58,11 @@ async function createOwnedChannel(
       frames.accept(payload);
     } catch (error) {
       try {
-        debugRustra({
+        debugUnikit({
           kind: 'tauri.bytes_payload_error',
           command,
           error: String(error),
-        } as unknown as RustraDebugEvent);
+        } as unknown as UnikitDebugEvent);
       } catch {
         /* Keep diagnostics isolated. */
       }
@@ -81,18 +81,18 @@ async function createOwnedChannel(
     };
     handle = typeof raw?.handle === 'number' ? raw.handle : 0;
     if (!Number.isSafeInteger(handle) || handle < 1 || handle > 0xffffffff) {
-      throw new RustraCommandError(
-        RustraErrorCode.ChannelUnavailable,
+      throw new UnikitCommandError(
+        UnikitErrorCode.ChannelUnavailable,
         `${command} returned an invalid u32 handle`,
       );
     }
     // An older native host ignores onMessage and would silently broadcast. Fail
     // before returning a handle and release the old host's allocation.
     if (raw.transport !== 'ipc-channel-chunks-v1') {
-      await Promise.resolve(invoke('rustra_channel_drop', { handle })).catch(() => {});
-      throw new RustraCommandError(
-        RustraErrorCode.ChannelUnavailable,
-        'Native Tauri channel protocol is incompatible; rebuild Rust and update @rustra/tauri together',
+      await Promise.resolve(invoke('unikit_channel_drop', { handle })).catch(() => {});
+      throw new UnikitCommandError(
+        UnikitErrorCode.ChannelUnavailable,
+        'Native Tauri channel protocol is incompatible; rebuild Rust and update @unikit-bridge/tauri together',
       );
     }
   } catch (error) {
@@ -112,7 +112,7 @@ async function createOwnedChannel(
       frames.dispose();
       closing = (async () => {
         try {
-          return (await invoke('rustra_channel_drop', { handle })) === true;
+          return (await invoke('unikit_channel_drop', { handle })) === true;
         } finally {
           transport.dispose();
         }
@@ -131,14 +131,14 @@ async function createOwnedChannel(
 export async function createChannel(
   callback: (payload: unknown) => void,
   io: TauriChannelIo = {},
-): Promise<RustraTauriChannel> {
+): Promise<UnikitTauriChannel> {
   // IPC delivers already-decoded JSON, including strings. Parsing strings again
   // would corrupt values such as the JSON string "42" into the number 42.
   return createOwnedChannel(
     callback,
     io,
-    'rustra_channel_create',
-    RustraErrorCode.TransportUnavailable,
+    'unikit_channel_create',
+    UnikitErrorCode.TransportUnavailable,
   );
 }
 
@@ -146,7 +146,7 @@ export async function createChannel(
 export async function createChannelBytes(
   callback: (payload: Uint8Array) => void,
   io: TauriChannelIo = {},
-): Promise<RustraTauriBytesChannel> {
+): Promise<UnikitTauriBytesChannel> {
   return createOwnedChannel(
     (payload, handle) => {
       const bytes =
@@ -163,18 +163,18 @@ export async function createChannelBytes(
         return;
       }
       try {
-        debugRustra({
+        debugUnikit({
           kind: 'tauri.bytes_payload_error',
-          command: rustraChannelBytesEventChannel(handle),
+          command: unikitChannelBytesEventChannel(handle),
           error: 'unexpected bytes channel payload',
-        } as unknown as RustraDebugEvent);
+        } as unknown as UnikitDebugEvent);
       } catch {
         /* Diagnostics must not escape channel delivery. */
       }
     },
     io,
-    'rustra_channel_create_bytes',
-    RustraErrorCode.ChannelUnavailable,
+    'unikit_channel_create_bytes',
+    UnikitErrorCode.ChannelUnavailable,
   );
 }
 
@@ -183,5 +183,5 @@ export async function createChannelBytes(
 // createChannel 결과의 handle 이 그 자리를 채우는지 타입 레벨 고정.
 
 type GeneratedChannelHandle = number;
-const _channelHandleFitsGenerated: GeneratedChannelHandle = ({} as RustraTauriChannel).handle;
+const _channelHandleFitsGenerated: GeneratedChannelHandle = ({} as UnikitTauriChannel).handle;
 void _channelHandleFitsGenerated;

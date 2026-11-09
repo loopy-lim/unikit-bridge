@@ -9,7 +9,7 @@ const adapter = new URL('./index.js', import.meta.url).href;
 const library = resolve(
   dirname(fileURLToPath(import.meta.url)),
   '../../../target/debug',
-  `librustra_calculator_example.${suffix}`,
+  `libunikit_calculator_example.${suffix}`,
 );
 
 function nativeScenario(action: string): void {

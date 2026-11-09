@@ -38,19 +38,19 @@ function validObservation(overrides = {}) {
 
 test('versions.json admits the tauri host pin and stays a valid manifest', () => {
   const manifest = validateVersionManifest(JSON.parse(readFileSync(VERSIONS_PATH, 'utf8')));
-  assert.equal(manifest.hosts['@rustra/tauri'], '0.10.0');
+  assert.equal(manifest.hosts['@unikit-bridge/tauri'], '0.10.0');
 });
 
 test('validateVersionManifest rejects unknown host keys', () => {
   const manifest = JSON.parse(readFileSync(VERSIONS_PATH, 'utf8'));
-  manifest.hosts = { '@rustra/electron': '1.0.0' };
+  manifest.hosts = { '@unikit-bridge/electron': '1.0.0' };
   assert.throws(() => validateVersionManifest(manifest), /unknown key/);
 });
 
 test('validateVersionManifest rejects non-exact host pins', () => {
   const manifest = JSON.parse(readFileSync(VERSIONS_PATH, 'utf8'));
-  manifest.hosts = { '@rustra/tauri': '^0.9.3' };
-  assert.throws(() => validateVersionManifest(manifest), /hosts\.@rustra\/tauri/);
+  manifest.hosts = { '@unikit-bridge/tauri': '^0.9.3' };
+  assert.throws(() => validateVersionManifest(manifest), /hosts\.@unikit-bridge\/tauri/);
 });
 
 test('rendered lib.rs mutates exactly once and rejects double mutation', () => {

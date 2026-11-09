@@ -12,7 +12,7 @@
 
 ### Task 1: Add byte-buffer FFI to Rust calculator example
 
-Add `rustra_calculator_invoke_bytes` and `rustra_calculator_free_buffer` alongside the existing string-based FFI. These are the entry points the C++ bridge will call.
+Add `unikit_calculator_invoke_bytes` and `unikit_calculator_free_buffer` alongside the existing string-based FFI. These are the entry points the C++ bridge will call.
 
 **Files:**
 
@@ -35,7 +35,7 @@ mod tests {
         let mut out_len: usize = 0;
 
         let result_ptr = unsafe {
-            rustra_calculator_invoke_bytes(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_calculator_invoke_bytes(payload.as_ptr(), payload.len(), &mut out_len)
         };
 
         assert!(!result_ptr.is_null());
@@ -48,13 +48,13 @@ mod tests {
         assert_eq!(result["ok"], true);
         assert_eq!(result["result"]["value"], 100);
 
-        unsafe { rustra_calculator_free_buffer(result_ptr, out_len) };
+        unsafe { unikit_calculator_free_buffer(result_ptr, out_len) };
     }
 
     #[test]
     fn test_invoke_bytes_null_payload() {
         let mut out_len: usize = 0;
-        let result = unsafe { rustra_calculator_invoke_bytes(std::ptr::null(), 0, &mut out_len) };
+        let result = unsafe { unikit_calculator_invoke_bytes(std::ptr::null(), 0, &mut out_len) };
         assert!(result.is_null());
     }
 
@@ -63,20 +63,20 @@ mod tests {
         let payload = b"not json";
         let mut out_len: usize = 0;
         let result_ptr = unsafe {
-            rustra_calculator_invoke_bytes(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_calculator_invoke_bytes(payload.as_ptr(), payload.len(), &mut out_len)
         };
         assert!(!result_ptr.is_null());
         let result_bytes = unsafe { std::slice::from_raw_parts(result_ptr, out_len) };
         let result_str = std::str::from_utf8(result_bytes).unwrap();
         assert!(result_str.contains(r#""ok":false"#));
-        unsafe { rustra_calculator_free_buffer(result_ptr, out_len) };
+        unsafe { unikit_calculator_free_buffer(result_ptr, out_len) };
     }
 }
 ```
 
 **Step 2: Run test to verify it fails**
 
-Run: `cargo test -p rustra-calculator-example -- test_invoke_bytes`
+Run: `cargo test -p unikit-calculator-example -- test_invoke_bytes`
 Expected: FAIL — function does not exist yet
 
 **Step 3: Write minimal implementation**
@@ -85,7 +85,7 @@ Add these functions to `examples/calculator/src/lib.rs` (before the `#[cfg(test)
 
 ```rust
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_calculator_invoke_bytes(
+pub unsafe extern "C" fn unikit_calculator_invoke_bytes(
     payload: *const u8,
     payload_len: usize,
     out_len: *mut usize,
@@ -117,16 +117,16 @@ pub unsafe extern "C" fn rustra_calculator_invoke_bytes(
         }
     };
 
-    let result_ptr = unsafe { rustra_calculator_invoke(c_payload.as_ptr()) };
+    let result_ptr = unsafe { unikit_calculator_invoke(c_payload.as_ptr()) };
     let result_cstr = unsafe { std::ffi::CStr::from_ptr(result_ptr) };
     let result_bytes = result_cstr.to_bytes().to_vec();
-    unsafe { rustra_calculator_free_string(result_ptr) };
+    unsafe { unikit_calculator_free_string(result_ptr) };
 
     alloc_response(result_bytes, out_len)
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn rustra_calculator_free_buffer(ptr: *mut u8, len: usize) {
+pub unsafe extern "C" fn unikit_calculator_free_buffer(ptr: *mut u8, len: usize) {
     if !ptr.is_null() && len > 0 {
         unsafe {
             let slice = std::slice::from_raw_parts_mut(ptr, len);
@@ -144,7 +144,7 @@ fn alloc_response(data: Vec<u8>, out_len: *mut usize) -> *mut u8 {
 
 **Step 4: Run tests to verify they pass**
 
-Run: `cargo test -p rustra-calculator-example -- test_invoke_bytes`
+Run: `cargo test -p unikit-calculator-example -- test_invoke_bytes`
 Expected: all 3 tests PASS
 
 **Step 5: Commit**
@@ -158,22 +158,22 @@ git commit -m "feat(calculator): add byte-buffer FFI entry points for JSI bridge
 
 ### Task 2: Create the JSI native module directory structure
 
-Create the new native module that will replace the Expo Module. This module installs a JSI HostObject globally accessible as `globalThis.__rustraNative`.
+Create the new native module that will replace the Expo Module. This module installs a JSI HostObject globally accessible as `globalThis.__unikitNative`.
 
 **Files:**
 
-- Create: `examples/react-native-calculator/modules/rustra-jsi/package.json`
-- Create: `examples/react-native-calculator/modules/rustra-jsi/react-native.config.js`
-- Create: `examples/react-native-calculator/modules/rustra-jsi/src/index.ts`
-- Create: `examples/react-native-calculator/modules/rustra-jsi/tsconfig.json`
+- Create: `examples/react-native-calculator/modules/unikit-jsi/package.json`
+- Create: `examples/react-native-calculator/modules/unikit-jsi/react-native.config.js`
+- Create: `examples/react-native-calculator/modules/unikit-jsi/src/index.ts`
+- Create: `examples/react-native-calculator/modules/unikit-jsi/tsconfig.json`
 
 **Step 1: Create package.json**
 
-`examples/react-native-calculator/modules/rustra-jsi/package.json`:
+`examples/react-native-calculator/modules/unikit-jsi/package.json`:
 
 ```json
 {
-  "name": "rustra-jsi",
+  "name": "unikit-jsi",
   "version": "1.0.0",
   "main": "src/index.ts",
   "private": true
@@ -182,14 +182,14 @@ Create the new native module that will replace the Expo Module. This module inst
 
 **Step 2: Create react-native.config.js**
 
-`examples/react-native-calculator/modules/rustra-jsi/react-native.config.js`:
+`examples/react-native-calculator/modules/unikit-jsi/react-native.config.js`:
 
 ```js
 module.exports = {
   dependency: {
     platforms: {
       ios: {
-        podspecPath: './ios/RustraJSI.podspec',
+        podspecPath: './ios/UnikitJSI.podspec',
       },
     },
   },
@@ -198,27 +198,27 @@ module.exports = {
 
 **Step 3: Create src/index.ts**
 
-`examples/react-native-calculator/modules/rustra-jsi/src/index.ts`:
+`examples/react-native-calculator/modules/unikit-jsi/src/index.ts`:
 
 ```typescript
 /**
  * Type declaration for the JSI-installed native bridge.
- * The C++ module installs `globalThis.__rustraNative` at startup.
+ * The C++ module installs `globalThis.__unikitNative` at startup.
  */
-export type RustraNative = {
+export type UnikitNative = {
   invoke(packageId: string, payload: ArrayBuffer): ArrayBuffer;
 };
 
 declare global {
   // eslint-disable-next-line no-var
-  var __rustraNative: RustraNative | undefined;
+  var __unikitNative: UnikitNative | undefined;
 }
 
-export function getRustraNative(): RustraNative {
-  const native = globalThis.__rustraNative;
+export function getUnikitNative(): UnikitNative {
+  const native = globalThis.__unikitNative;
   if (!native) {
     throw new Error(
-      'RustraJSI native module not installed. ' +
+      'UnikitJSI native module not installed. ' +
         'Make sure the native module is linked and the app is rebuilt.',
     );
   }
@@ -228,7 +228,7 @@ export function getRustraNative(): RustraNative {
 
 **Step 4: Create tsconfig.json**
 
-`examples/react-native-calculator/modules/rustra-jsi/tsconfig.json`:
+`examples/react-native-calculator/modules/unikit-jsi/tsconfig.json`:
 
 ```json
 {
@@ -247,7 +247,7 @@ export function getRustraNative(): RustraNative {
 **Step 5: Commit**
 
 ```bash
-git add examples/react-native-calculator/modules/rustra-jsi/
+git add examples/react-native-calculator/modules/unikit-jsi/
 git commit -m "feat(rn): scaffold JSI native module package structure"
 ```
 
@@ -259,13 +259,13 @@ This is the core of the implementation. The C++ HostObject receives ArrayBuffer 
 
 **Files:**
 
-- Create: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.hpp`
-- Create: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp`
-- Create: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIModule.mm`
+- Create: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.hpp`
+- Create: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp`
+- Create: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIModule.mm`
 
 **Step 1: Create C++ header**
 
-`examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.hpp`:
+`examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.hpp`:
 
 ```cpp
 #pragma once
@@ -274,16 +274,16 @@ This is the core of the implementation. The C++ HostObject receives ArrayBuffer 
 #include <memory>
 #include <string>
 
-namespace rustra {
+namespace unikit {
 
 // Rust FFI declarations
 extern "C" {
-  uint8_t* rustra_calculator_invoke_bytes(
+  uint8_t* unikit_calculator_invoke_bytes(
     const uint8_t* payload, size_t payload_len, size_t* out_len);
-  void rustra_calculator_free_buffer(uint8_t* ptr, size_t len);
+  void unikit_calculator_free_buffer(uint8_t* ptr, size_t len);
 }
 
-class RustraHostObject : public facebook::jsi::HostObject {
+class UnikitHostObject : public facebook::jsi::HostObject {
 public:
   facebook::jsi::Value get(
     facebook::jsi::Runtime& rt,
@@ -298,21 +298,21 @@ public:
     facebook::jsi::Runtime& rt) override;
 };
 
-void installRustraJSI(facebook::jsi::Runtime& rt);
+void installUnikitJSI(facebook::jsi::Runtime& rt);
 
-} // namespace rustra
+} // namespace unikit
 ```
 
 **Step 2: Create C++ implementation**
 
-`examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIBridge.cpp`:
+`examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIBridge.cpp`:
 
 ```cpp
-#include "RustraJSIBridge.hpp"
+#include "UnikitJSIBridge.hpp"
 #include <cstring>
 #include <jsi/jsi.h>
 
-namespace rustra {
+namespace unikit {
 
 using namespace facebook::jsi;
 
@@ -344,10 +344,10 @@ static std::pair<const uint8_t*, size_t> extractBytes(Runtime& rt, const Value& 
     return {buf.data(rt) + byteOffset, byteLength};
   }
 
-  throw JSError(rt, "RustraJSI: expected ArrayBuffer or TypedArray");
+  throw JSError(rt, "UnikitJSI: expected ArrayBuffer or TypedArray");
 }
 
-Value RustraHostObject::get(Runtime& rt, const PropNameID& name) {
+Value UnikitHostObject::get(Runtime& rt, const PropNameID& name) {
   auto propName = name.utf8(rt);
 
   if (propName == "invoke") {
@@ -355,20 +355,20 @@ Value RustraHostObject::get(Runtime& rt, const PropNameID& name) {
       rt, name, 2,
       [](Runtime& rt, const Value&, const Value* args, size_t count) -> Value {
         if (count < 2) {
-          throw JSError(rt, "RustraJSI.invoke requires 2 arguments: (packageId, payload)");
+          throw JSError(rt, "UnikitJSI.invoke requires 2 arguments: (packageId, payload)");
         }
 
         auto [data, size] = extractBytes(rt, args[1]);
 
         size_t out_len = 0;
-        uint8_t* result = rustra_calculator_invoke_bytes(data, size, &out_len);
+        uint8_t* result = unikit_calculator_invoke_bytes(data, size, &out_len);
 
         if (!result) {
-          throw JSError(rt, "RustraJSI: Rust returned null (invalid payload)");
+          throw JSError(rt, "UnikitJSI: Rust returned null (invalid payload)");
         }
 
         auto returnValue = createArrayBuffer(rt, result, out_len);
-        rustra_calculator_free_buffer(result, out_len);
+        unikit_calculator_free_buffer(result, out_len);
         return returnValue;
       });
   }
@@ -376,22 +376,22 @@ Value RustraHostObject::get(Runtime& rt, const PropNameID& name) {
   return Value::undefined();
 }
 
-std::vector<PropNameID> RustraHostObject::getPropertyNames(Runtime& rt) {
+std::vector<PropNameID> UnikitHostObject::getPropertyNames(Runtime& rt) {
   return {PropNameID::forAscii(rt, "invoke")};
 }
 
-void installRustraJSI(Runtime& rt) {
-  auto hostObject = std::make_shared<RustraHostObject>();
+void installUnikitJSI(Runtime& rt) {
+  auto hostObject = std::make_shared<UnikitHostObject>();
   auto obj = Object::createFromHostObject(rt, hostObject);
-  rt.global().setProperty(rt, "__rustraNative", Value(rt, obj));
+  rt.global().setProperty(rt, "__unikitNative", Value(rt, obj));
 }
 
-} // namespace rustra
+} // namespace unikit
 ```
 
 **Step 3: Create ObjC++ module wrapper**
 
-`examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSIModule.mm`:
+`examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSIModule.mm`:
 
 ```objc
 #import <React/RCTBridgeModule.h>
@@ -399,14 +399,14 @@ void installRustraJSI(Runtime& rt) {
 #import <React/RCTCxxBridge.h>
 #import <jsi/jsi.h>
 
-#import "RustraJSIBridge.hpp"
+#import "UnikitJSIBridge.hpp"
 
-@interface RustraJSI : NSObject <RCTBridgeModule>
+@interface UnikitJSI : NSObject <RCTBridgeModule>
 @end
 
-@implementation RustraJSI
+@implementation UnikitJSI
 
-RCT_EXPORT_MODULE(RustraJSI)
+RCT_EXPORT_MODULE(UnikitJSI)
 
 - (void)setBridge:(RCTBridge *)bridge {
   RCTCxxBridge *cxxBridge = (RCTCxxBridge *)bridge;
@@ -414,7 +414,7 @@ RCT_EXPORT_MODULE(RustraJSI)
     return;
   }
 
-  rustra::installRustraJSI(*cxxBridge.runtime);
+  unikit_bridge::installUnikitJSI(*cxxBridge.runtime);
 }
 
 + (BOOL)requiresMainQueueSetup {
@@ -427,7 +427,7 @@ RCT_EXPORT_MODULE(RustraJSI)
 **Step 4: Commit**
 
 ```bash
-git add examples/react-native-calculator/modules/rustra-jsi/ios/
+git add examples/react-native-calculator/modules/unikit-jsi/ios/
 git commit -m "feat(rn): add C++ JSI HostObject and ObjC++ module registration"
 ```
 
@@ -439,26 +439,26 @@ Wire up the build system so CocoaPods compiles the C++ bridge and links it with 
 
 **Files:**
 
-- Create: `examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSI.podspec`
-- Create: `examples/react-native-calculator/modules/rustra-jsi/ios/build-rust-ios.sh`
+- Create: `examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSI.podspec`
+- Create: `examples/react-native-calculator/modules/unikit-jsi/ios/build-rust-ios.sh`
 
 **Step 1: Create podspec**
 
-`examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSI.podspec`:
+`examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSI.podspec`:
 
 ```ruby
 Pod::Spec.new do |s|
-  s.name           = 'RustraJSI'
+  s.name           = 'UnikitJSI'
   s.version        = '1.0.0'
-  s.summary        = 'Rustra JSI Bridge for React Native'
+  s.summary        = 'Unikit JSI Bridge for React Native'
   s.author         = ''
-  s.homepage       = 'https://github.com/loopy-lim/rustra'
+  s.homepage       = 'https://github.com/loopy-lim/unikit-bridge'
   s.platforms      = { :ios => '15.1' }
   s.source         = { git: '' }
   s.static_framework = true
 
   s.prepare_command = 'sh build-rust-ios.sh'
-  s.vendored_libraries = 'rust/lib/librustra_calculator_example.a'
+  s.vendored_libraries = 'rust/lib/libunikit_calculator_example.a'
 
   s.source_files = "**/*.{h,mm,hpp,cpp}"
 
@@ -469,7 +469,7 @@ Pod::Spec.new do |s|
 
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',
-    'OTHER_LDFLAGS' => '$(inherited) -force_load ${PODS_TARGET_SRCROOT}/rust/lib/librustra_calculator_example.a',
+    'OTHER_LDFLAGS' => '$(inherited) -force_load ${PODS_TARGET_SRCROOT}/rust/lib/libunikit_calculator_example.a',
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++17',
   }
 end
@@ -477,7 +477,7 @@ end
 
 **Step 2: Create build script**
 
-`examples/react-native-calculator/modules/rustra-jsi/ios/build-rust-ios.sh`:
+`examples/react-native-calculator/modules/unikit-jsi/ios/build-rust-ios.sh`:
 
 ```sh
 #!/bin/sh
@@ -485,7 +485,7 @@ set -eu
 
 MODULE_DIR=$(cd "$(dirname "$0")/.." && pwd)
 REPO_ROOT=$(cd "$MODULE_DIR/../../.." && pwd)
-TARGET=${RUSTRA_IOS_TARGET:-aarch64-apple-ios-sim}
+TARGET=${UNIKIT_IOS_TARGET:-aarch64-apple-ios-sim}
 CARGO_BIN=${CARGO_BIN:-"$HOME/.cargo/bin/cargo"}
 RUSTUP_BIN=${RUSTUP_BIN:-"$(dirname "$CARGO_BIN")/rustup"}
 RUST_HOME=$(cd "$(dirname "$RUSTUP_BIN")/../.." && pwd)
@@ -496,25 +496,25 @@ export RUSTC=${RUSTC:-"$("$RUSTUP_BIN" which rustc)"}
 
 "$CARGO_BIN" build \
   --manifest-path "$REPO_ROOT/Cargo.toml" \
-  -p rustra-calculator-example \
+  -p unikit-calculator-example \
   --lib \
   --release \
   --target "$TARGET"
 
 mkdir -p "$MODULE_DIR/ios/rust/lib"
-cp "$REPO_ROOT/target/$TARGET/release/librustra_calculator_example.a" \
-  "$MODULE_DIR/ios/rust/lib/librustra_calculator_example.a"
+cp "$REPO_ROOT/target/$TARGET/release/libunikit_calculator_example.a" \
+  "$MODULE_DIR/ios/rust/lib/libunikit_calculator_example.a"
 ```
 
 **Step 3: Make build script executable**
 
-Run: `chmod +x examples/react-native-calculator/modules/rustra-jsi/ios/build-rust-ios.sh`
+Run: `chmod +x examples/react-native-calculator/modules/unikit-jsi/ios/build-rust-ios.sh`
 
 **Step 4: Commit**
 
 ```bash
-git add examples/react-native-calculator/modules/rustra-jsi/ios/RustraJSI.podspec
-git add examples/react-native-calculator/modules/rustra-jsi/ios/build-rust-ios.sh
+git add examples/react-native-calculator/modules/unikit-jsi/ios/UnikitJSI.podspec
+git add examples/react-native-calculator/modules/unikit-jsi/ios/build-rust-ios.sh
 git commit -m "feat(rn): add CocoaPods podspec and Rust iOS build script for JSI module"
 ```
 
@@ -533,7 +533,7 @@ Replace the Expo Module adapter with a JSI byte-buffer engine. The engine takes 
 Replace the entire contents of `packages/react-native/src/index.ts`:
 
 ```typescript
-export type RustraJSINative = {
+export type UnikitJSINative = {
   invoke(payload: ArrayBuffer): ArrayBuffer;
 };
 
@@ -541,7 +541,7 @@ export type ReactNativeEngineClient = {
   invoke<T>(command: string, args?: unknown): Promise<T>;
 };
 
-export function createReactNativeEngine(native: RustraJSINative): ReactNativeEngineClient {
+export function createReactNativeEngine(native: UnikitJSINative): ReactNativeEngineClient {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
@@ -557,7 +557,7 @@ export function createReactNativeEngine(native: RustraJSINative): ReactNativeEng
         error?: string;
       };
       if (!response.ok) {
-        throw new Error(response.error ?? 'Rustra invoke failed');
+        throw new Error(response.error ?? 'Unikit invoke failed');
       }
       return Promise.resolve(response.result as T);
     },
@@ -591,13 +591,13 @@ Wire up the example app to use the new JSI module instead of the Expo Module. Up
 
 **Step 1: Update package.json dependencies**
 
-Remove `rustra-calculator` (Expo module) and add `rustra-jsi`:
+Remove `unikit-calculator` (Expo module) and add `unikit-jsi`:
 
 In `examples/react-native-calculator/package.json`, change dependencies:
 
 ```diff
-- "rustra-calculator": "file:./modules/rustra-calculator"
-+ "rustra-jsi": "file:./modules/rustra-jsi"
+- "unikit-calculator": "file:./modules/unikit-calculator"
++ "unikit-jsi": "file:./modules/unikit-jsi"
 ```
 
 Keep `nitro-bench` for comparison.
@@ -612,7 +612,7 @@ import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { NitroModules } from 'react-native-nitro-modules';
 import { addNumbers } from '../calculator/generated/commands';
 import { createReactNativeEngine } from '../../packages/react-native/src';
-import { getRustraNative } from './modules/rustra-jsi/src';
+import { getUnikitNative } from './modules/unikit-jsi/src';
 
 // ── Helpers ──────────────────────────────────────────────
 
@@ -668,8 +668,8 @@ async function runBenchmarks(): Promise<string[]> {
   const lines: string[] = [];
   const log = (s: string) => lines.push(s);
 
-  const rustraNative = getRustraNative();
-  const engine = createReactNativeEngine(rustraNative);
+  const unikitNative = getUnikitNative();
+  const engine = createReactNativeEngine(unikitNative);
 
   // Load Nitro HybridObject
   const nitroBench = NitroModules.createHybridObject<{
@@ -677,7 +677,7 @@ async function runBenchmarks(): Promise<string[]> {
   }>('NitroBench');
 
   log('╔════════════════════════════════════════════════╗');
-  log('║    Rustra JSI vs Nitro (iOS Simulator)        ║');
+  log('║    Unikit JSI vs Nitro (iOS Simulator)        ║');
   log('╚════════════════════════════════════════════════╝');
   log('');
 
@@ -694,16 +694,16 @@ async function runBenchmarks(): Promise<string[]> {
   log('└───────────────────────────────────────────────┘');
   log('');
 
-  // 2. Rustra JSI
-  log('┌─ Rustra JSI (byte buffer + Rust FFI) ─────────┐');
-  const rustraResult = await measure('addNumbers (JSI)', () =>
+  // 2. Unikit JSI
+  log('┌─ Unikit JSI (byte buffer + Rust FFI) ─────────┐');
+  const unikitResult = await measure('addNumbers (JSI)', () =>
     addNumbers(engine, { a: 42, b: 58 }),
   );
   log(`│  10,000 iterations`);
   log(
-    `│  avg: ${formatNs(rustraResult.avg).padStart(10)}  p50: ${formatNs(rustraResult.p50).padStart(10)}  p99: ${formatNs(rustraResult.p99).padStart(10)}`,
+    `│  avg: ${formatNs(unikitResult.avg).padStart(10)}  p50: ${formatNs(unikitResult.p50).padStart(10)}  p99: ${formatNs(unikitResult.p99).padStart(10)}`,
   );
-  log(`│  ${formatOps(rustraResult.ops)} ops/sec`);
+  log(`│  ${formatOps(unikitResult.ops)} ops/sec`);
   log('└───────────────────────────────────────────────┘');
   log('');
 
@@ -715,7 +715,7 @@ async function runBenchmarks(): Promise<string[]> {
 
   const allResults = [
     { name: 'Nitro (JSI C++)', result: nitroResult },
-    { name: 'Rustra JSI', result: rustraResult },
+    { name: 'Unikit JSI', result: unikitResult },
   ];
 
   const maxAvg = Math.max(...allResults.map((r) => r.result.avg));
@@ -725,10 +725,10 @@ async function runBenchmarks(): Promise<string[]> {
   }
 
   log('│');
-  const ratio = rustraResult.avg / nitroResult.avg;
-  const overhead = rustraResult.avg - nitroResult.avg;
-  log(`│  Rustra JSI / Nitro = ${ratio.toFixed(1)}x`);
-  log(`│  Rustra overhead: ${formatNs(overhead)}`);
+  const ratio = unikitResult.avg / nitroResult.avg;
+  const overhead = unikitResult.avg - nitroResult.avg;
+  log(`│  Unikit JSI / Nitro = ${ratio.toFixed(1)}x`);
+  log(`│  Unikit overhead: ${formatNs(overhead)}`);
   log('╚════════════════════════════════════════════════╝');
 
   return lines;
@@ -805,20 +805,20 @@ Delete the Expo Module that is being replaced by the JSI bridge.
 
 **Files:**
 
-- Delete: `examples/react-native-calculator/modules/rustra-calculator/` (entire directory)
+- Delete: `examples/react-native-calculator/modules/unikit-calculator/` (entire directory)
 
 **Step 1: Remove the Expo module directory**
 
-Run: `rm -rf examples/react-native-calculator/modules/rustra-calculator`
+Run: `rm -rf examples/react-native-calculator/modules/unikit-calculator`
 
 **Step 2: Verify package.json no longer references it**
 
-Check `examples/react-native-calculator/package.json` — should already be updated in Task 6 to use `rustra-jsi` instead of `rustra-calculator`.
+Check `examples/react-native-calculator/package.json` — should already be updated in Task 6 to use `unikit-jsi` instead of `unikit-calculator`.
 
 **Step 3: Commit**
 
 ```bash
-git add -A examples/react-native-calculator/modules/rustra-calculator
+git add -A examples/react-native-calculator/modules/unikit-calculator
 git commit -m "chore(rn): remove Expo Module replaced by JSI bridge"
 ```
 
@@ -830,8 +830,8 @@ Build the Rust library, install pods, compile the iOS app, and run benchmarks.
 
 **Step 1: Build Rust for iOS simulator**
 
-Run: `cd examples/react-native-calculator/modules/rustra-jsi/ios && sh build-rust-ios.sh`
-Expected: `librustra_calculator_example.a` created in `modules/rustra-jsi/ios/rust/lib/`
+Run: `cd examples/react-native-calculator/modules/unikit-jsi/ios && sh build-rust-ios.sh`
+Expected: `libunikit_calculator_example.a` created in `modules/unikit-jsi/ios/rust/lib/`
 
 **Step 2: Install npm dependencies**
 
@@ -840,7 +840,7 @@ Run: `cd examples/react-native-calculator && npm install`
 **Step 3: Install CocoaPods**
 
 Run: `cd examples/react-native-calculator/ios && bundle exec pod install`
-Expected: RustraJSI pod installed and linked. Watch for any compilation errors in the C++ bridge.
+Expected: UnikitJSI pod installed and linked. Watch for any compilation errors in the C++ bridge.
 
 **Step 4: Build the iOS app**
 
@@ -871,7 +871,7 @@ The Podfile may need adjustments to properly link the JSI module without the Exp
 
 **Step 1: After `pod install`, check for errors**
 
-If autolinking fails because `rustra-calculator` is no longer found, run:
+If autolinking fails because `unikit-calculator` is no longer found, run:
 
 Run: `cd examples/react-native-calculator && npx react-native-clean-project`
 
@@ -880,7 +880,7 @@ Then re-run `npm install && cd ios && pod install`.
 **Step 2: Verify autolinking picks up new module**
 
 Run: `cd examples/react-native-calculator && npx react-native config`
-Expected: `rustra-jsi` listed under dependencies with iOS platform pointing to the podspec.
+Expected: `unikit-jsi` listed under dependencies with iOS platform pointing to the podspec.
 
 **Step 3: Commit Podfile changes if any**
 
@@ -896,11 +896,11 @@ git commit -m "chore(rn): update Podfile for JSI module"
 | #   | Task                    | Key Files                                                       |
 | --- | ----------------------- | --------------------------------------------------------------- |
 | 1   | Rust byte-buffer FFI    | `examples/calculator/src/lib.rs`                                |
-| 2   | JSI module scaffold     | `modules/rustra-jsi/{package.json,react-native.config.js,src/}` |
-| 3   | C++ JSI bridge + ObjC++ | `modules/rustra-jsi/ios/{Bridge.hpp,Bridge.cpp,Module.mm}`      |
-| 4   | Podspec + build script  | `modules/rustra-jsi/ios/{RustraJSI.podspec,build-rust-ios.sh}`  |
+| 2   | JSI module scaffold     | `modules/unikit-jsi/{package.json,react-native.config.js,src/}` |
+| 3   | C++ JSI bridge + ObjC++ | `modules/unikit-jsi/ios/{Bridge.hpp,Bridge.cpp,Module.mm}`      |
+| 4   | Podspec + build script  | `modules/unikit-jsi/ios/{UnikitJSI.podspec,build-rust-ios.sh}`  |
 | 5   | Rewrite RN adapter      | `packages/react-native/src/index.ts`                            |
 | 6   | Update example app      | `{BenchmarkApp.tsx,package.json,index.ts}`                      |
-| 7   | Remove Expo Module      | Delete `modules/rustra-calculator/`                             |
+| 7   | Remove Expo Module      | Delete `modules/unikit-calculator/`                             |
 | 8   | Build & verify          | `cargo build`, `pod install`, `expo run:ios`                    |
 | 9   | Fix Podfile if needed   | `ios/Podfile`                                                   |

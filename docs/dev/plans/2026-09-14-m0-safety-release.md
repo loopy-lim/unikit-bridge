@@ -1,4 +1,4 @@
-# Rustra M0 안전성·릴리스 실행 계획
+# Unikit M0 안전성·릴리스 실행 계획
 
 > 실행자는 `executing-plans` 절차로 항목별 구현과 검증을 수행한다. 체크박스는 실제 증거가 확보된 경우에만 갱신한다.
 
@@ -8,7 +8,7 @@
 
 **Tech Stack:** Rust std mpsc/Arc/Mutex, Node.js ESM/node:test, GitHub Actions, Miri, ASan/LSan, cargo-fuzz.
 
-**Spec:** [로드맵 SPEC — M0 실행 계약](../../specs/2026-09-14-rustra-roadmap.md#m0-실행-계약--2026-09-14-보완)
+**Spec:** [로드맵 SPEC — M0 실행 계약](../../specs/2026-09-14-unikit-roadmap.md#m0-실행-계약--2026-09-14-보완)
 
 ## 공통 제약
 
@@ -20,7 +20,7 @@
 
 ## Task 1 — 종료 가능한 풀과 실패 분류 (M0-1, M0-2)
 
-**Files:** `crates/rustra/src/ffi_pool.rs`, `crates/rustra/src/complex_schema_ir*.rs`, `crates/rustra/src/complex_codec_{encode,decode}.rs`, `crates/rustra/src/complex_serde_{de_core,ser_core,support,tests}.rs`, `api-surface/snapshot.json`, `.github/workflows/miri.yml`, `.github/workflows/sanitizer.yml`, `scripts/run-safety-check.sh`, `scripts/run-safety-check.test.mjs`.
+**Files:** `crates/unikit-bridge/src/ffi_pool.rs`, `crates/unikit-bridge/src/complex_schema_ir*.rs`, `crates/unikit-bridge/src/complex_codec_{encode,decode}.rs`, `crates/unikit-bridge/src/complex_serde_{de_core,ser_core,support,tests}.rs`, `api-surface/snapshot.json`, `.github/workflows/miri.yml`, `.github/workflows/sanitizer.yml`, `scripts/run-safety-check.sh`, `scripts/run-safety-check.test.mjs`.
 
 **Interfaces:** `AsyncPool::new()`, `submit(AsyncTask)`, `stats()`, `Drop`; 공개 `async_pool_stats()`는 초기화 없이 0 카운터를 반환한다. `run-safety-check.sh LABEL COMMAND...`는 `SAFETY_LOG_DIR`에 command.log/exit-code를 기록하고 원래 실패를 반환한다.
 
@@ -30,7 +30,7 @@
 - [x] `AsyncPool`에 sender와 worker handle 소유권을 두고 Drop에서 sender를 먼저 버린 뒤 worker를 join한다. submit 전에 inflight를 예약하고 reject 시 되돌린다.
 - [x] 로그 wrapper를 임시 디렉터리와 `sh -c 'echo diagnostic >&2; exit 7'`로 검증: stderr 보존, exit 7 유지, exit-code=7.
 - [x] ASan 절대 log_path와 always artifact upload를 적용하고 Miri의 세 target을 각각 실행해 실패가 뒤 target을 숨기지 않게 한다.
-- [x] `cargo test -p rustra`, Miri 3개 suite, Linux ASan/LSan을 실행해 원본 로그를 남긴다.
+- [x] `cargo test -p unikit-bridge`, Miri 3개 suite, Linux ASan/LSan을 실행해 원본 로그를 남긴다.
 
 ## Task 2 — 같은 후보의 발행 전 안전성 게이트 (M0-3)
 

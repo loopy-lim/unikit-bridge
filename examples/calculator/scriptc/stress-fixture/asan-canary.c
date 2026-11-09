@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-uint32_t rustra_stress_asan_canary(void) {
+uint32_t unikit_stress_asan_canary(void) {
   volatile uint32_t *value = malloc(sizeof(uint32_t));
   *value = 42;
   free((void *)value);

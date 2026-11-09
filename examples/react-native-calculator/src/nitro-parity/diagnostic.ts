@@ -1,14 +1,14 @@
 /** Diagnostic protocol only: it never changes the v2 parity matrix or its gate. */
 import { consume } from './measurement';
-export const DIAGNOSTIC_CONTRACT = 'rustra-nitro-diagnostic/v1';
+export const DIAGNOSTIC_CONTRACT = 'unikit-nitro-diagnostic/v1';
 export const SCHEDULES = [
-  'rustra-only',
+  'unikit-only',
   'nitro-only',
-  'alternating-rustra-first',
+  'alternating-unikit-first',
   'alternating-nitro-first',
 ] as const;
 export type Schedule = (typeof SCHEDULES)[number];
-export type Framework = 'rustra' | 'nitro';
+export type Framework = 'unikit' | 'nitro';
 export const DIAGNOSTIC_CASES = ['buffer65536', 'buffer1048571', 'add', 'string', 'pair'] as const;
 export type DiagnosticCase = (typeof DIAGNOSTIC_CASES)[number];
 export function parseDiagnosticURL(url: string | null): {
@@ -19,7 +19,7 @@ export function parseDiagnosticURL(url: string | null): {
   if (!url) throw Error('diagnostic launch URL required');
   // Fixed host-generated grammar avoids platform differences in URL polyfills.
   const match =
-    /^rustra:\/\/diagnostic\?case=([a-z0-9]+)&schedule=([a-z-]+)&run=([a-zA-Z0-9_-]{1,100})$/.exec(
+    /^unikit:\/\/diagnostic\?case=([a-z0-9]+)&schedule=([a-z-]+)&run=([a-zA-Z0-9_-]{1,100})$/.exec(
       url,
     );
   if (!match) throw Error('invalid diagnostic URL grammar');
@@ -32,10 +32,10 @@ export function parseDiagnosticURL(url: string | null): {
   return { caseId: caseId as DiagnosticCase, schedule: schedule as Schedule, runId };
 }
 export function diagnosticOrder(schedule: Schedule, round: number): Framework[] {
-  if (schedule === 'rustra-only') return ['rustra'];
+  if (schedule === 'unikit-only') return ['unikit'];
   if (schedule === 'nitro-only') return ['nitro'];
-  const rustraFirst = (Math.abs(round) % 2 === 0) === (schedule === 'alternating-rustra-first');
-  return rustraFirst ? ['rustra', 'nitro'] : ['nitro', 'rustra'];
+  const unikitFirst = (Math.abs(round) % 2 === 0) === (schedule === 'alternating-unikit-first');
+  return unikitFirst ? ['unikit', 'nitro'] : ['nitro', 'unikit'];
 }
 export function sampleDiagnostic(
   calls: Record<Framework, () => unknown>,
@@ -100,7 +100,7 @@ export function validateDiagnostic(
         : expected.caseId === 'add'
           ? 100
           : expected.caseId === 'string'
-            ? 'Rustra ↔ Nitro: 문자열'.length
+            ? 'Unikit ↔ Nitro: 문자열'.length
             : 123.5;
   const expectedChecksum = result * batch;
   if (
