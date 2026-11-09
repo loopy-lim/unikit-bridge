@@ -920,11 +920,11 @@ jobs:
           mkdir -p /tmp/consumer && cd /tmp/consumer
           bun init -y > /dev/null
           bun pm pkg set type=module
-          for unikit_types_tgz in /tmp/unikit-pack/unikit-types-*.tgz; do
+          for unikit_types_tgz in /tmp/unikit-pack/unikit-bridge-types-*.tgz; do
             bun pm pkg set "overrides.@unikit-bridge/types=file:$unikit_types_tgz"
             break
           done
-          bun add --no-save /tmp/unikit-pack/unikit-*.tgz
+          bun add --no-save /tmp/unikit-pack/unikit-bridge-*.tgz
       - name: Smoke — installed packages load (ESM)
         run: |
           cd /tmp/consumer
@@ -952,22 +952,23 @@ jobs:
           cd /tmp/consumer
           bunx --bun unikit init /tmp/unikit-init
           cd /tmp/unikit-init
-          for unikit_types_tgz in /tmp/unikit-pack/unikit-types-*.tgz; do
+          for unikit_types_tgz in /tmp/unikit-pack/unikit-bridge-types-*.tgz; do
             bun pm pkg set "overrides.@unikit-bridge/types=file:$unikit_types_tgz"
             break
           done
-          for unikit_cli_tgz in /tmp/unikit-pack/unikit-cli-*.tgz; do
+          for unikit_cli_tgz in /tmp/unikit-pack/unikit-bridge-cli-*.tgz; do
             bun pm pkg set "overrides.@unikit-bridge/cli=file:$unikit_cli_tgz"
             break
           done
-          for unikit_node_tgz in /tmp/unikit-pack/unikit-node-*.tgz; do
+          for unikit_node_tgz in /tmp/unikit-pack/unikit-bridge-node-*.tgz; do
             bun pm pkg set "overrides.@unikit-bridge/node=file:$unikit_node_tgz"
             break
           done
           bun install
           # 발행 전 release candidate를 현재 checkout의 Rust crate로 고정한다.
           # crates.io의 이전 버전으로 조용히 폴백하면 소비자 검증이 거짓 green이 된다.
-          sed -i "s#unikit = \"[^\"]*\"#unikit = { path = \"$GITHUB_WORKSPACE/crates/unikit-bridge\" }#" Cargo.toml
+          sed -i "s#unikit-bridge = \"[^\"]*\"#unikit-bridge = { path = \"$GITHUB_WORKSPACE/crates/unikit-bridge\" }#" Cargo.toml
+          sed -i "s#unikit-bridge-macros = \"[^\"]*\"#unikit-bridge-macros = { path = \"$GITHUB_WORKSPACE/crates/unikit-bridge-macros\" }#" Cargo.toml
           sed -i "s#unikit-bridge-macros = \"[^\"]*\"#unikit-bridge-macros = { path = \"$GITHUB_WORKSPACE/crates/unikit-bridge-macros\" }#" Cargo.toml
           bun run codegen
           test -f generated/schema.json
