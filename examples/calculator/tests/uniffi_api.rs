@@ -7,7 +7,7 @@
 #![cfg(feature = "uniffi")]
 
 use unikit_calculator_example::uniffi_api::{
-    AddNumbersInput, DivideInput, KindEchoInput, OpKind, UnikitCommandFailure, TagSetInput,
+    AddNumbersInput, DivideInput, KindEchoInput, OpKind, TagSetInput, UnikitCommandFailure,
     WideAggInput, addNumbers, contractHash, deviceDemo, divide, getSchema, invokeJson, kindEcho,
     tagSet, wideAgg,
 };

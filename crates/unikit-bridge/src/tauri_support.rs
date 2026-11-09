@@ -40,7 +40,7 @@ pub use app_commands::with_app_commands;
 pub use crate::tauri_channels::{
     CHANNEL_BYTES_EVENT_PREFIX, CHANNEL_EVENT_PREFIX, EVENT_CHANNEL_PREFIX,
     create_bytes_channel_for, create_channel_for, drop_channel_for, event_channel,
-    unikit_channel_create, unikit_channel_create_bytes, unikit_channel_drop, tauri_event_sink,
+    tauri_event_sink, unikit_channel_create, unikit_channel_create_bytes, unikit_channel_drop,
 };
 
 /// Tauri의 managed state로 보관되는 unikit 디스패치입니다.

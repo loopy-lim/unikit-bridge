@@ -15,9 +15,9 @@
 //! 이벤트는 schema.json 의 `events` 섹션과 TS 코드젠(`events.ts`)으로 흘러
 //! 커맨드와 동일한 타입 안전 계약을 이룬다.
 
+use std::sync::Arc;
 use unikit_bridge::Package;
 use unikit_bridge::prelude::*;
-use std::sync::Arc;
 
 #[bridge_type]
 pub struct StartJobInput {

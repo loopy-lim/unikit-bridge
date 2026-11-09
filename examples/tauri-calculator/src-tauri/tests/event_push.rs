@@ -12,12 +12,12 @@
 //! 5. 호스트가 나중에 자기 `.setup()` 을 붙여도 unikit 플러그인 setup 은
 //!    덮어써지지 않는다(`tauri::Builder::setup` 단일 슬롯 문제 회피 증명).
 
-use unikit_bridge::Package;
-use unikit_bridge::prelude::*;
-use unikit_bridge::tauri_support::{self, EVENT_CHANNEL_PREFIX};
 use std::sync::{Arc, Mutex};
 use tauri::Listener;
 use tauri::test::{MockRuntime, mock_context, noop_assets};
+use unikit_bridge::Package;
+use unikit_bridge::prelude::*;
+use unikit_bridge::tauri_support::{self, EVENT_CHANNEL_PREFIX};
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]

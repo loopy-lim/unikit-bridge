@@ -9,11 +9,11 @@
 //! - 채널(0xfffb 발급 / 0xfffa 해제 / 0xfffc 푸시 프레임)도 예약 — `@unikit-bridge/node`
 //!   `createNodeChannel` 계약(0.7 채널 트랙).
 
-use unikit_bridge::Package;
 use serde_json::{Value, json};
 use std::io::{Read, Write};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
+use unikit_bridge::Package;
 
 /// 이벤트 drain 예약 커맨드 id (바이너리 모드). 자동 부여 id(등록 순서)와
 /// 충돌하지 않는 u16 상한부다.

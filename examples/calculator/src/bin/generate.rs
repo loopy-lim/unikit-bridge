@@ -1,6 +1,6 @@
+use std::path::PathBuf;
 use unikit_calculator_example::calculator_package;
 use unikit_calculator_example::uniffi_render;
-use std::path::PathBuf;
 
 fn main() -> unikit_bridge::Result<()> {
     let generated = calculator_package().generate_typescript()?;

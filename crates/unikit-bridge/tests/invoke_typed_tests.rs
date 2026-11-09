@@ -8,9 +8,9 @@
 //! 에러 프레임을 정확히 되읽는지 검증한다. 프레임 포맷 정의는
 //! examples/calculator/tests/wire_fixtures.rs 헤더 참고.
 
-use unikit_bridge::{Package, UnikitError};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use unikit_bridge::{Package, UnikitError};
 
 // ── 픽스처 타입/핸들러 ─────────────────────────────────────
 

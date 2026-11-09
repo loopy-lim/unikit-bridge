@@ -2,10 +2,10 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 //! Test-only allocator instrumentation; no production allocator or ABI changes.
-use unikit_bridge::{DirectResponse, Package};
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::cell::Cell;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use unikit_bridge::{DirectResponse, Package};
 
 struct CountingAllocator;
 thread_local! {

@@ -12,10 +12,10 @@
 #![allow(clippy::float_cmp)]
 #![cfg_attr(not(debug_assertions), allow(dead_code, unused_imports))]
 
-use unikit_bridge::Package;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use unikit_bridge::Package;
 
 #[path = "../benches/common.rs"]
 mod common;

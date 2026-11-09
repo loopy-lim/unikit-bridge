@@ -9,11 +9,11 @@
 // 핫 모드·프로브·벤치 등록 분기는 main.rs 에서 그대로 이동했다 — 동작은
 // 이전과 동일하다(데스크톱 smoke 가 회귀를 지켜준다).
 
+use std::{env, fs, path::PathBuf, sync::Arc};
+use tauri::Manager;
 use unikit_bridge::hot_core::{self, DylibCore, DylibWatchConfig, HotCoreHandle};
 use unikit_bridge::tauri_support;
 use unikit_calculator_example::calculator_package;
-use std::{env, fs, path::PathBuf, sync::Arc};
-use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

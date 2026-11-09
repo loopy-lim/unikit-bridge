@@ -9,9 +9,9 @@
 #![allow(clippy::float_cmp)]
 #![cfg_attr(not(debug_assertions), allow(unused_imports))]
 
-use unikit_bridge::Package;
 use std::sync::Arc;
 use std::thread;
+use unikit_bridge::Package;
 
 #[path = "../benches/common.rs"]
 mod common;

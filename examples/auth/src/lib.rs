@@ -9,10 +9,10 @@
 //! 실서비스에서는 토큰 검증을 JSI/FFI 주입 콜백(모바일 브리지 패턴)이나
 //! 백엔드 조회로 대체한다. 여기서는 의존성 없는 데모 해시 기반.
 
-use unikit_bridge::prelude::*;
 use std::collections::BTreeMap;
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 pub struct SignInInput {

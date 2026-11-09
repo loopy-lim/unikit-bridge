@@ -31,11 +31,11 @@
 
 #![allow(clippy::float_cmp)]
 
+use serde_json::Value;
 use unikit_bridge::Package;
 use unikit_bridge::ffi::{
     unikit_ffi_free, unikit_ffi_get_max_payload, unikit_ffi_invoke_json, unikit_ffi_set_max_payload,
 };
-use serde_json::Value;
 
 #[path = "../benches/common.rs"]
 mod common;

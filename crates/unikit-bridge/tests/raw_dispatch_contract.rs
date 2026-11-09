@@ -2,8 +2,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 //! Focused raw-dispatch lifetime and state invariants, independent of global FFI.
-use unikit_bridge::{Package, get_state};
 use serde::{Deserialize, Serialize};
+use unikit_bridge::{Package, get_state};
 
 #[derive(Deserialize, schemars::JsonSchema)]
 struct Input {

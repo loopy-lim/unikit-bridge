@@ -1,9 +1,9 @@
 // 벤치 하니스 — 측정 대상 호출은 unwrap/expect 로 간결하게 유지한다(프로덕션 경로 아님).
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use unikit_bridge::Package;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use unikit_bridge::Package;
 
 #[path = "../common.rs"]
 mod common;

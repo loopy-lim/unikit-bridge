@@ -8,10 +8,10 @@
 //! 패키지가 frozen 이므로 막힌다 → dynamic 경로 벤치는 `cargo bench -p unikit-bridge --profile dev`
 //! (debug) 로 실행해야 한다. dynamic 명령은 설계상 dev-only 이므로 이것이 정확한 환경이다.
 
-use unikit_bridge::Package;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use unikit_bridge::Package;
 
 /// dev 프로필 전용 벤치 가드 — release(`cargo bench` 기본 프로필)로 실행하면
 /// 패키지가 frozen(`builder_build`: `!cfg!(debug_assertions)`)이라 `register`가

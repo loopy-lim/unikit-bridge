@@ -34,7 +34,7 @@
 #include <ReactCommon/CallInvoker.h>
 #endif
 
-namespace unikit {
+namespace unikit_bridge {
 
 using namespace facebook::jsi;
 namespace gen = unikit_bridge::generated;
@@ -2706,4 +2706,4 @@ TypedInvokeResult invokeTypedByIdDynamic(
   return invokeTypedById(rt, commandId, value);
 }
 
-} // namespace unikit
+} // namespace unikit_bridge

@@ -1,6 +1,6 @@
-use unikit_bridge::prelude::*;
 use std::collections::HashMap;
 use std::sync::Mutex;
+use unikit_bridge::prelude::*;
 
 #[bridge_type]
 #[derive(Clone)]

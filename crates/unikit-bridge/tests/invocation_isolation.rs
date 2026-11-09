@@ -1,10 +1,10 @@
 // 통합 테스트 — 어설션 가독성을 위해 unwrap/expect 를 허용한다.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use unikit_bridge::{Package, State};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use unikit_bridge::{Package, State};
 
 #[derive(Deserialize, Serialize, JsonSchema)]
 struct Input {
@@ -89,7 +89,10 @@ fn empty_nested_context_restores_outer_state_after_panic() {
         }));
         assert!(result.is_err());
         assert!(saw_empty.get());
-        assert_eq!(unikit_bridge::state::get_state::<Database>().unwrap().0.0, 40);
+        assert_eq!(
+            unikit_bridge::state::get_state::<Database>().unwrap().0.0,
+            40
+        );
     });
     assert!(unikit_bridge::state::get_state::<Database>().is_none());
 }

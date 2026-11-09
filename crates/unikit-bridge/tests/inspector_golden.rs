@@ -29,9 +29,9 @@
 //! 명령 순서가 바이트로 안정이다. 테스트는 자기 프로세스의 전역 FFI 컨텍스트를
 //! 선점한다(각 `--test` 바이너리는 독립 프로세스).
 
-use unikit_bridge::Package;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use unikit_bridge::Package;
 
 const FIXTURE_PATH: &str = "tests/fixtures/inspector-golden.hex.txt";
 

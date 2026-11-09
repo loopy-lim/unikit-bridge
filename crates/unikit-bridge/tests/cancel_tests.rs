@@ -8,14 +8,14 @@
 //! 같은 바이너리 내 테스트는 OnceLock 글로벌 패키지를 공유하므로 두 테스트 모두
 //! 동일한 패키지 정의를 register 한다 (register_ffi 는 idempotent, first-wins).
 
+use std::ffi::c_void;
+use std::sync::Mutex;
+use std::sync::OnceLock;
 use unikit_bridge::Package;
 use unikit_bridge::ffi::{
     unikit_ffi_cancellation_status, unikit_ffi_free, unikit_ffi_invoke_async,
     unikit_ffi_invoke_cancel,
 };
-use std::ffi::c_void;
-use std::sync::Mutex;
-use std::sync::OnceLock;
 
 #[path = "../benches/common.rs"]
 mod common;

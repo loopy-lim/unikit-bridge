@@ -13,13 +13,13 @@
 //! 3. capability 없는(구 클라이언트) 핸드셰이크엔 싱크를 설치하지 않는다 —
 //!    기존 폴링 사용자의 stdout 이 푸시 프레임으로 오염되지 않는다(무중단).
 
-use unikit_calculator_example::loop_stdio::{
-    PushDecision, encode_push_frame, handle_hello_with_policy, lock_stdout,
-};
 use serde_json::Value;
 use std::io::Write;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
+use unikit_calculator_example::loop_stdio::{
+    PushDecision, encode_push_frame, handle_hello_with_policy, lock_stdout,
+};
 
 /// seq 발급기 — bin 모듈과 동일한 정책(0 시작 단조 증가)을 테스트도 쓴다.
 fn seq_counter() -> Arc<AtomicU64> {

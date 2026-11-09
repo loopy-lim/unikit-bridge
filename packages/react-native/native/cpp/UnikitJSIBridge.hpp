@@ -12,7 +12,7 @@
 #include <vector>
 #include <utility>
 
-namespace unikit {
+namespace unikit_bridge {
 
 extern "C" {
   // ── Generic FFI (from unikit_bridge::ffi) ──────────────────────
@@ -483,4 +483,4 @@ TypedInvokeResult invokeTypedById(
   uint16_t commandId,
   const facebook::jsi::Value& args);
 
-} // namespace unikit
+} // namespace unikit_bridge

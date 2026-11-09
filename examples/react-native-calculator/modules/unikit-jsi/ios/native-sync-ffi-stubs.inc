@@ -1,5 +1,5 @@
 // Link-only ABI definitions. Every tested call must use an explicit fake CoreTable.
-namespace unikit {
+namespace unikit_bridge {
 extern "C" {
 [[noreturn]] static void unexpectedStaticCore() { std::abort(); }
 uint8_t* unikit_ffi_invoke(const uint8_t*, size_t, size_t*) { unexpectedStaticCore(); }

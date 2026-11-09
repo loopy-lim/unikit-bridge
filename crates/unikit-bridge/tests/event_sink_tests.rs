@@ -12,8 +12,8 @@
 //! - Package clone 간 싱크 공유 (`Arc` 내부 상태)
 //! - 동일 스레드 연속 emit → 수신 순서 보존
 
-use unikit_bridge::Package;
 use std::sync::{Arc, Mutex};
+use unikit_bridge::Package;
 
 type Seen = Arc<Mutex<Vec<(String, String)>>>;
 

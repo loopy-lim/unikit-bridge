@@ -1146,9 +1146,10 @@ pub struct ResourceHandleOutput {
 
 #[command]
 pub fn resource_open(input: ResourceOpenInput) -> Result<ResourceHandleOutput> {
-    let handle = unikit_bridge::channels::host().register_resource(std::sync::Arc::new(KvResource {
-        entries: std::sync::Mutex::new(input.initial),
-    }));
+    let handle =
+        unikit_bridge::channels::host().register_resource(std::sync::Arc::new(KvResource {
+            entries: std::sync::Mutex::new(input.initial),
+        }));
     Ok(ResourceHandleOutput {
         handle: unikit_bridge::channels::ResourceHandle(handle),
     })
@@ -1243,7 +1244,11 @@ mod tests {
         let payload = serde_json::to_vec(&req).unwrap();
         let mut out_len: usize = 0;
         let ptr = unsafe {
-            unikit_bridge::ffi::unikit_ffi_invoke_json(payload.as_ptr(), payload.len(), &mut out_len)
+            unikit_bridge::ffi::unikit_ffi_invoke_json(
+                payload.as_ptr(),
+                payload.len(),
+                &mut out_len,
+            )
         };
         assert!(!ptr.is_null());
         let bytes = unsafe { std::slice::from_raw_parts(ptr, out_len) };
@@ -1512,7 +1517,10 @@ mod tests {
         };
         assert_eq!(invalid_status, u32::MAX);
 
-        assert_eq!(unikit_bridge::ffi::unikit_ffi_has_buffer(bench_echo_bytes_id), 1);
+        assert_eq!(
+            unikit_bridge::ffi::unikit_ffi_has_buffer(bench_echo_bytes_id),
+            1
+        );
         assert_eq!(unikit_bridge::ffi::unikit_ffi_has_buffer(14), 0);
     }
 

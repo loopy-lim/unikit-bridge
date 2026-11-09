@@ -14,13 +14,13 @@
 //! 웹뷰에 주입한다 — 등록 목록( `generate_handler!` )과 커맨드 라우팅 전체를
 //! 통과하는 증명 지점이다.
 
-use unikit_bridge::tauri_support;
-use unikit_calculator_example::calculator_package;
 use serde_json::json;
 use tauri::WebviewWindowBuilder;
 use tauri::ipc::{CallbackFn, InvokeBody};
 use tauri::test::{get_ipc_response, mock_context, noop_assets};
 use tauri::webview::InvokeRequest;
+use unikit_bridge::tauri_support;
+use unikit_calculator_example::calculator_package;
 
 /// 등록 함수별 mock 앱 + IPC 주입용 메인 웹뷰. `register`/`register_profiled`
 /// 어느 쪽이든 받도록 함수 포인터로 받는다.

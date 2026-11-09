@@ -1,12 +1,12 @@
 // 통합 테스트 — 어설션 가독성을 위해 unwrap/expect 를 허용한다.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use unikit_bridge::prelude::*;
 use std::fs;
 use std::process::Command;
 use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
+use unikit_bridge::prelude::*;
 
 /// `UNIKIT_SCHEMA_OUT` 는 프로세스 전역 env — 이 env 를 읽는 write_to_dir/
 /// write_schema_to_dir 를 쓰는 테스트는 이 락으로 직렬화한다(병렬 실행 시
@@ -229,7 +229,8 @@ fn build_macro_also_applies_capability_attribute() {
 
 #[test]
 fn command_error_attr_declares_schema_errors() {
-    let package = unikit_bridge::register!(Package::builder("example.attr"), divide_typed_errors).build();
+    let package =
+        unikit_bridge::register!(Package::builder("example.attr"), divide_typed_errors).build();
     let schema = package.live_schema();
     let entry = &schema["commands"][0];
     let errors = entry["errors"]

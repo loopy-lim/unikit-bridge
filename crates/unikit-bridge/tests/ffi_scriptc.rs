@@ -2,10 +2,10 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 //! Retained foreign callbacks use borrowed payloads and identity-paired release.
-use unikit_bridge::ffi::*;
 use std::ffi::{CStr, c_char, c_void};
 use std::sync::{Arc, Barrier, mpsc};
 use std::time::Duration;
+use unikit_bridge::ffi::*;
 
 unsafe extern "C" fn bytes_callback(context: *mut c_void, handle: u32, ptr: *const u8, len: usize) {
     let sender = unsafe { &*context.cast::<mpsc::Sender<(u32, Vec<u8>)>>() };
@@ -44,7 +44,9 @@ fn retained_callbacks_deliver_release_and_reject_stale_owners() {
     let cancelled_handler_calls = Arc::new(std::sync::atomic::AtomicUsize::new(0));
     let counted = cancelled_handler_calls.clone();
     let package = unikit_bridge::Package::builder("scriptc.test")
-        .command("echo", |value: String| Ok::<_, unikit_bridge::UnikitError>(value))
+        .command("echo", |value: String| {
+            Ok::<_, unikit_bridge::UnikitError>(value)
+        })
         .command("wait", move |value: String| {
             started_tx.send(()).unwrap();
             worker_barrier.wait();

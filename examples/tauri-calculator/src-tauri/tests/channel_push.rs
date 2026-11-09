@@ -11,12 +11,12 @@
 //! 2. 수신 — JS `listen('unikit://channel/{handle}')` ↔ 테스트는 같은 규칙으로 listen
 //! 3. 왕복 — JS 어댑터 핸들을 `channelDemo` 인자로 통과 ↔ `invoke_json` 동일 경로
 
-use unikit_bridge::channels;
-use unikit_bridge::prelude::*;
-use unikit_bridge::tauri_support::{self, CHANNEL_EVENT_PREFIX};
 use std::sync::{Arc, Mutex};
 use tauri::Listener;
 use tauri::test::{MockRuntime, mock_builder, mock_context, noop_assets};
+use unikit_bridge::channels;
+use unikit_bridge::prelude::*;
+use unikit_bridge::tauri_support::{self, CHANNEL_EVENT_PREFIX};
 
 type Received = Arc<Mutex<Vec<String>>>;
 

@@ -15,9 +15,9 @@
 
 #![allow(clippy::float_cmp)]
 
-use unikit_bridge::Package;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use unikit_bridge::Package;
 
 #[path = "../benches/common.rs"]
 mod common;

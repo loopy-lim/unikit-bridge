@@ -13,7 +13,7 @@
 
 #include "UnikitJSIBridge.hpp"
 
-namespace unikit {
+namespace unikit_bridge {
 
 /// folly::dynamic → typed invoke (이름 기반). 계약은 jsi::Value 오버로드와
 /// 동일 — dynamic 을 jsi::Value 로 변환한 뒤 동일 경로로 인코딩한다.
@@ -29,4 +29,4 @@ TypedInvokeResult invokeTypedByIdDynamic(
   uint16_t commandId,
   const folly::dynamic& args);
 
-} // namespace unikit
+} // namespace unikit_bridge

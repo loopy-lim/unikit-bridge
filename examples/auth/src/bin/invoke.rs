@@ -3,9 +3,9 @@
 //! - 라인 데몬(`--serve`): 각 JSON 라인 처리 — 세션 상태가 프로세스에 유지되므로
 //!   signIn → grant → adminStats → signOut 시나리오가 한 연결 안에서 성립한다.
 
-use unikit_auth_example::auth_package;
 use serde_json::json;
 use std::io::{BufRead, Write};
+use unikit_auth_example::auth_package;
 
 fn main() -> unikit_bridge::Result<()> {
     if std::env::args().nth(1).as_deref() == Some("--serve") {

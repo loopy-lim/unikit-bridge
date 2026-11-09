@@ -1,8 +1,8 @@
 // 통합 테스트 — 어설션 가독성을 위해 unwrap/expect 를 허용한다.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use unikit_bridge::{Package, UnikitError};
 use serde_json::json;
+use unikit_bridge::{Package, UnikitError};
 
 fn add(a: i32, b: i32) -> i32 {
     a + b

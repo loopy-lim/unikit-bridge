@@ -12,12 +12,12 @@
 //! 4. report 는 부팅 전(싱크 미설치)에 호출돼도 패닉하지 않는다 — 감시 스레드가
 //!    웹뷰 부팅을 기다리지 않고 스왑을 계속한다.
 
-use unikit_bridge::hot_core::JsonDispatch;
-use unikit_bridge::tauri_support::{self, EVENT_CHANNEL_PREFIX, HotSwapReporter};
 use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
 use tauri::Listener;
 use tauri::test::{MockRuntime, mock_context, noop_assets};
+use unikit_bridge::hot_core::JsonDispatch;
+use unikit_bridge::tauri_support::{self, EVENT_CHANNEL_PREFIX, HotSwapReporter};
 
 /// 스왑 채널 — 예약 세그먼트 이름(hot-core/swapped)은 Tauri 허용 문자뿐이라
 /// 치환 없이 이 리터럴이 채널이 된다(Rust 단위 테스트 hot_swap_tests 도 고정).

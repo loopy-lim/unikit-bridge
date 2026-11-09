@@ -77,14 +77,14 @@
 //! 테스트(`tests/loop_stdio_events.rs`)가 같은 모듈을 직접 검증한다. 바이트
 //! 채널 발급 가로채기(모드 플래그 분기)만 이 bin 이 소유한다.
 
+use serde_json::{Value, json};
+use std::io::{BufRead, ErrorKind, Read, Write};
+use std::sync::Arc;
 use unikit_calculator_example::calculator_package;
 use unikit_calculator_example::loop_stdio::{
     BINARY_CHANNEL_CREATE_CMD, PUSH_CAPABILITY, handle_hello_with_policy, hello_response,
     lock_stdout, run_binary,
 };
-use serde_json::{Value, json};
-use std::io::{BufRead, ErrorKind, Read, Write};
-use std::sync::Arc;
 
 /// 채널 **바이너리 푸시** 프레임 예약 cmd id. JSON 채널 푸시(0xfffc)와 동일한
 /// "cmd id 로 시작하는 프레임" 와이어를 쓰되 본문은 `[handle u32 LE][payload
@@ -174,7 +174,8 @@ fn main() -> unikit_bridge::Result<()> {
             return run_binary(&package, &mut interceptor, &mut stdout);
         }
         let response = handle_line(&package, trimmed);
-        let mut encoded = serde_json::to_vec(&response).map_err(unikit_bridge::UnikitError::internal)?;
+        let mut encoded =
+            serde_json::to_vec(&response).map_err(unikit_bridge::UnikitError::internal)?;
         encoded.push(b'\n');
         // NDJSON 응답 쓰기도 같은 규약 — 푸시 프레임이 응답 한가운데 끼지 못한다.
         let guard = lock_stdout();

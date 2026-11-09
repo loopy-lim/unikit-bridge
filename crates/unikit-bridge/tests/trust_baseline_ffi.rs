@@ -16,8 +16,8 @@
 //! 모든 테스트는 같은 패키지("trust.baseline")를 `register_ffi` 한다 — `register_ffi`는
 //! `OnceLock` 기반 idempotent 이므로 병렬 실행에서도 안전하다.
 
-use unikit_bridge::Package;
 use serde::{Deserialize, Serialize};
+use unikit_bridge::Package;
 
 // ── test fixture package ────────────────────────────────────
 
@@ -123,7 +123,11 @@ fn invoke_json(payload: &[u8]) -> serde_json::Value {
 fn invoke_postcard(payload: &[u8]) -> PostcardResponse {
     let mut out_len: usize = 0;
     let ptr = unsafe {
-        unikit_bridge::ffi::unikit_ffi_invoke_postcard(payload.as_ptr(), payload.len(), &mut out_len)
+        unikit_bridge::ffi::unikit_ffi_invoke_postcard(
+            payload.as_ptr(),
+            payload.len(),
+            &mut out_len,
+        )
     };
     assert!(!ptr.is_null(), "FFI must return a non-null buffer");
     let bytes = unsafe { std::slice::from_raw_parts(ptr, out_len) };

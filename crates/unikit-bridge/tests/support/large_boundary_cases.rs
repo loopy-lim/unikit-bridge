@@ -2,10 +2,10 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 //! Shared deterministic boundary cases and mutation entry for the large fuzz campaign.
-use unikit_bridge::Package;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
+use unikit_bridge::Package;
 
 const LIMIT: usize = 1024 * 1024;
 const LENGTHS: [usize; 8] = [0, 127, 128, 65_535, 65_536, LIMIT - 5, LIMIT - 4, LIMIT + 1];
@@ -39,7 +39,9 @@ fn recursive_package() -> &'static Package {
     static PACKAGE: OnceLock<Package> = OnceLock::new();
     PACKAGE.get_or_init(|| {
         Package::builder("fuzz.large.recursive")
-            .command("echo", |value: Node| Ok::<_, unikit_bridge::UnikitError>(value))
+            .command("echo", |value: Node| {
+                Ok::<_, unikit_bridge::UnikitError>(value)
+            })
             .build()
     })
 }

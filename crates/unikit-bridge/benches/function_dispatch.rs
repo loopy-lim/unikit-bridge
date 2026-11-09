@@ -4,12 +4,12 @@
 //! Equivalent scalar addition through ordinary functions and legacy commands.
 //! Run: cargo bench -p unikit-bridge --bench function_dispatch
 use criterion::{Criterion, criterion_group, criterion_main};
-use unikit_bridge::{DirectResponse, Package};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::hint::black_box;
 use std::time::Duration;
+use unikit_bridge::{DirectResponse, Package};
 
 #[derive(Deserialize, JsonSchema)]
 struct AddInput {

@@ -11,9 +11,9 @@
 //! 별도 테스트 바이너리(=별도 프로세스)이므로 OnceLock 슬롯을 다른 테스트와 공유하지 않는다.
 //! 같은 바이너리 내 모든 테스트는 동일 패키지를 register 하므로 first-wins semantic 도 안전하다.
 
+use std::thread;
 use unikit_bridge::Package;
 use unikit_bridge::ffi::{unikit_ffi_free, unikit_ffi_invoke_json};
-use std::thread;
 
 fn concurrency_package() -> Package {
     Package::builder("concurrency.test")

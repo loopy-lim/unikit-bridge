@@ -1,7 +1,7 @@
 //! One-shot JSON consumer used to verify the generated Node entry against Rust.
-use unikit_rn_experiment::rn_experiment_package;
 use serde_json::{Value, json};
 use std::io::Read;
+use unikit_rn_experiment::rn_experiment_package;
 
 fn main() -> unikit_bridge::Result<()> {
     if std::env::args().nth(1).as_deref() != Some("invoke") {
@@ -15,7 +15,10 @@ fn main() -> unikit_bridge::Result<()> {
         .take(limit.saturating_add(1) as u64)
         .read_to_end(&mut input)?;
     let result = if input.len() > limit {
-        Err(unikit_bridge::UnikitError::payload_too_large(input.len(), limit))
+        Err(unikit_bridge::UnikitError::payload_too_large(
+            input.len(),
+            limit,
+        ))
     } else {
         invoke_request(&input)
     };
@@ -24,7 +27,8 @@ fn main() -> unikit_bridge::Result<()> {
         Err(error) => json!({ "ok": false, "error": serde_json::to_string(&error)
             .map_err(unikit_bridge::UnikitError::internal)? }),
     };
-    serde_json::to_writer(std::io::stdout(), &response).map_err(unikit_bridge::UnikitError::internal)
+    serde_json::to_writer(std::io::stdout(), &response)
+        .map_err(unikit_bridge::UnikitError::internal)
 }
 
 fn invoke_request(input: &[u8]) -> unikit_bridge::Result<Value> {

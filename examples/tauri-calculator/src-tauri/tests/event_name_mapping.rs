@@ -12,12 +12,12 @@
 //!    JS 클라이언트가 하는 방식 그대로, `event_channel()` 호출 없이
 //!    **문자열 리터럴**로 구독하는 것이 양쪽 알고리즘 일치의 증명 지점이다.
 
-use unikit_bridge::Package;
-use unikit_bridge::prelude::*;
-use unikit_bridge::tauri_support::{self, event_channel};
 use std::sync::{Arc, Mutex};
 use tauri::Listener;
 use tauri::test::{mock_context, noop_assets};
+use unikit_bridge::Package;
+use unikit_bridge::prelude::*;
+use unikit_bridge::tauri_support::{self, event_channel};
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]

@@ -1,11 +1,11 @@
 //! Executable wire fixture used by scripts/function-registration-integration.ts.
-use unikit_bridge::{DirectResponse, Package, UnikitError};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::io::{self, Read};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use unikit_bridge::{DirectResponse, Package, UnikitError};
 
 static CALLS: AtomicUsize = AtomicUsize::new(0);
 

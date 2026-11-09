@@ -1,7 +1,7 @@
 //! CRUD stdio runtime: invoke handles one request; serve retains the store across calls.
-use unikit_crud_example::crud_package;
 use serde_json::{Value, json};
 use std::io::{BufRead, Read, Write};
+use unikit_crud_example::crud_package;
 
 fn main() -> unikit_bridge::Result<()> {
     match std::env::args().nth(1).as_deref() {
@@ -26,7 +26,8 @@ fn run_invoke_stdio() -> unikit_bridge::Result<()> {
         .take(1024 * 1024)
         .read_to_string(&mut input)?;
     let response = invoke_response(&crud_package(), &input);
-    serde_json::to_writer(std::io::stdout(), &response).map_err(unikit_bridge::UnikitError::internal)?;
+    serde_json::to_writer(std::io::stdout(), &response)
+        .map_err(unikit_bridge::UnikitError::internal)?;
     Ok(())
 }
 
@@ -40,7 +41,8 @@ fn run_serve_stdio() -> unikit_bridge::Result<()> {
             continue;
         }
         let response = invoke_response(&package, &line);
-        serde_json::to_writer(&mut stdout, &response).map_err(unikit_bridge::UnikitError::internal)?;
+        serde_json::to_writer(&mut stdout, &response)
+            .map_err(unikit_bridge::UnikitError::internal)?;
         stdout.write_all(b"\n")?;
         stdout.flush()?;
     }
@@ -67,7 +69,10 @@ fn error_response(error: unikit_bridge::UnikitError) -> Value {
     json!({ "ok": false, "error": detail })
 }
 
-fn handle_request(package: &unikit_bridge::Package, request: &Value) -> unikit_bridge::Result<Value> {
+fn handle_request(
+    package: &unikit_bridge::Package,
+    request: &Value,
+) -> unikit_bridge::Result<Value> {
     let command = request
         .get("command")
         .and_then(Value::as_str)

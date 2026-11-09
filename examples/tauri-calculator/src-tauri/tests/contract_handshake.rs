@@ -1,5 +1,3 @@
-use unikit_bridge::{Package, hot_core::JsonDispatch, tauri_support};
-use unikit_calculator_example::calculator_package;
 use serde_json::{Value, json};
 use std::sync::{
     Arc,
@@ -9,6 +7,8 @@ use tauri::WebviewWindowBuilder;
 use tauri::ipc::{CallbackFn, InvokeBody};
 use tauri::test::{MockRuntime, get_ipc_response, mock_builder, mock_context, noop_assets};
 use tauri::webview::InvokeRequest;
+use unikit_bridge::{Package, hot_core::JsonDispatch, tauri_support};
+use unikit_calculator_example::calculator_package;
 
 fn contract_request(expected: Option<&str>) -> InvokeRequest {
     InvokeRequest {

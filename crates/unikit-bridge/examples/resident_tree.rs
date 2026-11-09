@@ -22,7 +22,9 @@ fn main() -> unikit_bridge::Result<()> {
             break;
         }
         if read > 2 * 1024 * 1024 {
-            return Err(unikit_bridge::UnikitError::invalid_args("request too large"));
+            return Err(unikit_bridge::UnikitError::invalid_args(
+                "request too large",
+            ));
         }
         let request: Value =
             serde_json::from_slice(&bytes).map_err(unikit_bridge::UnikitError::invalid_args)?;
@@ -38,7 +40,8 @@ fn main() -> unikit_bridge::Result<()> {
                 json!({"id":request["id"],"ok":false,"error":serde_json::to_string(&error).map_err(unikit_bridge::UnikitError::internal)?})
             }
         };
-        serde_json::to_writer(&mut stdout, &response).map_err(unikit_bridge::UnikitError::internal)?;
+        serde_json::to_writer(&mut stdout, &response)
+            .map_err(unikit_bridge::UnikitError::internal)?;
         stdout.write_all(b"\n")?;
         stdout.flush()?;
     }

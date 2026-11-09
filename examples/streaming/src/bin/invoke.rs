@@ -11,9 +11,9 @@
 //!
 //! 내부 폴링 명령 `__drainEvents`: 대기 중 이벤트 배열 반환.
 
-use unikit_streaming_example::streaming_package;
 use serde_json::{Value, json};
 use std::io::{BufRead, Write};
+use unikit_streaming_example::streaming_package;
 
 fn main() -> unikit_bridge::Result<()> {
     let serve = std::env::args().nth(1).as_deref() == Some("--serve");
@@ -94,7 +94,8 @@ fn handle(input: &str) -> unikit_bridge::Result<Vec<u8>> {
     match streaming_package().invoke_json(&command, args) {
         Ok(result) => respond(json!({ "ok": true, "result": result })),
         Err(error) => {
-            let detail = serde_json::to_string(&error).map_err(unikit_bridge::UnikitError::internal)?;
+            let detail =
+                serde_json::to_string(&error).map_err(unikit_bridge::UnikitError::internal)?;
             respond(json!({ "ok": false, "error": detail }))
         }
     }

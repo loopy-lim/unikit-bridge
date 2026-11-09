@@ -13,12 +13,12 @@
 //!    (이벤트 싱크 I-1 계약과 동일). 이는 Bun FFI 브릿지의 threadsafe:false
 //!    스레드 계약과 달리 Node 루프가 백그라운드 send 를 받을 수 있음을 증명한다.
 
-use unikit_calculator_example::loop_stdio::{
-    BINARY_CHANNEL_CREATE_CMD, BINARY_CHANNEL_DROP_CMD, BINARY_CHANNEL_PUSH_CMD, run_binary,
-};
 use serde_json::Value;
 use std::io::{Cursor, Write};
 use std::sync::{Arc, Mutex};
+use unikit_calculator_example::loop_stdio::{
+    BINARY_CHANNEL_CREATE_CMD, BINARY_CHANNEL_DROP_CMD, BINARY_CHANNEL_PUSH_CMD, run_binary,
+};
 
 /// stdout 쓰기를 수집하는 W — run_binary 가 쓰는 응답과 채널 sender 가 쓰는
 /// 0xfffc 프레임이 모두 여기 착지한다(실 stdout 대신 — 테스트 출력 오염 방지).

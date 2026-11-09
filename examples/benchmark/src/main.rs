@@ -1,6 +1,6 @@
-use unikit_bridge::prelude::*;
 use serde_json::Value;
 use std::time::Instant;
+use unikit_bridge::prelude::*;
 
 // ── (측정 인프라) 할당 카운팅 global_allocator ───────────────
 // 호출당 malloc 횟수를 잰다 — caller-buffer/Arc 같은 복사 제거 최적화의 효과를

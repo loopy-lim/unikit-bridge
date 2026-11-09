@@ -1,6 +1,6 @@
 #pragma once
 
-namespace unikit {
+namespace unikit_bridge {
 
 // Used on the JS runtime thread. Published CoreTables are immutable and never
 // unloaded. Every caller owns a snapshot by value, including nested invocations.
@@ -23,4 +23,4 @@ private:
   Snapshot cached_{nullptr, {}};
 };
 
-} // namespace unikit
+} // namespace unikit_bridge

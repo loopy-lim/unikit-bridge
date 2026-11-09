@@ -2,16 +2,16 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 //! Isolated FFI context and thread-local allocation receipt; no latency measurement.
-use unikit_bridge::{
-    Package, UnikitError,
-    ffi::{unikit_ffi_has_raw, unikit_ffi_invoke_raw},
-};
 use serde::{Deserialize, Serialize};
 use std::{
     alloc::{GlobalAlloc, Layout, System},
     cell::Cell,
     hint::black_box,
     sync::atomic::{AtomicUsize, Ordering::Relaxed},
+};
+use unikit_bridge::{
+    Package, UnikitError,
+    ffi::{unikit_ffi_has_raw, unikit_ffi_invoke_raw},
 };
 
 struct CountingAllocator;

@@ -10,9 +10,9 @@
 #![cfg_attr(not(debug_assertions), allow(dead_code))]
 
 use proptest::prelude::*;
-use unikit_bridge::Package;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use unikit_bridge::Package;
 
 #[path = "../benches/common.rs"]
 mod common;

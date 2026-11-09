@@ -18,8 +18,8 @@
 //!   OnceLock first-wins) → `unikit_bridge::native_entry!` 가 `unikit_mobile_init`
 //!   심볼과 Apple 로드 시점 constructor 를 설치.
 
-use unikit_bridge::prelude::*;
 use std::io::{Read, Write};
+use unikit_bridge::prelude::*;
 
 // ── gzip — bytes in/out 버퍼 커맨드 ──────────────────────────────
 //

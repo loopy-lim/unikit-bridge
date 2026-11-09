@@ -1,11 +1,11 @@
-use unikit_bridge::hot_core::JsonDispatch;
-use unikit_bridge::{Package, UnikitError};
 use serde_json::{Value, json};
 use std::sync::{Arc, Mutex, OnceLock};
 use tauri::ipc::{CallbackFn, InvokeBody};
 use tauri::test::{get_ipc_response, mock_builder, mock_context, noop_assets};
 use tauri::webview::InvokeRequest;
 use tauri::{Listener, State, WebviewWindowBuilder};
+use unikit_bridge::hot_core::JsonDispatch;
+use unikit_bridge::{Package, UnikitError};
 
 #[path = "fixtures/setup_registration.rs"]
 mod unikit_setup;

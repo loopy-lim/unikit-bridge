@@ -1,11 +1,11 @@
 //! A command may block, including an async unikit handler's synchronous executor.
 //! Registration must keep that work off the WebView's IPC dispatch thread.
-use unikit_bridge::{Package, UnikitError, tauri_support};
 use serde_json::{Value, json};
 use tauri::WebviewWindowBuilder;
 use tauri::ipc::{CallbackFn, InvokeBody};
 use tauri::test::{get_ipc_response, mock_builder, mock_context, noop_assets};
 use tauri::webview::InvokeRequest;
+use unikit_bridge::{Package, UnikitError, tauri_support};
 
 fn request(command: &str, args: Value) -> InvokeRequest {
     InvokeRequest {

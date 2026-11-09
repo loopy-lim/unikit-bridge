@@ -1,5 +1,5 @@
-use unikit_calculator_example::parity_bench::*;
 use std::collections::BTreeMap;
+use unikit_calculator_example::parity_bench::*;
 fn tree() -> ParityTree {
     ParityTree {
         nodes: (0..3)

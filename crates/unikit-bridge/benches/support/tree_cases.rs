@@ -2,9 +2,9 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use unikit_bridge::Package;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use unikit_bridge::Package;
 
 #[path = "../common.rs"]
 mod common;
@@ -242,9 +242,9 @@ pub fn fixtures() -> (Package, Vec<Case>) {
         .command("treeEcho", echo)
         .command("treeSearch", search_handler)
         .command("residentSearch", move |input: ResidentInput| {
-            let root = resident
-                .get(input.tree_index as usize)
-                .ok_or_else(|| unikit_bridge::UnikitError::invalid_args("unknown benchmark tree"))?;
+            let root = resident.get(input.tree_index as usize).ok_or_else(|| {
+                unikit_bridge::UnikitError::invalid_args("unknown benchmark tree")
+            })?;
             Ok(search(root, input.target))
         })
         .build();

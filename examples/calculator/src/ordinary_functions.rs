@@ -1,8 +1,8 @@
 //! Ordinary functions used by the React Native `functions` demo.
 //! No Unikit attributes, argument DTOs, or mandatory Result return values.
-use unikit_bridge::{PackageBuilder, UnikitError};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicI32, Ordering};
+use unikit_bridge::{PackageBuilder, UnikitError};
 
 fn add(a: i32, b: i32) -> i32 {
     a + b

@@ -26,11 +26,11 @@
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-use unikit_bridge_naming::snake_to_lower_camel;
 use syn::{
     DeriveInput, GenericArgument, Ident, ItemFn, LitStr, PathArguments, ReturnType, Token, Type,
     parse::Parse, parse::ParseStream, parse_macro_input,
 };
+use unikit_bridge_naming::snake_to_lower_camel;
 
 include!("macro_command_support.rs");
 
