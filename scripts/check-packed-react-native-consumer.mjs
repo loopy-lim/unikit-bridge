@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import {
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   readdirSync,
@@ -49,24 +50,30 @@ async function main() {
     );
     const adapterRange = `^${rustraManifest.version}`;
 
-    writeFileSync(join(root, 'package.json'), JSON.stringify(createConsumerManifest({ rustraArchive })));
+    // Install into appRoot itself — codegen requires app-local
+    // node_modules/@unikit-bridge/rustra/native (hoist-only parents fail).
+    const appRoot = join(root, 'app');
+    mkdirSync(appRoot, { recursive: true });
+    writeFileSync(
+      join(appRoot, 'package.json'),
+      JSON.stringify(createConsumerManifest({ rustraArchive })),
+    );
     execFileSync(
       'bun',
-      ['install', '--cwd', root, '--cache-dir', join(root, 'bun-cache'), '--no-progress'],
+      ['install', '--cwd', appRoot, '--cache-dir', join(root, 'bun-cache'), '--no-progress'],
       { stdio: 'pipe' },
     );
 
     const types = await import(
-      pathToFileURL(join(root, 'node_modules/@unikit-bridge/rustra/dist/types/index.js')).href,
+      pathToFileURL(join(appRoot, 'node_modules/@unikit-bridge/rustra/dist/types/index.js')).href,
     );
     if (typeof types.createComplexCodec !== 'function') {
       throw new Error('packed @unikit-bridge/rustra/types does not expose createComplexCodec');
     }
 
     const { renderReactNativeModule } = await import(
-      pathToFileURL(join(root, 'node_modules/@unikit-bridge/rustra/dist/cli/index.js')).href,
+      pathToFileURL(join(appRoot, 'node_modules/@unikit-bridge/rustra/dist/cli/index.js')).href,
     );
-    const appRoot = join(root, 'app');
     const moduleDir = join(appRoot, 'modules/unikit-bridge');
     const files = renderReactNativeModule({
       appRoot,

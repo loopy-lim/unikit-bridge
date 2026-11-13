@@ -428,7 +428,9 @@ jobs:
         # ts-runtime 의 test:runtime:tauri).
         run: bun run test:adapters
       - name: Test CLI
-        run: bun run --cwd packages/rustra test
+        # CLI-only gate before the release dylib — full `packages/rustra test`
+        # pulls Bun FFI / real-dylib cases that need the next build step.
+        run: bun run --cwd packages/rustra test:cli
       - name: Test complex codec receipt
         run: bun run test:complex-codec-bench
       - name: Bench regression gate unit tests
@@ -443,7 +445,7 @@ jobs:
       - name: Registry consumer gate unit tests
         run: bun run test:registry-consumer
       - name: Build calculator example dylib
-        # packages/bun 의 into-binding 테스트가 release dylib 를 로드한다 —
+        # packages/rustra Bun FFI / into-binding 테스트가 release dylib 를 로드한다 —
         # register! id 는 등록 순서이므로 dylib 가 stale 이면 테스트도 stale
         # 결과를 낸다. 항상 클린 재빌드 후 실행.
         run: cargo build -p unikit-calculator-example --release
