@@ -913,6 +913,8 @@ jobs:
             bun pm pkg set "overrides.@unikit-bridge/rustra=file:$unikit_rustra_tgz"
             break
           done
+          # react 는 optional peer — /react 서브패스 스모크를 위해 소비자 앱처럼 설치한다.
+          bun pm pkg set "dependencies.react=19.1.0"
           bun install
       - name: Smoke — installed package subpaths load (ESM)
         run: |
