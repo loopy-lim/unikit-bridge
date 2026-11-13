@@ -19,7 +19,7 @@ import {
   invokeGeneratedFieldsSync,
   resolveGeneratedFieldsSync,
   resetConfiguredRoutes,
-} from '../packages/types/src/index.ts';
+} from '../packages/rustra/src/types/index.ts';
 
 /** 계산기 예제 생성물의 실제 필드 명령(generated/commands.ts 122–125행)과 동일한 정체성. */
 const COMMAND_ID = 38;

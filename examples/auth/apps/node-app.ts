@@ -10,8 +10,8 @@
  */
 import { spawn } from 'node:child_process';
 import { signIn, signOut, grant, adminStats } from '../generated/commands.js';
-import { configure } from '@unikit-bridge/types';
-import { createNodeEngine } from '@unikit-bridge/node';
+import { configure } from '@unikit-bridge/rustra/types';
+import { createNodeEngine } from '@unikit-bridge/rustra/node';
 
 const RUST_BIN = 'target/debug/unikit-auth-invoke';
 

@@ -45,6 +45,7 @@ import {
   validateVersionManifest,
   writeJson,
 } from './registry-consumer/provenance.mjs';
+import { resolvePublishedCli, resolveRustraHostVersion } from './registry-consumer/paths.mjs';
 import { pinCargoVersions } from './registry-consumer/fixture.mjs';
 import { errorDetails, runOrderedSteps, sanitizeStepName } from './registry-consumer/runner.mjs';
 
@@ -349,7 +350,7 @@ fn main() -> unikit_bridge::Result<()> {
 export function renderRnConfigJson() {
   return `${JSON.stringify(
     {
-      $schema: './node_modules/@unikit-bridge/cli/unikit.schema.json',
+      $schema: './node_modules/@unikit-bridge/rustra/unikit.schema.json',
       schema: './generated/schema.json',
       output: './generated',
       reactNative: { rustManifest: './Cargo.toml' },
@@ -771,9 +772,7 @@ function collectEventEvidence(context, device) {
 
 async function executeRnAndroidCycle({ logDir, serial, assertEvents = false }) {
   const versions = validateVersionManifest(readJson(VERSIONS_PATH));
-  const reactNativeVersion = versions.hosts?.['@unikit-bridge/react-native'];
-  if (!reactNativeVersion)
-    throw new Error('versions.json hosts["@unikit-bridge/react-native"] pin is required');
+  const rustraVersion = resolveRustraHostVersion(versions);
   const scratchRoot = mkdtempSync(join(tmpdir(), 'unikit-registry-rn-android-'));
   const projectDir = join(scratchRoot, APP_NAME);
   const repoRoot = resolve(dirname(SCRIPT_PATH), '..');
@@ -795,9 +794,7 @@ async function executeRnAndroidCycle({ logDir, serial, assertEvents = false }) {
     },
   };
   const npmVersions = {
-    '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'],
-    '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
-    '@unikit-bridge/react-native': reactNativeVersion,
+    '@unikit-bridge/rustra': rustraVersion,
   };
   try {
     const environment = await environmentEvidence(context);
@@ -826,9 +823,11 @@ async function executeRnAndroidCycle({ logDir, serial, assertEvents = false }) {
     internalStep(context, 'pin-npm-versions', () => {
       const packagePath = join(projectDir, 'package.json');
       const packageJson = readJson(packagePath);
-      packageJson.dependencies['@unikit-bridge/react-native'] = npmVersions['@unikit-bridge/react-native'];
-      packageJson.dependencies['@unikit-bridge/types'] = npmVersions['@unikit-bridge/types'];
-      packageJson.devDependencies['@unikit-bridge/cli'] = npmVersions['@unikit-bridge/cli'];
+      packageJson.dependencies['@unikit-bridge/rustra'] = npmVersions['@unikit-bridge/rustra'];
+      packageJson.devDependencies = {
+        ...(packageJson.devDependencies ?? {}),
+        '@unikit-bridge/rustra': npmVersions['@unikit-bridge/rustra'],
+      };
       writeJson(packagePath, packageJson);
     });
     await runChecked(context, 'install-npm', projectDir, [
@@ -846,7 +845,7 @@ async function executeRnAndroidCycle({ logDir, serial, assertEvents = false }) {
     });
 
     // 3) 코드젠 — unikit-bridge 네이티브 모듈 + 생성 클라이언트.
-    const projectCli = join(projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js');
+    const projectCli = resolvePublishedCli(projectDir);
     await runChecked(context, 'baseline-codegen', projectDir, [
       process.execPath,
       projectCli,

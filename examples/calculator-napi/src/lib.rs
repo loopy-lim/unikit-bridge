@@ -42,7 +42,7 @@ mod frame {
 }
 
 /// UnikitError → napi Error: 코드/retryable 이 유실되지 않도록 JSON 직렬화해
-/// reason 에 심는다. JS 측 parseUnikitErrorString(@unikit-bridge/types)이
+/// reason 에 심는다. JS 측 parseUnikitErrorString(@unikit-bridge/rustra/types)이
 /// { code, message, retryable } 을 복원한다 — plain Display(to_string)는
 /// "code: message" 로 평탄화되어 retryable 을 버린다.
 fn napi_error(e: unikit_bridge::UnikitError) -> Error {

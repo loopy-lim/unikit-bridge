@@ -118,7 +118,7 @@ test('contamination scan allows only the declared generated workspace package', 
         private: true,
         dependencies: {
           '@unikit-bridge/generated-react-native': 'workspace:*',
-          '@unikit-bridge/react-native': '0.9.2',
+          '@unikit-bridge/rustra': '0.13.0',
         },
         workspaces: ['modules/unikit-bridge'],
       }),
@@ -126,26 +126,26 @@ test('contamination scan allows only the declared generated workspace package', 
     writeFileSync(join(root, 'Cargo.toml'), '[package]\nname="x"\n');
     assert.doesNotThrow(() =>
       assertNoConsumerContamination(root, {
-        expectedNpm: { '@unikit-bridge/react-native': '0.9.2' },
+        expectedNpm: { '@unikit-bridge/rustra': '0.13.0' },
         allowedWorkspacePackages: ['@unikit-bridge/generated-react-native'],
       }),
     );
     assert.throws(
       () =>
         assertNoConsumerContamination(root, {
-          expectedNpm: { '@unikit-bridge/react-native': '0.9.2' },
+          expectedNpm: { '@unikit-bridge/rustra': '0.13.0' },
           allowedWorkspacePackages: [],
         }),
       /forbidden dependency source workspace:\*/,
     );
     // 다른 패키지의 workspace:* 는 허용 목록에 있어도 통과하지 않는다.
     const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-    manifest.dependencies['@unikit-bridge/types'] = 'workspace:*';
+    manifest.dependencies['@unikit-bridge/cli'] = 'workspace:*';
     writeFileSync(join(root, 'package.json'), JSON.stringify(manifest));
     assert.throws(
       () =>
         assertNoConsumerContamination(root, {
-          expectedNpm: { '@unikit-bridge/react-native': '0.9.2' },
+          expectedNpm: { '@unikit-bridge/rustra': '0.13.0' },
           allowedWorkspacePackages: ['@unikit-bridge/generated-react-native'],
         }),
       /forbidden dependency source workspace:\*/,

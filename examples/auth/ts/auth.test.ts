@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configure } from '@unikit-bridge/types';
+import { configure } from '@unikit-bridge/rustra/types';
 import { signIn, signOut, grant, adminStats } from '../generated/commands.js';
 import type { EngineClient } from '../generated/types.js';
 

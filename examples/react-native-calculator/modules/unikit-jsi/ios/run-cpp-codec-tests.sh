@@ -12,7 +12,7 @@ set -euo pipefail
 
 IOS_DIR="$(cd "$(dirname "$0")" && pwd)"
 MODULE_DIR="$(cd "$IOS_DIR/.." && pwd)"
-ADAPTER_CPP="$(cd "$MODULE_DIR/../../../../packages/react-native/native/cpp" && pwd)"
+ADAPTER_CPP="$(cd "$MODULE_DIR/../../../../packages/rustra/native/cpp" && pwd)"
 GENERATED_DIR="$MODULE_DIR/generated"
 BUILD_DIR="${TMPDIR:-/tmp}/unikit-cpp-codec-build"
 STUB_DIR="$BUILD_DIR/jsi"

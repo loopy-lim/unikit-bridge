@@ -14,9 +14,14 @@ const RULES = {
 
 const FACADE_LIMITS = {
   'crates/unikit-bridge/src/lib.rs': 200,
-  'packages/types/src/index.ts': 200,
-  'packages/cli/src/index.ts': 200,
+  'packages/rustra/src/types/index.ts': 200,
+  'packages/rustra/src/cli/index.ts': 200,
 };
+
+const NAMING_PATHS = [
+  'crates/unikit-bridge/src/naming.rs',
+  'crates/unikit-bridge-macros/src/naming.rs',
+];
 
 const RECOMMENDED_MODULE_LINES = 200;
 const HARD_MODULE_LINES = 400;
@@ -71,6 +76,11 @@ function productionSourceFiles(root) {
   );
 }
 
+function snakeToLowerCamelImpl(source) {
+  const match = source.match(/fn\s+snake_to_lower_camel[\s\S]*?\{([\s\S]*?)\n\}/);
+  return match?.[1]?.trim() ?? null;
+}
+
 function error(rule, path, message) {
   return { rule, path, message };
 }
@@ -86,7 +96,7 @@ export function checkArchitectureBoundaries({ root }) {
     if (lines > limit) {
       const rule = path === 'crates/unikit-bridge/src/lib.rs'
         ? RULES.unikitLibSize
-        : path === 'packages/types/src/index.ts'
+        : path === 'packages/rustra/src/types/index.ts'
           ? RULES.typesIndexSize
           : RULES.cliIndexSize;
       errors.push(error(rule, path, `${lines} lines exceeds the ${limit}-line facade budget`));
@@ -112,59 +122,73 @@ export function checkArchitectureBoundaries({ root }) {
     }
   }
 
-  const namingImplementations = rustSourceFiles(root).filter((path) => {
-    const source = readFileSync(path, 'utf8');
-    return /(?:pub\s*\([^)]*\)\s*)?fn\s+snake_to_lower_camel\s*\(/.test(source);
+  const namingBodies = NAMING_PATHS.map((path) => {
+    const source = readIfPresent(root, path);
+    return source ? { path, body: snakeToLowerCamelImpl(source) } : { path, body: null };
   });
-  if (
-    namingImplementations.length !== 1 ||
-    !namingImplementations[0]?.endsWith('crates/unikit-bridge-naming/src/lib.rs')
-  ) {
+  if (namingBodies.some(({ body }) => !body)) {
     errors.push(
       error(
         RULES.sharedRustNaming,
-        'crates/unikit-bridge-naming/src/lib.rs',
-        `expected one shared naming implementation, found ${namingImplementations.length}`,
+        NAMING_PATHS.join(', '),
+        'expected snake_to_lower_camel in both unikit-bridge and unikit-bridge-macros naming.rs',
       ),
     );
-  }
-
-  for (const adapter of ['node', 'bun', 'tauri']) {
-    const path = `packages/${adapter}/src/index.ts`;
-    const source = readDirectorySources(root, `packages/${adapter}/src`);
-    if (!source) continue;
-    if (!/\bcreateJsonEngine\b/.test(source) || !/@unikit-bridge\/types/.test(source)) {
+  } else {
+    const [left, right] = namingBodies;
+    if (left.body !== right.body) {
       errors.push(
         error(
-          RULES.sharedJsonEngine,
-          path,
-          'adapter must use createJsonEngine from @unikit-bridge/types',
+          RULES.sharedRustNaming,
+          NAMING_PATHS.join(', '),
+          'snake_to_lower_camel implementations drifted between bridge and macros copies',
         ),
       );
     }
   }
 
-  const cliIndex = readIfPresent(root, 'packages/cli/src/index.ts');
+  for (const adapter of ['node', 'bun', 'tauri']) {
+    const path = `packages/rustra/src/${adapter}/index.ts`;
+    const source = readDirectorySources(root, `packages/rustra/src/${adapter}`);
+    if (!source) continue;
+    if (
+      !/\bcreateJsonEngine\b/.test(source) ||
+      !/from\s+['"]\.\.\/types/.test(source)
+    ) {
+      errors.push(
+        error(
+          RULES.sharedJsonEngine,
+          path,
+          'adapter must use createJsonEngine from relative ../types',
+        ),
+      );
+    }
+  }
+
+  const cliIndex = readIfPresent(root, 'packages/rustra/src/cli/index.ts');
   if (cliIndex && /\b(?:setTimeout|setInterval|watch)\s*\(/.test(cliIndex)) {
     errors.push(
       error(
         RULES.watcherBoundary,
-        'packages/cli/src/index.ts',
-        'watcher timers and filesystem subscriptions belong in packages/cli/src/watch.ts',
+        'packages/rustra/src/cli/index.ts',
+        'watcher timers and filesystem subscriptions belong in packages/rustra/src/cli/watch.ts',
       ),
     );
   }
 
-  const rnIndex = readIfPresent(root, 'packages/react-native/src/index.ts');
-  const rnUtf8 = readIfPresent(root, 'packages/react-native/src/utf8.ts');
+  const rnIndex = readIfPresent(root, 'packages/rustra/src/react-native/index.ts');
+  const rnUtf8 = readIfPresent(root, 'packages/rustra/src/react-native/utf8.ts');
   if (
     rnUtf8 ||
-    (rnIndex && /\braceAbortShallow\b|\b(?:function|const|let)\s+(?:encodeUtf8|decodeUtf8|exactArrayBuffer)\b/.test(rnIndex))
+    (rnIndex &&
+      /\braceAbortShallow\b|\b(?:function|const|let)\s+(?:encodeUtf8|decodeUtf8|exactArrayBuffer)\b/.test(
+        rnIndex,
+      ))
   ) {
     errors.push(
       error(
         RULES.rnRuntimeDuplication,
-        'packages/react-native/src',
+        'packages/rustra/src/react-native',
         'React Native must consume the shared types runtime helpers',
       ),
     );

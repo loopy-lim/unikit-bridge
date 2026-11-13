@@ -4444,7 +4444,6 @@ dependencies = [
  "serde",
  "serde_json",
  "unikit-bridge",
- "unikit-bridge-macros",
 ]
 
 [[package]]
@@ -4463,7 +4462,6 @@ dependencies = [
  "tauri",
  "tempfile",
  "unikit-bridge-macros",
- "unikit-bridge-naming",
 ]
 
 [[package]]
@@ -4476,12 +4474,7 @@ dependencies = [
  "serde",
  "syn 3.0.5",
  "unikit-bridge",
- "unikit-bridge-naming",
 ]
-
-[[package]]
-name = "unikit-bridge-naming"
-version = "0.13.0"
 
 [[package]]
 name = "unikit-calculator-example"

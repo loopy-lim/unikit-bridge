@@ -57,7 +57,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       # codegen 은 Rust schema 발행에 cargo run 을, 설정 해석에 cargo-metadata
-      # 를 쓴다(packages/cli/src/cli-codegen.ts) — ts-checks 잡의 codegen-fresh
+      # 를 쓴다(packages/rustra/src/cli/cli-codegen.ts) — ts-checks 잡의 codegen-fresh
       # 스텝과 동일한 Rust 툴체인/캐시 요구사항이다.
       - uses: dtolnay/rust-toolchain@1.95.0
       - uses: Swatinem/rust-cache@v2
@@ -70,7 +70,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Build workspace packages
-        # 예제 codegen 은 bun ../../packages/cli/src/index.ts 를 실행하고 그
+        # 예제 codegen 은 bun ../../packages/rustra/src/cli/index.ts 를 실행하고 그
         # 의존(@unikit-bridge/* exports)은 dist 를 가리킨다 — 재생성 전에 워크스페이스를
         # 빌드한다(ts-checks·rn-android 잡과 동일 순서 계약).
         run: bun run build
@@ -87,7 +87,7 @@ jobs:
           for config in examples/*/unikit.json; do
             dir=$(dirname "$config")
             echo "::group::codegen $dir"
-            (cd "$dir" && bun ../../packages/cli/src/index.ts codegen --config unikit.json)
+            (cd "$dir" && bun ../../packages/rustra/src/cli/index.ts codegen --config unikit.json)
             echo "::endgroup::"
             found=$((found + 1))
           done

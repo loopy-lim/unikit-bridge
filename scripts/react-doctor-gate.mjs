@@ -41,12 +41,12 @@ const TOLERATED_PATH_CLASSES = [
     '예제의 코드젠 생성물(generated/**)과 모듈 진입점 — 생성기가 정본이고 eslint 도 **/generated/** 를 제외한다. 도구가 생성물을 앱 소스로 읽을 때만 나오는 오탐이다.',
   ],
   [
-    'packages/cli/src/cargo-metadata.ts',
+    'packages/rustra/src/cli/cargo-metadata.ts',
     ['import-metadata-execution-risk'],
     'cargo metadata 파싱→스폰은 이 도구의 본연 — 배치 이전 소스이며 848edf30 동일 소스가 미플래그라 도구 판정이 불안정하다.',
   ],
   [
-    'packages/types/src/global-batch-settled.ts',
+    'packages/rustra/src/types/global-batch-settled.ts',
     ['async-await-in-loop'],
     '배치 정산 루프의 순차 대기 — 848edf30 동일 소스가 미플래그라 도구 판정이 불안정하다.',
   ],

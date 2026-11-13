@@ -4,14 +4,10 @@
   "packageManager": "bun@1.4.0",
   "type": "module",
   "scripts": {
-    "codegen": "bun ../../packages/cli/src/index.ts codegen --config unikit.json",
-    "codegen:check": "bun ../../packages/cli/src/index.ts codegen --config unikit.json --check"
+    "codegen": "node ../../packages/rustra/dist/cli/index.js codegen --config unikit.json",
+    "codegen:check": "node ../../packages/rustra/dist/cli/index.js codegen --config unikit.json --check"
   },
   "dependencies": {
-    "@unikit-bridge/node": "file:../../packages/node",
-    "@unikit-bridge/types": "file:../../packages/types"
-  },
-  "overrides": {
-    "@unikit-bridge/types": "file:../../packages/types"
+    "@unikit-bridge/rustra": "file:../../packages/rustra"
   }
 }

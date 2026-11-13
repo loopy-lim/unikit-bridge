@@ -1,6 +1,6 @@
 // ── (Tier 3 정합) JS postcard 코덱 지원 판정 미러 ─────────────
 //
-// @unikit-bridge/cli 의 classifyPostcardField(generate.ts)와 동일한 타입 집합을
+// @unikit-bridge/rustra/cli 의 classifyPostcardField(generate.ts)와 동일한 타입 집합을
 // Rust 쪽에서 판정한다. JS 코드젠은 미지원 필드를 가진 명령을 frame-registry
 // 에서 제외하고, 엔진은 그 명령을 Tier 3(JSON-in-binary) 로 라우팅한다.
 // Rust 도 같은 판정으로 typed postcard fast-path 를 끄면 양쪽 와이어가
@@ -68,7 +68,7 @@ fn js_field_supported_with_defs(
         return true;
     }
     // int64/uint64 는 TS CLI 의 uvar64/zigzag64 64-bit 헬퍼로 postcard
-    // fast-path 에 합류했다(@unikit-bridge/cli classifyPostcardField 와 동일 판정).
+    // fast-path 에 합류했다(@unikit-bridge/rustra/cli classifyPostcardField 와 동일 판정).
     // safe 범위를 넘는 값은 number 대신 bigint 로 복원된다.
     // Set-shaped arrays are owned by the complex route, which restores Set
     // semantics at the JS boundary instead of exposing an array.

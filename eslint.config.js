@@ -4,8 +4,7 @@ import tseslint from 'typescript-eslint';
 // lint 스크립트의 파일 범위(package.json) — type-aware parserOptions 도 같은 범위에
 //만 걸어야 프로그램 밖 파일 에러가 나지 않는다.
 const lintedFiles = [
-  'packages/*/src/**/*.ts',
-  'packages/cli/src/**/*.ts',
+  'packages/rustra/src/**/*.ts',
   'scripts/**/*.ts',
   'examples/calculator/**/*.ts',
   'examples/crud/**/*.ts',
@@ -35,6 +34,13 @@ export default tseslint.config(
       // napi 예제는 napi CI 잡이 검증한다.
       'examples/react-native-calculator/**',
       'examples/calculator-napi/**',
+      // lintedFiles 밖 예제 — lefthook/수동 호출이 파일 경로로 넘겨도 type-aware
+      // 규칙이 프로젝트 없는 파일에서 죽지 않게 무시한다.
+      'examples/resident-tree/**',
+      'examples/rn-experiment/**',
+      'examples/benchmark/**',
+      'examples/hot-core-*/**',
+      'examples/uniffi-*/**',
     ],
   },
   {
@@ -51,8 +57,8 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: {
         project: [
-          './packages/*/tsconfig.json',
-          './packages/*/tsconfig.test.json',
+          './packages/rustra/tsconfig.json',
+          './packages/rustra/tsconfig.test.json',
           './tsconfig.eslint.json',
         ],
         tsconfigRootDir: import.meta.dirname,
@@ -60,7 +66,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['packages/*/src/**/*.ts', 'packages/cli/src/**/*.ts'],
+    files: ['packages/rustra/src/**/*.ts'],
     rules: {
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
@@ -163,7 +169,7 @@ export default tseslint.config(
     // require-await 32 등 총 811건). 기본 recommended(타입 미사용) 규칙은 유지하고
     // type-checked 규칙만 로컬 비활성한다. cli 위반이 정리되면 이 블록을 지워
     // 전면 활성화한다.
-    files: ['packages/cli/src/**/*.ts'],
+    files: ['packages/rustra/src/cli/**/*.ts'],
     rules: {
       '@typescript-eslint/no-floating-promises': 'off',
       '@typescript-eslint/no-unnecessary-type-assertion': 'off',
@@ -186,7 +192,7 @@ export default tseslint.config(
     // 오류 구조화 태스크(T3) 소유라 이번 범위에서 고칠 수 없다(실측 위반 4건:
     // prefer-promise-reject-errors x3 · no-unsafe-return x1). 이 파일만 규칙을
     // 로컬 비활성하고, T3 가 거절 사유 정규화를 손보면 이 블록을 지운다.
-    files: ['packages/react-native/src/react-native-core.ts'],
+    files: ['packages/rustra/src/react-native/react-native-core.ts'],
     rules: {
       '@typescript-eslint/prefer-promise-reject-errors': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',

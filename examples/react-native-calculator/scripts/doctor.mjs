@@ -58,15 +58,15 @@ export function parseArguments(argv) {
 
 function dependencyCheck({ packageJson, typesVersion, expoInstalled }) {
   const valid =
-    expoInstalled && typesVersion === '0.4.0' && packageJson.packageManager === 'bun@1.4.0';
+    expoInstalled && typesVersion === '0.13.0' && packageJson.packageManager === 'bun@1.4.0';
   return valid
-    ? pass('Bun', 'bun.dependencies', 'Bun dependencies and @unikit-bridge/types 0.4.0 are installed')
+    ? pass('Bun', 'bun.dependencies', 'Bun dependencies and @unikit-bridge/rustra are installed')
     : fail(
         'Bun',
         'bun.dependencies',
         'Dependency installation or pinned versions are inconsistent',
-        `expo=${expoInstalled ? 'installed' : 'missing'}, @unikit-bridge/types=${typesVersion ?? 'missing'}, packageManager=${packageJson.packageManager ?? 'missing'}`,
-        'Keep `packageManager` at `bun@1.4.0`, keep all `@unikit-bridge/*` packages at 0.4.0, and run `bun install`.',
+        `expo=${expoInstalled ? 'installed' : 'missing'}, @unikit-bridge/rustra=${typesVersion ?? 'missing'}, packageManager=${packageJson.packageManager ?? 'missing'}`,
+        'Keep `packageManager` at `bun@1.4.0`, depend on `@unikit-bridge/rustra`, and run `bun install`.',
       );
 }
 
@@ -183,7 +183,7 @@ export async function runDoctor(options, runner = defaultRunner) {
     throw new Error('Generated iOS build script does not declare the inferred Rust library');
   }
   const archivePath = join(moduleRoot, `ios/rust/lib/lib${rustLibrary}.a`);
-  const typesManifest = JSON.parse(await readOptional(join(repoRoot, 'packages/types/package.json')));
+  const typesManifest = JSON.parse(await readOptional(join(repoRoot, 'packages/rustra/package.json')));
   const bunSupported = compareSemanticVersions(Bun.version, MINIMUM_BUN_VERSION) >= 0;
   const checks = [
     bunSupported

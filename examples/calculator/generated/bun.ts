@@ -17,7 +17,7 @@
 //   없다 — 기존 생성 엔트리 코드는 그대로 동작한다(하위 호환).
 import { fileURLToPath } from 'node:url';
 import { suffix } from 'bun:ffi';
-import { createBunBootstrap } from '@unikit-bridge/bun';
+import { createBunBootstrap } from '@unikit-bridge/rustra/bun';
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from './contract.js';
 import { frameRegistry } from './frame-registry.js';
 

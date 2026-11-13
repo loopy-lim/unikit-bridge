@@ -11,14 +11,14 @@ detection lives in the [contract migration guide](migration-guide.md).
 
 ## Scope of compatibility guarantees
 
-| Surface                                                    | Guarantee within a minor release                                                                   | Breaking change requires                                                                                                                                                                          |
-| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Wire format (Frame / postcard bytes for a released schema) | Stable once a schema is released: bytes produced for a given schema + contract hash keep decoding. | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
-| Contract hash algorithm                                    | Compatibility-critical: the hash-of-schema input definition is frozen per release.                 | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
-| FFI symbol signatures (`unikit_ffi_*` C ABI)               | Additive only. Existing symbols keep name, parameter list, and calling convention.                 | Removals and signature changes go through the deprecation cycle below, then a major. Pre-1.0: the deprecation rule applies — a symbol deprecated in a previous release may be removed in a minor. |
-| Generated output (TypeScript / C++ / RN generated files)   | Regenerated output stays drop-in for the same configuration.                                       | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
+| Surface                                                                  | Guarantee within a minor release                                                                   | Breaking change requires                                                                                                                                                                          |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Wire format (Frame / postcard bytes for a released schema)               | Stable once a schema is released: bytes produced for a given schema + contract hash keep decoding. | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
+| Contract hash algorithm                                                  | Compatibility-critical: the hash-of-schema input definition is frozen per release.                 | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
+| FFI symbol signatures (`unikit_ffi_*` C ABI)                             | Additive only. Existing symbols keep name, parameter list, and calling convention.                 | Removals and signature changes go through the deprecation cycle below, then a major. Pre-1.0: the deprecation rule applies — a symbol deprecated in a previous release may be removed in a minor. |
+| Generated output (TypeScript / C++ / RN generated files)                 | Regenerated output stays drop-in for the same configuration.                                       | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
 | Public Rust API (`crates/unikit-bridge`, `unikit-bridge-macros` exports) | Standard semver.                                                                                   | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
-| Public TypeScript API (`@unikit-bridge/*` package exports)        | Standard semver.                                                                                   | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
+| Public TypeScript API (`@unikit-bridge/rustra` subpath exports)          | Standard semver.                                                                                   | Major version. Pre-1.0: a minor with explicit migration notes.                                                                                                                                    |
 
 Not covered by any guarantee:
 
@@ -87,7 +87,7 @@ above; any later change then follows the deprecation procedure.
 | `unikit_ffi_hot_reload`                               | Experimental | Landed this cycle. Hot-reload injection with replace semantics; the skip report and error ladder may still change between releases.                                                                                                                                    |
 | `hot-core` module (`DylibCore`·`HotCoreHandle`·watch) | Experimental | Dev-time native dylib hot-swap primitive behind the `hot-core` cargo feature. API and swap semantics may change between releases. Release builds are unaffected (the static-linking path is unchanged). Design: `docs/dev/plans/2026-09-09-native-hot-core-design.md`. |
 | `unikit_ffi_capture_snapshot`                         | Experimental | B1 inspector dump. Shape changes are breaking, except additive fields, which are backward-compatible.                                                                                                                                                                  |
-| `@unikit-bridge/types` inspector                             | Experimental | `DumpedWire` + `parseSnapshot`/`serializeSnapshot` mirror the blob contract above (additive fields allowed). `unikit inspect` renders this experimental format and inherits its status.                                                                                |
+| `@unikit-bridge/types` inspector                      | Experimental | `DumpedWire` + `parseSnapshot`/`serializeSnapshot` mirror the blob contract above (additive fields allowed). `unikit inspect` renders this experimental format and inherits its status.                                                                                |
 
 ## MSRV policy
 
@@ -102,7 +102,7 @@ consumer toolchains.
 
 ## Release numbering
 
-The project is on 0.x. Versions of the 9 public `@unikit-bridge/*` npm packages are
+The project is on 0.x. The publishable npm package **`@unikit-bridge/rustra`** is
 driven by changesets: when changeset files exist on main, `release.yml` opens
 the version-packages PR (`chore: version packages`), and merging it updates version fields and
 CHANGELOGs in bulk. crates.io publishing is manual — `cargo publish` per

@@ -21,8 +21,8 @@ on:
     branches: [main]
     paths:
       - 'crates/unikit-bridge/**'
-      - 'packages/types/**'
-      - 'packages/cli/**'
+      - 'packages/rustra/src/types/**'
+      - 'packages/rustra/src/cli/**'
       - 'examples/react-native-calculator/modules/**'
       - 'examples/calculator/**'
       - '.github/workflows/bench.yml'

@@ -165,8 +165,8 @@ function _pcDecodeF64(buf: Uint8Array, offset: number): { value: number; bytesRe
 function _pcEncodeF32(n: number): Uint8Array { const buf = new ArrayBuffer(4); new DataView(buf).setFloat32(0, n, true); return new Uint8Array(buf); }
 function _pcDecodeF32(buf: Uint8Array, offset: number): { value: number; bytesRead: number } { return { value: new DataView(buf.buffer, buf.byteOffset + offset, 4).getFloat32(0, true), bytesRead: 4 }; }
 
-import { createComplexCodec } from '@unikit-bridge/types';
-import type { FrameCodec, UnikitError, ComplexSchema } from '@unikit-bridge/types';
+import { createComplexCodec } from '@unikit-bridge/rustra/types';
+import type { FrameCodec, UnikitError, ComplexSchema } from '@unikit-bridge/rustra/types';
 import type { AddNumbersInput, AddNumbersOutput, BenchAddInput, BenchAddOutput, BenchBytesPayload, BenchPairPayload, BenchStringPayload, ChannelDemoBytesInput, ChannelDemoBytesOutput, ChannelDemoInput, ChannelDemoOutput, ChannelHandle, ClampInput, ClampOutput, CreateItemInput, CreateItemOutput, DeviceDemoOutput, DivideInput, DivideOutput, EchoGroupsInput, EchoGroupsOutput, EmitDemoInput, EmitDemoOutput, GaugeInput, GaugeOutput, GreetInput, GreetOutput, IsEvenInput, IsEvenOutput, Item, KindEchoInput, KindEchoOutput, MultiplyInput, MultiplyOutput, OpKind, ParityFindInput, ParityNode, ParityQuery, ParitySearch, ParityStored, ParityTree, PlatformNativeInfoOutput, ProcessItemInput, ProcessItemOutput, RegistryDemoInput, RegistryDemoOutput, ResourceCloseInput, ResourceCloseOutput, ResourceHandle, ResourceHandleOutput, ResourceOpenInput, ResourceReadInput, ResourceReadOutput, ResourceWriteInput, ResourceWriteOutput, ScoreTotalInput, ScoreTotalOutput, SecureComputeInput, SecureComputeOutput, SizeOfInput, SizeOfOutput, SpanInput, SpanOutput, String, SumListInput, SumListOutput, TagSetInput, TagSetOutput, ToUpperInput, ToUpperOutput, Tuple_of_String, Tuple_of_double_and_double, Tuple_of_int32, Tuple_of_int32_and_int32, WideAggInput, WideAggOutput, double, int32 } from './types.js';
 
 export const addCodec: FrameCodec<Tuple_of_int32_and_int32, int32> = {

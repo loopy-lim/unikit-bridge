@@ -124,7 +124,7 @@ literals, `null` types, and type-array unions.
 Example generated command helper:
 
 ```ts
-import { invokeGenerated, type InvokeOptions } from '@unikit-bridge/types';
+import { invokeGenerated, type InvokeOptions } from '@unikit-bridge/rustra/types';
 
 export function addNumbers(
   input: AddNumbersInput,
@@ -174,4 +174,4 @@ let builder = register(my_package, tauri::Builder::default());
 
 `register()` installs a handler that routes every command in the package
 through the single `unikit_dispatch` Tauri command. On the TypeScript side,
-the `@unikit-bridge/tauri` adapter routes to this endpoint automatically.
+the `@unikit-bridge/rustra/tauri` adapter routes to this endpoint automatically.

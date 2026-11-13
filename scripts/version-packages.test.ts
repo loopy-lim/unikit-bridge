@@ -3,11 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import test from 'node:test';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import {
-  caretMinorRange,
-  syncLockWorkspaceMetadata,
-  syncReactNativeRange,
-} from './version-packages.mjs';
+import { caretMinorRange, syncLockWorkspaceMetadata, syncNpmRange } from './version-packages.mjs';
 
 void test('caretMinorRange tracks the minor on 0.x and keeps major bumps on 1.x+', () => {
   assert.equal(caretMinorRange('0.4.0'), '^0.4.0');
@@ -16,57 +12,45 @@ void test('caretMinorRange tracks the minor on 0.x and keeps major bumps on 1.x+
   assert.throws(() => caretMinorRange('0.4'), /not a released x\.y\.z version/);
 });
 
-void test('syncReactNativeRange rewrites only the range value and preserves formatting', () => {
+void test('syncNpmRange rewrites only the range value and preserves formatting', () => {
   const root = mkdtempSync(join(tmpdir(), 'unikit-version-packages-'));
   try {
     const manifestPath = join(root, 'package.json');
     const original = [
       '{',
-      '  "name": "@unikit-bridge/cli",',
+      '  "name": "@unikit-bridge/rustra",',
       '  "unikitTemplate": {',
       '    "cargoRange": "^0.9.0",',
-      '    "reactNativeRange": "^0.7.0"',
+      '    "npmRange": "^0.7.0"',
       '  }',
       '}',
       '',
     ].join('\n');
     writeFileSync(manifestPath, original);
 
-    assert.equal(syncReactNativeRange(manifestPath, '0.8.0'), true, 'range moved');
+    assert.equal(syncNpmRange(manifestPath, '0.8.0'), true, 'range moved');
     assert.deepEqual(
       readFileSync(manifestPath, 'utf8').split('\n'),
-      original.replace('"reactNativeRange": "^0.7.0"', '"reactNativeRange": "^0.8.0"').split('\n'),
+      original.replace('"npmRange": "^0.7.0"', '"npmRange": "^0.8.0"').split('\n'),
       'byte-identical except the range value',
     );
 
-    assert.equal(syncReactNativeRange(manifestPath, '0.8.1'), false, 'already in range — no-op');
+    assert.equal(syncNpmRange(manifestPath, '0.8.1'), false, 'already in range — no-op');
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
 });
 
-void test('syncLockWorkspaceMetadata rewrites workspace version and internal ranges only', () => {
+void test('syncLockWorkspaceMetadata rewrites workspace version only', () => {
   const root = mkdtempSync(join(tmpdir(), 'unikit-version-packages-'));
   try {
     const lockPath = join(root, 'bun.lock');
     const lock = [
       '{',
       '  "workspaces": {',
-      '    "": {',
-      '      "name": "unikit-bridge",',
-      '      "devDependencies": {',
-      '        "typescript": "^5.9.0",',
-      '      },',
-      '    },',
-      '    "packages/cli": {',
-      '      "name": "@unikit-bridge/cli",',
+      '    "packages/rustra": {',
+      '      "name": "@unikit-bridge/rustra",',
       '      "version": "0.8.0",',
-      '      "bin": {',
-      '        "unikit": "./dist/index.js",',
-      '      },',
-      '      "dependencies": {',
-      '        "@unikit-bridge/types": "^0.8.0",',
-      '      },',
       '    },',
       '  },',
       '  "packages": {',
@@ -80,72 +64,15 @@ void test('syncLockWorkspaceMetadata rewrites workspace version and internal ran
     writeFileSync(lockPath, lock);
 
     const manifests = {
-      'packages/cli': { version: '0.9.0', dependencies: { '@unikit-bridge/types': '^0.9.0' } },
+      'packages/rustra': { version: '0.9.0' },
     };
     assert.equal(syncLockWorkspaceMetadata(lockPath, manifests), true);
     const updated = readFileSync(lockPath, 'utf8');
-    assert.match(updated, /"@unikit-bridge\/cli",\n      "version": "0\.9\.0"/);
-    assert.match(updated, /"@unikit-bridge\/types": "\^0\.9\.0"/);
-    // 레지스트리 패키지 해석 영역과 무관 workspace 블록은 그대로.
-    assert.match(updated, /"typescript@5\.9\.0": \{\n      "version": "5\.9\.0"/);
-    assert.doesNotMatch(updated, /"typescript": "\^0\.9\.0"/);
-
+    assert.match(
+      updated,
+      /"packages\/rustra": \{\n      "name": "@unikit-bridge\/rustra",\n      "version": "0\.9\.0"/,
+    );
     assert.equal(syncLockWorkspaceMetadata(lockPath, manifests), false, 'already synced — no-op');
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-void test('version step tracks each host independently of a CLI-only patch', async () => {
-  const { syncHostRanges } = await import('./version-packages.mjs');
-  const root = mkdtempSync(join(tmpdir(), 'unikit-host-ranges-'));
-  try {
-    const path = join(root, 'package.json');
-    writeFileSync(
-      path,
-      JSON.stringify(
-        {
-          version: '0.10.1',
-          unikitTemplate: {
-            cargoRange: '^0.10.0',
-            nodeRange: '^0.8.0',
-            bunRange: '^0.8.0',
-            tauriRange: '^0.8.0',
-            reactNativeRange: '^0.8.0',
-          },
-        },
-        null,
-        2,
-      ),
-    );
-    assert.equal(
-      syncHostRanges(path, {
-        node: '0.10.0',
-        bun: '0.10.2',
-        tauri: '0.9.0',
-        'react-native': '0.9.1',
-      }),
-      true,
-    );
-    assert.deepEqual(JSON.parse(readFileSync(path, 'utf8')), {
-      version: '0.10.1',
-      unikitTemplate: {
-        cargoRange: '^0.10.0',
-        nodeRange: '^0.10.0',
-        bunRange: '^0.10.0',
-        tauriRange: '^0.9.0',
-        reactNativeRange: '^0.9.0',
-      },
-    });
-    assert.equal(
-      syncHostRanges(path, {
-        node: '0.10.0',
-        bun: '0.10.2',
-        tauri: '0.9.0',
-        'react-native': '0.9.1',
-      }),
-      false,
-    );
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

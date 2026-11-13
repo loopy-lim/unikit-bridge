@@ -69,7 +69,7 @@ void test('resolveCheckCommand ignores example codegen:check scripts and always 
     const expected = {
       file: process.execPath,
       args: [
-        join(root, 'packages', 'cli', 'dist', 'index.js'),
+        join(root, 'packages', 'rustra', 'dist', 'cli', 'index.js'),
         'codegen',
         '--config',
         'unikit.json',
@@ -101,7 +101,7 @@ void test('real examples with codegen:check wire the same underlying command the
     if (typeof check !== 'string') continue;
     assert.match(
       check,
-      /packages[\\/]cli[\\/]src[\\/]index\.ts codegen --config unikit\.json --check$/,
+      /packages[\\/]rustra[\\/]dist[\\/]cli[\\/]index\.js codegen --config unikit\.json --check$/,
       `${example.name} 의 codegen:check 이 게이트 커맨드와 어긋난다: ${check}`,
     );
   }

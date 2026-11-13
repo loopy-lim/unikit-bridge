@@ -11,7 +11,7 @@
 /crates/unikit-bridge-macros/ @loopy-lim
 
 # 코드젠 — Rust bin 과 TS CLI 양쪽이 항상 함께 바뀌어야 한다(dual-path)
-/packages/cli/ @loopy-lim
+/packages/rustra/ @loopy-lim
 /crates/unikit-bridge/src/codegen.rs @loopy-lim
 
 # 발행 인프라 — 실수 방지

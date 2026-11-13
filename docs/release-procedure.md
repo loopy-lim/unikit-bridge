@@ -65,20 +65,20 @@ Release. Publishing remains blocked until the new safety checks succeed.
 
 ## Step 1 — finalize changesets
 
-The 9 public `@unikit-bridge/*` packages are independent release lines. Put only the
-changed packages in the changeset and keep the `@unikit-bridge/types` compatibility range
-each adapter/CLI requires. The Rust `unikit`/`unikit-bridge-macros` pair must remain
-compatible with each other inside the Cargo workspace, but it does not need to
-match the npm package versions. `@unikit-bridge/cli`'s `unikitTemplate` carries explicit
-semver ranges for the generated Rust crate and the RN adapter.
+The single publishable npm package is **`@unikit-bridge/rustra`** (`packages/rustra`).
+Put only that package in the changeset when its surface changes. The Rust
+`unikit-bridge` / `unikit-bridge-macros` pair must remain compatible inside the
+Cargo workspace; npm and Rust versions are coordinated but need not be numerically
+identical on every patch. `@unikit-bridge/rustra`'s `unikitTemplate` carries
+`cargoRange` and `npmRange` for scaffolded consumers.
 `bun run test:release-coherence` checks per-package versions, lockfiles, internal
 dependency ranges, the CLI's Rust and RN-adapter ranges, LICENSE, and fixed groups.
 
 The two `unikitTemplate` ranges move at different points, both enforced by the
 coherence check: `cargoRange` moves in the same feature commit that bumps the
 Cargo workspace version (the Rust line is not changesets-managed), while
-`reactNativeRange` is synced to the freshly bumped `@unikit-bridge/react-native`
-version inside the version PR (`bun run version` → `scripts/version-packages.mjs`).
+`npmRange` is synced to the freshly bumped `@unikit-bridge/rustra` version inside
+the version PR (`bun run version` → `scripts/version-packages.mjs`).
 The same script refreshes `bun.lock` after `changeset version` — version bumps
 that leave the lock stale fail `test:release-coherence` on the version PR
 (first observed 2026-09-10). Never bump `reactNativeRange` on a feature branch
@@ -117,8 +117,8 @@ Consumer verification:
 
 ```bash
 mkdir /tmp/canary-check && cd /tmp/canary-check && bun init -y
-bun add @unikit-bridge/node@canary @unikit-bridge/types@canary
-bun -e "import * as n from '@unikit-bridge/node'; console.log(Object.keys(n))"
+bun add @unikit-bridge/rustra@canary
+bun -e "import * as n from '@unikit-bridge/rustra/node'; console.log(Object.keys(n))"
 ```
 
 The React Native adapter checks both the native files in the publish tarball and
@@ -134,10 +134,10 @@ stable only.
 
 ## Step 3 — stable publish
 
-1. Merge the Version Packages PR → release.yml runs automatically (9 npm packages)
+1. Merge the Version Packages PR → release.yml runs automatically (`@unikit-bridge/rustra`)
 2. crates manual job: Actions → Release → Run workflow re-verifies CI success for
-   the same SHA on `main`, requires fresh Miri/Sanitizer/Fuzz/TSan success, then publishes in the order unikit-bridge-naming → unikit-bridge-macros →
-   unikit, waiting for the index after each dependency.
+   the same SHA on `main`, requires fresh Miri/Sanitizer/Fuzz/TSan success, then publishes in the order **unikit-bridge-macros → unikit-bridge**,
+   waiting for the index after each dependency. Run `node scripts/deprecate-legacy-packages.mjs` (dry-run) before marking superseded npm lines; `--apply` after the unified package is live.
 
 Use the manual workflow above so the safety dependencies run. Local `cargo publish`
 or `changeset publish` does not execute GitHub job dependencies and is not the
@@ -228,7 +228,7 @@ recorded here as the follow-up only; no workflow change in this repo enables it.
 ## Step 4 — rollback
 
 - **npm registry**: Bun has no dist-tag change command, so run only this management
-  task via `bunx --bun npm dist-tag add @unikit-bridge/node@<previous> latest` — reverting the dist-tag
+  task via `bunx --bun npm dist-tag add @unikit-bridge/rustra@<previous> latest` — reverting the dist-tag
   rolls back immediately (the package itself is not deleted). Apply the same to all packages.
 - **crates.io**: not possible (versions are permanent). Use `cargo update --precise <previous>` as user guidance.
 - **git**: revert the version commit, then republish as the next patch version (the same version cannot be republished).

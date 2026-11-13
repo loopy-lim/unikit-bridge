@@ -9,9 +9,7 @@
     "smoke": "bun src/main.ts"
   },
   "dependencies": {
-    "@unikit-bridge/react": "^0.4.0",
-    "@unikit-bridge/types": "^0.4.0",
-    "@unikit-bridge/node": "^0.4.0",
+    "@unikit-bridge/rustra": "file:../../packages/rustra",
     "react": "^19.0.0"
   },
   "devDependencies": {

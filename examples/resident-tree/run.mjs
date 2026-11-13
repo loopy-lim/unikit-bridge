@@ -27,7 +27,7 @@ const executable = join(
 mkdirSync(new URL('generated/', import.meta.url), { recursive: true });
 writeFileSync(new URL('generated/schema.json', import.meta.url), run(executable, ['schema'], true));
 run('node', [
-  'packages/cli/dist/index.js',
+  'packages/rustra/dist/cli/index.js',
   'generate',
   '--schema',
   'examples/resident-tree/generated/schema.json',

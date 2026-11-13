@@ -1,5 +1,5 @@
 import { getUnikitNative } from '@unikit-bridge/generated-react-native';
-import { createFrameEngine, UnikitCommandError } from '@unikit-bridge/types';
+import { createFrameEngine, UnikitCommandError } from '@unikit-bridge/rustra/types';
 import { Platform } from 'react-native';
 import UnikitCalculator from '../modules/unikit-calculator/src';
 import {

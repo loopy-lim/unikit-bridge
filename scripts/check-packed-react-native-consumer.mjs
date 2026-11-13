@@ -12,31 +12,29 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-function packPackage(packageName, destination) {
-  const packageRoot = join(repositoryRoot, 'packages', packageName);
+function packPackage(destination) {
+  const packageRoot = join(repositoryRoot, 'packages', 'rustra');
   execFileSync('bun', ['pm', 'pack', '--cwd', packageRoot, '--destination', destination], {
     stdio: 'pipe',
   });
   const archives = readdirSync(destination).filter((name) => name.endsWith('.tgz'));
   if (archives.length !== 1) {
-    throw new Error(`Expected one ${packageName} archive, found ${archives.length}`);
+    throw new Error(`Expected one rustra archive, found ${archives.length}`);
   }
   return join(destination, archives[0]);
 }
 
-export function createConsumerManifest({ typesArchive, cliArchive, reactNativeArchive }) {
-  const typesSpecifier = `file:${typesArchive}`;
+export function createConsumerManifest({ rustraArchive }) {
+  const rustraSpecifier = `file:${rustraArchive}`;
   return {
     name: 'unikit-packed-rn-consumer',
     private: true,
     type: 'module',
     dependencies: {
-      '@unikit-bridge/types': typesSpecifier,
-      '@unikit-bridge/cli': `file:${cliArchive}`,
-      '@unikit-bridge/react-native': `file:${reactNativeArchive}`,
+      '@unikit-bridge/rustra': rustraSpecifier,
     },
     overrides: {
-      '@unikit-bridge/types': typesSpecifier,
+      '@unikit-bridge/rustra': rustraSpecifier,
     },
   };
 }
@@ -45,18 +43,13 @@ async function main() {
   const root = mkdtempSync(join(tmpdir(), 'unikit-packed-rn-consumer-'));
   const archivesRoot = join(root, 'archives');
   try {
-    const typesArchive = packPackage('types', join(archivesRoot, 'types'));
-    const cliArchive = packPackage('cli', join(archivesRoot, 'cli'));
-    const reactNativeArchive = packPackage('react-native', join(archivesRoot, 'react-native'));
-    const reactNativeManifest = JSON.parse(
-      readFileSync(join(repositoryRoot, 'packages/react-native/package.json'), 'utf8'),
+    const rustraArchive = packPackage(join(archivesRoot, 'rustra'));
+    const rustraManifest = JSON.parse(
+      readFileSync(join(repositoryRoot, 'packages/rustra/package.json'), 'utf8'),
     );
-    const adapterRange = `^${reactNativeManifest.version}`;
+    const adapterRange = `^${rustraManifest.version}`;
 
-    writeFileSync(
-      join(root, 'package.json'),
-      JSON.stringify(createConsumerManifest({ typesArchive, cliArchive, reactNativeArchive })),
-    );
+    writeFileSync(join(root, 'package.json'), JSON.stringify(createConsumerManifest({ rustraArchive })));
     execFileSync(
       'bun',
       ['install', '--cwd', root, '--cache-dir', join(root, 'bun-cache'), '--no-progress'],
@@ -64,14 +57,14 @@ async function main() {
     );
 
     const types = await import(
-      pathToFileURL(join(root, 'node_modules/@unikit-bridge/types/dist/index.js')).href,
+      pathToFileURL(join(root, 'node_modules/@unikit-bridge/rustra/dist/types/index.js')).href,
     );
     if (typeof types.createComplexCodec !== 'function') {
-      throw new Error('packed @unikit-bridge/types does not expose createComplexCodec');
+      throw new Error('packed @unikit-bridge/rustra/types does not expose createComplexCodec');
     }
 
     const { renderReactNativeModule } = await import(
-      pathToFileURL(join(root, 'node_modules/@unikit-bridge/cli/dist/index.js')).href,
+      pathToFileURL(join(root, 'node_modules/@unikit-bridge/rustra/dist/cli/index.js')).href,
     );
     const appRoot = join(root, 'app');
     const moduleDir = join(appRoot, 'modules/unikit-bridge');
@@ -86,16 +79,16 @@ async function main() {
     });
     const podspec = files['UnikitBridge.podspec'];
     const gradle = files['android/build.gradle'];
-    if (!podspec?.includes('node_modules/@unikit-bridge/react-native/native')) {
+    if (!podspec?.includes('node_modules/@unikit-bridge/rustra/native')) {
       throw new Error('packed consumer podspec did not resolve installed React Native native sources');
     }
-    if (!gradle?.includes('node_modules/@unikit-bridge/react-native/native')) {
+    if (!gradle?.includes('node_modules/@unikit-bridge/rustra/native')) {
       throw new Error('packed consumer Gradle file did not resolve installed React Native native sources');
     }
-    if (podspec.includes(`${repositoryRoot}/packages/react-native`)) {
+    if (podspec.includes(`${repositoryRoot}/packages/rustra`)) {
       throw new Error('packed consumer accidentally resolved the repository source package');
     }
-    console.log(`packed React Native consumer ok: adapter ${reactNativeManifest.version}`);
+    console.log(`packed React Native consumer ok: @unikit-bridge/rustra ${rustraManifest.version}`);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

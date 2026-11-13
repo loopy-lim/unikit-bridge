@@ -20,61 +20,20 @@
         "typescript-eslint": "^8.59.3",
       },
     },
-    "packages/bun": {
-      "name": "@unikit-bridge/bun",
-      "version": "0.11.1",
-      "dependencies": {
-        "@unikit-bridge/types": "^0.13.0",
-      },
-      "devDependencies": {
-        "@types/bun": "^1.4.0",
-        "typescript": "^5.9.0",
-      },
-    },
-    "packages/cli": {
-      "name": "@unikit-bridge/cli",
+    "packages/rustra": {
+      "name": "@unikit-bridge/rustra",
       "version": "0.13.0",
       "bin": {
-        "unikit": "./dist/index.js",
+        "unikit": "./dist/cli/index.js",
       },
       "dependencies": {
-        "@unikit-bridge/types": "^0.13.0",
         "picomatch": "^4.0.7",
         "smol-toml": "^1.9.0",
       },
       "devDependencies": {
+        "@types/bun": "^1.4.0",
         "@types/node": "^26.3.0",
         "@types/picomatch": "^4.0.3",
-        "typescript": "^5.9.0",
-      },
-    },
-    "packages/devtools": {
-      "name": "@unikit-bridge/devtools",
-      "version": "0.7.3",
-      "dependencies": {
-        "@unikit-bridge/types": "^0.13.0",
-      },
-      "devDependencies": {
-        "typescript": "^5.9.0",
-      },
-    },
-    "packages/node": {
-      "name": "@unikit-bridge/node",
-      "version": "0.11.1",
-      "dependencies": {
-        "@unikit-bridge/types": "^0.13.0",
-      },
-      "devDependencies": {
-        "typescript": "^5.9.0",
-      },
-    },
-    "packages/react": {
-      "name": "@unikit-bridge/react",
-      "version": "0.8.4",
-      "dependencies": {
-        "@unikit-bridge/types": "^0.13.0",
-      },
-      "devDependencies": {
         "@types/react": "^19.0.0",
         "@types/react-dom": "^19.0.0",
         "@types/react-test-renderer": "^19.0.0",
@@ -85,50 +44,12 @@
       },
       "peerDependencies": {
         "react": ">=18.0.0",
-      },
-    },
-    "packages/react-native": {
-      "name": "@unikit-bridge/react-native",
-      "version": "0.11.0",
-      "dependencies": {
-        "@unikit-bridge/types": "^0.13.0",
-      },
-      "devDependencies": {
-        "typescript": "^5.9.0",
-      },
-      "peerDependencies": {
         "react-native": ">=0.76",
       },
       "optionalPeers": [
+        "react",
         "react-native",
       ],
-    },
-    "packages/tauri": {
-      "name": "@unikit-bridge/tauri",
-      "version": "0.10.1",
-      "dependencies": {
-        "@unikit-bridge/types": "^0.13.0",
-      },
-      "devDependencies": {
-        "typescript": "^5.9.0",
-      },
-    },
-    "packages/testing": {
-      "name": "@unikit-bridge/testing",
-      "version": "0.7.3",
-      "dependencies": {
-        "@unikit-bridge/types": "^0.13.0",
-      },
-      "devDependencies": {
-        "typescript": "^5.9.0",
-      },
-    },
-    "packages/types": {
-      "name": "@unikit-bridge/types",
-      "version": "0.13.0",
-      "devDependencies": {
-        "typescript": "^5.9.0",
-      },
     },
   },
   "packages": {
@@ -212,24 +133,6 @@
 
     "@pnpm/deps.graph-sequencer": ["@pnpm/deps.graph-sequencer@1100.0.1", "", {}, "sha512-pOr5+q1fLYKwFN3LAJuGZEnfXDcQ73zqgDHMtGy+K+uIoUqyY+6MeDCWFwfu+4EFuq76I5EPFofoNAI+Bmmq4A=="],
 
-    "@unikit-bridge/bun": ["@unikit-bridge/bun@workspace:packages/bun"],
-
-    "@unikit-bridge/cli": ["@unikit-bridge/cli@workspace:packages/cli"],
-
-    "@unikit-bridge/devtools": ["@unikit-bridge/devtools@workspace:packages/devtools"],
-
-    "@unikit-bridge/node": ["@unikit-bridge/node@workspace:packages/node"],
-
-    "@unikit-bridge/react": ["@unikit-bridge/react@workspace:packages/react"],
-
-    "@unikit-bridge/react-native": ["@unikit-bridge/react-native@workspace:packages/react-native"],
-
-    "@unikit-bridge/tauri": ["@unikit-bridge/tauri@workspace:packages/tauri"],
-
-    "@unikit-bridge/testing": ["@unikit-bridge/testing@workspace:packages/testing"],
-
-    "@unikit-bridge/types": ["@unikit-bridge/types@workspace:packages/types"],
-
     "@shikijs/engine-oniguruma": ["@shikijs/engine-oniguruma@3.23.0", "", { "dependencies": { "@shikijs/types": "3.23.0", "@shikijs/vscode-textmate": "^10.0.2" } }, "sha512-1nWINwKXxKKLqPibT5f4pAFLej9oZzQTsby8942OTlsJzOBZ0MWKiwzMsd+jhzu8YPCHAswGnnN1YtQfirL35g=="],
 
     "@shikijs/langs": ["@shikijs/langs@3.23.0", "", { "dependencies": { "@shikijs/types": "3.23.0" } }, "sha512-2Ep4W3Re5aB1/62RSYQInK9mM3HsLeB91cHqznAJMuylqjzNVAVCMnNWRHFtcNHXsoNRayP9z1qj4Sq3nMqYXg=="],
@@ -281,6 +184,8 @@
     "@typescript-eslint/utils": ["@typescript-eslint/utils@8.69.0", "", { "dependencies": { "@eslint-community/eslint-utils": "^4.9.1", "@typescript-eslint/scope-manager": "8.69.0", "@typescript-eslint/types": "8.69.0", "@typescript-eslint/typescript-estree": "8.69.0" }, "peerDependencies": { "eslint": "^8.57.0 || ^9.0.0 || ^10.0.0", "typescript": ">=4.8.4 <6.1.0" } }, "sha512-tUbx60BBqQa31kXF5MCsOOLL5E/WzUuxIn7YpAvq+eaUlqvk8/NXnXMBNAdLCr0icjkzem7iUA5QqWHe/hJ1aw=="],
 
     "@typescript-eslint/visitor-keys": ["@typescript-eslint/visitor-keys@8.69.0", "", { "dependencies": { "@typescript-eslint/types": "8.69.0", "eslint-visitor-keys": "^5.0.0" } }, "sha512-+rmdgPA+EXkNgKYvHvFfhrs35utXbwaC5PGpDquSXcoXQDKUA5UjV0LmTucG/4JXkM31BTu4TilHtrN8IVBe8w=="],
+
+    "@unikit-bridge/rustra": ["@unikit-bridge/rustra@workspace:packages/rustra"],
 
     "acorn": ["acorn@8.18.0", "", { "bin": { "acorn": "bin/acorn" } }, "sha512-lGq+9yr1/GuAWaVYIHRjvvySG5/4VfKIvC8EWxStPdcDh/Ka7FG3twP6v4d5BkravUilhIAsG4Qj83t02LWUPQ=="],
 

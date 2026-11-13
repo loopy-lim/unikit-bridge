@@ -15,10 +15,7 @@ test('crate propagation waits for the registry even when a matching workspace pa
     new URL('../.github/workflows/release.yml', import.meta.url),
     'utf8',
   );
-  for (const [step, crate] of [
-    ['Wait for unikit-bridge-naming index propagation', 'unikit-bridge-naming'],
-    ['Wait for crates.io index propagation', 'unikit-bridge-macros'],
-  ]) {
+  for (const [step, crate] of [['Wait for crates.io index propagation', 'unikit-bridge-macros']]) {
     const root = mkdtempSync(join(tmpdir(), 'unikit-index-wait-'));
     try {
       // Without an explicit registry Cargo resolves the matching local package

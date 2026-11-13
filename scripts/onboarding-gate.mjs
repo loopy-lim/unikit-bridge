@@ -60,7 +60,7 @@ const PROJECT_NAME = 'onboarding-probe';
  * 돌아야 하므로 repo에 크레이트 소스가 있으면 두 축을 로컬로 우회한다:
  *
  *   1. Rust — .cargo/config.toml 의 [patch.crates-io] 로 워크스페이스 크레이트 사용
- *   2. JS  — node_modules/@unikit-bridge/{node,types,cli} 를 repo 패키지로 심링크.
+ *   2. JS  — node_modules/@unikit-bridge/rustra 를 repo 패키지로 심링크.
  *      게이트는 스캐폴드에서 bun install 을 실행하지 않으므로 bun run 의 자동
  *      설치가 레지스트리(발행 전엔 ^0.8.0 없음)를 보지 않게 막는다.
  *
@@ -83,16 +83,13 @@ function injectWorkspacePatch(projectDir, repoRoot) {
       '[patch.crates-io]',
       `unikit-bridge = { path = "${posix(join(cratesRoot, 'unikit-bridge'))}" }`,
       `unikit-bridge-macros = { path = "${posix(join(cratesRoot, 'unikit-bridge-macros'))}" }`,
-      `unikit-bridge-naming = { path = "${posix(join(cratesRoot, 'unikit-bridge-naming'))}" }`,
       '',
     ].join('\n'),
   );
   const modulesDir = join(projectDir, 'node_modules', '@unikit-bridge');
   mkdirSync(modulesDir, { recursive: true });
-  for (const name of ['node', 'types', 'cli']) {
-    const linkPath = join(modulesDir, name);
-    if (!existsSync(linkPath)) symlinkSync(join(repo, 'packages', name), linkPath, 'dir');
-  }
+  const linkPath = join(modulesDir, 'rustra');
+  if (!existsSync(linkPath)) symlinkSync(join(repo, 'packages', 'rustra'), linkPath, 'dir');
   return true;
 }
 
@@ -158,7 +155,7 @@ async function runStep(runner, step, command) {
 }
 
 function cliBin(repoRoot) {
-  return resolve(repoRoot, 'packages', 'cli', 'dist', 'index.js');
+  return resolve(repoRoot, 'packages', 'rustra', 'dist', 'cli', 'index.js');
 }
 
 /** 각 단계의 실제 커맨드 — init/codegen은 저장소 CLI bin을 절대 경로로 실행한다.

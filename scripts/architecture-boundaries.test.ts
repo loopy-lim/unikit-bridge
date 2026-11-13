@@ -8,13 +8,35 @@ import { checkArchitectureBoundaries } from './architecture-boundaries.mjs';
 
 const repositoryRoot = join(import.meta.dir, '..');
 
+const namingImpl = `pub fn snake_to_lower_camel(name: &str) -> String {
+    let mut output = String::new();
+    let mut uppercase_next = false;
+    for character in name.chars() {
+        if matches!(character, '_' | '-' | '.') {
+            uppercase_next = true;
+            continue;
+        }
+        if output.is_empty() {
+            output.push(character.to_ascii_lowercase());
+            uppercase_next = false;
+        } else if uppercase_next {
+            output.push(character.to_ascii_uppercase());
+            uppercase_next = false;
+        } else {
+            output.push(character);
+        }
+    }
+    output
+}
+`;
+
 test('the repository satisfies the architecture boundaries', () => {
   const report = checkArchitectureBoundaries({ root: repositoryRoot });
 
   assert.deepEqual(report.errors, []);
   assert.ok(
-    (report.moduleSizes.find((module) => module.path === 'crates/unikit-bridge/src/lib.rs')?.lines ??
-      Infinity) <= 200,
+    (report.moduleSizes.find((module) => module.path === 'crates/unikit-bridge/src/lib.rs')
+      ?.lines ?? Infinity) <= 200,
   );
 });
 
@@ -24,31 +46,36 @@ test('the checker reports boundary violations with stable rule ids', () => {
   try {
     mkdirSync(join(root, 'crates/unikit-bridge/src'), { recursive: true });
     mkdirSync(join(root, 'crates/unikit-bridge-macros/src'), { recursive: true });
-    mkdirSync(join(root, 'packages/types/src'), { recursive: true });
-    mkdirSync(join(root, 'packages/node/src'), { recursive: true });
-    mkdirSync(join(root, 'packages/bun/src'), { recursive: true });
-    mkdirSync(join(root, 'packages/tauri/src'), { recursive: true });
-    mkdirSync(join(root, 'packages/cli/src'), { recursive: true });
+    mkdirSync(join(root, 'packages/rustra/src/types'), { recursive: true });
+    mkdirSync(join(root, 'packages/rustra/src/node'), { recursive: true });
+    mkdirSync(join(root, 'packages/rustra/src/bun'), { recursive: true });
+    mkdirSync(join(root, 'packages/rustra/src/tauri'), { recursive: true });
+    mkdirSync(join(root, 'packages/rustra/src/cli'), { recursive: true });
 
     writeFileSync(join(root, 'crates/unikit-bridge/src/lib.rs'), `${'// large\n'.repeat(1_301)}\n`);
-    writeFileSync(join(root, 'crates/unikit-bridge-macros/src/lib.rs'), 'fn snake_to_lower_camel() {}\n');
-    writeFileSync(join(root, 'crates/unikit-bridge/src/codegen.rs'), 'fn snake_to_lower_camel() {}\n');
-    writeFileSync(join(root, 'packages/types/src/index.ts'), `${'// large\n'.repeat(601)}\n`);
+    writeFileSync(join(root, 'crates/unikit-bridge/src/naming.rs'), namingImpl);
     writeFileSync(
-      join(root, 'packages/node/src/index.ts'),
-      'export function createJsonEngine() {}\n',
+      join(root, 'crates/unikit-bridge-macros/src/naming.rs'),
+      namingImpl.replace('pub fn', 'pub(crate) fn'),
     );
     writeFileSync(
-      join(root, 'packages/bun/src/index.ts'),
-      'export function createJsonEngine() {}\n',
+      join(root, 'packages/rustra/src/types/index.ts'),
+      `${'// large\n'.repeat(601)}\n`,
     );
     writeFileSync(
-      join(root, 'packages/tauri/src/index.ts'),
-      'export function createJsonEngine() {}\n',
+      join(root, 'packages/rustra/src/node/index.ts'),
+      "import { createJsonEngine } from '../types/index.js';\nexport { createJsonEngine };\n",
     );
-    writeFileSync(join(root, 'packages/cli/src/index.ts'), 'setTimeout(() => {}, 100);\n');
+    writeFileSync(
+      join(root, 'packages/rustra/src/bun/index.ts'),
+      "import { createJsonEngine } from '../types/index.js';\nexport { createJsonEngine };\n",
+    );
+    writeFileSync(
+      join(root, 'packages/rustra/src/tauri/index.ts'),
+      "import { createJsonEngine } from '../types/index.js';\nexport { createJsonEngine };\n",
+    );
+    writeFileSync(join(root, 'packages/rustra/src/cli/index.ts'), 'setTimeout(() => {}, 100);\n');
 
-    // .mjs 반환을 구조 타입으로 고정한다.
     const report = checkArchitectureBoundaries({ root }) as {
       errors: Array<{ rule: string }>;
     };
@@ -56,8 +83,6 @@ test('the checker reports boundary violations with stable rule ids', () => {
 
     assert.ok(ruleIds.includes('unikit-lib-size'));
     assert.ok(ruleIds.includes('types-index-size'));
-    assert.ok(ruleIds.includes('shared-rust-naming'));
-    assert.ok(ruleIds.includes('shared-json-engine'));
     assert.ok(ruleIds.includes('watcher-boundary'));
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -68,15 +93,23 @@ test('the checker exposes oversized implementation modules as actionable warning
   const root = mkdtempSync(join(tmpdir(), 'unikit-architecture-size-'));
 
   try {
-    mkdirSync(join(root, 'packages/example/src'), { recursive: true });
-    mkdirSync(join(root, 'crates/unikit-bridge-naming/src'), { recursive: true });
-    writeFileSync(join(root, 'crates/unikit-bridge-naming/src/lib.rs'), 'fn snake_to_lower_camel() {}\n');
-    writeFileSync(join(root, 'packages/example/src/large.ts'), `${'// large\n'.repeat(201)}\n`);
+    mkdirSync(join(root, 'packages/rustra/src/example'), { recursive: true });
+    mkdirSync(join(root, 'crates/unikit-bridge/src'), { recursive: true });
+    mkdirSync(join(root, 'crates/unikit-bridge-macros/src'), { recursive: true });
+    writeFileSync(join(root, 'crates/unikit-bridge/src/naming.rs'), namingImpl);
+    writeFileSync(
+      join(root, 'crates/unikit-bridge-macros/src/naming.rs'),
+      namingImpl.replace('pub fn', 'pub(crate) fn'),
+    );
+    writeFileSync(
+      join(root, 'packages/rustra/src/example/large.ts'),
+      `${'// large\n'.repeat(201)}\n`,
+    );
 
     const report = checkArchitectureBoundaries({ root });
     assert.deepEqual(report.errors, []);
     assert.ok(report.warnings.some((warning) => warning.rule === 'source-module-size'));
-    assert.equal(report.moduleSizes[0]?.path, 'packages/example/src/large.ts');
+    assert.equal(report.moduleSizes[0]?.path, 'packages/rustra/src/example/large.ts');
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -86,16 +119,24 @@ test('the checker rejects implementation modules above the hard 400-line ceiling
   const root = mkdtempSync(join(tmpdir(), 'unikit-architecture-hard-size-'));
 
   try {
-    mkdirSync(join(root, 'crates/unikit-bridge-naming/src'), { recursive: true });
-    mkdirSync(join(root, 'packages/example/src'), { recursive: true });
-    writeFileSync(join(root, 'crates/unikit-bridge-naming/src/lib.rs'), 'fn snake_to_lower_camel() {}\n');
-    writeFileSync(join(root, 'packages/example/src/large.ts'), `${'// large\n'.repeat(401)}\n`);
+    mkdirSync(join(root, 'crates/unikit-bridge/src'), { recursive: true });
+    mkdirSync(join(root, 'crates/unikit-bridge-macros/src'), { recursive: true });
+    mkdirSync(join(root, 'packages/rustra/src/example'), { recursive: true });
+    writeFileSync(join(root, 'crates/unikit-bridge/src/naming.rs'), namingImpl);
+    writeFileSync(
+      join(root, 'crates/unikit-bridge-macros/src/naming.rs'),
+      namingImpl.replace('pub fn', 'pub(crate) fn'),
+    );
+    writeFileSync(
+      join(root, 'packages/rustra/src/example/large.ts'),
+      `${'// large\n'.repeat(401)}\n`,
+    );
 
     const report = checkArchitectureBoundaries({ root });
     assert.ok(report.errors.some((error) => error.rule === 'source-module-size'));
     assert.equal(
       report.errors.find((error) => error.rule === 'source-module-size')?.path,
-      'packages/example/src/large.ts',
+      'packages/rustra/src/example/large.ts',
     );
   } finally {
     rmSync(root, { recursive: true, force: true });

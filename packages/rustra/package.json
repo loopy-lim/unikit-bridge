@@ -1,0 +1,157 @@
+{
+  "name": "@unikit-bridge/rustra",
+  "version": "0.13.0",
+  "description": "Unikit bridge runtime adapters, React hooks, testing/devtools helpers, and CLI — one Rust core generating type-safe TypeScript clients for Node, Bun, Tauri, and React Native over a compact binary wire.",
+  "license": "MIT",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "unikitTemplate": {
+    "cargoRange": "^0.13.0",
+    "npmRange": "^0.13.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "unikit": "./dist/cli/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js"
+    },
+    "./node": {
+      "types": "./dist/node/index.d.ts",
+      "import": "./dist/node/index.js"
+    },
+    "./bun": {
+      "types": "./dist/bun/index.d.ts",
+      "import": "./dist/bun/index.js"
+    },
+    "./tauri": {
+      "types": "./dist/tauri/index.d.ts",
+      "import": "./dist/tauri/index.js"
+    },
+    "./react-native": {
+      "types": "./dist/react-native/index.d.ts",
+      "import": "./dist/react-native/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.js"
+    },
+    "./devtools": {
+      "types": "./dist/devtools/index.d.ts",
+      "import": "./dist/devtools/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli/index.d.ts",
+      "import": "./dist/cli/index.js"
+    },
+    "./cli/schema": {
+      "types": "./dist/cli/schema.d.ts",
+      "import": "./dist/cli/schema.js"
+    },
+    "./cli/generate": {
+      "types": "./dist/cli/generate.d.ts",
+      "import": "./dist/cli/generate.js"
+    },
+    "./cli/schema-diff": {
+      "types": "./dist/cli/schema-diff.d.ts",
+      "import": "./dist/cli/schema-diff.js"
+    },
+    "./cli/validate-engine": {
+      "types": "./dist/cli/validate-engine.d.ts",
+      "import": "./dist/cli/validate-engine.js"
+    },
+    "./cli/vite": {
+      "types": "./dist/cli/vite.d.ts",
+      "import": "./dist/cli/vite.js"
+    },
+    "./vite": {
+      "types": "./dist/cli/vite.d.ts",
+      "import": "./dist/cli/vite.js"
+    },
+    "./unikit.schema.json": "./unikit.schema.json"
+  },
+  "files": [
+    "LICENSE",
+    "dist",
+    "native/**/*",
+    "fixtures",
+    "unikit.schema.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist dist-test",
+    "test:compile": "tsc -p tsconfig.test.json",
+    "test:node-runtime": "node --test dist-test/node/node-binary-accumulator.test.js dist-test/node/index.test.js dist-test/node/bootstrap-lifecycle.test.js dist-test/node/transport-lifecycle.test.js dist-test/node/event-bootstrap.test.js dist-test/node/runtime-resolution.test.js",
+    "test:cli": "node --test dist-test/cli/dependencies.test.js dist-test/cli/cargo-metadata.test.js dist-test/cli/cli-codegen-json.test.js dist-test/cli/cli-codegen-text.test.js dist-test/cli/cli-codegen-uniffi.test.js dist-test/cli/cli-generate-scriptc.test.js dist-test/cli/cli-scriptc.test.js dist-test/cli/cli-init.test.js dist-test/cli/cli-setup.test.js dist-test/cli/setup-tauri.test.js dist-test/cli/react-native-host.test.js dist-test/cli/react-native-template-common.test.js dist-test/cli/cli-json-format.test.js dist-test/cli/codegen-explain.test.js dist-test/cli/config-validation.test.js dist-test/cli/dev-dylib.test.js dist-test/cli/dev-fingerprint.test.js dist-test/cli/dev-generated-inputs.test.js dist-test/cli/dev-owned-output.test.js dist-test/cli/dev-parity-wiring.test.js dist-test/cli/dev.test.js dist-test/cli/dev-host-runtime.test.js dist-test/cli/legacy-dev.test.js dist-test/cli/doctor.test.js dist-test/cli/generate.test.js dist-test/cli/host-entries.test.js dist-test/cli/host-entry-runtime.test.js dist-test/cli/inspect.test.js dist-test/cli/parity-gate.test.js dist-test/cli/process.test.js dist-test/cli/schema-diff.test.js dist-test/cli/vite.test.js dist-test/cli/watch.test.js && bun test src/cli/function-registration.test.ts src/cli/cli-arg-parser.test.ts src/cli/generated-header.test.ts src/cli/generate-sync-contract.test.ts src/cli/generate-sync.test.ts src/cli/generate-bound-context.test.ts src/cli/generate-postcard-map.test.ts",
+    "test": "bun run test:compile && bun test src/types/*.test.ts && bun test src/node && bun test src/bun && bun test src/tauri/index.test.ts && bun test src/react-native/index.test.ts && bun test ./src/react/index.test.ts ./src/react/suspense-lifecycle.test.ts && bun test ./src/react/lifecycle.test.ts && bun test src/testing/index.test.ts && bun test src/devtools/index.test.ts src/devtools/timeline-report.test.ts && bun run test:cli && bun run test:node-runtime"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native": ">=0.76"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-native": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "picomatch": "^4.0.7",
+    "smol-toml": "^1.9.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.0",
+    "@types/node": "^26.3.0",
+    "@types/picomatch": "^4.0.3",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/react-test-renderer": "^19.0.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-test-renderer": "19.3.0",
+    "typescript": "^5.9.0"
+  },
+  "keywords": [
+    "unikit",
+    "rust",
+    "typescript",
+    "ffi",
+    "bridge",
+    "node",
+    "bun",
+    "tauri",
+    "react",
+    "react-native",
+    "cli",
+    "codegen",
+    "type-safe"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/loopy-lim/unikit-bridge.git",
+    "directory": "packages/rustra"
+  },
+  "bugs": {
+    "url": "https://github.com/loopy-lim/unikit-bridge/issues"
+  },
+  "homepage": "https://github.com/loopy-lim/unikit-bridge#readme"
+}

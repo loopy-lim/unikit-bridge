@@ -1,0 +1,1516 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { createTauriBootstrap, createTauriEngine, subscribeTauriEvent } from './index.js';
+import { UnikitCommandError, configureDebug, type UnikitDebugEvent } from '../types/index.js';
+
+void test('createTauriEngine routes invoke through unikit_dispatch', async () => {
+  const calls: Array<{ command: string; args: unknown }> = [];
+  const engine = createTauriEngine({
+    async invoke(command, args) {
+      calls.push({ command, args });
+      return { value: 42 };
+    },
+  });
+
+  const result = await engine.invoke<{ value: number }>('addNumbers', { a: 20, b: 22 });
+  assert.deepEqual(result, { value: 42 });
+  assert.deepEqual(calls, [
+    { command: 'unikit_dispatch', args: { command: 'addNumbers', args: { a: 20, b: 22 } } },
+  ]);
+});
+
+void test('createTauriEngine applies timeoutMs and shallow abort to pending transports', async () => {
+  const engine = createTauriEngine({
+    invoke: () => new Promise<never>(() => {}),
+  });
+
+  await assert.rejects(
+    engine.invoke('slow', undefined, { timeoutMs: 10 }),
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'transport.timeout',
+  );
+
+  const controller = new AbortController();
+  const pending = engine.invoke('cancel-me', undefined, { signal: controller.signal });
+  controller.abort();
+  await assert.rejects(
+    pending,
+    (err: unknown) => err instanceof UnikitCommandError && err.code === 'cancelled',
+  );
+});
+
+void test('createTauriEngine exposes Promise-based invokeBatch with stable order', async () => {
+  // 트랙 E2 — invokeBatch 는 이제 unikit_dispatch_batch 와이어 배치 한 번으로
+  // 처리된다. mock 호스트는 Rust 계약(항목별 ok/result)을 그대로 흉내 낸다.
+  const engine = createTauriEngine({
+    async invoke(command, args) {
+      if (command === 'unikit_dispatch_batch') {
+        const requests = (args as { requests: Array<{ command: string }> }).requests;
+        return requests.map((request) => ({
+          ok: true,
+          result: request.command === 'first' ? 1 : 2,
+        }));
+      }
+      return {};
+    },
+  });
+  const out = await engine.invokeBatch<number>([{ command: 'first' }, { command: 'second' }]);
+  assert.deepEqual(out, [1, 2]);
+});
+
+void test('createTauriEngine normalizes undefined args to empty object', async () => {
+  const calls: Array<{ command: string; args: unknown }> = [];
+  const engine = createTauriEngine({
+    async invoke(command, args) {
+      calls.push({ command, args });
+      return {};
+    },
+  });
+
+  await engine.invoke('noArgs');
+  assert.deepEqual(calls, [{ command: 'unikit_dispatch', args: { command: 'noArgs', args: {} } }]);
+});
+
+void test('Tauri verifies an expected contract before commands and shares the startup handshake', async () => {
+  const calls: string[] = [];
+  const engine = createTauriEngine({
+    contractHash: 'expected',
+    async invoke(command) {
+      calls.push(command);
+      if (command === 'unikit_contract_hash') return 'expected';
+      if (command === 'unikit_dispatch_batch') return [{ ok: true, result: 42 }];
+      return 42;
+    },
+  });
+  assert.deepEqual(
+    await Promise.all([engine.invoke('one'), engine.invokeBatch([{ command: 'two' }])]),
+    [42, [42]],
+  );
+  assert.deepEqual(calls, ['unikit_contract_hash', 'unikit_dispatch', 'unikit_dispatch_batch']);
+});
+
+void test('Tauri strict contract mismatch rejects before executing a command', async () => {
+  const calls: string[] = [];
+  const engine = createTauriEngine({
+    contractHash: 'expected',
+    invoke(command) {
+      calls.push(command);
+      return 'different';
+    },
+  });
+  await assert.rejects(
+    engine.invoke('one'),
+    (error: unknown) => error instanceof UnikitCommandError && error.code === 'contract.mismatch',
+  );
+  assert.deepEqual(calls, ['unikit_contract_hash']);
+});
+
+void test('Tauri preserves a native IPC contract mismatch error and sends the expected hash', async () => {
+  const engine = createTauriEngine({
+    contractHash: 'expected',
+    async invoke(command, args) {
+      assert.equal(command, 'unikit_contract_hash');
+      assert.deepEqual(args, { expectedHash: 'expected' });
+      // eslint-disable-next-line @typescript-eslint/only-throw-error -- 비-Error throw 의 정규화 계약이 검증 대상이다
+      throw { code: 'contract.mismatch', message: 'native rejected stale client' };
+    },
+  });
+  await assert.rejects(
+    engine.invoke('one'),
+    (error: unknown) =>
+      error instanceof UnikitCommandError &&
+      error.code === 'contract.mismatch' &&
+      error.message === 'native rejected stale client',
+  );
+});
+
+void test('Tauri strict contract verification rejects old or malformed native handshakes', async () => {
+  for (const response of [undefined, 123, {}]) {
+    const engine = createTauriEngine({ contractHash: 'expected', invoke: () => response });
+    await assert.rejects(
+      engine.invoke('one'),
+      (error: unknown) =>
+        error instanceof UnikitCommandError && error.code === 'contract.unenforceable',
+    );
+  }
+  const old = createTauriEngine({
+    contractHash: 'expected',
+    invoke: async () => {
+      // 문자열 throw 의 정규화 계약이 검증 대상이다.
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
+      throw 'Command unikit_contract_hash not found';
+    },
+  });
+  await assert.rejects(
+    old.invoke('one'),
+    (error: unknown) =>
+      error instanceof UnikitCommandError && error.code === 'contract.unenforceable',
+  );
+});
+
+void test('Tauri missing native registration explains the handler replacement and repair', async () => {
+  const cause = 'Command unikit_contract_hash not found';
+  const bootstrap = createTauriBootstrap({
+    contractHash: 'expected',
+    // 임의 거절 값(String)이 정규화/레이블링되는 계약이 검증 대상이다.
+    // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+    invoke: () => Promise.reject(cause),
+  });
+  try {
+    await assert.rejects(bootstrap.ready(), (error: unknown) => {
+      assert.ok(error instanceof UnikitCommandError);
+      assert.equal(error.code, 'contract.unenforceable');
+      assert.match(error.message, /unikit_contract_hash/);
+      assert.match(error.message, /register_with_events/);
+      assert.match(error.message, /invoke_handler/);
+      assert.match(error.message, /with_app_commands/);
+      assert.equal(error.cause, cause);
+      return true;
+    });
+  } finally {
+    bootstrap.dispose();
+  }
+});
+
+void test('Tauri custom transport failures are not mislabeled as missing native registration', async () => {
+  for (const cause of [new Error('transport disconnected'), 'Command custom_rpc not found']) {
+    const engine = createTauriEngine({
+      contractHash: 'expected',
+      // 임의 거절 값(String)이 정규화/레이블링되는 계약이 검증 대상이다.
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+      invoke: () => Promise.reject(cause),
+    });
+    await assert.rejects(engine.invoke('first'), (error: unknown) => {
+      assert.ok(error instanceof UnikitCommandError);
+      assert.equal(error.code, 'contract.unenforceable');
+      assert.doesNotMatch(error.message, /with_app_commands/);
+      assert.equal(error.cause, cause);
+      return true;
+    });
+  }
+});
+
+void test('Tauri warn permits old transports with one warning and off skips the handshake', async () => {
+  const warnings: unknown[] = [];
+  const warn = console.warn;
+  console.warn = (...args) => {
+    warnings.push(args);
+  };
+  try {
+    const calls: string[] = [];
+    const engine = createTauriEngine({
+      contractHash: 'expected',
+      contractVerification: 'warn',
+      invoke(command) {
+        calls.push(command);
+        // 문자열 throw 의 정규화 계약이 검증 대상이다.
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
+        if (command === 'unikit_contract_hash') throw 'Command unikit_contract_hash not found';
+        return 42;
+      },
+    });
+    assert.equal(await engine.invoke('one'), 42);
+    assert.equal(await engine.invoke('two'), 42);
+    assert.equal(warnings.length, 1);
+    assert.deepEqual(calls, ['unikit_contract_hash', 'unikit_dispatch', 'unikit_dispatch']);
+    const unchecked = createTauriEngine({
+      contractHash: 'expected',
+      contractVerification: 'off',
+      invoke(command) {
+        assert.equal(command, 'unikit_dispatch');
+        return 42;
+      },
+    });
+    assert.equal(await unchecked.invoke('one'), 42);
+  } finally {
+    console.warn = warn;
+  }
+});
+
+void test('Tauri bootstrap ready waits for strict native contract verification', async () => {
+  const { configure } = await import('../types/index.js');
+  configure(A05_SLOT_ENGINE);
+  try {
+    let calls = 0;
+    const bootstrap = createTauriBootstrap({
+      contractHash: 'expected',
+      invoke: () => {
+        calls++;
+        return 'different';
+      },
+    });
+    await assert.rejects(
+      bootstrap.ready(),
+      (error: unknown) => error instanceof UnikitCommandError && error.code === 'contract.mismatch',
+    );
+    assert.equal(bootstrap.state, 'initializing');
+    assert.equal(calls, 1);
+    bootstrap.dispose();
+  } finally {
+    configure(A05_SLOT_ENGINE);
+  }
+});
+
+void test('disposing Tauri during its native handshake cannot publish or return the stale engine', async () => {
+  const { configure, invoke } = await import('../types/index.js');
+  configure(A05_SLOT_ENGINE);
+  let started!: () => void;
+  const handshaking = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+  let finish!: (hash: string) => void;
+  const nativeHash = new Promise<string>((resolve) => {
+    finish = resolve;
+  });
+  try {
+    const bootstrap = createTauriBootstrap({
+      contractHash: 'expected',
+      invoke: () => {
+        started();
+        return nativeHash;
+      },
+    });
+    const ready = bootstrap.ready();
+    await handshaking;
+    bootstrap.dispose();
+    finish('expected');
+    await assert.rejects(ready, /disposed/);
+    await assert.rejects(
+      invoke('echo'),
+      (error: unknown) =>
+        error instanceof UnikitCommandError && error.code === 'transport.unavailable',
+    );
+  } finally {
+    finish('expected');
+    configure(A05_SLOT_ENGINE);
+  }
+});
+
+void test('Tauri batch rejects malformed response envelopes instead of resolving lost values', async () => {
+  for (const response of [null, {}, [{ ok: 'true', result: 1 }], [{ ok: true }], [{ ok: false }]]) {
+    const engine = createTauriEngine({ invoke: async () => response });
+    await assert.rejects(engine.invokeBatch([{ command: 'one' }]), (error: unknown) => {
+      assert.ok(error instanceof UnikitCommandError);
+      assert.equal(error.code, 'invoke.malformed');
+      assert.match(error.message, /batch response/i);
+      return true;
+    });
+  }
+});
+
+void test('Tauri batch rejects a response with fewer entries than requested', async () => {
+  const engine = createTauriEngine({ invoke: async () => [{ ok: true, result: 1 }] });
+  await assert.rejects(
+    engine.invokeBatch([{ command: 'one' }, { command: 'two' }]),
+    (error: unknown) =>
+      error instanceof UnikitCommandError && /batch response/i.test(error.message),
+  );
+});
+
+void test('createTauriEngine discovers the Tauri global without manual transport wiring', async () => {
+  const root = globalThis as typeof globalThis & { __TAURI__?: unknown };
+  const previous = root.__TAURI__;
+  const calls: Array<{ command: string; args: unknown }> = [];
+  root.__TAURI__ = {
+    core: {
+      async invoke(command: string, args: unknown) {
+        calls.push({ command, args });
+        return { value: 42 };
+      },
+    },
+  };
+  try {
+    const result = await createTauriEngine().invoke<{ value: number }>('addNumbers', {
+      a: 20,
+      b: 22,
+    });
+    assert.deepEqual(result, { value: 42 });
+    assert.equal(calls[0]?.command, 'unikit_dispatch');
+  } finally {
+    root.__TAURI__ = previous;
+  }
+});
+
+void test('createTauriBootstrap delays global discovery until the first command', async () => {
+  const root = globalThis as typeof globalThis & { __TAURI__?: unknown };
+  const previous = root.__TAURI__;
+  delete root.__TAURI__;
+  const bootstrap = createTauriBootstrap();
+  root.__TAURI__ = {
+    core: { invoke: async () => ({ ready: true }) },
+  };
+  try {
+    const engine = await bootstrap.ready();
+    assert.deepEqual(await engine.invoke('ping'), { ready: true });
+  } finally {
+    root.__TAURI__ = previous;
+  }
+});
+
+void test('createTauriEngine wraps UnikitError-shaped rejects into UnikitCommandError', async () => {
+  const engine = createTauriEngine({
+    async invoke() {
+      // 객체 throw 의 UnikitCommandError 래핑 계약이 검증 대상이다.
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
+      throw { code: 'transport.timeout', message: 'request timed out', retryable: true };
+    },
+  });
+
+  await assert.rejects(
+    () => engine.invoke('cmd'),
+    (err: unknown) => {
+      if (!(err instanceof UnikitCommandError)) return false;
+      assert.equal(err.code, 'transport.timeout');
+      assert.equal(err.message, 'request timed out');
+      assert.equal(err.retryable, true);
+      return true;
+    },
+  );
+});
+
+void test('createTauriEngine wraps non-Error throws as unknown, Error messages via parser', async () => {
+  // 문자열 throw 는 그대로 unknown 래핑 — Error 가 아니면 파서를 타지 않는다.
+  const engine = createTauriEngine({
+    async invoke() {
+      // 문자열 throw 의 unknown 래핑 계약이 검증 대상이다.
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
+      throw 'transport died';
+    },
+  });
+
+  await assert.rejects(
+    () => engine.invoke('cmd'),
+    (err: unknown) => {
+      if (!(err instanceof UnikitCommandError)) return false;
+      assert.equal(err.code, 'unknown');
+      return true;
+    },
+  );
+});
+
+// ── Rust 와이어 에러 — Error.message 의 UnikitError JSON/Display 복원 ──
+
+void test('createTauriEngine parses UnikitError JSON message from wire Error', async () => {
+  // Rust 가 UnikitError 를 JSON 직렬화해 Error 로 던지는 경우 code/retryable 을
+  // 보존한다(unknown 래핑 금지 — @unikit-bridge/node 와 동일 파이프라인).
+  const engine = createTauriEngine({
+    async invoke() {
+      throw new Error('{"code":"command.not_found","message":"command not found: nope"}');
+    },
+  });
+
+  await assert.rejects(
+    () => engine.invoke('nope'),
+    (err: unknown) => {
+      if (!(err instanceof UnikitCommandError)) return false;
+      assert.equal(err.code, 'command.not_found');
+      assert.equal(err.retryable, false);
+      return true;
+    },
+  );
+});
+
+void test('createTauriEngine parses Display-style "code: message" Error message', async () => {
+  const engine = createTauriEngine({
+    async invoke() {
+      throw new Error('command.not_found: nope');
+    },
+  });
+
+  await assert.rejects(
+    () => engine.invoke('nope'),
+    (err: unknown) => {
+      if (!(err instanceof UnikitCommandError)) return false;
+      assert.equal(err.code, 'command.not_found');
+      assert.equal(err.message, 'nope');
+      return true;
+    },
+  );
+});
+
+// ── R02 — 이벤트 채널명 Unicode 규칙 통일 ──
+// (구 `unikitEventChannel sanitizes...` 테스트는 GOLDEN_CASES 에 흡수됐다 —
+// 골든 테이블이 이 함수 매핑의 단일 진실원이다.)
+// 공동 골든 테이블 — Rust 측 examples/tauri-calculator/src-tauri/tests/
+// event_name_mapping.rs 의 GOLDEN_CASES 와 문자 그대로 동일한 리터럴이다.
+// 규칙을 바꿀 때는 양쪽을 함께 갱신하고, 한쪽만 바꾸면 이 테이블이 drift 를
+// 검출한다. 규칙: 코드포인트 순회 + [A-Za-z0-9/_:-] 와 Unicode 알파벳·숫자는
+// 보존, 나머지는 '_' 치환. NFC 정규화는 하지 않는다(정규화 후 같아지는 이름도
+// 다른 이름 — Rust 빌더가 충돌로 거부한다). 보장은 "같은 술어, 각자의
+// Unicode 테이블"이다 — 유니코드 버전이 올라가 판정이 바뀌면 각자 갱신하며,
+// 수렴 사례는 빌드 타임 충돌 거부가 잡는다.
+const GOLDEN_CASES: ReadonlyArray<readonly [string, string]> = [
+  // 기본 치환 — '.' → '_'.
+  ['progress.tick', 'unikit://progress_tick'],
+  // 한국어(Unicode 알파벳) 보존 — 구 JS 규칙은 전부 '_' 로 깨뜨렸다.
+  ['진행.갱신', 'unikit://진행_갱신'],
+  ['a.b', 'unikit://a_b'],
+  ['llm.stream-token', 'unikit://llm_stream-token'],
+  ['a b/c', 'unikit://a_b/c'],
+  // 결합 문자(U+0301)는 알파벳이 아니므로 '_' — NFC 정규화는 하지 않는다.
+  // (Rust 와 동일하게 이스케이프로 적는다 — 에디터 NFC 정규화 방지.)
+  ['cafe\u{301}', 'unikit://cafe_'],
+  // 비 BMP 이모지는 코드포인트 1개 — '_' 1개 (surrogate 2개 아님).
+  ['done🎉now', 'unikit://done_now'],
+  // 비 BMP 영숫자(U+1D54F) 보존 — 구 JS 규칙은 surrogate 쌍을 '__' 로.
+  ['n.𝕏', 'unikit://n_𝕏'],
+  // Alphabetic-but-not-L (U+0345, ypogegrammeni) 보존 게이트 — 술어를
+  // `\p{L}|\p{N}` 으로 "단순화"하면 이 행이 깨진다. `is_alphanumeric()` =
+  // Alphabetic ∪ N 이라는 설계 결정을 산문 대신 게이트로 고정한다.
+  ['ypogegrammeni:\u{0345}', 'unikit://ypogegrammeni:\u{0345}'],
+];
+
+void test('unikitEventChannel matches the shared Unicode golden table (Rust event_channel twin)', async () => {
+  const { unikitEventChannel } = await import('./index.js');
+  for (const [input, expected] of GOLDEN_CASES) {
+    assert.equal(
+      unikitEventChannel(input),
+      expected,
+      `channel mapping drifted for ${JSON.stringify(input)} — TS/Rust 골든 테이블 동기 필요`,
+    );
+  }
+});
+
+void test('subscribeEvent parses JSON payloads and falls back to raw string', async () => {
+  const { subscribeEvent } = await import('./index.js');
+  let captured: { channel: string } | null = null;
+  let fire: ((payload: string) => void) | null = null;
+  const fakeListen = async (channel: string, handler: (e: { payload: string }) => void) => {
+    captured = { channel };
+    fire = (payload: string) => handler({ payload });
+    return () => {};
+  };
+
+  const seen: unknown[] = [];
+  await subscribeEvent<typeof seen>('tick', (p) => seen.push(p), fakeListen, {
+    payloadEncoding: 'serialized-json',
+  });
+
+  assert.equal(captured!.channel, 'unikit://tick');
+  fire!('{"value":42}');
+  assert.deepEqual(seen, [{ value: 42 }]);
+  // 비 JSON 페이로드는 원본 문자열로 전달(조용한 드롭 방지).
+  fire!('not-json');
+  assert.equal(seen[1], 'not-json');
+});
+
+void test('Tauri event strings preserve JSON-looking text delivered by the real WebView', async () => {
+  const { subscribeEvent } = await import('./index.js');
+  const values = ['{"a":1}', '[1,2]', '"quoted"', '123', 'true', 'null'];
+  for (const expected of values) {
+    let actual: unknown;
+    await subscribeEvent(
+      'text',
+      (value) => {
+        actual = value;
+      },
+      async (_name, listener) => {
+        // Rust emit_str receives serde_json::to_string(&expected). Tauri evaluates
+        // that JSON in payload: <json>, so the listener sees the decoded string.
+        listener({ payload: JSON.parse(JSON.stringify(expected)) });
+        return () => {};
+      },
+    );
+    assert.equal(actual, expected);
+  }
+});
+
+void test('Tauri serialized-json compatibility is explicit and decodes every JSON value exactly once', async () => {
+  const { subscribeEvent } = await import('./index.js');
+  for (const expected of [{ a: 1 }, [1, 2], '{"a":1}', '"quoted"', 123, true, null]) {
+    let actual: unknown;
+    await subscribeEvent(
+      'text',
+      (value) => {
+        actual = value;
+      },
+      async (_name, listener) => {
+        listener({ payload: JSON.stringify(expected) });
+        return () => {};
+      },
+      { payloadEncoding: 'serialized-json' },
+    );
+    assert.deepEqual(actual, expected);
+  }
+});
+
+// ── 콜백 예외 경계 (R01) — 변환 경계와 사용자 콜백 경계는 분리된다 ──
+// 결함: 콜백이 JSON.parse 와 같은 try 에 있어 콜백 throw 가 catch 로 떨어져
+// 원본 문자열로 "재호출"되고, 두 번째 throw 는 Tauri 이벤트 기계로 탈출해
+// 형제 리스너를 깨뜨릴 수 있었다. 계약: 변환 실패 시 원본 문자열 1회 전달은
+// 단일 전달이고, 콜백 예외는 리스너 오류 정책(관측 + 삼켜서 형제 보호)으로 귀결.
+
+/** listen 목업 — 채널 정합을 확인하고 `fire` 로 테스트가 이벤트를 발사한다.
+ * 실제 Tauri 처럼 채널당 리스너 여럿을 독립 등록하며, fire 는 등록 순서대로
+ * 동기 호출한다(리스너 예외를 흡수하지 않는다 — 경계 위반은 그대로 실패로).
+ * payload 는 `unknown` — R03 계약(문자열·이미 해석된 객체 모두 경계에서 가능)을
+ * 그대로 발사할 수 있어야 하므로 문자열로 좁히지 않는다. */
+function mockListen(): {
+  listen: (channel: string, handler: (event: { payload: unknown }) => void) => Promise<() => void>;
+  fire: (payload: unknown) => void;
+} {
+  const handlers: Array<(event: { payload: unknown }) => void> = [];
+  return {
+    listen: async (channel, handler) => {
+      assert.equal(channel, 'unikit://tick');
+      handlers.push(handler);
+      return () => {};
+    },
+    fire: (payload) => {
+      for (const handler of handlers) handler({ payload });
+    },
+  };
+}
+
+void test('subscribeEvent keeps a throwing callback inside the listener boundary (called once, error observed)', async () => {
+  const { subscribeEvent } = await import('./index.js');
+  const { listen, fire } = mockListen();
+  const events: UnikitDebugEvent[] = [];
+  configureDebug((event) => events.push(event));
+  try {
+    let calls = 0;
+    const boom = new Error('callback exploded');
+    await subscribeEvent<{ value: number }>(
+      'tick',
+      () => {
+        calls += 1;
+        throw boom;
+      },
+      listen,
+    );
+
+    // 프로미스 자체가 resolve 해야 한다 — 콜백 예외가 구독/전달 경로를 깨지 않는다.
+    fire({ value: 42 });
+    assert.equal(calls, 1, 'callback must be invoked exactly once — no re-invocation');
+    const listenerErrors = events.filter((event) => event.kind === 'tauri.listener_error');
+    assert.equal(listenerErrors.length, 1, 'exactly one listener_error diagnostic');
+    assert.equal(listenerErrors[0]!.command, 'tick');
+    // 스택 보존 — Error 면 stack 이 우선이고 메시지가 항상 들어 있다.
+    assert.ok(listenerErrors[0]!.error!.includes('callback exploded'));
+  } finally {
+    configureDebug(undefined);
+  }
+});
+
+void test('subscribeEvent absorbs diagnostics failures — a throwing sink never escapes', async () => {
+  // 진단 싱크 자체가 throw 해도 전달 경로로 탈출하지 않는다(json-engine 의
+  // "감지 자체는 절대 invoke 를 실패로 만들지 않는다" 계약과 동일 톤).
+  const { subscribeEvent } = await import('./index.js');
+  const { listen, fire } = mockListen();
+  configureDebug(() => {
+    throw new Error('sink exploded');
+  });
+  try {
+    let calls = 0;
+    await subscribeEvent<{ value: number }>(
+      'tick',
+      () => {
+        calls += 1;
+        throw new Error('callback exploded');
+      },
+      listen,
+    );
+
+    fire({ value: 42 });
+    assert.equal(calls, 1, 'callback still invoked exactly once');
+    // sink 예외가 여기까지 전파되면 이 테스트는 실패한다 — 경계 흡수 계약.
+  } finally {
+    configureDebug(undefined);
+  }
+});
+
+void test('subscribeEvent delivers decoded payloads once for a normal callback', async () => {
+  const { subscribeEvent } = await import('./index.js');
+  const { listen, fire } = mockListen();
+  const seen: unknown[] = [];
+  await subscribeEvent<{ value: number }>('tick', (payload) => seen.push(payload), listen);
+  fire({ value: 42 });
+  assert.deepEqual(seen, [{ value: 42 }]);
+});
+
+void test('subscribeEvent delivers invalid JSON as the original string exactly once', async () => {
+  const { subscribeEvent } = await import('./index.js');
+  const { listen, fire } = mockListen();
+  const seen: unknown[] = [];
+  await subscribeEvent<string>('tick', (payload) => seen.push(payload), listen);
+  fire('not-json');
+  assert.deepEqual(seen, ['not-json'], 'single-pass fallback delivery of the raw string');
+});
+
+void test('subscribeEvent protects sibling listeners from a throwing listener', async () => {
+  const { subscribeEvent } = await import('./index.js');
+  const { listen, fire } = mockListen();
+  const events: UnikitDebugEvent[] = [];
+  configureDebug((event) => events.push(event));
+  try {
+    // 같은 이벤트 채널에 리스너 2개 — 첫 리스너가 throw 해도 둘째는 정상 도달.
+    await subscribeEvent<{ value: number }>(
+      'tick',
+      () => {
+        throw new Error('first listener exploded');
+      },
+      listen,
+    );
+    const seen: unknown[] = [];
+    await subscribeEvent<{ value: number }>('tick', (payload) => seen.push(payload), listen);
+
+    fire({ value: 42 });
+    assert.deepEqual(seen, [{ value: 42 }], 'sibling listener unaffected by the throwing one');
+    assert.equal(
+      events.filter((event) => event.kind === 'tauri.listener_error').length,
+      1,
+      'only the throwing listener is diagnosed',
+    );
+  } finally {
+    configureDebug(undefined);
+  }
+});
+
+void test('subscribeEvent keeps the raw-string fallback inside the callback boundary too', async () => {
+  // 폴백 전달(원본 문자열)도 콜백 호출 경로다 — 여기서 throw 하면 파서 catch 에서
+  // 탈출해 무음 이스케이프(형제 중단 + 진단 0건)가 됐다. R01 계약: 모든 콜백
+  // 호출 경로가 경계 안에 있다.
+  const { subscribeEvent } = await import('./index.js');
+  const { listen, fire } = mockListen();
+  const events: UnikitDebugEvent[] = [];
+  configureDebug((event) => events.push(event));
+  try {
+    let calls = 0;
+    await subscribeEvent<string>(
+      'tick',
+      () => {
+        calls += 1;
+        throw new Error('fallback listener exploded');
+      },
+      listen,
+    );
+    const seen: unknown[] = [];
+    await subscribeEvent<string>('tick', (payload) => seen.push(payload), listen);
+
+    fire('not-json');
+    assert.equal(calls, 1, 'fallback delivery must also be invoked exactly once');
+    assert.deepEqual(seen, ['not-json'], 'sibling listener still receives the raw string');
+    const listenerErrors = events.filter((event) => event.kind === 'tauri.listener_error');
+    assert.equal(listenerErrors.length, 1, 'the silent escape now produces one diagnostic');
+    assert.equal(listenerErrors[0]!.command, 'tick');
+  } finally {
+    configureDebug(undefined);
+  }
+});
+
+void test('subscribeTauriEvent discovers the global listen API', async () => {
+  const root = globalThis as typeof globalThis & { __TAURI__?: unknown };
+  const previous = root.__TAURI__;
+  let channel = '';
+  root.__TAURI__ = {
+    event: {
+      async listen(name: string, handler: (event: { payload: unknown }) => void) {
+        channel = name;
+        handler({ payload: { value: 42 } });
+        return () => {};
+      },
+    },
+  };
+  try {
+    let payload: unknown;
+    await subscribeTauriEvent('calc.tick', (value) => {
+      payload = value;
+    });
+    assert.equal(channel, 'unikit://calc_tick');
+    assert.deepEqual(payload, { value: 42 });
+  } finally {
+    root.__TAURI__ = previous;
+  }
+});
+
+// ── WebView payload 계약 — 이미 해석된 값은 문자열까지 그대로 전달 ──
+// 실제 WebView 경계(tauri `emit_str` → `payload: {}` 인라인 평가)에서 JS listener 는
+// 이미 해석된 값을 받는다 — 무조건 JSON.parse 하면 이미 해석된 객체를 재직렬화·재파싱해
+// 훼손하고, "JSON 처럼 생긴" 문자열 payload 도 몰래 디코딩한다. 계약 표 하나가
+// 파서의 전부다 — 각 행은 typeof/null 이중 assert 로 고정한다(동치 혼동 방지:
+// 123 ≠ '123', true ≠ 'true', null 은 typeof 'object').
+
+void test('subscribeEvent payload contract table — decoded values pass through unchanged', async () => {
+  const { subscribeEvent } = await import('./index.js');
+  const { listen, fire } = mockListen();
+  const seen: Array<{ typeofIn: string; value: unknown }> = [];
+  await subscribeEvent<unknown>(
+    'tick',
+    (payload) => {
+      seen.push({ typeofIn: typeof payload, value: payload });
+    },
+    listen,
+  );
+
+  // [경계 payload, 기대 typeof, 기대 값(deep-equal), 행 설명]
+  const rows: ReadonlyArray<readonly [unknown, string, unknown, string]> = [
+    // 이미 해석된 객체 — 그대로 통과, 재파싱 없음(중첩 JSON 문자열도 그대로).
+    [{ a: 1 }, 'object', { a: 1 }, 'decoded object passes through untouched'],
+    [
+      { inner: '{"a":1}' },
+      'object',
+      { inner: '{"a":1}' },
+      'nested JSON-string inside a decoded object is NOT double-parsed',
+    ],
+    // 실제 WebView의 문자열은 JSON처럼 생겨도 그대로 전달한다.
+    ['{"a":1}', 'string', '{"a":1}', 'JSON object text stays a string'],
+    // 핵심 회귀(통합 문서 표): 문자열 '123' — number 123 으로 디코딩되지 않는다.
+    ['123', 'string', '123', 'string that looks numeric stays a string'],
+    ['true', 'string', 'true', 'string that looks boolean stays a string'],
+    ['null', 'string', 'null', "string 'null' stays a string"],
+    // 따옴표와 escape도 문자열 도메인 값의 일부다.
+    ['"quoted"', 'string', '"quoted"', 'quoted JSON text stays unchanged'],
+    // parse 실패 — 원본 문자열이 그대로 전달된다.
+    ['', 'string', '', 'empty string fails to parse — original delivered'],
+    ['hello', 'string', 'hello', 'plain text fails to parse — original delivered'],
+    // 문자열이 아닌 원시값 — 스니핑 없이 그대로 통과한다.
+    [null, 'object', null, 'null payload passes through (typeof null is object)'],
+    [false, 'boolean', false, 'boolean payload passes through'],
+    [undefined, 'undefined', undefined, 'missing/undefined payload passes through'],
+  ];
+
+  for (const [payload, expectedTypeof, expectedValue, description] of rows) {
+    seen.length = 0;
+    fire(payload);
+    assert.equal(seen.length, 1, `${description}: exactly one delivery`);
+    assert.equal(seen[0]!.typeofIn, expectedTypeof, `${description}: typeof`);
+    assert.deepEqual(seen[0]!.value, expectedValue, `${description}: value`);
+  }
+
+  // 객체 행의 신원 보존 — 같은 참조가 그대로 도달한다(재직렬화 부재의 최강 증거).
+  seen.length = 0;
+  const identity: { a: number } = { a: 1 };
+  fire(identity);
+  assert.equal(seen[0]!.value, identity, 'decoded object keeps its identity — no clone via parse');
+});
+
+void test('decoded and explicit serialized-json transports deliver the same event values', async () => {
+  const { subscribeEvent } = await import('./index.js');
+  for (const expected of [{ n: 42 }, '{"n":42}', 42, null]) {
+    const seen: unknown[] = [];
+    await subscribeEvent(
+      'tick',
+      (value) => seen.push(value),
+      async (_name, listener) => {
+        listener({ payload: expected });
+        return () => {};
+      },
+    );
+    await subscribeEvent(
+      'tick',
+      (value) => seen.push(value),
+      async (_name, listener) => {
+        listener({ payload: JSON.stringify(expected) });
+        return () => {};
+      },
+      { payloadEncoding: 'serialized-json' },
+    );
+    assert.deepEqual(seen, [expected, expected]);
+  }
+});
+
+// ── 와이어 배치 — unikit_dispatch_batch 단일 횡단 (트랙 E2) ──
+
+void test('createTauriEngine routes invokeBatch through unikit_dispatch_batch', async () => {
+  const calls: Array<{ command: string; args: unknown }> = [];
+  let dispatchCalls = 0;
+  const engine = createTauriEngine({
+    invoke(command, args) {
+      calls.push({ command, args });
+      if (command === 'unikit_dispatch_batch') {
+        dispatchCalls += 1;
+        const requests = (args as { requests: Array<{ command: string }> }).requests;
+        return Promise.resolve(
+          requests.map((request) =>
+            request.command === 'add'
+              ? { ok: true, result: { value: 42 } }
+              : { ok: true, result: { v: 1 } },
+          ),
+        );
+      }
+      return Promise.resolve({});
+    },
+  });
+  const out = await engine.invokeBatch<Array<{ value: number } | { v: number }>>([
+    { command: 'add', args: { a: 20, b: 22 } },
+    { command: 'mul', args: { a: 2, b: 3 } },
+    { command: 'add', args: { a: 1, b: 1 } },
+  ]);
+  assert.equal(dispatchCalls, 1, 'batch must be a single unikit_dispatch_batch crossing');
+  assert.equal(calls.length, 1, 'no per-entry unikit_dispatch calls');
+  assert.deepEqual(calls[0], {
+    command: 'unikit_dispatch_batch',
+    args: {
+      requests: [
+        { command: 'add', args: { a: 20, b: 22 } },
+        { command: 'mul', args: { a: 2, b: 3 } },
+        { command: 'add', args: { a: 1, b: 1 } },
+      ],
+    },
+  });
+  assert.deepEqual(out, [{ value: 42 }, { v: 1 }, { value: 42 }]);
+});
+
+void test('createTauriEngine batch rejects with the failing entry error without failing siblings', async () => {
+  // Rust 계약: 항목별 ok/error (fail-fast 아님). TS 는 실패 항목의 에러를
+  // 그대로 전파한다 — Promise.all 이므로 형제 항목 성공은 관찰되지 않지만
+  // 에러 객체는 실패한 항목 것임이 보장되어야 한다.
+  const engine = createTauriEngine({
+    async invoke(command, args) {
+      if (command === 'unikit_dispatch_batch') {
+        const requests = (args as { requests: Array<{ command: string }> }).requests;
+        return requests.map((request) =>
+          request.command === 'boom'
+            ? {
+                ok: false,
+                error: { code: 'command.not_found', message: 'command not found: boom' },
+              }
+            : { ok: true, result: { value: 7 } },
+        );
+      }
+      return {};
+    },
+  });
+  await assert.rejects(
+    engine.invokeBatch([
+      { command: 'add', args: {} },
+      { command: 'boom', args: {} },
+    ]),
+    (error: unknown) => {
+      if (!(error instanceof UnikitCommandError)) return false;
+      assert.equal(error.code, 'command.not_found');
+      assert.equal(error.message, 'command not found: boom');
+      return true;
+    },
+  );
+});
+
+void test('createTauriEngine batch normalizes undefined args to empty objects', async () => {
+  const engine = createTauriEngine({
+    async invoke(command, args) {
+      if (command === 'unikit_dispatch_batch') {
+        const requests = (args as { requests: Array<{ args: unknown }> }).requests;
+        return requests.map(() => ({ ok: true, result: null }));
+      }
+      return {};
+    },
+  });
+  const out = await engine.invokeBatch([{ command: 'a' }, { command: 'b', args: undefined }]);
+  assert.deepEqual(out, [null, null]);
+});
+
+// ── A02: EngineSupports 표면 — 매트릭스 셀의 기계 판독 가능한 이행 ─────────
+// 매핑: signal(진행 중 취소) ⚠️ 얕은 취소 → 'shallow' / invokeBatch ✅ per-entry
+// Promise fallback → 'per-entry'(와이어 배치는 단일 IPC 횡단이지만 셀 표기는
+// per-entry 폴백 계열이므로 매트릭스 셀을 따른다) / 이벤트 ✅ Rust app.emit 푸시
+// → 'push' / 채널 ❌ Tauri 채널 어댑터 없음 → false / timeoutMs ✅ 레이스 → true.
+
+void test('A02: createTauriEngine exposes supports matching the compatibility matrix', async () => {
+  const engine = createTauriEngine({
+    invoke: () => ({}),
+  });
+  assert.deepEqual(engine.supports, {
+    cancellation: 'shallow',
+    batch: 'per-entry',
+    events: 'push',
+    channels: false,
+    timeoutPreemption: true,
+  });
+});
+
+// ── A05: bootstrap 수명 상태 모델 (Tauri는 reload 표면이 없다 — 상태 3종만) ──
+// 각 테스트는 글로벌 슬롯을 configure 로 리셋한 뒤 등록한다(R08 가드 — 소비 전
+// 경쟁 등록 loud-fail 은 여기서 재검증 대상이 아니다).
+
+const A05_SLOT_ENGINE = {
+  invoke: async <T>() => 'slot' as T,
+} as unknown as import('../types/index.js').EngineClientWithBatch;
+
+void test('A05: createTauriBootstrap exposes the lifecycle state surface', async () => {
+  const { configure } = await import('../types/index.js');
+  configure(A05_SLOT_ENGINE);
+  try {
+    const bootstrap = createTauriBootstrap({ invoke: () => ({}) });
+    assert.equal(bootstrap.state, 'initializing');
+    await bootstrap.ready();
+    assert.equal(bootstrap.state, 'ready');
+    bootstrap.dispose();
+    assert.equal(bootstrap.state, 'disposed');
+  } finally {
+    configure(A05_SLOT_ENGINE);
+  }
+});
+
+void test('A05: ready after dispose rejects loudly (tauri)', async () => {
+  const { configure } = await import('../types/index.js');
+  configure(A05_SLOT_ENGINE);
+  try {
+    const bootstrap = createTauriBootstrap({ invoke: () => ({}) });
+    bootstrap.dispose();
+    await assert.rejects(bootstrap.ready(), (err: unknown) => {
+      assert.ok(err instanceof UnikitCommandError);
+      assert.match(err.message, /disposed/);
+      return true;
+    });
+  } finally {
+    configure(A05_SLOT_ENGINE);
+  }
+});
+
+void test('A05: dispose is idempotent — second dispose is a no-op (tauri)', async () => {
+  const { configure } = await import('../types/index.js');
+  configure(A05_SLOT_ENGINE);
+  try {
+    const bootstrap = createTauriBootstrap({ invoke: () => ({}) });
+    bootstrap.dispose();
+    bootstrap.dispose(); // no-op — must not throw
+    assert.equal(bootstrap.state, 'disposed');
+  } finally {
+    // pending lazy 등록을 소비 없이 버리므로 슬롯을 리셋한다 — 뒤 테스트(다른
+    // 파일 포함)가 R08 가드를 대변 경고로 받지 않게.
+    configure(A05_SLOT_ENGINE);
+  }
+});
+
+void test('A05: concurrent ready calls share one initialization promise (tauri)', async () => {
+  const { configure } = await import('../types/index.js');
+  configure(A05_SLOT_ENGINE);
+  try {
+    const bootstrap = createTauriBootstrap({ invoke: () => ({}) });
+    const [a, b] = await Promise.all([bootstrap.ready(), bootstrap.ready()]);
+    assert.equal(a, b);
+    bootstrap.dispose();
+  } finally {
+    configure(A05_SLOT_ENGINE);
+  }
+});
+
+void test('disposing an uninitialized Tauri bootstrap releases its generated command registration', async () => {
+  const { configure, invoke } = await import('../types/index.js');
+  configure(A05_SLOT_ENGINE);
+  let calls = 0;
+  try {
+    const bootstrap = createTauriBootstrap({ invoke: () => ++calls });
+    bootstrap.dispose();
+    await assert.rejects(
+      invoke('echo'),
+      (error: unknown) =>
+        error instanceof UnikitCommandError && error.code === 'transport.unavailable',
+    );
+    assert.equal(calls, 0);
+    const replacement = createTauriBootstrap({ invoke: () => 'replacement' });
+    assert.equal(await (await replacement.ready()).invoke('echo'), 'replacement');
+    replacement.dispose();
+  } finally {
+    configure(A05_SLOT_ENGINE);
+  }
+});
+
+void test('disposing a ready Tauri bootstrap releases its generated command registration', async () => {
+  const { configure, invoke } = await import('../types/index.js');
+  configure(A05_SLOT_ENGINE);
+  try {
+    const bootstrap = createTauriBootstrap({ invoke: () => 'alive' });
+    await bootstrap.ready();
+    bootstrap.dispose();
+    await assert.rejects(
+      invoke('echo'),
+      (error: unknown) =>
+        error instanceof UnikitCommandError && error.code === 'transport.unavailable',
+    );
+  } finally {
+    configure(A05_SLOT_ENGINE);
+  }
+});
+
+void test('a captured Tauri bootstrap engine rejects new calls after disposal', async () => {
+  const { configure } = await import('../types/index.js');
+  configure(A05_SLOT_ENGINE);
+  let calls = 0;
+  try {
+    const bootstrap = createTauriBootstrap({ invoke: () => ++calls });
+    const engine = await bootstrap.ready();
+    bootstrap.dispose();
+    await assert.rejects(engine.invoke('echo'), /disposed/);
+    await assert.rejects(engine.invokeBatch([{ command: 'echo' }]), /disposed/);
+    assert.equal(calls, 0);
+  } finally {
+    configure(A05_SLOT_ENGINE);
+  }
+});
+
+void test('Tauri bootstrap ready rejects when another registration takes ownership', async () => {
+  const { configure } = await import('../types/index.js');
+  configure(A05_SLOT_ENGINE);
+  try {
+    const bootstrap = createTauriBootstrap({ invoke: () => 'old' });
+    configure(A05_SLOT_ENGINE);
+    await assert.rejects(
+      bootstrap.ready(),
+      (error: unknown) => error instanceof UnikitCommandError && /replaced/.test(error.message),
+    );
+    bootstrap.dispose();
+  } finally {
+    configure(A05_SLOT_ENGINE);
+  }
+});
+
+void test('disposing an older Tauri bootstrap preserves a newer engine registration', async () => {
+  const { configure, invoke } = await import('../types/index.js');
+  configure(A05_SLOT_ENGINE);
+  try {
+    const bootstrap = createTauriBootstrap({ invoke: () => 'old' });
+    await bootstrap.ready();
+    configure(A05_SLOT_ENGINE);
+    bootstrap.dispose();
+    assert.equal(await invoke('echo'), 'slot');
+  } finally {
+    configure(A05_SLOT_ENGINE);
+  }
+});
+
+// IPC channels must be installed before native creation, never through events.
+function fakeIpcChannel() {
+  let fire: (payload: unknown) => void = () => {};
+  let disposed = 0;
+  const value = { id: 100 };
+  const send = (payload: unknown) => {
+    const bytes =
+      payload instanceof Uint8Array
+        ? payload
+        : payload instanceof ArrayBuffer
+          ? new Uint8Array(payload)
+          : new TextEncoder().encode(JSON.stringify(payload));
+    for (let offset = 0; offset < bytes.length || offset === 0; offset += 960) {
+      const body = bytes.subarray(offset, offset + 960);
+      const packet = new Uint8Array(8 + body.length);
+      const header = new DataView(packet.buffer);
+      header.setUint32(0, bytes.length, true);
+      header.setUint32(4, offset, true);
+      packet.set(body, 8);
+      fire(packet.buffer);
+    }
+  };
+  return {
+    value,
+    fire: send,
+    raw: (payload: unknown) => fire(payload),
+    disposed: () => disposed,
+    createIpcChannel(callback: (payload: unknown) => void) {
+      fire = callback;
+      return {
+        value,
+        dispose: () => {
+          disposed += 1;
+        },
+      };
+    },
+  };
+}
+
+for (const binary of [false, true]) {
+  const name = binary ? 'createChannelBytes' : 'createChannel';
+  const command = binary ? 'unikit_channel_create_bytes' : 'unikit_channel_create';
+  void test(`${name} binds IPC before allocation and closes once without any event listener`, async () => {
+    const api = await import('./index.js');
+    const received: unknown[] = [];
+    const wire = fakeIpcChannel();
+    const calls: Array<{ command: string; args: unknown }> = [];
+    const channel = await api[name]((payload: unknown) => received.push(payload), {
+      createIpcChannel: (...args) => wire.createIpcChannel(...args),
+      listen: async () => {
+        throw new Error('event transport must not be used');
+      },
+      invoke: async (cmd, args) => {
+        calls.push({ command: cmd, args });
+        if (cmd === command) {
+          assert.equal((args as { onMessage?: unknown } | undefined)?.onMessage, wire.value);
+          wire.fire(binary ? new Uint8Array([1, 2]).buffer : { private: 42 });
+          return { handle: 7, transport: 'ipc-channel-chunks-v1' };
+        }
+        return true;
+      },
+    });
+    assert.equal(channel.handle, 7);
+    assert.deepEqual(received, [binary ? new Uint8Array([1, 2]) : { private: 42 }]);
+    const first = channel.close();
+    assert.equal(channel.close(), first);
+    assert.equal(await first, true);
+    wire.fire(binary ? [9] : 'late');
+    assert.equal(received.length, 1);
+    assert.equal(wire.disposed(), 1);
+    assert.deepEqual(calls[1], { command: 'unikit_channel_drop', args: { handle: 7 } });
+    assert.equal(calls.length, 2);
+  });
+
+  void test(`${name} releases callbacks on IPC rejection and invalid handles`, async () => {
+    const api = await import('./index.js');
+    for (const invalid of [0, -1, 1.5, 2 ** 32, '7', undefined, 'reject']) {
+      const wire = fakeIpcChannel();
+      let received = 0;
+      await assert.rejects(
+        api[name](
+          () => {
+            received += 1;
+          },
+          {
+            createIpcChannel: (...args) => wire.createIpcChannel(...args),
+            invoke: async () => {
+              if (invalid === 'reject') throw new Error('ipc dead');
+              return { handle: invalid, transport: 'ipc-channel-chunks-v1' };
+            },
+          },
+        ),
+        invalid === 'reject' ? /ipc dead/ : /invalid u32 handle/,
+      );
+      wire.fire(binary ? [1] : {});
+      assert.equal(received, 0);
+      assert.equal(wire.disposed(), 1);
+    }
+  });
+
+  void test(`${name} rejects an old broadcast host and drops its handle`, async () => {
+    const api = await import('./index.js');
+    const wire = fakeIpcChannel();
+    const dropped: unknown[] = [];
+    await assert.rejects(
+      api[name](() => {}, {
+        createIpcChannel: (...args) => wire.createIpcChannel(...args),
+        invoke: async (cmd, args) => {
+          if (cmd === command) return { handle: 12 };
+          dropped.push(args);
+          return true;
+        },
+      }),
+      /protocol is incompatible/,
+    );
+    assert.deepEqual(dropped, [{ handle: 12 }]);
+    assert.equal(wire.disposed(), 1);
+  });
+
+  void test(`${name} releases callback even if native close rejects`, async () => {
+    const api = await import('./index.js');
+    const wire = fakeIpcChannel();
+    const channel = await api[name](() => {}, {
+      createIpcChannel: (...args) => wire.createIpcChannel(...args),
+      invoke: async (cmd) => {
+        if (cmd === command) return { handle: 3, transport: 'ipc-channel-chunks-v1' };
+        throw new Error('drop failed');
+      },
+    });
+    await assert.rejects(channel.close(), /drop failed/);
+    await assert.rejects(channel.close(), /drop failed/);
+    assert.equal(wire.disposed(), 1);
+  });
+
+  void test(`${name} requires IPC support before allocating a native handle`, async () => {
+    const api = await import('./index.js');
+    const root = globalThis as typeof globalThis & { __TAURI__?: unknown };
+    const previous = root.__TAURI__;
+    delete root.__TAURI__;
+    let invoked = 0;
+    try {
+      await assert.rejects(
+        api[name](() => {}, {
+          invoke: async () => {
+            invoked++;
+            return { handle: 4 };
+          },
+        }),
+        (error: unknown) =>
+          error instanceof UnikitCommandError &&
+          error.code === (binary ? 'channel.unavailable' : 'transport.unavailable'),
+      );
+      assert.equal(invoked, 0);
+    } finally {
+      root.__TAURI__ = previous;
+    }
+  });
+}
+
+void test('JSON IPC preserves string values without parsing them a second time', async () => {
+  const { createChannel } = await import('./index.js');
+  const wire = fakeIpcChannel();
+  const received: unknown[] = [];
+  const channel = await createChannel((value) => received.push(value), {
+    createIpcChannel: (...args) => wire.createIpcChannel(...args),
+    invoke: async () => ({ handle: 3, transport: 'ipc-channel-chunks-v1' }),
+  });
+  wire.fire('42');
+  wire.fire('{"step":1}');
+  wire.fire({ step: 1 });
+  assert.deepEqual(received, ['42', '{"step":1}', { step: 1 }]);
+  await channel.close();
+});
+
+void test('bytes IPC rejects invalid arrays and reports diagnostics', async () => {
+  const { createChannelBytes } = await import('./index.js');
+  const wire = fakeIpcChannel();
+  const events: UnikitDebugEvent[] = [];
+  const received: Uint8Array[] = [];
+  configureDebug((event) => events.push(event));
+  try {
+    const channel = await createChannelBytes((value) => received.push(value), {
+      createIpcChannel: (...args) => wire.createIpcChannel(...args),
+      invoke: async () => ({ handle: 4, transport: 'ipc-channel-chunks-v1' }),
+    });
+    for (const invalid of ['garbage', [256], [-1], [1.5], ['1']]) wire.raw(invalid);
+    assert.equal(received.length, 0);
+    assert.equal(events.filter((event) => event.kind === 'tauri.bytes_payload_error').length, 5);
+    wire.fire(new Uint8Array([0, 255]));
+    assert.deepEqual(received, [new Uint8Array([0, 255])]);
+    await channel.close();
+  } finally {
+    configureDebug(undefined);
+  }
+});
+
+void test('global IPC Channel callback is unregistered on failure and close', async () => {
+  const { createChannel } = await import('./index.js');
+  const root = globalThis as typeof globalThis & {
+    __TAURI__?: unknown;
+    __TAURI_INTERNALS__?: unknown;
+  };
+  const previous = root.__TAURI__;
+  const oldInternals = root.__TAURI_INTERNALS__;
+  const unregistered: number[] = [];
+  let count = 0;
+  class Channel {
+    id = ++count;
+    constructor(public onmessage: (payload: unknown) => void) {}
+  }
+  root.__TAURI__ = {
+    core: { Channel, invoke: async () => ({ handle: 5, transport: 'ipc-channel-chunks-v1' }) },
+  };
+  root.__TAURI_INTERNALS__ = { unregisterCallback: (id: number) => unregistered.push(id) };
+  try {
+    const channel = await createChannel(() => {});
+    await channel.close();
+    await assert.rejects(
+      createChannel(() => {}, {
+        invoke: async () => {
+          throw new Error('no host');
+        },
+      }),
+      /no host/,
+    );
+    assert.deepEqual(unregistered, [1, 2]);
+  } finally {
+    root.__TAURI__ = previous;
+    root.__TAURI_INTERNALS__ = oldInternals;
+  }
+});
+
+// ── 감사 2026-09-13 항목 2 — 구버전 Channel 생성자의 무음 콜백 드롭 가드 ──
+// @tauri-apps/api 2.4 의 compiled 생성자는 `constructor()`(Channel.length === 0,
+// 인자 무시)이고 2.5+ 는 `constructor(onmessage)`(기본값 없음 → length 1)다.
+// 스텁도 같은 arity 를 갖도록 만들어 감지 경로를 문서처럼 고정한다.
+
+/** requireTauriIpcChannel 이 읽는 두 전역 슬롯을 교체하고 복구기를 돌려준다. */
+function installChannelGlobals(Channel: unknown) {
+  const root = globalThis as typeof globalThis & {
+    __TAURI__?: unknown;
+    __TAURI_INTERNALS__?: unknown;
+  };
+  const previous = { tauri: root.__TAURI__, internals: root.__TAURI_INTERNALS__ };
+  const unregistered: number[] = [];
+  root.__TAURI__ = { core: { Channel } };
+  root.__TAURI_INTERNALS__ = { unregisterCallback: (id: number) => unregistered.push(id) };
+  return {
+    unregistered,
+    restore: () => {
+      root.__TAURI__ = previous.tauri;
+      root.__TAURI_INTERNALS__ = previous.internals;
+    },
+  };
+}
+
+void test('IPC Channel arity guard: a 2.5-style constructor (length 1) receives the callback and delivers', async () => {
+  const { requireTauriIpcChannel } = await import('./tauri-globals.js');
+  const received: unknown[] = [];
+  const onMessage = (payload: unknown) => received.push(payload);
+  let constructedWith: ((payload: unknown) => void) | null = null;
+  class Channel {
+    id = 61;
+    constructor(public onmessage: (payload: unknown) => void) {
+      constructedWith = onmessage;
+    }
+  }
+  assert.equal(Channel.length, 1, 'stub mirrors the 2.5+ compiled constructor(onmessage)');
+  const globals = installChannelGlobals(Channel);
+  try {
+    const ipc = requireTauriIpcChannel(onMessage, 'transport.unavailable');
+    assert.equal(constructedWith, onMessage, 'callback is passed through to the constructor');
+    assert.deepEqual((ipc.value as { id: number }).id, 61);
+    // 생성자 콜백 배선 — 실제 채널 프레임이 이 경로로 도달한다.
+    (ipc.value as { onmessage: (payload: unknown) => void }).onmessage({ value: 42 });
+    assert.deepEqual(received, [{ value: 42 }]);
+    ipc.dispose();
+    assert.deepEqual(globals.unregistered, [61], 'dispose wiring unchanged');
+  } finally {
+    globals.restore();
+  }
+});
+
+void test('IPC Channel arity guard: callback-style use on a pre-2.5 constructor (length 0) fails loudly with the upgrade command', async () => {
+  const { requireTauriIpcChannel } = await import('./tauri-globals.js');
+  let constructed = 0;
+  class Channel {
+    id = 62;
+    onmessage: (payload: unknown) => void = () => {};
+    constructor() {
+      constructed += 1;
+    } // 2.4: 인자가 없어 new Channel(cb) 의 cb 는 버려진다
+  }
+  assert.equal(Channel.length, 0, 'stub mirrors the 2.4 compiled constructor()');
+  const globals = installChannelGlobals(Channel);
+  try {
+    assert.throws(
+      () => requireTauriIpcChannel(() => {}, 'transport.unavailable'),
+      (error: unknown) => {
+        if (!(error instanceof UnikitCommandError)) return false;
+        assert.equal(error.code, 'transport.unavailable');
+        assert.match(error.message, /@tauri-apps\/api is too old/);
+        assert.match(error.message, /requires @tauri-apps\/api 2\.5\+/);
+        assert.match(error.message, /bun add @tauri-apps\/api@\^2\.5\.0/);
+        assert.match(error.message, /npm install @tauri-apps\/api@\^2\.5\.0/);
+        return true;
+      },
+    );
+    assert.equal(constructed, 0, 'the guard fires before any Channel allocation');
+  } finally {
+    globals.restore();
+  }
+});
+
+void test('IPC Channel arity guard: callback-less construction on a length-0 constructor keeps existing behavior', async () => {
+  // 콜백을 넘기지 않는(구식 onmessage 후행 할당 스타일) 호출은 가드 대상이
+  // 아니다 — 생성은 예전처럼 진행되고 dispose 배선도 동일하다.
+  const { requireTauriIpcChannel } = await import('./tauri-globals.js');
+  class Channel {
+    id = 63;
+    onmessage: (payload: unknown) => void = () => {};
+    constructor() {}
+  }
+  const globals = installChannelGlobals(Channel);
+  try {
+    const ipc = requireTauriIpcChannel(
+      undefined as unknown as (payload: unknown) => void,
+      'transport.unavailable',
+    );
+    assert.deepEqual((ipc.value as { id: number }).id, 63, 'constructed as before, no throw');
+    ipc.dispose();
+    assert.deepEqual(globals.unregistered, [63]);
+  } finally {
+    globals.restore();
+  }
+});
+
+// ── 핫코어 스왑 보고 구독 (예약 채널 unikit://hot-core/swapped) ──
+// Rust 측 tauri_support::register_dispatch_with_swap_events 가 emit 하는
+// 스왑 보고 채널의 래퍼 계약. 예약 세그먼트 이름('hot-core/swapped')은 치환
+// 대상 문자가 없으므로 unikitEventChannel 유도와 정확히 일치해야 한다.
+
+void test('subscribeHotSwap listens on the reserved swap channel and delivers both payload shapes', async () => {
+  const { subscribeHotSwap, unikitEventChannel } = await import('./index.js');
+  let captured: { channel: string } | null = null;
+  let fire: ((payload: unknown) => void) | null = null;
+  const fakeListen = async (channel: string, handler: (e: { payload: unknown }) => void) => {
+    captured = { channel };
+    fire = (payload: unknown) => handler({ payload });
+    return () => {};
+  };
+
+  const seen: unknown[] = [];
+  await subscribeHotSwap((event) => seen.push(event), fakeListen);
+
+  // 채널 고정 — Rust 단위 테스트 hot_swap_tests::hot_swap_event_maps_to_reserved_channel
+  // 과 문자 단위까지 쌍생이다(치환 대상 문자가 없음을 양쪽에서 게이트).
+  assert.equal(captured!.channel, 'unikit://hot-core/swapped');
+  assert.equal(captured!.channel, unikitEventChannel('hot-core/swapped'));
+
+  // 실제 WebView 경계 — emit_str JSON 이 이미 파싱된 객체로 도달한다(무손실 통과).
+  fire!({ oldContractHash: '0123456789abcdef', newContractHash: 'fedcba9876543210' });
+  // 문자열 모드 transport — R03 단일 parse 로 같은 값으로 수렴한다.
+  fire!({ oldContractHash: 'aaaaaaaaaaaaaaaa', newContractHash: 'bbbbbbbbbbbbbbbb' });
+  // 실패 보고 — {error} 모양도 그대로 전달된다.
+  fire!({ error: 'dylib open failed' });
+
+  assert.deepEqual(seen, [
+    { oldContractHash: '0123456789abcdef', newContractHash: 'fedcba9876543210' },
+    { oldContractHash: 'aaaaaaaaaaaaaaaa', newContractHash: 'bbbbbbbbbbbbbbbb' },
+    { error: 'dylib open failed' },
+  ]);
+});
+
+void test('subscribeHotSwap rejects loudly when the Tauri global listen API is missing', async () => {
+  const { subscribeHotSwap } = await import('./index.js');
+  const root = globalThis as typeof globalThis & { __TAURI__?: unknown };
+  const previous = root.__TAURI__;
+  delete root.__TAURI__;
+  try {
+    await assert.rejects(
+      subscribeHotSwap(() => {}),
+      (err: unknown) => err instanceof UnikitCommandError && err.code === 'transport.unavailable',
+    );
+  } finally {
+    root.__TAURI__ = previous;
+  }
+});
+
+void test('IPC frame decoder bounds allocation, rejects gaps, and resets on disposal', async () => {
+  const { createChannelFrameDecoder, MAX_CHANNEL_FRAME_BYTES } =
+    await import('./tauri-channel-frames.js');
+  const frames: Uint8Array[] = [];
+  const decoder = createChannelFrameDecoder((frame) => frames.push(frame));
+  const packet = (total: number, offset: number, body: number[]) => {
+    const bytes = new Uint8Array(8 + body.length);
+    const view = new DataView(bytes.buffer);
+    view.setUint32(0, total, true);
+    view.setUint32(4, offset, true);
+    bytes.set(body, 8);
+    return bytes;
+  };
+  assert.throws(() => decoder.accept(packet(MAX_CHANNEL_FRAME_BYTES + 1, 0, [1])), /length/);
+  decoder.accept(packet(4, 0, [1, 2]));
+  assert.throws(() => decoder.accept(packet(4, 3, [4])), /out-of-order/);
+  decoder.accept(packet(4, 0, [1, 2]));
+  decoder.dispose();
+  assert.throws(() => decoder.accept(packet(4, 2, [3, 4])), /out-of-order/);
+  decoder.accept(packet(4, 0, [1, 2]));
+  decoder.accept(packet(4, 2, [3, 4]));
+  assert.deepEqual(frames, [new Uint8Array([1, 2, 3, 4])]);
+});
+
+void test('large JSON and binary frames reassemble across private IPC packets', async () => {
+  const { createChannel, createChannelBytes } = await import('./index.js');
+  for (const binary of [false, true]) {
+    const wire = fakeIpcChannel();
+    const received: unknown[] = [];
+    const value = binary ? new Uint8Array(16_000).fill(255) : { text: '가'.repeat(10_000) };
+    const create = binary ? createChannelBytes : createChannel;
+    const channel = await create((payload) => received.push(payload), {
+      createIpcChannel: (...args) => wire.createIpcChannel(...args),
+      invoke: async () => ({ handle: 8, transport: 'ipc-channel-chunks-v1' }),
+    });
+    wire.fire(value);
+    assert.deepEqual(received, [value]);
+    await channel.close();
+  }
+});
+
+void test('JSON adapter preserves explicit null while legacy omitted input remains an object', async () => {
+  const engine = createTauriEngine({
+    async invoke(command, args) {
+      const value = args as { args?: unknown; requests?: { args: unknown }[] };
+      return command === 'unikit_dispatch_batch'
+        ? value.requests!.map((request) => ({ ok: true, result: request.args }))
+        : value.args;
+    },
+  });
+  assert.equal(await engine.invoke('reset', null), null);
+  assert.deepEqual(await engine.invoke('legacy'), {});
+  assert.deepEqual(
+    await engine.invokeBatch([{ command: 'reset', args: null }, { command: 'legacy' }]),
+    [null, {}],
+  );
+});

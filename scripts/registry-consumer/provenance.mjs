@@ -61,10 +61,13 @@ export function assertExactVersion(value, label) {
 }
 
 export function validateVersionManifest(manifest) {
-  if (!manifest || manifest.schemaVersion !== 1)
-    throw new Error('version manifest schemaVersion must be 1');
-  const npmNames = ['@unikit-bridge/cli', '@unikit-bridge/types', '@unikit-bridge/node', '@unikit-bridge/bun'];
-  const rustNames = ['unikit-bridge', 'unikit-bridge-macros', 'unikit-bridge-naming'];
+  if (!manifest || (manifest.schemaVersion !== 1 && manifest.schemaVersion !== 2))
+    throw new Error('version manifest schemaVersion must be 1 or 2');
+  const npmNames =
+    manifest.schemaVersion === 2
+      ? ['@unikit-bridge/rustra']
+      : ['@unikit-bridge/rustra', '@unikit-bridge/rustra', '@unikit-bridge/rustra', '@unikit-bridge/rustra'];
+  const rustNames = ['unikit-bridge', 'unikit-bridge-macros'];
   if (
     !manifest.npm ||
     Object.keys(manifest.npm).sort().join('\n') !== [...npmNames].sort().join('\n')
@@ -91,7 +94,10 @@ export function validateVersionManifest(manifest) {
   }
   // hosts — GUI/모바일 여정(tauri, react-native)이 쓰는 선택 정확 핀. Node/Bun CLI
   // 게이트는 이 섹션 없이도 그대로 통과해야 한다(키 검사는 엄격 유지).
-  const hostNames = ['@unikit-bridge/tauri', '@unikit-bridge/react-native'];
+  const hostNames =
+    manifest.schemaVersion === 2
+      ? ['@unikit-bridge/rustra']
+      : ['@unikit-bridge/tauri', '@unikit-bridge/react-native'];
   if (manifest.hosts !== undefined) {
     if (!manifest.hosts || typeof manifest.hosts !== 'object' || Array.isArray(manifest.hosts))
       throw new Error('version manifest hosts must be an object when present');
@@ -158,7 +164,7 @@ export function assertNoConsumerContamination(
     if (/^\s*\[replace\]/m.test(cargo)) violations.push('Cargo.toml contains [replace]');
     if (cargoDependencyBlocks(cargo).some((block) => /\b(?:path|git)\s*=/.test(block)))
       violations.push('Cargo.toml contains a path/git dependency');
-    for (const name of ['unikit-bridge', 'unikit-bridge-macros', 'unikit-bridge-naming']) {
+    for (const name of ['unikit-bridge', 'unikit-bridge-macros']) {
       const escaped = name.replaceAll('-', '\\-');
       // 두 표기 모두 잡는다 — `unikit-bridge = "x"` 와 `unikit-bridge = { version = "x", … }`.
       // brace 형태를 파싱하지 않으면 features 지정 소비자가 핀 없이 통과하고,
@@ -175,7 +181,8 @@ export function assertNoConsumerContamination(
       if (spec !== null) assertExactVersion(spec.slice(1), `Cargo ${name}`);
     }
   }
-  for (const name of ['cli', 'types', 'node', 'bun']) {
+  const packageDirs = ['rustra', 'cli', 'types', 'node', 'bun'];
+  for (const name of packageDirs) {
     const path = join(projectDir, 'node_modules', '@unikit-bridge', name);
     if (existsSync(path) && lstatSync(path).isSymbolicLink())
       violations.push(`${path} is a symlink`);

@@ -11,7 +11,7 @@
 //
 // 사용법: `node scripts/check-codegen-fresh.mjs` (전수), `--example <name>` (단일,
 // 반복 지정 가능 — 로컬 디버깅용), `--bindings` (UniFFI Swift/Kotlin 실제 재생성).
-// 먼저 `bun run --cwd packages/cli build` 로 CLI 를 빌드한다.
+// 먼저 `bun run --cwd packages/rustra build` 로 CLI 를 빌드한다.
 //
 // 감지 범위 / known blind spots:
 // - 현재 auth, calculator, crud, react-native-bare-calculator, react-native-calculator,
@@ -61,7 +61,7 @@ export function resolveCheckCommand(example, root, { bindings = false } = {}) {
   return {
     file: process.execPath,
     args: [
-      join(root, 'packages', 'cli', 'dist', 'index.js'),
+      join(root, 'packages', 'rustra', 'dist', 'cli', 'index.js'),
       'codegen',
       '--config',
       'unikit.json',

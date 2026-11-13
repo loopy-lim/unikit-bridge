@@ -51,7 +51,7 @@ const PROBE_WATCH_SECONDS = 900;
 const configPath = resolve(
   process.env.BENCH_CONFIG ?? join(root, 'examples/tauri-calculator/unikit.hot.json'),
 );
-const cliEntry = join(root, 'packages/cli/dist/index.js');
+const cliEntry = join(root, 'packages/rustra/dist/cli/index.js');
 const probeBin = join(root, 'target/debug/unikit-hot-core-probe');
 const sourcePath = join(root, 'examples/calculator/src/lib.rs');
 const generatedDir = join(root, 'examples/calculator/generated');
@@ -169,7 +169,7 @@ function hotSwapCopies() {
 console.error('[bench] 1/6 preflight — build probe binary and CLI dist');
 runSync('cargo', ['build', '-q', '-p', 'unikit-hot-core-probe']);
 // 측정되는 파이프라인 코드가 현재 소스와 일치하도록 dist 를 항상 재빌드한다.
-runSync('bun', ['run', '--cwd', 'packages/cli', 'build']);
+runSync('bun', ['run', '--cwd', 'packages/rustra', 'build']);
 if (!existsSync(cliEntry) || !existsSync(probeBin) || !existsSync(configPath)) {
   throw new Error(`preflight failed: ${cliEntry} / ${probeBin} / ${configPath}`);
 }

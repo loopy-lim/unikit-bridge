@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Platform, StyleSheet, Text, View, ScrollView } from 'react-native';
 import { NitroModules } from 'react-native-nitro-modules';
 import type { NitroBench } from 'nitro-bench';
-import { configure } from '@unikit-bridge/types';
+import { configure } from '@unikit-bridge/rustra/types';
 import {
   addNumbers,
   greet,
@@ -171,7 +171,7 @@ async function runBenchmarks(): Promise<string[]> {
   // ══════════════════════════════════════════════════════
   // DX example: how users would set up unikit in their app
   // ─────────────────────────────────────────────────────
-  //   import { configure } from "@unikit-bridge/types";
+  //   import { configure } from "@unikit-bridge/rustra/types";
   //   import { createFrameEngine } from "./src/adapters/frame-adapter";
   //   import { installUnikitJSI, getUnikitNative } from "./modules/unikit-jsi/src";
   //

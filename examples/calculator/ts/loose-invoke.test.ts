@@ -2,7 +2,7 @@
 // 저장소 표준(node:test + node:assert/strict, ESM) 사용.
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { invokeLoose } from '@unikit-bridge/types';
+import { invokeLoose } from '@unikit-bridge/rustra/types';
 
 void test('invokeLoose prototypes a command by name without a generated client', async () => {
   const calls: string[] = [];

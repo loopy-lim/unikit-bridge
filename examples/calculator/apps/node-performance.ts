@@ -7,8 +7,8 @@ import {
   createNodeEngine,
   createNodeLoopTransport,
   createNodeProcessTransport,
-} from '@unikit-bridge/node';
-import { createFrameEngine } from '@unikit-bridge/types';
+} from '@unikit-bridge/rustra/node';
+import { createFrameEngine } from '@unikit-bridge/rustra/types';
 import { addNumbers, unikit } from '../generated/node.js';
 import { frameRegistry } from '../generated/frame-registry.js';
 import { benchmarkCommand } from './performance-stats.js';

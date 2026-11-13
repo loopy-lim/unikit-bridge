@@ -1,4 +1,4 @@
-import { createComplexCodec } from '../packages/types/src/index.ts';
+import { createComplexCodec } from '../packages/rustra/src/types/index.ts';
 
 const profileSchema = {
   type: 'object',

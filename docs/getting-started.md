@@ -4,21 +4,24 @@ English | [한국어](./getting-started.ko.md)
 
 For ordinary functions with multiple arguments and plain returns, see [function registration](./function-registration.md).
 
-> **Release versions:** this guide targets Rust crates 0.13.0 and the independent
-> npm package versions pinned below. Upgrade native libraries, JS packages and
-> generated output together; see the [DX migration guide](migrations/0.11-to-0.12.md).
+> **Release versions:** this guide targets Rust crates **0.13.0** and npm package
+> **`@unikit-bridge/rustra@0.13.0`** (subpath exports for adapters). Upgrade native
+> libraries, the npm package, and generated output together; see
+> [package consolidation](migrations/package-consolidation.md) and
+> [0.11→0.12](migrations/0.11-to-0.12.md).
 
 unikit is a bridge framework that automatically generates a TypeScript client — working on Node, Bun, Tauri, and React Native alike — once you define a Rust package.
 
 This guide aims to get a developer new to unikit building their first package and generating a TypeScript client within 10 minutes.
 
-> Terminology: **unikit** is the Rust crate and the npm scope (`@unikit-bridge/*`);
-> **unikit-bridge** is this repository. The two names refer to the same project.
+> Terminology: **unikit** is the Rust crate name on crates.io (`unikit-bridge`);
+> **unikit-bridge** is this repository. TypeScript ships as **`@unikit-bridge/rustra`**
+> with subpath exports (`/node`, `/types`, …).
 
 ## 10-Minute Summary
 
 1. Install Rust and Bun, then scaffold and run a project:
-   `bunx --bun @unikit-bridge/cli@0.13.0 init my-project --setup`.
+   `bunx --bun @unikit-bridge/rustra@0.13.0 init my-project --setup`.
 2. Add Rust commands in `src/lib.rs`; expose them through the package builder.
 3. Run `bun run start` to generate the TypeScript client, build Rust, and call the demo.
 4. For platform integration, continue with [Tauri](extending/tauri-setup.md) or [React Native](extending/react-native-setup.md).
@@ -50,8 +53,8 @@ This is the fast path; the detailed sections below remain the complete reference
 With Rust and Bun 1.4+ installed, run:
 
 ```bash
-bunx --bun @unikit-bridge/cli@0.13.0 init my-project --setup
-# Bun FFI instead: bunx --bun @unikit-bridge/cli@0.13.0 init my-bun-project --host bun --setup
+bunx --bun @unikit-bridge/rustra@0.13.0 init my-project --setup
+# Bun FFI instead: bunx --bun @unikit-bridge/rustra@0.13.0 init my-bun-project --host bun --setup
 ```
 
 This creates the project, generates its client, installs dependencies, builds
@@ -110,15 +113,14 @@ serde = { version = "1", features = ["derive"] }
 schemars = { version = "0.8", features = ["derive"] }
 ```
 
-Installation versions follow the current Rust and npm manifests. Adapters have independent versions; use the manifest-derived [compatibility table](compatibility-matrix.md) for installation. This table does not certify publication or CI success for this branch.
+Installation versions follow the current Rust and npm manifests (`@unikit-bridge/rustra`). Use the manifest-derived [compatibility table](compatibility-matrix.md). This table does not certify publication or CI success for this branch.
 
-For the TypeScript adapters, install only the environment you use:
+For TypeScript, install the unified npm package once, then import the adapter
+subpath you need (`@unikit-bridge/rustra/node`, `/bun`, `/tauri`,
+`/react-native`, and so on). See [package consolidation](migrations/package-consolidation.md).
 
 ```bash
-bun add @unikit-bridge/node@0.11.1      # Node.js
-bun add @unikit-bridge/bun@0.11.1       # Bun
-bun add @unikit-bridge/tauri@0.10.1     # Tauri
-bun add @unikit-bridge/react-native@0.11.0  # React Native
+bun add @unikit-bridge/rustra@0.13.0
 ```
 
 ### Using in a Monorepo / Workspace
@@ -159,11 +161,11 @@ serde_json.workspace = true
 
 Only four crates are needed.
 
-| crate                | Role                                                                           |
-| -------------------- | ------------------------------------------------------------------------------ |
-| `unikit`             | Package builder, TypeScript generator, JSON Schema-based type mapping          |
-| `unikit-bridge-macros`      | The `#[command]` attribute macro (re-exported automatically by unikit)         |
-| `serde` + `schemars` | Serialization/deserialization + JSON Schema generation. Three derives per type |
+| crate                  | Role                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------ |
+| `unikit`               | Package builder, TypeScript generator, JSON Schema-based type mapping          |
+| `unikit-bridge-macros` | The `#[command]` attribute macro (re-exported automatically by unikit)         |
+| `serde` + `schemars`   | Serialization/deserialization + JSON Schema generation. Three derives per type |
 
 ---
 
@@ -337,8 +339,8 @@ files `frame-codecs.ts`/`frame-registry.ts` (always emitted). Configuring `node`
 
 <!-- prettier-ignore -->
 ```ts
-export type { EngineClient, UnikitError } from '@unikit-bridge/types';
-export { UnikitCommandError } from '@unikit-bridge/types';
+export type { EngineClient, UnikitError } from '@unikit-bridge/rustra/types';
+export { UnikitCommandError } from '@unikit-bridge/rustra/types';
 
 /**
  * 커맨드 인자로 받은 채널 핸들 — serde 표면은 plain `u32`다.
@@ -756,7 +758,7 @@ export type WideAggOutput = {
 
 ```ts
 import type { AddNumbersInput, AddNumbersOutput } from './types.js';
-import { createGeneratedFields2 } from '@unikit-bridge/types';
+import { createGeneratedFields2 } from '@unikit-bridge/rustra/types';
 
 // Commands with one or two fields are generated as a const form that passes the required fields directly on each call
 // (one-field commands use `createGeneratedFields1`; the (input, options) call surface is unchanged).
@@ -900,7 +902,7 @@ The generated entry spawns this binary once per invoke with the JSON envelope on
 **Custom transports (napi-rs, etc.):**
 
 ```ts
-import { createNodeEngine } from '@unikit-bridge/node';
+import { createNodeEngine } from '@unikit-bridge/rustra/node';
 
 const engine = createNodeEngine({
   invoke(command, args) {
@@ -1011,8 +1013,8 @@ commands whose input has 0–3 fields are published as field-positional helpers
 outside that shape keep the object-input `commands.ts` path.
 
 ```bash
-bunx --bun @unikit-bridge/cli@0.13.0 doctor --config unikit.json
-bunx --bun @unikit-bridge/cli@0.13.0 codegen --config unikit.json
+bunx --bun @unikit-bridge/rustra@0.13.0 doctor --config unikit.json
+bunx --bun @unikit-bridge/rustra@0.13.0 codegen --config unikit.json
 ```
 
 **TypeScript-side usage:**
@@ -1060,8 +1062,8 @@ for CI is available via `bun run doctor -- --json`.
 #### JSON (low-level transport compatibility)
 
 ```ts
-import { createReactNativeEngine } from '@unikit-bridge/react-native';
-import { configure } from '@unikit-bridge/types';
+import { createReactNativeEngine } from '@unikit-bridge/rustra/react-native';
+import { configure } from '@unikit-bridge/rustra/types';
 import { addNumbers } from '../generated/commands.js';
 import { customNativeTransport } from './native-transport';
 
@@ -1214,7 +1216,7 @@ separate script.
 
 While prototyping on a debug build you can call a Rust handler that is not in the
 generated client yet with `invokeLoose(engine, 'commandName', args?)` from
-`@unikit-bridge/types` — the dynamic development tier, its unknown-device-token wall, and the
+`@unikit-bridge/rustra/types` — the dynamic development tier, its unknown-device-token wall, and the
 release-time gates are described in [dev-tier.md](dev-tier.md).
 
 `unikit.json` names the Rust generator:
@@ -1302,11 +1304,11 @@ Error codes:
 ### TypeScript Side
 
 When a command call fails, the adapter throws. All host adapters (Node/Bun/Tauri/RN)
-normalize it to `@unikit-bridge/types`' `UnikitCommandError`, so there is exactly one
+normalize it to `@unikit-bridge/rustra/types`' `UnikitCommandError`, so there is exactly one
 `instanceof` branch:
 
 ```ts
-import { UnikitCommandError } from '@unikit-bridge/types';
+import { UnikitCommandError } from '@unikit-bridge/rustra/types';
 import { divide } from '../generated/node.js';
 
 try {

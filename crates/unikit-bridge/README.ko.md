@@ -118,7 +118,7 @@ fn main() -> Result<()> {
 생성된 커맨드 헬퍼 예시:
 
 ```ts
-import { invokeGenerated, type InvokeOptions } from '@unikit-bridge/types';
+import { invokeGenerated, type InvokeOptions } from '@unikit-bridge/rustra/types';
 
 export function addNumbers(
   input: AddNumbersInput,
@@ -160,4 +160,4 @@ use unikit_bridge::tauri_support::register;
 let builder = register(my_package, tauri::Builder::default());
 ```
 
-`register()`는 패키지의 모든 커맨드를 `unikit_dispatch` 단일 Tauri 커맨드로 라우팅하는 핸들러를 등록합니다. TypeScript 측에서 `@unikit-bridge/tauri` 어댑터를 사용하면 내부적으로 이 엔드포인트로 자동 라우팅됩니다.
+`register()`는 패키지의 모든 커맨드를 `unikit_dispatch` 단일 Tauri 커맨드로 라우팅하는 핸들러를 등록합니다. TypeScript 측에서 `@unikit-bridge/rustra/tauri` 어댑터를 사용하면 내부적으로 이 엔드포인트로 자동 라우팅됩니다.

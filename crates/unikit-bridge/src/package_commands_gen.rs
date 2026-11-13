@@ -61,13 +61,13 @@ impl Package {
             }
         }
         output.push_str(&format!(
-            "import {{ {} }} from '@unikit-bridge/types';\n",
+            "import {{ {} }} from '@unikit-bridge/rustra/types';\n",
             generated_helpers.into_iter().collect::<Vec<_>>().join(", ")
         ));
         // (M7) InvokeOptions 를 문서화된 별칭으로 재노출한다 — 생성 파일의 툴팁에서
         // 얕은 취소·retryable 경고가 바로 보인다. TS CLI 렌더러와 동일 바이트.
         output.push_str(
-            "import type { InvokeOptions as CoreInvokeOptions } from '@unikit-bridge/types';\n\n",
+            "import type { InvokeOptions as CoreInvokeOptions } from '@unikit-bridge/rustra/types';\n\n",
         );
         output.push_str(INVOKE_OPTIONS_JS_DOC);
         output.push_str("export type InvokeOptions = CoreInvokeOptions;\n\n");

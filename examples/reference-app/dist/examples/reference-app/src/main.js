@@ -1,5 +1,5 @@
 /**
- * 레퍼런스 앱 — @unikit-bridge/react 훅 + crud 패키지로 만든 완결 CRUD + 이벤트 예제.
+ * 레퍼런스 앱 — @unikit-bridge/rustra/react 훅 + crud 패키지로 만든 완결 CRUD + 이벤트 예제.
  *
  * Node 위에서 서브프로세스 transport(createNodeProcessTransport)로 실 Rust
  * crud 런타임(unikit-crud-example)을 호출한다. 브라우저/네이티브가 아니어도
@@ -14,9 +14,9 @@ import { createElement } from 'react';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { existsSync } from 'node:fs';
-import { createNodeEngine, createNodeProcessTransport } from '@unikit-bridge/node';
-import { configure } from '@unikit-bridge/types';
-import { UnikitProvider, useCommand, useMutation, useEvent } from '@unikit-bridge/react';
+import { createNodeEngine, createNodeProcessTransport } from '@unikit-bridge/rustra/node';
+import { configure } from '@unikit-bridge/rustra/types';
+import { UnikitProvider, useCommand, useMutation, useEvent } from '@unikit-bridge/rustra/react';
 import { App } from './App.js';
 import { listItems, createItem } from '../../crud/generated/commands.js';
 // 저장소 루트 탐색 — 컴파일 산출(dist/examples/reference-app/src)은 6단계,

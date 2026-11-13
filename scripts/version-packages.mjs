@@ -1,22 +1,15 @@
 #!/usr/bin/env node
 /**
- * changesets version 스텝의 래퍼 — `changeset version` 이 패키지 버전을 올린
- * 뒤, @unikit-bridge/cli 의 호스트별 unikitTemplate 범위를 각 어댑터 버전에
- * 맞춘다. 독립 어댑터 버전은 version PR 과 같은 커밋에서 범위도 맞춘다 —
- * 범위가 뒤처지면 코드젠의 어댑터 버전 게이트가 새 버전을 거부해 main CI 가
- * 깨진다(2026-09-10 첫 RN 마이너 발행에서 실발). 범위와 버전은 같은 커밋에서
- * 움직여야 하고, 그 커밋은 version PR 이다.
- *
- * cargoRange 는 여기서 건드리지 않는다 — Rust 크레이트 라인은 changesets 가
- * 아니라 기능 커밋의 Cargo.toml 워크스페이스 버전으로 움직이므로, 범위도 그
- * 커밋에서 함께 올린다(check-release-coherence 가 불변식을 지킨다).
+ * changesets version wrapper — after `changeset version`, sync
+ * @unikit-bridge/rustra unikitTemplate.npmRange to the package version
+ * and align bun.lock workspace metadata.
  */
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { PUBLISHED_PACKAGES } from './check-release-coherence.mjs';
+import { PUBLISHED_PACKAGE_DIR } from './check-release-coherence.mjs';
 
-/** caret 마이너 범위 — 0.x 에서는 ^0.N.0 (0.N.x 허용). */
+/** caret minor range — on 0.x this is ^0.N.0 */
 export function caretMinorRange(version) {
   const match = /^(\d+)\.(\d+)\.\d+/.exec(String(version).trim());
   if (!match) throw new Error(`not a released x.y.z version: ${version}`);
@@ -24,51 +17,28 @@ export function caretMinorRange(version) {
   return `^${major}.${minor}.0`;
 }
 
-/**
- * cli manifest 의 reactNativeRange 를 어댑터 버전에서 다시 계산해 반영한다.
- * 키 순서·들여쓰기가 바뀌면 version PR diff 가 필요하게 커지므로 정확한 문자열
- * 치환만 한다.
- */
-export function syncReactNativeRange(cliManifestPath, reactNativeVersion) {
-  const expected = caretMinorRange(reactNativeVersion);
-  const text = readFileSync(cliManifestPath, 'utf8');
-  const pattern = /("reactNativeRange"\s*:\s*")([^"]+)(")/;
+export function syncNpmRange(manifestPath, packageVersion) {
+  const expected = caretMinorRange(packageVersion);
+  const text = readFileSync(manifestPath, 'utf8');
+  const pattern = /("npmRange"\s*:\s*")([^"]+)(")/;
   const match = pattern.exec(text);
-  if (!match) throw new Error(`reactNativeRange key not found in ${cliManifestPath}`);
+  if (!match) throw new Error(`npmRange key not found in ${manifestPath}`);
   if (match[2] === expected) return false;
-  writeFileSync(cliManifestPath, text.replace(pattern, `$1${expected}$3`));
+  writeFileSync(manifestPath, text.replace(pattern, `$1${expected}$3`));
   return true;
 }
 
-/** Sync generated-host defaults without tying them to the CLI version. */
+/** @deprecated consolidated layout — retained for tests importing the symbol. */
+export function syncReactNativeRange(cliManifestPath, reactNativeVersion) {
+  return syncNpmRange(cliManifestPath, reactNativeVersion);
+}
+
+/** @deprecated consolidated layout — retained for tests importing the symbol. */
 export function syncHostRanges(cliManifestPath, versions) {
-  const fields = {
-    node: 'nodeRange',
-    bun: 'bunRange',
-    tauri: 'tauriRange',
-    'react-native': 'reactNativeRange',
-  };
-  let text = readFileSync(cliManifestPath, 'utf8');
-  const original = text;
-  for (const [name, field] of Object.entries(fields)) {
-    const expected = caretMinorRange(versions[name]);
-    const pattern = new RegExp(`("${field}"\\s*:\\s*")([^"]+)(")`);
-    if (!pattern.test(text)) throw new Error(`${field} key not found in ${cliManifestPath}`);
-    text = text.replace(pattern, `$1${expected}$3`);
-  }
-  if (text === original) return false;
-  writeFileSync(cliManifestPath, text);
-  return true;
+  const version = versions['react-native'] ?? versions.node ?? Object.values(versions)[0];
+  return syncNpmRange(cliManifestPath, version);
 }
 
-/**
- * bun.lock 워크스페이스 블록의 메타데이터(version, @unikit-bridge/* 내부 의존 범위)를
- * manifest 로 맞춘다. bun install 은 이 필드들을 다시 쓰지 않는다(2026-09-10
- * 실측 — workspace 패키지의 version 이 올라가도 잠금은 그대로다) 그래서
- * changeset version 직후엔 manifest=0.9.0 / lock=0.8.0 어긋남이 남고
- * test:release-coherence 가 version PR CI 를 깨뜨린다. 워크스페이스 블록
- * 안의 두 종류 값만 치환한다 — 레지스트리 패키지 해석 영역은 건드리지 않는다.
- */
 export function syncLockWorkspaceMetadata(lockPath, manifests) {
   let text = readFileSync(lockPath, 'utf8');
   let changed = false;
@@ -111,25 +81,14 @@ function main() {
     ['changeset', 'version', ...args],
     { stdio: 'inherit', cwd: root },
   );
-  const hostVersions = Object.fromEntries(
-    ['node', 'bun', 'tauri', 'react-native'].map((name) => [
-      name,
-      JSON.parse(readFileSync(join(root, 'packages', name, 'package.json'), 'utf8')).version,
-    ]),
-  );
-  if (syncHostRanges(join(root, 'packages/cli/package.json'), hostVersions)) {
-    console.log('[version] generated host compatibility ranges synced');
+  const manifestPath = join(root, 'packages', PUBLISHED_PACKAGE_DIR, 'package.json');
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  if (syncNpmRange(manifestPath, manifest.version)) {
+    console.log('[version] @unikit-bridge/rustra npmRange synced');
   }
-  // 버전이 오른 manifest 와 bun.lock 워크스페이스 메타데이터가 어긋나면
-  // release-coherence 가 version PR CI 를 깨뜨린다(manifest=0.9.0, lock=0.8.0 —
-  // 2026-09-10 첫 버전 PR 실측). bun install 은 이 필드들을 안 고치므로
-  // 직접 맞춘다.
-  const manifests = {};
-  for (const name of PUBLISHED_PACKAGES) {
-    manifests[`packages/${name}`] = JSON.parse(
-      readFileSync(join(root, 'packages', name, 'package.json'), 'utf8'),
-    );
-  }
+  const manifests = {
+    [`packages/${PUBLISHED_PACKAGE_DIR}`]: JSON.parse(readFileSync(manifestPath, 'utf8')),
+  };
   if (syncLockWorkspaceMetadata(join(root, 'bun.lock'), manifests)) {
     console.log('[version] bun.lock workspace metadata synced to manifests');
   }

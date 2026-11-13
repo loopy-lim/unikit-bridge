@@ -4,7 +4,11 @@
     "rootDir": "../..",
     "outDir": "dist"
   },
-  "include": ["src/**/*.ts", "../calculator/generated/**/*.ts", "../../packages/tauri/src/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "../calculator/generated/**/*.ts",
+    "../../packages/rustra/src/tauri/**/*.ts"
+  ],
   "exclude": [
     "../calculator/generated/bun.ts",
     "../calculator/generated/node.ts",

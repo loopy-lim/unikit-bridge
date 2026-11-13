@@ -9,8 +9,8 @@
     "modules/unikit-bridge"
   ],
   "scripts": {
-    "codegen": "bun ../../packages/cli/src/index.ts codegen --config unikit.json",
-    "codegen:check": "bun ../../packages/cli/src/index.ts codegen --config unikit.json --check",
+    "codegen": "node ../../packages/rustra/dist/cli/index.js codegen --config unikit.json",
+    "codegen:check": "node ../../packages/rustra/dist/cli/index.js codegen --config unikit.json --check",
     "postinstall": "node scripts/link-live-packages.mjs",
     "test:autolink": "bun scripts/check-autolink.mjs",
     "typecheck": "tsc --noEmit",
@@ -19,8 +19,7 @@
   },
   "dependencies": {
     "@unikit-bridge/generated-react-native": "workspace:*",
-    "@unikit-bridge/react-native": "file:../../packages/react-native",
-    "@unikit-bridge/types": "file:../../packages/types",
+    "@unikit-bridge/rustra": "file:../../packages/rustra",
     "react": "19.1.0",
     "react-native": "0.81.5"
   },
@@ -32,7 +31,6 @@
     "typescript": "~5.9.2"
   },
   "overrides": {
-    "@unikit-bridge/react-native": "file:../../packages/react-native",
-    "@unikit-bridge/types": "file:../../packages/types"
+    "@unikit-bridge/rustra": "file:../../packages/rustra"
   }
 }
