@@ -40,15 +40,37 @@ const TOLERATED_PATH_CLASSES = [
     ['unused-file', 'unused-export', 'circular-dependency'],
     '예제의 코드젠 생성물(generated/**)과 모듈 진입점 — 생성기가 정본이고 eslint 도 **/generated/** 를 제외한다. 도구가 생성물을 앱 소스로 읽을 때만 나오는 오탐이다.',
   ],
+  // 스캐너가 packages/rustra 를 패키지 루트로 잡을 때 `src/...`, 모노레포 루트
+  // 기준으로 잡을 때 `packages/rustra/src/...` — 둘 다 수용(도구 cwd 흔들림).
+  [
+    'src/cli/cargo-metadata.ts',
+    ['import-metadata-execution-risk'],
+    'cargo metadata 파싱→스폰은 이 도구의 본연 — 배치 이전 소스이며 848edf30 동일 소스가 미플래그라 도구 판정이 불안정하다.',
+  ],
   [
     'packages/rustra/src/cli/cargo-metadata.ts',
     ['import-metadata-execution-risk'],
     'cargo metadata 파싱→스폰은 이 도구의 본연 — 배치 이전 소스이며 848edf30 동일 소스가 미플래그라 도구 판정이 불안정하다.',
   ],
   [
+    'src/types/global-batch-settled.ts',
+    ['async-await-in-loop'],
+    '배치 정산 루프의 순차 대기 — 848edf30 동일 소스가 미플래그라 도구 판정이 불안정하다.',
+  ],
+  [
     'packages/rustra/src/types/global-batch-settled.ts',
     ['async-await-in-loop'],
     '배치 정산 루프의 순차 대기 — 848edf30 동일 소스가 미플래그라 도구 판정이 불안정하다.',
+  ],
+  [
+    'src/types/frame-engine-schema.ts',
+    ['rn-no-dimensions-get'],
+    'RN Dimensions.get 가 아님 — liveSchemaCache Map.get(command) 조회 오탐(프레임 스키마 캐시).',
+  ],
+  [
+    'packages/rustra/src/types/frame-engine-schema.ts',
+    ['rn-no-dimensions-get'],
+    'RN Dimensions.get 가 아님 — liveSchemaCache Map.get(command) 조회 오탐(프레임 스키마 캐시).',
   ],
 ];
 
@@ -58,6 +80,13 @@ const TOLERATED_RULE_FILE_PATTERNS = [
     'async-await-in-loop',
     /\/(apps\/(bun-ffi-bench|scriptc-bench|performance-stats)\.ts|src\/benchmark\.ts)$/,
     '지연 벤치의 측정 루프 — Promise.all 은 동시성을 추가해 수치를 바꾼다(bun-ffi-bench 는 인라인 억제 병행).',
+  ],
+  [
+    // 단일 패키지 통합 후 런타임 어댑터→types 공개면. 예전 @…/types 패키지 import 는
+    // 미플래그였고, 상대 ../types/index.js 만 barrel 로 오탐한다(앱 번들 대상 아님).
+    'no-barrel-import',
+    /(^|\/)(packages\/rustra\/)?src\/(bun|node|react|react-native|tauri)\//,
+    '패키지 내부 types 공개면(../types/index.js) — 단일 패키지 통합 전 패키지 엔트리 import 와 동일 계약이며 앱 번들 barrel 이 아니다.',
   ],
   [
     /./, // 빌드 산물은 규칙 무관 — 컴파일 출력은 소스가 아니다.
