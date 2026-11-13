@@ -319,7 +319,7 @@ void test('ensureReactNativeExampleInstall runs bun install when the app-local a
   try {
     let cwdSeen = '';
     const result = ensureReactNativeExampleInstall(root, {
-      execInstall: (cwd) => {
+      execInstall: (cwd: string) => {
         cwdSeen = cwd;
         return { status: 0 };
       },
