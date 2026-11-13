@@ -1244,33 +1244,41 @@ test(
 
         // (b) 드리프트 런 — integer 계약 + 새 바이트의 코어 → 거부. 라이브는 구
         // 발행물을 유지하고 reload 는 방출되지 않는다(앞 테스트와 같은 절반).
+        // 거부가 기준을 재무장하면 대기 중이던 후속 틱이 같은 바이트로 통과·발행할
+        // 수 있다(설계된 회복 — (c)). 드리프트 틱 자체의 계약만 스냅샷으로 고정하고,
+        // sleep 으로 후속 틱을 기다려 레이스를 키우지 않는다.
         process.env.FAKE_SCHEMA_FILE = join(root, 'schema-integer.json');
         process.env.FAKE_DYLIB_CONTENT = 'drifted core bytes';
+        let reloadsAtRejection: string[] | undefined;
         await triggerUntil(
           () => errors,
           () => writeFileSync(join(project, 'src', 'lib.rs'), 'fn changed() {}\n'),
-          () =>
-            errors.some(
-              (line) => line.includes('[dev] reload rejected —') && line.includes('drift'),
-            ),
+          () => {
+            if (
+              errors.some(
+                (line) => line.includes('[dev] reload rejected —') && line.includes('drift'),
+              )
+            ) {
+              reloadsAtRejection = [...reloads];
+              return true;
+            }
+            return false;
+          },
           'the loud drift rejection',
         );
-        await sleep(300);
-        assert.deepEqual(reloads, [], 'the drifted run must not emit reload');
-        assert.equal(
-          readFileSync(liveAbs, 'utf8'),
-          'fake dylib core',
-          'the rejection must leave the previously published core in place',
-        );
+        assert.deepEqual(reloadsAtRejection, [], 'the drifted run must not emit reload');
 
         // (c) 코드젠이 따라잡은 뒤의 다음 런 — 스키마(integer)는 이제 (b) 거부에서
         // 재무장된 기준과 같고 코어 바이트도 같은 새 계약 → 통과 + 재발행 + reload.
-        await triggerUntil(
-          () => errors,
-          () => writeFileSync(join(project, 'src', 'lib.rs'), 'fn caughtUp() {}\n'),
-          () => reloads.length >= 1,
-          'the re-armed passing run',
-        );
+        // 후속 틱이 이미 회복 발행했다면 추가 트리거는 생략한다.
+        if (reloads.length === 0) {
+          await triggerUntil(
+            () => errors,
+            () => writeFileSync(join(project, 'src', 'lib.rs'), 'fn caughtUp() {}\n'),
+            () => reloads.length >= 1,
+            'the re-armed passing run',
+          );
+        }
         await handle.dispose();
         assert.equal(
           readFileSync(liveAbs, 'utf8'),
