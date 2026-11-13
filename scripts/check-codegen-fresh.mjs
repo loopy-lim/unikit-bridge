@@ -26,6 +26,32 @@ import { spawnSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+/**
+ * reactNative 예제는 앱 로컬 `node_modules/@unikit-bridge/rustra` 가 있어야
+ * codegen 이 통과한다(호이스트만으로는 F-4 equality 가 거절). 루트 workspaces 는
+ * packages/* 뿐이라 예제별 bun install 이 필요하다.
+ */
+export function ensureReactNativeExampleInstall(exampleDir, { execInstall } = {}) {
+  const localPackage = join(exampleDir, 'node_modules/@unikit-bridge/rustra/package.json');
+  if (existsSync(localPackage)) return { installed: false, skipped: true };
+  const run =
+    execInstall ??
+    ((cwd) =>
+      spawnSync('bun', ['install', '--cwd', cwd, '--frozen-lockfile'], {
+        encoding: 'utf8',
+        maxBuffer: 64 * 1024 * 1024,
+      }));
+  const result = run(exampleDir);
+  if (result.status !== 0) {
+    const output =
+      `${result.stdout ?? ''}${result.stderr ?? ''}${result.error ? `\n${result.error.message}` : ''}`.trim();
+    throw new Error(
+      `reactNative 예제 설치 실패 (${exampleDir}): bun install --frozen-lockfile exited ${result.status ?? 'signal'}${output ? `\n${output}` : ''}`,
+    );
+  }
+  return { installed: true, skipped: false };
+}
+
 const MANIFEST_FILE = '.unikit-generated.json';
 
 /** examples/ 아래 unikit.json 을 가진 예제를 이름순으로 수집한다. */
@@ -122,6 +148,18 @@ export function runCodegenFreshChecks({
         output: '',
       });
       break;
+    }
+    if (example.config.reactNative) {
+      try {
+        ensureReactNativeExampleInstall(example.dir);
+      } catch (error) {
+        failures.push({
+          name: example.name,
+          reason: `앱 로컬 @unikit-bridge/rustra 설치 실패 — ${error.message}`,
+          output: '',
+        });
+        break;
+      }
     }
     const command = resolveCheckCommand(example, root, { bindings });
     const result = exec(command);

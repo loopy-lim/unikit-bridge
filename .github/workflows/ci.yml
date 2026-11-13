@@ -321,6 +321,14 @@ jobs:
         # Rust/TS 공개 export 를 api-surface/snapshot.json 에 고정하고 드리프트를
         # 잡는다 — umbrella `test`에 없어 CI가 놓치고 있었다.
         run: bun run test:api-surface
+      - name: Install React Native example deps (codegen-fresh app-local adapter)
+        # reactNative codegen 은 앱 로컬 node_modules/@unikit-bridge/rustra 를
+        # 요구한다(호이스트만 거절). 루트 workspaces 는 packages/* 뿐이라 예제별
+        # 설치가 필요하고, check-codegen-fresh.mjs 도 미설치 시 동일하게 설치한다.
+        run: |
+          bun install --cwd examples/react-native-calculator --frozen-lockfile
+          bun install --cwd examples/react-native-bare-calculator --frozen-lockfile
+          bun install --cwd examples/rn-experiment --frozen-lockfile
       - name: Codegen freshness gate (examples)
         # examples/*/unikit.json 예제의 committed generated/ 가 재생성 결과와
         # 일치하는지 단언한다 — 드리프트는 예제 디렉터리에서 `bun run codegen` 으로
