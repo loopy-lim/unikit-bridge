@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { configure } from '@unikit-bridge/types';
-import { createAsyncEngine, createFastEngine } from '../../packages/react-native/src';
+import { configure } from '@unikit-bridge/rustra/types';
+import { createAsyncEngine, createFastEngine } from '../../packages/rustra/src/react-native';
 import { benchEchoBytes } from '../calculator/generated/commands';
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from '../calculator/generated/contract';
 import { frameRegistry } from '../calculator/generated/frame-registry';

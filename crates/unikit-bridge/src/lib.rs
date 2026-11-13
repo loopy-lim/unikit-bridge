@@ -116,6 +116,7 @@ pub mod cancel;
 pub mod channels;
 mod codegen;
 mod command;
+mod command_execution;
 mod complex_codec;
 pub mod device_capabilities;
 mod entry;
@@ -126,14 +127,15 @@ pub mod ffi;
 mod function;
 #[doc(hidden)]
 pub use function::Function;
-// hot-core 는 tauri_support 의 디스패치 간접화(JsonDispatch)가 tauri feature
-// 만으로도 성립해야 하므로 두 feature 중 하나라도 켜지면 컴파일된다. dylib
-// 로딩 본체(libloading)는 모듈 내부에서 `hot-core` feature 로 게이트된다.
+// hot-core 는 tauri_support 의 JsonDispatch 때문에 tauri feature 만으로도
+// 컴파일되며, libloading 본체는 `hot-core` feature 로 게이트된다.
 mod frame_codec;
 #[cfg(any(feature = "hot-core", feature = "tauri"))]
 pub mod hot_core;
 mod invoke;
 mod limits;
+#[doc(hidden)]
+pub mod naming;
 mod package;
 mod package_codegen;
 pub mod platform;
@@ -146,12 +148,19 @@ pub mod tauri_channels;
 #[cfg(feature = "tauri")]
 pub mod tauri_support;
 
+pub(crate) use codegen::{
+    INVOKE_OPTIONS_JS_DOC, MIXED_CONVENTION_NOTE, clear_codegen_warnings, collect_ref_type_names,
+    command_function_name, contract_hash, deprecated_alias_js_doc, is_rust_internal_type_name,
+    set_codegen_command_context, take_codegen_warnings, ts_type_from_schema,
+};
 pub(crate) use command::{
     Command, build_command, generated_byte_field_name, generated_field_names,
 };
+pub use command_execution::CommandExecution;
 pub(crate) use complex_codec::{
     CompiledComplex, ComplexCodecLimits, annotate_variant_order, complex_schema_supported,
 };
+pub use error::{CommandErrorVariant, Result, UnikitError};
 /// caller-buffer dispatch 결과 — 바이너리 호스트(loop-stdio 등)가
 /// `invoke_frame_into` 의 반환을 해석하기 위해 공개한다.
 pub use frame_codec::DirectResponse;
@@ -161,23 +170,16 @@ pub(crate) use frame_codec::{
 };
 pub(crate) use package::{FrozenRegistry, RegistryState};
 pub use package::{GeneratedPackage, Package, PackageBuilder};
+pub(crate) use schema::{command_name_from_handler, contract_type_name, schema_value};
 pub(crate) use schemars::JsonSchema;
 pub(crate) use serde::{Serialize, de::DeserializeOwned};
 pub(crate) use serde_json::{Value, json};
+pub use state::{State, get_state, with_state_context};
 pub(crate) use std::collections::{BTreeMap, BTreeSet};
 pub(crate) use std::fs;
 pub(crate) use std::path::{Path, PathBuf};
 pub(crate) use std::sync::atomic::{AtomicBool, Ordering};
 pub(crate) use std::sync::{Arc, OnceLock, RwLock};
-
-pub(crate) use codegen::{
-    INVOKE_OPTIONS_JS_DOC, MIXED_CONVENTION_NOTE, clear_codegen_warnings, collect_ref_type_names,
-    command_function_name, contract_hash, deprecated_alias_js_doc, is_rust_internal_type_name,
-    set_codegen_command_context, take_codegen_warnings, ts_type_from_schema,
-};
-pub use error::{CommandErrorVariant, Result, UnikitError};
-pub(crate) use schema::{command_name_from_handler, contract_type_name, schema_value};
-pub use state::{State, get_state, with_state_context};
 
 /// Input boundary for a command whose entire payload is one contiguous byte
 /// buffer. Implementations must create an owned Rust value; the native host's
@@ -194,6 +196,3 @@ pub trait BufferCommandOutput: Serialize + JsonSchema + 'static {
 
 #[cfg(test)]
 mod internal_tests;
-
-mod command_execution;
-pub use command_execution::CommandExecution;

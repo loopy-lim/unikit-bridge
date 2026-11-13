@@ -122,7 +122,7 @@ export async function runWatchJourney(
     };
     console.log = (...values) => consoleOutput('stdout', values);
     console.error = (...values) => consoleOutput('stderr', values);
-    const { runDev } = await import(pathToFileURL(join(repo, 'packages/cli/dist/dev.js')).href);
+    const { runDev } = await import(pathToFileURL(join(repo, 'packages/rustra/dist/cli/dev.js')).href);
     handle = await runDev(['--config', configPath]);
     // Drain any first-build dep-info discovery before measuring a user edit.
     await pause(900);

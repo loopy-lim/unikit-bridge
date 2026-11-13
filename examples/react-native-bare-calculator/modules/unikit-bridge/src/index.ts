@@ -7,7 +7,7 @@
 // ────────────────────────────────────────────────────────────
 
 import { NativeModules } from 'react-native';
-import { getUnikitNative as getInstalledNative } from '@unikit-bridge/react-native';
+import { getUnikitNative as getInstalledNative } from '@unikit-bridge/rustra/react-native';
 
 type Installer = { install(): boolean | Promise<boolean | void> };
 

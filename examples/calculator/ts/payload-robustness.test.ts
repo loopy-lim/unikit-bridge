@@ -19,7 +19,7 @@ import { dirname, join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { addNumbersCodec, divideCodec } from '../generated/frame-codecs.js';
 import { frameRegistry } from '../generated/frame-registry.js';
-import { createFrameEngine, UnikitCommandError } from '@unikit-bridge/types';
+import { createFrameEngine, UnikitCommandError } from '@unikit-bridge/rustra/types';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // dist-ts/examples/calculator/ts → 저장소 루트 — transport-bench.test.ts 와 동일한

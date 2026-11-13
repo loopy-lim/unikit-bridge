@@ -5,7 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const packageRoot = join(repositoryRoot, 'packages', 'react-native');
+const packageRoot = join(repositoryRoot, 'packages', 'rustra');
 const packageJsonPath = join(packageRoot, 'package.json');
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 
@@ -26,7 +26,7 @@ if (missingFromSource.length > 0) {
 
 const packPatterns = new Set(packageJson.files ?? []);
 if (!packPatterns.has('native/**/*') && !packPatterns.has('native')) {
-  throw new Error('packages/react-native/package.json must publish the native adapter directory');
+  throw new Error('packages/rustra/package.json must publish the native adapter directory');
 }
 
 const temporaryDirectory = mkdtempSync(join(tmpdir(), 'unikit-react-native-pack-'));
@@ -53,12 +53,9 @@ try {
     (relativePath) => !archiveEntries.has(`package/${relativePath}`),
   );
   if (missingFromArchive.length > 0) {
-    throw new Error(`React Native package archive is missing: ${missingFromArchive.join(', ')}`);
+    throw new Error(`packed archive is missing native files: ${missingFromArchive.join(', ')}`);
   }
-
-  console.log(
-    `React Native package ${packageJson.version} contains ${requiredNativeFiles.length} native adapter files`,
-  );
+  console.log(`React Native package ok: @unikit-bridge/rustra ${packageJson.version}`);
 } finally {
   rmSync(temporaryDirectory, { recursive: true, force: true });
 }

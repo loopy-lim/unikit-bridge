@@ -405,7 +405,6 @@ dependencies = [
  "serde_json",
  "sha2",
  "unikit-bridge-macros",
- "unikit-bridge-naming",
 ]
 
 [[package]]
@@ -415,12 +414,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.3",
- "unikit-bridge-naming",
 ]
-
-[[package]]
-name = "unikit-bridge-naming"
-version = "0.13.0"
 
 [[package]]
 name = "unikit-fuzz"

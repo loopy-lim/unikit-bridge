@@ -63,6 +63,7 @@ import {
   validateVersionManifest,
   writeJson,
 } from './registry-consumer/provenance.mjs';
+import { resolvePublishedCli, resolveRustraHostVersion } from './registry-consumer/paths.mjs';
 import { pinCargoVersions } from './registry-consumer/fixture.mjs';
 import { errorDetails, runOrderedSteps, sanitizeStepName } from './registry-consumer/runner.mjs';
 
@@ -382,7 +383,7 @@ fn main() -> unikit_bridge::Result<()> {
 export function renderRnIosConfigJson() {
   return `${JSON.stringify(
     {
-      $schema: './node_modules/@unikit-bridge/cli/unikit.schema.json',
+      $schema: './node_modules/@unikit-bridge/rustra/unikit.schema.json',
       schema: './generated/schema.json',
       output: './generated',
       reactNative: { rustManifest: './Cargo.toml' },
@@ -1001,9 +1002,7 @@ function verifyCollectedObservations(context, label, phase, collected) {
 
 async function executeRnIosCycle({ logDir, sim }) {
   const versions = validateVersionManifest(readJson(VERSIONS_PATH));
-  const reactNativeVersion = versions.hosts?.['@unikit-bridge/react-native'];
-  if (!reactNativeVersion)
-    throw new Error('versions.json hosts["@unikit-bridge/react-native"] pin is required');
+  const rustraVersion = resolveRustraHostVersion(versions);
   const scratchRoot = mkdtempSync(join(tmpdir(), 'unikit-registry-rn-ios-'));
   const projectDir = join(scratchRoot, APP_NAME);
   const derivedDataPath = join(scratchRoot, 'ios-dd');
@@ -1024,9 +1023,7 @@ async function executeRnIosCycle({ logDir, sim }) {
     },
   };
   const npmVersions = {
-    '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'],
-    '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
-    '@unikit-bridge/react-native': reactNativeVersion,
+    '@unikit-bridge/rustra': rustraVersion,
   };
   try {
     // 선점 검사가 가장 먼저 — macOS 전용 도구가 없으면 그 자체로 BLOCKED 영수증
@@ -1062,9 +1059,11 @@ async function executeRnIosCycle({ logDir, sim }) {
     internalStep(context, 'pin-npm-versions', () => {
       const packagePath = join(projectDir, 'package.json');
       const packageJson = readJson(packagePath);
-      packageJson.dependencies['@unikit-bridge/react-native'] = npmVersions['@unikit-bridge/react-native'];
-      packageJson.dependencies['@unikit-bridge/types'] = npmVersions['@unikit-bridge/types'];
-      packageJson.devDependencies['@unikit-bridge/cli'] = npmVersions['@unikit-bridge/cli'];
+      packageJson.dependencies['@unikit-bridge/rustra'] = npmVersions['@unikit-bridge/rustra'];
+      packageJson.devDependencies = {
+        ...(packageJson.devDependencies ?? {}),
+        '@unikit-bridge/rustra': npmVersions['@unikit-bridge/rustra'],
+      };
       writeJson(packagePath, packageJson);
     });
     await runChecked(context, 'install-npm', projectDir, [
@@ -1082,7 +1081,7 @@ async function executeRnIosCycle({ logDir, sim }) {
     });
 
     // 3) 코드젠 — unikit-bridge 네이티브 모듈(podspec/gradle/cmake) + 생성 클라.
-    const projectCli = join(projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js');
+    const projectCli = resolvePublishedCli(projectDir);
     await runChecked(context, 'baseline-codegen', projectDir, [
       process.execPath,
       projectCli,

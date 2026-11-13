@@ -3,7 +3,7 @@
 // Tauri/macOS 실제 WebView 레지스트리 소비 여정 — 로드맵 A1/A2/A3(Tauri) 증거.
 //
 // registry-consumer-gate.mjs(Node/Bun CLI 여정)와 같은 계약을 따르되, 소비자는
-// @unikit-bridge/tauri + unikit(tauri feature) 로 구성하고 실행 증거를 **실제 WKWebView
+// @unikit-bridge/rustra/tauri + unikit-bridge(tauri feature) 로 구성하고 실행 증거를 **실제 WKWebView
 // 안에서 도는 프론트엔드 JS**가 생성된 엄격 계약 클라이언트(generated/tauri.js)로
 // 관측해 reportEvidence 커맨드(계약의 일부)로 되돌려 보낸다. 커스텀 Tauri IPC
 // 커맨드는 register* 가 invoke_handler 를 점유하므로 쓰지 않는다 — 증거가 unikit
@@ -38,6 +38,7 @@ import {
   validateVersionManifest,
   writeJson,
 } from './registry-consumer/provenance.mjs';
+import { resolvePublishedCli, resolveRustraHostVersion } from './registry-consumer/paths.mjs';
 import { pinCargoVersions } from './registry-consumer/fixture.mjs';
 import { errorDetails, runOrderedSteps, sanitizeStepName } from './registry-consumer/runner.mjs';
 
@@ -487,7 +488,7 @@ function writeTauriProjectSources(context) {
     writeFileSync(cargoPath, cargo);
 
     // unikit.json — node 호스트 섹션을 제거하고 tauri 만 남겨 generated/tauri.ts 가
-    // tauri 어댑터 의존성(@unikit-bridge/tauri)을 요구하게 한다.
+    // tauri 어댑터 의존성(@unikit-bridge/rustra)을 요구하게 한다.
     const config = readJson(join(projectDir, 'unikit.json'));
     delete config.node;
     config.tauri = {};
@@ -522,7 +523,7 @@ function buildFrontend(context, label) {
 async function codegen(context, label) {
   await commandStep(context, `${label}-codegen`, context.projectDir, [
     process.execPath,
-    join(context.projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js'),
+    resolvePublishedCli(context.projectDir),
     'codegen',
     '--config',
     'unikit.json',
@@ -716,13 +717,9 @@ async function executeTauriCycle({ logDir }) {
   const targetDir = join(scratchRoot, 'cargo-target');
   const context = createContext({ logDir, scratchRoot, projectDir, targetDir, versions });
   const repoRoot = resolve(dirname(SCRIPT_PATH), '..');
-  const tauriVersion = versions.hosts?.['@unikit-bridge/tauri'];
-  if (!tauriVersion)
-    throw new Error('versions.json hosts["@unikit-bridge/tauri"] exact pin is required for this journey');
+  const rustraVersion = resolveRustraHostVersion(versions);
   const npmVersions = {
-    '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'],
-    '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
-    '@unikit-bridge/tauri': tauriVersion,
+    '@unikit-bridge/rustra': rustraVersion,
   };
   try {
     const environment = await environmentEvidence(context);
@@ -737,7 +734,7 @@ async function executeTauriCycle({ logDir }) {
       writeJson(join(scratchRoot, 'package.json'), {
         name: 'unikit-registry-tauri-bootstrap',
         private: true,
-        dependencies: { '@unikit-bridge/cli': npmVersions['@unikit-bridge/cli'] },
+        dependencies: { '@unikit-bridge/rustra': npmVersions['@unikit-bridge/rustra'] },
       });
       assertNoConsumerContamination(scratchRoot);
     });
@@ -749,9 +746,9 @@ async function executeTauriCycle({ logDir }) {
       '--no-fund',
     ]);
     internalStep(context, 'verify-published-cli-source', () =>
-      assertExactNpmProvenance(scratchRoot, { '@unikit-bridge/cli': npmVersions['@unikit-bridge/cli'] }),
+      assertExactNpmProvenance(scratchRoot, { '@unikit-bridge/rustra': npmVersions['@unikit-bridge/rustra'] }),
     );
-    const bootstrapCli = join(scratchRoot, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js');
+    const bootstrapCli = resolvePublishedCli(scratchRoot);
     await commandStep(context, 'published-cli-init', scratchRoot, [
       process.execPath,
       bootstrapCli,
@@ -764,10 +761,9 @@ async function executeTauriCycle({ logDir }) {
       const packagePath = join(projectDir, 'package.json');
       const packageJson = readJson(packagePath);
       packageJson.dependencies = {
-        '@unikit-bridge/tauri': npmVersions['@unikit-bridge/tauri'],
-        '@unikit-bridge/types': npmVersions['@unikit-bridge/types'],
+        '@unikit-bridge/rustra': npmVersions['@unikit-bridge/rustra'],
       };
-      packageJson.devDependencies = { '@unikit-bridge/cli': npmVersions['@unikit-bridge/cli'] };
+      packageJson.devDependencies = { '@unikit-bridge/rustra': npmVersions['@unikit-bridge/rustra'] };
       writeJson(packagePath, packageJson);
       // Cargo 핀을 오염 검사 전에 =version 으로 고정한다(스캐폴드는 caret).
       pinCargoVersions(projectDir, versions.phases.candidate);
@@ -783,8 +779,7 @@ async function executeTauriCycle({ logDir }) {
       '--ignore-scripts',
       '--no-audit',
       '--no-fund',
-      `@unikit-bridge/types@${npmVersions['@unikit-bridge/types']}`,
-      `@unikit-bridge/tauri@${npmVersions['@unikit-bridge/tauri']}`,
+      `@unikit-bridge/rustra@${npmVersions['@unikit-bridge/rustra']}`,
     ]);
     await commandStep(context, 'install-frozen-npm-lock', projectDir, [
       'npm',
@@ -797,7 +792,7 @@ async function executeTauriCycle({ logDir }) {
       assertNoConsumerContamination(projectDir, { expectedNpm: npmVersions });
       return assertExactNpmProvenance(projectDir, npmVersions);
     });
-    const projectCli = join(projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js');
+    const projectCli = resolvePublishedCli(projectDir);
     context.projectCli = projectCli;
     await commandStep(context, 'doctor', projectDir, [
       process.execPath,
@@ -807,7 +802,7 @@ async function executeTauriCycle({ logDir }) {
       'unikit.json',
     ]);
 
-    // 3) Tauri 소비자 구성·빌드 — crates.io unikit(tauri feature) + @unikit-bridge/tauri.
+    // 3) Tauri 소비자 구성·빌드 — crates.io unikit-bridge(tauri feature) + @unikit-bridge/rustra.
     writeTauriProjectSources(context);
     await codegen(context, 'baseline');
     buildFrontend(context, 'baseline');
@@ -878,7 +873,7 @@ async function executeTauriCycle({ logDir }) {
         scaffold: ['published CLI init', 'exact-pin npm install (frozen lock)', 'doctor'],
         tauri: [
           'unikit =0.11.0 (tauri feature) from crates.io',
-          '@unikit-bridge/tauri + @unikit-bridge/types exact from npm',
+          '@unikit-bridge/rustra exact from npm',
           'CLI codegen (tauri host entry)',
           'bun frontend bundle',
           'cargo build embedding frontend assets',

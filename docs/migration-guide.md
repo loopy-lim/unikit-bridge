@@ -10,6 +10,7 @@ When the contract (schema) shared by the Rust backend and TypeScript clients cha
 - **From 0.5.x** — follow [migrating from 0.5 to 0.6](migrations/0.5-to-0.6.md) first. Old schemas may also fail CLI validation with a "generic type name" error (see the [Rust API guide — user-defined generics](rust-api-guide.md#user-defined-generic-types)); rebuild `schema.json` with the current unikit before running `unikit diff`.
 - **From 0.6–0.9** — include the [Frame/API migration](migrations/post-0.9-frame-and-audit.md) when crossing the Rust 0.10 release boundary, then use the recipes below.
 - **From 0.11.x** — follow [migrating from 0.11 to 0.12](migrations/0.11-to-0.12.md) first, then use this guide.
+- **Consolidated npm (0.13+)** — if you still depend on separate `@unikit-bridge/*` packages or legacy `rustra` names, follow [package consolidation](migrations/package-consolidation.md) first.
 - **The rkyv V2 → Frame rename (0.10.0 release)** — see [the rename table](#frame-rename-rkyv-v2--frame) below; a pure rename, the wire format is unchanged.
 
 <a id="09-rename-rkyv-v2--frame"></a>
@@ -154,7 +155,7 @@ Whether a schema change is breaking is checked automatically in the PR:
   with:
     fetch-depth: 0 # unikit diff compares against the base commit
 - uses: oven-sh/setup-bun@v2
-- run: bun install -g @unikit-bridge/cli # or: bun add -d @unikit-bridge/cli + bunx --bun unikit
+- run: bun install -g @unikit-bridge/rustra # or: bun add -d @unikit-bridge/rustra + bunx --bun unikit
 - name: Check schema compatibility
   run: |
     git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q schema.json \

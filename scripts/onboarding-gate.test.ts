@@ -3,7 +3,10 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSyn
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
-import { renderInitProjectFiles, templateVersions } from '../packages/cli/dist/init-template.js';
+import {
+  renderInitProjectFiles,
+  templateVersions,
+} from '../packages/rustra/dist/cli/init-template.js';
 import {
   onboardingReceipt,
   writeOnboardingReceipt,
@@ -173,7 +176,10 @@ void test('gate aborts when hidden workspace patch preparation fails on disk', a
   const ran: string[] = [];
   try {
     mkdirSync(join(repoRoot, 'crates', 'unikit-bridge'), { recursive: true });
-    writeFileSync(join(repoRoot, 'crates', 'unikit-bridge', 'Cargo.toml'), '[package]\nname="unikit-bridge"\n');
+    writeFileSync(
+      join(repoRoot, 'crates', 'unikit-bridge', 'Cargo.toml'),
+      '[package]\nname="unikit-bridge"\n',
+    );
     mkdirSync(projectDir, { recursive: true });
     writeFileSync(join(projectDir, '.cargo'), 'blocks mkdir');
     const report = await runOnboardingSteps({

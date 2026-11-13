@@ -47,7 +47,7 @@ def identity(root, binary, allocator, suite="complex"):
         "runtimeSourceHashes": source,
         "manifestHashes": {name: digest(root / name) for name in
                            ["Cargo.toml", "Cargo.lock", "crates/unikit-bridge/Cargo.toml",
-                            "crates/unikit-bridge-macros/Cargo.toml", "crates/unikit-bridge-naming/Cargo.toml"]},
+                            "crates/unikit-bridge-macros/Cargo.toml"]},
         "harnessHashes": {name: digest(root / name) for name in harness},
         "benchmarkBinarySha256": digest(binary),
         "allocationBinarySha256": digest(allocator),

@@ -1,17 +1,17 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
-    "packages/types/src/index.ts",
-    "packages/node/src/index.ts",
-    "packages/bun/src/index.ts",
-    "packages/tauri/src/index.ts",
-    "packages/react-native/src/index.ts",
-    "packages/react/src/index.ts",
-    "packages/testing/src/index.ts",
-    "packages/devtools/src/index.ts"
+    "packages/rustra/src/types/index.ts",
+    "packages/rustra/src/node/index.ts",
+    "packages/rustra/src/bun/index.ts",
+    "packages/rustra/src/tauri/index.ts",
+    "packages/rustra/src/react-native/index.ts",
+    "packages/rustra/src/react/index.ts",
+    "packages/rustra/src/testing/index.ts",
+    "packages/rustra/src/devtools/index.ts"
   ],
   "out": "docs/api",
-  "name": "@unikit-bridge API Reference",
+  "name": "@unikit-bridge/rustra API Reference",
   "includeVersion": true,
   "readme": "none",
   "excludePrivate": true,

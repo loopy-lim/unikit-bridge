@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import { NitroModules } from 'react-native-nitro-modules';
 import type { NitroBench } from 'nitro-bench';
-import { configure, bindSync } from '@unikit-bridge/types';
+import { configure, bindSync } from '@unikit-bridge/rustra/types';
 import { installUnikitJSI, getUnikitNative } from '@unikit-bridge/generated-react-native';
 import UnikitCalculator from 'unikit-calculator';
 import { createFrameEngine } from '../adapters/frame-adapter';

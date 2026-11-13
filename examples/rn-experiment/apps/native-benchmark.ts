@@ -1,6 +1,6 @@
 // Import this entry from an installed RN release app that links modules/unikit-bridge.
-import { createReactNativeEngine } from '@unikit-bridge/react-native';
-import { decodeUtf8, parseLiveSchemaDocument } from '@unikit-bridge/types';
+import { createReactNativeEngine } from '@unikit-bridge/rustra/react-native';
+import { decodeUtf8, parseLiveSchemaDocument } from '@unikit-bridge/rustra/types';
 import { unikit } from '../generated/react-native.js';
 import { GENERATED_CONTRACT_HASH } from '../generated/contract.js';
 import { getUnikitNative } from '../modules/unikit-bridge/src/index.js';

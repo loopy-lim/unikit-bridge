@@ -1,5 +1,5 @@
 //! loop-stdio 런타임의 채널 예약 cmd id(0xfffb 발급 / 0xfffa 해제 / 0xfffc 푸시)
-//! 계약 테스트 — `@unikit-bridge/node` `createNodeChannel` 의 와이어 짝.
+//! 계약 테스트 — `@unikit-bridge/rustra/node` `createNodeChannel` 의 와이어 짝.
 //!
 //! 이벤트 푸시(0xfffd) 테스트(tests/loop_stdio_events.rs)와 동일 관례다:
 //!

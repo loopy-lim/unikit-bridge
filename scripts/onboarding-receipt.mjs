@@ -45,11 +45,11 @@ export function scaffoldNativeArtifactPath(host) {
 }
 
 /**
- * 생산자(packages/cli 빌드물) 지문 — 여정 전에 capture 로 잡아두고, 여정 뒤
+ * 생산자(packages/rustra CLI 빌드물) 지문 — 여정 전에 capture 로 잡아두고, 여정 뒤
  * stampProducerStability 가 같은 빌드물 위의 여정인지(producerStable)를 채운다.
  */
 export function captureProducerArtifact(repo) {
-  return onboardingPackageArtifact(join(repo, 'packages/cli'));
+  return onboardingPackageArtifact(join(repo, 'packages/rustra'));
 }
 
 export function stampProducerStability(repo, receipt) {

@@ -11,7 +11,7 @@
 //
 // 사용법: `node scripts/check-codegen-fresh.mjs` (전수), `--example <name>` (단일,
 // 반복 지정 가능 — 로컬 디버깅용), `--bindings` (UniFFI Swift/Kotlin 실제 재생성).
-// 먼저 `bun run --cwd packages/cli build` 로 CLI 를 빌드한다.
+// 먼저 `bun run --cwd packages/rustra build` 로 CLI 를 빌드한다.
 //
 // 감지 범위 / known blind spots:
 // - 현재 auth, calculator, crud, react-native-bare-calculator, react-native-calculator,
@@ -25,6 +25,32 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+/**
+ * reactNative 예제는 앱 로컬 `node_modules/@unikit-bridge/rustra` 가 있어야
+ * codegen 이 통과한다(호이스트만으로는 F-4 equality 가 거절). 루트 workspaces 는
+ * packages/* 뿐이라 예제별 bun install 이 필요하다.
+ */
+export function ensureReactNativeExampleInstall(exampleDir, { execInstall } = {}) {
+  const localPackage = join(exampleDir, 'node_modules/@unikit-bridge/rustra/package.json');
+  if (existsSync(localPackage)) return { installed: false, skipped: true };
+  const run =
+    execInstall ??
+    ((cwd) =>
+      spawnSync('bun', ['install', '--cwd', cwd, '--frozen-lockfile'], {
+        encoding: 'utf8',
+        maxBuffer: 64 * 1024 * 1024,
+      }));
+  const result = run(exampleDir);
+  if (result.status !== 0) {
+    const output =
+      `${result.stdout ?? ''}${result.stderr ?? ''}${result.error ? `\n${result.error.message}` : ''}`.trim();
+    throw new Error(
+      `reactNative 예제 설치 실패 (${exampleDir}): bun install --frozen-lockfile exited ${result.status ?? 'signal'}${output ? `\n${output}` : ''}`,
+    );
+  }
+  return { installed: true, skipped: false };
+}
 
 const MANIFEST_FILE = '.unikit-generated.json';
 
@@ -61,7 +87,7 @@ export function resolveCheckCommand(example, root, { bindings = false } = {}) {
   return {
     file: process.execPath,
     args: [
-      join(root, 'packages', 'cli', 'dist', 'index.js'),
+      join(root, 'packages', 'rustra', 'dist', 'cli', 'index.js'),
       'codegen',
       '--config',
       'unikit.json',
@@ -122,6 +148,18 @@ export function runCodegenFreshChecks({
         output: '',
       });
       break;
+    }
+    if (example.config.reactNative) {
+      try {
+        ensureReactNativeExampleInstall(example.dir);
+      } catch (error) {
+        failures.push({
+          name: example.name,
+          reason: `앱 로컬 @unikit-bridge/rustra 설치 실패 — ${error.message}`,
+          output: '',
+        });
+        break;
+      }
     }
     const command = resolveCheckCommand(example, root, { bindings });
     const result = exec(command);

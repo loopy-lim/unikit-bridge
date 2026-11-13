@@ -6,8 +6,8 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { installUnikitJSI, getUnikitNative } from '@unikit-bridge/generated-react-native';
 import { createJsonEngine } from './src/adapters/json-adapter';
-import { createFrameEngine, getLiveSchema } from '@unikit-bridge/types';
-import { subscribeEvent } from '../../packages/react-native/src';
+import { createFrameEngine, getLiveSchema } from '@unikit-bridge/rustra/types';
+import { subscribeEvent } from '../../packages/rustra/src/react-native';
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from '../calculator/generated/contract';
 import { formatError } from './src/format-error';
 

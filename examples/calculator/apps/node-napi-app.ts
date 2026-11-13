@@ -3,10 +3,10 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 // barrel(index) 대신 개별 모듈 import — react-doctor no-barrel-import.
-// configure/createFrameEngine 은 @unikit-bridge/types 전역 설정/엔진 팩토리다.
-import { createNodeEngine } from '../../../packages/node/src/node-core.js';
-import { configure } from '../../../packages/types/src/global-config.js';
-import { createFrameEngine } from '../../../packages/types/src/frame-engine.js';
+// configure/createFrameEngine 은 @unikit-bridge/rustra/types 전역 설정/엔진 팩토리다.
+import { createNodeEngine } from '../../../packages/rustra/src/node/node-core.js';
+import { configure } from '../../../packages/rustra/src/types/global-config.js';
+import { createFrameEngine } from '../../../packages/rustra/src/types/frame-engine.js';
 import { addNumbers } from '../generated/commands.js';
 import { frameRegistry } from '../generated/frame-registry.js';
 

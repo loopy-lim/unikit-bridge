@@ -3,7 +3,7 @@
 //!
 //! `createNodeProcessTransport`(lazy-respawn, 호출마다 프로세스 재시작)의
 //! 전제였던 "요청 하나만 읽고 종료" 대신, 이 런타임은 stdin 이 닫힐 때까지
-//! 라인 단위로 요청을 읽어 응답을 한 줄씩 쓴다. `@unikit-bridge/node` 의
+//! 라인 단위로 요청을 읽어 응답을 한 줄씩 쓴다. `@unikit-bridge/rustra/node` 의
 //! `createNodeLoopTransport` 가 이 바이너리와 짝을 이룬다.
 //!
 //! 프로토콜 (요청/응답 모두 한 줄 JSON):

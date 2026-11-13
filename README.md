@@ -7,7 +7,7 @@ a compact binary wire, gated by a contract that blocks breaking schema changes
 in CI.
 
 [![CI](https://github.com/loopy-lim/unikit-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/loopy-lim/unikit-bridge/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@unikit-bridge/types)](https://www.npmjs.com/package/@unikit-bridge/types)
+[![npm](https://img.shields.io/npm/v/@unikit-bridge/rustra)](https://www.npmjs.com/package/@unikit-bridge/rustra)
 [![crates.io](https://img.shields.io/crates/v/unikit.svg)](https://crates.io/crates/unikit-bridge)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -105,8 +105,8 @@ hosts, not that the others have no codegen.
 With Rust and Bun 1.4+ installed, create a project and run its first call:
 
 ```bash
-bunx --bun @unikit-bridge/cli@0.13.0 init my-project --setup
-# Bun FFI instead: bunx --bun @unikit-bridge/cli@0.13.0 init my-bun-project --host bun --setup
+bunx --bun @unikit-bridge/rustra@0.13.0 init my-project --setup
+# Bun FFI instead: bunx --bun @unikit-bridge/rustra@0.13.0 init my-bun-project --host bun --setup
 ```
 
 `--setup` generates the clients, installs dependencies, builds Rust, and runs the
@@ -139,9 +139,9 @@ at the project root:
 ```
 
 ```bash
-bunx --bun @unikit-bridge/cli@0.13.0 codegen --config unikit.json   # render all surfaces
-bunx --bun @unikit-bridge/cli@0.13.0 dev --config unikit.json       # watch Rust + regen
-bunx --bun @unikit-bridge/cli@0.13.0 generate --config unikit.json --check   # CI sync gate
+bunx --bun @unikit-bridge/rustra@0.13.0 codegen --config unikit.json   # render all surfaces
+bunx --bun @unikit-bridge/rustra@0.13.0 dev --config unikit.json       # watch Rust + regen
+bunx --bun @unikit-bridge/rustra@0.13.0 generate --config unikit.json --check   # CI sync gate
 ```
 
 → Full walkthrough: the [getting-started guide](docs/getting-started.md)
@@ -156,17 +156,14 @@ serde = { version = "1", features = ["derive"] }
 schemars = { version = "0.8", features = ["derive"] }
 ```
 
-Installation versions follow the current Rust and npm manifests. Adapters have
-independent versions; use the manifest-derived
-[compatibility table](docs/compatibility-matrix.md) for installation.
+Installation versions follow the current Rust and npm manifests — one publishable
+npm package with subpath exports. See the manifest-derived
+[compatibility table](docs/compatibility-matrix.md) and
+[package consolidation migration](docs/migrations/package-consolidation.md).
 
 ```bash
-bun add @unikit-bridge/node@0.11.1          # Node.js
-bun add @unikit-bridge/bun@0.11.1           # Bun
-bun add @unikit-bridge/tauri@0.10.1         # Tauri
-bun add @unikit-bridge/react-native@0.11.0  # React Native
-bun add @unikit-bridge/testing@0.7.3        # Mock engine (tests)
-bun add @unikit-bridge/devtools@0.7.3       # Invocation observability (dev)
+bun add @unikit-bridge/rustra@0.13.0
+# import adapters: @unikit-bridge/rustra/node, /bun, /tauri, /react-native, …
 ```
 
 Upgrade native libraries, JS adapters, and generated output together — see the

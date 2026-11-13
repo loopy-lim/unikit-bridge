@@ -68,14 +68,17 @@ void test('checkCliTestCoverage: bun 세그먼트의 유령 src 참조는 stale�
 });
 
 void test('checkCoverageTsCoverage: react 테스트 전부 반영 시 통과, 누락 시 missing', () => {
-  const emitted = ['packages/react/src/index.test.ts', 'packages/react/src/lifecycle.test.ts'];
+  const emitted = [
+    'packages/rustra/src/react/index.test.ts',
+    'packages/rustra/src/react/lifecycle.test.ts',
+  ];
   const full =
-    'bun test --coverage packages/react/src/index.test.ts packages/react/src/lifecycle.test.ts';
+    'bun test --coverage packages/rustra/src/react/index.test.ts packages/rustra/src/react/lifecycle.test.ts';
   assert.deepEqual(checkCoverageTsCoverage(full, emitted), { missing: [], stale: [] });
 
-  const partial = 'bun test --coverage packages/react/src/index.test.ts';
+  const partial = 'bun test --coverage packages/rustra/src/react/index.test.ts';
   const { missing, stale } = checkCoverageTsCoverage(partial, emitted);
-  assert.deepEqual(missing, ['packages/react/src/lifecycle.test.ts']);
+  assert.deepEqual(missing, ['packages/rustra/src/react/lifecycle.test.ts']);
   assert.deepEqual(stale, []);
 });
 

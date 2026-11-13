@@ -20,6 +20,7 @@ import {
   pinOriginalScaffold,
   prepareRegistryFixture,
 } from './registry-consumer/fixture.mjs';
+import { resolvePublishedCli } from './registry-consumer/paths.mjs';
 import {
   assertCargoProvenance,
   assertExactNpmProvenance,
@@ -370,9 +371,9 @@ async function runHostProbes(context, phase, mutated) {
   return internalStep(context, `${phase}-host-output-verification`, () => {
     const node = parseProbeOutput(nodeInvoke.stdout, `${phase} Node probe`);
     const bun = parseProbeOutput(bunResult.stdout, `${phase} Bun probe`);
-    if (node.host !== 'node' || node.adapter !== '@unikit-bridge/node' || node.transport !== 'stdio')
+    if (node.host !== 'node' || node.adapter !== '@unikit-bridge/rustra' || node.transport !== 'stdio')
       throw new Error(`${phase} Node probe reported the wrong host/adapter`);
-    if (bun.host !== 'bun' || bun.adapter !== '@unikit-bridge/bun' || bun.transport !== 'ffi')
+    if (bun.host !== 'bun' || bun.adapter !== '@unikit-bridge/rustra' || bun.transport !== 'ffi')
       throw new Error(`${phase} Bun probe reported the wrong host/adapter`);
     return { node, bun };
   });
@@ -470,7 +471,7 @@ async function executeRegistryCycle({ logDir }) {
       writeJson(join(scratchRoot, 'package.json'), {
         name: 'unikit-registry-bootstrap',
         private: true,
-        dependencies: { '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'] },
+        dependencies: { '@unikit-bridge/rustra': versions.npm['@unikit-bridge/rustra'] },
       });
       assertNoConsumerContamination(scratchRoot);
     });
@@ -482,9 +483,9 @@ async function executeRegistryCycle({ logDir }) {
       '--no-fund',
     ]);
     const bootstrapNpm = internalStep(context, 'verify-published-cli-source', () =>
-      assertExactNpmProvenance(scratchRoot, { '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'] }),
+      assertExactNpmProvenance(scratchRoot, { '@unikit-bridge/rustra': versions.npm['@unikit-bridge/rustra'] }),
     );
-    const bootstrapCli = join(scratchRoot, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js');
+    const bootstrapCli = resolvePublishedCli(scratchRoot);
     await commandStep(context, 'published-cli-init', scratchRoot, [
       process.execPath,
       bootstrapCli,
@@ -496,9 +497,7 @@ async function executeRegistryCycle({ logDir }) {
       assertNoConsumerContamination(projectDir, { expectedNpm: versions.npm }),
     );
     const originalInstallInputs = [
-      `@unikit-bridge/cli@${versions.npm['@unikit-bridge/cli']}`,
-      `@unikit-bridge/types@${versions.npm['@unikit-bridge/types']}`,
-      `@unikit-bridge/node@${versions.npm['@unikit-bridge/node']}`,
+      `@unikit-bridge/rustra@${versions.npm['@unikit-bridge/rustra']}`,
     ];
     await commandStep(context, 'resolve-original-exact-npm-lock', projectDir, [
       'npm',
@@ -520,12 +519,10 @@ async function executeRegistryCycle({ logDir }) {
     const originalNpm = internalStep(context, 'verify-original-exact-npm-sources', () => {
       assertNoConsumerContamination(projectDir, { expectedNpm: versions.npm });
       return assertExactNpmProvenance(projectDir, {
-        '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'],
-        '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
-        '@unikit-bridge/node': versions.npm['@unikit-bridge/node'],
+        '@unikit-bridge/rustra': versions.npm['@unikit-bridge/rustra'],
       });
     });
-    context.projectCli = join(projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js');
+    context.projectCli = resolvePublishedCli(projectDir);
     await commandStep(context, 'baseline-doctor', projectDir, [
       process.execPath,
       context.projectCli,
@@ -557,7 +554,7 @@ async function executeRegistryCycle({ logDir }) {
       evidenceSnapshot: snapshotPhaseEvidence(context, 'baseline-original'),
       demo: {
         jsRuntime: 'bun',
-        adapter: '@unikit-bridge/node',
+        adapter: '@unikit-bridge/rustra',
         transport: 'stdio',
         classification: 'original generated demo; not Bun FFI evidence',
       },
@@ -571,7 +568,7 @@ async function executeRegistryCycle({ logDir }) {
     );
     const extendedInstallInputs = [
       ...originalInstallInputs,
-      `@unikit-bridge/bun@${versions.npm['@unikit-bridge/bun']}`,
+      `@unikit-bridge/rustra@${versions.npm['@unikit-bridge/rustra']}`,
     ];
     await commandStep(context, 'resolve-extended-exact-npm-lock', projectDir, [
       'npm',

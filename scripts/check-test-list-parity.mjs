@@ -5,10 +5,10 @@
 // 검사 대상:
 //   1. test:ts:node        — dist-ts/examples/*/ts/*.test.js 전부가 커맨드에
 //                            포함(명시 또는 glob)되어야 한다.
-//   2. packages/cli "test" — dist-test/*.test.js 전부가 node --test 세그먼트에
+//   2. packages/rustra "test:cli" — dist-test/**/*.test.js 전부가 node --test 세그먼트에
 //                            명시되거나, bun:test 전용 파일이면 src/<stem>.test.ts가
 //                            bun test 세그먼트에 있어야 한다.
-//   3. coverage:ts         — packages/react/src/*.test.ts 전부가 포함되어야 한다.
+//   3. coverage:ts         — packages/rustra/src/react/*.test.ts 전부가 포함되어야 한다.
 //   4. scriptc 버전 핀     — run.sh 의 SCRIPTC_VERSION 리터럴(단일 출처)이 CI
 //                            ts-runtime 의 npm install -g scriptc@<버전> 과
 //                            일치해야 한다.
@@ -21,8 +21,8 @@ import { fileURLToPath } from 'node:url';
 
 export const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-const CLI_PACKAGE_REL = 'packages/cli';
-const REACT_SRC_REL = 'packages/react/src';
+const CLI_PACKAGE_REL = 'packages/rustra';
+const REACT_SRC_REL = 'packages/rustra/src/react';
 
 function tokenToMatcher(token) {
   const normalized = token.replace(/^\.\//, '');
@@ -36,16 +36,25 @@ function tokenToMatcher(token) {
 
 function listTestFiles(dirRel, suffix) {
   const absolute = resolve(REPO_ROOT, dirRel);
-  let entries;
-  try {
-    entries = readdirSync(absolute);
-  } catch {
-    return [];
-  }
-  return entries
-    .filter((name) => name.endsWith(suffix))
-    .map((name) => join(dirRel, name))
-    .sort();
+  const collected = [];
+  const visit = (absoluteDir, relativeDir) => {
+    let entries;
+    try {
+      entries = readdirSync(absoluteDir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const relativePath = join(relativeDir, entry.name);
+      if (entry.isDirectory()) {
+        visit(join(absoluteDir, entry.name), relativePath);
+        continue;
+      }
+      if (entry.name.endsWith(suffix)) collected.push(relativePath);
+    }
+  };
+  visit(absolute, dirRel);
+  return collected.sort();
 }
 
 function extractTokens(script) {
@@ -168,16 +177,19 @@ export async function checkTestListParity({ rootPackageJsonPath, cliPackageJsonP
     ...listTestFiles('dist-ts/examples/calculator/ts', '.test.js'),
     ...listTestFiles('dist-ts/examples/crud/ts', '.test.js'),
   ];
-  const cliDistTest = listTestFiles(join(CLI_PACKAGE_REL, 'dist-test'), '.test.js').map((file) =>
-    relative(CLI_PACKAGE_REL, file),
+  // 통합 패키지에서는 CLI 게이트가 dist-test/cli + src/cli 만 담당한다.
+  // 나머지 모듈(types/node/bun/…)은 bun test 세그먼트로 별도 실행된다.
+  const cliDistTest = listTestFiles(join(CLI_PACKAGE_REL, 'dist-test', 'cli'), '.test.js').map(
+    (file) => relative(CLI_PACKAGE_REL, file),
   );
-  const cliSrcTests = listTestFiles(join(CLI_PACKAGE_REL, 'src'), '.test.ts').map((file) =>
+  const cliSrcTests = listTestFiles(join(CLI_PACKAGE_REL, 'src', 'cli'), '.test.ts').map((file) =>
     relative(CLI_PACKAGE_REL, file),
   );
   const reactTests = listTestFiles(REACT_SRC_REL, '.test.ts');
 
   const runtimeScriptc = 'bun run test:runtime:scriptc';
   const scriptcReport = await checkScriptcVersionPin();
+  const cliTestScript = cliPackage.scripts['test:cli'] ?? cliPackage.scripts.test;
   const reports = [
     ...['test:runtime', 'test:local'].flatMap((name) =>
       rootPackage.scripts[name]?.includes(runtimeScriptc)
@@ -190,8 +202,8 @@ export async function checkTestListParity({ rootPackageJsonPath, cliPackageJsonP
       checkDistTsCoverage(rootPackage.scripts['test:ts:node'], distTs),
     ),
     ...formatReport(
-      `${CLI_PACKAGE_REL} test`,
-      checkCliTestCoverage(cliPackage.scripts.test, cliDistTest, cliSrcTests),
+      `${CLI_PACKAGE_REL} test:cli`,
+      checkCliTestCoverage(cliTestScript, cliDistTest, cliSrcTests),
     ),
     ...formatReport(
       'coverage:ts',

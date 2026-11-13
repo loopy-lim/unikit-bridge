@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { configure } from '@unikit-bridge/types';
-import { createFastEngine } from '../../packages/react-native/src';
+import { configure } from '@unikit-bridge/rustra/types';
+import { createFastEngine } from '../../packages/rustra/src/react-native';
 import { GENERATED_CONTRACT_HASH, SCHEMA_VERSION } from './generated/contract';
 import { frameRegistry } from './generated/frame-registry';
 import { getUnikitNative, installUnikitJSI } from '@unikit-bridge/generated-react-native';

@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { addNumbers } from '../generated/commands.js';
-import { configure, createBunEngine } from '../../../packages/bun/src/index.js';
+import { configure, createBunEngine } from '../../../packages/rustra/src/bun/index.js';
 
 const engine = createBunEngine({
   invoke(command: string, args?: unknown) {

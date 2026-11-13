@@ -2,10 +2,19 @@ pre-commit:
   parallel: true
   commands:
     eslint:
+      # package.json lint / eslint.config.js lintedFiles 와 동일한 범위만 돌린다.
+      # examples/** 전체면 resident-tree 등 type-aware 프로젝트 밖 파일이 깨진다.
       glob:
-        - 'packages/*/src/**/*.ts'
+        - 'packages/rustra/src/**/*.ts'
         - 'scripts/**/*.ts'
-        - 'examples/**/*.ts'
+        - 'examples/calculator/**/*.ts'
+        - 'examples/crud/**/*.ts'
+        - 'examples/auth/**/*.ts'
+        - 'examples/streaming/**/*.ts'
+        - 'examples/tauri-calculator/**/*.ts'
+        - 'examples/reference-app/**/*.ts'
+        - 'examples/react-native-bare-calculator/**/*.ts'
+        - 'examples/rn-wasm-spike/**/*.ts'
       run: bunx eslint --fix {staged_files}
       stage_fixed: true
     prettier:
@@ -14,7 +23,7 @@ pre-commit:
       stage_fixed: true
     rustfmt:
       glob: '*.rs'
-      run: rustfmt --edition 2024 -- {staged_files}
+      run: PATH="$HOME/.cargo/bin:$PATH" rustfmt --edition 2024 -- {staged_files}
       stage_fixed: true
 
 # pre-push — 포맷/lint만 검증하던 pre-commit 과 달리 컴파일·유닛 신호를

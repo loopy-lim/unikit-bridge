@@ -11,6 +11,7 @@ Rust 백엔드와 TypeScript 클라이언트가 공유하는 계약(schema)이 �
 - **0.5.x에서 올라오는 경우** — 먼저 [0.5에서 0.6으로 마이그레이션](migrations/0.5-to-0.6.ko.md)을 따른다. 오래된 스키마는 CLI 검증에서 "generic type name" 오류로 실패할 수도 있다([Rust API 가이드 — 사용자 정의 제네릭](rust-api-guide.ko.md#사용자-정의-제네릭-타입)) — `unikit diff` 전에 현재 unikit로 `schema.json`을 재생성한다.
 - **0.6~0.9에서 올라오는 경우** — Rust 0.10 경계를 넘을 때 [Frame/API 마이그레이션](migrations/post-0.9-frame-and-audit.ko.md)을 함께 적용한 뒤 아래 레시피를 쓴다.
 - **0.11.x에서 올라오는 경우** — 먼저 [0.11에서 0.12로 마이그레이션](migrations/0.11-to-0.12.ko.md)을 따른 뒤 이 가이드를 쓴다.
+- **npm 통합(0.13+)** — 분리된 `@unikit-bridge/*` 또는 레거시 `rustra` 이름을 쓰는 경우 [패키지 통합](migrations/package-consolidation.ko.md)을 먼저 따른다.
 - **rkyv V2 → Frame 리네임(0.10.0 릴리스)** — 아래 [리네임 표](#frame-리네임-rkyv-v2--frame) 참고. 순수 이름 변경이며 와이어 포맷은 불변이다.
 
 <a id="09-리네임-rkyv-v2--frame"></a>
@@ -151,7 +152,7 @@ ID 경로를 모두 확인한다.
   with:
     fetch-depth: 0 # unikit diff가 베이스 커밋과 비교하므로 전체 히스토리 필요
 - uses: oven-sh/setup-bun@v2
-- run: bun install -g @unikit-bridge/cli # 또는: bun add -d @unikit-bridge/cli + bunx --bun unikit
+- run: bun install -g @unikit-bridge/rustra # 또는: bun add -d @unikit-bridge/rustra + bunx --bun unikit
 - name: Check schema compatibility
   run: |
     git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q schema.json \

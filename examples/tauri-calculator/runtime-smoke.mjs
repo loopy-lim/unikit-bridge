@@ -7,8 +7,8 @@ import {
   buildDylibCore,
   liveArtifactPath,
   publishGatedArtifact,
-} from '../../packages/cli/src/dev-dylib.ts';
-import { readDevConfig } from '../../packages/cli/src/dev-config.ts';
+} from '../../packages/rustra/src/cli/dev-dylib.ts';
+import { readDevConfig } from '../../packages/rustra/src/cli/dev-config.ts';
 
 const root = resolve(new URL('../..', import.meta.url).pathname);
 const binary = join(root, 'target/release/unikit-tauri-calculator');

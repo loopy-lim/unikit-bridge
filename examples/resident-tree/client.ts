@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
-import { configure, createNodeEngine, createNodeLoopTransport } from '@unikit-bridge/node';
+import { configure, createNodeEngine, createNodeLoopTransport } from '@unikit-bridge/rustra/node';
 import {
   loadTree,
   findNode,

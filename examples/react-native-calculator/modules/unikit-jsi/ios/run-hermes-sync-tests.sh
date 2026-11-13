@@ -90,24 +90,24 @@ xcrun clang++ -std=c++20 -O1 -g -fexceptions -frtti \
   -target "$TARGET" -isysroot "$SDK" "${EXTRA_FLAGS[@]}" \
   -I"$RN/ReactCommon/jsi" -I"$RN/ReactCommon/callinvoker" \
   -I"$HERMES/include" -I"$DEPS/Headers" \
-  -I"$WORKTREE/packages/react-native/native/cpp" -I"$MODULE_DIR/generated" \
+  -I"$WORKTREE/packages/rustra/native/cpp" -I"$MODULE_DIR/generated" \
   "$IOS_DIR/test-unikit-native-sync.cpp" "$MODULE_DIR/generated/unikit-generated-codecs.cpp" \
   "$RN/ReactCommon/jsi/jsi/jsi.cpp" \
   -F"$HSLICE" -F"$DSLICE" -framework hermes -framework ReactNativeDependencies \
   -framework Foundation -framework CoreFoundation \
   -Wl,-rpath,"$HSLICE" -Wl,-rpath,"$DSLICE" -o "$BUILD_DIR/native-sync-test"
 shasum -a 256 "$BUILD_DIR/native-sync-test" \
-  "$WORKTREE/packages/react-native/native/cpp/UnikitJSIBridge.cpp" \
-  "$WORKTREE/packages/react-native/native/cpp/UnikitJSIBridge.hpp" \
-  "$WORKTREE/packages/react-native/native/cpp/UnikitSyncBinding.inc" \
+  "$WORKTREE/packages/rustra/native/cpp/UnikitJSIBridge.cpp" \
+  "$WORKTREE/packages/rustra/native/cpp/UnikitJSIBridge.hpp" \
+  "$WORKTREE/packages/rustra/native/cpp/UnikitSyncBinding.inc" \
   "$MODULE_DIR/generated/unikit-generated-codecs.cpp" \
   "$MODULE_DIR/generated/unikit-generated-codecs.hpp" \
   "$IOS_DIR/test-unikit-native-sync.cpp" "$IOS_DIR"/native-sync-*.inc \
   "$IOS_DIR/run-hermes-sync-tests.sh" \
   "$IOS_DIR/run-native-test.mjs" \
   "$RN/ReactCommon/jsi/jsi/jsi.cpp" \
-  "$WORKTREE/packages/react-native/native/cpp/unikit-sync-core.hpp" \
-  "$WORKTREE/packages/react-native/native/cpp/unikit-sync-contract.hpp" \
+  "$WORKTREE/packages/rustra/native/cpp/unikit-sync-core.hpp" \
+  "$WORKTREE/packages/rustra/native/cpp/unikit-sync-contract.hpp" \
   "$HSLICE/hermes.framework/hermes" \
   "$DSLICE/ReactNativeDependencies.framework/ReactNativeDependencies" > "$BUILD_DIR/identities.txt"
 if [[ "${UNIKIT_NATIVE_TEST_BUILD_ONLY:-0}" != 1 ]]; then

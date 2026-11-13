@@ -8,7 +8,7 @@
 
 import { jobStatusCodec, startJobCodec } from './frame-codecs.js';
 
-export const frameRegistry = new Map<string, import('@unikit-bridge/types').FrameCodec<any, any>>([
+export const frameRegistry = new Map<string, import('@unikit-bridge/rustra/types').FrameCodec<any, any>>([
   // route: postcard
   ['jobStatus', jobStatusCodec],
   // route: postcard

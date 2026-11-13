@@ -76,7 +76,7 @@ def source_paths():
     # Hash repository-owned Rust dependencies, Cargo lockfile/checksums and the
     # complete native/driver inputs. No installed registry source is rewritten.
     selected = {ROOT / 'Cargo.toml', ROOT / 'Cargo.lock', ROOT / 'examples/react-native-calculator/src/nitro-parity/fixtures.ts'}
-    for base in ['crates/unikit-bridge', 'crates/unikit-bridge-macros', 'crates/unikit-bridge-naming', 'examples/calculator']:
+    for base in ['crates/unikit-bridge', 'crates/unikit-bridge-macros', , 'examples/calculator']:
         selected.update(p for p in (ROOT / base).rglob('*.rs') if 'target' not in p.parts)
         selected.add(ROOT / base / 'Cargo.toml')
     selected.update(p for p in SCRIPTS.iterdir() if p.is_file())

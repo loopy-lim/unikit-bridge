@@ -27,6 +27,7 @@ import { fileURLToPath } from 'node:url';
 
 import { mutateScaffoldSources } from './onboarding-gate.mjs';
 import { pinCargoVersions } from './registry-consumer/fixture.mjs';
+import { resolvePublishedCli } from './registry-consumer/paths.mjs';
 import {
   assertExactNpmProvenance,
   assertNoConsumerContamination,
@@ -221,7 +222,7 @@ async function main(argv) {
     writeJson(join(scratchRoot, 'package.json'), {
       name: 'unikit-registry-diagnostics-bootstrap',
       private: true,
-      dependencies: { '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'] },
+      dependencies: { '@unikit-bridge/rustra': versions.npm['@unikit-bridge/rustra'] },
     });
     assertNoConsumerContamination(scratchRoot);
     let run = await runOrderedSteps({
@@ -240,7 +241,7 @@ async function main(argv) {
             cwd: scratchRoot,
             argv: [
               process.execPath,
-              join(scratchRoot, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js'),
+              resolvePublishedCli(scratchRoot),
               'init',
               PROJECT_NAME,
             ],
@@ -252,10 +253,10 @@ async function main(argv) {
     const packagePath = join(projectDir, 'package.json');
     const packageJson = readJson(packagePath);
     packageJson.dependencies = {
-      '@unikit-bridge/node': versions.npm['@unikit-bridge/node'],
-      '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
+      '@unikit-bridge/rustra': versions.npm['@unikit-bridge/rustra'],
+      '@unikit-bridge/rustra': versions.npm['@unikit-bridge/rustra'],
     };
-    packageJson.devDependencies = { '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'] };
+    packageJson.devDependencies = { '@unikit-bridge/rustra': versions.npm['@unikit-bridge/rustra'] };
     writeJson(packagePath, packageJson);
     pinCargoVersions(projectDir, versions.phases.candidate);
     run = await runOrderedSteps({
@@ -273,8 +274,8 @@ async function main(argv) {
               '--ignore-scripts',
               '--no-audit',
               '--no-fund',
-              `@unikit-bridge/types@${versions.npm['@unikit-bridge/types']}`,
-              `@unikit-bridge/node@${versions.npm['@unikit-bridge/node']}`,
+              `@unikit-bridge/rustra@${versions.npm['@unikit-bridge/rustra']}`,
+              `@unikit-bridge/rustra@${versions.npm['@unikit-bridge/rustra']}`,
             ],
           },
         },
@@ -296,7 +297,7 @@ async function main(argv) {
             cwd: projectDir,
             argv: [
               process.execPath,
-              join(projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js'),
+              resolvePublishedCli(projectDir),
               'codegen',
               '--config',
               'unikit.json',
@@ -307,11 +308,11 @@ async function main(argv) {
     });
     if (!run.ok) throw new Error(`consumer setup failed: ${run.error.message}`);
     assertExactNpmProvenance(projectDir, {
-      '@unikit-bridge/cli': versions.npm['@unikit-bridge/cli'],
-      '@unikit-bridge/types': versions.npm['@unikit-bridge/types'],
-      '@unikit-bridge/node': versions.npm['@unikit-bridge/node'],
+      '@unikit-bridge/rustra': versions.npm['@unikit-bridge/rustra'],
+      '@unikit-bridge/rustra': versions.npm['@unikit-bridge/rustra'],
+      '@unikit-bridge/rustra': versions.npm['@unikit-bridge/rustra'],
     });
-    const projectCli = join(projectDir, 'node_modules', '@unikit-bridge', 'cli', 'dist', 'index.js');
+    const projectCli = resolvePublishedCli(projectDir);
     const binary = join(scratchRoot, 'cargo-target', 'debug', 'unikit-app');
     if (!existsSync(binary)) throw new Error(`native binary missing: ${binary}`);
 

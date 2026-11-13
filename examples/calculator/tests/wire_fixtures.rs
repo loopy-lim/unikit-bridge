@@ -2,7 +2,7 @@
 //!
 //! calculator 패키지의 대표 명령(addNumbers/greet/divide)에 대해 **실제**
 //! `invoke_frame` 와이어를 hex 로 고정한다. 이 hex 는
-//! `packages/types/src/cross-wire.test.ts` 의 TS 교차 테스트가 generated
+//! `packages/rustra/src/types/cross-wire.test.ts` 의 TS 교차 테스트가 generated
 //! codec 으로 decode/encode 하는 것과 짝을 이뤄 Rust↔TS 바이너리 호환을 증명한다.
 //!
 //! - request  = `[cmd_id: u16 LE][postcard(Input)]`  ← TS codec.encode 와 동일

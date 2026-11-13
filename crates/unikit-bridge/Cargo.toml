@@ -24,7 +24,6 @@ tauri = ["dep:tauri"]
 hot-core = ["dep:libloading"]
 
 [dependencies]
-unikit-bridge-naming.workspace = true
 unikit-bridge-macros.workspace = true
 schemars.workspace = true
 serde.workspace = true

@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "generate:schema": "cargo run -p unikit-rn-experiment --bin generate",
-    "codegen": "bun ../../packages/cli/src/index.ts codegen --config unikit.json",
-    "codegen:check": "bun ../../packages/cli/src/index.ts codegen --config unikit.json --check",
+    "codegen": "node ../../packages/rustra/dist/cli/index.js codegen --config unikit.json",
+    "codegen:check": "node ../../packages/rustra/dist/cli/index.js codegen --config unikit.json --check",
     "test": "bun test apps/benchmark.test.ts apps/native-benchmark.test.ts scripts/benchmark-receipts.test.ts",
     "test:adapter": "bun apps/react-native-app.ts",
     "test:node": "cargo build -p unikit-rn-experiment --bin unikit-rn-experiment && bun apps/node-app.ts",
@@ -15,13 +15,7 @@
   },
   "dependencies": {
     "@unikit-bridge/generated-react-native": "workspace:*",
-    "@unikit-bridge/node": "file:../../packages/node",
-    "@unikit-bridge/react-native": "file:../../packages/react-native",
-    "@unikit-bridge/types": "file:../../packages/types"
-  },
-  "overrides": {
-    "@unikit-bridge/types": "file:../../packages/types",
-    "@unikit-bridge/react-native": "file:../../packages/react-native"
+    "@unikit-bridge/rustra": "file:../../packages/rustra"
   },
   "peerDependencies": {
     "react-native": ">=0.76"
@@ -31,5 +25,8 @@
   },
   "workspaces": [
     "modules/unikit-bridge"
-  ]
+  ],
+  "overrides": {
+    "@unikit-bridge/rustra": "file:../../packages/rustra"
+  }
 }

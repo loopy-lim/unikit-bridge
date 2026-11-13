@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { configure } from '@unikit-bridge/types';
-import { createBunEngine } from '../../../packages/bun/src/index.js';
-import { createNodeEngine } from '../../../packages/node/src/index.js';
-import { createReactNativeEngine } from '../../../packages/react-native/src/index.js';
-import { createTauriEngine } from '../../../packages/tauri/src/index.js';
+import { configure } from '@unikit-bridge/rustra/types';
+import { createBunEngine } from '../../../packages/rustra/src/bun/index.js';
+import { createNodeEngine } from '../../../packages/rustra/src/node/index.js';
+import { createReactNativeEngine } from '../../../packages/rustra/src/react-native/index.js';
+import { createTauriEngine } from '../../../packages/rustra/src/tauri/index.js';
 import { addNumbers } from '../generated/commands.js';
 import type { EngineClient } from '../generated/types.js';
 
@@ -85,11 +85,17 @@ void test('react native adapter forwards generated commands through JSI native m
 
 void test('adapter packages keep host-specific imports out of the shared contract path', async () => {
   const adapterSources = await Promise.all([
-    import('node:fs/promises').then((fs) => fs.readFile('packages/node/src/index.ts', 'utf8')),
-    import('node:fs/promises').then((fs) => fs.readFile('packages/bun/src/index.ts', 'utf8')),
-    import('node:fs/promises').then((fs) => fs.readFile('packages/tauri/src/index.ts', 'utf8')),
     import('node:fs/promises').then((fs) =>
-      fs.readFile('packages/react-native/src/index.ts', 'utf8'),
+      fs.readFile('packages/rustra/src/node/index.ts', 'utf8'),
+    ),
+    import('node:fs/promises').then((fs) =>
+      fs.readFile('packages/rustra/src/bun/index.ts', 'utf8'),
+    ),
+    import('node:fs/promises').then((fs) =>
+      fs.readFile('packages/rustra/src/tauri/index.ts', 'utf8'),
+    ),
+    import('node:fs/promises').then((fs) =>
+      fs.readFile('packages/rustra/src/react-native/index.ts', 'utf8'),
     ),
   ]);
 

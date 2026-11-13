@@ -65,8 +65,8 @@ export function runQuickStart(
   mkdirSync(join(repo, 'target'), { recursive: true });
   const root = mkdtempSync(join(repo, 'target', `quick-start-${options.host}-${options.manager}-`));
   const app = join(root, 'app');
-  const cli = join(repo, 'packages/cli/dist/index.js');
-  // file: 로 주입된 @unikit-bridge/cli 의 .bin/unikit 심링크는 이 파일을 가리킨다 —
+  const cli = join(repo, 'packages/rustra/dist/cli/index.js');
+  // file: 로 주입된 @unikit-bridge/rustra 의 .bin/unikit 심링크는 이 파일을 가리킨다 —
   // tsc 출력은 644 라 Linux 에서 exec 하면 126 이 된다. shebang 이 있으므로
   // 실행 비트만 부여하면 모든 매니저 경로가 해소된다.
   if (existsSync(cli)) chmodSync(cli, 0o755);
@@ -170,9 +170,7 @@ export function runQuickStart(
         .map((path) => benchmarkArtifact(app, path))
         .filter(Boolean),
       native: benchmarkArtifact(targetDir, scaffoldNativeArtifactPath(options.host)),
-      installedPackages: ['cli', 'types', options.host].map((name) =>
-        onboardingPackageArtifact(join(app, 'node_modules/@unikit-bridge', name)),
-      ),
+      installedPackages: [onboardingPackageArtifact(join(app, 'node_modules/@unikit-bridge/rustra'))],
     });
   try {
     run('init', process.execPath, [cli, 'init', app, '--host', options.host], repo);
@@ -180,15 +178,8 @@ export function runQuickStart(
       const manifestPath = join(app, 'package.json');
       const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
       manifest.packageManager = `${options.manager}@${managerVersion}`;
-      for (const [section, names] of [
-        ['dependencies', ['types', options.host]],
-        ['devDependencies', ['cli']],
-      ]) {
-        for (const name of names)
-          manifest[section][`@unikit-bridge/${name}`] = `file:${join(repo, 'packages', name)}`;
-      }
-      // The transitive types dependency must resolve to the same candidate under every manager.
-      const override = { '@unikit-bridge/types': `file:${join(repo, 'packages/types')}` };
+      manifest.dependencies['@unikit-bridge/rustra'] = `file:${join(repo, 'packages', 'rustra')}`;
+      const override = { '@unikit-bridge/rustra': `file:${join(repo, 'packages', 'rustra')}` };
       if (options.manager === 'pnpm') manifest.pnpm = { overrides: override };
       else if (options.manager === 'yarn') manifest.resolutions = override;
       else manifest.overrides = override;
@@ -196,7 +187,7 @@ export function runQuickStart(
       mkdirSync(join(app, '.cargo'), { recursive: true });
       writeFileSync(
         join(app, '.cargo/config.toml'),
-        `[build]\ntarget-dir = ${JSON.stringify(targetDir)}\n\n[patch.crates-io]\n${['unikit-bridge', 'unikit-bridge-macros', 'unikit-bridge-naming'].map((name) => `${name} = { path = ${JSON.stringify(join(repo, 'crates', name))} }`).join('\n')}\n`,
+        `[build]\ntarget-dir = ${JSON.stringify(targetDir)}\n\n[patch.crates-io]\n${['unikit-bridge', 'unikit-bridge-macros'].map((name) => `${name} = { path = ${JSON.stringify(join(repo, 'crates', name))} }`).join('\n')}\n`,
       );
     });
     const manifestBefore = JSON.parse(readFileSync(join(app, 'package.json'), 'utf8'));

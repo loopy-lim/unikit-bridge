@@ -17,9 +17,8 @@
 
 | Member 경로                           | 패키지명                    | 역할                                                             |
 | ------------------------------------- | --------------------------- | ---------------------------------------------------------------- |
-| `crates/unikit-bridge-naming`                | `unikit-bridge-naming`             | Rust·proc-macro 코드젠이 공유하는 식별자 네이밍 규칙             |
-| `crates/unikit-bridge`                       | `unikit`                    | 핵심 라이브러리. Package 빌더, TypeScript 코드생성, command 등록 |
-| `crates/unikit-bridge-macros`                | `unikit-bridge-macros`             | `#[command]` proc macro. 컴파일 타임 시그니처 검증               |
+| `crates/unikit-bridge`                | `unikit-bridge`             | 핵심 라이브러리. Package 빌더, TypeScript 코드생성, command 등록 |
+| `crates/unikit-bridge-macros`         | `unikit-bridge-macros`      | `#[command]` proc macro. 워크스페이스 전용 빌드 의존성           |
 | `examples/calculator`                 | `unikit-calculator-example` | 예제 계산기. rlib/cdylib/staticlib으로 빌드하여 RN/FFI에서 사용  |
 | `examples/crud`                       | `unikit-crud-example`       | CRUD 패턴 예시 (create/get/list/update/delete)                   |
 | `examples/calculator-napi`            | `unikit-calculator-napi`    | napi-rs transport 예시                                           |
@@ -28,15 +27,15 @@
 | `examples/streaming`                  | `unikit-streaming-example`  | 이벤트 스트리밍 예시                                             |
 | `examples/auth`                       | `unikit-auth-example`       | 세션/capability 게이트 예시                                      |
 
-`default-members`(기본 `cargo build`/`test`가 빌드하는 범위)는
-`crates/unikit-bridge-naming`과 macOS 전용 `examples/tauri-calculator/src-tauri`를
+`default-members`는 macOS 전용 `examples/tauri-calculator/src-tauri`를
 제외한다 — 전체 멤버는 `--workspace`로 빌드한다.
+`snake_to_lower_camel` 네이밍은 `unikit-bridge`와 `unikit-bridge-macros`에
+인라인되었고 `unikit-bridge-naming` 크레이트는 제거되었다.
 
 ### Workspace Dependencies
 
 ```toml
 [workspace.dependencies]
-unikit-bridge-naming = { path = "crates/unikit-bridge-naming" }
 unikit-bridge-macros = { path = "crates/unikit-bridge-macros" }
 unikit-bridge = { path = "crates/unikit-bridge" }
 serde = { version = "1", features = ["derive"] }
@@ -58,12 +57,11 @@ unikit-bridge-macros (proc-macro)
   ├─ syn 2 (full)
   ├─ quote 1
   ├─ proc-macro2 1
-  └─ unikit-bridge-naming (workspace)
+  └─ naming.rs (내부 복사)
         │
         ▼
-unikit
+unikit-bridge
   ├─ unikit-bridge-macros (workspace)
-  ├─ unikit-bridge-naming (workspace)
   ├─ schemars 0.8 (derive)
   ├─ serde 1 (derive)
   ├─ serde_json 1
@@ -88,7 +86,7 @@ tauri-calculator (src-tauri)
 
 ## Crate 상세
 
-### unikit (`crates/unikit-bridge`)
+### unikit-bridge (`crates/unikit-bridge`)
 
 핵심 라이브러리. 사용자가 Package를 구성하고 TypeScript 클라이언트를 생성하는 진입점이다.
 
@@ -108,8 +106,8 @@ tauri-calculator (src-tauri)
 | `GeneratedPackage::write_to_dir()`        | method                 | 디렉토리에 파일 쓰기 — deprecated (single-arrow)                                                       |
 | `GeneratedPackage::write_schema_to_dir()` | method                 | schema.json 만 쓰기 (계약 프로브)                                                                      |
 | `UnikitError`                             | struct                 | 에러 타입. `Serialize` 구현. `code + message` 필드 + `custom()` 생성자 + `code()` / `message()` getter |
-| `command`                                 | macro (re-export)      | `unikit_bridge_macros::command`                                                                               |
-| `register`                                | macro (re-export)      | `unikit_bridge_macros::register`. 다중 command 일괄 등록                                                      |
+| `command`                                 | macro (re-export)      | `unikit_bridge_macros::command`                                                                        |
+| `register`                                | macro (re-export)      | `unikit_bridge_macros::register`. 다중 command 일괄 등록                                               |
 | `prelude`                                 | module                 | 자주 쓰는 항목 일괄 import (`command`, `register` 포함)                                                |
 | `tauri_support`                           | module (feature-gated) | `UnikitState`, `unikit_dispatch`, `register()` — Tauri 연동 헬퍼                                       |
 | `__private`                               | module (sealed)        | `CommandInput`, `CommandOutput` trait. proc macro 전용                                                 |
@@ -171,15 +169,17 @@ unikit_bridge::register!(Package::builder("pkg"), add_numbers, multiply)
 
 ## TypeScript Package 구조
 
-`packages/` 아래 adapter 패키지. React Native 패키지는 TypeScript 어댑터와 생성기에
-재사용되는 iOS/Android/C++ native source를 함께 배포한다.
+공개 npm 패키지는 `packages/rustra/` (`@unikit-bridge/rustra`) 하나이며 서브패스 export로
+모듈을 노출한다. React Native native source는 `packages/rustra/native/`에 있다.
 
-| 패키지 경로                          | 팩토리 함수                            | 클라이언트 타입     | 전송 계층               |
-| ------------------------------------ | -------------------------------------- | ------------------- | ----------------------- |
-| `packages/node/src/index.ts`         | `createNodeEngine(transport)`          | `NodeEngineClient`  | `NodeInvokeTransport`   |
-| `packages/bun/src/index.ts`          | `createBunEngine(transport)`           | `BunEngineClient`   | `BunInvokeTransport`    |
-| `packages/tauri/src/index.ts`        | `createTauriEngine({ invoke })`        | `TauriEngineClient` | `TauriInvoke`           |
-| `packages/react-native/src/index.ts` | generated bootstrap / low-level engine | `EngineClient`      | JSI + caller-buffer FFI |
+| 서브패스 export                      | 소스 모듈                   | 팩토리 함수                            | 전송 계층               |
+| ------------------------------------ | --------------------------- | -------------------------------------- | ----------------------- |
+| `@unikit-bridge/rustra/node`         | `src/node/index.ts`         | `createNodeEngine(transport)`          | `NodeInvokeTransport`   |
+| `@unikit-bridge/rustra/bun`          | `src/bun/index.ts`          | `createBunEngine(transport)`           | `BunInvokeTransport`    |
+| `@unikit-bridge/rustra/tauri`        | `src/tauri/index.ts`        | `createTauriEngine({ invoke })`        | `TauriInvoke`           |
+| `@unikit-bridge/rustra/react-native` | `src/react-native/index.ts` | generated bootstrap / low-level engine | JSI + caller-buffer FFI |
+| `@unikit-bridge/rustra/types`        | `src/types/index.ts`        | 공유 엔진 계약                         | host-neutral            |
+| `@unikit-bridge/rustra/cli`          | `src/cli/index.ts`          | `unikit` CLI (bin)                     | —                       |
 
 모든 클라이언트는 `EngineClient` 인터페이스(`invoke<T>(command, args?)`)를 구현한다. Tauri adapter만 내부적으로 `unikit_dispatch`로 명령을 래핑하고, 나머지는 transport의 `invoke`를 직접 호출한다.
 

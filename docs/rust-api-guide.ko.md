@@ -12,10 +12,10 @@ Rust #[command] 정의 → TypeScript 클라이언트 자동 생성 → 각 플�
 
 핵심 구성 요소는 세 가지입니다:
 
-| 구성 요소          | 역할                                                   |
-| ------------------ | ------------------------------------------------------ |
-| `#[command]`       | 함수를 브릿지 명령으로 변환하는 속성 매크로            |
-| `#[bridge_type]`   | 구조체/열거형에 필요한 derive와 serde 설정을 자동 추가 |
+| 구성 요소                 | 역할                                                   |
+| ------------------------- | ------------------------------------------------------ |
+| `#[command]`              | 함수를 브릿지 명령으로 변환하는 속성 매크로            |
+| `#[bridge_type]`          | 구조체/열거형에 필요한 derive와 serde 설정을 자동 추가 |
 | `unikit_bridge::build!()` | 패키지 빌더를 생성하고 여러 명령을 한 번에 등록        |
 
 ---
@@ -706,11 +706,11 @@ JS 측 `invoke`의 `options.timeoutMs`는 만료 시 이 `transport.timeout`(ret
 
 ### JS 호출 시맨틱: signal, timeoutMs, invokeBatch
 
-생성된 모든 헬퍼는 마지막 파라미터로 `InvokeOptions`를 받고, `@unikit-bridge/types`는
+생성된 모든 헬퍼는 마지막 파라미터로 `InvokeOptions`를 받고, `@unikit-bridge/rustra/types`는
 raw `invoke`/`invokeBatch`에도 같은 옵션을 제공한다:
 
 ```ts
-import { invokeBatch } from '@unikit-bridge/types';
+import { invokeBatch } from '@unikit-bridge/rustra/types';
 import { addNumbers, slowCompute } from './generated/commands.js';
 
 // 취소 — AbortSignal은 프라미스를 즉시 거부한다(`cancelled`).
@@ -746,7 +746,7 @@ const [sum, echo] = await invokeBatch([
 확인하라:
 
 ```ts
-import { withRetry } from '@unikit-bridge/types';
+import { withRetry } from '@unikit-bridge/rustra/types';
 
 // 안전: 읽기 커맨드 — 재시도해도 부작용이 중복되지 않는다.
 const user = await withRetry((attempt) => invoke('getUser', { id }), {
@@ -769,7 +769,7 @@ await withRetry((attempt) => invoke('chargeCard', { id, amountCents: 500 }), {
 트랜잭션이 없다. 항목별 폴백은 모든 항목을 동시에 시작하고, RN 단일 횡단 배치는
 첫 실패 항목에서 멈추며, Tauri wire 배치는 전부 실행한 뒤 거부한다. `invokeBatch`
 자체에 settled 형태는 없다 — 부분 결과를 관측하려면 `invokeBatchSettled`
-(`@unikit-bridge/types`)를 쓰라: 항상 per-entry 순차 실행(원자적 와이어 배치는 사용하지
+(`@unikit-bridge/rustra/types`)를 쓰라: 항상 per-entry 순차 실행(원자적 와이어 배치는 사용하지
 않음)이라 실패한 항목과 그 이후 항목이 구별된다 — 항목별로
 `{ status: 'fulfilled', value }`, `{ status: 'rejected', reason }`,
 `{ status: 'unexecuted' }` 중 하나로 settle 되며, `unexecuted`는 dispatch 자체가
@@ -903,8 +903,8 @@ export const addNumbers = createGeneratedFields2<AddNumbersInput, int64>(1, 'add
 ### 생성된 types.ts 예시
 
 ```typescript
-export type { EngineClient, UnikitError } from '@unikit-bridge/types';
-export { UnikitCommandError } from '@unikit-bridge/types';
+export type { EngineClient, UnikitError } from '@unikit-bridge/rustra/types';
+export { UnikitCommandError } from '@unikit-bridge/rustra/types';
 
 export type AddNumbersInput = {
   a: number | bigint;
@@ -923,8 +923,8 @@ export type AddNumbersOutput = {
 <!-- prettier-ignore -->
 ```ts
 import type { AddNumbersInput, AddNumbersOutput, BenchAddInput, BenchAddOutput, BenchBytesPayload, BenchPairPayload, BenchStringPayload, ChannelDemoBytesInput, ChannelDemoBytesOutput, ChannelDemoInput, ChannelDemoOutput, ClampInput, ClampOutput, CreateItemInput, CreateItemOutput, DeviceDemoOutput, DivideInput, DivideOutput, EchoGroupsInput, EchoGroupsOutput, EmitDemoInput, EmitDemoOutput, GaugeInput, GaugeOutput, GreetInput, GreetOutput, IsEvenInput, IsEvenOutput, KindEchoInput, KindEchoOutput, MultiplyInput, MultiplyOutput, ParityFindInput, ParityQuery, ParitySearch, ParityStored, ParityTree, PlatformNativeInfoOutput, ProcessItemInput, ProcessItemOutput, RegistryDemoInput, RegistryDemoOutput, ResourceCloseInput, ResourceCloseOutput, ResourceHandleOutput, ResourceOpenInput, ResourceReadInput, ResourceReadOutput, ResourceWriteInput, ResourceWriteOutput, ScoreTotalInput, ScoreTotalOutput, SecureComputeInput, SecureComputeOutput, SizeOfInput, SizeOfOutput, SpanInput, SpanOutput, SumListInput, SumListOutput, TagSetInput, TagSetOutput, ToUpperInput, ToUpperOutput, WideAggInput, WideAggOutput } from './types.js';
-import { createGeneratedFields1, createGeneratedFields2, invokeGenerated, invokeGeneratedBytes, invokeGeneratedFields3 } from '@unikit-bridge/types';
-import type { InvokeOptions as CoreInvokeOptions } from '@unikit-bridge/types';
+import { createGeneratedFields1, createGeneratedFields2, invokeGenerated, invokeGeneratedBytes, invokeGeneratedFields3 } from '@unikit-bridge/rustra/types';
+import type { InvokeOptions as CoreInvokeOptions } from '@unikit-bridge/rustra/types';
 
 /**
  * 이 패키지 생성 명령의 호출 옵션 — 모든 생성 함수의 마지막 파라미터.
@@ -939,7 +939,7 @@ import type { InvokeOptions as CoreInvokeOptions } from '@unikit-bridge/types';
  * 시도가 반영되지 않았음을 확인한 뒤에만 하세요.
  *
  * 전체 의미론은 docs/compatibility-matrix.md "Signal semantics in detail" 및
- * 원본 타입(`InvokeOptions`(@unikit-bridge/types)) 문서를 참고하세요.
+ * 원본 타입(`InvokeOptions`(@unikit-bridge/rustra/types)) 문서를 참고하세요.
  */
 export type InvokeOptions = CoreInvokeOptions;
 

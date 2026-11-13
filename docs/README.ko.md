@@ -20,9 +20,9 @@ unikit는 Rust 패키지를 한 번 정의하면 host-neutral TypeScript 클라�
 
 ## API 레퍼런스(TypeDoc)
 
-발행되는 모든 `@unikit-bridge/*` 패키지에는 브라우징 가능한 생성 API 레퍼런스가 있다.
+`@unikit-bridge/rustra` 서브패스마다 브라우징 가능한 생성 API 레퍼런스가 있다.
 커밋되지 않고 아직 호스팅되지 않는 로컬 빌드 산출물이므로, 정확한 표면이
-필요할 때(예: `@unikit-bridge/types` 의 `EngineClient` 계약) 필요할 때 생성한다:
+필요할 때(예: `@unikit-bridge/rustra/types`의 `EngineClient` 계약) 생성한다:
 
 ```bash
 bun install
@@ -64,7 +64,7 @@ open docs/api/index.html
 | [동기 명령 바인딩](synchronous-bindings.ko.md) ([English](synchronous-bindings.md))                                                                                                        | 사용자 | `bindSync` 실행 자격, 동결 레지스트리·codec 식별 정보, 수명 주기, 오류·한도                                                                                                                    |
 | [에러 코드](error-codes.ko.md) ([English](error-codes.md))                                                                                                                                 | 전체   | `UnikitErrorCode` 전체 표 — 코드, 발급 계층, retryable, JSON 폴백 동작, TS↔Rust 동기화 게이트                                                                                                  |
 | [일반 함수 등록](function-registration.ko.md) ([English](function-registration.md))                                                                                                        | 사용자 | `PackageBuilder::function`/`try_function` 으로 매크로 없이 일반 Rust 함수 연결 — 0~12 인자, 위치 인자 TS 클라이언트, `#[command]` 와의 저작 모델 비교 표                                       |
-| [레지스트리 온보딩](registry-onboarding.ko.md) ([English](registry-onboarding.md))                                                                                                         | 사용자 | 발행된 `@unikit-bridge/*` 패키지 설치 — 소비자 게이트, 호환 호스트 핀, CI 검증                                                                                                                        |
+| [레지스트리 온보딩](registry-onboarding.ko.md) ([English](registry-onboarding.md))                                                                                                         | 사용자 | 발행된 `@unikit-bridge/*` 패키지 설치 — 소비자 게이트, 호환 호스트 핀, CI 검증                                                                                                                 |
 | [벤치마크](benchmarks.md)                                                                                                                                                                  | 전체   | 어댑터별 성능 비교, 오버헤드 분석, 페이로드 확장성                                                                                                                                             |
 | [성능 종합 평가](performance-evaluation.ko.md) ([English](performance-evaluation.md))                                                                                                      | 기여자 | 2026-09-24 전체 재실측 보고 — 후속 후보(E1/A2/rn-experiment) 상태, 시뮬레이터 참고 수치, 기기 A/B 런북 링크                                                                                    |
 | [측정 런북](measurement-runbook.ko.md) ([English](measurement-runbook.md))                                                                                                                 | 기여자 | E1 owned 핸드오프 · A2 emit 전환 · rn-experiment 버퍼의 실행 가능한 실기기 A/B 플랜 — 프로토콜, 명령, 수화물 경로, 채택/기각·롤백 기준                                                         |
@@ -82,7 +82,7 @@ open docs/api/index.html
 | [아키텍처 결정 기록](adr/)                                                                                                                                                                 | 기여자 | 계약이나 강제 방식을 바꾸는 번호 결정 기록 (ADR 0001: Track A 계약의 기계화, ADR 0002: UniFFI Kotlin/Swift 캐리어)                                                                             |
 | [보안 정책](../.github/SECURITY.md)                                                                                                                                                        | 전체   | 취약점 신고 채널, 지원 버전, 스코프                                                                                                                                                            |
 | [기여 가이드](../CONTRIBUTING.md)                                                                                                                                                          | 기여자 | 개발 환경, 커밋 규칙, 디버깅, 릴리즈                                                                                                                                                           |
-| [API 레퍼런스(생성)](#api-레퍼런스typedoc)                                                                                                                                                 | 전체   | 모든 `@unikit-bridge/*` 패키지의 TypeDoc HTML — `bun run docs:api` → `docs/api/` (gitignore 되는 로컬 빌드)                                                                                           |
+| [API 레퍼런스(생성)](#api-레퍼런스typedoc)                                                                                                                                                 | 전체   | 모든 `@unikit-bridge/*` 패키지의 TypeDoc HTML — `bun run docs:api` → `docs/api/` (gitignore 되는 로컬 빌드)                                                                                    |
 
 ## 예제 갤러리
 
@@ -100,7 +100,7 @@ open docs/api/index.html
 | [`react-native-bare-calculator`](../examples/react-native-bare-calculator/) | Expo 없는 bare React Native — Expo 예제와 동일한 앱 코드                                              |
 | [`calculator-napi`](../examples/calculator-napi/)                           | transport를 napi-rs로 교체(release transport 벤치마크의 소스)                                         |
 | [`benchmark`](../examples/benchmark/)                                       | 페이로드 확장·처리량 측정 하니스                                                                      |
-| [`reference-app`](../examples/reference-app/)                               | 실제 앱에서 `@unikit-bridge/react` 훅: useCommand/useMutation/useEvent                                       |
+| [`reference-app`](../examples/reference-app/)                               | 실제 앱에서 `@unikit-bridge/react` 훅: useCommand/useMutation/useEvent                                |
 | [`hot-core-probe`](../examples/hot-core-probe/)                             | 실험적 dylib 핫스왑 코어의 단독 검증기 — 호스트/iOS 시뮬레이터/Android 에뮬레이터                     |
 | [`resident-tree`](../examples/resident-tree/)                               | 상주 패턴: 큰 구조는 Rust에 두고 호출마다 핸들 + 질의만 보낸다 — 상주 스토어, 세대 무효화 핸들        |
 

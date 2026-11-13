@@ -6,7 +6,7 @@
 // DO NOT EDIT — changes will be overwritten and fail codegen --check.
 // ────────────────────────────────────────────────────────────
 
-import { UnikitCommandError } from '@unikit-bridge/types';
+import { UnikitCommandError } from '@unikit-bridge/rustra/types';
 
 const divideErrorCodes: ReadonlySet<string> = new Set(['math.divide_by_zero']);
 

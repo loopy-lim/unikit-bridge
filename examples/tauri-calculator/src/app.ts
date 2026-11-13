@@ -1,5 +1,5 @@
 import { addNumbers, subscribeEvent } from '../../calculator/generated/tauri.js';
-import { subscribeHotSwap, type HotSwapEvent } from '@unikit-bridge/tauri';
+import { subscribeHotSwap, type HotSwapEvent } from '@unikit-bridge/rustra/tauri';
 
 // 이벤트 푸시 수신 — Rust 측 register_with_events 가 설치한 싱크가
 // Package::emit 을 "unikit://{name}" 채널로 전달한다 (폴링 불필요).

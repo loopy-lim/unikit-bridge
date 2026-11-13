@@ -104,10 +104,9 @@ jobs:
       - name: Production dependency audit
         run: bun run audit:prod
 
-      # ci.yml 과 동일 — workspace 병렬 빌드 전
-      # @unikit-bridge/types 를 먼저 빌드한다 (다른 패키지가 dist 타입을 import 함).
-      - name: Build @unikit-bridge/types first
-        run: bun run --cwd packages/types build
+      # ci.yml 과 동일 — 통합 패키지 `@unikit-bridge/rustra` 를 먼저 빌드한다.
+      - name: Build @unikit-bridge/rustra first
+        run: bun run --cwd packages/rustra build
 
       - name: Build packages
         run: bun run build
@@ -147,7 +146,7 @@ jobs:
           # tarball에 첨부한다. 발견된 패키지의 공급망 신뢰성 직결.
           NPM_CONFIG_PROVENANCE: true
 
-  # crates.io 발행은 main 수동 트리거 전용 (unikit-bridge-naming → unikit-bridge-macros → unikit 순서 필수).
+  # crates.io 발행은 main 수동 트리거 전용 (unikit-bridge-macros → unikit-bridge 순서 필수).
   # 실행 직전 동일 SHA의 CI 성공을 확인하므로 workflow_dispatch가 게이트를 우회하지 않는다.
   cargo-publish:
     name: Publish crates (manual)
@@ -170,24 +169,12 @@ jobs:
       - name: Validate publishable crates
         run: |
           cargo fmt --all -- --check
-          cargo clippy -p unikit-bridge-naming -p unikit-bridge -p unikit-bridge-macros --all-targets -- -D warnings
-          cargo test -p unikit-bridge-naming -p unikit-bridge -p unikit-bridge-macros --release
-          cargo publish -p unikit-bridge-naming --dry-run --locked
+          cargo clippy -p unikit-bridge -p unikit-bridge-macros --all-targets -- -D warnings
+          cargo test -p unikit-bridge -p unikit-bridge-macros --release
       - name: Recheck current green CI immediately before crates release
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/check-release-gates.mjs --ci-only --sha "${{ needs.candidate.outputs.sha }}"
-      - name: Publish unikit-bridge-naming first (path dependency)
-        run: cargo publish -p unikit-bridge-naming --locked
-      - name: Wait for unikit-bridge-naming index propagation
-        run: |
-          VERSION="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "unikit-bridge-naming") | .version')"
-          echo "waiting for unikit-bridge-naming@${VERSION} on crates.io index"
-          for _attempt in {1..12}; do
-            cargo info "unikit-bridge-naming@${VERSION}" --registry crates-io >/dev/null 2>&1 && exit 0
-            sleep 10
-          done
-          exit 1
       - name: Validate unikit-bridge-macros package
         run: cargo publish -p unikit-bridge-macros --dry-run --locked
       - name: Publish unikit-bridge-macros (path dependency)

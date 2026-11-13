@@ -13,9 +13,9 @@ import {
   generateFrameRegistryTs,
   generateFrameCodecsCpp,
   generateFrameCodecsHpp,
-} from '../packages/cli/src/generate.ts';
-import { parsePackageSchema } from '../packages/cli/src/schema-validation.ts';
-import type { FrameCodec } from '../packages/types/src/public.ts';
+} from '../packages/rustra/src/cli/generate.ts';
+import { parsePackageSchema } from '../packages/rustra/src/cli/schema-validation.ts';
+import type { FrameCodec } from '../packages/rustra/src/types/public.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
@@ -49,7 +49,7 @@ const buffer = (value: string): ArrayBuffer => Uint8Array.from(Buffer.from(value
 
 try {
   run('cargo', ['build', '--locked', '-p', 'unikit-bridge', '--example', 'function_fixture']);
-  run('bun', ['run', '--cwd', 'packages/types', 'build']);
+  run('bun', ['run', '--cwd', 'packages/rustra', 'build']);
   const emitted = JSON.parse(run(fixture, ['schema'])) as {
     schema: string;
     commands: string;
@@ -57,7 +57,7 @@ try {
   };
   const schema = parsePackageSchema(emitted.schema);
   mkdirSync(join(scratch, 'node_modules/@unikit-bridge'), { recursive: true });
-  symlinkSync(join(root, 'packages/types'), join(scratch, 'node_modules/@unikit-bridge/types'));
+  symlinkSync(join(root, 'packages/rustra'), join(scratch, 'node_modules/@unikit-bridge/rustra'));
   writeFileSync(join(scratch, 'package.json'), '{"type":"module"}\n');
   const files = {
     'types.ts': generateTypesTs(schema),
@@ -110,7 +110,7 @@ int main() {
       '-I',
       scratch,
       '-I',
-      join(root, 'packages/react-native/native/cpp'),
+      join(root, 'packages/rustra/src/react-native/native/cpp'),
       '-include',
       join(root, 'examples/react-native-calculator/modules/unikit-jsi/ios/test-jsi-shim.hpp'),
       join(scratch, 'native-check.cpp'),
@@ -169,8 +169,8 @@ void [n, v, s, wrong];
     pathToFileURL(join(scratch, 'rust-commands.ts')).href
   )) as Record<string, (...args: unknown[]) => Promise<unknown>>;
   const { createFrameEngine, configure } = (await import(
-    pathToFileURL(join(root, 'packages/types/dist/index.js')).href
-  )) as typeof import('../packages/types/src/index.ts');
+    pathToFileURL(join(root, 'packages/rustra/dist/types/index.js')).href
+  )) as typeof import('../packages/rustra/src/types/index.ts');
   const cases: { name: string; args: unknown[]; expected: unknown; calls?: number }[] = [
     { name: 'add', args: [2, 3], expected: 5 },
     { name: 'reset', args: [], expected: undefined, calls: 1 },
@@ -274,9 +274,9 @@ void [n, v, s, wrong];
     }
   }
   const { createNodeEngine, createNodeProcessTransport } =
-    await import('../packages/node/src/node-core.ts');
+    await import('../packages/rustra/src/node/node-core.ts');
   const transport = createNodeProcessTransport({ command: fixture, args: ['json'] });
-  const { createTauriEngine } = await import('../packages/tauri/src/index.ts');
+  const { createTauriEngine } = await import('../packages/rustra/src/tauri/index.ts');
   const jsonEngines = {
     'node-process': createNodeEngine(transport),
     'tauri-json': createTauriEngine({

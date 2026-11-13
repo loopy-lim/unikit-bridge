@@ -19,28 +19,27 @@ The root `Cargo.toml` configures the workspace.
 
 ### Workspace Members
 
-| Member path                           | Package name                | Role                                                                         |
-| ------------------------------------- | --------------------------- | ---------------------------------------------------------------------------- |
-| `crates/unikit-bridge-naming`                | `unikit-bridge-naming`             | Shared identifier naming rules used by the Rust and proc-macro codegen paths |
-| `crates/unikit-bridge`                       | `unikit`                    | Core library. Package builder, TypeScript codegen, command registration      |
-| `crates/unikit-bridge-macros`                | `unikit-bridge-macros`             | `#[command]` proc macro. Compile-time signature verification                 |
-| `examples/calculator`                 | `unikit-calculator-example` | Calculator example. Built as rlib/cdylib/staticlib and used from RN/FFI      |
-| `examples/crud`                       | `unikit-crud-example`       | CRUD pattern example (create/get/list/update/delete)                         |
-| `examples/calculator-napi`            | `unikit-calculator-napi`    | napi-rs transport example                                                    |
-| `examples/tauri-calculator/src-tauri` | (Tauri app)                 | Tauri backend. Uses unikit's `tauri` feature (macOS-only build)              |
-| `examples/benchmark`                  | `unikit-benchmark`          | Performance benchmark example                                                |
-| `examples/streaming`                  | `unikit-streaming-example`  | Event streaming example                                                      |
-| `examples/auth`                       | `unikit-auth-example`       | Session/capability gate example                                              |
+| Member path                           | Package name                | Role                                                                              |
+| ------------------------------------- | --------------------------- | --------------------------------------------------------------------------------- |
+| `crates/unikit-bridge`                | `unikit-bridge`             | Core library. Package builder, TypeScript codegen, command registration           |
+| `crates/unikit-bridge-macros`         | `unikit-bridge-macros`      | `#[command]` proc macro. Compile-time signature verification (workspace-only dep) |
+| `examples/calculator`                 | `unikit-calculator-example` | Calculator example. Built as rlib/cdylib/staticlib and used from RN/FFI           |
+| `examples/crud`                       | `unikit-crud-example`       | CRUD pattern example (create/get/list/update/delete)                              |
+| `examples/calculator-napi`            | `unikit-calculator-napi`    | napi-rs transport example                                                         |
+| `examples/tauri-calculator/src-tauri` | (Tauri app)                 | Tauri backend. Uses unikit's `tauri` feature (macOS-only build)                   |
+| `examples/benchmark`                  | `unikit-benchmark`          | Performance benchmark example                                                     |
+| `examples/streaming`                  | `unikit-streaming-example`  | Event streaming example                                                           |
+| `examples/auth`                       | `unikit-auth-example`       | Session/capability gate example                                                   |
 
-`default-members` (what bare `cargo build`/`test` builds) excludes
-`crates/unikit-bridge-naming` and the macOS-only `examples/tauri-calculator/src-tauri`
-— use `--workspace` to build all members.
+`default-members` (what bare `cargo build`/`test` builds) excludes the
+macOS-only `examples/tauri-calculator/src-tauri` — use `--workspace` to build all members.
+Naming helpers (`snake_to_lower_camel`) live inside `unikit-bridge` and
+`unikit-bridge-macros`; the former `unikit-bridge-naming` crate was removed.
 
 ### Workspace Dependencies
 
 ```toml
 [workspace.dependencies]
-unikit-bridge-naming = { path = "crates/unikit-bridge-naming" }
 unikit-bridge-macros = { path = "crates/unikit-bridge-macros" }
 unikit-bridge = { path = "crates/unikit-bridge" }
 serde = { version = "1", features = ["derive"] }
@@ -63,12 +62,11 @@ unikit-bridge-macros (proc-macro)
   ├─ syn 2 (full)
   ├─ quote 1
   ├─ proc-macro2 1
-  └─ unikit-bridge-naming (workspace)
+  └─ naming.rs (internal copy)
         │
         ▼
-unikit
+unikit-bridge
   ├─ unikit-bridge-macros (workspace)
-  ├─ unikit-bridge-naming (workspace)
   ├─ schemars 0.8 (derive)
   ├─ serde 1 (derive)
   ├─ serde_json 1
@@ -93,7 +91,7 @@ tauri-calculator (src-tauri)
 
 ## Crate Details
 
-### unikit (`crates/unikit-bridge`)
+### unikit-bridge (`crates/unikit-bridge`)
 
 The core library. The entry point where users assemble a Package and generate
 TypeScript clients.
@@ -114,8 +112,8 @@ TypeScript clients.
 | `GeneratedPackage::write_to_dir()`        | method                 | Writes the files to a directory — deprecated (single-arrow)                                                           |
 | `GeneratedPackage::write_schema_to_dir()` | method                 | Writes schema.json only (contract probe)                                                                              |
 | `UnikitError`                             | struct                 | Error type. Implements `Serialize`. `code + message` fields + `custom()` constructor + `code()` / `message()` getters |
-| `command`                                 | macro (re-export)      | `unikit_bridge_macros::command`                                                                                              |
-| `register`                                | macro (re-export)      | `unikit_bridge_macros::register`. Batch-registers multiple commands                                                          |
+| `command`                                 | macro (re-export)      | `unikit_bridge_macros::command`                                                                                       |
+| `register`                                | macro (re-export)      | `unikit_bridge_macros::register`. Batch-registers multiple commands                                                   |
 | `prelude`                                 | module                 | Batch import of frequently used items (including `command`, `register`)                                               |
 | `tauri_support`                           | module (feature-gated) | `UnikitState`, `unikit_dispatch`, `register()` — Tauri integration helpers                                            |
 | `__private`                               | module (sealed)        | `CommandInput`, `CommandOutput` traits. For proc macros only                                                          |
@@ -181,16 +179,18 @@ function's `__UNikit_meta_*` constant.
 
 ## TypeScript Package Structure
 
-Adapter packages under `packages/`. The React Native package also ships the
-iOS/Android/C++ native sources reused by the TypeScript adapter and the
-generator.
+A single publishable npm package at `packages/rustra/` (`@unikit-bridge/rustra`).
+Subpath exports map to modules under `packages/rustra/src/`. React Native also
+ships iOS/Android/C++ native sources under `packages/rustra/native/`.
 
-| Package path                         | Factory function                       | Client type         | Transport layer         |
-| ------------------------------------ | -------------------------------------- | ------------------- | ----------------------- |
-| `packages/node/src/index.ts`         | `createNodeEngine(transport)`          | `NodeEngineClient`  | `NodeInvokeTransport`   |
-| `packages/bun/src/index.ts`          | `createBunEngine(transport)`           | `BunEngineClient`   | `BunInvokeTransport`    |
-| `packages/tauri/src/index.ts`        | `createTauriEngine({ invoke })`        | `TauriEngineClient` | `TauriInvoke`           |
-| `packages/react-native/src/index.ts` | generated bootstrap / low-level engine | `EngineClient`      | JSI + caller-buffer FFI |
+| Subpath export                       | Source module               | Factory function                       | Transport layer         |
+| ------------------------------------ | --------------------------- | -------------------------------------- | ----------------------- |
+| `@unikit-bridge/rustra/node`         | `src/node/index.ts`         | `createNodeEngine(transport)`          | `NodeInvokeTransport`   |
+| `@unikit-bridge/rustra/bun`          | `src/bun/index.ts`          | `createBunEngine(transport)`           | `BunInvokeTransport`    |
+| `@unikit-bridge/rustra/tauri`        | `src/tauri/index.ts`        | `createTauriEngine({ invoke })`        | `TauriInvoke`           |
+| `@unikit-bridge/rustra/react-native` | `src/react-native/index.ts` | generated bootstrap / low-level engine | JSI + caller-buffer FFI |
+| `@unikit-bridge/rustra/types`        | `src/types/index.ts`        | shared engine contract                 | host-neutral            |
+| `@unikit-bridge/rustra/cli`          | `src/cli/index.ts`          | `unikit` CLI (bin)                     | —                       |
 
 Every client implements the `EngineClient` interface
 (`invoke<T>(command, args?)`). Only the Tauri adapter wraps commands in

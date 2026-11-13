@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde_json::Value;
 use std::any::type_name;
 
-use unikit_bridge_naming::snake_to_lower_camel;
+use crate::naming::snake_to_lower_camel;
 
 /// 타입 `T`의 JSON Schema를 (루트 스키마, definitions) 튜플로 직렬화합니다.
 #[allow(clippy::expect_used)]

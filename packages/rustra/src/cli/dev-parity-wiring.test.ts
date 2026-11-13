@@ -1,0 +1,1823 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {
+  chmodSync,
+  existsSync,
+  mkdtempSync,
+  mkdirSync,
+  writeFileSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import fsPromises from 'node:fs/promises';
+import { syncBuiltinESMExports } from 'node:module';
+import { join } from 'node:path';
+import { runDev, type DevWatchHandle } from './dev.js';
+import { cliManifest } from './cli-runtime.js';
+
+// ── runConfigDev × parity gate 배선 계약 (Task A2) ──────────────────────────
+//
+// 실제 배선(runConfigDev → runCodegen → fake cargo → 게이트 검증)을 대상으로
+// 세 가지를 증명한다:
+//   (i)  계약 불일치 시 reload 신호가 호스트에게 방출되지 않는다(기존 엔진 유지)
+//   (ii) 거부는 loud 하다 — "[dev] reload rejected — …"
+//   (iii) 거부가 루프를 죽이지 않는다(다음 변경에 다시 판정)
+//
+// cargo 는 PATH 앞단의 fake 스크립트로 대체한다:
+//   - `cargo metadata` → 단일 패키지 + `generate` bin + `unikit_bridge` staticlib
+//     (resolveCodegenTarget / selectReactNativeCargoTarget 계약)
+//   - `cargo run` → $FAKE_SCHEMA_FILE 을 generated/schema.json 으로 복사
+//     ("Rust schema generation" 단계의 역할)
+//   - `cargo build` → wasm32 엔진 빌드 대역(Task A3): $FAKE_WASM_LOG 에 인수를
+//     기록하고 target/wasm32-unknown-unknown/release/<lib 이름>.wasm 을 만든다.
+//     $FAKE_WASM_FAIL 이 설정되면 실패하고(reload 억제 계약 검증용),
+//     $FAKE_WASM_NO_ARTIFACT 가 설정되면 성공하지만 산출물을 만들지 않는다.
+// wasm dev-target은 reactNative 섹션을 요구하므로 RN 스캐폴드/의존성 경로도
+// 실제로 돈다 — moduleDir 을 프로젝트 src 밖으로 분리해 감시 루프가 생성물을
+// 소스 변경으로 오판하지 않게 한다.
+
+const FAKE_BIN = 'fake-cargo-bin';
+const SCHEMA_V1 = {
+  packageId: 'app.demo',
+  commands: [
+    {
+      name: 'echo',
+      inputType: 'EchoInput',
+      outputType: 'EchoOutput',
+      inputSchema: {
+        type: 'object',
+        properties: { message: { type: 'string' } },
+        required: ['message'],
+      },
+      outputSchema: {
+        type: 'object',
+        properties: { message: { type: 'string' } },
+        required: ['message'],
+      },
+    },
+  ],
+};
+
+function writeSchema(path: string, messageType: string): void {
+  const schema = structuredClone(SCHEMA_V1);
+  (schema.commands[0]!.inputSchema.properties!.message as { type: string }).type = messageType;
+  writeFileSync(path, JSON.stringify(schema));
+}
+
+/**
+ * fake cargo 의 메타데이터 대역 변형 — 엔진 crate(`x`)의 lib 타깃 이름·크레이트 타입.
+ *  - 기본 (`unikit_bridge`, staticlib+cdylib): codegen 의 RN staticlib 선택과 wasm
+ *    cdylib 선택이 모두 성공하는 정상형.
+ *  - `"staticlib"` 만: codegen 은 통과하지만 wasm 빌드가 cdylib 부재로 실패해야
+ *    하는 음성형 — exactly-one-cdylib 강제 계약 검증용.
+ *  - `"my_bridge"` + staticlib+cdylib: 커스텀 lib 이름형 — 산출물 이름이 패키지
+ *    이름(`x.wasm`)이 아니라 lib 타깃 이름(`my_bridge.wasm`)에서 와야 한다는
+ *    cargo 규약의 핀. 실제 cargo 는 `[lib] name` 으로 산출물 이름을 바꾼다.
+ */
+type EngineLibVariant = 'cdylib' | 'staticlib-only' | 'custom-name';
+
+function seedProject(root: string, engineLib: EngineLibVariant = 'cdylib'): string {
+  const project = join(root, 'proj');
+  mkdirSync(join(project, 'src'), { recursive: true });
+  mkdirSync(join(project, 'generated'), { recursive: true });
+  mkdirSync(join(project, 'modules'), { recursive: true });
+  mkdirSync(join(root, FAKE_BIN), { recursive: true });
+  writeFileSync(join(project, 'Cargo.toml'), '[package]\nname = "x"\nversion = "0.1.0"\n');
+  writeFileSync(join(project, 'src', 'lib.rs'), 'fn main() {}\n');
+  writeFileSync(
+    join(project, 'package.json'),
+    JSON.stringify({ name: 'proj', workspaces: [], dependencies: {} }),
+  );
+  // RN 스캐폴드 경로가 실제로 돈다 — 어댑터도 설치돼 있어야 한다(감사 A11: RN
+  // 코드젠은 bun install 선행이 계약). cliManifest range 를 만족하는 버전으로 심는다.
+  const adapterVersion = cliManifest.unikitTemplate.npmRange.replace(/^[~^=]/, '');
+  const adapterNative = join(project, 'node_modules', '@unikit-bridge', 'rustra', 'native');
+  for (const file of [
+    'android/unikit-jsi-jni.cpp',
+    'cpp/UnikitJSIBridge.cpp',
+    'cpp/UnikitJSIBridge.hpp',
+    'cpp/unikit-codec.hpp',
+    'ios/UnikitJSIModule.mm',
+  ]) {
+    mkdirSync(join(adapterNative, ...file.split('/').slice(0, -1)), { recursive: true });
+    writeFileSync(join(adapterNative, ...file.split('/')), 'adapter fixture');
+  }
+  writeFileSync(
+    join(project, 'node_modules', '@unikit-bridge', 'rustra', 'package.json'),
+    JSON.stringify({ name: '@unikit-bridge/rustra', version: adapterVersion }),
+  );
+  writeFileSync(
+    join(project, 'unikit.json'),
+    JSON.stringify({
+      schema: './generated/schema.json',
+      output: './generated',
+      reactNative: { moduleDir: './modules' },
+      dev: { target: 'wasm', wasm: { engine: 'wasm3' } },
+    }),
+  );
+  const libName = engineLib === 'custom-name' ? 'my_bridge' : 'unikit_bridge';
+  const crateTypes = engineLib === 'staticlib-only' ? '["staticlib"]' : '["staticlib","cdylib"]';
+  const fakeCargo = [
+    '#!/bin/bash',
+    'if [ "$1" = "metadata" ]; then',
+    '  manifest=""; prev=""',
+    '  for a in "$@"; do [ "$prev" = "--manifest-path" ] && manifest="$a"; prev="$a"; done',
+    '  dir=$(dirname "$manifest")',
+    '  printf \'{"target_directory":"%s/target","packages":[{"name":"x","manifest_path":"%s",',
+    '"targets":[{"name":"generate","crate_types":["bin"],"kind":["bin"]},',
+    `{"name":"${libName}","crate_types":${crateTypes},"kind":["lib"]}]}]}\\n' "$dir" "$manifest"`,
+    '  exit 0',
+    'fi',
+    'if [ "$1" = "run" ]; then',
+    '  [ -n "$FAKE_CARGO_LOG" ] && printf \'%s\\n\' "$*" >> "$FAKE_CARGO_LOG"',
+    '  [ -n "$FAKE_SCHEMA_DELAY" ] && sleep "$FAKE_SCHEMA_DELAY"',
+    '  manifest=""; prev=""',
+    '  for a in "$@"; do [ "$prev" = "--manifest-path" ] && manifest="$a"; prev="$a"; done',
+    '  dir=$(dirname "$manifest")',
+    '  mkdir -p "$dir/generated"',
+    '  cp "$FAKE_SCHEMA_FILE" "$dir/generated/schema.json"',
+    '  exit 0',
+    'fi',
+    'if [ "$1" = "build" ]; then',
+    '  [ -n "$FAKE_WASM_LOG" ] && printf \'%s\\n\' "$*" >> "$FAKE_WASM_LOG"',
+    '  if [ -n "$FAKE_WASM_FAIL" ]; then echo "fake wasm build failure" >&2; exit 3; fi',
+    '  manifest=""; prev=""; target=""',
+    '  for a in "$@"; do',
+    '    [ "$prev" = "--manifest-path" ] && manifest="$a"',
+    '    [ "$prev" = "--target" ] && target="$a"',
+    '    prev="$a"',
+    '  done',
+    '  dir=$(dirname "$manifest")',
+    '  mkdir -p "$dir/target/$target/release"',
+    '  if [ -n "$FAKE_WASM_NO_ARTIFACT" ]; then exit 0; fi',
+    // cargo 규약: cdylib 산출물 이름은 lib 타깃 이름에서 온다([lib] name 반영).
+    `  printf 'fake wasm engine' > "$dir/target/$target/release/${libName}.wasm"`,
+    '  exit 0',
+    'fi',
+    'echo "unexpected cargo invocation: $*" >&2',
+    'exit 1',
+  ].join('\n');
+  const fakePath = join(root, FAKE_BIN, 'cargo');
+  writeFileSync(fakePath, fakeCargo);
+  chmodSync(fakePath, 0o755);
+  return project;
+}
+
+// watch → debounce → codegen → verify 왕복은 풀스위트 부하 하에서 들쭉날쭉하다 —
+// 고정 sleep 대신 관찰 조건을 폴링한다(디바운스 상수와 무관하게 안정적). 타임아웃은
+// 실패 시점까지 캡처한 로그를 그대로 보여준다.
+function sleep(ms: number): Promise<void> {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
+
+// Recovery tests may retouch until they observe progress. Retouches can queue
+// another regeneration: parity verification rearms its baseline and is stateful.
+// Tests asserting exactly one verdict per candidate must edit once and observe.
+function triggerUntil(
+  captured: () => string[],
+  write: () => void,
+  observe: () => boolean,
+  what: string,
+): Promise<void> {
+  return observeUntil(captured, observe, what, write);
+}
+
+function observeUntil(
+  captured: () => string[],
+  observe: () => boolean,
+  what: string,
+  write?: () => void,
+): Promise<void> {
+  const deadline = Date.now() + 10_000;
+  const poll = async (): Promise<void> => {
+    let nextTouch = 0;
+    while (!observe()) {
+      if (Date.now() > deadline) {
+        throw new Error(`timed out waiting for ${what}; captured:\n${captured().join('\n')}`);
+      }
+      if (write && Date.now() >= nextTouch) {
+        write();
+        nextTouch = Date.now() + 500;
+      }
+      await sleep(100);
+    }
+  };
+  return poll();
+}
+
+function captureConsole(into: string[]): () => void {
+  const originalError = console.error;
+  const originalLog = console.log;
+  console.error = (line: unknown) => into.push(String(line));
+  console.log = (line: unknown) => into.push(`LOG ${String(line)}`);
+  return () => {
+    console.error = originalError;
+    console.log = originalLog;
+  };
+}
+
+test(
+  'runConfigDev parity wiring: drifted codegen is rejected loudly without emitting reload',
+  { timeout: 30_000 },
+  async () => {
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-parity-e2e-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedProject(root);
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      // 첫 판정의 기준이 될 계약(string). 트리거 런은 fake cargo 가 integer 계약을
+      // 쓰게 한다 — 실제 스키마 드리프트 시나리오.
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      writeSchema(join(root, 'schema-integer.json'), 'integer');
+
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+      process.env.FAKE_CARGO_LOG = join(root, 'cargo-run.log');
+      const originalSource = readFileSync(join(project, 'src', 'lib.rs'), 'utf8');
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      const rejectionCount = (): number =>
+        errors.filter((line) => line.includes('[dev] reload rejected —')).length;
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+        // Keep Cargo active beyond the old 500ms retouch interval. Each
+        // candidate still owns exactly one generation and one gate verdict.
+        process.env.FAKE_SCHEMA_DELAY = '0.65';
+
+        // 트리거 1 — fake cargo 가 integer 계약을 쓴다 → 게이트가 거부해야 한다.
+        // 거부 로그 자체가 "판정이 돌았다"는 양(陽) 관찰이자 동기화점이다.
+        process.env.FAKE_SCHEMA_FILE = join(root, 'schema-integer.json');
+        writeFileSync(join(project, 'src', 'lib.rs'), 'fn changed() {}\n');
+        await observeUntil(
+          () => errors,
+          () =>
+            errors.some(
+              (line) => line.includes('[dev] reload rejected —') && line.includes('drift'),
+            ),
+          'the loud drift rejection',
+        );
+        assert.equal(rejectionCount(), 1);
+        assert.deepEqual(reloads, [], 'the drifted candidate must not reload');
+
+        // 트리거 2 — 원래 계약으로 복귀. 첫 거부에서 기준이 드리프트 상태로
+        // 재무장됐으므로 복귀 역시 "기준 대비 드리프트"로 판정된다 — 거부 2회.
+        // 핵심은 (iii): 두 거부 모두 루프를 죽이지 않고 다음 변경이 다시
+        // 판정됐다는 것. (같은 상태 유지 시의 통과는 rearm 단위 테스트가 담당.)
+        process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+        // Restore the exact successful fingerprint. A rejected candidate has
+        // already written new schema bytes, so an old cache hit would wrongly
+        // accept those bytes without running Cargo on the restored source.
+        writeFileSync(join(project, 'src', 'lib.rs'), originalSource);
+        await observeUntil(
+          () => errors,
+          () => rejectionCount() >= 2,
+          'the second (restored-contract) rejection',
+        );
+
+        // Drain this run immediately after its verdict; a later same-contract
+        // retry is a distinct, legitimately passing candidate after rearming.
+        await handle.dispose();
+        assert.equal(
+          readFileSync(join(root, 'cargo-run.log'), 'utf8').trim().split('\n').length,
+          3,
+          'the initial run and two candidates must not create extra retry candidates',
+        );
+        assert.equal(rejectionCount(), 2, `rejection must be loud, got: ${errors.join('\n')}`);
+        assert.deepEqual(
+          reloads,
+          [],
+          'drifted reload must not be emitted; the restored contract is also re-verified ' +
+            `(baseline re-armed to the drifted state), so both triggers are rejected:\n${errors.join('\n')}`,
+        );
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+        delete process.env.FAKE_SCHEMA_DELAY;
+        delete process.env.FAKE_CARGO_LOG;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+// ── wasm 타깃 빌드 오케스트레이션 (Task A3) ──────────────────────────────────
+
+test(
+  'runConfigDev wasm target builds the wasm32 engine artifact and still reloads',
+  { timeout: 30_000 },
+  async () => {
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-wasm-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedProject(root);
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      const wasmLog = join(root, 'wasm-build.log');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+      process.env.FAKE_WASM_LOG = wasmLog;
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+
+        // initial 강제 런이 codegen(cargo run)에 이어 wasm32 엔진 빌드(cargo build)를
+        // 오케스트레이션한다 — runDev 반환 시점에 이미 빌드 기록과 아티팩트 안내가
+        // 있어야 한다(A0 스파이크의 실빌드 명령과 동일: --target wasm32-unknown-unknown
+        // --release, 산출물은 <target>/wasm32-unknown-unknown/release/<name>.wasm).
+        const builds = readFileSync(wasmLog, 'utf8');
+        assert.ok(
+          builds.split('\n').some((line) => line.includes('--target wasm32-unknown-unknown')),
+          `cargo build must target wasm32-unknown-unknown, got:\n${builds}`,
+        );
+        assert.ok(
+          builds.split('\n').some((line) => line.includes('--release')),
+          'the dev wasm build follows the A0 release-profile artifact layout',
+        );
+        assert.ok(
+          errors.some(
+            (line) =>
+              line.includes('[dev:wasm] engine artifact:') &&
+              line.includes(
+                join('target', 'wasm32-unknown-unknown', 'release', 'unikit_bridge.wasm'),
+              ),
+          ),
+          `the artifact path must be announced for the host push step, got:\n${errors.join('\n')}`,
+        );
+
+        // 이어지는 변경도 codegen → wasm 빌드 → reload 순서로 계속 오케스트레이션된다
+        // (parity 게이트가 같은 계약을 유지하므로 reload 는 통과한다).
+        await triggerUntil(
+          () => errors,
+          () => writeFileSync(join(project, 'src', 'lib.rs'), 'fn changed() {}\n'),
+          () => reloads.length >= 1,
+          'a reload after the wasm build',
+        );
+        await handle.dispose();
+        assert.ok(
+          reloads.length >= 1,
+          `reload must still fire after a successful wasm build, captured:\n${errors.join('\n')}`,
+        );
+        const buildsAfter = readFileSync(wasmLog, 'utf8');
+        assert.ok(
+          buildsAfter.split('\n').filter((line) => line.includes('--target wasm32-unknown-unknown'))
+            .length >= 2,
+          'every dirty run rebuilds the wasm32 engine, not just the initial one',
+        );
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+        delete process.env.FAKE_WASM_LOG;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  'runConfigDev wasm target suppresses reload when the wasm32 build fails',
+  { timeout: 30_000 },
+  async () => {
+    // wasm 빌드 실패 = 호스트가 받을 새 엔진이 없다 — codegen 이 성공해도 reload 는
+    // 방출되지 않는다(게이트 검증 이전에 실패가 전파되어 catch 로 간다).
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-wasm-fail-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedProject(root);
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+      process.env.FAKE_WASM_FAIL = '1';
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+        // 유예 — 그 사이 reload 가 방출되지 않음이 곧 부정 검증이다.
+        await sleep(300);
+        await handle.dispose();
+        assert.ok(
+          errors.some((line) => line.includes('[dev] regeneration failed')),
+          `the wasm build failure must be loud, got:\n${errors.join('\n')}`,
+        );
+        assert.ok(
+          !errors.some((line) => line.includes('[dev:wasm] engine artifact:')),
+          'no artifact announcement when the build failed',
+        );
+        assert.deepEqual(
+          reloads,
+          [],
+          'a failed wasm build must not emit reload — the host has no new engine to load',
+        );
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+        delete process.env.FAKE_WASM_FAIL;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  'runConfigDev wasm target fails loudly when the engine crate has no cdylib target',
+  { timeout: 30_000 },
+  async () => {
+    // exactly-one-cdylib 강제 계약 — 엔진 crate에 cdylib 가 없으면 wasm32 산출물은
+    // 애초에 나오지 않는다. codegen(RN staticlib 선택)은 통과하는 상태에서 wasm
+    // 빌드 단계만 실패해야 하고, 에러는 cdylib 원인과 수정 힌트를 함께 말해야 한다
+    // (조용한 스킵/무음 재시도 없음). reload 는 물론 방출되지 않는다.
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-wasm-nocdylib-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedProject(root, 'staticlib-only');
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+        await sleep(300);
+        await handle.dispose();
+        const failure = errors.find((line) => line.includes('[dev] regeneration failed'));
+        assert.ok(failure, `the missing-cdylib case must be loud, got:\n${errors.join('\n')}`);
+        assert.match(failure, /cdylib/, 'the error must name cdylib as the cause');
+        assert.match(
+          failure,
+          /crate-type/,
+          'the error must include the fix hint (Add crate-type = ["rlib", "cdylib"])',
+        );
+        assert.ok(
+          !errors.some((line) => line.includes('[dev:wasm] engine artifact:')),
+          'no artifact announcement without a cdylib target',
+        );
+        assert.deepEqual(reloads, [], 'no reload when the engine cannot be built for wasm32');
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  'runConfigDev wasm target derives the artifact name from the lib target, not the package',
+  { timeout: 30_000 },
+  async () => {
+    // cargo 규약 핀 — cdylib 산출물 이름은 **lib 타깃** 이름에서 온다: 패키지 x 의
+    // [lib] name = "my_bridge" 는 my_bridge.wasm 을 만든다(x.wasm 이 아니다). 이
+    // 저장소의 RN 관례(lib${rustLibrary}.a)와 같은 이름 근원이다. 패키지 이름으로
+    // 계산하면 커스텀 lib 이름에서 경로가 어긋나 재빌드마다 오탈 실패한다.
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-wasm-custom-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedProject(root, 'custom-name');
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+        await triggerUntil(
+          () => errors,
+          () => writeFileSync(join(project, 'src', 'lib.rs'), 'fn changed() {}\n'),
+          () => reloads.length >= 1,
+          'a reload with a custom-named cdylib',
+        );
+        await handle.dispose();
+        assert.ok(
+          errors.some(
+            (line) =>
+              line.includes('[dev:wasm] engine artifact:') &&
+              line.includes(join('target', 'wasm32-unknown-unknown', 'release', 'my_bridge.wasm')),
+          ),
+          `the artifact name must follow the lib target (my_bridge.wasm), got:\n${errors.join('\n')}`,
+        );
+        assert.ok(
+          reloads.length >= 1,
+          `a correct artifact path must not break the loop, captured:\n${errors.join('\n')}`,
+        );
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  'runConfigDev wasm target fails closed when cargo succeeds but the artifact is missing',
+  { timeout: 30_000 },
+  async () => {
+    // 산출물 부재 fail-closed — cargo 가 성공해도 산출물이 없으면(프로필 불일치,
+    // 예상 밖 target 레이아웃 등) 조용히 통과하지 않는다. existsSync 재확인이 이
+    // 불일치를 loud 하게 잡는다.
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-wasm-noart-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedProject(root);
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+      process.env.FAKE_WASM_NO_ARTIFACT = '1';
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+        await sleep(300);
+        await handle.dispose();
+        const failure = errors.find((line) => line.includes('[dev] regeneration failed'));
+        assert.ok(failure, `a silent artifact mismatch must not pass, got:\n${errors.join('\n')}`);
+        assert.match(failure, /did not produce/, 'the error must name the missing artifact path');
+        assert.ok(
+          !errors.some((line) => line.includes('[dev:wasm] engine artifact:')),
+          'no artifact announcement when the artifact never appeared',
+        );
+        assert.deepEqual(reloads, [], 'no reload when the artifact could not be verified on disk');
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+        delete process.env.FAKE_WASM_NO_ARTIFACT;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+// ── dylib 타깃 오케스트레이션 (native hot-core 설계 2026-09-09) ──────────────
+//
+// wasm 과 같은 runConfigDev 배선(codegen → 빌드 → 게이트 → 발행 → reload)이 dylib
+// 타깃에서도 성립함을 증명한다. tauri 레이아웃(seedDylibProject — reactNative 섹션
+// 없음)으로 심는다: dylib 의 주 고객은 tauri 앱이고, codegen 기본 경로(단일 패키지 +
+// generate bin)만 요구하면 충분하다. fake cargo 의 build 는 --message-format=json
+// 모드에서 compiler-artifact 줄을 stdout 으로 낸다 — 헬퍼가 산출물 경로를 "수신"하는
+// 계약의 대역이다.
+//
+// 발행 계약: 빌드는 cargo 타깃 경로(스크래치)에만 닿고, 감시자가 폴링하는 라이브
+// 경로(<stem>-hot-live<ext>)는 게이트 통과 빌드만 원자적으로 발행된다. UNIKIT_HOT_CORE
+// 힌트는 라이브 경로만 가리킨다. $FAKE_DYLIB_CONTENT 로 빌드 바이트를 바꿀 수 있어
+// "드리프트된 빌드가 라이브에 닿지 않았다"를 바이트 단위로 증명한다.
+
+function hostDylibFileName(libName: string): string {
+  if (process.platform === 'win32') return `${libName}.dll`;
+  if (process.platform === 'linux') return `lib${libName}.so`;
+  return `lib${libName}.dylib`;
+}
+
+/** 게이트 통과 발행 대상 라이브 파일명 — stem + `-hot-live` + 같은 확장자. */
+function liveDylibFileName(libName: string): string {
+  const base = hostDylibFileName(libName);
+  const dot = base.lastIndexOf('.');
+  return `${base.slice(0, dot)}-hot-live${base.slice(dot)}`;
+}
+
+function seedDylibProject(root: string): string {
+  const project = join(root, 'proj');
+  mkdirSync(join(project, 'src'), { recursive: true });
+  mkdirSync(join(project, 'generated'), { recursive: true });
+  mkdirSync(join(root, FAKE_BIN), { recursive: true });
+  writeFileSync(join(project, 'Cargo.toml'), '[package]\nname = "x"\nversion = "0.1.0"\n');
+  // 지문 루트의 하나(warm-loop Stage 1) — 실제 cargo run 은 첫 프로브에서 Cargo.lock
+  // 을 만드므로 락이 있는 정상 상태(steady state)를 시드한다. 락 부재는 지문 계약상
+  // 실패(fail-safe)로 전체 파이프라인을 강제하므로, 스킵 계약을 검증하려면 이 시드가
+  // 필요하다.
+  writeFileSync(join(project, 'Cargo.lock'), '# fake lock — seeded steady state\n');
+  writeFileSync(join(project, 'src', 'lib.rs'), 'fn main() {}\n');
+  writeFileSync(
+    join(project, 'package.json'),
+    JSON.stringify({ name: 'proj', workspaces: [], dependencies: {} }),
+  );
+  writeFileSync(
+    join(project, 'unikit.json'),
+    JSON.stringify({
+      schema: './generated/schema.json',
+      output: './generated',
+      tauri: {},
+      dev: { target: 'dylib' },
+    }),
+  );
+  const fakeCargo = [
+    '#!/bin/bash',
+    'if [ "$1" = "metadata" ]; then',
+    '  manifest=""; prev=""',
+    '  for a in "$@"; do [ "$prev" = "--manifest-path" ] && manifest="$a"; prev="$a"; done',
+    '  dir=$(dirname "$manifest")',
+    '  printf \'{"target_directory":"%s/target","packages":[{"name":"x","manifest_path":"%s",',
+    '  "targets":[{"name":"generate","crate_types":["bin"],"kind":["bin"]},',
+    '  {"name":"unikit_bridge","crate_types":["staticlib","cdylib"],"kind":["lib"]}]}],"workspace_root":"%s"}\\n\' "$dir" "$manifest" "${FAKE_WORKSPACE_ROOT:-$dir}"',
+    '  exit 0',
+    'fi',
+    'if [ "$1" = "run" ]; then',
+    '  [ -n "$FAKE_CARGO_LOG" ] && printf \'%s\\n\' "$*" >> "$FAKE_CARGO_LOG"',
+    '  manifest=""; prev=""',
+    '  for a in "$@"; do [ "$prev" = "--manifest-path" ] && manifest="$a"; prev="$a"; done',
+    '  dir=$(dirname "$manifest")',
+    '  mkdir -p "$dir/generated"',
+    '  cp "$FAKE_SCHEMA_FILE" "$dir/generated/schema.json"',
+    '  exit 0',
+    'fi',
+    'if [ "$1" = "build" ]; then',
+    '  [ -n "$FAKE_DYLIB_LOG" ] && printf \'%s\\n\' "$*" >> "$FAKE_DYLIB_LOG"',
+    '  if [ -n "$FAKE_DYLIB_FAIL" ]; then echo "fake dylib build failure" >&2; exit 3; fi',
+    '  manifest=""; prev=""',
+    '  for a in "$@"; do [ "$prev" = "--manifest-path" ] && manifest="$a"; prev="$a"; done',
+    '  dir=$(dirname "$manifest")',
+    '  out="$dir/target/debug"',
+    '  mkdir -p "$out"',
+    '  if [ -n "$FAKE_DYLIB_NO_ARTIFACT" ]; then',
+    '    printf \'%s\\n\' "{\\"reason\\":\\"compiler-artifact\\",\\"filenames\\":[\\"$out/libunikit_bridge.rmeta\\"],\\"target\\":{\\"kind\\":[\\"lib\\"]}}"',
+    '    exit 0',
+    '  fi',
+    '  printf \'%s\\n\' "{\\"reason\\":\\"compiler-artifact\\",\\"filenames\\":[\\"$out/libunikit_bridge.dylib\\",\\"$out/libunikit_bridge.so\\",\\"$out/unikit_bridge.dll\\"],\\"target\\":{\\"kind\\":[\\"cdylib\\"]}}"',
+    '  core="${FAKE_DYLIB_CONTENT:-fake dylib core}"',
+    '  printf \'%s\' "$core" > "$out/libunikit_bridge.dylib"',
+    '  printf \'%s\' "$core" > "$out/libunikit_bridge.so"',
+    '  printf \'%s\' "$core" > "$out/unikit_bridge.dll"',
+    '  exit 0',
+    'fi',
+    'echo "unexpected cargo invocation: $*" >&2',
+    'exit 1',
+  ].join('\n');
+  const fakePath = join(root, FAKE_BIN, 'cargo');
+  writeFileSync(fakePath, fakeCargo);
+  chmodSync(fakePath, 0o755);
+  return project;
+}
+
+test('dispose drains a pending config read before its project can be removed', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dispose-read-'));
+  const originalPath = process.env.PATH;
+  const originalReadFile = fsPromises.readFile;
+  const logs: string[] = [];
+  const restoreConsole = captureConsole(logs);
+  let handle: DevWatchHandle | undefined;
+  let release!: () => void;
+  const paused = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let entered = false;
+  let pendingRead: Promise<unknown> | undefined;
+  try {
+    const project = seedDylibProject(root);
+    const configPath = join(project, 'unikit.json');
+    writeSchema(join(project, 'generated', 'schema.json'), 'string');
+    writeSchema(join(root, 'schema.json'), 'string');
+    process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+    process.env.FAKE_SCHEMA_FILE = join(root, 'schema.json');
+    handle = await runDev(['--config', configPath]);
+    Object.defineProperty(fsPromises, 'readFile', {
+      configurable: true,
+      writable: true,
+      value: (...args: Parameters<typeof originalReadFile>) => {
+        if (String(args[0]) !== configPath) return originalReadFile(...args);
+        entered = true;
+        pendingRead = paused.then(() => originalReadFile(...args));
+        return pendingRead;
+      },
+    });
+    syncBuiltinESMExports();
+    await triggerUntil(
+      () => logs,
+      () => writeFileSync(join(project, 'src', 'lib.rs'), 'fn pending_read() {}\n'),
+      () => entered,
+      'a pending config read',
+    );
+    let drained = false;
+    const closing = Promise.resolve(handle.dispose()).then(() => {
+      drained = true;
+    });
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    assert.equal(drained, false, 'dispose must own the unfinished read until it settles');
+    release();
+    await closing;
+    rmSync(project, { recursive: true, force: true });
+    assert.ok(!logs.some((line) => line.includes('regeneration failed')));
+  } finally {
+    release();
+    await pendingRead;
+    await handle?.dispose();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    Object.defineProperty(fsPromises, 'readFile', {
+      configurable: true,
+      writable: true,
+      value: originalReadFile,
+    });
+    syncBuiltinESMExports();
+    restoreConsole();
+    process.env.PATH = originalPath;
+    delete process.env.FAKE_SCHEMA_FILE;
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+for (const stage of ['run', 'build']) {
+  test(`dispose cancels the owned Cargo ${stage} before project cleanup`, async () => {
+    const root = mkdtempSync(join(tmpdir(), `unikit-dev-dispose-${stage}-`));
+    const env = { ...process.env };
+    const logs: string[] = [];
+    const restoreConsole = captureConsole(logs);
+    let handle: DevWatchHandle | undefined;
+    try {
+      const project = seedDylibProject(root);
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      writeSchema(join(root, 'schema.json'), 'string');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${env.PATH}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema.json');
+      handle = await runDev(['--config', join(project, 'unikit.json')]);
+      const originalCargo = readFileSync(join(root, FAKE_BIN, 'cargo'), 'utf8');
+      const delegate = join(root, FAKE_BIN, 'cargo-delegate');
+      writeFileSync(delegate, originalCargo);
+      chmodSync(delegate, 0o755);
+      const started = join(root, 'started');
+      const stopped = join(root, 'stopped');
+      const pauseScript = join(root, 'pause.cjs');
+      writeFileSync(
+        pauseScript,
+        `
+        const fs = require('node:fs');
+        process.on('SIGTERM', () => {
+          fs.writeFileSync(${JSON.stringify(stopped)}, 'stopped');
+          process.stderr.write('owned Cargo stopped\\n');
+          process.exit(0);
+        });
+        fs.writeFileSync(${JSON.stringify(started)}, String(process.pid));
+        setInterval(() => {}, 1000);
+      `,
+      );
+      writeFileSync(
+        join(root, FAKE_BIN, 'cargo'),
+        [
+          '#!/bin/bash',
+          `if [ "$1" = "${stage}" ]; then exec "${process.execPath}" "${pauseScript}"; fi`,
+          `exec "${delegate}" "$@"`,
+        ].join('\n'),
+      );
+      const published = join(project, 'target', 'debug', liveDylibFileName('unikit_bridge'));
+      const before = readFileSync(published, 'utf8');
+      const reloads: string[] = [];
+      handle.onReload((reason) => void reloads.push(reason));
+      await triggerUntil(
+        () => logs,
+        () => writeFileSync(join(project, 'src', 'lib.rs'), 'fn paused_cargo() {}\n'),
+        () => existsSync(started),
+        `the owned Cargo ${stage}`,
+      );
+      // Ignoring the return value still cancels immediately; joining is additive.
+      const closing = handle.dispose();
+      await closing;
+      assert.ok(existsSync(stopped), 'dispose must stop the actual Cargo process');
+      const pid = Number(readFileSync(started, 'utf8'));
+      assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' });
+      assert.equal(readFileSync(published, 'utf8'), before);
+      assert.deepEqual(reloads, []);
+      assert.ok(!logs.some((line) => line.includes('regeneration failed')));
+      const afterClose = logs.length;
+      rmSync(project, { recursive: true, force: true });
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      assert.equal(logs.length, afterClose, 'no owned output may arrive after disposal drains');
+    } finally {
+      const started = join(root, 'started');
+      if (existsSync(started)) {
+        try {
+          process.kill(Number(readFileSync(started, 'utf8')), 'SIGTERM');
+        } catch {
+          // The owned child has normally already exited during disposal.
+        }
+      }
+      await handle?.dispose();
+      restoreConsole();
+      process.env.PATH = env.PATH;
+      if (env.FAKE_SCHEMA_FILE === undefined) delete process.env.FAKE_SCHEMA_FILE;
+      else process.env.FAKE_SCHEMA_FILE = env.FAKE_SCHEMA_FILE;
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+}
+
+test(
+  'disposing while parity verification is pending prevents publication and watcher revival',
+  { timeout: 30_000 },
+  async () => {
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dispose-gate-'));
+    const originalPath = process.env.PATH;
+    const originalReadFile = fsPromises.readFile;
+    const logs: string[] = [];
+    const restoreConsole = captureConsole(logs);
+    const capturedLog = console.log;
+    let handle: DevWatchHandle | undefined;
+    let pauseCapture = false;
+    let releaseCapture!: () => void;
+    const capturePaused = new Promise<void>((resolve) => {
+      releaseCapture = resolve;
+    });
+    let markCaptureEntered!: () => void;
+    let entered = false;
+    const captureEntered = new Promise<void>((resolve) => {
+      markCaptureEntered = resolve;
+    });
+    try {
+      const project = seedDylibProject(root);
+      const schemaPath = join(project, 'generated', 'schema.json');
+      writeSchema(schemaPath, 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      const buildLog = join(root, 'build.log');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+      process.env.FAKE_DYLIB_LOG = buildLog;
+      process.env.FAKE_DYLIB_CONTENT = 'initial published core';
+      Object.defineProperty(fsPromises, 'readFile', {
+        configurable: true,
+        writable: true,
+        value: (...args: Parameters<typeof originalReadFile>) => {
+          if (pauseCapture && String(args[0]) === schemaPath) {
+            entered = true;
+            markCaptureEntered();
+            return capturePaused.then(() => originalReadFile(...args));
+          }
+          return originalReadFile(...args);
+        },
+      });
+      syncBuiltinESMExports();
+      console.log = (line: unknown) => {
+        capturedLog(line);
+        if (handle && String(line).includes('[dev:dylib] core artifact:')) pauseCapture = true;
+      };
+      handle = await runDev(['--config', join(project, 'unikit.json')]);
+      const livePath = join(project, 'target', 'debug', liveDylibFileName('unikit_bridge'));
+      assert.equal(readFileSync(livePath, 'utf8'), 'initial published core');
+      const reloads: string[] = [];
+      handle.onReload((reason) => void reloads.push(reason));
+      process.env.FAKE_DYLIB_CONTENT = 'candidate after close';
+      await triggerUntil(
+        () => logs,
+        () => writeFileSync(join(project, 'src', 'lib.rs'), 'fn changed_after_start() {}\n'),
+        () => entered,
+        'pending parity verification',
+      );
+      await captureEntered;
+      const closing = handle.dispose();
+      releaseCapture();
+      await closing;
+      assert.equal(readFileSync(livePath, 'utf8'), 'initial published core');
+      assert.deepEqual(reloads, []);
+      const buildsAfterClose = readFileSync(buildLog, 'utf8');
+      writeFileSync(join(project, 'src', 'lib.rs'), 'fn changed_after_close() {}\n');
+      await sleep(250);
+      assert.equal(readFileSync(buildLog, 'utf8'), buildsAfterClose);
+    } finally {
+      releaseCapture();
+      await handle?.dispose();
+      Object.defineProperty(fsPromises, 'readFile', {
+        configurable: true,
+        writable: true,
+        value: originalReadFile,
+      });
+      syncBuiltinESMExports();
+      restoreConsole();
+      process.env.PATH = originalPath;
+      delete process.env.FAKE_SCHEMA_FILE;
+      delete process.env.FAKE_DYLIB_LOG;
+      delete process.env.FAKE_DYLIB_CONTENT;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  'runConfigDev dylib target builds the cdylib core, announces UNIKIT_HOT_CORE, and reloads',
+  { timeout: 30_000 },
+  async () => {
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedDylibProject(root);
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      const dylibLog = join(root, 'dylib-build.log');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+      process.env.FAKE_DYLIB_LOG = dylibLog;
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+
+        // initial 강제 런이 codegen(cargo run)에 이어 cdylib 빌드(cargo build)를
+        // 오케스트레이션한다 — runDev 반환 시점에 빌드 기록·아티팩트 안내·호스트
+        // 실행 안내(UNIKIT_HOT_CORE)가 모두 있어야 한다. 산출물은 cargo 메시지가
+        // 알려준 target/debug 경로 그대로다.
+        const artifactPath = join('target', 'debug', hostDylibFileName('unikit_bridge'));
+        const livePath = join('target', 'debug', liveDylibFileName('unikit_bridge'));
+        const builds = readFileSync(dylibLog, 'utf8');
+        assert.ok(
+          builds.split('\n').some((line) => line.includes('--lib')),
+          `cargo build must target the lib (cdylib), got:\n${builds}`,
+        );
+        assert.ok(
+          builds.split('\n').some((line) => line.includes('--message-format=json')),
+          `the artifact path is discovered from compiler-artifact JSON, got:\n${builds}`,
+        );
+        assert.ok(
+          errors.some(
+            (line) => line.includes('[dev:dylib] core artifact:') && line.includes(artifactPath),
+          ),
+          `the core artifact path must be announced, got:\n${errors.join('\n')}`,
+        );
+        // UNIKIT_HOT_CORE 힌트는 게이트 통과 발행 대상인 라이브 경로만 가리킨다 —
+        // 무게이트 cargo 타깃 경로(스크래치)를 가리키면 드리프트 빌드가 그대로 스왑
+        // 되는 구멍이 다시 열린다.
+        assert.ok(
+          errors.some((line) => line.includes('UNIKIT_HOT_CORE=') && line.includes(livePath)),
+          `the host launch hint must carry the gated live path, got:\n${errors.join('\n')}`,
+        );
+        assert.ok(
+          !errors.some((line) => line.includes('UNIKIT_HOT_CORE=') && line.includes(artifactPath)),
+          'the hint must never point at the ungated cargo artifact path',
+        );
+        // 발행 계약 — initial 런(게이트 통과)이 라이브 경로에 원자적 발행돼 있고
+        // tmp 잔여물이 없어야 한다.
+        assert.equal(
+          readFileSync(join(project, livePath), 'utf8'),
+          'fake dylib core',
+          'the gated publish must land the built bytes at the live path',
+        );
+        assert.deepEqual(
+          readdirSync(join(project, 'target', 'debug')).filter((entry) => entry.includes('-tmp-')),
+          [],
+          'the atomic publish must not leave tmp files behind',
+        );
+
+        // 이어지는 변경도 codegen → dylib 빌드 → reload 순서로 계속된다(게이트가
+        // 같은 계약을 유지하므로 reload 는 통과한다 — dylib 도 게이트 기본 on).
+        await triggerUntil(
+          () => errors,
+          () => writeFileSync(join(project, 'src', 'lib.rs'), 'fn changed() {}\n'),
+          () => reloads.length >= 1,
+          'a reload after the dylib build',
+        );
+        await handle.dispose();
+        assert.ok(
+          reloads.length >= 1,
+          `reload must still fire after a successful dylib build, captured:\n${errors.join('\n')}`,
+        );
+        const buildsAfter = readFileSync(dylibLog, 'utf8');
+        assert.ok(
+          buildsAfter.split('\n').filter((line) => line.includes('--lib')).length >= 2,
+          'every dirty run rebuilds the hot core, not just the initial one',
+        );
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+        delete process.env.FAKE_DYLIB_LOG;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  'runConfigDev dylib target rejects a drifted contract without emitting reload',
+  { timeout: 30_000 },
+  async () => {
+    // dylib 도 wasm 과 같은 게이트다(2026-09-09 설계 — 무조정 스왑 거부는 CLI
+    // 소재를 유지). 스키마 드리프트 시 reload 자체가 방출되지 않는다 — 앱이 구
+    // 엔진을 유지하는 fail-closed. dylib + parityGate 기본값에서의 거부 배선이 이
+    // 테스트의 대상이다.
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-parity-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedDylibProject(root);
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      writeSchema(join(root, 'schema-integer.json'), 'integer');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+
+        // 시작점 — initial 런(게이트 통과)이 라이브에 발행한 상태다.
+        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('unikit_bridge'));
+        assert.equal(readFileSync(liveAbs, 'utf8'), 'fake dylib core');
+
+        // 트리거 — fake cargo 가 integer 계약과 **다른 바이트**의 코어를 빌드한다 →
+        // 게이트가 거부해야 한다.
+        process.env.FAKE_SCHEMA_FILE = join(root, 'schema-integer.json');
+        process.env.FAKE_DYLIB_CONTENT = 'drifted core bytes';
+        await triggerUntil(
+          () => errors,
+          () => writeFileSync(join(project, 'src', 'lib.rs'), 'fn changed() {}\n'),
+          () =>
+            errors.some(
+              (line) => line.includes('[dev] reload rejected —') && line.includes('drift'),
+            ),
+          'the loud drift rejection on the dylib target',
+        );
+        // 거부 관찰 즉시 dispose — verify 는 거부 시 관찴된(코드젠된) 상태를
+        // 기준으로 채택하므로(설계된 회복 — 다음 테스트가 보증), 대기 중이던
+        // 후속 틱은 같은 드리프트를 다시 실행해 통과·발행할 수 있다. 이 테스트의
+        // 계약은 "드리프트 틱 자체가 reload 를 내지 않는다"이므로, 후속 틱이
+        // 끼어들기 전에 루프를 닫아 결정론적으로 고정한다.
+        await handle.dispose();
+        await sleep(300);
+        assert.deepEqual(
+          reloads,
+          [],
+          'a drifted dylib swap must not emit reload — the host keeps the old core',
+        );
+        // fail-closed 발행 — 드리프트된 빌드는 cargo 타깃 경로(스크래치)에 기록됐지만
+        // 라이브 경로는 건드리지 않는다. 이전 발행물이 계속 스왑 대상이다.
+        assert.equal(
+          readFileSync(liveAbs, 'utf8'),
+          'fake dylib core',
+          'the drifted build must not reach the live path — the previously published core stays',
+        );
+        assert.equal(
+          readFileSync(
+            join(project, 'target', 'debug', hostDylibFileName('unikit_bridge')),
+            'utf8',
+          ),
+          'drifted core bytes',
+          'the drifted build did run — it only ever landed on the cargo scratch path',
+        );
+        assert.ok(
+          errors.some(
+            (line) =>
+              line.includes('[dev:dylib] gated live artifact untouched') &&
+              line.includes(liveDylibFileName('unikit_bridge')),
+          ),
+          `the rejection must state the live artifact was left untouched, got:\n${errors.join('\n')}`,
+        );
+        assert.ok(
+          errors.some((line) =>
+            line.includes('the host keeps running the previously published core'),
+          ),
+          `the rejection must state the consequence (the host keeps the old core), got:\n${errors.join('\n')}`,
+        );
+        assert.deepEqual(
+          readdirSync(join(project, 'target', 'debug')).filter((entry) => entry.includes('-tmp-')),
+          [],
+          'the rejected run must not leave tmp files behind',
+        );
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+        delete process.env.FAKE_DYLIB_CONTENT;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  'runConfigDev dylib target re-arms past a stale startup schema instead of a forced first rejection',
+  { timeout: 30_000 },
+  async () => {
+    // 리스크 감사 2026-09-13 #7 — 시작 시 존재하던 stale schema.json 으로 게이트가
+    // 먼저 arm 되면, 같은 틱의 codegen 이 새 계약을 만들더라도 첫 판정은 stale
+    // 기준과의 비교라 반드시 오탐 거부로 시작했다(verify 의 재무장으로 두 번째
+    // 틱부터 회복되지만 첫 발행은 항상 밀렸다). codegen 이전 arm 은 재생성 직후
+    // 기준으로 다시 잡아 첫 틱이 바로 발행해야 하고, 이후 틱의 실제 드리프트는
+    // 기존과 같이 거부되어야 한다(fail-closed 불변).
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-stale-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedDylibProject(root);
+      // 시작 시점의 stale 계약 — fake cargo 가 만들 계약(string)과 다른 바이트.
+      writeSchema(join(project, 'generated', 'schema.json'), 'integer');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      writeSchema(join(root, 'schema-integer.json'), 'integer');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+
+        // 첫 틱 — stale 시작 기준이 첫 발행을 막아서는 안 된다.
+        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('unikit_bridge'));
+        assert.equal(
+          readFileSync(liveAbs, 'utf8'),
+          'fake dylib core',
+          'the stale startup baseline must not force a spurious first-tick rejection — the gate re-arms on the regenerated schema',
+        );
+        assert.ok(
+          !errors.some((line) => line.includes('[dev] reload rejected')),
+          `the stale startup baseline must not reject the first tick, got:\n${errors.join('\n')}`,
+        );
+
+        // 이후 틱 — 실제 드리프트는 기존 계약대로 거부된다(재-arm 이 허용이 아님).
+        process.env.FAKE_SCHEMA_FILE = join(root, 'schema-integer.json');
+        process.env.FAKE_DYLIB_CONTENT = 'drifted core bytes';
+        await triggerUntil(
+          () => errors,
+          () => writeFileSync(join(project, 'src', 'lib.rs'), 'fn changed() {}\n'),
+          () =>
+            errors.some(
+              (line) => line.includes('[dev] reload rejected —') && line.includes('drift'),
+            ),
+          'the loud drift rejection after the stale-start recovery',
+        );
+        await handle.dispose();
+        assert.deepEqual(
+          reloads,
+          [],
+          'a drifted dylib swap must not emit reload — the host keeps the old core',
+        );
+        assert.equal(
+          readFileSync(liveAbs, 'utf8'),
+          'fake dylib core',
+          'the drifted build must not reach the live path',
+        );
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+        delete process.env.FAKE_DYLIB_CONTENT;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  'runConfigDev dylib target publishes the new core once the re-armed baseline accepts the settled state',
+  { timeout: 30_000 },
+  async () => {
+    // (b)→(c) 경계의 후반부 — 거부는 기준을 관찴된(코드젠된) 상태로 재무장하므로,
+    // 스키마가 안정된 다음 런은 게이트를 통과하고 새 계약의 코어가 라이브로 발행된다
+    // (reload 도 이때 처음 방출된다). 기존 drift 테스트가 거부에서 끝나고 통과
+    // 테스트는 애초 안정 계약뿐이라, "거부 후 재발행" 절반이 갭이었다.
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-rearm-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedDylibProject(root);
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      writeSchema(join(root, 'schema-integer.json'), 'integer');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+
+        // 시작점 — initial 런(게이트 통과)이 라이브에 발행한 상태다.
+        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('unikit_bridge'));
+        assert.equal(readFileSync(liveAbs, 'utf8'), 'fake dylib core');
+
+        // (b) 드리프트 런 — integer 계약 + 새 바이트의 코어 → 거부. 라이브는 구
+        // 발행물을 유지하고 reload 는 방출되지 않는다(앞 테스트와 같은 절반).
+        // 거부가 기준을 재무장하면 대기 중이던 후속 틱이 같은 바이트로 통과·발행할
+        // 수 있다(설계된 회복 — (c)). 드리프트 틱 자체의 계약만 스냅샷으로 고정하고,
+        // sleep 으로 후속 틱을 기다려 레이스를 키우지 않는다.
+        process.env.FAKE_SCHEMA_FILE = join(root, 'schema-integer.json');
+        process.env.FAKE_DYLIB_CONTENT = 'drifted core bytes';
+        let reloadsAtRejection: string[] | undefined;
+        await triggerUntil(
+          () => errors,
+          () => writeFileSync(join(project, 'src', 'lib.rs'), 'fn changed() {}\n'),
+          () => {
+            if (
+              errors.some(
+                (line) => line.includes('[dev] reload rejected —') && line.includes('drift'),
+              )
+            ) {
+              reloadsAtRejection = [...reloads];
+              return true;
+            }
+            return false;
+          },
+          'the loud drift rejection',
+        );
+        assert.deepEqual(reloadsAtRejection, [], 'the drifted run must not emit reload');
+
+        // (c) 코드젠이 따라잡은 뒤의 다음 런 — 스키마(integer)는 이제 (b) 거부에서
+        // 재무장된 기준과 같고 코어 바이트도 같은 새 계약 → 통과 + 재발행 + reload.
+        // 후속 틱이 이미 회복 발행했다면 추가 트리거는 생략한다.
+        if (reloads.length === 0) {
+          await triggerUntil(
+            () => errors,
+            () => writeFileSync(join(project, 'src', 'lib.rs'), 'fn caughtUp() {}\n'),
+            () => reloads.length >= 1,
+            'the re-armed passing run',
+          );
+        }
+        await handle.dispose();
+        assert.equal(
+          readFileSync(liveAbs, 'utf8'),
+          'drifted core bytes',
+          'the settled run must atomically republish the new contract core to the live path',
+        );
+        const hints = errors.filter(
+          (line) =>
+            line.includes('UNIKIT_HOT_CORE=') && line.includes(liveDylibFileName('unikit_bridge')),
+        );
+        assert.ok(
+          hints.length >= 2,
+          `the stable run must re-announce UNIKIT_HOT_CORE for the live path, got:\n${errors.join('\n')}`,
+        );
+        assert.ok(
+          !readdirSync(join(project, 'target', 'debug')).some((entry) => entry.includes('-tmp-')),
+          'the republish must not leave tmp files behind',
+        );
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+        delete process.env.FAKE_DYLIB_CONTENT;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  'runConfigDev dylib target leaves no live artifact when the gate rejects before the first publish',
+  { timeout: 30_000 },
+  async () => {
+    // 첫 발행 전 거부 — 라이브 파일이 아직 없다. initial 런의 빌드를 실패시켜
+    // (FAKE_DYLIB_FAIL) 발행 없이 게이트만 무장한 상태를 만든 뒤, 드리프트 트리거로
+    // 거부를 유도한다. 이 상태의 거부는 "라이브가 발행된 적 없다"와 "호스트를 띄우면
+    // 안 된다"를 loud 하게 말해야 하고, 어떤 발행·reload 도 일어나지 않는다.
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-firstrej-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedDylibProject(root);
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      writeSchema(join(root, 'schema-integer.json'), 'integer');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+      process.env.FAKE_DYLIB_FAIL = '1';
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+
+        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('unikit_bridge'));
+        // 시작점 — initial 런은 빌드 실패로 발행 없이 끝났다.
+        assert.ok(
+          !existsSync(liveAbs),
+          'the failed initial build must not publish a live artifact',
+        );
+
+        // 트리거 — 빌드는 이제 성공하지만 계약이 드리프트됐다 → 첫 발행 전 거부.
+        delete process.env.FAKE_DYLIB_FAIL;
+        process.env.FAKE_SCHEMA_FILE = join(root, 'schema-integer.json');
+        await triggerUntil(
+          () => errors,
+          () => writeFileSync(join(project, 'src', 'lib.rs'), 'fn changed() {}\n'),
+          () =>
+            errors.some(
+              (line) => line.includes('[dev] reload rejected —') && line.includes('drift'),
+            ),
+          'the first-publish drift rejection',
+        );
+        await sleep(300);
+        await handle.dispose();
+        assert.ok(
+          !existsSync(liveAbs),
+          'a gate rejection before the first publish must not create the live artifact',
+        );
+        assert.ok(
+          errors.some(
+            (line) =>
+              line.includes('[dev:dylib] no gated live artifact was published') &&
+              line.includes('do not launch the host'),
+          ),
+          `the rejection must state no live artifact exists and the host must not be launched, ` +
+            `got:\n${errors.join('\n')}`,
+        );
+        assert.deepEqual(
+          reloads,
+          [],
+          'no reload may be emitted when the first publish never happened',
+        );
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+        delete process.env.FAKE_DYLIB_FAIL;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  'runConfigDev dylib target fails loudly when the crate declares no cdylib',
+  { timeout: 30_000 },
+  async () => {
+    // crate-type "cdylib" 강제 — 핫스왑 단위가 없으면 빌드 "성공"이어도 reload 는
+    // 없어야 한다. 에러는 cdylib 원인과 crate-type 힌트를 함께 말한다.
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-dylib-nocdylib-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedDylibProject(root);
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+      process.env.FAKE_DYLIB_NO_ARTIFACT = '1';
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+        await sleep(300);
+        await handle.dispose();
+        const failure = errors.find((line) => line.includes('[dev] regeneration failed'));
+        assert.ok(failure, `the missing-cdylib case must be loud, got:\n${errors.join('\n')}`);
+        assert.match(failure, /cdylib/, 'the error must name cdylib as the cause');
+        assert.match(
+          failure,
+          /crate-type/,
+          'the error must include the crate-type "cdylib" fix hint',
+        );
+        assert.ok(
+          !errors.some((line) => line.includes('[dev:dylib] core artifact:')),
+          'no artifact announcement without a cdylib target',
+        );
+        assert.deepEqual(reloads, [], 'no reload when the hot core cannot be built');
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+        delete process.env.FAKE_DYLIB_NO_ARTIFACT;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+// ── warm-loop Stage 1 — 지문 스킵(§(b)) ──────────────────────────────────────
+//
+// 마지막 성공 파이프라인 이후 감시 대상 Rust 입력이 바이트 동일하면 틱은 cargo
+// 프로브(runCodegen)와 엔진 재빌드를 건너뛰고, 게이트·reload 훅은 오늘과 같이
+// 돈다. 프로브 호출 수는 fake cargo 가 $FAKE_CARGO_LOG 에 한 줄씩 기록하므로
+// 로그 행 수로 집계한다($FAKE_DYLIB_LOG 은 엔진 빌드 수).
+
+const SKIP_LINE = '[dev] rust inputs unchanged — skipping cargo stage (fingerprint match)';
+
+function logLineCount(path: string): number {
+  return existsSync(path)
+    ? readFileSync(path, 'utf8')
+        .split('\n')
+        .filter((line) => line.trim() !== '').length
+    : 0;
+}
+
+for (const input of ['build script', 'workspace lock'] as const) {
+  test(`runConfigDev rebuilds after a ${input} edit`, { timeout: 30_000 }, async () => {
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-extra-input-'));
+    const originalPath = process.env.PATH;
+    const logs: string[] = [];
+    const restore = captureConsole(logs);
+    let handle: DevWatchHandle | undefined;
+    try {
+      const project = seedDylibProject(root);
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      writeFileSync(join(root, 'Cargo.toml'), '[workspace]\nmembers = ["proj"]\n');
+      writeFileSync(join(root, 'Cargo.lock'), 'version = 3\n');
+      const changedPath =
+        input === 'build script' ? join(project, 'build.rs') : join(root, 'Cargo.lock');
+      if (input === 'build script') writeFileSync(changedPath, 'fn main() {}\n');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+      process.env.FAKE_WORKSPACE_ROOT = root;
+      process.env.FAKE_CARGO_LOG = join(root, 'cargo-run.log');
+      handle = await runDev(['--config', join(project, 'unikit.json')]);
+      const reloads: string[] = [];
+      handle.onReload((reason) => void reloads.push(reason));
+      await triggerUntil(
+        () => logs,
+        () =>
+          writeFileSync(
+            changedPath,
+            input === 'build script'
+              ? 'fn main() { println!("cargo:rustc-cfg=changed"); }\n'
+              : 'version = 4\n',
+          ),
+        () => reloads.length > 0,
+        `${input} reload`,
+      );
+      assert.equal(
+        logLineCount(process.env.FAKE_CARGO_LOG),
+        2,
+        'Cargo inputs outside src must defeat the cached fingerprint',
+      );
+    } finally {
+      await handle?.dispose();
+      restore();
+      process.env.PATH = originalPath;
+      delete process.env.FAKE_SCHEMA_FILE;
+      delete process.env.FAKE_WORKSPACE_ROOT;
+      delete process.env.FAKE_CARGO_LOG;
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+}
+
+test(
+  'runConfigDev restores an externally changed schema before reloading',
+  { timeout: 30_000 },
+  async () => {
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-schema-edit-'));
+    const originalPath = process.env.PATH;
+    let handle: DevWatchHandle | undefined;
+    const logs: string[] = [];
+    const restore = captureConsole(logs);
+    try {
+      const project = seedDylibProject(root);
+      const schemaPath = join(project, 'generated', 'schema.json');
+      const sourceSchema = join(root, 'schema-string.json');
+      writeSchema(schemaPath, 'string');
+      writeSchema(sourceSchema, 'string');
+      const cargoLog = join(root, 'cargo-run.log');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = sourceSchema;
+      process.env.FAKE_CARGO_LOG = cargoLog;
+      handle = await runDev(['--config', join(project, 'unikit.json')]);
+      const originalSchema = readFileSync(schemaPath, 'utf8');
+      const reloads: string[] = [];
+      handle.onReload((reason) => void reloads.push(reason));
+      const edited = JSON.parse(originalSchema);
+      edited.commands[0].description = 'external stale schema';
+      writeFileSync(schemaPath, JSON.stringify(edited));
+      await observeUntil(
+        () => logs,
+        () => reloads.length > 0,
+        'schema regeneration and reload',
+      );
+      assert.equal(
+        readFileSync(schemaPath, 'utf8'),
+        originalSchema,
+        'only the Rust-produced schema may be used to reload the native core',
+      );
+      assert.equal(
+        logLineCount(cargoLog),
+        2,
+        'a schema edit must invalidate the skip even when Rust source bytes are unchanged',
+      );
+    } finally {
+      await handle?.dispose();
+      restore();
+      process.env.PATH = originalPath;
+      delete process.env.FAKE_SCHEMA_FILE;
+      delete process.env.FAKE_CARGO_LOG;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  'runConfigDev skips the cargo stage when a trigger fires with byte-identical rust inputs',
+  { timeout: 30_000 },
+  async () => {
+    // 내용 불변 트리거 — 설정 파일을 같은 바이트로 다시 쓴다(mtime 만 변한다).
+    // 감시는 이벤트 자체를 dirty 로 취급하므로 틱은 돌지만, 지문이 일치하면
+    // cargo 프로브·엔진 빌드 없이 게이트 검증만 통과해야 한다. 스킵 틱의 계약:
+    // (i) cargo run/build 호출 수 불변, (ii) 게이트 desync 없음(스킵 틱에는
+    // schema 바이트가 불변 → verify 통과 — 거부도 재무장도 없음), (iii) reload 훅
+    // 은 계속 방출(호스트 관찰 행동 불변), (iv) 라이브 발행물 무손상.
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-fp-skip-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedDylibProject(root);
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      const cargoLog = join(root, 'cargo-run.log');
+      const dylibLog = join(root, 'dylib-build.log');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+      process.env.FAKE_CARGO_LOG = cargoLog;
+      process.env.FAKE_DYLIB_LOG = dylibLog;
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+        const liveAbs = join(project, 'target', 'debug', liveDylibFileName('unikit_bridge'));
+        assert.equal(readFileSync(liveAbs, 'utf8'), 'fake dylib core');
+        const runsAfterInitial = logLineCount(cargoLog);
+        assert.equal(runsAfterInitial, 1, 'the initial tick must run the cargo probe once');
+
+        const configPath = join(project, 'unikit.json');
+        const originalConfig = readFileSync(configPath, 'utf8');
+        await triggerUntil(
+          () => errors,
+          () => writeFileSync(configPath, originalConfig),
+          () => errors.some((line) => line.includes(SKIP_LINE)),
+          'the fingerprint skip line',
+        );
+        await sleep(300);
+        assert.equal(
+          logLineCount(cargoLog),
+          runsAfterInitial,
+          `the skip tick must not invoke the cargo probe, got:\n${errors.join('\n')}`,
+        );
+        assert.equal(
+          logLineCount(dylibLog),
+          1,
+          `the skip tick must not rebuild the engine, got:\n${errors.join('\n')}`,
+        );
+        assert.ok(
+          !errors.some((line) => line.includes('[dev] reload rejected')),
+          `the skip tick must not desync the parity gate — the schema bytes are ` +
+            `unchanged, so verify passes, got:\n${errors.join('\n')}`,
+        );
+        assert.ok(
+          !errors.some((line) => line.includes('[dev] regeneration failed')),
+          `the skip tick must not fail, got:\n${errors.join('\n')}`,
+        );
+        assert.ok(
+          reloads.length >= 1,
+          `the skip tick must still emit reload hooks, captured:\n${errors.join('\n')}`,
+        );
+        assert.ok(
+          reloads.every((reason) => reason === 'config change'),
+          `only the no-op trigger may have reloaded, got: ${reloads.join(', ')}`,
+        );
+        assert.equal(
+          readFileSync(liveAbs, 'utf8'),
+          'fake dylib core',
+          'the skip tick must not touch the published live artifact',
+        );
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+        delete process.env.FAKE_CARGO_LOG;
+        delete process.env.FAKE_DYLIB_LOG;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  'runConfigDev reruns the full pipeline when a schema-relevant change dirties the rust inputs',
+  { timeout: 30_000 },
+  async () => {
+    // 오염 시나리오의 e2e 절반 — src 필드 **타입 변경**은 지문을 바꾸므로 전체
+    // 파이프라인(프로브 + 엔진 빌드)이 다시 돌아야 하고, 그 뒤 같은 내용의
+    // 재트리거는 스킵으로 돌아가야 한다(스킵과 재실행의 대조를 한 흐름에서 증명).
+    // 나머지 네 오염 시나리오(필드 추가/필드명/attribute/derive)는 지문 단위
+    // 테스트(dev-fingerprint.test.ts)가 담당한다.
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-fp-rerun-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedDylibProject(root);
+      writeSchema(join(project, 'generated', 'schema.json'), 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      const cargoLog = join(root, 'cargo-run.log');
+      const dylibLog = join(root, 'dylib-build.log');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+      process.env.FAKE_CARGO_LOG = cargoLog;
+      process.env.FAKE_DYLIB_LOG = dylibLog;
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+        assert.equal(logLineCount(cargoLog), 1, 'the initial tick must run the cargo probe once');
+
+        // 오염 — 시드 코드를 같은 구조체의 필드 타입 변경으로 쓴다 → 지문 불일치
+        // → cargo 프로브가 다시 돈다.
+        const libPath = join(project, 'src', 'lib.rs');
+        await triggerUntil(
+          () => errors,
+          () => writeFileSync(libPath, 'pub struct EchoInput { pub message: String }\n'),
+          () => logLineCount(cargoLog) >= 2,
+          'the contaminated full pipeline run',
+        );
+
+        // 대조 — 이제 같은 내용의 재트리거는 스킵으로 돌아간다(재실행이 오염에만
+        // 반응했다는 증명).
+        await triggerUntil(
+          () => errors,
+          () => writeFileSync(libPath, 'pub struct EchoInput { pub message: String }\n'),
+          () => errors.some((line) => line.includes(SKIP_LINE)),
+          'the skip line after the contamination settled',
+        );
+        await sleep(300);
+        assert.equal(
+          logLineCount(cargoLog),
+          2,
+          `the contamination must rerun the cargo probe exactly once more, got:\n${errors.join('\n')}`,
+        );
+        assert.equal(
+          logLineCount(dylibLog),
+          2,
+          `the contamination must rebuild the engine, got:\n${errors.join('\n')}`,
+        );
+        assert.ok(
+          reloads.some((reason) => reason === 'Rust change'),
+          `the rerun must emit reload hooks, captured:\n${errors.join('\n')}`,
+        );
+        assert.ok(
+          !errors.some((line) => line.includes('[dev] reload rejected')),
+          `the rerun keeps the same contract, so the gate must pass, got:\n${errors.join('\n')}`,
+        );
+        assert.equal(
+          readFileSync(
+            join(project, 'target', 'debug', liveDylibFileName('unikit_bridge')),
+            'utf8',
+          ),
+          'fake dylib core',
+          'the rerun must republish the gated live artifact',
+        );
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+        delete process.env.FAKE_CARGO_LOG;
+        delete process.env.FAKE_DYLIB_LOG;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  'runConfigDev reruns the full pipeline when the generated schema is missing despite a fingerprint match',
+  { timeout: 30_000 },
+  async () => {
+    // fail-safe — 지문이 일치해도 생성물(schema.json)이 없으면 스킵 금지다.
+    // 프로브를 다시 돌려 생성물을 복구하는 것까지가 이 틱의 일이다.
+    const root = mkdtempSync(join(tmpdir(), 'unikit-dev-fp-noschema-'));
+    const originalPath = process.env.PATH;
+    try {
+      const project = seedDylibProject(root);
+      const schemaPath = join(project, 'generated', 'schema.json');
+      writeSchema(schemaPath, 'string');
+      writeSchema(join(root, 'schema-string.json'), 'string');
+      const cargoLog = join(root, 'cargo-run.log');
+      const dylibLog = join(root, 'dylib-build.log');
+      process.env.PATH = `${join(root, FAKE_BIN)}:${originalPath}`;
+      process.env.FAKE_SCHEMA_FILE = join(root, 'schema-string.json');
+      process.env.FAKE_CARGO_LOG = cargoLog;
+      process.env.FAKE_DYLIB_LOG = dylibLog;
+
+      const errors: string[] = [];
+      const restore = captureConsole(errors);
+      let handle: DevWatchHandle | undefined;
+      try {
+        handle = await runDev(['--config', join(project, 'unikit.json')]);
+        const reloads: string[] = [];
+        handle.onReload((reason) => void reloads.push(reason));
+        assert.equal(logLineCount(cargoLog), 1, 'the initial tick must run the cargo probe once');
+
+        // schema.json 삭제 — 생성물 감시가 스스로 틱을 깬다(쓰기 불필요).
+        rmSync(schemaPath);
+        await triggerUntil(
+          () => errors,
+          () => {},
+          () => reloads.length >= 1,
+          'the fail-safe full pipeline run',
+        );
+        await sleep(300);
+        assert.equal(
+          logLineCount(cargoLog),
+          2,
+          `the missing schema must defeat the fingerprint match and rerun the probe, ` +
+            `got:\n${errors.join('\n')}`,
+        );
+        assert.equal(
+          logLineCount(dylibLog),
+          2,
+          `the fail-safe tick must rebuild the engine, got:\n${errors.join('\n')}`,
+        );
+        assert.ok(
+          !errors.some((line) => line.includes(SKIP_LINE)),
+          `no tick may log the skip line while the generated schema is gone, ` +
+            `got:\n${errors.join('\n')}`,
+        );
+        assert.ok(
+          !errors.some((line) => line.includes('[dev] reload rejected')),
+          `the restored schema matches the armed baseline, so verify passes, got:\n${errors.join('\n')}`,
+        );
+        assert.ok(existsSync(schemaPath), 'the fail-safe run must restore the generated schema');
+        assert.equal(
+          readFileSync(
+            join(project, 'target', 'debug', liveDylibFileName('unikit_bridge')),
+            'utf8',
+          ),
+          'fake dylib core',
+          'the fail-safe run must republish the gated live artifact',
+        );
+      } finally {
+        await handle?.dispose();
+        restore();
+        delete process.env.FAKE_SCHEMA_FILE;
+        delete process.env.FAKE_CARGO_LOG;
+        delete process.env.FAKE_DYLIB_LOG;
+      }
+    } finally {
+      process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);

@@ -1,6 +1,5 @@
 [workspace]
 members = [
-  "crates/unikit-bridge-naming",
   "crates/unikit-bridge",
   "crates/unikit-bridge-macros",
   "examples/calculator",
@@ -46,7 +45,6 @@ categories = ["api-bindings", "development-tools::ffi"]
 rust-version = "1.88"
 
 [workspace.dependencies]
-unikit-bridge-naming = { version = "0.13.0", path = "crates/unikit-bridge-naming" }
 unikit-bridge-macros = { version = "0.13.0", path = "crates/unikit-bridge-macros" }
 unikit-bridge = { version = "0.13.0", path = "crates/unikit-bridge" }
 serde = { version = "1", features = ["derive"] }

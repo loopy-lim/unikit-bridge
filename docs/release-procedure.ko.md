@@ -60,23 +60,22 @@ CI를 통과시키고 Release를 재실행한다. 새 실행이 통과하기 전
 
 ## 1단계 — changeset 확정
 
-공개 `@unikit-bridge/*` 9종은 독립 release line입니다. 변경된 package만 changeset에
-올리고, 각 adapter/CLI가 요구하는 `@unikit-bridge/types` 호환 범위를 유지합니다. Rust
-`unikit`/`unikit-bridge-macros` 쌍은 Cargo workspace 안에서 계속 함께 호환되어야 하지만
-npm package 버전과 일치할 필요는 없습니다. `@unikit-bridge/cli`의 `unikitTemplate`에는
-생성할 Rust crate와 RN adapter의 명시적 semver 범위가 들어갑니다.
+공개 npm 패키지는 **`@unikit-bridge/rustra`** (`packages/rustra`) 하나입니다.
+표면이 바뀌면 changeset에 이 패키지만 올립니다. Rust `unikit-bridge` /
+`unikit-bridge-macros` 쌍은 Cargo workspace 안에서 호환을 유지합니다.
+`@unikit-bridge/rustra`의 `unikitTemplate`에는 `cargoRange`와 `npmRange`가
+들어갑니다.
 `bun run test:release-coherence`는 package별 버전, lockfile, 내부 의존성 범위,
 CLI의 Rust·RN adapter 범위, LICENSE 및 fixed group을 검사합니다.
 
 두 `unikitTemplate` 범위는 움직이는 시점이 다르고, 둘 다 coherence 검사가
 지킵니다. `cargoRange`는 Cargo workspace 버전을 올리는 기능 커밋에서 함께
-움직입니다(Rust 라인은 changesets 관리 대상이 아니다). `reactNativeRange`는
-버전 PR 안에서(`bun run version` → `scripts/version-packages.mjs`) 새로 올라간
-`@unikit-bridge/react-native` 버전에 맞춰 동기화됩니다. 같은 스크립트가
+움직입니다(Rust 라인은 changesets 관리 대상이 아니다). `npmRange`는 버전 PR 안에서(`bun run version` → `scripts/version-packages.mjs`) 새로
+올라간 `@unikit-bridge/rustra` 버전에 맞춰 동기화됩니다. 같은 스크립트가
 `changeset version` 뒤 `bun.lock`도 다시 맞춘다 — 버전만 올리고 lock 이
 뒤처지면 version PR 의 `test:release-coherence` 가 실패한다(2026-09-10 첫
-버전 PR 실측). `reactNativeRange`를 기능 브랜치에서 adapter 버전보다 먼저
-올리면 안 됩니다 — 코드젠의 adapter 버전 게이트가 저장소 안 예제를 거부해서
+버전 PR 실측). `npmRange`를 기능 브랜치에서 `@unikit-bridge/rustra` 버전보다 먼저
+올리면 안 됩니다 — 코드젠의 패키지 버전 게이트가 저장소 안 예제를 거부해서
 기능 머지와 버전 PR 사이 main CI 가 깨집니다(같은 날 실측).
 
 소비자에게 breaking DX 변경이 생긴 minor 릴리스는 버전 PR에
@@ -108,8 +107,8 @@ bunx changeset version --snapshot canary
 
 ```bash
 mkdir /tmp/canary-check && cd /tmp/canary-check && bun init -y
-bun add @unikit-bridge/node@canary @unikit-bridge/types@canary
-bun -e "import * as n from '@unikit-bridge/node'; console.log(Object.keys(n))"
+bun add @unikit-bridge/rustra@canary
+bun -e "import * as n from '@unikit-bridge/rustra/node'; console.log(Object.keys(n))"
 ```
 
 React Native adapter는 publish tarball의 native 파일과 clean consumer의 native root
@@ -124,10 +123,11 @@ crates.io canary 는 지원하지 않는다 (버전 삭제 불가) — Rust 는 
 
 ## 3단계 — stable 발행
 
-1. Version Packages PR 머지 → release.yml 자동 실행 (npm 9종)
+1. Version Packages PR 머지 → release.yml 자동 실행 (`@unikit-bridge/rustra`)
 2. crates 수동 잡: Actions → Release → Run workflow는 `main`의 동일 SHA에 대해
-   실제 CI와 새 Miri·Sanitizer·Fuzz·TSan 성공을 확인한 뒤 unikit-bridge-naming → unikit-bridge-macros → unikit 순서로
-   각 의존성의 인덱스 반영을 기다리며 발행
+   실제 CI와 새 Miri·Sanitizer·Fuzz·TSan 성공을 확인한 뒤 **unikit-bridge-macros → unikit-bridge** 순서로
+   각 의존성의 인덱스 반영을 기다리며 발행. 통합 npm 발행 후
+   `node scripts/deprecate-legacy-packages.mjs`(dry-run)로 레거시 npm deprecation을 검토하고, 필요 시 `--apply`.
 
 안전성 게이트를 거치는 위 수동 workflow를 사용한다. 로컬 `cargo publish`나
 `changeset publish`는 GitHub의 의존 job을 실행하지 않으므로 이 절차의 승인된

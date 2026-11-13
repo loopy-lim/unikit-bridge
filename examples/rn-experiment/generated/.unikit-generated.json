@@ -9,7 +9,7 @@
     },
     {
       "path": "../modules/unikit-bridge/android/build.gradle",
-      "sha256": "38fe1cce8fb259cf303253b4bb77d84c77dea517baec47876ae87ca9f8262177"
+      "sha256": "ce4b1c285be5f35f873e8ccef8416958dd9f65c769f655bace6f0c312096aec4"
     },
     {
       "path": "../modules/unikit-bridge/android/CMakeLists.txt",
@@ -49,7 +49,7 @@
     },
     {
       "path": "../modules/unikit-bridge/package.json",
-      "sha256": "c7b2d9ab88f0741cbb19a8111d4e6160c060af1a67a32a553c32db7551db1702"
+      "sha256": "7223433620236fae7b97b87b2d8c81e703f705bbbea79d6fcad756a03cf9e0d0"
     },
     {
       "path": "../modules/unikit-bridge/react-native.config.js",
@@ -61,15 +61,15 @@
     },
     {
       "path": "../modules/unikit-bridge/src/index.ts",
-      "sha256": "d0c28c504da7124c5551c4e0fdbcad25bb0ca7de2cd0ccb31bebf4d8d5b000c8"
+      "sha256": "529148bfcae4b616a04a69654f682c839649b904e253a5c3b0ff5f7a458cb390"
     },
     {
       "path": "../modules/unikit-bridge/UnikitBridge.podspec",
-      "sha256": "2520d50e83758a029ff17ee96b71312ceb540e2504792fa6b13ecb0312d3266f"
+      "sha256": "8602857108b15d2eda41dd84c11211d5729a0bb76fc91ec29a9d2206153b9951"
     },
     {
       "path": "commands.ts",
-      "sha256": "4839599287b5a8a907a73711d2a8e4156220409648d59b48cd7066e3051d0f24"
+      "sha256": "c5067031e42ac2d855995279410b25c683221439269a242b065ed657968468f8"
     },
     {
       "path": "contract.ts",
@@ -77,23 +77,23 @@
     },
     {
       "path": "frame-codecs.ts",
-      "sha256": "efe918e6556d53938752d0f908a8770025bdb2164d2dd1dbe9fcd015209b36cf"
+      "sha256": "bc7a40b3b593101aaeb17ee3ab10ff5d01f9a1e5b026e3d6851a53285a5cc3c1"
     },
     {
       "path": "frame-registry.ts",
-      "sha256": "9c83061b56f5cedfcc59fa9bd54c0b513dbf2f4728f70d9a76ac1c929829308a"
+      "sha256": "8890bf7ca4334d23e93f43e2628fa07415eb27109af9a096bf16e2b0295dccbc"
     },
     {
       "path": "node.ts",
-      "sha256": "c2936174536ac934c0bdf162cd018643ffcb0e58a428e1b47e9374e39e7cfae4"
+      "sha256": "eaf5719cf2c04225f3af11c713f5886d85fd031727817806c821ab909f44f8a4"
     },
     {
       "path": "react-native.ts",
-      "sha256": "b9e564de90725239d10bd4b12818f8a777661c80950687fdb178f849bdc97c3d"
+      "sha256": "6900dde532b3bfe15d7d6cfa238395fcae55c6cecff4ba9bfde9c675a19ab866"
     },
     {
       "path": "types.ts",
-      "sha256": "8870aa0fd4325b00f335ed96b1ab7e0ffadb4c4b8ae035682854e17f6699207e"
+      "sha256": "9ae3ce625085c8ac108ec4635f98beccc53b2e1cf945a517f5c6db997bb1a8cb"
     }
   ]
 }

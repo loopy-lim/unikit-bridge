@@ -26,7 +26,7 @@ include!("codegen_names.rs");
 /// `Package::generate_typescript`가 `generate_types_ts`/`generate_commands_ts`
 /// 진입에서 `clear_codegen_warnings()` → 명령/정의 루프에서
 /// `set_codegen_command_context(컨텍스트명)` → 종료 시 `take_codegen_warnings()`를
-/// `GeneratedPackage::warnings` 필드로 실어준다. CLI(`@unikit-bridge/cli` codegen
+/// `GeneratedPackage::warnings` 필드로 실어준다. CLI(`@unikit-bridge/rustra/cli` codegen
 /// 파이프라인)가 이를 stderr로 출력한다. 경고는 생성 파일(types.ts 등)의
 /// 바이트 출력에 영향을 주지 않는다 — 별도 진행 채널이다.
 pub(crate) struct CodegenWarning {

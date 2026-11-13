@@ -7,7 +7,7 @@ set -euo pipefail
 # 재설치마다 바뀌는 앱 컨테이너 경로(README 가 기록한 pain)를 매 실행
 # `simctl get_app_container` 로 재해석해 대신 고정해주기 위해서다.
 #
-# 아티팩트 경로 계약은 packages/cli/src/dev-dylib.ts 의 liveArtifactPath 를 따른다:
+# 아티팩트 경로 계약은 packages/rustra/src/cli/dev-dylib.ts 의 liveArtifactPath 를 따른다:
 # 시뮬레이터 트리플 디렉터리(target/<triple>/<profile>/)에서 stem 뒤에 -hot-live 를
 # 붙인 게이트 발행 이름(lib<crate_underscored>-hot-live.dylib)을 먼저 보고, 없으면
 # cargo 가 내놓는 평범한 cdylib 로 폴백한다. 컨테이너로의 스테이징도 같은 원자적

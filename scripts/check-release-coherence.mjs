@@ -2,17 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const PUBLISHED_PACKAGES = [
-  'bun',
-  'cli',
-  'devtools',
-  'node',
-  'react-native',
-  'react',
-  'tauri',
-  'testing',
-  'types',
-];
+export const PUBLISHED_PACKAGE_DIR = 'rustra';
 
 function readJson(root, relativePath) {
   return JSON.parse(readFileSync(join(root, relativePath), 'utf8'));
@@ -78,13 +68,6 @@ function workspaceVersion(cargo) {
   return workspace;
 }
 
-/**
- * wasm 백엔드(dev/experimental 전용 — Task A3 버전 정책 결정)가 릴리스 아티팩트에
- * 새어 나가는가 — npm tarball 의 `files` 경로로 판정한다. 경로 세그먼트가 wasm
- * 엔진 계열(vendored wasm3 소스, wasm32 타깃 산출물, wasm-backend 디렉터리,
- * .wasm 엔진 바이너리)이면 배제 대상이다. 네이티브 어댑터(JSI/FFI)의 정상 발행
- * 경로(`native` 글롭)는 세그먼트만 봐서는 걸리지 않는다.
- */
 function isWasmBackendPath(publishPath) {
   return String(publishPath)
     .split('/')
@@ -116,107 +99,74 @@ function lockField(block, field) {
 }
 
 /**
- * Check release metadata without requiring all public packages to share a
- * version. The return value is empty when the supplied repository is coherent.
+ * Check release metadata for the consolidated @unikit-bridge/rustra package.
  */
 export function checkReleaseCoherence(root = process.cwd()) {
   const cargo = readFileSync(join(root, 'Cargo.toml'), 'utf8');
   const cargoVersion = workspaceVersion(cargo);
-  const cli = readJson(root, 'packages/cli/package.json');
-  const types = readJson(root, 'packages/types/package.json');
+  const packagePath = `packages/${PUBLISHED_PACKAGE_DIR}`;
+  const manifest = readJson(root, `${packagePath}/package.json`);
   const changesets = readJson(root, '.changeset/config.json');
   const lock = readFileSync(join(root, 'bun.lock'), 'utf8');
   const rootLicense = readFileSync(join(root, 'LICENSE'), 'utf8');
   const failures = [];
 
-  const forcedPublicGroup = changesets.fixed?.find(
+  const legacyFixedGroup = changesets.fixed?.find(
     (group) =>
       Array.isArray(group) &&
-      group.length > 1 &&
-      PUBLISHED_PACKAGES.every((name) => group.includes(`@unikit-bridge/${name}`)),
+      group.some((name) => typeof name === 'string' && name.startsWith('@unikit-bridge/')) &&
+      !group.every((name) => name === '@unikit-bridge/rustra'),
   );
-  if (forcedPublicGroup) {
+  if (legacyFixedGroup) {
     failures.push(
-      'Changesets must not force all published @unikit-bridge/* packages into one fixed version group',
+      'Changesets fixed groups must not reference legacy multi-package @unikit-bridge/* names',
     );
   }
 
-  const cargoRange = cli.unikitTemplate?.cargoRange;
+  const cargoRange = manifest.unikitTemplate?.cargoRange;
   if (typeof cargoRange !== 'string' || !rangeContainsVersion(cargoRange, cargoVersion)) {
     failures.push(
-      `@unikit-bridge/cli unikitTemplate.cargoRange=${cargoRange} does not contain Rust ${cargoVersion}`,
+      `@unikit-bridge/rustra unikitTemplate.cargoRange=${cargoRange} does not contain Rust ${cargoVersion}`,
     );
   }
 
-  // RN 어댑터 범위는 워크스페이스 버전을 포함해야 한다 — 코드젠의 어댑터 버전
-  // 게이트(react-native.ts)가 설치된 어댑터를 이 범위로 판정하므로, 범위가
-  // 버전보다 먼저 움직이면 저장소 안 예제 코드젠이 깨진다(버전은 version PR 이,
-  // 범위는 version-packages.mjs 가 같은 커밋에서 움직인다).
-  const reactNativeVersion = readJson(root, 'packages/react-native/package.json').version;
-  const reactNativeRange = cli.unikitTemplate?.reactNativeRange;
-  if (
-    typeof reactNativeRange !== 'string' ||
-    !rangeContainsVersion(reactNativeRange, reactNativeVersion)
-  ) {
+  const npmRange = manifest.unikitTemplate?.npmRange;
+  const npmVersion = manifest.version;
+  if (typeof npmRange !== 'string' || !rangeContainsVersion(npmRange, npmVersion)) {
     failures.push(
-      `@unikit-bridge/cli unikitTemplate.reactNativeRange=${reactNativeRange} does not contain @unikit-bridge/react-native ${reactNativeVersion}`,
+      `@unikit-bridge/rustra unikitTemplate.npmRange=${npmRange} does not contain ${npmVersion}`,
     );
   }
 
-  for (const host of ['node', 'bun', 'tauri']) {
-    const hostVersion = readJson(root, `packages/${host}/package.json`).version;
-    const hostRange = cli.unikitTemplate?.[`${host}Range`];
-    if (typeof hostRange !== 'string' || !rangeContainsVersion(hostRange, hostVersion)) {
+  for (const hostKey of ['nodeRange', 'bunRange', 'tauriRange', 'reactNativeRange']) {
+    if (manifest.unikitTemplate?.[hostKey] !== undefined) {
       failures.push(
-        `@unikit-bridge/cli unikitTemplate.${host}Range=${hostRange} does not contain @unikit-bridge/${host} ${hostVersion}`,
+        `@unikit-bridge/rustra unikitTemplate must not include legacy field ${hostKey} (use npmRange only)`,
       );
     }
   }
 
-  const typesVersion = types.version;
-  for (const name of PUBLISHED_PACKAGES) {
-    const packagePath = `packages/${name}`;
-    const manifest = readJson(root, `${packagePath}/package.json`);
-    if (!parseVersion(manifest.version ?? ''))
-      failures.push(`${manifest.name} has invalid version=${manifest.version}`);
-    if (!manifest.files?.includes('LICENSE')) {
-      failures.push(`${manifest.name} package files omit LICENSE`);
-    }
-    failures.push(...wasmBackendFailures(manifest.name, manifest.files));
-    try {
-      const packageLicense = readFileSync(join(root, `${packagePath}/LICENSE`), 'utf8');
-      if (packageLicense !== rootLicense)
-        failures.push(`${manifest.name} LICENSE differs from root LICENSE`);
-    } catch {
-      failures.push(`${manifest.name} LICENSE is missing`);
-    }
+  if (!parseVersion(manifest.version ?? '')) {
+    failures.push(`${manifest.name} has invalid version=${manifest.version}`);
+  }
+  if (!manifest.files?.includes('LICENSE')) {
+    failures.push(`${manifest.name} package files omit LICENSE`);
+  }
+  failures.push(...wasmBackendFailures(manifest.name, manifest.files));
+  try {
+    const packageLicense = readFileSync(join(root, `${packagePath}/LICENSE`), 'utf8');
+    if (packageLicense !== rootLicense) failures.push(`${manifest.name} LICENSE differs from root LICENSE`);
+  } catch {
+    failures.push(`${manifest.name} LICENSE is missing`);
+  }
 
-    const block = lockWorkspaceBlock(lock, packagePath);
-    if (!block) {
-      failures.push(`${manifest.name} is missing from bun.lock workspaces`);
-    } else if (lockField(block, 'version') !== manifest.version) {
-      failures.push(
-        `${manifest.name} lock version=${lockField(block, 'version')} but manifest=${manifest.version}`,
-      );
-    }
-
-    if (name !== 'types') {
-      const dependencyRange = manifest.dependencies?.['@unikit-bridge/types'];
-      if (
-        typeof dependencyRange !== 'string' ||
-        !rangeContainsVersion(dependencyRange, typesVersion)
-      ) {
-        failures.push(
-          `${manifest.name} depends on @unikit-bridge/types ${dependencyRange}, which does not contain ${typesVersion}`,
-        );
-      }
-      const lockDependencyRange = block?.match(/"@unikit-bridge\/types"\s*:\s*"([^"]+)"/)?.[1];
-      if (lockDependencyRange !== dependencyRange) {
-        failures.push(
-          `${manifest.name} lock @unikit-bridge/types=${lockDependencyRange} but manifest=${dependencyRange}`,
-        );
-      }
-    }
+  const block = lockWorkspaceBlock(lock, packagePath);
+  if (!block) {
+    failures.push(`${manifest.name} is missing from bun.lock workspaces`);
+  } else if (lockField(block, 'version') !== manifest.version) {
+    failures.push(
+      `${manifest.name} lock version=${lockField(block, 'version')} but manifest=${manifest.version}`,
+    );
   }
 
   return failures;
@@ -232,11 +182,9 @@ function run() {
     process.exitCode = 1;
     return;
   }
-  const npmVersions = PUBLISHED_PACKAGES.map(
-    (name) => readJson(process.cwd(), `packages/${name}/package.json`).version,
-  );
+  const npmVersion = readJson(process.cwd(), `packages/${PUBLISHED_PACKAGE_DIR}/package.json`).version;
   console.log(
-    `release coherence ok: ${new Set(npmVersions).size} npm versions, Rust ${workspaceVersion(readFileSync(resolve('Cargo.toml'), 'utf8'))}`,
+    `release coherence ok: @unikit-bridge/rustra ${npmVersion}, Rust ${workspaceVersion(readFileSync(resolve('Cargo.toml'), 'utf8'))}`,
   );
 }
 

@@ -1,0 +1,742 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { diffSchemas, formatDiffResult } from './schema-diff.js';
+import type { PackageSchema, JsonSchema } from './schema.js';
+
+const baseSchema: PackageSchema = {
+  packageId: 'test',
+  commands: [
+    {
+      name: 'add',
+      commandId: 1,
+      inputType: 'AddInput',
+      outputType: 'AddOutput',
+      inputSchema: {
+        type: 'object',
+        properties: { a: { type: 'integer' }, b: { type: 'integer' } },
+        required: ['a', 'b'],
+      },
+      outputSchema: {
+        type: 'object',
+        properties: { value: { type: 'integer' } },
+        required: ['value'],
+      },
+    },
+  ],
+};
+
+test('detects no changes for identical schemas', () => {
+  const result = diffSchemas(baseSchema, baseSchema);
+  assert.equal(result.breaking.length, 0);
+});
+
+test('detects removed command', () => {
+  const newSchema: PackageSchema = { packageId: 'test', commands: [] };
+  const result = diffSchemas(baseSchema, newSchema);
+  assert.equal(result.breaking.length, 1);
+  assert.equal(result.breaking[0]!.type, 'command_removed');
+});
+
+test('detects removed field', () => {
+  const newSchema: PackageSchema = {
+    packageId: 'test',
+    commands: [
+      {
+        name: 'add',
+        commandId: 1,
+        inputType: 'AddInput',
+        outputType: 'AddOutput',
+        inputSchema: { type: 'object', properties: { a: { type: 'integer' } }, required: ['a'] },
+        outputSchema: {
+          type: 'object',
+          properties: { value: { type: 'integer' } },
+          required: ['value'],
+        },
+      },
+    ],
+  };
+  const result = diffSchemas(baseSchema, newSchema);
+  assert.ok(result.breaking.some((c) => c.type === 'field_removed'));
+});
+
+test('detects type change', () => {
+  const newSchema: PackageSchema = {
+    packageId: 'test',
+    commands: [
+      {
+        name: 'add',
+        commandId: 1,
+        inputType: 'AddInput',
+        outputType: 'AddOutput',
+        inputSchema: {
+          type: 'object',
+          properties: { a: { type: 'string' }, b: { type: 'integer' } },
+          required: ['a', 'b'],
+        },
+        outputSchema: {
+          type: 'object',
+          properties: { value: { type: 'integer' } },
+          required: ['value'],
+        },
+      },
+    ],
+  };
+  const result = diffSchemas(baseSchema, newSchema);
+  assert.ok(result.breaking.some((c) => c.type === 'field_type_changed'));
+});
+
+test('detects required field added', () => {
+  const newSchema: PackageSchema = {
+    packageId: 'test',
+    commands: [
+      {
+        name: 'add',
+        commandId: 1,
+        inputType: 'AddInput',
+        outputType: 'AddOutput',
+        inputSchema: {
+          type: 'object',
+          properties: { a: { type: 'integer' }, b: { type: 'integer' }, c: { type: 'integer' } },
+          required: ['a', 'b', 'c'],
+        },
+        outputSchema: {
+          type: 'object',
+          properties: { value: { type: 'integer' } },
+          required: ['value'],
+        },
+      },
+    ],
+  };
+  const result = diffSchemas(baseSchema, newSchema);
+  assert.ok(result.breaking.some((c) => c.type === 'required_field_added'));
+});
+
+test('detects an existing optional field becoming required', () => {
+  const oldSchema = structuredClone(baseSchema) as PackageSchema;
+  const next = structuredClone(baseSchema) as PackageSchema;
+  oldSchema.commands[0]!.inputSchema.required = ['a'];
+  next.commands[0]!.inputSchema.required = ['a', 'b'];
+  const result = diffSchemas(oldSchema, next);
+  assert.ok(result.breaking.some((change) => change.type === 'field_became_required'));
+});
+
+test('detects nested referenced schema changes', () => {
+  const oldSchema = structuredClone(baseSchema) as PackageSchema;
+  const nextSchema = structuredClone(baseSchema) as PackageSchema;
+  oldSchema.commands[0]!.inputSchema = {
+    type: 'object',
+    properties: { payload: { $ref: '#/definitions/Payload' } },
+    required: ['payload'],
+    definitions: {
+      Payload: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
+    },
+  };
+  nextSchema.commands[0]!.inputSchema = {
+    type: 'object',
+    properties: { payload: { $ref: '#/definitions/Payload' } },
+    required: ['payload'],
+    definitions: {
+      Payload: { type: 'object', properties: { id: { type: 'integer' } }, required: ['id'] },
+    },
+  };
+  const result = diffSchemas(oldSchema, nextSchema);
+  assert.ok(result.breaking.some((change) => change.type === 'field_type_changed'));
+});
+
+test('resolves command-level nested refs instead of treating them as opaque', () => {
+  const oldSchema = structuredClone(baseSchema) as PackageSchema;
+  const nextSchema = structuredClone(baseSchema) as PackageSchema;
+  oldSchema.commands[0]!.inputSchema = {
+    type: 'object',
+    properties: { payload: { $ref: '#/$defs/Payload' } },
+    required: ['payload'],
+  };
+  nextSchema.commands[0]!.inputSchema = structuredClone(oldSchema.commands[0]!.inputSchema);
+  oldSchema.commands[0]!.definitions = {
+    Payload: {
+      type: 'object',
+      properties: { child: { $ref: '#/$defs/Child' } },
+      required: ['child'],
+    },
+    Child: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
+  };
+  nextSchema.commands[0]!.definitions = {
+    Payload: {
+      type: 'object',
+      properties: { child: { $ref: '#/$defs/Child' } },
+      required: ['child'],
+    },
+    Child: { type: 'object', properties: { id: { type: 'integer' } }, required: ['id'] },
+  };
+  const result = diffSchemas(oldSchema, nextSchema);
+  assert.ok(result.breaking.some((change) => change.type === 'field_type_changed'));
+});
+
+test('formatDiffResult shows breaking changes', () => {
+  const newSchema: PackageSchema = { packageId: 'test', commands: [] };
+  const result = diffSchemas(baseSchema, newSchema);
+  const formatted = formatDiffResult(result);
+  assert.ok(formatted.includes('Breaking changes'));
+  assert.ok(formatted.includes('Command removed'));
+});
+
+test('formatDiffResult shows no breaking for clean diff', () => {
+  const result = diffSchemas(baseSchema, baseSchema);
+  const formatted = formatDiffResult(result);
+  assert.ok(formatted.includes('No breaking changes'));
+});
+
+test('formatDiffResult rendering is byte-identical when no diagnoses exist', () => {
+  // 진단이 없는 기존 출력은 정확히 동일해야 한다 (no-regression pin).
+  const removed = diffSchemas(baseSchema, { packageId: 'test', commands: [] });
+  assert.equal(formatDiffResult(removed), 'Breaking changes (1):\n  - Command removed: add');
+  const clean = diffSchemas(baseSchema, baseSchema);
+  assert.equal(formatDiffResult(clean), 'No breaking changes detected.');
+});
+
+test('diagnoses command id displacement: same name, changed id', () => {
+  const oldSchema = structuredClone(baseSchema) as PackageSchema;
+  const nextSchema = structuredClone(baseSchema) as PackageSchema;
+  // 새 명령이 앞에 삽입돼 add 의 id 가 1 → 2 로 밀렸다 (OTA 스키마 성장 시나리오).
+  nextSchema.commands.unshift({
+    name: 'ping',
+    commandId: 3,
+    inputType: 'PingInput',
+    outputType: 'PingOutput',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    outputSchema: { type: 'object', properties: {}, required: [] },
+  });
+  nextSchema.commands[1]!.commandId = 2;
+  const result = diffSchemas(oldSchema, nextSchema);
+  assert.ok(result.breaking.some((c) => c.type === 'command_id_changed'));
+  const diagnosis = result.diagnoses?.find((d) => d.code === 'command_id_displaced');
+  assert.ok(diagnosis, 'id displacement must produce a diagnosis');
+  assert.equal(diagnosis.command, 'add');
+  assert.equal(diagnosis.oldId, 1);
+  assert.equal(diagnosis.newId, 2);
+  const formatted = formatDiffResult(result);
+  assert.ok(
+    formatted.includes("command 'add' kept its name but its command id changed from 1 to 2"),
+    `formatted output must name the cause, got:\n${formatted}`,
+  );
+  assert.ok(
+    formatted.includes("old clients dispatching by the old id will no longer reach 'add'"),
+    `formatted output must state the wire consequence, got:\n${formatted}`,
+  );
+});
+
+test('renders the command_id_changed bullet with matching header count', () => {
+  const oldSchema = structuredClone(baseSchema) as PackageSchema;
+  const nextSchema = structuredClone(baseSchema) as PackageSchema;
+  nextSchema.commands.unshift({
+    name: 'ping',
+    commandId: 3,
+    inputType: 'PingInput',
+    outputType: 'PingOutput',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    outputSchema: { type: 'object', properties: {}, required: [] },
+  });
+  nextSchema.commands[1]!.commandId = 2;
+  const formatted = formatDiffResult(diffSchemas(oldSchema, nextSchema));
+  assert.ok(
+    formatted.includes('Breaking changes (1):'),
+    `header count must be 1, got:\n${formatted}`,
+  );
+  const bullets = formatted.split('\n').filter((line) => line.startsWith('  - '));
+  assert.equal(bullets.length, 1, `exactly one bullet expected, got:\n${formatted}`);
+  assert.equal(bullets[0], '  - Command id changed: add (1 → 2)');
+});
+
+test('skips id-displacement diagnosis for schemas without ids on either side', () => {
+  // parsePackageSchema 는 commandId 를 검증하지 않는다 — id 없는 커맨드가
+  // 그대로 diff 에 들어오면 from/to 가 undefined 로 새면 안 된다.
+  const oldSchema = structuredClone(baseSchema) as PackageSchema;
+  const nextSchema = structuredClone(baseSchema) as PackageSchema;
+  delete (oldSchema.commands[0] as { commandId?: number }).commandId;
+  nextSchema.commands[0]!.inputSchema = {
+    type: 'object',
+    properties: { a: { type: 'string' }, b: { type: 'integer' } },
+    required: ['a', 'b'],
+  };
+  const result = diffSchemas(oldSchema, nextSchema);
+  assert.ok(
+    !result.breaking.some((c) => c.type === 'command_id_changed'),
+    'one-sided id-less must not produce command_id_changed',
+  );
+  assert.ok(
+    !result.diagnoses.some((d) => d.code === 'command_id_displaced' || d.code === 'alias_missing'),
+    'one-sided id-less must not produce id diagnoses',
+  );
+  const formatted = formatDiffResult(result);
+  assert.ok(!formatted.includes('undefined'), `no undefined leak, got:\n${formatted}`);
+  const json = JSON.parse(JSON.stringify(result));
+  assert.ok(
+    !JSON.stringify(json).includes('command_id_changed'),
+    'json format must not contain command_id_changed',
+  );
+});
+
+test('skips id-displacement diagnosis when both sides are id-less', () => {
+  const oldSchema = structuredClone(baseSchema) as PackageSchema;
+  const nextSchema = structuredClone(baseSchema) as PackageSchema;
+  delete (oldSchema.commands[0] as { commandId?: number }).commandId;
+  delete (nextSchema.commands[0] as { commandId?: number }).commandId;
+  const result = diffSchemas(oldSchema, nextSchema);
+  assert.equal(result.breaking.length, 0);
+  assert.equal(result.diagnoses.length, 0);
+  assert.equal(formatDiffResult(result), 'No breaking changes detected.');
+});
+
+test('insertion displacing the id fires both displaced and alias_missing diagnoses', () => {
+  // 신규 명령이 구 id 1 을 점유하고 add 는 fresh id 2 로 밀렸다 — id 변위와
+  // alias 누락이 동시에 성립하는 결합 시나리오. 두 진단은 상호 보완적이다:
+  // 변위는 신규 byId 호출자의 문제, alias 누락은 구 byId 호출자의 문제.
+  const oldSchema = structuredClone(baseSchema) as PackageSchema;
+  const nextSchema = structuredClone(baseSchema) as PackageSchema;
+  nextSchema.commands[0]!.commandId = 2;
+  nextSchema.commands.unshift({
+    name: 'ping',
+    commandId: 1,
+    inputType: 'PingInput',
+    outputType: 'PingOutput',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    outputSchema: { type: 'object', properties: {}, required: [] },
+  });
+  const result = diffSchemas(oldSchema, nextSchema);
+  const displaced = result.diagnoses.find((d) => d.code === 'command_id_displaced');
+  const aliasMissing = result.diagnoses.find((d) => d.code === 'alias_missing');
+  assert.ok(displaced, 'displacement diagnosis must fire');
+  assert.ok(aliasMissing, 'alias_missing diagnosis must fire');
+  assert.equal(displaced.command, 'add');
+  assert.equal(aliasMissing.command, 'add');
+  assert.equal(aliasMissing.occupiedBy, 'ping');
+  const formatted = formatDiffResult(result);
+  assert.ok(
+    formatted.includes("command 'add' kept its name but its command id changed from 1 to 2"),
+    `displacement sentence must be present, got:\n${formatted}`,
+  );
+  assert.ok(
+    formatted.includes("now dispatches 'ping'"),
+    `alias sentence must name the occupant, got:\n${formatted}`,
+  );
+});
+
+test('diagnoses missing alias: old id is consumed by a different command', () => {
+  const oldSchema = structuredClone(baseSchema) as PackageSchema;
+  const nextSchema = structuredClone(baseSchema) as PackageSchema;
+  // 신규 명령이 구 id 1 을 점유하고 add 는 fresh id 로 밀렸다 — 네이티브에
+  // alias_command_id("add", 1) 선언이 없으면 구 클라이언트의 id 1 호출이
+  // ping 으로 라우팅된다.
+  nextSchema.commands[0]!.commandId = 2;
+  nextSchema.commands.unshift({
+    name: 'ping',
+    commandId: 1,
+    inputType: 'PingInput',
+    outputType: 'PingOutput',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    outputSchema: { type: 'object', properties: {}, required: [] },
+  });
+  const result = diffSchemas(oldSchema, nextSchema);
+  assert.ok(result.breaking.some((c) => c.type === 'command_id_changed'));
+  const diagnosis = result.diagnoses?.find((d) => d.code === 'alias_missing');
+  assert.ok(diagnosis, 'consumed legacy id must produce an alias diagnosis');
+  assert.equal(diagnosis.command, 'add');
+  const formatted = formatDiffResult(result);
+  assert.ok(
+    formatted.includes(
+      "legacy command id 1 (used by 'add' in the old schema) now dispatches 'ping'",
+    ),
+    `formatted output must name the consumed id and its new target, got:\n${formatted}`,
+  );
+  assert.ok(
+    formatted.includes('declare alias_command_id("add", 1) on the native side'),
+    `formatted output must name the fix, got:\n${formatted}`,
+  );
+});
+
+const eventSchema = (events: PackageSchema['events']): PackageSchema => ({
+  packageId: 'test',
+  commands: [],
+  events,
+});
+
+test('detects removed event', () => {
+  // 다음 스키마에 events 섹션 자체가 없어도(구 스키마 하위호환) 제거는 breaking 이다.
+  const oldSchema = eventSchema([{ name: 'progress.tick', payload: { type: 'object' } }]);
+  const nextSchema: PackageSchema = { packageId: 'test', commands: [] };
+  const result = diffSchemas(oldSchema, nextSchema);
+  assert.ok(
+    result.breaking.some((c) => c.type === 'event_removed' && c.event === 'progress.tick'),
+    `removed event must be breaking, got: ${JSON.stringify(result.breaking)}`,
+  );
+});
+
+test('detects event payload field removal as breaking', () => {
+  const oldSchema = eventSchema([
+    { name: 'progress.tick', payload: { type: 'object', properties: { pct: { type: 'number' } } } },
+  ]);
+  const nextSchema = eventSchema([
+    {
+      name: 'progress.tick',
+      payload: { type: 'object', properties: { percent: { type: 'number' } } },
+    },
+  ]);
+  const result = diffSchemas(oldSchema, nextSchema);
+  const change = result.breaking.find((c) => c.type === 'event_payload_changed');
+  assert.ok(change, `payload change must be breaking, got: ${JSON.stringify(result.breaking)}`);
+  assert.equal(change.event, 'progress.tick');
+  assert.equal(change.path, 'events.progress.tick.payload.pct');
+  assert.equal(change.before, '(present)');
+  assert.equal(change.after, '(removed)');
+});
+
+test('renders event payload type change with from → to', () => {
+  const oldSchema = eventSchema([
+    { name: 'progress.tick', payload: { type: 'object', properties: { pct: { type: 'number' } } } },
+  ]);
+  const nextSchema = eventSchema([
+    { name: 'progress.tick', payload: { type: 'object', properties: { pct: { type: 'string' } } } },
+  ]);
+  const result = diffSchemas(oldSchema, nextSchema);
+  const change = result.breaking.find((c) => c.type === 'event_payload_changed');
+  assert.ok(
+    change,
+    `payload type change must be breaking, got: ${JSON.stringify(result.breaking)}`,
+  );
+  assert.equal(change.path, 'events.progress.tick.payload.pct');
+  assert.equal(change.before, 'number');
+  assert.equal(change.after, 'string');
+  const formatted = formatDiffResult(result);
+  assert.ok(
+    formatted.includes(
+      '  - Event payload changed: progress.tick (events.progress.tick.payload.pct: number → string)',
+    ),
+    `formatted output must render the payload change, got:\n${formatted}`,
+  );
+});
+
+test('event addition is non-breaking even when the old schema has no events section', () => {
+  const oldSchema: PackageSchema = { packageId: 'test', commands: [] };
+  const nextSchema = eventSchema([{ name: 'job.done', payload: { type: 'object' } }]);
+  const result = diffSchemas(oldSchema, nextSchema);
+  assert.equal(result.breaking.length, 0);
+  assert.ok(
+    result.compatible.some((note) => note.includes("event 'job.done' added")),
+    `event addition must be reported as compatible, got: ${JSON.stringify(result.compatible)}`,
+  );
+});
+
+test('new required payload field folds to (absent), not (optional)', () => {
+  // required_field_added 는 "이전에 optional 이었던" 게 아니라 "존재하지 않았던"
+  // 필드다 — 명령 쪽 렌더러의 Required field added 구분과 정합을 맞춘다.
+  const oldSchema = eventSchema([
+    {
+      name: 'progress.tick',
+      payload: { type: 'object', properties: { pct: { type: 'number' } }, required: ['pct'] },
+    },
+  ]);
+  const nextSchema = eventSchema([
+    {
+      name: 'progress.tick',
+      payload: {
+        type: 'object',
+        properties: { pct: { type: 'number' }, total: { type: 'number' } },
+        required: ['pct', 'total'],
+      },
+    },
+  ]);
+  const result = diffSchemas(oldSchema, nextSchema);
+  const change = result.breaking.find((c) => c.type === 'event_payload_changed');
+  assert.ok(
+    change,
+    `required field addition must be breaking, got: ${JSON.stringify(result.breaking)}`,
+  );
+  assert.equal(change.path, 'events.progress.tick.payload.total');
+  assert.equal(change.before, '(absent)');
+  assert.equal(change.after, '(required)');
+});
+
+test('payload definition removal folds to event_payload_changed', () => {
+  const payload = {
+    type: 'object',
+    properties: { data: { $ref: '#/definitions/Detail' } },
+    required: ['data'],
+    definitions: {
+      Detail: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
+    },
+  };
+  const oldSchema = eventSchema([{ name: 'progress.tick', payload: structuredClone(payload) }]);
+  const nextSchema = eventSchema([
+    {
+      name: 'progress.tick',
+      payload: {
+        type: 'object',
+        properties: { data: { $ref: '#/definitions/Detail' } },
+        required: ['data'],
+      },
+    },
+  ]);
+  const result = diffSchemas(oldSchema, nextSchema);
+  const change = result.breaking.find(
+    (c) => c.type === 'event_payload_changed' && c.path === 'events.progress.tick.payload.Detail',
+  );
+  assert.ok(
+    change?.type === 'event_payload_changed',
+    `definition removal must be breaking, got: ${JSON.stringify(result.breaking)}`,
+  );
+  assert.equal(change.path, 'events.progress.tick.payload.Detail');
+  assert.equal(change.before, '(definition)');
+  assert.equal(change.after, '(removed)');
+});
+
+test('diagnoses wire-incompatible type change with cause sentence', () => {
+  const oldSchema = structuredClone(baseSchema) as PackageSchema;
+  const nextSchema = structuredClone(baseSchema) as PackageSchema;
+  oldSchema.commands[0]!.inputSchema = {
+    type: 'object',
+    properties: { a: { type: 'integer' }, b: { type: 'integer' } },
+    required: ['a', 'b'],
+  };
+  nextSchema.commands[0]!.inputSchema = {
+    type: 'object',
+    properties: { a: { type: 'string' }, b: { type: 'integer' } },
+    required: ['a', 'b'],
+  };
+  const result = diffSchemas(oldSchema, nextSchema);
+  const diagnosis = result.diagnoses?.find((d) => d.code === 'wire_type_changed');
+  assert.ok(diagnosis, 'wire-incompatible type change must produce a diagnosis');
+  assert.equal(diagnosis.command, 'add.input.a');
+  assert.equal(diagnosis.field, 'a');
+  const formatted = formatDiffResult(result);
+  assert.ok(
+    formatted.includes("Diagnoses (1):\n  ! field 'add.input.a' changed from integer to string:"),
+    `formatted output must group the diagnosis under the header, got:\n${formatted}`,
+  );
+  assert.ok(
+    formatted.includes('the postcard wire encoding changes shape'),
+    `formatted output must explain the wire consequence, got:\n${formatted}`,
+  );
+});
+
+// ── runDiff 입력 파싱 래핑(감사 A7) — 무경로 JSON.parse 교정 ──────────────────
+
+test('runDiff reports the offending file path and a regenerate hint for invalid JSON', async () => {
+  // `diff --old /dev/null` 이 "JSON Parse error: Unexpected EOF" 로 죽던 경로.
+  // generate(cli-generate-files)의 래핑 패턴과 동일하게 어느 파일이·왜·무엇을
+  // 할지를 안내해야 한다.
+  const { runDiff } = await import('./cli-diff.js');
+  const { mkdtempSync, rmSync, writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const root = mkdtempSync(join(tmpdir(), 'unikit-diff-input-'));
+  try {
+    const good = join(root, 'good.json');
+    const bad = join(root, 'bad.json');
+    writeFileSync(good, JSON.stringify(baseSchema));
+    writeFileSync(bad, '');
+    await assert.rejects(runDiff(['--old', bad, '--new', good]), (error: unknown) => {
+      assert.ok(error instanceof Error);
+      assert.match(error.message, /Invalid schema\.json at .*bad\.json/);
+      assert.match(error.message, /must be valid JSON/);
+      assert.match(error.message, /regenerate it with "cargo run"/);
+      return true;
+    });
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('runDiff wraps a missing schema file instead of leaking raw ENOENT', async () => {
+  // generate·codegen·dev 경로와 동일 수준 — 파일 부재는 프로젝트 상태 오류로
+  // 경로·재생성 힌트를 붙여 노출한다(Node 원문 ENOENT 금지).
+  const { runDiff } = await import('./cli-diff.js');
+  const { mkdtempSync, rmSync, writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const root = mkdtempSync(join(tmpdir(), 'unikit-diff-missing-'));
+  try {
+    const good = join(root, 'good.json');
+    const missing = join(root, 'missing.json');
+    writeFileSync(good, JSON.stringify(baseSchema));
+    await assert.rejects(runDiff(['--old', missing, '--new', good]), (error: unknown) => {
+      assert.ok(error instanceof Error);
+      assert.match(error.message, /Schema file not found: .*missing\.json/);
+      assert.match(error.message, /Pass existing schema files via --old\/--new/);
+      assert.doesNotMatch(error.message, /ENOENT/);
+      return true;
+    });
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+function payloadPackage(input: PackageSchema['commands'][number]['inputSchema']): PackageSchema {
+  return {
+    packageId: 'diff.wire',
+    fieldOrder: 'declaration',
+    commands: [
+      {
+        name: 'echo',
+        commandId: 1,
+        inputType: 'Input',
+        outputType: 'Output',
+        inputSchema: input,
+        outputSchema: { type: 'null' },
+      },
+    ],
+  };
+}
+
+const wireChanges: Array<[string, JsonSchema, JsonSchema]> = [
+  ['enum ordinal', { type: 'string', enum: ['A', 'B'] }, { type: 'string', enum: ['B', 'A'] }],
+  [
+    'integer signedness',
+    { type: 'integer', format: 'int64' },
+    { type: 'integer', format: 'uint64' },
+  ],
+  ['float width', { type: 'number', format: 'float' }, { type: 'number', format: 'double' }],
+  [
+    'tuple positions',
+    { type: 'array', items: [{ type: 'string' }, { type: 'integer' }] },
+    { type: 'array', items: [{ type: 'integer' }, { type: 'string' }] },
+  ],
+  [
+    'map values',
+    { type: 'object', additionalProperties: { type: 'string' } },
+    { type: 'object', additionalProperties: { type: 'integer' } },
+  ],
+  [
+    'option contents',
+    { anyOf: [{ type: 'string' }, { type: 'null' }] },
+    { anyOf: [{ type: 'integer' }, { type: 'null' }] },
+  ],
+  [
+    'variant payload',
+    { oneOf: [{ type: 'object', properties: { x: { type: 'string' } } }] },
+    { oneOf: [{ type: 'object', properties: { x: { type: 'integer' } } }] },
+  ],
+  ['allOf contents', { allOf: [{ type: 'string' }] }, { allOf: [{ type: 'integer' }] }],
+  [
+    'field order',
+    { type: 'object', properties: { a: { type: 'integer' }, b: { type: 'integer' } } },
+    { type: 'object', properties: { b: { type: 'integer' }, a: { type: 'integer' } } },
+  ],
+  [
+    'optional field addition',
+    { type: 'object', properties: { a: { type: 'integer' } } },
+    { type: 'object', properties: { a: { type: 'integer' }, b: { type: ['integer', 'null'] } } },
+  ],
+  [
+    'variant order',
+    { oneOf: [{ const: 'A' }, { const: 'B' }] },
+    { oneOf: [{ const: 'B' }, { const: 'A' }] },
+  ],
+  [
+    'fixed array size',
+    { type: 'array', items: { type: 'integer' }, minItems: 2, maxItems: 2 },
+    { type: 'array', items: { type: 'integer' }, minItems: 3, maxItems: 3 },
+  ],
+];
+
+for (const [name, before, after] of wireChanges) {
+  test(`diff rejects wire change: ${name}`, () => {
+    const result = diffSchemas(
+      payloadPackage(structuredClone(before)),
+      payloadPackage(structuredClone(after)),
+    );
+    assert.ok(result.breaking.length > 0, name);
+    assert.equal(result.compatible.length, 0);
+  });
+}
+
+test('recursive references terminate while changes are reported at both sibling paths', () => {
+  const node = {
+    type: 'object',
+    properties: {
+      value: { type: 'integer' },
+      children: { type: 'array', items: { $ref: '#/$defs/Node' } },
+    },
+  };
+  const before = payloadPackage({
+    type: 'object',
+    properties: {
+      left: { $ref: '#/$defs/Node' },
+      right: { $ref: '#/$defs/Node' },
+    },
+    $defs: { Node: node },
+  });
+  assert.equal(diffSchemas(before, structuredClone(before)).breaking.length, 0);
+  const after = structuredClone(before);
+  after.commands[0]!.inputSchema.$defs = {
+    Node: {
+      ...node,
+      properties: {
+        ...node.properties,
+        value: { type: 'string' },
+      },
+    },
+  };
+  const result = diffSchemas(before, after);
+  for (const side of ['left', 'right'])
+    assert.ok(
+      result.breaking.some(
+        (change) =>
+          change.type === 'field_type_changed' && change.command === `echo.input.${side}.value`,
+      ),
+    );
+});
+
+test('metadata edits remain nonbreaking', () => {
+  const before = payloadPackage({ type: 'integer', title: 'Old', description: 'old', default: 1 });
+  const after = payloadPackage({ type: 'integer', title: 'New', description: 'new', default: 2 });
+  assert.equal(diffSchemas(before, after).breaking.length, 0);
+});
+
+test('migration gate rejects schema pairs that silently reinterpret actual postcard bytes', async () => {
+  const { createSchemaPostcardCodec } = await import('../types/index.js');
+  const before = { type: 'object', properties: { value: { type: 'integer', format: 'int64' } } };
+  const after = { type: 'object', properties: { value: { type: 'integer', format: 'uint64' } } };
+  const encoder = createSchemaPostcardCodec(1, before, before)!;
+  const decoder = createSchemaPostcardCodec(1, after, after)!;
+  const body = new Uint8Array(encoder.encode({ value: 7 })).subarray(2);
+  const response = new Uint8Array(8 + body.length);
+  response[0] = 1;
+  new DataView(response.buffer).setUint32(4, body.length, true);
+  response.set(body, 8);
+  assert.deepEqual(decoder.decode(response), { ok: true, result: { value: 14 } });
+  assert.ok(diffSchemas(payloadPackage(before), payloadPackage(after)).breaking.length > 0);
+});
+
+test('removed command-level ref targets are breaking even when the ref object is reused', () => {
+  const shared: JsonSchema = { $ref: '#/definitions/Detail' };
+  const before = payloadPackage(shared);
+  before.commands[0]!.definitions = { Detail: { type: 'string' } };
+  const after = payloadPackage(shared);
+  after.commands[0]!.definitions = {};
+  assert.ok(
+    diffSchemas(before, after).breaking.some((change) => change.type === 'definition_removed'),
+  );
+});
+
+test('oneOf fallback titles are discriminator keys rather than inert metadata', () => {
+  const before = payloadPackage({
+    oneOf: [
+      {
+        title: 'A',
+        type: 'object',
+        properties: { left: { type: 'integer' }, right: { type: 'integer' } },
+      },
+      {
+        title: 'B',
+        type: 'object',
+        properties: { x: { type: 'integer' }, y: { type: 'integer' } },
+      },
+    ],
+  });
+  const after = structuredClone(before);
+  after.commands[0]!.inputSchema.oneOf![0]!.title = 'Z';
+  assert.ok(diffSchemas(before, after).breaking.length > 0);
+  before.commands[0]!.inputSchema['x-unikit-variant-order'] = ['first', 'second'];
+  after.commands[0]!.inputSchema['x-unikit-variant-order'] = ['first', 'second'];
+  assert.equal(diffSchemas(before, after).breaking.length, 0);
+});

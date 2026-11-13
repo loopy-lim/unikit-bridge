@@ -178,7 +178,7 @@ pub(super) const INVOKE_OPTIONS_JS_DOC: &str = r#"/**
  * 시도가 반영되지 않았음을 확인한 뒤에만 하세요.
  *
  * 전체 의미론은 docs/compatibility-matrix.md "Signal semantics in detail" 및
- * 원본 타입(`InvokeOptions`(@unikit-bridge/types)) 문서를 참고하세요.
+ * 원본 타입(`InvokeOptions`(@unikit-bridge/rustra/types)) 문서를 참고하세요.
  */
 "#;
 

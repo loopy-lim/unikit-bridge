@@ -18,15 +18,11 @@ import {
 } from './registry-consumer-gate.mjs';
 
 const NPM = {
-  '@unikit-bridge/cli': '0.10.0',
-  '@unikit-bridge/types': '0.10.0',
-  '@unikit-bridge/node': '0.10.0',
-  '@unikit-bridge/bun': '0.10.0',
+  '@unikit-bridge/rustra': '0.10.0',
 };
 const RUST = {
   'unikit-bridge': '0.10.0',
   'unikit-bridge-macros': '0.10.0',
-  'unikit-bridge-naming': '0.10.0',
 };
 
 function scratch(prefix = 'unikit-registry-gate-test-') {
@@ -43,7 +39,7 @@ function seedNpmConsumer(root, { mismatchVersion } = {}) {
   writeJson(join(root, 'package.json'), { private: true, dependencies: NPM });
   const packages = { '': { dependencies: NPM } };
   for (const [name, version] of Object.entries(NPM)) {
-    const installed = mismatchVersion && name === '@unikit-bridge/node' ? mismatchVersion : version;
+    const installed = mismatchVersion && name === '@unikit-bridge/rustra' ? mismatchVersion : version;
     const packageDir = join(root, 'node_modules', ...name.split('/'));
     writeJson(join(packageDir, 'package.json'), { name, version: installed });
     packages[`node_modules/${name}`] = {
@@ -101,11 +97,6 @@ version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbb"
 
-[[package]]
-name = "unikit-bridge-naming"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ccc"
 `;
 
 test('CLI accepts one absolute --output and rejects malformed or unknown options', () => {
@@ -124,15 +115,15 @@ test('CLI accepts one absolute --output and rejects malformed or unknown options
 test('version manifest requires exact semver pins and the three named phases', () => {
   assert.doesNotThrow(() =>
     validateVersionManifest({
-      schemaVersion: 1,
+      schemaVersion: 2,
       npm: NPM,
+      hosts: { '@unikit-bridge/rustra': '0.10.0' },
       phases: {
         baseline: RUST,
         candidate: {
           ...RUST,
           'unikit-bridge': '0.10.1',
           'unikit-bridge-macros': '0.10.1',
-          'unikit-bridge-naming': '0.10.1',
         },
         rollback: RUST,
       },
@@ -141,8 +132,8 @@ test('version manifest requires exact semver pins and the three named phases', (
   assert.throws(
     () =>
       validateVersionManifest({
-        schemaVersion: 1,
-        npm: { ...NPM, '@unikit-bridge/node': '^0.10.0' },
+        schemaVersion: 2,
+        npm: { ...NPM, '@unikit-bridge/rustra': '^0.10.0' },
         phases: { baseline: RUST, candidate: RUST, rollback: RUST },
       }),
     /exact version/,
@@ -151,10 +142,10 @@ test('version manifest requires exact semver pins and the three named phases', (
 
 test('contamination scan rejects package overrides and workspace/file/git npm dependencies', () => {
   const variants = [
-    { overrides: { '@unikit-bridge/node': 'file:../node' } },
-    { dependencies: { '@unikit-bridge/node': 'workspace:*' } },
-    { dependencies: { '@unikit-bridge/node': 'file:../node' } },
-    { dependencies: { '@unikit-bridge/node': 'git+https://example.invalid/node.git' } },
+    { overrides: { '@unikit-bridge/rustra': 'file:../node' } },
+    { dependencies: { '@unikit-bridge/rustra': 'workspace:*' } },
+    { dependencies: { '@unikit-bridge/rustra': 'file:../node' } },
+    { dependencies: { '@unikit-bridge/rustra': 'git+https://example.invalid/node.git' } },
   ];
   for (const extra of variants) {
     const { root, cleanup } = scratch();
@@ -176,11 +167,8 @@ test('contamination scan accepts only the CLI-compatible caret for the requested
     writeJson(join(root, 'package.json'), {
       private: true,
       dependencies: {
-        '@unikit-bridge/node': '^0.10.0',
-        '@unikit-bridge/types': '^0.10.0',
-        '@unikit-bridge/bun': '^0.10.0',
+        '@unikit-bridge/rustra': '^0.10.0',
       },
-      devDependencies: { '@unikit-bridge/cli': '0.10.0' },
     });
     writeFileSync(
       join(root, 'Cargo.toml'),
@@ -188,7 +176,7 @@ test('contamination scan accepts only the CLI-compatible caret for the requested
     );
     assert.doesNotThrow(() => assertNoConsumerContamination(root, { expectedNpm: NPM }));
     const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-    manifest.dependencies['@unikit-bridge/node'] = '^0.10.1';
+    manifest.dependencies['@unikit-bridge/rustra'] = '^0.10.1';
     writeJson(join(root, 'package.json'), manifest);
     assert.throws(
       () => assertNoConsumerContamination(root, { expectedNpm: NPM }),
@@ -247,7 +235,7 @@ test('contamination scan permits ordinary Cargo target path keys from the real s
     writeJson(join(root, 'package.json'), { private: true, dependencies: NPM });
     writeFileSync(
       join(root, 'Cargo.toml'),
-      `[package]\nname="registry-consumer"\nversion="0.1.0"\n\n[dependencies]\nunikit = "=0.10.0"\nunikit-bridge-macros = "=0.10.0"\nunikit-bridge-naming = "=0.10.0"\n\n[[bin]]\nname = "generate"\npath = "src/bin/generate.rs"\n`,
+      `[package]\nname="registry-consumer"\nversion="0.1.0"\n\n[dependencies]\nunikit-bridge = "=0.10.0"\nunikit-bridge-macros = "=0.10.0"\n\n[[bin]]\nname = "generate"\npath = "src/bin/generate.rs"\n`,
     );
     assert.doesNotThrow(() => assertNoConsumerContamination(root));
   } finally {
@@ -265,7 +253,7 @@ test('contamination scan rejects installed Unikit package symlinks', () => {
     );
     mkdirSync(join(root, 'node_modules', '@unikit-bridge'), { recursive: true });
     const external = mkdtempSync(join(tmpdir(), 'unikit-registry-external-'));
-    symlinkSync(external, join(root, 'node_modules', '@unikit-bridge', 'node'), 'dir');
+    symlinkSync(external, join(root, 'node_modules', '@unikit-bridge', 'rustra'), 'dir');
     try {
       assert.throws(() => assertNoConsumerContamination(root), /symlink/);
     } finally {
@@ -281,9 +269,9 @@ test('npm provenance proves exact installed versions and registry tarball source
   try {
     seedNpmConsumer(root);
     const proof = assertExactNpmProvenance(root, NPM);
-    assert.equal(proof['@unikit-bridge/node'].version, '0.10.0');
-    assert.match(proof['@unikit-bridge/node'].resolved, /^https:\/\/registry\.npmjs\.org\//);
-    assert.equal(proof['@unikit-bridge/node'].integrity, 'sha512-fixture');
+    assert.equal(proof['@unikit-bridge/rustra'].version, '0.10.0');
+    assert.match(proof['@unikit-bridge/rustra'].resolved, /^https:\/\/registry\.npmjs\.org\//);
+    assert.equal(proof['@unikit-bridge/rustra'].integrity, 'sha512-fixture');
   } finally {
     cleanup();
   }
@@ -293,7 +281,7 @@ test('npm provenance rejects a resolved version mismatch', () => {
   const { root, cleanup } = scratch();
   try {
     seedNpmConsumer(root, { mismatchVersion: '0.9.0' });
-    assert.throws(() => assertExactNpmProvenance(root, NPM), /@unikit-bridge\/node.*0\.9\.0.*0\.10\.0/);
+    assert.throws(() => assertExactNpmProvenance(root, NPM), /@unikit-bridge\/rustra.*0\.9\.0.*0\.10\.0/);
   } finally {
     cleanup();
   }
@@ -303,7 +291,7 @@ test('npm provenance rejects a newer patch resolved through the allowed caret', 
   const { root, cleanup } = scratch();
   try {
     seedNpmConsumer(root, { mismatchVersion: '0.10.1' });
-    assert.throws(() => assertExactNpmProvenance(root, NPM), /@unikit-bridge\/node.*0\.10\.1.*0\.10\.0/);
+    assert.throws(() => assertExactNpmProvenance(root, NPM), /@unikit-bridge\/rustra.*0\.10\.1.*0\.10\.0/);
   } finally {
     cleanup();
   }
@@ -390,8 +378,7 @@ test('registry fixture pins all Unikit crates and exports the cdylib native entr
   try {
     writeJson(join(root, 'package.json'), {
       private: true,
-      dependencies: { '@unikit-bridge/node': '^0.10.0', '@unikit-bridge/types': '^0.10.0' },
-      devDependencies: { '@unikit-bridge/cli': '^0.10.0' },
+      dependencies: { '@unikit-bridge/rustra': '^0.10.0' },
     });
     writeJson(join(root, 'unikit.json'), {
       schema: './generated/schema.json',
@@ -408,17 +395,18 @@ test('registry fixture pins all Unikit crates and exports the cdylib native entr
       `use unikit_bridge::prelude::*;\n\n#[derive(serde::Serialize, serde::Deserialize, schemars::JsonSchema)]\npub struct EchoInput { pub message: String }\n#[derive(serde::Serialize, serde::Deserialize, schemars::JsonSchema)]\npub struct EchoOutput { pub message: String }\n#[unikit_bridge::command]\nfn echo(input: EchoInput) -> Result<EchoOutput> { Ok(EchoOutput { message: input.message }) }\npub fn package() -> Package { Package::builder("app.demo").command_fn(echo).build() }\n`,
     );
     prepareRegistryFixture(root, {
-      schemaVersion: 1,
+      schemaVersion: 2,
       npm: NPM,
+      hosts: { '@unikit-bridge/rustra': '0.10.0' },
       phases: {
         baseline: RUST,
-        candidate: { 'unikit-bridge': '0.10.1', 'unikit-bridge-macros': '0.10.1', 'unikit-bridge-naming': '0.10.1' },
+        candidate: { 'unikit-bridge': '0.10.1', 'unikit-bridge-macros': '0.10.1' },
         rollback: RUST,
       },
     });
     const cargo = readFileSync(join(root, 'Cargo.toml'), 'utf8');
     const lib = readFileSync(join(root, 'src', 'lib.rs'), 'utf8');
-    assert.match(cargo, /unikit-bridge-naming = "=0\.10\.0"/);
+    assert.match(cargo, /unikit-bridge-macros = "=0\.10\.0"/);
     assert.match(cargo, /crate-type = \["rlib", "cdylib"\]/);
     assert.match(lib, /unikit_bridge::native_entry!\(package\);/);
     assert.match(
@@ -426,7 +414,7 @@ test('registry fixture pins all Unikit crates and exports the cdylib native entr
       /pub fn package\(\) -> Package \{\s*let package = Package::builder\("app\.demo"\)\.command_fn\(echo\)\.command_fn\(fail_echo\)\.build\(\);\s*package\.register_ffi\(\);\s*package\s*\}/,
     );
     assert.doesNotMatch(lib, /Package::builder\("app\.demo"\)\s*let package/);
-    assert.match(readFileSync(join(root, 'package.json'), 'utf8'), /"@unikit-bridge\/bun": "0\.10\.0"/);
+    assert.match(readFileSync(join(root, 'package.json'), 'utf8'), /"@unikit-bridge\/rustra": "0\.10\.0"/);
     assert.doesNotThrow(() => assertNoConsumerContamination(root, { expectedNpm: NPM }));
   } finally {
     cleanup();

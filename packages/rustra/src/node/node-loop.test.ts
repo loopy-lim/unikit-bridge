@@ -1,0 +1,470 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { configureDebug, resetDebugEnvForTests } from '../types/index.js';
+import {
+  UNPARSED_LINES_CAPACITY,
+  UNPARSED_LINE_MAX_CHARS,
+  attachExitContext,
+  demultiplexBinaryFrame,
+  recordUnparsedLine,
+  type UnparsedLineState,
+} from './node-loop.js';
+
+/**
+ * 0xfffd 푸시 프레임 디멀티플렉서 테스트 — 순수 데이터 경로만 검증한다
+ * (스폰 없음 → Bun/Node 양쪽 러너에서 실행). 실제 런타임 왕복(push 설치된
+ * loop-stdio 스폰)은 CI node 러너 스위트(test:node-runtime)와 examples 가
+ * 담당한다.
+ */
+
+const BINARY_PUSH_EVENTS_CMD = 0xfffd;
+
+/** [len u32 LE][body] 프레임 — loop-stdio 와이어와 동일. */
+function frame(body: Buffer): Buffer {
+  const prefix = Buffer.allocUnsafe(4);
+  prefix.writeUInt32LE(body.length, 0);
+  return Buffer.concat([prefix, body]);
+}
+
+/** 0xfffd 푸시 프레임 본문 — [cmd u16 LE][1줄 JSON {name, payload, seq}]. */
+function pushBody(name: string, payloadJson: string, seq: number): Buffer {
+  const json = Buffer.from(JSON.stringify({ name, payload: payloadJson, seq }));
+  const body = Buffer.allocUnsafe(2 + json.length);
+  body.writeUInt16LE(BINARY_PUSH_EVENTS_CMD, 0);
+  json.copy(body, 2);
+  return body;
+}
+
+/** Frame 응답 프레임 본문 — [ok u8][pad 3][len u32][json @8]. */
+function responseBody(result: unknown): Buffer {
+  const json = Buffer.from(JSON.stringify(result));
+  const body = Buffer.allocUnsafe(8 + json.length);
+  body[0] = 1;
+  body.writeUInt32LE(json.length, 4);
+  json.copy(body, 8);
+  return body;
+}
+
+void test('demultiplexBinaryFrame routes 0xfffd frames to push listeners', () => {
+  const pushes: Array<{ name: string; payload: string; seq: number }> = [];
+  let responseHits = 0;
+  let channelHits = 0;
+  const body = pushBody('progress.tick', '{"step":1}', 0);
+  demultiplexBinaryFrame({
+    cmd: BINARY_PUSH_EVENTS_CMD,
+    body,
+    onPush: (event) => pushes.push(event),
+    onChannel: () => {
+      channelHits += 1;
+    },
+    onResponse: () => {
+      responseHits += 1;
+    },
+  });
+  assert.deepEqual(pushes, [{ name: 'progress.tick', payload: '{"step":1}', seq: 0 }]);
+  assert.equal(responseHits, 0, 'push frame must not resolve a response waiter');
+  assert.equal(channelHits, 0, 'push frame must not reach channel listeners');
+});
+
+void test('demultiplexBinaryFrame routes non-push frames to the response queue', () => {
+  const pushes: unknown[] = [];
+  const responses: Uint8Array[] = [];
+  const body = responseBody({ value: 42 });
+  demultiplexBinaryFrame({
+    // 응답 프레임의 첫 u16 LE = ok|pad — 0xfffd/0xfffc 가 될 수 없다(ok는 0/1).
+    cmd: body[0]! | (body[1]! << 8),
+    body,
+    onPush: () => pushes.push('unexpected'),
+    onChannel: () => pushes.push('unexpected-channel'),
+    onResponse: (frameBytes) => responses.push(frameBytes),
+  });
+  assert.equal(responses.length, 1);
+  assert.deepEqual(pushes, []);
+});
+
+void test('demultiplexBinaryFrame tolerates malformed push bodies without throwing', () => {
+  const pushes: unknown[] = [];
+  // cmd id 뒤에 비정상 JSON — 조용히 건너뛴다(폴링 drain 파싱과 동일 정책).
+  demultiplexBinaryFrame({
+    cmd: BINARY_PUSH_EVENTS_CMD,
+    body: Buffer.from([0xfd, 0xff, 0x6e, 0x6f, 0x70, 0x65]),
+    onPush: () => pushes.push('x'),
+    onChannel: () => {},
+    onResponse: () => {},
+  });
+  assert.deepEqual(pushes, []);
+});
+
+void test('interleaved push and response frames dispatch independently', () => {
+  const pushes: Array<{ name: string; payload: string; seq: number }> = [];
+  const responses: string[] = [];
+  // 응답-푸시-응답이 한 stdout 청크에 붙어 들어오는 시나리오 — 각 프레임이
+  // 정확히 자기 경로로 간다(binQueue resolve 와 push 브로드캐스트의 무간섭).
+  const stream = Buffer.concat([
+    frame(responseBody({ value: 1 })),
+    frame(pushBody('tick', '{"n":1}', 0)),
+    frame(pushBody('done', '{"emitted":2}', 1)),
+    frame(responseBody({ value: 2 })),
+  ]);
+  let offset = 0;
+  while (offset + 4 <= stream.length) {
+    const len = stream.readUInt32LE(offset);
+    const body = stream.subarray(offset + 4, offset + 4 + len);
+    offset += 4 + len;
+    demultiplexBinaryFrame({
+      cmd: body[0]! | (body[1]! << 8),
+      body,
+      onPush: (event) => pushes.push(event),
+      onChannel: () => {},
+      onResponse: (frameBytes) => {
+        // 응답 프레임 디코드 — node-loop invokeBinary 와 동일 셰이프.
+        const jsonLen =
+          frameBytes[4]! | (frameBytes[5]! << 8) | (frameBytes[6]! << 16) | (frameBytes[7]! << 24);
+        responses.push(
+          String(
+            (
+              JSON.parse(
+                Buffer.from(frameBytes.buffer, frameBytes.byteOffset + 8, jsonLen).toString(),
+              ) as { value: number }
+            ).value,
+          ),
+        );
+      },
+    });
+  }
+  assert.deepEqual(pushes, [
+    { name: 'tick', payload: '{"n":1}', seq: 0 },
+    { name: 'done', payload: '{"emitted":2}', seq: 1 },
+  ]);
+  assert.deepEqual(responses, ['1', '2']);
+});
+
+// ── NDJSON 실패 라인 보존 (Task 7) — recordUnparsedLine / attachExitContext ──
+// stdout 스트림 경로 자체는 스폰이 필요하므로(Bun 러너 EBADF — index.test.ts
+// processTest 주석 참조), 여기선 추출된 순수 함수로 진단 경로를 단위 검증한다.
+// 실 스폰 왕복(exit 첨부 포함)은 node 러너 스위트(test:node-runtime)가 담당한다.
+
+function newState(): UnparsedLineState {
+  return { buffer: [], warned: false };
+}
+
+void test('recordUnparsedLine preserves lines in the ring buffer when debug is off', () => {
+  delete process.env.UNIKIT_DEBUG;
+  resetDebugEnvForTests(); // dump 게이트 메모이즈 무효화 — env 변경이 보이게.
+  const state = newState();
+  recordUnparsedLine('not json {', state);
+  recordUnparsedLine('<html>oops</html>', state);
+  assert.deepEqual(state.buffer, ['not json {', '<html>oops</html>']);
+});
+
+void test('recordUnparsedLine ring buffer never exceeds the capacity and keeps the most recent lines', () => {
+  delete process.env.UNIKIT_DEBUG;
+  resetDebugEnvForTests();
+  const state = newState();
+  for (let i = 1; i <= UNPARSED_LINES_CAPACITY + 10; i += 1) {
+    recordUnparsedLine(`garbage-${i}`, state);
+    assert.ok(
+      state.buffer.length <= UNPARSED_LINES_CAPACITY,
+      `buffer must stay bounded (saw ${state.buffer.length} after line ${i})`,
+    );
+  }
+  assert.equal(state.buffer.length, UNPARSED_LINES_CAPACITY);
+  assert.deepEqual(
+    state.buffer,
+    Array.from({ length: UNPARSED_LINES_CAPACITY }, (_, i) => `garbage-${i + 11}`),
+  );
+});
+
+void test('recordUnparsedLine emits a ndjson.unparsed debug event and a once-only stderr warn in debug mode', () => {
+  // resetDebugEnvForTests 는 env 변수도 지우므로 먼저 무효화하고 env 를 세팅한다
+  // (packages/types debug.test.ts 의 관례와 동일 순서).
+  resetDebugEnvForTests();
+  process.env.UNIKIT_DEBUG = '1';
+  const seen: unknown[] = [];
+  configureDebug((event) => seen.push(event));
+  const warns: string[] = [];
+  const originalWarn = console.warn;
+  const originalDebug = console.debug;
+  console.warn = (message?: unknown) => {
+    warns.push(String(message));
+  };
+  // debug 모드의 console.debug 미러 출력도 흡수해 테스트 출력을 깨끗하게 유지.
+  console.debug = () => {};
+  try {
+    const state = newState();
+    for (let i = 0; i < 5; i += 1) recordUnparsedLine(`nope-${i}`, state);
+    // debug 모드에선 버퍼 대신 이벤트 경로 — 링 버퍼는 비어 있다.
+    assert.deepEqual(state.buffer, []);
+    assert.equal(seen.length, 5, 'every unparsed line reaches the sink');
+    // debugUnikit 가 value 백 필드를 덧붙이므로 관심 필드만 개별 단정한다.
+    assert.equal((seen[0] as { kind?: string }).kind, 'ndjson.unparsed');
+    assert.equal((seen[0] as { line?: string }).line, 'nope-0');
+    assert.equal(warns.length, 1, 'stderr warn fires on the first occurrence only');
+    assert.match(warns[0]!, /not valid NDJSON/);
+  } finally {
+    console.warn = originalWarn;
+    console.debug = originalDebug;
+    configureDebug(undefined);
+    delete process.env.UNIKIT_DEBUG;
+    resetDebugEnvForTests();
+  }
+});
+
+void test('attachExitContext keeps the original message when there is nothing to attach', () => {
+  const message = 'runtime process exited before responding';
+  assert.equal(attachExitContext(message, []), message);
+  assert.equal(attachExitContext(message, [], undefined), message);
+});
+
+void test('attachExitContext preserves the original message as prefix and appends preserved lines', () => {
+  const message = attachExitContext('runtime process exited before responding', [
+    'line-one',
+    'line-two',
+  ]);
+  assert.ok(
+    message.startsWith('runtime process exited before responding'),
+    'original message must remain the prefix (existing assertions depend on it)',
+  );
+  assert.ok(message.includes('line-one'));
+  assert.ok(message.includes('line-two'));
+});
+
+void test('attachExitContext appends the stderr tail after the preserved lines', () => {
+  const message = attachExitContext('exited', ['bad-line'], 'thread panicked at src/main.rs:7');
+  assert.ok(message.includes('bad-line'));
+  assert.ok(message.includes('thread panicked at src/main.rs:7'));
+  const stderrIndex = message.indexOf('stderr:');
+  const linesIndex = message.indexOf('bad-line');
+  assert.ok(linesIndex >= 0 && stderrIndex > linesIndex, 'stderr section comes last');
+});
+
+void test('recordUnparsedLine truncates a huge line to the char cap', () => {
+  delete process.env.UNIKIT_DEBUG;
+  resetDebugEnvForTests();
+  const state = newState();
+  const huge = 'x'.repeat(UNPARSED_LINE_MAX_CHARS * 8);
+  recordUnparsedLine(huge, state);
+  assert.equal(state.buffer.length, 1);
+  assert.equal(state.buffer[0]!.length, UNPARSED_LINE_MAX_CHARS);
+  assert.equal(state.buffer[0]!, huge.slice(0, UNPARSED_LINE_MAX_CHARS));
+});
+
+// ── 채널 푸시 프레임 (0xfffc) — 0.7 채널 트랙 ──────────────────
+
+const BINARY_CHANNEL_PUSH_CMD = 0xfffc;
+
+/** 0xfffc 채널 프레임 본문 — [cmd u16 LE][1줄 JSON {handle, payload}]. */
+function channelBody(handle: number, payloadJson: string): Buffer {
+  const json = Buffer.from(JSON.stringify({ handle, payload: payloadJson }));
+  const body = Buffer.allocUnsafe(2 + json.length);
+  body.writeUInt16LE(BINARY_CHANNEL_PUSH_CMD, 0);
+  json.copy(body, 2);
+  return body;
+}
+
+void test('demultiplexBinaryFrame routes 0xfffc frames to channel listeners', () => {
+  const channels: Array<{ handle: number; payload: string }> = [];
+  let pushHits = 0;
+  let responseHits = 0;
+  demultiplexBinaryFrame({
+    cmd: BINARY_CHANNEL_PUSH_CMD,
+    body: channelBody(7, '{"step":1}'),
+    onPush: () => {
+      pushHits += 1;
+    },
+    onChannel: (frame) => channels.push(frame),
+    onResponse: () => {
+      responseHits += 1;
+    },
+  });
+  assert.deepEqual(channels, [{ handle: 7, payload: '{"step":1}' }]);
+  assert.equal(pushHits, 0, 'channel frame must not reach push listeners');
+  assert.equal(responseHits, 0, 'channel frame must not resolve a response waiter');
+});
+
+void test('demultiplexBinaryFrame tolerates malformed channel bodies without throwing', () => {
+  const channels: unknown[] = [];
+  demultiplexBinaryFrame({
+    cmd: BINARY_CHANNEL_PUSH_CMD,
+    // cmd id 뒤에 비정상 JSON — 조용히 건너뛴다(푸시 프레임과 동일 정책).
+    body: Buffer.from([0xfc, 0xff, 0x6e, 0x6f, 0x70, 0x65]),
+    onPush: () => {},
+    onChannel: (frame) => channels.push(frame),
+    onResponse: () => {},
+  });
+  assert.deepEqual(channels, []);
+});
+
+void test('channel frames and response frames interleave without interference', () => {
+  const channels: Array<{ handle: number; payload: string }> = [];
+  const responses: Uint8Array[] = [];
+  // 채널 프레임이 응답 프레임 두 개 사이에 끼어 드는 시나리오 — Rust 쪽
+  // STDOUT_LOCK 경합이 실제로 만들어내는 위상. 각 프레임이 정확히 자기 경로로
+  // 간다(binQueue resolve 와 채널 브로드캐스트의 무간섭).
+  const stream = Buffer.concat([
+    frame(responseBody({ value: 1 })),
+    frame(channelBody(3, '{"tick":1}')),
+    frame(responseBody({ value: 2 })),
+    frame(channelBody(3, '{"tick":2}')),
+  ]);
+  let offset = 0;
+  while (offset + 4 <= stream.length) {
+    const len = stream.readUInt32LE(offset);
+    const body = stream.subarray(offset + 4, offset + 4 + len);
+    offset += 4 + len;
+    demultiplexBinaryFrame({
+      cmd: body[0]! | (body[1]! << 8),
+      body,
+      onPush: () => {},
+      onChannel: (frameData) => channels.push(frameData),
+      onResponse: (frameBytes) => responses.push(frameBytes),
+    });
+  }
+  assert.deepEqual(channels, [
+    { handle: 3, payload: '{"tick":1}' },
+    { handle: 3, payload: '{"tick":2}' },
+  ]);
+  assert.equal(responses.length, 2);
+});
+
+// ── 바이너리 채널 푸시 프레임 (0xfff9) — JSON 채널의 바이트 쌍둥이 ──────
+
+const BINARY_CHANNEL_PUSH_BYTES_CMD = 0xfff9;
+
+/** 0xfff9 바이너리 채널 프레임 본문 — [cmd u16 LE][handle u32 LE][payload bytes].
+ * 페이로드 길이 접두 없음 — 프레임 래퍼(len)가 경계를 제공한다. */
+function channelBytesBody(handle: number, payload: Uint8Array): Buffer {
+  const body = Buffer.allocUnsafe(2 + 4 + payload.length);
+  body.writeUInt16LE(BINARY_CHANNEL_PUSH_BYTES_CMD, 0);
+  body.writeUInt32LE(handle, 2);
+  Buffer.from(payload.buffer, payload.byteOffset, payload.byteLength).copy(body, 6);
+  return body;
+}
+
+void test('demultiplexBinaryFrame routes 0xfff9 frames to bytes channel listeners', () => {
+  const frames: Array<{ handle: number; payload: Uint8Array }> = [];
+  let pushHits = 0;
+  let channelHits = 0;
+  let responseHits = 0;
+  demultiplexBinaryFrame({
+    cmd: BINARY_CHANNEL_PUSH_BYTES_CMD,
+    // channelDemoBytes 와 동일한 페이로드 — 스텝 카운터 LE u64.
+    body: channelBytesBody(11, Uint8Array.from([2, 0, 0, 0, 0, 0, 0, 0])),
+    onPush: () => {
+      pushHits += 1;
+    },
+    onChannel: () => {
+      channelHits += 1;
+    },
+    onChannelBytes: (bytesFrame) => frames.push(bytesFrame),
+    onResponse: () => {
+      responseHits += 1;
+    },
+  });
+  assert.equal(frames.length, 1);
+  assert.equal(frames[0]!.handle, 11);
+  assert.deepEqual([...frames[0]!.payload], [2, 0, 0, 0, 0, 0, 0, 0]);
+  assert.equal(pushHits, 0, 'bytes channel frame must not reach push listeners');
+  assert.equal(channelHits, 0, 'bytes channel frame must not reach JSON channel listeners');
+  assert.equal(responseHits, 0, 'bytes channel frame must not resolve a response waiter');
+});
+
+void test('demultiplexBinaryFrame tolerates short 0xfff9 bodies without throwing', () => {
+  const frames: unknown[] = [];
+  demultiplexBinaryFrame({
+    cmd: BINARY_CHANNEL_PUSH_BYTES_CMD,
+    // 핸들(4B)조차 못 찬 본문 — 조용히 건너뛴다(0xfff9 은 JSON 파싱 경로가
+    // 없으므로 이것이 유일한 비정상 모드다).
+    body: Buffer.from([0xf9, 0xff, 0x01]),
+    onPush: () => {},
+    onChannel: () => {},
+    onChannelBytes: (bytesFrame) => frames.push(bytesFrame),
+    onResponse: () => {},
+  });
+  assert.deepEqual(frames, []);
+});
+
+void test('demultiplexBinaryFrame drops 0xfff9 frames when no bytes sink is attached', () => {
+  // onChannelBytes 는 옵셔널 — 구 형태 호출(멤버 생략)도 그대로 동작한다.
+  // 중요한 계약: 0xfff9 는 onResponse 폴백으로 흘러가지 않는다(waiter 오염 방지).
+  let responseHits = 0;
+  demultiplexBinaryFrame({
+    cmd: BINARY_CHANNEL_PUSH_BYTES_CMD,
+    body: channelBytesBody(1, Uint8Array.from([7])),
+    onPush: () => {},
+    onChannel: () => {},
+    onResponse: () => {
+      responseHits += 1;
+    },
+  });
+  assert.equal(responseHits, 0, '0xfff9 must never resolve a response waiter');
+});
+
+void test('bytes channel, JSON channel, and response frames interleave without interference', () => {
+  const bytesFrames: Array<{ handle: number; payload: Uint8Array }> = [];
+  const channels: Array<{ handle: number; payload: string }> = [];
+  const responses: number[] = [];
+  // 세 경로가 한 stdout 청크에 붙어 들어오는 시나리오 — JSON 채널(0xfffc)과
+  // 바이트 채널(0xfff9)이 동시에 열려 있어도 각 프레임이 정확히 자기 경로로
+  // 간다(한 핸들 = 한 경로 계약의 디멀티플렉서 측면).
+  const stream = Buffer.concat([
+    frame(responseBody({ value: 1 })),
+    frame(channelBytesBody(5, Uint8Array.from([1, 2, 3]))),
+    frame(channelBody(4, '{"step":1}')),
+    frame(channelBytesBody(5, Uint8Array.from([4, 5, 6]))),
+    frame(responseBody({ value: 2 })),
+  ]);
+  let offset = 0;
+  while (offset + 4 <= stream.length) {
+    const len = stream.readUInt32LE(offset);
+    const body = stream.subarray(offset + 4, offset + 4 + len);
+    offset += 4 + len;
+    demultiplexBinaryFrame({
+      cmd: body[0]! | (body[1]! << 8),
+      body,
+      onPush: () => {},
+      onChannel: (frameData) => channels.push(frameData),
+      onChannelBytes: (bytesFrame) => bytesFrames.push(bytesFrame),
+      onResponse: (frameBytes) => {
+        const jsonLen =
+          frameBytes[4]! | (frameBytes[5]! << 8) | (frameBytes[6]! << 16) | (frameBytes[7]! << 24);
+        responses.push(
+          Number(
+            (
+              JSON.parse(
+                Buffer.from(frameBytes.buffer, frameBytes.byteOffset + 8, jsonLen).toString(),
+              ) as { value: number }
+            ).value,
+          ),
+        );
+      },
+    });
+  }
+  assert.deepEqual(
+    bytesFrames.map((f) => ({ handle: f.handle, bytes: [...f.payload] })),
+    [
+      { handle: 5, bytes: [1, 2, 3] },
+      { handle: 5, bytes: [4, 5, 6] },
+    ],
+  );
+  assert.deepEqual(channels, [{ handle: 4, payload: '{"step":1}' }]);
+  assert.deepEqual(responses, [1, 2]);
+});
+
+void test('0xfff9 frames carry payload bytes that are not valid UTF-8 or JSON', () => {
+  // 바이너리 경로의 존재 이유 — 임의 바이트(0xff 시퀀스 등)가 JSON 파싱 없이
+  // 온전히 도달한다. 본문이 JSON 처럼 보이는 페이로드여도 파싱되지 않는다.
+  const frames: Array<{ handle: number; payload: Uint8Array }> = [];
+  const payload = Uint8Array.from([0xff, 0xfe, 0x00, 0x7b, 0x9d, 0x22, 0x5c, 0xff]);
+  demultiplexBinaryFrame({
+    cmd: BINARY_CHANNEL_PUSH_BYTES_CMD,
+    body: channelBytesBody(0x0a0b0c0d, payload),
+    onPush: () => {},
+    onChannel: () => {},
+    onChannelBytes: (bytesFrame) => frames.push(bytesFrame),
+    onResponse: () => {},
+  });
+  assert.equal(frames.length, 1);
+  assert.equal(frames[0]!.handle, 0x0a0b0c0d, 'u32 LE handle decodes across byte boundaries');
+  assert.deepEqual([...frames[0]!.payload], [...payload]);
+});

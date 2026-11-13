@@ -1,7 +1,7 @@
 import { addNumbers } from '../generated/commands.js';
 // barrel(index) 대신 개별 모듈 import — react-doctor no-barrel-import.
-import { configure } from '../../../packages/types/src/global-config.js';
-import { createReactNativeEngine } from '../../../packages/react-native/src/react-native-core.js';
+import { configure } from '../../../packages/rustra/src/types/global-config.js';
+import { createReactNativeEngine } from '../../../packages/rustra/src/react-native/react-native-core.js';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();

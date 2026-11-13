@@ -273,7 +273,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Build @unikit-bridge/types first
-        run: bun run --cwd packages/types build
+        run: bun run --cwd packages/rustra build
       - name: Build all packages
         # tsc --noEmit 이 package exports 의 dist 타입 선언을 소비하고
         # onboarding 게이트가 repo CLI dist 를 소비하므로 검사 전에 빌드한다.
@@ -321,6 +321,14 @@ jobs:
         # Rust/TS 공개 export 를 api-surface/snapshot.json 에 고정하고 드리프트를
         # 잡는다 — umbrella `test`에 없어 CI가 놓치고 있었다.
         run: bun run test:api-surface
+      - name: Install React Native example deps (codegen-fresh app-local adapter)
+        # reactNative codegen 은 앱 로컬 node_modules/@unikit-bridge/rustra 를
+        # 요구한다(호이스트만 거절). 루트 workspaces 는 packages/* 뿐이라 예제별
+        # 설치가 필요하고, check-codegen-fresh.mjs 도 미설치 시 동일하게 설치한다.
+        run: |
+          bun install --cwd examples/react-native-calculator --frozen-lockfile
+          bun install --cwd examples/react-native-bare-calculator --frozen-lockfile
+          bun install --cwd examples/rn-experiment --frozen-lockfile
       - name: Codegen freshness gate (examples)
         # examples/*/unikit.json 예제의 committed generated/ 가 재생성 결과와
         # 일치하는지 단언한다 — 드리프트는 예제 디렉터리에서 `bun run codegen` 으로
@@ -398,7 +406,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Build @unikit-bridge/types first
-        run: bun run --cwd packages/types build
+        run: bun run --cwd packages/rustra build
       - name: Build all packages
         # 예제 테스트/앱이 @unikit-bridge/* 를 package name 으로 import 하고 exports 가
         # dist 를 가리키므로 테스트 전에 workspace 를 빌드한다.
@@ -428,7 +436,9 @@ jobs:
         # ts-runtime 의 test:runtime:tauri).
         run: bun run test:adapters
       - name: Test CLI
-        run: bun run --cwd packages/cli test
+        # CLI-only gate before the release dylib — full `packages/rustra test`
+        # pulls Bun FFI / real-dylib cases that need the next build step.
+        run: bun run --cwd packages/rustra test:cli
       - name: Test complex codec receipt
         run: bun run test:complex-codec-bench
       - name: Bench regression gate unit tests
@@ -443,38 +453,18 @@ jobs:
       - name: Registry consumer gate unit tests
         run: bun run test:registry-consumer
       - name: Build calculator example dylib
-        # packages/bun 의 into-binding 테스트가 release dylib 를 로드한다 —
+        # packages/rustra Bun FFI / into-binding 테스트가 release dylib 를 로드한다 —
         # register! id 는 등록 순서이므로 dylib 가 stale 이면 테스트도 stale
         # 결과를 낸다. 항상 클린 재빌드 후 실행.
         run: cargo build -p unikit-calculator-example --release
-      - name: Test packages (bun binding + react-native engine)
-        # packages/bun 이 FFI caller-buffer(sentinel/overflow 재시도/재사용
-        # 버퍼 비앨리어싱) 계약의 유일한 자동화 검증이다. umbrella `test`에만
-        # 있어 CI가 놓치던 것을 PR 게이트로 승격.
-        run: bun run --cwd packages/bun test
-      - name: Test types + react-native engine units
-        # packages/types(세대 게이트 등 엔진 코어 계약)와
-        # packages/react-native(레거시 JSI 스킵/재동기화)는 umbrella `test`에만
-        # 있어 PR 게이트가 놓치고 있었다. examples glob과 별도로 직접 실행한다.
-        run: |
-          bun run --cwd packages/types test
-          bun run --cwd packages/react-native test
+      - name: Test @unikit-bridge/rustra workspace package
+        run: bun run --cwd packages/rustra test
       - name: Build calculator example debug bins
         # packages/node 의 process transport 테스트는 bun test 에선 skip 되고
         # node --test(test:node-runtime)에서만 실행된다 — target/debug 의
         # unikit-calculator-example·loop-stdio 바이너리를 요구하므로 위 release
         # dylib 와 프로파일이 다른 debug 빌드가 필요하다.
         run: cargo build -p unikit-calculator-example
-      - name: Test node/tauri/testing/devtools/react package units
-        # test:packages 중 CI가 놓치던 나머지 패키지 유닛 테스트 — npm 발행이
-        # 버전 PR 승인 후 자동 진행되므로 PR 게이트로 승격한다.
-        run: |
-          bun run --cwd packages/node test
-          bun run --cwd packages/node test:node-runtime
-          bun run --cwd packages/tauri test
-          bun run --cwd packages/testing test
-          bun run --cwd packages/devtools test
-          bun run --cwd packages/react test
       - name: C++ generated codec tests
         # TS/Rust/C++ 3면 PINNED hex 게이트의 C++ 다리 — shim 테스트가 실제로
         # 실행돼야 생성 코덱과 fixture 간 드리프트를 PR 단계에서 잡는다.
@@ -521,7 +511,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Build @unikit-bridge/types first
-        run: bun run --cwd packages/types build
+        run: bun run --cwd packages/rustra build
       - name: Build all packages
         # 컴파일된 예제 앱이 @unikit-bridge/* 를 package name 으로 import 하므로 실행
         # 전에 dist 를 만둔다.
@@ -911,37 +901,41 @@ jobs:
         run: bun run verify:package:react-native
       - name: Verify packed React Native consumer resolves native sources
         run: bun run verify:consumer:react-native
-      - name: Install packed packages as a consumer
+      - name: Install packed @unikit-bridge/rustra as a consumer
         run: |
           mkdir -p /tmp/unikit-pack
-          for pkg in types node bun tauri react-native react testing devtools cli; do
-            (cd "packages/$pkg" && bun pm pack --destination /tmp/unikit-pack)
-          done
+          bun pm pack --cwd packages/rustra --destination /tmp/unikit-pack
           mkdir -p /tmp/consumer && cd /tmp/consumer
           bun init -y > /dev/null
           bun pm pkg set type=module
-          for unikit_types_tgz in /tmp/unikit-pack/unikit-bridge-types-*.tgz; do
-            bun pm pkg set "overrides.@unikit-bridge/types=file:$unikit_types_tgz"
+          for unikit_rustra_tgz in /tmp/unikit-pack/unikit-bridge-rustra-*.tgz; do
+            bun pm pkg set "dependencies.@unikit-bridge/rustra=file:$unikit_rustra_tgz"
+            bun pm pkg set "overrides.@unikit-bridge/rustra=file:$unikit_rustra_tgz"
             break
           done
-          bun add --no-save /tmp/unikit-pack/unikit-bridge-*.tgz
-      - name: Smoke — installed packages load (ESM)
+          # react 는 optional peer — /react 서브패스 스모크를 위해 소비자 앱처럼 설치한다.
+          bun pm pkg set "dependencies.react=19.1.0"
+          bun install
+      - name: Smoke — installed package subpaths load (ESM)
         run: |
           cd /tmp/consumer
           bun --eval "
-            import * as types from '@unikit-bridge/types';
-            import * as node from '@unikit-bridge/node';
-            import * as bun from '@unikit-bridge/bun';
-            import * as tauri from '@unikit-bridge/tauri';
-            import * as rn from '@unikit-bridge/react-native';
-            import * as react from '@unikit-bridge/react';
-            import * as testing from '@unikit-bridge/testing';
-            import * as devtools from '@unikit-bridge/devtools';
+            import * as root from '@unikit-bridge/rustra';
+            import * as types from '@unikit-bridge/rustra/types';
+            import * as node from '@unikit-bridge/rustra/node';
+            import * as bunAdapter from '@unikit-bridge/rustra/bun';
+            import * as tauri from '@unikit-bridge/rustra/tauri';
+            import * as rn from '@unikit-bridge/rustra/react-native';
+            import * as react from '@unikit-bridge/rustra/react';
+            import * as testing from '@unikit-bridge/rustra/testing';
+            import * as devtools from '@unikit-bridge/rustra/devtools';
+            import * as cli from '@unikit-bridge/rustra/cli';
             console.log('consumer install ok:',
-              Object.keys(types).length, Object.keys(node).length,
-              Object.keys(bun).length, Object.keys(tauri).length,
+              Object.keys(root).length, Object.keys(types).length, Object.keys(node).length,
+              Object.keys(bunAdapter).length, Object.keys(tauri).length,
               Object.keys(rn).length, Object.keys(react).length,
-              Object.keys(testing).length, Object.keys(devtools).length, 'exports');
+              Object.keys(testing).length, Object.keys(devtools).length,
+              Object.keys(cli).length, 'exports');
           "
       - name: Smoke — CLI bin runs from tarball
         run: |
@@ -952,24 +946,18 @@ jobs:
           cd /tmp/consumer
           bunx --bun unikit init /tmp/unikit-init
           cd /tmp/unikit-init
-          for unikit_types_tgz in /tmp/unikit-pack/unikit-bridge-types-*.tgz; do
-            bun pm pkg set "overrides.@unikit-bridge/types=file:$unikit_types_tgz"
-            break
-          done
-          for unikit_cli_tgz in /tmp/unikit-pack/unikit-bridge-cli-*.tgz; do
-            bun pm pkg set "overrides.@unikit-bridge/cli=file:$unikit_cli_tgz"
-            break
-          done
-          for unikit_node_tgz in /tmp/unikit-pack/unikit-bridge-node-*.tgz; do
-            bun pm pkg set "overrides.@unikit-bridge/node=file:$unikit_node_tgz"
+          for unikit_rustra_tgz in /tmp/unikit-pack/unikit-bridge-rustra-*.tgz; do
+            bun pm pkg set "dependencies.@unikit-bridge/rustra=file:$unikit_rustra_tgz"
+            bun pm pkg set "overrides.@unikit-bridge/rustra=file:$unikit_rustra_tgz"
             break
           done
           bun install
           # 발행 전 release candidate를 현재 checkout의 Rust crate로 고정한다.
           # crates.io의 이전 버전으로 조용히 폴백하면 소비자 검증이 거짓 green이 된다.
           sed -i "s#unikit-bridge = \"[^\"]*\"#unikit-bridge = { path = \"$GITHUB_WORKSPACE/crates/unikit-bridge\" }#" Cargo.toml
-          sed -i "s#unikit-bridge-macros = \"[^\"]*\"#unikit-bridge-macros = { path = \"$GITHUB_WORKSPACE/crates/unikit-bridge-macros\" }#" Cargo.toml
-          sed -i "s#unikit-bridge-macros = \"[^\"]*\"#unikit-bridge-macros = { path = \"$GITHUB_WORKSPACE/crates/unikit-bridge-macros\" }#" Cargo.toml
+          if grep -q 'unikit-bridge-macros' Cargo.toml; then
+            sed -i "s#unikit-bridge-macros = \"[^\"]*\"#unikit-bridge-macros = { path = \"$GITHUB_WORKSPACE/crates/unikit-bridge-macros\" }#" Cargo.toml
+          fi
           bun run codegen
           test -f generated/schema.json
           test -f src/generated/frame-codecs.ts
