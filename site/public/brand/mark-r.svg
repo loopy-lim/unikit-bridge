@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="rustra">
+  <rect width="64" height="64" rx="14" fill="hsl(240 5.9% 10%)"/>
+  <path
+    d="M20 46V18h14.2c6.1 0 10.2 3.5 10.2 9 0 4.1-2.2 7.1-5.7 8.4L46 46h-7.4l-6.6-9.8H26.6V46H20Zm6.6-15.4h7c2.9 0 4.7-1.5 4.7-3.9s-1.8-3.8-4.7-3.8h-7v7.7Z"
+    fill="hsl(0 0% 98%)"
+  />
+</svg>

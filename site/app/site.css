@@ -1,0 +1,97 @@
+/* rustra 소개 사이트 — UniKit site.css 컨셉(격자 캔버스·디스플레이 폰트) */
+
+:root {
+  --site-grid: rgba(24, 24, 27, 0.065);
+  --site-wash: rgba(24, 24, 27, 0.05);
+  --site-grid-size: 56px;
+}
+
+.dark {
+  --site-grid: rgba(250, 250, 250, 0.055);
+  --site-wash: rgba(250, 250, 250, 0.04);
+}
+
+.site-body {
+  font-family: var(--font-site-sans), ui-sans-serif, sans-serif;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.site-display {
+  font-family: var(--font-site-display), ui-sans-serif, sans-serif;
+}
+
+.site-mono {
+  font-family: var(--font-site-mono), ui-monospace, monospace;
+}
+
+.site-canvas {
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  background-color: hsl(var(--background));
+  background-image:
+    radial-gradient(ellipse 90% 50% at 50% -8%, var(--site-wash), transparent 68%),
+    linear-gradient(
+      to right,
+      transparent calc(var(--site-grid-size) - 1px),
+      var(--site-grid) calc(var(--site-grid-size) - 1px),
+      var(--site-grid) var(--site-grid-size)
+    ),
+    linear-gradient(
+      to bottom,
+      transparent calc(var(--site-grid-size) - 1px),
+      var(--site-grid) calc(var(--site-grid-size) - 1px),
+      var(--site-grid) var(--site-grid-size)
+    );
+  background-size: auto, var(--site-grid-size) var(--site-grid-size),
+    var(--site-grid-size) var(--site-grid-size);
+  background-position: 0 0, 0 0, 0 0;
+}
+
+.site-card {
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.site-card:hover {
+  transform: translateY(-2px);
+}
+
+.site-hero-in {
+  animation: site-rise-in 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.site-section-in {
+  animation: site-rise-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 80ms;
+}
+
+@keyframes site-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-card,
+  .site-card:hover,
+  .site-hero-in,
+  .site-section-in {
+    animation: none;
+    transition: none;
+    transform: none;
+  }
+}
+
+.site-focusable:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 3px;
+}

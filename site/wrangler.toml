@@ -1,0 +1,13 @@
+# rustra.ll3.kr — 정적 out/을 Workers Static Assets로 직접 서빙.
+# 커스텀 도메인 바인딩이 DNS·인증서를 관리한다 (Pages 미사용).
+name = "rustra-site"
+compatibility_date = "2026-11-14"
+workers_dev = false
+
+routes = [
+  { pattern = "rustra.ll3.kr", custom_domain = true },
+]
+
+[assets]
+directory = "out"
+not_found_handling = "404-page"
