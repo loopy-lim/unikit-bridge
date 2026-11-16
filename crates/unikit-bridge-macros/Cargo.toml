@@ -25,9 +25,12 @@ quote = "1"
 proc-macro2 = "1"
 
 [dev-dependencies]
-# workspace 상속 — path 전용 선언은 cargo-deny wildcards=deny 위반이고, 로컬
-# version 핀은 bump 때마다 수동 동기화 부채를 만든다. 루트 workspace.dependencies
-# (version+path)의 단일 소스를 쓴다.
-unikit-bridge.workspace = true
+# path 전용 — doctest(unikit_bridge::prelude 문서 예제)용이다. version을 붙이면
+# 발행 매니페스트에 registry 요구로 박혀 `cargo publish -p unikit-bridge-macros`
+# 검증 빌드가 아직 registry에 없는 unikit-bridge 를 찾다 실패한다(첫 발행
+# 순서는 macros → bridge 이므로 반드시 여기서 깨진다 — 2026-11-16 발행 실패,
+# run 43789783109). path 전용 dev-의존은 발행 매니페스트에서 제외된다.
+# cargo-deny wildcards=deny 는 [bans] allow-wildcard-paths 로 예외 처리.
+unikit-bridge = { path = "../unikit-bridge" }
 serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
