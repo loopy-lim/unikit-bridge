@@ -58,8 +58,10 @@ jobs:
       - name: Reset cached Criterion artifacts
         run: rm -rf target/criterion
       # 직전 성공 벤치의 criterion baseline 복원 — 없으면 change: 이 첫 측정
-      # 기준(no baseline)이 되어 회귀 감지가 무의미해진다. retention(14일)
-      # 내 아티팩트만 유효하다.
+      # 기준(no baseline)이 되어 회귀 감지가 무의미해진다. 채택(성공) baseline은
+      # retention 90일(퍼블릭 저장소 상한)까지 유효하다. 2026-11 실증: 14일이던
+      # 시절 마지막 성공 후 2주가 조용하면 baseline이 만료되어 이후 모든 push
+      # 실행이 "Require a real previous baseline"에서 실패했다.
       - name: Restore previous baseline
         if: github.event_name != 'workflow_dispatch' || inputs.comparison_ref == ''
         continue-on-error: true
@@ -188,9 +190,11 @@ jobs:
         # (첫 실패 +10% → 다음 실패 또 +10% 누적 우회). 실패 결과는 별도
         # 아티팩트명으로 보존해 원인 분석은 가능하게 한다.
         # 비교 불가(exit 3)와 벤치 자체 실패도 미채택. 명시적 bootstrap 성공만 예외다.
+        # 채택 baseline은 조용한 기간에도 살아남아야 다음 실행이 비교 가능하므로
+        # 90일(퍼블릭 상한)으로 연장. rejected는 분석 용도라 14일이면 충분하다.
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: criterion-results${{ job.status != 'success' && '-rejected' || '' }}
           path: target/criterion/
-          retention-days: 14
+          retention-days: ${{ job.status == 'success' && 90 || 14 }}
