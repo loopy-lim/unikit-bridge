@@ -1,0 +1,21 @@
+# rustra (unikit-bridge)
+
+> 하나의 Rust 코어에서 Node·Bun·Tauri·React Native용 타입 안전 TypeScript 클라이언트를 생성해요. 호출은 Frame 바이너리 와이어로 통신하고 `unikit diff` 계약 게이트가 breaking 스키마 변경을 CI에서 차단해요. 이름 정리: 제품명 rustra · 저장소 unikit-bridge · npm `@unikit-bridge/rustra`(0.13.0 게시됨) · 크레이트 `unikit-bridge`(crates.io 미게시, 2026-11-16 기준) · CLI bin `unikit` · 설정 `unikit.json`.
+
+## 핵심 규칙
+
+- 파이프라인: Rust `#[command]` 정의 → `generate_typescript()`가 `schema.json` 발행 → `unikit codegen`이 그 단일 파일에서 전체 TS 표면 렌더링 → 어댑터들이 같은 `EngineClient` 인터페이스로 라우팅.
+- Rust 표면 둘: ① `#[bridge_type]` 구조체 + `#[command]` 함수(비동기·상태 주입은 이 경로) ② `PackageBuilder::function`으로 매크로 없이 일반 함수 0~12 인자 등록.
+- 생성된 host 진입점(`./generated/node.js` 등)이 연결을 소유해요 — 제품 코드에 transport 설정이 남지 않고 호출 뒤 `unikit.dispose()`로 정리.
+- Node 티어 선택: 기본 one-shot(저빈도 CLI) · `createNodeLoopTransport`(서버) · N-API Frame fast-path(마이크로초 호출) — examples/calculator/apps/node-performance.ts.
+- 성능(검증 근거 문서 기준): 요청 페이로드 4B vs JSON 47B(약 11.8× — 바이트 기준, RTT 아님) · 코어 왕복 평균 134ns · N-API 핫 경로 793,185 ops/s · RN은 Nitro와 ±5%.
+
+## 소비 방법
+
+- 전제: Rust 1.95.0 · Node 22.6+ · Bun 1.4+.
+- `bunx --bun @unikit-bridge/rustra@0.13.0 init my-project --setup` — 스캐폴드·클라이언트 생성·빌드·데모까지 한 번에. Rust는 `unikit-bridge = "0.13.0"` + serde·schemars 0.8(derive). 어댑터 import는 `/node`·`/bun`·`/tauri`·`/react-native` 서브패스.
+- 네이티브 라이브러리·어댑터·생성물 버전은 함께 갱신해요. 취소·타임아웃·배치 같은 capability 차이는 docs/compatibility-matrix.ko.md, 이벤트·채널은 docs/events-and-channels.ko.md, 전체 문서는 docs/README.ko.md에서.
+
+## MCP 서버 (AI 에이전트 연동)
+
+- `get_docs({"product":"rustra"})`가 이 문서 전문을 돌려줘요. 연결: `claude mcp add unikit-bridge -- npx -y @unikit-bridge/mcp`.
