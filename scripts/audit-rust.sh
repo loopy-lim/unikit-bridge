@@ -27,6 +27,16 @@ tauri_upstream_advisories=(
   # 쓴다 — unmaintained 어드바이저리이고 askama 상위 해소까지 예외한다.
   # askama 가 basic-toml 을 떼는 버전이 나오면 즉시 이 예외를 제거한다.
   RUSTSEC-2026-0374 # basic-toml unmaintained via askama_derive (tauri-codegen)
+  # chrono 는 이 워크스페이스에서 컴파일되지 않는다 — cargo tree -i chrono
+  # --target all -e all --all-features 로 어느 feature 조합에서도 의존
+  # 그래프에 없음을 확인했다. Cargo.lock 이 그래프 내 크레이트의 optional
+  # 의존까지 기재하는 탓에 tauri-utils → serde_with(optional chrono_0_4)
+  # 경로로 lock 항목만 존재한다. RUSTSEC-2026-0543 은 patched=[] (전 버전
+  # unmaintained)이라 버전 상향이 불가능하고, tauri-utils 2.10.3 ·
+  # 3.0.0-alpha.4 까지 전부 serde_with 를 유지하며 serde_with 3.24.0 도
+  # chrono_0_4 를 아직 쓴다. 둘 중 하나가 chrono 를 떼는 버전을 내면
+  # 즉시 이 예외를 제거한다.
+  RUSTSEC-2026-0543 # chrono unmaintained, 미컴파일 lock 전이 의존 (tauri-utils → serde_with)
 )
 
 audit_args=(--quiet --deny warnings)
